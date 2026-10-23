@@ -41,6 +41,12 @@ public class MtgPortfolio : AuditableEntity
     /// <summary>Set by the coverage review step (page 212); the reason is kept in <see cref="RejectionReason"/>.</summary>
     public const string CoverageReviewRejectedStatus = "COVERAGE_REVIEW_REJECTED";
 
+    /// <summary>Set by the cheque coverage step (page 213).</summary>
+    public const string ChequeCoverageAcceptedStatus = "CHEQUE_COVERAGE_ACCEPTED";
+
+    /// <summary>Set by the cheque coverage step (page 213); the reason is kept in <see cref="RejectionReason"/>.</summary>
+    public const string ChequeCoverageRejectedStatus = "CHEQUE_COVERAGE_REJECTED";
+
     public long PortfolioId { get; set; }
 
     public string PortfolioNo { get; set; } = string.Empty;

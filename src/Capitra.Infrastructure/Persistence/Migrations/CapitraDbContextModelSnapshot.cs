@@ -1636,6 +1636,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                             NameAr = "تم رفض مراجعة التغطية",
                             NameEn = "Coverage Review Rejected",
                             RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "CHEQUE_COVERAGE_ACCEPTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 12,
+                            IsActive = true,
+                            NameAr = "تم قبول تغطية الشيكات",
+                            NameEn = "Cheque Coverage Accepted",
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "CHEQUE_COVERAGE_REJECTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 13,
+                            IsActive = true,
+                            NameAr = "تم رفض تغطية الشيكات",
+                            NameEn = "Cheque Coverage Rejected",
+                            RowVersion = 1
                         });
                 });
 
@@ -2066,6 +2088,105 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_MTG_PORTFOLIO_ACCOUNT_PORTFOLIO_ID_SELLER_CONTRACT_NO");
 
                     b.ToTable("MTG_PORTFOLIO_ACCOUNT", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioCheque", b =>
+                {
+                    b.Property<long>("ChequeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CHEQUE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ChequeId"));
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("BANK_NAME");
+
+                    b.Property<decimal>("ChequeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHEQUE_AMOUNT");
+
+                    b.Property<DateOnly?>("ChequeDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CHEQUE_DATE");
+
+                    b.Property<string>("ChequeNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHEQUE_NO");
+
+                    b.Property<string>("ChequeStatusCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CHEQUE_STATUS_CODE");
+
+                    b.Property<DateOnly?>("ClearingDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CLEARING_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DUE_DATE");
+
+                    b.Property<bool>("IsEndorsedToCompany")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ENDORSED_TO_COMPANY");
+
+                    b.Property<long>("PortfolioAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ACCOUNT_ID");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<string>("ReturnReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("RETURN_REASON");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ChequeId")
+                        .HasName("PK_MTG_PORTFOLIO_CHEQUE");
+
+                    b.HasIndex("ChequeStatusCode")
+                        .HasDatabaseName("IX_MTG_PORTFOLIO_CHEQUE_CHEQUE_STATUS_CODE");
+
+                    b.HasIndex("PortfolioAccountId")
+                        .HasDatabaseName("IX_MTG_PORTFOLIO_CHEQUE_PORTFOLIO_ACCOUNT_ID");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_PORTFOLIO_CHEQUE_PORTFOLIO_ID");
+
+                    b.ToTable("MTG_PORTFOLIO_CHEQUE", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioImport", b =>
@@ -3153,6 +3274,30 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_PORTFOLIO_ACCOUNT_MTG_PROJECT_UNIT");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioCheque", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpChequeStatus", null)
+                        .WithMany()
+                        .HasForeignKey("ChequeStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PORTFOLIO_CHEQUE_ADM_LKP_CHEQUE_STATUS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolioAccount", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PORTFOLIO_CHEQUE_MTG_PORTFOLIO_ACCOUNT");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PORTFOLIO_CHEQUE_MTG_PORTFOLIO");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioImport", b =>

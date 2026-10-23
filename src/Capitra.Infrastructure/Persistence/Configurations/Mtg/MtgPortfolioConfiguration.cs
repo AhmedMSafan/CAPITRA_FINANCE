@@ -151,6 +151,26 @@ public sealed class MtgValuationConfiguration : IEntityTypeConfiguration<MtgValu
     }
 }
 
+public sealed class MtgPortfolioChequeConfiguration : IEntityTypeConfiguration<MtgPortfolioCheque>
+{
+    public void Configure(EntityTypeBuilder<MtgPortfolioCheque> builder)
+    {
+        builder.ToTable("MTG_PORTFOLIO_CHEQUE");
+        builder.HasKey(x => x.ChequeId);
+        builder.HasIndex(x => x.PortfolioId);
+
+        builder.Property(x => x.ChequeNo).HasMaxLength(100);
+        builder.Property(x => x.BankName).HasMaxLength(300);
+        builder.Property(x => x.ChequeStatusCode).HasMaxLength(LookupEntity.CodeMaxLength);
+        builder.Property(x => x.ReturnReason).HasMaxLength(1000);
+
+        builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<MtgPortfolioAccount>().WithMany().HasForeignKey(x => x.PortfolioAccountId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<AdmLkpChequeStatus>().WithMany().HasForeignKey(x => x.ChequeStatusCode).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
 public sealed class MtgAccountPaymentConfiguration : IEntityTypeConfiguration<MtgAccountPayment>
 {
     public void Configure(EntityTypeBuilder<MtgAccountPayment> builder)

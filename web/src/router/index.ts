@@ -87,6 +87,13 @@ const router = createRouter({
           props: true,
           meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Portfolio Coverage Review' }
         },
+        {
+          path: 'mortgage/portfolios/:portfolioId/cheque-coverage',
+          name: 'mtg-step-cheque-coverage',
+          component: () => import('@/modules/mtg/steps/cheque-coverage/ChequeCoveragePage.vue'),
+          props: true,
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Portfolio Cheque Coverage Review' }
+        },
         // Portfolio acquisition (APEX App 105): master and reference data.
         {
           path: 'mortgage',
