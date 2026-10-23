@@ -1603,6 +1603,17 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                             NameAr = "تم رفض المراجعة القانونية",
                             NameEn = "Legal Review Rejected",
                             RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "VALUATION_COMPLETED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 9,
+                            IsActive = true,
+                            NameAr = "اكتمل التقييم",
+                            NameEn = "Valuation Completed",
+                            RowVersion = 1
                         });
                 });
 
@@ -2377,6 +2388,119 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_PROJECT_UNIT", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgValuation", b =>
+                {
+                    b.Property<long>("ValuationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("VALUATION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ValuationId"));
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<DateOnly?>("ApprovedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("APPROVED_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("FacilitiesStatus")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("FACILITIES_STATUS");
+
+                    b.Property<decimal>("MarketValueAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARKET_VALUE_AMOUNT");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<decimal?>("ProjectCompletionPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PROJECT_COMPLETION_PCT");
+
+                    b.Property<long>("ProjectId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_ID");
+
+                    b.Property<long?>("ProjectUnitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_UNIT_ID");
+
+                    b.Property<decimal?>("RecommendedValueAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("RECOMMENDED_VALUE_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly>("ValuationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VALUATION_DATE");
+
+                    b.Property<string>("ValuationTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("VALUATION_TYPE_CODE");
+
+                    b.Property<string>("ValuerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("VALUER_NAME");
+
+                    b.Property<string>("ValuerRegistrationNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("VALUER_REGISTRATION_NO");
+
+                    b.HasKey("ValuationId")
+                        .HasName("PK_MTG_VALUATION");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_VALUATION_PORTFOLIO_ID");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("IX_MTG_VALUATION_PROJECT_ID");
+
+                    b.HasIndex("ProjectUnitId")
+                        .HasDatabaseName("IX_MTG_VALUATION_PROJECT_UNIT_ID");
+
+                    b.HasIndex("ValuationTypeCode")
+                        .HasDatabaseName("IX_MTG_VALUATION_VALUATION_TYPE_CODE");
+
+                    b.ToTable("MTG_VALUATION", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRole", b =>
                 {
                     b.Property<string>("Id")
@@ -3053,6 +3177,36 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UnitTypeCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_MTG_PROJECT_UNIT_MTG_LKP_UNIT_TYPE");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgValuation", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_VALUATION_MTG_PORTFOLIO");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgProject", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_VALUATION_MTG_PROJECT");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgProjectUnit", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_VALUATION_MTG_PROJECT_UNIT");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpValuationType", null)
+                        .WithMany()
+                        .HasForeignKey("ValuationTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_VALUATION_MTG_LKP_VALUATION_TYPE");
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRoleClaim", b =>

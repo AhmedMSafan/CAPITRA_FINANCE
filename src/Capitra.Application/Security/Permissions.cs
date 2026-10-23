@@ -42,5 +42,8 @@ public static class Permissions
 
         /// <summary>Workflow step "Portfolio Legal Review" (page 211): save the legal checklist and deal decisions, accept or reject.</summary>
         public const string StepLegalReview = "MTG.STEP.LEGAL_REVIEW";
+
+        /// <summary>Workflow step "Portfolio Valuation" (page 401): record valuations and complete the step.</summary>
+        public const string StepValuation = "MTG.STEP.VALUATION";
     }
 }

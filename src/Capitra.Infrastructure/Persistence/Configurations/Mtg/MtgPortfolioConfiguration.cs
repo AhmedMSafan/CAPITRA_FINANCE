@@ -129,6 +129,28 @@ public sealed class MtgLegalReviewConfiguration : IEntityTypeConfiguration<MtgLe
     }
 }
 
+public sealed class MtgValuationConfiguration : IEntityTypeConfiguration<MtgValuation>
+{
+    public void Configure(EntityTypeBuilder<MtgValuation> builder)
+    {
+        builder.ToTable("MTG_VALUATION");
+        builder.HasKey(x => x.ValuationId);
+        builder.HasIndex(x => x.PortfolioId);
+
+        builder.Property(x => x.ValuationTypeCode).HasMaxLength(LookupEntity.CodeMaxLength);
+        builder.Property(x => x.ValuerName).HasMaxLength(200);
+        builder.Property(x => x.ValuerRegistrationNo).HasMaxLength(100);
+        builder.Property(x => x.FacilitiesStatus).HasMaxLength(MtgPortfolioConfiguration.CommentsMaxLength);
+        builder.Property(x => x.ApprovedBy).HasMaxLength(255);
+
+        builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<MtgProject>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<MtgProjectUnit>().WithMany().HasForeignKey(x => x.ProjectUnitId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<MtgLkpValuationType>().WithMany().HasForeignKey(x => x.ValuationTypeCode).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
 public sealed class MtgAccountPaymentConfiguration : IEntityTypeConfiguration<MtgAccountPayment>
 {
     public void Configure(EntityTypeBuilder<MtgAccountPayment> builder)

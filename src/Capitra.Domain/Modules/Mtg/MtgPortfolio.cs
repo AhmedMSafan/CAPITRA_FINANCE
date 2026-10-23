@@ -32,6 +32,9 @@ public class MtgPortfolio : AuditableEntity
     /// <summary>Set by the legal review step (page 211).</summary>
     public const string LegalReviewRejectedStatus = "LEGAL_REVIEW_REJECTED";
 
+    /// <summary>Set by the valuation step (page 401).</summary>
+    public const string ValuationCompletedStatus = "VALUATION_COMPLETED";
+
     public long PortfolioId { get; set; }
 
     public string PortfolioNo { get; set; } = string.Empty;

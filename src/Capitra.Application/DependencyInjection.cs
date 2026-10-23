@@ -5,6 +5,7 @@ using Capitra.Application.Modules.Mtg.PortfolioSteps.AmlReview;
 using Capitra.Application.Modules.Mtg.PortfolioSteps.ExcelImport;
 using Capitra.Application.Modules.Mtg.PortfolioSteps.Inquiries;
 using Capitra.Application.Modules.Mtg.PortfolioSteps.LegalReview;
+using Capitra.Application.Modules.Mtg.PortfolioSteps.Valuation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Capitra.Application;
@@ -31,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<IMtgAmlReviewService, MtgAmlReviewService>();
         services.AddScoped<IMtgInquiryService, MtgInquiryService>();
         services.AddScoped<IMtgLegalReviewService, MtgLegalReviewService>();
+        services.AddScoped<IMtgValuationService, MtgValuationService>();
         return services;
     }
 }

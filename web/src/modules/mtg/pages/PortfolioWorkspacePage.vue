@@ -25,7 +25,8 @@ const workflowSteps = [
   { label: 'Excel import', route: 'mtg-step-excel-import', icon: 'pi pi-file-excel' },
   { label: 'AML review', route: 'mtg-step-aml-review', icon: 'pi pi-shield' },
   { label: 'Inquiries', route: 'mtg-step-inquiries', icon: 'pi pi-comments' },
-  { label: 'Legal review', route: 'mtg-step-legal-review', icon: 'pi pi-briefcase' }
+  { label: 'Legal review', route: 'mtg-step-legal-review', icon: 'pi pi-briefcase' },
+  { label: 'Valuation', route: 'mtg-step-valuation', icon: 'pi pi-calculator' }
 ]
 
 const props = defineProps<{ portfolioId: string }>()
