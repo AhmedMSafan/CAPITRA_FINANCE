@@ -53,6 +53,17 @@ public class MtgPortfolio : AuditableEntity
     /// <summary>Set by the financial review step (page 214); the reason is kept in <see cref="RejectionReason"/>.</summary>
     public const string FinancialReviewRejectedStatus = "FINANCIAL_REVIEW_REJECTED";
 
+    /// <summary>Set by the board review step (page 215).</summary>
+    public const string BoardReviewAcceptedStatus = "BOARD_REVIEW_ACCEPTED";
+
+    /// <summary>Set by the board review step (page 215); the reason is kept in <see cref="RejectionReason"/>.</summary>
+    public const string BoardReviewRejectedStatus = "BOARD_REVIEW_REJECTED";
+
+    /// <summary><see cref="BoardDecisionCode"/> values.</summary>
+    public const string BoardAccepted = "ACCEPTED";
+
+    public const string BoardRejected = "REJECTED";
+
     public long PortfolioId { get; set; }
 
     public string PortfolioNo { get; set; } = string.Empty;
@@ -102,6 +113,17 @@ public class MtgPortfolio : AuditableEntity
 
     /// <summary>The day the financial review was completed and the portfolio went to the board (page 214).</summary>
     public DateOnly? SubmittedDate { get; set; }
+
+    /// <summary>ACCEPTED or REJECTED by the board (page 215).</summary>
+    public string? BoardDecisionCode { get; set; }
+
+    /// <summary>The board resolution number.</summary>
+    public string? BoardDecisionNo { get; set; }
+
+    public DateOnly? BoardDecisionDate { get; set; }
+
+    /// <summary>The day the board approved the purchase; cleared when the board rejects it.</summary>
+    public DateOnly? ApprovedDate { get; set; }
 
     /// <summary>Why the last review rejected the portfolio; cleared when a review accepts it.</summary>
     public string? RejectionReason { get; set; }

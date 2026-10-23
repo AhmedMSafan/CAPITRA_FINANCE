@@ -29,7 +29,9 @@ public sealed class MtgLkpPortfolioStatusConfiguration : LookupConfiguration<Mtg
             Seed(MtgPortfolio.ChequeCoverageAcceptedStatus, "Cheque Coverage Accepted", "تم قبول تغطية الشيكات", 12),
             Seed(MtgPortfolio.ChequeCoverageRejectedStatus, "Cheque Coverage Rejected", "تم رفض تغطية الشيكات", 13),
             Seed(MtgPortfolio.FinancialReviewAcceptedStatus, "Financial Review Accepted", "تم قبول المراجعة المالية", 14),
-            Seed(MtgPortfolio.FinancialReviewRejectedStatus, "Financial Review Rejected", "تم رفض المراجعة المالية", 15));
+            Seed(MtgPortfolio.FinancialReviewRejectedStatus, "Financial Review Rejected", "تم رفض المراجعة المالية", 15),
+            Seed(MtgPortfolio.BoardReviewAcceptedStatus, "Board Review Accepted", "تمت موافقة مجلس الإدارة", 16),
+            Seed(MtgPortfolio.BoardReviewRejectedStatus, "Board Review Rejected", "تم رفض مجلس الإدارة", 17));
     }
 
     private static MtgLkpPortfolioStatus Seed(string code, string nameEn, string nameAr, int displayOrder) => new()

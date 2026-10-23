@@ -1680,6 +1680,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                             NameAr = "تم رفض المراجعة المالية",
                             NameEn = "Financial Review Rejected",
                             RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "BOARD_REVIEW_ACCEPTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 16,
+                            IsActive = true,
+                            NameAr = "تمت موافقة مجلس الإدارة",
+                            NameEn = "Board Review Accepted",
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "BOARD_REVIEW_REJECTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 17,
+                            IsActive = true,
+                            NameAr = "تم رفض مجلس الإدارة",
+                            NameEn = "Board Review Rejected",
+                            RowVersion = 1
                         });
                 });
 
@@ -1825,6 +1847,24 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("ADMIN_EXPENSE_PCT");
+
+                    b.Property<DateOnly?>("ApprovedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("APPROVED_DATE");
+
+                    b.Property<string>("BoardDecisionCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("BOARD_DECISION_CODE");
+
+                    b.Property<DateOnly?>("BoardDecisionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("BOARD_DECISION_DATE");
+
+                    b.Property<string>("BoardDecisionNo")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("BOARD_DECISION_NO");
 
                     b.Property<string>("Comments")
                         .HasMaxLength(4000)

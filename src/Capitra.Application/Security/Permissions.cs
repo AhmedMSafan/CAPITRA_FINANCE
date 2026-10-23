@@ -54,5 +54,8 @@ public static class Permissions
 
         /// <summary>Workflow step "Portfolio Financial Review" (page 214): price the portfolio, accept or reject.</summary>
         public const string StepFinancialReview = "MTG.STEP.FINANCIAL_REVIEW";
+
+        /// <summary>Workflow step "Portfolio Board Review" (page 215): record the board decision, accept or reject.</summary>
+        public const string StepBoardReview = "MTG.STEP.BOARD_REVIEW";
     }
 }

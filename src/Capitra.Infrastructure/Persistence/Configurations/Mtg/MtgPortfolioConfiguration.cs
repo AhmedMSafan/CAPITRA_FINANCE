@@ -24,6 +24,8 @@ public sealed class MtgPortfolioConfiguration : IEntityTypeConfiguration<MtgPort
         builder.Property(x => x.CurrencyCode).HasMaxLength(3);
         builder.Property(x => x.Comments).HasMaxLength(CommentsMaxLength);
         builder.Property(x => x.RejectionReason).HasMaxLength(CommentsMaxLength);
+        builder.Property(x => x.BoardDecisionCode).HasMaxLength(20);
+        builder.Property(x => x.BoardDecisionNo).HasMaxLength(200);
 
         builder.HasOne<MtgDeveloper>().WithMany().HasForeignKey(x => x.DeveloperId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<MtgProject>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);

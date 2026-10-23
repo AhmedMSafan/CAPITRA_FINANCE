@@ -101,6 +101,13 @@ const router = createRouter({
           props: true,
           meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Portfolio Financial Review' }
         },
+        {
+          path: 'mortgage/portfolios/:portfolioId/board-review',
+          name: 'mtg-step-board-review',
+          component: () => import('@/modules/mtg/steps/board-review/BoardReviewPage.vue'),
+          props: true,
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Portfolio Board Review' }
+        },
         // Portfolio acquisition (APEX App 105): master and reference data.
         {
           path: 'mortgage',
