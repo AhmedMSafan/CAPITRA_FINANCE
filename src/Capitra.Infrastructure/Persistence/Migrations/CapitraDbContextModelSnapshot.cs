@@ -22,7 +22,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpCountry", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpChequeStatus", b =>
                 {
                     b.Property<string>("Code")
                         .HasMaxLength(30)
@@ -49,21 +49,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("DISPLAY_ORDER");
 
                     b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
                         .HasColumnName("IS_ACTIVE");
 
                     b.Property<string>("NameAr")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("NAME_AR");
 
                     b.Property<string>("NameEn")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
@@ -81,16 +79,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_COUNTRY");
+                        .HasName("PK_ADM_LKP_CHEQUE_STATUS");
 
-                    b.ToTable("ADM_LKP_COUNTRY", (string)null);
+                    b.ToTable("ADM_LKP_CHEQUE_STATUS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpCurrency", b =>
                 {
                     b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
                         .HasColumnName("CODE");
 
                     b.Property<DateTime>("CreatedAt")
@@ -103,6 +101,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
+                    b.Property<int>("DecimalPlaces")
+                        .HasColumnType("integer")
+                        .HasColumnName("DECIMAL_PLACES");
+
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
@@ -113,21 +115,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("DISPLAY_ORDER");
 
                     b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
                         .HasColumnName("IS_ACTIVE");
 
                     b.Property<string>("NameAr")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("NAME_AR");
 
                     b.Property<string>("NameEn")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
@@ -148,6 +148,412 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasName("PK_ADM_LKP_CURRENCY");
 
                     b.ToTable("ADM_LKP_CURRENCY", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDecisionType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_DECISION_TYPE");
+
+                    b.ToTable("ADM_LKP_DECISION_TYPE", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentGroup", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_DOCUMENT_GROUP");
+
+                    b.ToTable("ADM_LKP_DOCUMENT_GROUP", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<string>("AllowedExtensions")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("ALLOWED_EXTENSIONS");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<string>("DocumentCategory")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("DOCUMENT_CATEGORY");
+
+                    b.Property<string>("DocumentGroupCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DOCUMENT_GROUP_CODE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsExpiryRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_EXPIRY_REQUIRED");
+
+                    b.Property<bool>("IsMandatory")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_MANDATORY");
+
+                    b.Property<int?>("MaxFileSizeMb")
+                        .HasColumnType("integer")
+                        .HasColumnName("MAX_FILE_SIZE_MB");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_DOCUMENT_TYPE");
+
+                    b.HasIndex("DocumentGroupCode")
+                        .HasDatabaseName("IX_ADM_LKP_DOCUMENT_TYPE_DOCUMENT_GROUP_CODE");
+
+                    b.ToTable("ADM_LKP_DOCUMENT_TYPE", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpGuaranteeType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsMandatory")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_MANDATORY");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_GUARANTEE_TYPE");
+
+                    b.ToTable("ADM_LKP_GUARANTEE_TYPE", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpInsuranceType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_INSURANCE_TYPE");
+
+                    b.ToTable("ADM_LKP_INSURANCE_TYPE", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpPaymentStatus", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_PAYMENT_STATUS");
+
+                    b.ToTable("ADM_LKP_PAYMENT_STATUS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpRiskLevel", b =>
@@ -177,9 +583,347 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("DISPLAY_ORDER");
 
                     b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_RISK_LEVEL");
+
+                    b.ToTable("ADM_LKP_RISK_LEVEL", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloper", b =>
+                {
+                    b.Property<long>("DeveloperId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEVELOPER_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DeveloperId"));
+
+                    b.Property<string>("AddressText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("ADDRESS_TEXT");
+
+                    b.Property<string>("CommercialRegNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("COMMERCIAL_REG_NO");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DeveloperCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DEVELOPER_CODE");
+
+                    b.Property<string>("EmailAddress")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("EMAIL_ADDRESS");
+
+                    b.Property<DateOnly?>("IncorporationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("INCORPORATION_DATE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("LegalNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("LEGAL_NAME_AR");
+
+                    b.Property<string>("LegalNameEn")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("LEGAL_NAME_EN");
+
+                    b.Property<string>("PhoneNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("PHONE_NO");
+
+                    b.Property<string>("RiskLevelCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RISK_LEVEL_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("TaxRegNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("TAX_REG_NO");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DeveloperId")
+                        .HasName("PK_MTG_DEVELOPER");
+
+                    b.HasIndex("DeveloperCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_DEVELOPER_DEVELOPER_CODE");
+
+                    b.HasIndex("RiskLevelCode")
+                        .HasDatabaseName("IX_MTG_DEVELOPER_RISK_LEVEL_CODE");
+
+                    b.ToTable("MTG_DEVELOPER", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloperSignatory", b =>
+                {
+                    b.Property<long>("DeveloperSignatoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEVELOPER_SIGNATORY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DeveloperSignatoryId"));
+
+                    b.Property<string>("AuthorizationReference")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("AUTHORIZATION_REFERENCE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DeveloperId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEVELOPER_ID");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("JobTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("JOB_TITLE");
+
+                    b.Property<string>("NationalIdNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("NATIONAL_ID_NO");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SignatoryName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("SIGNATORY_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly?>("ValidFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VALID_FROM_DATE");
+
+                    b.Property<DateOnly?>("ValidToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VALID_TO_DATE");
+
+                    b.HasKey("DeveloperSignatoryId")
+                        .HasName("PK_MTG_DEVELOPER_SIGNATORY");
+
+                    b.HasIndex("DeveloperId")
+                        .HasDatabaseName("IX_MTG_DEVELOPER_SIGNATORY_DEVELOPER_ID");
+
+                    b.ToTable("MTG_DEVELOPER_SIGNATORY", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInvestor", b =>
+                {
+                    b.Property<long>("InvestorId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INVESTOR_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InvestorId"));
+
+                    b.Property<string>("AddressText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("ADDRESS_TEXT");
+
+                    b.Property<DateOnly?>("BirthDate")
+                        .HasColumnType("date")
+                        .HasColumnName("BIRTH_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("DeclaredIncomeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DECLARED_INCOME_AMOUNT");
+
+                    b.Property<string>("EmailAddress")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("EMAIL_ADDRESS");
+
+                    b.Property<string>("EmployerName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("EMPLOYER_NAME");
+
+                    b.Property<string>("FullNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("FULL_NAME_AR");
+
+                    b.Property<string>("FullNameEn")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("FULL_NAME_EN");
+
+                    b.Property<string>("InvestorCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INVESTOR_CODE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NationalIdNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("NATIONAL_ID_NO");
+
+                    b.Property<string>("PhoneNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("PHONE_NO");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("InvestorId")
+                        .HasName("PK_MTG_INVESTOR");
+
+                    b.HasIndex("InvestorCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_INVESTOR_INVESTOR_CODE");
+
+                    b.ToTable("MTG_INVESTOR", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpApprovalStep", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
 
                     b.Property<string>("NameAr")
@@ -209,9 +953,528 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_RISK_LEVEL");
+                        .HasName("PK_MTG_LKP_APPROVAL_STEP");
 
-                    b.ToTable("ADM_LKP_RISK_LEVEL", (string)null);
+                    b.ToTable("MTG_LKP_APPROVAL_STEP", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpDdCheckType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsMandatory")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_MANDATORY");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MTG_LKP_DD_CHECK_TYPE");
+
+                    b.ToTable("MTG_LKP_DD_CHECK_TYPE", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpInquiryType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MTG_LKP_INQUIRY_TYPE");
+
+                    b.ToTable("MTG_LKP_INQUIRY_TYPE", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioStatus", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MTG_LKP_PORTFOLIO_STATUS");
+
+                    b.ToTable("MTG_LKP_PORTFOLIO_STATUS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpUnitType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MTG_LKP_UNIT_TYPE");
+
+                    b.ToTable("MTG_LKP_UNIT_TYPE", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpValuationType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MTG_LKP_VALUATION_TYPE");
+
+                    b.ToTable("MTG_LKP_VALUATION_TYPE", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProject", b =>
+                {
+                    b.Property<long>("ProjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProjectId"));
+
+                    b.Property<DateOnly?>("BuildingLicenseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("BUILDING_LICENSE_DATE");
+
+                    b.Property<string>("BuildingLicenseNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BUILDING_LICENSE_NO");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DeveloperId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEVELOPER_ID");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<decimal?>("LandArea")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LAND_AREA");
+
+                    b.Property<string>("LocationText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("LOCATION_TEXT");
+
+                    b.Property<string>("ProjectCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PROJECT_CODE");
+
+                    b.Property<decimal?>("ProjectCompletionPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PROJECT_COMPLETION_PCT");
+
+                    b.Property<string>("ProjectNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("PROJECT_NAME_AR");
+
+                    b.Property<string>("ProjectNameEn")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("PROJECT_NAME_EN");
+
+                    b.Property<string>("ProjectStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PROJECT_STATUS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("TitleDeedNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("TITLE_DEED_NO");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProjectId")
+                        .HasName("PK_MTG_PROJECT");
+
+                    b.HasIndex("DeveloperId")
+                        .HasDatabaseName("IX_MTG_PROJECT_DEVELOPER_ID");
+
+                    b.HasIndex("ProjectCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PROJECT_PROJECT_CODE");
+
+                    b.ToTable("MTG_PROJECT", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProjectUnit", b =>
+                {
+                    b.Property<long>("ProjectUnitId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_UNIT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProjectUnitId"));
+
+                    b.Property<decimal?>("AreaSqm")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("AREA_SQM");
+
+                    b.Property<string>("BuildingNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("BUILDING_NO");
+
+                    b.Property<decimal?>("ContractAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CONTRACT_AMOUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("FloorNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("FLOOR_NO");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("LicenseStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("LICENSE_STATUS");
+
+                    b.Property<decimal?>("MarketValueAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARKET_VALUE_AMOUNT");
+
+                    b.Property<long>("ProjectId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("UnitCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("UNIT_CODE");
+
+                    b.Property<string>("UnitNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("UNIT_NO");
+
+                    b.Property<string>("UnitTypeCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("UNIT_TYPE_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProjectUnitId")
+                        .HasName("PK_MTG_PROJECT_UNIT");
+
+                    b.HasIndex("UnitTypeCode")
+                        .HasDatabaseName("IX_MTG_PROJECT_UNIT_UNIT_TYPE_CODE");
+
+                    b.HasIndex("ProjectId", "UnitCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PROJECT_UNIT_PROJECT_ID_UNIT_CODE");
+
+                    b.ToTable("MTG_PROJECT_UNIT", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRole", b =>
@@ -379,9 +1642,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("FULL_NAME");
 
                     b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
                         .HasColumnName("IS_ACTIVE");
 
                     b.Property<string>("JobTitle")
@@ -709,6 +1970,60 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasName("PK_SEC_USER_TOKEN");
 
                     b.ToTable("SEC_USER_TOKEN", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentType", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpDocumentGroup", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentGroupCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ADM_LKP_DOCUMENT_TYPE_ADM_LKP_DOCUMENT_GROUP");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloper", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpRiskLevel", null)
+                        .WithMany()
+                        .HasForeignKey("RiskLevelCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_DEVELOPER_ADM_LKP_RISK_LEVEL");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloperSignatory", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgDeveloper", null)
+                        .WithMany()
+                        .HasForeignKey("DeveloperId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_DEVELOPER_SIGNATORY_MTG_DEVELOPER");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProject", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgDeveloper", null)
+                        .WithMany()
+                        .HasForeignKey("DeveloperId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PROJECT_MTG_DEVELOPER");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProjectUnit", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgProject", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PROJECT_UNIT_MTG_PROJECT");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpUnitType", null)
+                        .WithMany()
+                        .HasForeignKey("UnitTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_PROJECT_UNIT_MTG_LKP_UNIT_TYPE");
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRoleClaim", b =>

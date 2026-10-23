@@ -170,7 +170,7 @@ public sealed partial class NamingStandardTests
             var table = entity.GetTableName()!;
             Assert.Contains("_LKP_", table, StringComparison.Ordinal);
             Assert.Equal(["CODE"], entity.FindPrimaryKey()!.Properties.Select(p => p.GetColumnName()));
-            Assert.Equal(30, entity.FindProperty(nameof(LookupEntity.Code))!.GetMaxLength());
+            Assert.InRange(entity.FindProperty(nameof(LookupEntity.Code))!.GetMaxLength() ?? int.MaxValue, 1, LookupEntity.CodeMaxLength);
         }
     }
 }

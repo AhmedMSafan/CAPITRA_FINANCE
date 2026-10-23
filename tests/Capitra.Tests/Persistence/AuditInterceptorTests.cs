@@ -70,9 +70,9 @@ public sealed class AuditInterceptorTests
     public async Task Uses_SYSTEM_when_nobody_is_signed_in()
     {
         await using var context = CreateContext(Guid.NewGuid().ToString(), new FakeUser { UserName = null }, new FakeClock());
-        context.Add(new AdmLkpCountry { Code = "EG", NameAr = "مصر", NameEn = "Egypt" });
+        context.Add(new AdmLkpRiskLevel { Code = "LOW", NameAr = "منخفض", NameEn = "Low" });
         await context.SaveChangesAsync();
 
-        Assert.Equal(AuditInterceptor.SystemUser, (await context.Set<AdmLkpCountry>().SingleAsync()).CreatedBy);
+        Assert.Equal(AuditInterceptor.SystemUser, (await context.Set<AdmLkpRiskLevel>().SingleAsync()).CreatedBy);
     }
 }

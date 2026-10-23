@@ -22,6 +22,56 @@ const router = createRouter({
           name: 'home',
           component: () => import('@/modules/home/pages/HomePage.vue'),
           meta: { moduleName: 'HOME', functionName: 'My workspace' }
+        },
+        // Portfolio acquisition (APEX App 105): master and reference data.
+        {
+          path: 'mortgage',
+          name: 'mtg-master-data',
+          component: () => import('@/modules/mtg/pages/MasterDataPage.vue'),
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Master Data' }
+        },
+        {
+          path: 'mortgage/reference-data',
+          name: 'adm-reference-data',
+          component: () => import('@/modules/adm/pages/ReferenceDataPage.vue'),
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Reference Data' }
+        },
+        {
+          path: 'mortgage/reference-data/:lookupName',
+          name: 'adm-lookup',
+          component: () => import('@/modules/adm/pages/LookupPage.vue'),
+          props: true,
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Reference Data' }
+        },
+        {
+          path: 'mortgage/developers',
+          name: 'mtg-developers',
+          component: () => import('@/modules/mtg/pages/DevelopersPage.vue'),
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Developers' }
+        },
+        {
+          path: 'mortgage/developer-signatories',
+          name: 'mtg-developer-signatories',
+          component: () => import('@/modules/mtg/pages/DeveloperSignatoriesPage.vue'),
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Developer Signatories' }
+        },
+        {
+          path: 'mortgage/projects',
+          name: 'mtg-projects',
+          component: () => import('@/modules/mtg/pages/ProjectsPage.vue'),
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Projects' }
+        },
+        {
+          path: 'mortgage/project-units',
+          name: 'mtg-project-units',
+          component: () => import('@/modules/mtg/pages/ProjectUnitsPage.vue'),
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Project Units' }
+        },
+        {
+          path: 'mortgage/investors',
+          name: 'mtg-investors',
+          component: () => import('@/modules/mtg/pages/InvestorsPage.vue'),
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Investors' }
         }
       ]
     },

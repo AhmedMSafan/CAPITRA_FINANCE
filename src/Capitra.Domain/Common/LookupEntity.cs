@@ -6,6 +6,8 @@ namespace Capitra.Domain.Common;
 /// </summary>
 public abstract class LookupEntity : AuditableEntity
 {
+    public const int CodeMaxLength = 30;
+
     public string Code { get; set; } = string.Empty;
 
     public string NameAr { get; set; } = string.Empty;

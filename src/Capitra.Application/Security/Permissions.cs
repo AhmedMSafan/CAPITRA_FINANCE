@@ -13,7 +13,16 @@ public static class Permissions
 
     public static class Adm
     {
-        public const string LookupView = "ADM.LOOKUP.VIEW";
+        /// <summary>Create, change and delete lookup values. Reading lookups only needs a signed-in user.</summary>
         public const string LookupEdit = "ADM.LOOKUP.EDIT";
+    }
+
+    public static class Mtg
+    {
+        /// <summary>Read developers, signatories, projects, units and investors.</summary>
+        public const string MasterDataView = "MTG.MASTER_DATA.VIEW";
+
+        /// <summary>Create, change and delete developers, signatories, projects, units and investors.</summary>
+        public const string MasterDataEdit = "MTG.MASTER_DATA.EDIT";
     }
 }

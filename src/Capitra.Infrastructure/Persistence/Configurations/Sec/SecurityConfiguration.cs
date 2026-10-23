@@ -25,7 +25,6 @@ public sealed class SecUserConfiguration : IEntityTypeConfiguration<SecUser>
         builder.Property(x => x.EmployeeNo).HasMaxLength(30);
         builder.Property(x => x.Department).HasMaxLength(100);
         builder.Property(x => x.JobTitle).HasMaxLength(100);
-        builder.Property(x => x.IsActive).HasDefaultValue(true);
         builder.ConfigureAudit();
     }
 }

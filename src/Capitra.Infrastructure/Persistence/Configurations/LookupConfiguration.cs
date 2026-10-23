@@ -8,18 +8,23 @@ namespace Capitra.Infrastructure.Persistence.Configurations;
 public abstract class LookupConfiguration<TEntity> : IEntityTypeConfiguration<TEntity>
     where TEntity : LookupEntity
 {
+    /// <summary>Length of CODE and of every column that references a lookup by code.</summary>
+    protected const int LookupCodeLength = LookupEntity.CodeMaxLength;
+
     protected abstract string TableName { get; }
+
+    /// <summary>NAME_AR / NAME_EN length, taken from the APEX form item.</summary>
+    protected virtual int NameMaxLength => 200;
 
     public virtual void Configure(EntityTypeBuilder<TEntity> builder)
     {
         builder.ToTable(TableName);
         builder.HasKey(x => x.Code);
 
-        builder.Property(x => x.Code).HasMaxLength(30);
-        builder.Property(x => x.NameAr).HasMaxLength(200).IsRequired();
-        builder.Property(x => x.NameEn).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Code).HasMaxLength(LookupCodeLength);
+        builder.Property(x => x.NameAr).HasMaxLength(NameMaxLength).IsRequired();
+        builder.Property(x => x.NameEn).HasMaxLength(NameMaxLength).IsRequired();
         builder.Property(x => x.Description).HasMaxLength(500);
-        builder.Property(x => x.IsActive).HasDefaultValue(true);
 
         builder.ConfigureAudit();
     }

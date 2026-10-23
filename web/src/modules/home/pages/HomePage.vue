@@ -28,7 +28,7 @@ const modules: BusinessModule[] = [
     route: '/mortgage',
     tone: 'mortgage',
     icon: 'pi pi-home',
-    enabled: false
+    enabled: true
   },
   {
     code: 'WORKFLOW',
