@@ -3,9 +3,9 @@
 // validation finds, then import it into the portfolio.
 import { computed, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
-import { ApiError } from '@/shared/api/http'
 import { formatAmount, formatShort } from '@/shared/format/money'
 import StepLayout from '../StepLayout.vue'
+import { messageOf } from '../stepUtils'
 import { excelImportApi, type ExcelImport, type ImportStatus, type WorkbookResult } from './excelImport.api'
 
 type RowFilter = 'ALL' | 'VALID' | 'ERROR'
@@ -64,14 +64,6 @@ const rows = computed(() => {
     return !q || [r.code ?? '', r.name ?? '', r.message, r.sheet].some(v => v.toLowerCase().includes(q))
   })
 })
-
-function messageOf(e: unknown, fallback: string): string {
-  if (e instanceof ApiError) {
-    const fieldErrors = Object.values(e.problem?.errors ?? {}).flat()
-    if (fieldErrors.length) return fieldErrors.join(' ')
-  }
-  return e instanceof Error ? e.message : fallback
-}
 
 function onFile(event: Event) {
   const input = event.target as HTMLInputElement

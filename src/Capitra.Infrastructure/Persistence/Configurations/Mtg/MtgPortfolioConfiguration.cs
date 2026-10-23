@@ -89,6 +89,27 @@ public sealed class MtgAmlResultConfiguration : IEntityTypeConfiguration<MtgAmlR
     }
 }
 
+public sealed class MtgInquiryResultConfiguration : IEntityTypeConfiguration<MtgInquiryResult>
+{
+    public void Configure(EntityTypeBuilder<MtgInquiryResult> builder)
+    {
+        builder.ToTable("MTG_INQUIRY_RESULT");
+        builder.HasKey(x => x.InquiryResultId);
+        builder.HasIndex(x => new { x.PortfolioId, x.SubjectTypeCode, x.SubjectId });
+
+        builder.Property(x => x.SubjectTypeCode).HasMaxLength(30);
+        builder.Property(x => x.InquiryTypeCode).HasMaxLength(LookupEntity.CodeMaxLength);
+        builder.Property(x => x.ReferenceNo).HasMaxLength(100);
+        builder.Property(x => x.ResultText).HasMaxLength(100);
+        builder.Property(x => x.RiskLevelCode).HasMaxLength(30);
+        builder.Property(x => x.ResultDetails).HasMaxLength(MtgPortfolioConfiguration.CommentsMaxLength);
+
+        builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<MtgLkpInquiryType>().WithMany().HasForeignKey(x => x.InquiryTypeCode).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
 public sealed class MtgAccountPaymentConfiguration : IEntityTypeConfiguration<MtgAccountPayment>
 {
     public void Configure(EntityTypeBuilder<MtgAccountPayment> builder)

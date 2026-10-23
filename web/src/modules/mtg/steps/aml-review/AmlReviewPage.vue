@@ -3,11 +3,11 @@
 // stay in the deal, then accept or reject the review.
 import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
-import { ApiError } from '@/shared/api/http'
 import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatShort } from '@/shared/format/money'
 import StepLayout from '../StepLayout.vue'
-import { amlReviewApi, isFlagged, niceCode, type AmlReview, type DealDecision } from './amlReview.api'
+import { messageOf, niceCode } from '../stepUtils'
+import { amlReviewApi, isFlagged, type AmlReview, type DealDecision } from './amlReview.api'
 
 type Subject = { type: 'DEVELOPER' | 'INVESTOR'; id: number; name: string }
 type AccountFilter = 'ALL' | 'FLAGGED' | 'UNDECIDED' | 'EXCLUDED'
@@ -37,14 +37,6 @@ watch(id, () => {
   error.value = ''
   load()
 }, { immediate: true })
-
-function messageOf(e: unknown, fallback: string): string {
-  if (e instanceof ApiError) {
-    const fieldErrors = Object.values(e.problem?.errors ?? {}).flat()
-    if (fieldErrors.length) return fieldErrors.join(' ')
-  }
-  return e instanceof Error ? e.message : fallback
-}
 
 // ----- investors (one row per contract) -----
 const investors = computed(() => {

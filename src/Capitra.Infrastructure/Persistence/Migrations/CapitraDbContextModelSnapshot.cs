@@ -978,6 +978,95 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_DEVELOPER_SIGNATORY", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInquiryResult", b =>
+                {
+                    b.Property<long>("InquiryResultId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INQUIRY_RESULT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InquiryResultId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly?>("InquiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("INQUIRY_DATE");
+
+                    b.Property<string>("InquiryTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INQUIRY_TYPE_CODE");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REFERENCE_NO");
+
+                    b.Property<string>("ResultDetails")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("RESULT_DETAILS");
+
+                    b.Property<string>("ResultText")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("RESULT_TEXT");
+
+                    b.Property<string>("RiskLevelCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RISK_LEVEL_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long>("SubjectId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBJECT_ID");
+
+                    b.Property<string>("SubjectTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SUBJECT_TYPE_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("InquiryResultId")
+                        .HasName("PK_MTG_INQUIRY_RESULT");
+
+                    b.HasIndex("InquiryTypeCode")
+                        .HasDatabaseName("IX_MTG_INQUIRY_RESULT_INQUIRY_TYPE_CODE");
+
+                    b.HasIndex("PortfolioId", "SubjectTypeCode", "SubjectId")
+                        .HasDatabaseName("IX_MTG_INQUIRY_RESULT_PORTFOLIO_ID_SUBJECT_TYPE_CODE_SUBJECT_ID");
+
+                    b.ToTable("MTG_INQUIRY_RESULT", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInvestor", b =>
                 {
                     b.Property<long>("InvestorId")
@@ -1370,6 +1459,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                             IsActive = true,
                             NameAr = "تم رفض مراجعة مكافحة غسل الأموال",
                             NameEn = "AML Rejected",
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "INQUIRY_ACCEPTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 5,
+                            IsActive = true,
+                            NameAr = "تم قبول الاستعلامات",
+                            NameEn = "Inquiry Accepted",
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "INQUIRY_REJECTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 6,
+                            IsActive = true,
+                            NameAr = "تم رفض الاستعلامات",
+                            NameEn = "Inquiry Rejected",
                             RowVersion = 1
                         });
                 });
@@ -2693,6 +2804,23 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_DEVELOPER_SIGNATORY_MTG_DEVELOPER");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInquiryResult", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpInquiryType", null)
+                        .WithMany()
+                        .HasForeignKey("InquiryTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_INQUIRY_RESULT_MTG_LKP_INQUIRY_TYPE");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_INQUIRY_RESULT_MTG_PORTFOLIO");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolio", b =>

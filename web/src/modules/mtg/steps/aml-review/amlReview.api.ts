@@ -71,12 +71,6 @@ export const amlReviewApi = {
     http.post<AmlReview>(`${base(portfolioId)}/decision`, { action, comment })
 }
 
-/** "POTENTIAL_MATCH" -> "Potential match"; AML stays upper case. */
-export function niceCode(code: string): string {
-  const text = code.toLowerCase().replace(/_/g, ' ')
-  return (text.charAt(0).toUpperCase() + text.slice(1)).replace(/\baml\b/gi, 'AML').replace(/\bpep\b/gi, 'PEP')
-}
-
 /** Results that need a second look before the contract stays in the deal. */
 export function isFlagged(code: string): boolean {
   return code === 'POTENTIAL_MATCH' || code === 'CONFIRMED_MATCH' || code === 'REVIEW_REQUIRED'

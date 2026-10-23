@@ -23,7 +23,8 @@ type Tab = 'inv' | 'acc' | 'prj' | 'hist'
 /** Each workflow step has its own page; the overview only links to them. */
 const workflowSteps = [
   { label: 'Excel import', route: 'mtg-step-excel-import', icon: 'pi pi-file-excel' },
-  { label: 'AML review', route: 'mtg-step-aml-review', icon: 'pi pi-shield' }
+  { label: 'AML review', route: 'mtg-step-aml-review', icon: 'pi pi-shield' },
+  { label: 'Inquiries', route: 'mtg-step-inquiries', icon: 'pi pi-comments' }
 ]
 
 const props = defineProps<{ portfolioId: string }>()

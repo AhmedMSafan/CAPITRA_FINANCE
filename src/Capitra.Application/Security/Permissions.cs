@@ -36,5 +36,8 @@ public static class Permissions
 
         /// <summary>Workflow step "AML Review" (page 209): record checks and deal decisions, accept or reject.</summary>
         public const string StepAmlReview = "MTG.STEP.AML_REVIEW";
+
+        /// <summary>Workflow step "Portfolio Inquiries" (page 210): record inquiries and deal decisions, complete or reject.</summary>
+        public const string StepInquiries = "MTG.STEP.INQUIRIES";
     }
 }

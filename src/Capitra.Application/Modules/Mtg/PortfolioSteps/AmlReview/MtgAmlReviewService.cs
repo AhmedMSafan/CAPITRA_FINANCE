@@ -70,10 +70,6 @@ public sealed record AddAmlResultRequest(
     decimal? MatchScorePct,
     string? ResultDetails);
 
-public sealed record DealDecisionItem(long PortfolioAccountId, string DealDecisionCode);
-
-public sealed record SaveDealDecisionsRequest(IReadOnlyList<DealDecisionItem> Items);
-
 public sealed record AmlDecisionRequest(string Action, string? Comment);
 
 public interface IMtgAmlReviewService
@@ -198,23 +194,7 @@ public sealed class MtgAmlReviewService(ICapitraDbContext db) : IMtgAmlReviewSer
     public async Task SaveDealDecisionsAsync(long portfolioId, SaveDealDecisionsRequest request, CancellationToken cancellationToken)
     {
         await PortfolioStatus.RequireAsync(db, portfolioId, StepName, OpenStatuses, cancellationToken);
-
-        var items = request.Items ?? [];
-        if (items.Count == 0)
-            throw BusinessValidationException.For(nameof(request.Items), "Choose at least one contract.");
-        if (items.Any(x => x.DealDecisionCode is not (MtgPortfolioAccount.SelectedDecision or MtgPortfolioAccount.ExcludedDecision)))
-            throw BusinessValidationException.For(nameof(request.Items), "Decision must be SELECTED or EXCLUDED.");
-
-        var ids = items.Select(x => x.PortfolioAccountId).Distinct().ToList();
-        var accounts = await db.Set<MtgPortfolioAccount>()
-            .Where(x => x.PortfolioId == portfolioId && ids.Contains(x.PortfolioAccountId))
-            .ToDictionaryAsync(x => x.PortfolioAccountId, cancellationToken);
-        if (accounts.Count != ids.Count)
-            throw new NotFoundException("Portfolio investor account not found.");
-
-        foreach (var item in items)
-            accounts[item.PortfolioAccountId].DealDecisionCode = item.DealDecisionCode;
-        await db.SaveChangesAsync(cancellationToken);
+        await DealDecisions.SaveAsync(db, portfolioId, request, allowReinclude: true, cancellationToken);
     }
 
     /// <summary>APEX AML_DECISION.</summary>

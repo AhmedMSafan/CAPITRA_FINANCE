@@ -18,7 +18,9 @@ public sealed class MtgLkpPortfolioStatusConfiguration : LookupConfiguration<Mtg
             Seed(MtgPortfolio.DraftStatus, "Draft", "مسودة", 1),
             Seed(MtgPortfolio.DataLoadingCompletedStatus, "Data Loading Completed", "اكتمل تحميل البيانات", 2),
             Seed(MtgPortfolio.AmlAcceptedStatus, "AML Accepted", "تم قبول مراجعة مكافحة غسل الأموال", 3),
-            Seed(MtgPortfolio.AmlRejectedStatus, "AML Rejected", "تم رفض مراجعة مكافحة غسل الأموال", 4));
+            Seed(MtgPortfolio.AmlRejectedStatus, "AML Rejected", "تم رفض مراجعة مكافحة غسل الأموال", 4),
+            Seed(MtgPortfolio.InquiryAcceptedStatus, "Inquiry Accepted", "تم قبول الاستعلامات", 5),
+            Seed(MtgPortfolio.InquiryRejectedStatus, "Inquiry Rejected", "تم رفض الاستعلامات", 6));
     }
 
     private static MtgLkpPortfolioStatus Seed(string code, string nameEn, string nameAr, int displayOrder) => new()
