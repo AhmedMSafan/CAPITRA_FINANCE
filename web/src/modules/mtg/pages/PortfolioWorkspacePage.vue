@@ -20,6 +20,12 @@ import PortfolioFormDialog from '../components/PortfolioFormDialog.vue'
 
 type Tab = 'inv' | 'acc' | 'prj' | 'hist'
 
+/** Each workflow step has its own page; the overview only links to them. */
+const workflowSteps = [
+  { label: 'Excel import', route: 'mtg-step-excel-import', icon: 'pi pi-file-excel' },
+  { label: 'AML review', route: 'mtg-step-aml-review', icon: 'pi pi-shield' }
+]
+
 const props = defineProps<{ portfolioId: string }>()
 const router = useRouter()
 const canEdit = hasPermission('MTG.PORTFOLIO.EDIT')
@@ -169,9 +175,6 @@ function onDeleted() {
           <span class="cp-pill cp-pill--info">{{ p.portfolioStatusName }}</span>
         </div>
         <div class="hero__actions">
-          <RouterLink class="cp-btn" :to="{ name: 'mtg-step-excel-import', params: { portfolioId: p.portfolioId } }">
-            <i class="pi pi-file-excel"></i><span>Excel import</span>
-          </RouterLink>
           <RouterLink class="cp-btn" :to="{ name: 'mtg-portfolio-payments', params: { portfolioId: p.portfolioId } }">
             <i class="pi pi-history"></i><span>Payment history</span>
           </RouterLink>
@@ -244,6 +247,13 @@ function onDeleted() {
           <div v-if="p.comments" class="note"><b>Comments</b>{{ p.comments }}</div>
         </section>
       </div>
+
+      <nav class="cp-card steps gap" aria-label="Workflow steps">
+        <span class="steps__label">Workflow steps</span>
+        <RouterLink v-for="s in workflowSteps" :key="s.route" class="cp-btn cp-btn--small" :to="{ name: s.route, params: { portfolioId: p.portfolioId } }">
+          <i :class="s.icon"></i><span>{{ s.label }}</span>
+        </RouterLink>
+      </nav>
 
       <div class="tabs gap" role="tablist">
         <button type="button" role="tab" :aria-selected="tab === 'inv'" @click="tab = 'inv'"><i class="pi pi-users"></i>Investors<em>{{ f.investorCount }}</em></button>
@@ -360,6 +370,8 @@ function onDeleted() {
 </template>
 
 <style scoped>
+.steps { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 20px; }
+.steps__label { margin-inline-end: 6px; color: #718579; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 .crumbs { display: flex; gap: 8px; margin-bottom: 14px; color: #718579; font-size: 12px; }
 .crumbs a { color: #0a3573; text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }

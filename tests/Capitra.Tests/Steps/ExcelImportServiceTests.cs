@@ -1,13 +1,10 @@
-using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Mtg.PortfolioSteps.ExcelImport;
 using Capitra.Domain.Modules.Mtg;
 using Capitra.Infrastructure.Files;
 using Capitra.Infrastructure.Persistence;
-using Capitra.Infrastructure.Persistence.Interceptors;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Capitra.Tests.Steps;
 
@@ -30,24 +27,7 @@ public sealed class ExcelImportServiceTests
          "CONTRACT_VALUE", "PAID_VALUE", "OUTSTANDING_VALUE", "INSTALLMENT_AMOUNT", "INSTALLMENT_FREQUENCY",
          "LAST_PAYMENT_DATE", "REGULAR_PAYMENT_MONTHS", "ARREARS_AMOUNT", "ACCOUNT_STATUS"];
 
-    private sealed class FakeUser : ICurrentUser
-    {
-        public string? UserId => "u1";
-        public string? UserName => "loader";
-        public bool IsAuthenticated => true;
-    }
-
-    private sealed class FakeClock : IClock
-    {
-        public DateTime UtcNow => new(2026, 10, 23, 8, 0, 0, DateTimeKind.Utc);
-    }
-
-    private static CapitraDbContext CreateContext(string database) =>
-        new(new DbContextOptionsBuilder<CapitraDbContext>()
-            .UseInMemoryDatabase(database)
-            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .AddInterceptors(new AuditInterceptor(new FakeUser(), new FakeClock()))
-            .Options);
+    private static CapitraDbContext CreateContext(string database) => StepTestDb.Create(database);
 
     /// <summary>A draft portfolio on project PRJ1, with investor "Inv1" and unit U-1 already in the system.</summary>
     private static async Task<(string Database, long PortfolioId)> SeedAsync()
@@ -141,11 +121,14 @@ public sealed class ExcelImportServiceTests
             Assert.Equal(2000000m, accounts[1].ContractAmount);
             Assert.Equal(0, accounts[1].RegularPaymentMonths);
             Assert.Equal("LATE", accounts[1].AccountStatus);
+            Assert.All(accounts, a => Assert.Equal(MtgPortfolioAccount.SelectedDecision, a.DealDecisionCode));
 
             var portfolio = await db.Set<MtgPortfolio>().SingleAsync();
             Assert.Equal(3500000m, portfolio.FaceValueAmount);
             Assert.Equal(2600000m, portfolio.OutstandingAmount);
             Assert.Equal(MtgPortfolio.DataLoadingCompletedStatus, portfolio.PortfolioStatusCode);
+            Assert.Equal(2, portfolio.SelectedAccountCount);
+            Assert.Equal(3500000m, portfolio.SelectedFaceValueAmount);
 
             var history = await db.Set<MtgPortfolioStatusHistory>().SingleAsync();
             Assert.Equal(MtgPortfolio.DraftStatus, history.FromStatusCode);

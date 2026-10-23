@@ -52,6 +52,13 @@ const router = createRouter({
           props: true,
           meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Excel Import & Validation' }
         },
+        {
+          path: 'mortgage/portfolios/:portfolioId/aml-review',
+          name: 'mtg-step-aml-review',
+          component: () => import('@/modules/mtg/steps/aml-review/AmlReviewPage.vue'),
+          props: true,
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'AML Review' }
+        },
         // Portfolio acquisition (APEX App 105): master and reference data.
         {
           path: 'mortgage',

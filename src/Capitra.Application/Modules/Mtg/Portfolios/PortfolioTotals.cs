@@ -24,4 +24,27 @@ internal static class PortfolioTotals
         portfolio.OutstandingAmount = totals?.Outstanding ?? 0;
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    /// <summary>Count and totals of the accounts kept in the deal (deal decision SELECTED).</summary>
+    public static async Task RecalculateSelectedAsync(ICapitraDbContext db, long portfolioId, CancellationToken cancellationToken)
+    {
+        var selected = await db.Set<MtgPortfolioAccount>()
+            .Where(x => x.PortfolioId == portfolioId && x.DealDecisionCode == MtgPortfolioAccount.SelectedDecision)
+            .GroupBy(x => x.PortfolioId)
+            .Select(g => new
+            {
+                Count = g.Count(),
+                Face = g.Sum(x => x.ContractAmount),
+                Outstanding = g.Sum(x => x.OutstandingAmount),
+                Paid = g.Sum(x => x.PaidAmount)
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var portfolio = await db.Set<MtgPortfolio>().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
+        portfolio.SelectedAccountCount = selected?.Count ?? 0;
+        portfolio.SelectedFaceValueAmount = selected?.Face ?? 0;
+        portfolio.SelectedOutstandingAmount = selected?.Outstanding ?? 0;
+        portfolio.SelectedPaidAmount = selected?.Paid ?? 0;
+        await db.SaveChangesAsync(cancellationToken);
+    }
 }

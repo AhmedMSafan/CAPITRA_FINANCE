@@ -70,6 +70,6 @@ defineProps<{
 .stage--now b { background: #0a3573 !important; color: #fff !important; }
 .stage--done { color: #197447 !important; }
 .stage--done b { background: #15945b !important; color: #fff !important; }
-.body { display: grid; gap: 16px; margin-top: 16px; }
+.body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 16px; }
 .apex-ref { margin: 14px 2px 0; color: #9aa9b4; font-size: 10px; }
 </style>

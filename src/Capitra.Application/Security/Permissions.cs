@@ -33,5 +33,8 @@ public static class Permissions
 
         /// <summary>Workflow step "Excel Import &amp; Validation" (page 208): validate and import the seller workbook.</summary>
         public const string StepExcelImport = "MTG.STEP.EXCEL_IMPORT";
+
+        /// <summary>Workflow step "AML Review" (page 209): record checks and deal decisions, accept or reject.</summary>
+        public const string StepAmlReview = "MTG.STEP.AML_REVIEW";
     }
 }

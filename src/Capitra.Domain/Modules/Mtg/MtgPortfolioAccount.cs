@@ -8,6 +8,12 @@ namespace Capitra.Domain.Modules.Mtg;
 /// </summary>
 public class MtgPortfolioAccount : AuditableEntity
 {
+    /// <summary>The account stays in the deal.</summary>
+    public const string SelectedDecision = "SELECTED";
+
+    /// <summary>The account is left out of the deal.</summary>
+    public const string ExcludedDecision = "EXCLUDED";
+
     public long PortfolioAccountId { get; set; }
 
     public long PortfolioId { get; set; }
@@ -42,4 +48,7 @@ public class MtgPortfolioAccount : AuditableEntity
 
     /// <summary>Free text, as in APEX.</summary>
     public string? AccountStatus { get; set; }
+
+    /// <summary>SELECTED or EXCLUDED; set by the Excel import and changed in the AML review (page 209).</summary>
+    public string? DealDecisionCode { get; set; }
 }

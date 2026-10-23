@@ -23,6 +23,7 @@ public sealed class MtgPortfolioConfiguration : IEntityTypeConfiguration<MtgPort
         builder.Property(x => x.PortfolioStatusCode).HasMaxLength(LookupEntity.CodeMaxLength);
         builder.Property(x => x.CurrencyCode).HasMaxLength(3);
         builder.Property(x => x.Comments).HasMaxLength(CommentsMaxLength);
+        builder.Property(x => x.RejectionReason).HasMaxLength(CommentsMaxLength);
 
         builder.HasOne<MtgDeveloper>().WithMany().HasForeignKey(x => x.DeveloperId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<MtgProject>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
@@ -43,6 +44,7 @@ public sealed class MtgPortfolioAccountConfiguration : IEntityTypeConfiguration<
         builder.Property(x => x.SellerContractNo).HasMaxLength(100);
         builder.Property(x => x.InstallmentFrequency).HasMaxLength(30);
         builder.Property(x => x.AccountStatus).HasMaxLength(30);
+        builder.Property(x => x.DealDecisionCode).HasMaxLength(30);
 
         builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<MtgInvestor>().WithMany().HasForeignKey(x => x.InvestorId).OnDelete(DeleteBehavior.Restrict);
@@ -61,6 +63,26 @@ public sealed class MtgPortfolioImportConfiguration : IEntityTypeConfiguration<M
 
         builder.Property(x => x.FileName).HasMaxLength(500);
         builder.Property(x => x.ImportStatusCode).HasMaxLength(30);
+
+        builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class MtgAmlResultConfiguration : IEntityTypeConfiguration<MtgAmlResult>
+{
+    public void Configure(EntityTypeBuilder<MtgAmlResult> builder)
+    {
+        builder.ToTable("MTG_AML_RESULT");
+        builder.HasKey(x => x.AmlResultId);
+        builder.HasIndex(x => new { x.PortfolioId, x.SubjectTypeCode, x.SubjectId });
+
+        builder.Property(x => x.SubjectTypeCode).HasMaxLength(30);
+        builder.Property(x => x.AmlTypeCode).HasMaxLength(50);
+        builder.Property(x => x.ReferenceNo).HasMaxLength(100);
+        builder.Property(x => x.AmlResultCode).HasMaxLength(50);
+        builder.Property(x => x.RiskLevelCode).HasMaxLength(30);
+        builder.Property(x => x.ResultDetails).HasMaxLength(MtgPortfolioConfiguration.CommentsMaxLength);
 
         builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();

@@ -34,3 +34,8 @@ export function formatDateTime(value: string | Date | null | undefined): string 
 export function formatWeekday(value: string | Date): string {
   return weekdayFormat.format(toDate(value))
 }
+
+/** Today's date in Cairo as YYYY-MM-DD, the value a date input expects. */
+export function todayInCairo(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: DISPLAY_TIME_ZONE }).format(new Date())
+}

@@ -178,9 +178,19 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
         }
         await db.SaveChangesAsync(cancellationToken);
 
+        // APEX puts every account without a deal decision in the deal; the AML review can exclude them later.
+        // Tracked updates, so the audit columns and row version move as for any other change.
+        foreach (var undecided in await db.Set<MtgPortfolioAccount>()
+                     .Where(x => x.PortfolioId == portfolioId && x.DealDecisionCode == null).ToListAsync(cancellationToken))
+            undecided.DealDecisionCode = MtgPortfolioAccount.SelectedDecision;
+        await db.SaveChangesAsync(cancellationToken);
+
         await PortfolioTotals.RecalculateAsync(db, portfolioId, cancellationToken);
+        await PortfolioTotals.RecalculateSelectedAsync(db, portfolioId, cancellationToken);
         await SaveBatchAsync(portfolioId, fileName, plan, MtgPortfolioImport.ImportedStatus, plan.Accounts.Count, cancellationToken);
-        await MoveToDataLoadedAsync(portfolioId, cancellationToken);
+        var portfolio = await db.Set<MtgPortfolio>().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
+        await PortfolioStatus.ChangeAsync(
+            db, portfolio, MtgPortfolio.DataLoadingCompletedStatus, "Excel portfolio data loaded successfully.", cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
         return plan.ToResult(MtgPortfolioImport.ImportedStatus, fileName, plan.Accounts.Count);
@@ -429,7 +439,8 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
                     LastPaymentDate = lastPayment,
                     RegularPaymentMonths = (int)(months ?? 0),
                     ArrearsAmount = arrears ?? 0,
-                    AccountStatus = Text(row, Account.AccountStatus) ?? "ACTIVE"
+                    AccountStatus = Text(row, Account.AccountStatus) ?? "ACTIVE",
+                    DealDecisionCode = MtgPortfolioAccount.SelectedDecision
                 }));
             }
         }
@@ -495,23 +506,6 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
         batch.ValidRowCount = plan.Rows.Count(x => x.IsValid);
         batch.ErrorRowCount = plan.Rows.Count(x => !x.IsValid);
         batch.ImportedRowCount = imported;
-        await db.SaveChangesAsync(cancellationToken);
-    }
-
-    private async Task MoveToDataLoadedAsync(long portfolioId, CancellationToken cancellationToken)
-    {
-        var portfolio = await db.Set<MtgPortfolio>().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
-        if (portfolio.PortfolioStatusCode == MtgPortfolio.DataLoadingCompletedStatus)
-            return;
-
-        db.Add(new MtgPortfolioStatusHistory
-        {
-            PortfolioId = portfolioId,
-            FromStatusCode = portfolio.PortfolioStatusCode,
-            ToStatusCode = MtgPortfolio.DataLoadingCompletedStatus,
-            Comments = "Excel portfolio data loaded successfully."
-        });
-        portfolio.PortfolioStatusCode = MtgPortfolio.DataLoadingCompletedStatus;
         await db.SaveChangesAsync(cancellationToken);
     }
 

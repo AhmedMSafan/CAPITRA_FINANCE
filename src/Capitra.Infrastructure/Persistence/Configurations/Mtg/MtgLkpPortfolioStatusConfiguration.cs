@@ -13,30 +13,23 @@ public sealed class MtgLkpPortfolioStatusConfiguration : LookupConfiguration<Mtg
         base.Configure(builder);
 
         // Statuses the services set themselves, so the codes must exist: every new portfolio starts as DRAFT
-        // (APEX FNV_PURSHASED_PORTFOLIO_PKG.create_portfolio) and the Excel import (page 208) ends in DATA_LOADING_COMPLETED.
-        var seededAt = new DateTime(2026, 10, 23, 0, 0, 0, DateTimeKind.Utc);
+        // (APEX FNV_PURSHASED_PORTFOLIO_PKG.create_portfolio), and each workflow step page sets its own outcome.
         builder.HasData(
-            new MtgLkpPortfolioStatus
-            {
-                Code = MtgPortfolio.DraftStatus,
-                NameEn = "Draft",
-                NameAr = "مسودة",
-                DisplayOrder = 1,
-                IsActive = true,
-                CreatedBy = AuditInterceptor.SystemUser,
-                CreatedAt = seededAt,
-                RowVersion = 1
-            },
-            new MtgLkpPortfolioStatus
-            {
-                Code = MtgPortfolio.DataLoadingCompletedStatus,
-                NameEn = "Data Loading Completed",
-                NameAr = "اكتمل تحميل البيانات",
-                DisplayOrder = 2,
-                IsActive = true,
-                CreatedBy = AuditInterceptor.SystemUser,
-                CreatedAt = seededAt,
-                RowVersion = 1
-            });
+            Seed(MtgPortfolio.DraftStatus, "Draft", "مسودة", 1),
+            Seed(MtgPortfolio.DataLoadingCompletedStatus, "Data Loading Completed", "اكتمل تحميل البيانات", 2),
+            Seed(MtgPortfolio.AmlAcceptedStatus, "AML Accepted", "تم قبول مراجعة مكافحة غسل الأموال", 3),
+            Seed(MtgPortfolio.AmlRejectedStatus, "AML Rejected", "تم رفض مراجعة مكافحة غسل الأموال", 4));
     }
+
+    private static MtgLkpPortfolioStatus Seed(string code, string nameEn, string nameAr, int displayOrder) => new()
+    {
+        Code = code,
+        NameEn = nameEn,
+        NameAr = nameAr,
+        DisplayOrder = displayOrder,
+        IsActive = true,
+        CreatedBy = AuditInterceptor.SystemUser,
+        CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, DateTimeKind.Utc),
+        RowVersion = 1
+    };
 }

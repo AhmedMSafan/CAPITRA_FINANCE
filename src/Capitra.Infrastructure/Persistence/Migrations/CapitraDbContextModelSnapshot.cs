@@ -705,6 +705,99 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_ACCOUNT_PAYMENT", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAmlResult", b =>
+                {
+                    b.Property<long>("AmlResultId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("AML_RESULT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AmlResultId"));
+
+                    b.Property<string>("AmlResultCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("AML_RESULT_CODE");
+
+                    b.Property<string>("AmlTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("AML_TYPE_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("MatchScorePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MATCH_SCORE_PCT");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REFERENCE_NO");
+
+                    b.Property<string>("ResultDetails")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("RESULT_DETAILS");
+
+                    b.Property<string>("RiskLevelCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RISK_LEVEL_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly>("ScreeningDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SCREENING_DATE");
+
+                    b.Property<long>("SubjectId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBJECT_ID");
+
+                    b.Property<string>("SubjectTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SUBJECT_TYPE_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AmlResultId")
+                        .HasName("PK_MTG_AML_RESULT");
+
+                    b.HasIndex("PortfolioId", "SubjectTypeCode", "SubjectId")
+                        .HasDatabaseName("IX_MTG_AML_RESULT_PORTFOLIO_ID_SUBJECT_TYPE_CODE_SUBJECT_ID");
+
+                    b.ToTable("MTG_AML_RESULT", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloper", b =>
                 {
                     b.Property<long>("DeveloperId")
@@ -1256,6 +1349,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                             NameAr = "اكتمل تحميل البيانات",
                             NameEn = "Data Loading Completed",
                             RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "AML_ACCEPTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            NameAr = "تم قبول مراجعة مكافحة غسل الأموال",
+                            NameEn = "AML Accepted",
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "AML_REJECTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 4,
+                            IsActive = true,
+                            NameAr = "تم رفض مراجعة مكافحة غسل الأموال",
+                            NameEn = "AML Rejected",
+                            RowVersion = 1
                         });
                 });
 
@@ -1488,6 +1603,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("PV_RATE");
 
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("REJECTION_REASON");
+
                     b.Property<DateOnly>("RequestDate")
                         .HasColumnType("date")
                         .HasColumnName("REQUEST_DATE");
@@ -1501,6 +1621,25 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
+
+                    b.Property<int?>("SelectedAccountCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("SELECTED_ACCOUNT_COUNT");
+
+                    b.Property<decimal?>("SelectedFaceValueAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SELECTED_FACE_VALUE_AMOUNT");
+
+                    b.Property<decimal?>("SelectedOutstandingAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SELECTED_OUTSTANDING_AMOUNT");
+
+                    b.Property<decimal?>("SelectedPaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SELECTED_PAID_AMOUNT");
 
                     b.Property<int?>("TermMonths")
                         .HasColumnType("integer")
@@ -1583,6 +1722,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DealDecisionCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DEAL_DECISION_CODE");
 
                     b.Property<decimal?>("InstallmentAmount")
                         .HasPrecision(18, 2)
@@ -2520,6 +2664,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_ACCOUNT_PAYMENT_MTG_PORTFOLIO_ACCOUNT");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAmlResult", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_AML_RESULT_MTG_PORTFOLIO");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloper", b =>

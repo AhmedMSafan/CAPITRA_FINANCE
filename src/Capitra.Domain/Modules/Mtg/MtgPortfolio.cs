@@ -14,6 +14,12 @@ public class MtgPortfolio : AuditableEntity
     /// <summary>Set when the seller workbook has been imported (workflow step "Excel Import &amp; Validation", page 208).</summary>
     public const string DataLoadingCompletedStatus = "DATA_LOADING_COMPLETED";
 
+    /// <summary>Set by the AML review step (page 209).</summary>
+    public const string AmlAcceptedStatus = "AML_ACCEPTED";
+
+    /// <summary>Set by the AML review step (page 209); the reason is kept in <see cref="RejectionReason"/>.</summary>
+    public const string AmlRejectedStatus = "AML_REJECTED";
+
     public long PortfolioId { get; set; }
 
     public string PortfolioNo { get; set; } = string.Empty;
@@ -60,4 +66,16 @@ public class MtgPortfolio : AuditableEntity
     public decimal? LegalFeePerUnitAmount { get; set; }
 
     public decimal? ValuationFeePerUnitAmount { get; set; }
+
+    /// <summary>Why the last review rejected the portfolio; cleared when a review accepts it.</summary>
+    public string? RejectionReason { get; set; }
+
+    /// <summary>Accounts kept in the deal (deal decision SELECTED), counted when AML is accepted or data is loaded.</summary>
+    public int? SelectedAccountCount { get; set; }
+
+    public decimal? SelectedFaceValueAmount { get; set; }
+
+    public decimal? SelectedOutstandingAmount { get; set; }
+
+    public decimal? SelectedPaidAmount { get; set; }
 }

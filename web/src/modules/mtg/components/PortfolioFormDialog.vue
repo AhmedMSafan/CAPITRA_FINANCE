@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Portfolio details (APEX App 105 page 202): register a portfolio, change it, or delete it while it is a draft.
 import { computed, reactive, ref, shallowRef, watch } from 'vue'
+import { todayInCairo } from '@/shared/format/datetime'
 import { splitApiError } from '@/shared/crud/errors'
 import type { FieldOption } from '@/shared/crud/types'
 import { getLookupOptions } from '@/modules/adm/api/lookups.api'
@@ -56,14 +57,11 @@ const isNew = computed(() => props.portfolio === null)
 const hasAccounts = computed(() => (props.portfolio?.accountCount ?? 0) > 0)
 const isDraft = computed(() => props.portfolio?.portfolioStatusCode === 'DRAFT')
 
-function today(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date())
-}
 
 /** Defaults of a new portfolio, as page 202 fills them. */
 function blank(): Form {
   return {
-    portfolioNo: '', developerId: '', projectId: '', requestDate: today(), currencyCode: 'EGP', termMonths: '',
+    portfolioNo: '', developerId: '', projectId: '', requestDate: todayInCairo(), currencyCode: 'EGP', termMonths: '',
     coveragePct: 20, reservedAmountPct: 5, pvRate: 13, lateFeeRate: 15, marginPct: 3, adminExpensePct: 1,
     legalFeePerUnitAmount: 300, valuationFeePerUnitAmount: 500, comments: ''
   }

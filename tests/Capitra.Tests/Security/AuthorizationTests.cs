@@ -73,6 +73,10 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
     [InlineData("GET", "/api/mtg/portfolios/1/excel-import", Permissions.Mtg.StepExcelImport)]
     [InlineData("POST", "/api/mtg/portfolios/1/excel-import/validate", Permissions.Mtg.PortfolioView)]
     [InlineData("POST", "/api/mtg/portfolios/1/excel-import/import", Permissions.Mtg.PortfolioEdit)]
+    [InlineData("GET", "/api/mtg/portfolios/1/aml-review", Permissions.Mtg.StepAmlReview)]
+    [InlineData("POST", "/api/mtg/portfolios/1/aml-review/results", Permissions.Mtg.PortfolioView)]
+    [InlineData("PUT", "/api/mtg/portfolios/1/aml-review/deal-decisions", Permissions.Mtg.StepExcelImport)]
+    [InlineData("POST", "/api/mtg/portfolios/1/aml-review/decision", Permissions.Mtg.PortfolioEdit)]
     public async Task Missing_permission_is_forbidden(string method, string url, string permission)
     {
         using var client = _factory.CreateClient();
