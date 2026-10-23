@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Capitra.Application.Abstractions;
 
@@ -17,4 +18,7 @@ public interface ICapitraDbContext
     /// <see cref="Common.Exceptions.ConflictException"/> instead of a provider error.
     /// </summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Starts a transaction so several saves succeed or fail together.</summary>
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 }

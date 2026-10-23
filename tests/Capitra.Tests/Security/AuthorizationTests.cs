@@ -61,6 +61,15 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
     [InlineData("DELETE", "/api/mtg/investors/1?rowVersion=1", Permissions.Mtg.MasterDataView)]
     [InlineData("POST", "/api/adm/lookups/currency", Permissions.Mtg.MasterDataEdit)]
     [InlineData("DELETE", "/api/adm/lookups/currency/EGP?rowVersion=1", "")]
+    [InlineData("GET", "/api/mtg/portfolios", Permissions.Mtg.MasterDataView)]
+    [InlineData("GET", "/api/mtg/portfolios/1/workspace", "")]
+    [InlineData("POST", "/api/mtg/portfolios", Permissions.Mtg.PortfolioView)]
+    [InlineData("PUT", "/api/mtg/portfolios/1/financial-terms", Permissions.Mtg.PortfolioView)]
+    [InlineData("DELETE", "/api/mtg/portfolios/1?rowVersion=1", Permissions.Mtg.PortfolioView)]
+    [InlineData("GET", "/api/mtg/portfolio-accounts?portfolioId=1", Permissions.Mtg.PortfolioEdit)]
+    [InlineData("POST", "/api/mtg/portfolio-accounts", Permissions.Mtg.PortfolioView)]
+    [InlineData("PUT", "/api/mtg/account-payments/1", Permissions.Mtg.PortfolioView)]
+    [InlineData("DELETE", "/api/mtg/account-payments/1?rowVersion=1", Permissions.Mtg.PortfolioView)]
     public async Task Missing_permission_is_forbidden(string method, string url, string permission)
     {
         using var client = _factory.CreateClient();

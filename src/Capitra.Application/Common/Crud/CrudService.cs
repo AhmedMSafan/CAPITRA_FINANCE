@@ -50,8 +50,15 @@ public abstract class CrudService<TEntity, TDto, TSave>(ICapitraDbContext db) : 
 
         var entity = new TEntity();
         Apply(entity, request);
-        Db.Add(entity);
-        await Db.SaveChangesAsync(cancellationToken);
+
+        await using (var transaction = await Db.BeginTransactionAsync(cancellationToken))
+        {
+            Db.Add(entity);
+            await Db.SaveChangesAsync(cancellationToken);
+            await AfterCreateAsync(entity, cancellationToken);
+            await AfterChangeAsync(entity, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         return await GetAsync(IdOf(entity), cancellationToken);
     }
@@ -70,7 +77,12 @@ public abstract class CrudService<TEntity, TDto, TSave>(ICapitraDbContext db) : 
             throw ChangedByAnotherUser(id);
 
         Apply(entity, request);
-        await SaveAsync(id, cancellationToken);
+        await using (var transaction = await Db.BeginTransactionAsync(cancellationToken))
+        {
+            await SaveAsync(id, cancellationToken);
+            await AfterChangeAsync(entity, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         return await GetAsync(id, cancellationToken);
     }
@@ -81,9 +93,22 @@ public abstract class CrudService<TEntity, TDto, TSave>(ICapitraDbContext db) : 
         if (entity.RowVersion != rowVersion)
             throw ChangedByAnotherUser(id);
 
+        await using var transaction = await Db.BeginTransactionAsync(cancellationToken);
+        await BeforeDeleteAsync(entity, cancellationToken);
         Db.Remove(entity);
         await SaveAsync(id, cancellationToken);
+        await AfterChangeAsync(entity, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
+
+    /// <summary>Runs in the create transaction, after the new row has its key.</summary>
+    protected virtual Task AfterCreateAsync(TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;
+
+    /// <summary>Runs in the same transaction after every create, update and delete (e.g. to recalculate totals).</summary>
+    protected virtual Task AfterChangeAsync(TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;
+
+    /// <summary>Runs in the delete transaction before the row is removed; may refuse the delete or remove child rows.</summary>
+    protected virtual Task BeforeDeleteAsync(TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;
 
     /// <summary>True when another row already uses this value in a unique column.</summary>
     protected Task<bool> IsTakenAsync(Expression<Func<TEntity, bool>> sameValue, TEntity? existing, CancellationToken cancellationToken)

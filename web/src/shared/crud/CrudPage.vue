@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends { isActive: boolean; rowVersion: number }">
+<script setup lang="ts" generic="T extends { rowVersion: number; isActive?: boolean }">
 // One list + one modal form: the Vue version of an APEX interactive report page and its modal form page.
 import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { ApiError } from '@/shared/api/http'
@@ -20,8 +20,14 @@ const props = withDefaults(
     newValues: () => FormValues
     toValues: (row: T) => FormValues
     canEdit?: boolean
+    /** False for tables without an IS_ACTIVE column (transactions): no status column, filter or checkbox. */
+    hasActive?: boolean
+    /** Drawn inside another page (a tab): no outer padding. */
+    embedded?: boolean
+    /** APEX application of the replaced pages. */
+    apexApp?: number
   }>(),
-  { canEdit: false }
+  { canEdit: false, hasActive: true, embedded: false, apexApp: 105 }
 )
 
 const rows = shallowRef<T[]>([])
@@ -42,8 +48,8 @@ const filteredRows = computed(() => {
   const q = searchText.value.trim().toLowerCase()
 
   return rows.value.filter(row => {
-    if (statusFilter.value === 'Y' && !row.isActive) return false
-    if (statusFilter.value === 'N' && row.isActive) return false
+    if (props.hasActive && statusFilter.value === 'Y' && !row.isActive) return false
+    if (props.hasActive && statusFilter.value === 'N' && row.isActive) return false
     if (!q) return true
     return props.columns.some(c => formatCell(row[c.field], c.type).toLowerCase().includes(q))
   })
@@ -69,7 +75,7 @@ function clearErrors() {
 function fill(values: FormValues) {
   Object.keys(form).forEach(k => delete form[k])
   for (const field of props.fields) form[field.name] = values[field.name] ?? (field.type === 'bool' ? false : '')
-  form.isActive = values.isActive ?? true
+  if (props.hasActive) form.isActive = values.isActive ?? true
 }
 
 function openCreate() {
@@ -94,7 +100,7 @@ function closeDialog() {
 
 /** Converts the form to the request body: blanks become null, numbers become numbers. */
 function body(): FormValues {
-  const values: FormValues = { isActive: form.isActive }
+  const values: FormValues = props.hasActive ? { isActive: form.isActive } : {}
   for (const field of props.fields) {
     const raw = form[field.name]
     if (field.type === 'bool') values[field.name] = Boolean(raw)
@@ -178,10 +184,10 @@ function messageOf(error: unknown, fallback: string) {
 }
 
 function exportCsv() {
-  const headers = [...props.columns.map(c => c.label), 'Status']
+  const headers = [...props.columns.map(c => c.label), ...(props.hasActive ? ['Status'] : [])]
   const data = filteredRows.value.map(row => [
     ...props.columns.map(c => formatCell(row[c.field], c.type)),
-    row.isActive ? 'Active' : 'Inactive'
+    ...(props.hasActive ? [row.isActive ? 'Active' : 'Inactive'] : [])
   ])
   downloadCsv(`${props.title.replace(/\s+/g, '-').toLowerCase()}.csv`, toCsv(headers, data))
 }
@@ -192,7 +198,7 @@ watch(() => props.api, load, { immediate: true })
 </script>
 
 <template>
-  <div class="crud-page">
+  <div class="crud-page" :class="{ 'crud-page--embedded': embedded }">
     <div class="crud-card">
       <div class="crud-toolbar">
         <div class="crud-header">
@@ -222,7 +228,7 @@ watch(() => props.api, load, { immediate: true })
           <input v-model="searchText" type="text" placeholder="Search..." />
         </div>
         <slot name="filters"></slot>
-        <select v-model="statusFilter" class="grid-select">
+        <select v-if="hasActive" v-model="statusFilter" class="grid-select">
           <option value="">All Statuses</option>
           <option value="Y">Active</option>
           <option value="N">Inactive</option>
@@ -246,7 +252,7 @@ watch(() => props.api, load, { immediate: true })
                 <th v-for="c in columns" :key="c.field" :class="{ num: ['number', 'amount', 'pct'].includes(c.type ?? '') }">
                   {{ c.label }}
                 </th>
-                <th>Status</th>
+                <th v-if="hasActive">Status</th>
                 <th class="actions-col">{{ canEdit ? 'Edit' : 'View' }}</th>
               </tr>
             </thead>
@@ -260,7 +266,7 @@ watch(() => props.api, load, { immediate: true })
                 >
                   {{ formatCell(row[c.field], c.type) }}
                 </td>
-                <td>
+                <td v-if="hasActive">
                   <span class="status-pill" :class="row.isActive ? 'status-pill--active' : 'status-pill--inactive'">
                     {{ row.isActive ? 'Active' : 'Inactive' }}
                   </span>
@@ -272,13 +278,13 @@ watch(() => props.api, load, { immediate: true })
                 </td>
               </tr>
               <tr v-if="filteredRows.length === 0">
-                <td :colspan="columns.length + 2" class="empty-row">No records found.</td>
+                <td :colspan="columns.length + (hasActive ? 2 : 1)" class="empty-row">No records found.</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-      <p class="apex-ref">Replaces APEX App 105 pages {{ apexPages }}</p>
+      <p class="apex-ref">Replaces APEX App {{ apexApp }} pages {{ apexPages }}</p>
     </div>
 
     <div v-if="dialogVisible" class="modal-overlay" @click.self="closeDialog">
@@ -302,7 +308,12 @@ watch(() => props.api, load, { immediate: true })
                 {{ field.label }}<span v-if="field.required"> *</span>
               </label>
 
-              <select v-if="field.type === 'select'" :id="`f-${field.name}`" v-model="form[field.name]">
+              <select
+                v-if="field.type === 'select'"
+                :id="`f-${field.name}`"
+                v-model="form[field.name]"
+                :disabled="field.lockedOnEdit && !!editingRow"
+              >
                 <option value="">- Select -</option>
                 <option v-if="isMissingOption(field)" :value="form[field.name]">{{ form[field.name] }} (inactive)</option>
                 <option v-for="o in field.options ?? []" :key="o.value" :value="o.value">{{ o.label }}</option>
@@ -339,7 +350,7 @@ watch(() => props.api, load, { immediate: true })
               <small v-if="fieldErrors[field.name]" class="field-error">{{ fieldErrors[field.name] }}</small>
             </div>
 
-            <div class="field">
+            <div v-if="hasActive" class="field">
               <label class="check">
                 <input v-model="form.isActive" type="checkbox" />
                 <span>Active</span>
@@ -375,6 +386,7 @@ watch(() => props.api, load, { immediate: true })
 
 <style scoped>
 .crud-page { padding: 24px 30px 36px; font-family: Inter, "Segoe UI", Arial, sans-serif; }
+.crud-page--embedded { padding: 0; }
 .crud-card { background: #fff; border: 1px solid #dce6e8; border-radius: 16px; padding: 20px 28px 22px; box-shadow: 0 8px 24px rgba(1, 75, 85, .06); }
 .crud-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 18px; }
 .crud-header { display: flex; align-items: center; gap: 15px; }

@@ -23,12 +23,33 @@ const router = createRouter({
           component: () => import('@/modules/home/pages/HomePage.vue'),
           meta: { moduleName: 'HOME', functionName: 'My workspace' }
         },
+        // Portfolio acquisition (APEX App 105): portfolio cases.
+        {
+          path: 'mortgage/portfolios',
+          name: 'mtg-portfolios',
+          component: () => import('@/modules/mtg/pages/PortfolioCasesPage.vue'),
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Portfolio Cases' }
+        },
+        {
+          path: 'mortgage/portfolios/:portfolioId',
+          name: 'mtg-portfolio',
+          component: () => import('@/modules/mtg/pages/PortfolioWorkspacePage.vue'),
+          props: true,
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Portfolio' }
+        },
+        {
+          path: 'mortgage/portfolios/:portfolioId/payments',
+          name: 'mtg-portfolio-payments',
+          component: () => import('@/modules/mtg/pages/PaymentHistoryPage.vue'),
+          props: true,
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Payment History' }
+        },
         // Portfolio acquisition (APEX App 105): master and reference data.
         {
           path: 'mortgage',
           name: 'mtg-master-data',
           component: () => import('@/modules/mtg/pages/MasterDataPage.vue'),
-          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Master Data' }
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Portfolio Acquisition' }
         },
         {
           path: 'mortgage/reference-data',

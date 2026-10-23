@@ -5,6 +5,7 @@ using Capitra.Infrastructure.Persistence.Conventions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 
 namespace Capitra.Infrastructure.Persistence;
@@ -34,6 +35,9 @@ public sealed class CapitraDbContext(DbContextOptions<CapitraDbContext> options)
             throw new ConflictException("A record with the same code already exists.", ex);
         }
     }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default) =>
+        Database.BeginTransactionAsync(cancellationToken);
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

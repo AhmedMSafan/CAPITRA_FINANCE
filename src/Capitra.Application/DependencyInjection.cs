@@ -1,5 +1,6 @@
 using Capitra.Application.Modules.Adm.Lookups;
 using Capitra.Application.Modules.Mtg.MasterData;
+using Capitra.Application.Modules.Mtg.Portfolios;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Capitra.Application;
@@ -15,6 +16,11 @@ public static class DependencyInjection
         services.AddScoped<IMtgProjectService, MtgProjectService>();
         services.AddScoped<IMtgProjectUnitService, MtgProjectUnitService>();
         services.AddScoped<IMtgInvestorService, MtgInvestorService>();
+
+        services.AddScoped<IMtgPortfolioService, MtgPortfolioService>();
+        services.AddScoped<IMtgPortfolioAccountService, MtgPortfolioAccountService>();
+        services.AddScoped<IMtgAccountPaymentService, MtgAccountPaymentService>();
+        services.AddScoped<IMtgPortfolioQueryService, MtgPortfolioQueryService>();
         return services;
     }
 }

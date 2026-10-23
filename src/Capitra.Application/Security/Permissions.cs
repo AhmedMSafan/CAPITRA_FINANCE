@@ -24,5 +24,11 @@ public static class Permissions
 
         /// <summary>Create, change and delete developers, signatories, projects, units and investors.</summary>
         public const string MasterDataEdit = "MTG.MASTER_DATA.EDIT";
+
+        /// <summary>Read portfolio cases, their accounts and payment history.</summary>
+        public const string PortfolioView = "MTG.PORTFOLIO.VIEW";
+
+        /// <summary>Create, change and delete portfolio cases, accounts and payments.</summary>
+        public const string PortfolioEdit = "MTG.PORTFOLIO.EDIT";
     }
 }
