@@ -344,7 +344,7 @@ function tone(code: string): string {
 .rejected { padding: 10px 14px; border: 1px solid #f2c4c4; border-radius: 8px; background: #fff7f7; color: #7a2e2e; font-size: 13px; }
 .rejected b { display: block; margin-bottom: 3px; color: #a53d3d; }
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
-.stack { display: grid; gap: 16px; }
+.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .subject { display: flex; align-items: center; gap: 14px; padding: 14px 20px; }
 .subject > div { flex: 1; }
 .subject strong { display: block; color: #183550; }
@@ -372,5 +372,5 @@ tr.out td { opacity: .6; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips button { height: 32px; padding: 0 12px; border: 1px solid #d5e1e8; border-radius: 999px; background: #fff; color: #405b4d; font: inherit; font-size: 12px; cursor: pointer; }
 .chips button[aria-pressed="true"] { border-color: #0a3573; background: #0a3573; color: #fff; }
-@media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

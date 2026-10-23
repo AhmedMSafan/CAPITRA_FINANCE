@@ -26,6 +26,12 @@ public class MtgPortfolio : AuditableEntity
     /// <summary>Set by the portfolio inquiries step (page 210).</summary>
     public const string InquiryRejectedStatus = "INQUIRY_REJECTED";
 
+    /// <summary>Set by the legal review step (page 211).</summary>
+    public const string LegalReviewAcceptedStatus = "LEGAL_REVIEW_ACCEPTED";
+
+    /// <summary>Set by the legal review step (page 211).</summary>
+    public const string LegalReviewRejectedStatus = "LEGAL_REVIEW_REJECTED";
+
     public long PortfolioId { get; set; }
 
     public string PortfolioNo { get; set; } = string.Empty;

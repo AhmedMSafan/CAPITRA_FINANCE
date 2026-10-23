@@ -1165,6 +1165,105 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_INVESTOR", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLegalReview", b =>
+                {
+                    b.Property<long>("LegalReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEGAL_REVIEW_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LegalReviewId"));
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<DateOnly?>("ApprovedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("APPROVED_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsBuildingLicenseVerified")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_BUILDING_LICENSE_VERIFIED");
+
+                    b.Property<bool>("IsEncumbranceFree")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ENCUMBRANCE_FREE");
+
+                    b.Property<bool>("IsMortgagePossible")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_MORTGAGE_POSSIBLE");
+
+                    b.Property<bool>("IsOwnershipVerified")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_OWNERSHIP_VERIFIED");
+
+                    b.Property<bool>("IsRegistrationPossible")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_REGISTRATION_POSSIBLE");
+
+                    b.Property<bool>("IsTitleDeedVerified")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_TITLE_DEED_VERIFIED");
+
+                    b.Property<string>("LegalFindings")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("LEGAL_FINDINGS");
+
+                    b.Property<string>("LegalRecommendation")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("LEGAL_RECOMMENDATION");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<DateOnly?>("ReviewDate")
+                        .HasColumnType("date")
+                        .HasColumnName("REVIEW_DATE");
+
+                    b.Property<string>("ReviewedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("REVIEWED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("LegalReviewId")
+                        .HasName("PK_MTG_LEGAL_REVIEW");
+
+                    b.HasIndex("PortfolioId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_LEGAL_REVIEW_PORTFOLIO_ID");
+
+                    b.ToTable("MTG_LEGAL_REVIEW", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpApprovalStep", b =>
                 {
                     b.Property<string>("Code")
@@ -1481,6 +1580,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                             IsActive = true,
                             NameAr = "تم رفض الاستعلامات",
                             NameEn = "Inquiry Rejected",
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "LEGAL_REVIEW_ACCEPTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 7,
+                            IsActive = true,
+                            NameAr = "تم قبول المراجعة القانونية",
+                            NameEn = "Legal Review Accepted",
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "LEGAL_REVIEW_REJECTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 8,
+                            IsActive = true,
+                            NameAr = "تم رفض المراجعة القانونية",
+                            NameEn = "Legal Review Rejected",
                             RowVersion = 1
                         });
                 });
@@ -2821,6 +2942,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_INQUIRY_RESULT_MTG_PORTFOLIO");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLegalReview", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_LEGAL_REVIEW_MTG_PORTFOLIO");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolio", b =>

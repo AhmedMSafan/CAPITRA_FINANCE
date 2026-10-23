@@ -110,6 +110,25 @@ public sealed class MtgInquiryResultConfiguration : IEntityTypeConfiguration<Mtg
     }
 }
 
+public sealed class MtgLegalReviewConfiguration : IEntityTypeConfiguration<MtgLegalReview>
+{
+    public void Configure(EntityTypeBuilder<MtgLegalReview> builder)
+    {
+        builder.ToTable("MTG_LEGAL_REVIEW");
+        builder.HasKey(x => x.LegalReviewId);
+        builder.HasIndex(x => x.PortfolioId).IsUnique();
+        builder.Ignore(x => x.IsComplete);
+
+        builder.Property(x => x.LegalFindings).HasMaxLength(MtgPortfolioConfiguration.CommentsMaxLength);
+        builder.Property(x => x.LegalRecommendation).HasMaxLength(MtgPortfolioConfiguration.CommentsMaxLength);
+        builder.Property(x => x.ReviewedBy).HasMaxLength(255);
+        builder.Property(x => x.ApprovedBy).HasMaxLength(255);
+
+        builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
 public sealed class MtgAccountPaymentConfiguration : IEntityTypeConfiguration<MtgAccountPayment>
 {
     public void Configure(EntityTypeBuilder<MtgAccountPayment> builder)

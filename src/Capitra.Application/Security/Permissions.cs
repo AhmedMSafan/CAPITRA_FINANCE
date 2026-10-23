@@ -39,5 +39,8 @@ public static class Permissions
 
         /// <summary>Workflow step "Portfolio Inquiries" (page 210): record inquiries and deal decisions, complete or reject.</summary>
         public const string StepInquiries = "MTG.STEP.INQUIRIES";
+
+        /// <summary>Workflow step "Portfolio Legal Review" (page 211): save the legal checklist and deal decisions, accept or reject.</summary>
+        public const string StepLegalReview = "MTG.STEP.LEGAL_REVIEW";
     }
 }

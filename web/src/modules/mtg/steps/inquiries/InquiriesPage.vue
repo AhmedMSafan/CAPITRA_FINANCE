@@ -382,7 +382,7 @@ function riskTone(code: string | null): string {
 .notice { padding: 10px 14px; border: 1px solid #bfe3cc; border-radius: 8px; background: #effaf3; color: #197447; font-size: 13px; }
 .readonly { padding: 10px 14px; border-radius: 8px; background: #f4f7fb; color: #405b4d; font-size: 13px; }
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
-.stack { display: grid; gap: 16px; }
+.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 20px; }
 .search { flex: 1; max-width: 420px; height: 36px; display: flex; align-items: center; gap: 9px; padding: 0 12px; border: 1px solid #d5e1e8; border-radius: 8px; }
 .search i { color: #6f8990; font-size: 12px; }
@@ -401,5 +401,5 @@ tr.out td { opacity: .6; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips button { height: 32px; padding: 0 12px; border: 1px solid #d5e1e8; border-radius: 999px; background: #fff; color: #405b4d; font: inherit; font-size: 12px; cursor: pointer; }
 .chips button[aria-pressed="true"] { border-color: #0a3573; background: #0a3573; color: #fff; }
-@media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

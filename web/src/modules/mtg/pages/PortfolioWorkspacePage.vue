@@ -24,7 +24,8 @@ type Tab = 'inv' | 'acc' | 'prj' | 'hist'
 const workflowSteps = [
   { label: 'Excel import', route: 'mtg-step-excel-import', icon: 'pi pi-file-excel' },
   { label: 'AML review', route: 'mtg-step-aml-review', icon: 'pi pi-shield' },
-  { label: 'Inquiries', route: 'mtg-step-inquiries', icon: 'pi pi-comments' }
+  { label: 'Inquiries', route: 'mtg-step-inquiries', icon: 'pi pi-comments' },
+  { label: 'Legal review', route: 'mtg-step-legal-review', icon: 'pi pi-briefcase' }
 ]
 
 const props = defineProps<{ portfolioId: string }>()
