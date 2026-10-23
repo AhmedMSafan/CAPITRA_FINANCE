@@ -45,5 +45,8 @@ public static class Permissions
 
         /// <summary>Workflow step "Portfolio Valuation" (page 401): record valuations and complete the step.</summary>
         public const string StepValuation = "MTG.STEP.VALUATION";
+
+        /// <summary>Workflow step "Portfolio Coverage Review" (page 212): apply the coverage rule, decide investors, accept or reject.</summary>
+        public const string StepCoverageReview = "MTG.STEP.COVERAGE_REVIEW";
     }
 }

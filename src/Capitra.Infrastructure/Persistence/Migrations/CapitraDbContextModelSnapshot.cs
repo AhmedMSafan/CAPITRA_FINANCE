@@ -1614,6 +1614,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                             NameAr = "اكتمل التقييم",
                             NameEn = "Valuation Completed",
                             RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "COVERAGE_REVIEW_ACCEPTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 10,
+                            IsActive = true,
+                            NameAr = "تم قبول مراجعة التغطية",
+                            NameEn = "Coverage Review Accepted",
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "COVERAGE_REVIEW_REJECTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 11,
+                            IsActive = true,
+                            NameAr = "تم رفض مراجعة التغطية",
+                            NameEn = "Coverage Review Rejected",
+                            RowVersion = 1
                         });
                 });
 

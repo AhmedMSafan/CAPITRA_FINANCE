@@ -23,7 +23,9 @@ public sealed class MtgLkpPortfolioStatusConfiguration : LookupConfiguration<Mtg
             Seed(MtgPortfolio.InquiryRejectedStatus, "Inquiry Rejected", "تم رفض الاستعلامات", 6),
             Seed(MtgPortfolio.LegalReviewAcceptedStatus, "Legal Review Accepted", "تم قبول المراجعة القانونية", 7),
             Seed(MtgPortfolio.LegalReviewRejectedStatus, "Legal Review Rejected", "تم رفض المراجعة القانونية", 8),
-            Seed(MtgPortfolio.ValuationCompletedStatus, "Valuation Completed", "اكتمل التقييم", 9));
+            Seed(MtgPortfolio.ValuationCompletedStatus, "Valuation Completed", "اكتمل التقييم", 9),
+            Seed(MtgPortfolio.CoverageReviewAcceptedStatus, "Coverage Review Accepted", "تم قبول مراجعة التغطية", 10),
+            Seed(MtgPortfolio.CoverageReviewRejectedStatus, "Coverage Review Rejected", "تم رفض مراجعة التغطية", 11));
     }
 
     private static MtgLkpPortfolioStatus Seed(string code, string nameEn, string nameAr, int displayOrder) => new()

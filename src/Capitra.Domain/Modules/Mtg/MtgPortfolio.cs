@@ -35,6 +35,12 @@ public class MtgPortfolio : AuditableEntity
     /// <summary>Set by the valuation step (page 401).</summary>
     public const string ValuationCompletedStatus = "VALUATION_COMPLETED";
 
+    /// <summary>Set by the coverage review step (page 212).</summary>
+    public const string CoverageReviewAcceptedStatus = "COVERAGE_REVIEW_ACCEPTED";
+
+    /// <summary>Set by the coverage review step (page 212); the reason is kept in <see cref="RejectionReason"/>.</summary>
+    public const string CoverageReviewRejectedStatus = "COVERAGE_REVIEW_REJECTED";
+
     public long PortfolioId { get; set; }
 
     public string PortfolioNo { get; set; } = string.Empty;
