@@ -1,0 +1,480 @@
+@import './admin.css';
+:root {
+  --capitra-bg: #f4f7fb;
+  --capitra-surface: #ffffff;
+  --capitra-border: #e4e9f0;
+  --capitra-text: #1f2937;
+  --capitra-text-muted: #6b7280;
+  --capitra-primary: #0f766e;
+  --capitra-primary-dark: #115e59;
+  --capitra-danger: #dc2626;
+  --capitra-radius: 14px;
+  --capitra-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--capitra-bg);
+  color: var(--capitra-text);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.capitra-page {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.capitra-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.capitra-page-title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.capitra-page-subtitle {
+  margin-top: 6px;
+  color: var(--capitra-text-muted);
+  font-size: 14px;
+}
+
+.capitra-card {
+  background: var(--capitra-surface);
+  border: 1px solid var(--capitra-border);
+  border-radius: var(--capitra-radius);
+  box-shadow: var(--capitra-shadow);
+  padding: 24px;
+}
+
+.capitra-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.capitra-search {
+  width: 340px;
+}
+  .capitra-search .p-inputtext {
+    width: 100%;
+  }
+
+.capitra-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.capitra-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.capitra-field-full {
+  grid-column: 1 / -1;
+}
+
+.capitra-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.capitra-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .capitra-page {
+    padding: 16px;
+  }
+
+  .capitra-page-header,
+  .capitra-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .capitra-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .capitra-search {
+    width: 100%;
+  }
+}
+
+/*Finove Header*/
+.capitra-app-header {
+  height: 74px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #075b63;
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.capitra-app-brand {
+  display: flex;
+  align-items: center;
+  justify-content:center;
+  gap: 12px;
+}
+
+.capitra-logo-mark {
+  font-size: 30px;
+  color: #f58220;
+}
+
+.capitra-brand-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.capitra-brand-name {
+  font-weight: 700;
+}
+
+.capitra-brand-divider {
+  opacity: 0.65;
+}
+
+.capitra-module-name {
+  font-weight: 500;
+}
+
+.capitra-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.capitra-header-pill,
+.capitra-user-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.capitra-user-button {
+  cursor: pointer;
+}
+
+.capitra-app-layout {
+  min-height: 100vh;
+  background: #eef3f7;
+}
+
+.capitra-app-content {
+  padding:0;
+}
+.capitra-function-name {
+  margin-left: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #d97706;
+  letter-spacing: 0.2px;
+}
+
+
+/* =========================================================
+   CAPITRA STANDARD DATA GRID
+   ========================================================= */
+
+.capitra-card .p-datatable {
+  font-size: 14px;
+  color: #1f2937;
+}
+
+/* Column headers */
+.capitra-card .p-datatable-thead > tr > th {
+  background: #e7edf2;
+  color: #183247;
+  font-weight: 700;
+  border-color: #c7d2dc;
+ 
+}
+
+/* Data cells */
+.capitra-card .p-datatable-tbody > tr > td {
+  color: #25384a;
+  border-color: #d4dde5;
+  padding: 0px;
+}
+
+/* Alternating row */
+.capitra-card .p-datatable-tbody > tr:nth-child(even) {
+  background: #f7f9fb;
+}
+
+/* Row hover */
+.capitra-card .p-datatable-tbody > tr:hover {
+  background: #edf4f5;
+}
+
+/* Outer grid border */
+.capitra-card .p-datatable-table-container {
+  border: 1px solid #c7d2dc;
+}
+
+/* Paginator */
+.capitra-card .p-paginator {
+  border-top: 1px solid #c7d2dc;
+  background: #f8fafb;
+}
+
+
+.capitra-form-section {
+  margin-bottom: 24px;
+}
+
+.capitra-form-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #263b4d;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #d8dee4;
+}
+
+.capitra-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  row-gap: 18px;
+}
+
+.capitra-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+  .capitra-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #34495e;
+  }
+
+  .capitra-field .p-inputtext,
+  .capitra-field .p-select {
+    width: 100%;
+  }
+
+  .capitra-field .p-inputtext {
+    min-height: 40px;
+  }
+
+  .capitra-field .required {
+    color: #c0392b;
+  }
+
+
+
+/* =========================================================
+   CAPITRA GLOBAL ACTION BUTTONS
+   ========================================================= */
+
+.capitra-action-button {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+
+  .capitra-action-button i {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+
+/* =========================================================
+   UPDATE / SAVE ACTION
+   Standard icon: pi-save
+   ========================================================= */
+
+.capitra-action-update {
+  border: 1px solid #0b74c9;
+  background: linear-gradient( 180deg, #1686dc 0%, #0876d1 100% );
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(8, 118, 209, 0.18);
+}
+
+
+  .capitra-action-update:hover:not(:disabled) {
+    background: linear-gradient( 180deg, #0f7ed2 0%, #066bbd 100% );
+    border-color: #066bbd;
+    box-shadow: 0 4px 10px rgba(8, 118, 209, 0.22);
+    transform: translateY(-1px);
+  }
+
+
+/* =========================================================
+   CREATE / GENERATE / ADD ACTION
+   Standard icon: pi-plus-circle
+   ========================================================= */
+
+.capitra-action-create {
+  border: 1px solid #73a95f;
+  background: linear-gradient( 180deg, #99cc82 0%, #83ba69 100% );
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(85, 137, 61, 0.17);
+}
+
+
+  .capitra-action-create:hover:not(:disabled) {
+    background: linear-gradient( 180deg, #8fc578 0%, #75ad5d 100% );
+    border-color: #699e53;
+    box-shadow: 0 4px 10px rgba(85, 137, 61, 0.22);
+    transform: translateY(-1px);
+  }
+
+
+/* =========================================================
+   CLICK
+   ========================================================= */
+
+.capitra-action-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+
+/* =========================================================
+   DISABLED
+   ========================================================= */
+
+.capitra-action-button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+
+/* =========================================================
+   OPTIONAL SMALL SIZE
+   ========================================================= */
+
+.capitra-action-small {
+  height: 32px;
+  padding: 0 12px;
+  gap: 6px;
+  font-size: 11px;
+}
+
+
+  .capitra-action-small i {
+    font-size: 14px;
+  }
+
+.capitra-form-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 11px 14px;
+  border: 1px solid #e5b7b7;
+  border-radius: 6px;
+  background: #fff5f5;
+  color: #a93226;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   CAPITRA GLOBAL DIALOG CLOSE BUTTON
+   ========================================================= */
+
+.capitra-dialog-close {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  padding: 0;
+  border: 1px solid #cfd8dc;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #60757d;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(15, 45, 55, 0.08);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+  .capitra-dialog-close i {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .capitra-dialog-close:hover {
+    background: #f3f9f9;
+    border-color: #008a8b;
+    color: #00797a;
+    box-shadow: 0 2px 6px rgba(0, 122, 123, 0.14);
+    transform: translateY(-1px);
+  }
+
+  .capitra-dialog-close:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(15, 45, 55, 0.10);
+  }
+
+  .capitra-dialog-close:focus-visible {
+    outline: 2px solid rgba(0, 138, 139, 0.22);
+    outline-offset: 2px;
+  }
+
+  .capitra-dialog-close:disabled {
+    opacity: 0.5;
+    cursor: default;
+    transform: none;
+  }
+
+@media (max-width: 768px) {
+
+  .capitra-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
