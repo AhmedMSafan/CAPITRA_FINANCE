@@ -171,6 +171,23 @@ public sealed class MtgPortfolioChequeConfiguration : IEntityTypeConfiguration<M
     }
 }
 
+public sealed class MtgPortfolioFinancialReviewConfiguration : IEntityTypeConfiguration<MtgPortfolioFinancialReview>
+{
+    public void Configure(EntityTypeBuilder<MtgPortfolioFinancialReview> builder)
+    {
+        builder.ToTable("MTG_PORTFOLIO_FINANCIAL_REVIEW");
+        builder.HasKey(x => x.FinancialReviewId);
+        builder.HasIndex(x => x.PortfolioId).IsUnique();
+
+        builder.Property(x => x.PvMethodCode).HasMaxLength(30);
+        builder.Property(x => x.MarginBaseCode).HasMaxLength(30);
+        builder.Property(x => x.AdminBaseCode).HasMaxLength(30);
+
+        builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
 public sealed class MtgAccountPaymentConfiguration : IEntityTypeConfiguration<MtgAccountPayment>
 {
     public void Configure(EntityTypeBuilder<MtgAccountPayment> builder)

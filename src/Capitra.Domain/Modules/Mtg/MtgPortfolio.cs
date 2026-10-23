@@ -47,6 +47,12 @@ public class MtgPortfolio : AuditableEntity
     /// <summary>Set by the cheque coverage step (page 213); the reason is kept in <see cref="RejectionReason"/>.</summary>
     public const string ChequeCoverageRejectedStatus = "CHEQUE_COVERAGE_REJECTED";
 
+    /// <summary>Set by the financial review step (page 214).</summary>
+    public const string FinancialReviewAcceptedStatus = "FINANCIAL_REVIEW_ACCEPTED";
+
+    /// <summary>Set by the financial review step (page 214); the reason is kept in <see cref="RejectionReason"/>.</summary>
+    public const string FinancialReviewRejectedStatus = "FINANCIAL_REVIEW_REJECTED";
+
     public long PortfolioId { get; set; }
 
     public string PortfolioNo { get; set; } = string.Empty;
@@ -93,6 +99,9 @@ public class MtgPortfolio : AuditableEntity
     public decimal? LegalFeePerUnitAmount { get; set; }
 
     public decimal? ValuationFeePerUnitAmount { get; set; }
+
+    /// <summary>The day the financial review was completed and the portfolio went to the board (page 214).</summary>
+    public DateOnly? SubmittedDate { get; set; }
 
     /// <summary>Why the last review rejected the portfolio; cleared when a review accepts it.</summary>
     public string? RejectionReason { get; set; }

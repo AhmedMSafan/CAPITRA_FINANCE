@@ -1658,6 +1658,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                             NameAr = "تم رفض تغطية الشيكات",
                             NameEn = "Cheque Coverage Rejected",
                             RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "FINANCIAL_REVIEW_ACCEPTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 14,
+                            IsActive = true,
+                            NameAr = "تم قبول المراجعة المالية",
+                            NameEn = "Financial Review Accepted",
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "FINANCIAL_REVIEW_REJECTED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 15,
+                            IsActive = true,
+                            NameAr = "تم رفض المراجعة المالية",
+                            NameEn = "Financial Review Rejected",
+                            RowVersion = 1
                         });
                 });
 
@@ -1928,6 +1950,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("SELECTED_PAID_AMOUNT");
 
+                    b.Property<DateOnly?>("SubmittedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SUBMITTED_DATE");
+
                     b.Property<int?>("TermMonths")
                         .HasColumnType("integer")
                         .HasColumnName("TERM_MONTHS");
@@ -2187,6 +2213,190 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_MTG_PORTFOLIO_CHEQUE_PORTFOLIO_ID");
 
                     b.ToTable("MTG_PORTFOLIO_CHEQUE", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioFinancialReview", b =>
+                {
+                    b.Property<long>("FinancialReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("FINANCIAL_REVIEW_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("FinancialReviewId"));
+
+                    b.Property<decimal>("AdminBaseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ADMIN_BASE_AMOUNT");
+
+                    b.Property<string>("AdminBaseCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ADMIN_BASE_CODE");
+
+                    b.Property<decimal>("AdminCalcAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ADMIN_CALC_AMOUNT");
+
+                    b.Property<decimal>("AdminExpensePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("ADMIN_EXPENSE_PCT");
+
+                    b.Property<decimal>("AdminFinalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ADMIN_FINAL_AMOUNT");
+
+                    b.Property<int>("ChequeCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("CHEQUE_COUNT");
+
+                    b.Property<decimal>("ChequesFaceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHEQUES_FACE_AMOUNT");
+
+                    b.Property<decimal>("ChequesPvAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHEQUES_PV_AMOUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal>("ExpectedReturnAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("EXPECTED_RETURN_AMOUNT");
+
+                    b.Property<bool>("IsAdminIncluded")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ADMIN_INCLUDED");
+
+                    b.Property<bool>("IsLegalIncluded")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_LEGAL_INCLUDED");
+
+                    b.Property<bool>("IsValuationIncluded")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_VALUATION_INCLUDED");
+
+                    b.Property<decimal>("LegalCalcAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LEGAL_CALC_AMOUNT");
+
+                    b.Property<decimal>("LegalFeePerUnitAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LEGAL_FEE_PER_UNIT_AMOUNT");
+
+                    b.Property<decimal>("LegalFinalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LEGAL_FINAL_AMOUNT");
+
+                    b.Property<decimal>("MarginAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARGIN_AMOUNT");
+
+                    b.Property<decimal>("MarginBaseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARGIN_BASE_AMOUNT");
+
+                    b.Property<string>("MarginBaseCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("MARGIN_BASE_CODE");
+
+                    b.Property<decimal>("MarginPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MARGIN_PCT");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<decimal>("ProposedPurchaseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PROPOSED_PURCHASE_AMOUNT");
+
+                    b.Property<DateOnly>("PvBaseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PV_BASE_DATE");
+
+                    b.Property<string>("PvMethodCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PV_METHOD_CODE");
+
+                    b.Property<decimal>("PvRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PV_RATE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal>("TotalChargesAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_CHARGES_AMOUNT");
+
+                    b.Property<int>("UnitCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("UNIT_COUNT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<decimal>("ValuationCalcAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("VALUATION_CALC_AMOUNT");
+
+                    b.Property<decimal>("ValuationFeePerUnitAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("VALUATION_FEE_PER_UNIT_AMOUNT");
+
+                    b.Property<decimal>("ValuationFinalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("VALUATION_FINAL_AMOUNT");
+
+                    b.HasKey("FinancialReviewId")
+                        .HasName("PK_MTG_PORTFOLIO_FINANCIAL_REVIEW");
+
+                    b.HasIndex("PortfolioId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PORTFOLIO_FINANCIAL_REVIEW_PORTFOLIO_ID");
+
+                    b.ToTable("MTG_PORTFOLIO_FINANCIAL_REVIEW", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioImport", b =>
@@ -3298,6 +3508,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_PORTFOLIO_CHEQUE_MTG_PORTFOLIO");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioFinancialReview", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PORTFOLIO_FINANCIAL_REVIEW_MTG_PORTFOLIO");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioImport", b =>

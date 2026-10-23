@@ -28,7 +28,8 @@ const workflowSteps = [
   { label: 'Legal review', route: 'mtg-step-legal-review', icon: 'pi pi-briefcase' },
   { label: 'Valuation', route: 'mtg-step-valuation', icon: 'pi pi-calculator' },
   { label: 'Coverage review', route: 'mtg-step-coverage-review', icon: 'pi pi-percentage' },
-  { label: 'Cheque coverage', route: 'mtg-step-cheque-coverage', icon: 'pi pi-wallet' }
+  { label: 'Cheque coverage', route: 'mtg-step-cheque-coverage', icon: 'pi pi-wallet' },
+  { label: 'Financial review', route: 'mtg-step-financial-review', icon: 'pi pi-calculator' }
 ]
 
 const props = defineProps<{ portfolioId: string }>()

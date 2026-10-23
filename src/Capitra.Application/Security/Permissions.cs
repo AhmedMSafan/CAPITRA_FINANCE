@@ -51,5 +51,8 @@ public static class Permissions
 
         /// <summary>Workflow step "Portfolio Cheque Coverage Review" (page 213): enter investors' cheques, accept or reject.</summary>
         public const string StepChequeCoverage = "MTG.STEP.CHEQUE_COVERAGE";
+
+        /// <summary>Workflow step "Portfolio Financial Review" (page 214): price the portfolio, accept or reject.</summary>
+        public const string StepFinancialReview = "MTG.STEP.FINANCIAL_REVIEW";
     }
 }
