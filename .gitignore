@@ -1,0 +1,15 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+TestResults/
+appsettings.*.local.json
+.env
+.env.*
+!.env.example
+node_modules/
+web/dist/
+web/.vite/
+*.log
