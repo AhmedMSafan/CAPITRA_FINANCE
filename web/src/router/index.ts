@@ -44,6 +44,14 @@ const router = createRouter({
           props: true,
           meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Payment History' }
         },
+        // Portfolio workflow steps: one page per step.
+        {
+          path: 'mortgage/portfolios/:portfolioId/excel-import',
+          name: 'mtg-step-excel-import',
+          component: () => import('@/modules/mtg/steps/excel-import/ExcelImportPage.vue'),
+          props: true,
+          meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Excel Import & Validation' }
+        },
         // Portfolio acquisition (APEX App 105): master and reference data.
         {
           path: 'mortgage',

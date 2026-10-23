@@ -1,4 +1,5 @@
 using Capitra.Application.Abstractions;
+using Capitra.Infrastructure.Files;
 using Capitra.Infrastructure.Identity;
 using Capitra.Infrastructure.Persistence;
 using Capitra.Infrastructure.Persistence.Interceptors;
@@ -22,6 +23,7 @@ public static class DependencyInjection
                 $"Connection string '{ConnectionStringName}' is not configured. Set ConnectionStrings__{ConnectionStringName} or use dotnet user-secrets.");
 
         services.AddSingleton<IClock, SystemClock>();
+        services.AddSingleton<IWorkbookReader, ExcelWorkbookReader>();
         services.AddScoped<AuditInterceptor>();
 
         services.AddDbContext<CapitraDbContext>((sp, options) =>

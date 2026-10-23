@@ -70,6 +70,9 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
     [InlineData("POST", "/api/mtg/portfolio-accounts", Permissions.Mtg.PortfolioView)]
     [InlineData("PUT", "/api/mtg/account-payments/1", Permissions.Mtg.PortfolioView)]
     [InlineData("DELETE", "/api/mtg/account-payments/1?rowVersion=1", Permissions.Mtg.PortfolioView)]
+    [InlineData("GET", "/api/mtg/portfolios/1/excel-import", Permissions.Mtg.StepExcelImport)]
+    [InlineData("POST", "/api/mtg/portfolios/1/excel-import/validate", Permissions.Mtg.PortfolioView)]
+    [InlineData("POST", "/api/mtg/portfolios/1/excel-import/import", Permissions.Mtg.PortfolioEdit)]
     public async Task Missing_permission_is_forbidden(string method, string url, string permission)
     {
         using var client = _factory.CreateClient();
@@ -77,7 +80,10 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var request = new HttpRequestMessage(new HttpMethod(method), new Uri(url, UriKind.Relative))
         {
-            Content = method == "POST" ? new StringContent("{}", System.Text.Encoding.UTF8, "application/json") : null,
+            Content = method != "POST" ? null
+                // Upload endpoints only match multipart requests.
+                : url.Contains("excel-import", StringComparison.Ordinal) ? new MultipartFormDataContent()
+                : new StringContent("{}", System.Text.Encoding.UTF8, "application/json"),
         };
         var response = await client.SendAsync(request);
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);

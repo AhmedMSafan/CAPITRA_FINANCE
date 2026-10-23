@@ -16,6 +16,9 @@ public class MtgPortfolioAccount : AuditableEntity
 
     public long ProjectUnitId { get; set; }
 
+    /// <summary>The seller's contract number, set by the Excel import (page 208). Unique within a portfolio.</summary>
+    public string? SellerContractNo { get; set; }
+
     public DateOnly? BookingDate { get; set; }
 
     public DateOnly? ContractDate { get; set; }

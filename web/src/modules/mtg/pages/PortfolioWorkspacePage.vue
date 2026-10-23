@@ -169,6 +169,9 @@ function onDeleted() {
           <span class="cp-pill cp-pill--info">{{ p.portfolioStatusName }}</span>
         </div>
         <div class="hero__actions">
+          <RouterLink class="cp-btn" :to="{ name: 'mtg-step-excel-import', params: { portfolioId: p.portfolioId } }">
+            <i class="pi pi-file-excel"></i><span>Excel import</span>
+          </RouterLink>
           <RouterLink class="cp-btn" :to="{ name: 'mtg-portfolio-payments', params: { portfolioId: p.portfolioId } }">
             <i class="pi pi-history"></i><span>Payment history</span>
           </RouterLink>

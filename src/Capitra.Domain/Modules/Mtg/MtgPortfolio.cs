@@ -11,6 +11,9 @@ public class MtgPortfolio : AuditableEntity
     /// <summary>Status every new portfolio starts in.</summary>
     public const string DraftStatus = "DRAFT";
 
+    /// <summary>Set when the seller workbook has been imported (workflow step "Excel Import &amp; Validation", page 208).</summary>
+    public const string DataLoadingCompletedStatus = "DATA_LOADING_COMPLETED";
+
     public long PortfolioId { get; set; }
 
     public string PortfolioNo { get; set; } = string.Empty;

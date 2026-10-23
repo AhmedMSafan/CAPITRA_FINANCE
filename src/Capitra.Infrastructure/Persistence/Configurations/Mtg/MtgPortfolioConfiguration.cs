@@ -38,13 +38,31 @@ public sealed class MtgPortfolioAccountConfiguration : IEntityTypeConfiguration<
     {
         builder.ToTable("MTG_PORTFOLIO_ACCOUNT");
         builder.HasKey(x => x.PortfolioAccountId);
+        builder.HasIndex(x => new { x.PortfolioId, x.SellerContractNo }).IsUnique();
 
+        builder.Property(x => x.SellerContractNo).HasMaxLength(100);
         builder.Property(x => x.InstallmentFrequency).HasMaxLength(30);
         builder.Property(x => x.AccountStatus).HasMaxLength(30);
 
         builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<MtgInvestor>().WithMany().HasForeignKey(x => x.InvestorId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<MtgProjectUnit>().WithMany().HasForeignKey(x => x.ProjectUnitId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class MtgPortfolioImportConfiguration : IEntityTypeConfiguration<MtgPortfolioImport>
+{
+    public void Configure(EntityTypeBuilder<MtgPortfolioImport> builder)
+    {
+        builder.ToTable("MTG_PORTFOLIO_IMPORT");
+        builder.HasKey(x => x.PortfolioImportId);
+        builder.HasIndex(x => x.PortfolioId).IsUnique();
+
+        builder.Property(x => x.FileName).HasMaxLength(500);
+        builder.Property(x => x.ImportStatusCode).HasMaxLength(30);
+
+        builder.HasOne<MtgPortfolio>().WithMany().HasForeignKey(x => x.PortfolioId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }

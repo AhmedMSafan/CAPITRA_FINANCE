@@ -16,6 +16,7 @@ public sealed record PortfolioAccountDto(
     string InvestorName,
     long ProjectUnitId,
     string UnitCode,
+    string? SellerContractNo,
     DateOnly? BookingDate,
     DateOnly? ContractDate,
     decimal ContractAmount,
@@ -76,7 +77,7 @@ public sealed class MtgPortfolioAccountService(ICapitraDbContext db)
         orderby i.InvestorCode, u.UnitCode
         select new PortfolioAccountDto(
             a.PortfolioAccountId, a.PortfolioId, a.InvestorId, i.InvestorCode, i.FullNameEn ?? i.FullNameAr, a.ProjectUnitId,
-            u.UnitCode, a.BookingDate, a.ContractDate, a.ContractAmount, a.PaidAmount, a.OutstandingAmount, a.InstallmentAmount,
+            u.UnitCode, a.SellerContractNo, a.BookingDate, a.ContractDate, a.ContractAmount, a.PaidAmount, a.OutstandingAmount, a.InstallmentAmount,
             a.InstallmentFrequency, a.LastPaymentDate, a.RegularPaymentMonths, a.ArrearsAmount, a.AccountStatus, a.RowVersion);
 
     protected override async Task ValidateAsync(

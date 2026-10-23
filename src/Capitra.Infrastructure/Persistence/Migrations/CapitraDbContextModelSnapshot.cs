@@ -1245,6 +1245,17 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                             NameAr = "مسودة",
                             NameEn = "Draft",
                             RowVersion = 1
+                        },
+                        new
+                        {
+                            Code = "DATA_LOADING_COMPLETED",
+                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            NameAr = "اكتمل تحميل البيانات",
+                            NameEn = "Data Loading Completed",
+                            RowVersion = 1
                         });
                 });
 
@@ -1618,6 +1629,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
 
+                    b.Property<string>("SellerContractNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("SELLER_CONTRACT_NO");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("UPDATED_AT");
@@ -1633,13 +1649,89 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasIndex("InvestorId")
                         .HasDatabaseName("IX_MTG_PORTFOLIO_ACCOUNT_INVESTOR_ID");
 
-                    b.HasIndex("PortfolioId")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_ACCOUNT_PORTFOLIO_ID");
-
                     b.HasIndex("ProjectUnitId")
                         .HasDatabaseName("IX_MTG_PORTFOLIO_ACCOUNT_PROJECT_UNIT_ID");
 
+                    b.HasIndex("PortfolioId", "SellerContractNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PORTFOLIO_ACCOUNT_PORTFOLIO_ID_SELLER_CONTRACT_NO");
+
                     b.ToTable("MTG_PORTFOLIO_ACCOUNT", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioImport", b =>
+                {
+                    b.Property<long>("PortfolioImportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_IMPORT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PortfolioImportId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("ErrorRowCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("ERROR_ROW_COUNT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("FILE_NAME");
+
+                    b.Property<string>("ImportStatusCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("IMPORT_STATUS_CODE");
+
+                    b.Property<int>("ImportedRowCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("IMPORTED_ROW_COUNT");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("TotalRowCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("TOTAL_ROW_COUNT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<int>("ValidRowCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("VALID_ROW_COUNT");
+
+                    b.HasKey("PortfolioImportId")
+                        .HasName("PK_MTG_PORTFOLIO_IMPORT");
+
+                    b.HasIndex("PortfolioId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PORTFOLIO_IMPORT_PORTFOLIO_ID");
+
+                    b.ToTable("MTG_PORTFOLIO_IMPORT", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioStatusHistory", b =>
@@ -2502,6 +2594,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_PORTFOLIO_ACCOUNT_MTG_PROJECT_UNIT");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioImport", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PORTFOLIO_IMPORT_MTG_PORTFOLIO");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioStatusHistory", b =>

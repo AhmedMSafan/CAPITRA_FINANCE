@@ -30,5 +30,8 @@ public static class Permissions
 
         /// <summary>Create, change and delete portfolio cases, accounts and payments.</summary>
         public const string PortfolioEdit = "MTG.PORTFOLIO.EDIT";
+
+        /// <summary>Workflow step "Excel Import &amp; Validation" (page 208): validate and import the seller workbook.</summary>
+        public const string StepExcelImport = "MTG.STEP.EXCEL_IMPORT";
     }
 }

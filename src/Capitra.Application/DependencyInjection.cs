@@ -1,6 +1,7 @@
 using Capitra.Application.Modules.Adm.Lookups;
 using Capitra.Application.Modules.Mtg.MasterData;
 using Capitra.Application.Modules.Mtg.Portfolios;
+using Capitra.Application.Modules.Mtg.PortfolioSteps.ExcelImport;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Capitra.Application;
@@ -21,6 +22,9 @@ public static class DependencyInjection
         services.AddScoped<IMtgPortfolioAccountService, MtgPortfolioAccountService>();
         services.AddScoped<IMtgAccountPaymentService, MtgAccountPaymentService>();
         services.AddScoped<IMtgPortfolioQueryService, MtgPortfolioQueryService>();
+
+        // Portfolio workflow steps: one service per step.
+        services.AddScoped<IMtgExcelImportService, MtgExcelImportService>();
         return services;
     }
 }
