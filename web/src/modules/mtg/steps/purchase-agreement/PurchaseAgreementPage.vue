@@ -234,30 +234,30 @@ const print = () => window.print()
 </template>
 
 <style scoped>
-.warn { padding: 10px 14px; border: 1px solid #f1dfb0; border-radius: 8px; background: #fdf8ec; color: #9a6700; font-size: 13px; }
-.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px; font-size: 13px; color: #0a3573; }
-.doc { padding: 40px 44px; border: 1px solid #e3ebf0; border-radius: 12px; background: #fff; color: #10231a; font-size: 13px; line-height: 1.65; }
-.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; padding: 14px 0; border-bottom: 1px solid #eef3f6; }
-.row h3 { margin: 0 0 6px; font-size: 13px; color: #0a3573; }
+.warn { padding: 10px 14px; border: 1px solid var(--cap-warning-border); border-radius: 8px; background: var(--cap-warning-bg); color: var(--cap-warning); font-size: 13px; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px; font-size: 13px; color: var(--cap-primary-dark); }
+.doc { padding: 40px 44px; border: 1px solid var(--cap-border-soft); border-radius: 12px; background: #fff; color: var(--cap-ink); font-size: 13px; line-height: 1.65; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; padding: 14px 0; border-bottom: 1px solid var(--cap-bg); }
+.row h3 { margin: 0 0 6px; font-size: 13px; color: var(--cap-primary-dark); }
 .row p { margin: 0; white-space: pre-line; }
-.head { padding-top: 0; border-bottom: 2px solid #0a3573; }
-.head h1 { margin: 6px 0 4px; font-size: 20px; color: #0a3573; }
-.head p { color: #405b4d; }
-.draft { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #fdf3f2; color: #8a1c12; font-size: 11px; font-weight: 600; }
+.head { padding-top: 0; border-bottom: 2px solid var(--cap-primary-dark); }
+.head h1 { margin: 6px 0 4px; font-size: 20px; color: var(--cap-primary-dark); }
+.head p { color: var(--cap-ink-soft); }
+.draft { display: inline-block; padding: 2px 8px; border-radius: 4px; background: var(--cap-danger-bg); color: var(--cap-danger-dark); font-size: 11px; font-weight: 600; }
 .ar { text-align: right; font-family: 'Noto Naskh Arabic', 'Segoe UI', Tahoma, sans-serif; }
-.blank { display: inline-block; min-width: 90px; border-bottom: 1px dotted #6f8990; vertical-align: baseline; height: 1em; }
+.blank { display: inline-block; min-width: 90px; border-bottom: 1px dotted var(--cap-muted); vertical-align: baseline; height: 1em; }
 .sign { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; margin: 28px 0 8px; }
-.sign h4 { margin: 0 0 8px; font-size: 13px; color: #0a3573; }
+.sign h4 { margin: 0 0 8px; font-size: 13px; color: var(--cap-primary-dark); }
 .sign p { margin: 0 0 10px; }
 .annex { margin-top: 28px; break-before: page; }
-.annex h2 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0 0 10px; font-size: 15px; color: #0a3573; }
+.annex h2 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0 0 10px; font-size: 15px; color: var(--cap-primary-dark); }
 .annex table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.annex th, .annex td { padding: 6px 8px; border: 1px solid #e3ebf0; text-align: start; vertical-align: top; }
-.annex th { background: #f4f7fb; font-weight: 600; }
-.annex th small { display: block; font-weight: 400; color: #6f8990; }
+.annex th, .annex td { padding: 6px 8px; border: 1px solid var(--cap-border-soft); text-align: start; vertical-align: top; }
+.annex th { background: var(--cap-bg); font-weight: 600; }
+.annex th small { display: block; font-weight: 400; color: var(--cap-muted); }
 .annex .n { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.annex .tot td { font-weight: 600; background: #f8fafc; }
-.ar-line { display: block; color: #405b4d; }
+.annex .tot td { font-weight: 600; background: var(--cap-bg); }
+.ar-line { display: block; color: var(--cap-ink-soft); }
 @media (max-width: 760px) {
   .doc { padding: 20px 16px; }
   .row, .sign { grid-template-columns: minmax(0, 1fr); gap: 12px; }

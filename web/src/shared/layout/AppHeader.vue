@@ -157,7 +157,7 @@
     color: #ffffff;
     background:
       radial-gradient(circle at 18% -40%, rgba(48, 112, 190, .18), transparent 42%),
-      linear-gradient(110deg, #061f46 0%, #0a3573 52%, #041a38 100%);
+      linear-gradient(110deg, var(--cap-navy) 0%, var(--cap-primary-dark) 52%, var(--cap-navy) 100%);
     border-bottom: 0;
     box-shadow: 0 8px 22px rgba(3, 24, 55, .22);
   }
@@ -192,11 +192,11 @@
   }
 
   .capitra-logo-main {
-    fill: #ff8a1f;
+    fill: var(--cap-accent);
   }
 
   .capitra-logo-dark {
-    fill: #c9510b;
+    fill: var(--cap-accent-dark);
   }
 
   .capitra-brand-text {
@@ -222,7 +222,7 @@
   }
 
   .capitra-module-name {
-    color: #dcecff;
+    color: var(--cap-primary-tint);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: .025em;
@@ -232,7 +232,7 @@
     max-width: 260px;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #a8c9ef;
+    color: var(--cap-primary-tint-2);
     font-size: 11px;
     font-weight: 600;
   }
@@ -262,7 +262,7 @@
   .capitra-header-pill {
     gap: 7px;
     padding: 0 13px;
-    color: #dbeaff;
+    color: var(--cap-primary-tint);
     font-size: 11px;
     font-weight: 700;
   }
@@ -272,7 +272,7 @@
   }
 
   .capitra-header-pill i {
-    color: #ffad53;
+    color: var(--cap-accent);
   }
 
   .capitra-user-area {
@@ -302,7 +302,7 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: linear-gradient(145deg, #2f8cf1, #2365c0);
+    background: linear-gradient(145deg, var(--cap-primary), var(--cap-primary));
     box-shadow: inset 0 0 0 1px rgba(255,255,255,.16);
   }
 
@@ -324,7 +324,7 @@
   }
 
   .capitra-tag-label {
-    color: #b7cbe2;
+    color: var(--cap-primary-tint-2);
     font-size: 9px;
     font-weight: 700;
     letter-spacing: .04em;
@@ -332,7 +332,7 @@
   }
 
   .department-tag .capitra-tag-label {
-    color: #f4c18e;
+    color: var(--cap-warning-border);
   }
 
   .capitra-user-menu {
@@ -342,34 +342,34 @@
     z-index: 5000;
     width: 286px;
     overflow: hidden;
-    border: 1px solid #d6e2ee;
+    border: 1px solid var(--cap-border);
     border-radius: 13px;
     background: #ffffff;
-    color: #172d42;
+    color: var(--cap-ink);
     box-shadow: 0 18px 42px rgba(13, 53, 100, .20);
   }
 
   .capitra-user-menu-name {
     padding: 15px 16px 2px;
-    color: #173b61;
+    color: var(--cap-primary-dark);
     font-weight: 900;
   }
 
   .capitra-user-menu-login {
     padding: 0 16px 13px;
-    color: #73899b;
+    color: var(--cap-muted);
     font-size: 11px;
-    border-bottom: 1px solid #e9eff4;
+    border-bottom: 1px solid var(--cap-border-soft);
   }
 
   .capitra-user-menu-section {
     padding: 12px 16px;
-    border-bottom: 1px solid #e9eff4;
+    border-bottom: 1px solid var(--cap-border-soft);
   }
 
   .capitra-user-menu-section-title {
     margin-bottom: 8px;
-    color: #71879a;
+    color: var(--cap-muted);
     font-size: 9px;
     font-weight: 900;
     letter-spacing: .07em;
@@ -388,19 +388,19 @@
     gap: 7px;
     padding: 8px 9px;
     border-radius: 8px;
-    background: #eef5fc;
-    color: #205f9f;
+    background: var(--cap-primary-tint);
+    color: var(--cap-primary);
     font-size: 11px;
     font-weight: 800;
   }
 
   .capitra-role-item i {
-    color: #d97718;
+    color: var(--cap-accent-dark);
     font-size: 11px;
   }
 
   .capitra-role-empty {
-    color: #7b8e9e;
+    color: var(--cap-muted);
     font-size: 11px;
   }
 
@@ -412,14 +412,14 @@
     padding: 13px 16px;
     border: 0;
     background: #ffffff;
-    color: #b42318;
+    color: var(--cap-danger);
     cursor: pointer;
     font-weight: 800;
     text-align: left;
   }
 
   .capitra-logout-button:hover {
-    background: #fff5f4;
+    background: var(--cap-danger-bg);
   }
 
   @media (max-width: 1180px) {
@@ -531,11 +531,11 @@
 
   .capitra-shortcut--admin .capitra-shortcut-icon {
     color: #7af0a5;
-    background: rgba(32,145,90,.22);
+    background: rgba(31,95,209,.22);
   }
 
   .capitra-shortcut--tools .capitra-shortcut-icon {
-    color: #ff9b42;
+    color: var(--cap-accent);
     background: rgba(210,100,20,.20);
   }
 

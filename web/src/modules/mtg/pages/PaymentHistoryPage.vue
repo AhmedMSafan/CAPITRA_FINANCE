@@ -121,8 +121,8 @@ function newPayment(): FormValues {
 </template>
 
 <style scoped>
-.crumbs { display: flex; gap: 8px; margin-bottom: 14px; color: #718579; font-size: 12px; }
-.crumbs a { color: #0a3573; text-decoration: none; }
+.crumbs { display: flex; gap: 8px; margin-bottom: 14px; color: var(--cap-muted); font-size: 12px; }
+.crumbs a { color: var(--cap-primary-dark); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
 .picker { padding: 16px 20px; margin-bottom: 16px; max-width: 640px; }
 </style>

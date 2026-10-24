@@ -283,47 +283,47 @@ function pctOf(part: number, whole: number): string {
 </template>
 
 <style scoped>
-.notice { padding: 10px 14px; border: 1px solid #bfe3cc; border-radius: 8px; background: #effaf3; color: #197447; font-size: 13px; }
-.notice--bad { border-color: #f1d3a8; background: #fff8ec; color: #9a5b0c; }
-.drop { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 28px 16px; border: 2px dashed #c9d8e2; border-radius: 12px; background: #f8fbfc; color: #405b4d; text-align: center; cursor: pointer; }
-.drop:hover { border-color: #81aa9b; }
-.drop > i { color: #15945b; font-size: 28px; }
-.drop b { color: #0a3573; font-size: 14px; }
-.drop small { color: #718579; font-size: 12px; }
-.drop code { margin: 0 2px; padding: 1px 6px; border-radius: 4px; background: #e7f0fa; color: #0a3573; font-size: 11px; }
+.notice { padding: 10px 14px; border: 1px solid var(--cap-success-border); border-radius: 8px; background: var(--cap-success-bg); color: var(--cap-success); font-size: 13px; }
+.notice--bad { border-color: var(--cap-warning-border); background: var(--cap-warning-bg); color: var(--cap-warning); }
+.drop { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 28px 16px; border: 2px dashed var(--cap-border); border-radius: 12px; background: var(--cap-bg); color: var(--cap-ink-soft); text-align: center; cursor: pointer; }
+.drop:hover { border-color: var(--cap-faint); }
+.drop > i { color: var(--cap-primary); font-size: 28px; }
+.drop b { color: var(--cap-primary-dark); font-size: 14px; }
+.drop small { color: var(--cap-muted); font-size: 12px; }
+.drop code { margin: 0 2px; padding: 1px 6px; border-radius: 4px; background: var(--cap-primary-tint); color: var(--cap-primary-dark); font-size: 11px; }
 .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .drop input:disabled { cursor: default; }
 .hint { margin: 10px 0 0; font-size: 12px; }
 .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 .sheets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 16px 20px 6px; }
-.sheet__top { display: flex; justify-content: space-between; gap: 8px; color: #556b7a; font-size: 12px; }
-.sheet__top b { color: #0a3573; }
-.sheet__top em { color: #a53d3d; font-style: normal; font-weight: 600; }
-.bar { display: flex; height: 6px; margin-top: 6px; overflow: hidden; border-radius: 999px; background: #edf1f4; }
-.bar__ok { background: #15945b; }
-.bar__bad { background: #d64545; }
+.sheet__top { display: flex; justify-content: space-between; gap: 8px; color: var(--cap-muted); font-size: 12px; }
+.sheet__top b { color: var(--cap-primary-dark); }
+.sheet__top em { color: var(--cap-danger); font-style: normal; font-weight: 600; }
+.bar { display: flex; height: 6px; margin-top: 6px; overflow: hidden; border-radius: 999px; background: var(--cap-border-soft); }
+.bar__ok { background: var(--cap-success-strong); }
+.bar__bad { background: var(--cap-danger); }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 20px; }
-.search { flex: 1; max-width: 420px; height: 38px; display: flex; align-items: center; gap: 9px; padding: 0 12px; border: 1px solid #d5e1e8; border-radius: 8px; }
-.search i { color: #6f8990; font-size: 12px; }
+.search { flex: 1; max-width: 420px; height: 38px; display: flex; align-items: center; gap: 9px; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 8px; }
+.search i { color: var(--cap-muted); font-size: 12px; }
 .search input { width: 100%; border: 0; outline: 0; background: transparent; font: inherit; font-size: 12px; }
-.seg { display: inline-flex; border: 1px solid #d5e1e8; border-radius: 8px; overflow: hidden; }
-.seg button { height: 36px; padding: 0 12px; border: 0; background: #fff; color: #405b4d; font: inherit; font-size: 12px; cursor: pointer; }
-.seg button + button { border-inline-start: 1px solid #d5e1e8; }
-.seg button em { margin-inline-start: 4px; color: #718579; font-style: normal; }
-.seg button[aria-pressed="true"] { background: #0a3573; color: #fff; }
-.seg button[aria-pressed="true"] em { color: #d6e2f3; }
-.code { color: #0a3573; font-weight: 600; font-size: 11px; }
+.seg { display: inline-flex; border: 1px solid var(--cap-border); border-radius: 8px; overflow: hidden; }
+.seg button { height: 36px; padding: 0 12px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
+.seg button + button { border-inline-start: 1px solid var(--cap-border); }
+.seg button em { margin-inline-start: 4px; color: var(--cap-muted); font-style: normal; }
+.seg button[aria-pressed="true"] { background: var(--cap-primary-dark); color: #fff; }
+.seg button[aria-pressed="true"] em { color: var(--cap-primary-tint-2); }
+.code { color: var(--cap-primary-dark); font-weight: 600; font-size: 11px; }
 .msg { max-width: 520px; white-space: normal; }
-.bad { color: #a53d3d !important; }
-.kpis { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 14px 20px; border-bottom: 1px solid #e5ecee; }
-.kpis b { display: block; color: #0a3573; font-size: 20px; font-weight: 600; }
-.kpis small { color: #718579; font-size: 11px; }
+.bad { color: var(--cap-danger) !important; }
+.kpis { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 14px 20px; border-bottom: 1px solid var(--cap-border-soft); }
+.kpis b { display: block; color: var(--cap-primary-dark); font-size: 20px; font-weight: 600; }
+.kpis small { color: var(--cap-muted); font-size: 11px; }
 .scroll { max-height: 520px; overflow: auto; }
 .more { margin: 0; padding: 12px 20px; font-size: 12px; }
 .fmt { margin-bottom: 14px; }
-.fmt b { color: #0a3573; }
+.fmt b { color: var(--cap-primary-dark); }
 .fmt ol { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
-.fmt code { padding: 2px 7px; border-radius: 5px; background: #f1f5f8; color: #29465a; font-size: 11px; }
+.fmt code { padding: 2px 7px; border-radius: 5px; background: var(--cap-bg); color: var(--cap-ink-soft); font-size: 11px; }
 @media (max-width: 900px) {
   .sheets { grid-template-columns: 1fr; }
   .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }

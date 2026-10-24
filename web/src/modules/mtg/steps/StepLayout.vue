@@ -52,24 +52,24 @@ defineProps<{
 </template>
 
 <style scoped>
-.crumbs { display: flex; gap: 8px; margin-bottom: 14px; color: #718579; font-size: 12px; }
-.crumbs a { color: #0a3573; text-decoration: none; }
+.crumbs { display: flex; gap: 8px; margin-bottom: 14px; color: var(--cap-muted); font-size: 12px; }
+.crumbs a { color: var(--cap-primary-dark); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
 .hero { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 18px 28px; padding: 22px 28px; }
 .hero__text { flex: 1 1 380px; }
-.hero__eyebrow { color: #c47b2c; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
-.hero h1 { margin: 4px 0 6px; color: #0a3573; font-size: 26px; font-weight: 700; }
-.hero p { margin: 0; max-width: 620px; color: #556b7a; font-size: 13px; line-height: 1.5; }
+.hero__eyebrow { color: var(--cap-warning); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+.hero h1 { margin: 4px 0 6px; color: var(--cap-primary-dark); font-size: 26px; font-weight: 700; }
+.hero p { margin: 0; max-width: 620px; color: var(--cap-muted); font-size: 13px; line-height: 1.5; }
 .facts { display: grid; grid-template-columns: repeat(2, minmax(120px, auto)); gap: 10px 26px; margin: 0; }
-.facts dt { color: #718579; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-.facts dd { margin: 3px 0 0; color: #183550; font-size: 13px; font-weight: 600; }
-.stages { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 0; padding: 14px 0 0; border-top: 1px solid #e5ecee; list-style: none; }
-.stages li { display: flex; align-items: center; gap: 9px; padding: 6px 14px 6px 6px; border-radius: 999px; background: #f4f7fb; color: #718579; font-size: 12px; }
-.stages b { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #dfe7ee; color: #556b7a; font-size: 11px; }
-.stage--now { background: #e7f0fa !important; color: #0a3573 !important; font-weight: 600; }
-.stage--now b { background: #0a3573 !important; color: #fff !important; }
-.stage--done { color: #197447 !important; }
-.stage--done b { background: #15945b !important; color: #fff !important; }
+.facts dt { color: var(--cap-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.facts dd { margin: 3px 0 0; color: var(--cap-ink); font-size: 13px; font-weight: 600; }
+.stages { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 0; padding: 14px 0 0; border-top: 1px solid var(--cap-border-soft); list-style: none; }
+.stages li { display: flex; align-items: center; gap: 9px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--cap-bg); color: var(--cap-muted); font-size: 12px; }
+.stages b { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--cap-border-soft); color: var(--cap-muted); font-size: 11px; }
+.stage--now { background: var(--cap-primary-tint) !important; color: var(--cap-primary-dark) !important; font-weight: 600; }
+.stage--now b { background: var(--cap-primary-dark) !important; color: #fff !important; }
+.stage--done { color: var(--cap-success) !important; }
+.stage--done b { background: var(--cap-success-strong) !important; color: #fff !important; }
 .body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 16px; }
-.apex-ref { margin: 14px 2px 0; color: #9aa9b4; font-size: 10px; }
+.apex-ref { margin: 14px 2px 0; color: var(--cap-faint); font-size: 10px; }
 </style>

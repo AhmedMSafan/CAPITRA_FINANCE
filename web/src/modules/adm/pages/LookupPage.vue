@@ -169,7 +169,7 @@ function toValues(row: LookupRow): FormValues {
 </template>
 
 <style scoped>
-.lookup-error { margin: 24px 30px; padding: 12px 16px; border: 1px solid #f2c4c4; border-radius: 8px; background: #fff3f3; color: #b42318; font-size: 13px; }
-.back-link { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; color: #405b4d; font-size: 13px; text-decoration: none; }
-.back-link:hover { color: #0a3573; }
+.lookup-error { margin: 24px 30px; padding: 12px 16px; border: 1px solid var(--cap-danger-border); border-radius: 8px; background: var(--cap-danger-bg); color: var(--cap-danger); font-size: 13px; }
+.back-link { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--cap-ink-soft); font-size: 13px; text-decoration: none; }
+.back-link:hover { color: var(--cap-primary-dark); }
 </style>

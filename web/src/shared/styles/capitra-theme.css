@@ -1,14 +1,49 @@
 @import './admin.css';
 @import './ui.css';
 :root {
-  --capitra-bg: #f4f7fb;
-  --capitra-surface: #ffffff;
-  --capitra-border: #e4e9f0;
-  --capitra-text: #1f2937;
-  --capitra-text-muted: #6b7280;
-  --capitra-primary: #0f766e;
-  --capitra-primary-dark: #115e59;
-  --capitra-danger: #dc2626;
+  /* Capitra Navy (theme option A, agreed 24 Oct 2026). Every screen takes its colours from these tokens. */
+  --cap-scene: #06101f;
+  --cap-navy: #0a1a33;
+  --cap-navy-2: #123a6b;
+  --cap-primary: #1f5fd1;
+  --cap-primary-hover: #174db0;
+  --cap-primary-dark: #0e3a86;
+  --cap-primary-tint: #e6eefc;
+  --cap-primary-tint-2: #cddcf5;
+  --cap-accent: #f5a524;
+  --cap-accent-dark: #c47f0a;
+
+  --cap-ink: #14213a;
+  --cap-ink-soft: #3b4a63;
+  --cap-muted: #5b6880;
+  --cap-faint: #8e9ab0;
+  --cap-border: #d5deea;
+  --cap-border-soft: #e6ebf2;
+  --cap-bg: #f4f7fc;
+  --cap-surface: #ffffff;
+
+  /* Status colours: green only for success, red only for errors. */
+  --cap-success: #17653e;
+  --cap-success-strong: #1b8a55;
+  --cap-success-bg: #e9f7ef;
+  --cap-success-border: #bfe3cc;
+  --cap-danger: #b42318;
+  --cap-danger-dark: #8a1c12;
+  --cap-danger-bg: #fff3f3;
+  --cap-danger-border: #f2c4c4;
+  --cap-warning: #9a6700;
+  --cap-warning-bg: #fff4e2;
+  --cap-warning-border: #f1d3a8;
+
+  /* Older names, kept for the shared styles that use them. */
+  --capitra-bg: var(--cap-bg);
+  --capitra-surface: var(--cap-surface);
+  --capitra-border: var(--cap-border-soft);
+  --capitra-text: var(--cap-ink);
+  --capitra-text-muted: var(--cap-muted);
+  --capitra-primary: var(--cap-primary);
+  --capitra-primary-dark: var(--cap-primary-dark);
+  --capitra-danger: var(--cap-danger);
   --capitra-radius: 14px;
   --capitra-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
@@ -94,7 +129,7 @@ body {
 .capitra-label {
   font-size: 13px;
   font-weight: 600;
-  color: #374151;
+  color: var(--cap-ink-soft);
 }
 
 .capitra-actions {
@@ -131,7 +166,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #075b63;
+  background: var(--cap-primary);
   color: #ffffff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
@@ -145,7 +180,7 @@ body {
 
 .capitra-logo-mark {
   font-size: 30px;
-  color: #f58220;
+  color: var(--cap-accent);
 }
 
 .capitra-brand-text {
@@ -193,7 +228,7 @@ body {
 
 .capitra-app-layout {
   min-height: 100vh;
-  background: #eef3f7;
+  background: var(--cap-bg);
 }
 
 .capitra-app-content {
@@ -203,7 +238,7 @@ body {
   margin-left: 12px;
   font-size: 14px;
   font-weight: 600;
-  color: #d97706;
+  color: var(--cap-warning);
   letter-spacing: 0.2px;
 }
 
@@ -214,44 +249,44 @@ body {
 
 .capitra-card .p-datatable {
   font-size: 14px;
-  color: #1f2937;
+  color: var(--cap-ink);
 }
 
 /* Column headers */
 .capitra-card .p-datatable-thead > tr > th {
-  background: #e7edf2;
-  color: #183247;
+  background: var(--cap-border-soft);
+  color: var(--cap-ink);
   font-weight: 700;
-  border-color: #c7d2dc;
+  border-color: var(--cap-border);
  
 }
 
 /* Data cells */
 .capitra-card .p-datatable-tbody > tr > td {
-  color: #25384a;
-  border-color: #d4dde5;
+  color: var(--cap-ink-soft);
+  border-color: var(--cap-border);
   padding: 0px;
 }
 
 /* Alternating row */
 .capitra-card .p-datatable-tbody > tr:nth-child(even) {
-  background: #f7f9fb;
+  background: var(--cap-bg);
 }
 
 /* Row hover */
 .capitra-card .p-datatable-tbody > tr:hover {
-  background: #edf4f5;
+  background: var(--cap-bg);
 }
 
 /* Outer grid border */
 .capitra-card .p-datatable-table-container {
-  border: 1px solid #c7d2dc;
+  border: 1px solid var(--cap-border);
 }
 
 /* Paginator */
 .capitra-card .p-paginator {
-  border-top: 1px solid #c7d2dc;
-  background: #f8fafb;
+  border-top: 1px solid var(--cap-border);
+  background: var(--cap-bg);
 }
 
 
@@ -262,10 +297,10 @@ body {
 .capitra-form-section-title {
   font-size: 14px;
   font-weight: 700;
-  color: #263b4d;
+  color: var(--cap-ink-soft);
   padding-bottom: 8px;
   margin-bottom: 16px;
-  border-bottom: 1px solid #d8dee4;
+  border-bottom: 1px solid var(--cap-border);
 }
 
 .capitra-form-grid {
@@ -284,7 +319,7 @@ body {
   .capitra-field label {
     font-size: 13px;
     font-weight: 600;
-    color: #34495e;
+    color: var(--cap-ink-soft);
   }
 
   .capitra-field .p-inputtext,
@@ -297,7 +332,7 @@ body {
   }
 
   .capitra-field .required {
-    color: #c0392b;
+    color: var(--cap-danger);
   }
 
 
@@ -335,16 +370,16 @@ body {
    ========================================================= */
 
 .capitra-action-update {
-  border: 1px solid #0b74c9;
-  background: linear-gradient( 180deg, #1686dc 0%, #0876d1 100% );
+  border: 1px solid var(--cap-primary);
+  background: linear-gradient( 180deg, var(--cap-primary) 0%, var(--cap-primary) 100% );
   color: #ffffff;
   box-shadow: 0 2px 5px rgba(8, 118, 209, 0.18);
 }
 
 
   .capitra-action-update:hover:not(:disabled) {
-    background: linear-gradient( 180deg, #0f7ed2 0%, #066bbd 100% );
-    border-color: #066bbd;
+    background: linear-gradient( 180deg, var(--cap-primary) 0%, var(--cap-primary) 100% );
+    border-color: var(--cap-primary);
     box-shadow: 0 4px 10px rgba(8, 118, 209, 0.22);
     transform: translateY(-1px);
   }
@@ -415,10 +450,10 @@ body {
   gap: 8px;
   margin-bottom: 20px;
   padding: 11px 14px;
-  border: 1px solid #e5b7b7;
+  border: 1px solid var(--cap-danger-border);
   border-radius: 6px;
-  background: #fff5f5;
-  color: #a93226;
+  background: var(--cap-danger-bg);
+  color: var(--cap-danger);
   font-size: 13px;
   font-weight: 600;
 }
@@ -435,10 +470,10 @@ body {
   justify-content: center;
   flex: 0 0 32px;
   padding: 0;
-  border: 1px solid #cfd8dc;
+  border: 1px solid var(--cap-border);
   border-radius: 50%;
   background: #ffffff;
-  color: #60757d;
+  color: var(--cap-muted);
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(15, 45, 55, 0.08);
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
@@ -450,9 +485,9 @@ body {
   }
 
   .capitra-dialog-close:hover {
-    background: #f3f9f9;
-    border-color: #008a8b;
-    color: #00797a;
+    background: var(--cap-bg);
+    border-color: var(--cap-primary);
+    color: var(--cap-primary);
     box-shadow: 0 2px 6px rgba(0, 122, 123, 0.14);
     transform: translateY(-1px);
   }
