@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+html,body.t-PageBody--login{background:#020E24!important}
+body.t-PageBody--login{font-family:Inter,'Segoe UI',Arial,sans-serif!important;color:#0B1633;-webkit-font-smoothing:antialiased}
+#t_Footer{display:none!important}
+.t-PageBody--login .t-Body-alert,.t-PageBody--login #APEX_ERROR_MESSAGE,.t-PageBody--login #APEX_SUCCESS_MESSAGE{position:relative;z-index:60}
+.t-PageBody--login .t-Alert{z-index:60!important}.t-PageBody--login .t-Alert:not(.t-Alert--page){position:relative}
+.t-PageBody--login form#wwvFlowForm,.t-PageBody--login .t-Body{background:transparent!important;min-height:0!important;height:auto!important;overflow:visible!important}
+@media(min-width:901px){html:has(body.t-PageBody--login),body.t-PageBody--login{height:100%!important;overflow:hidden!important}}
+
+/* ---------- full-bleed scene: a living workflow canvas ---------- */
+.wfl-scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  background:radial-gradient(120% 90% at 18% 20%,#061E4A 0%,#031331 45%,#020D21 100%)}
+.wfl-dots{position:absolute;inset:-60px;background-image:radial-gradient(rgba(127,172,224,.16) 1.2px,transparent 1.3px);background-size:26px 26px;
+  animation:wflPan 60s linear infinite}
+@keyframes wflPan{to{transform:translate3d(-26px,-26px,0)}}
+.wfl-blueprint{position:absolute;inset:-8% -4%;width:108%;height:116%;opacity:.5;animation:wflDrift 40s ease-in-out infinite alternate}
+@keyframes wflDrift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-2.5%,-2%,0) scale(1.05)}}
+.wfl-blueprint .bp-e{fill:none;stroke:rgba(127,172,224,.18);stroke-width:1.4;stroke-dasharray:6 8;animation:wflDash 6s linear infinite}
+@keyframes wflDash{to{stroke-dashoffset:-140}}
+.wfl-blueprint .bp-n{fill:rgba(255,255,255,.025);stroke:rgba(127,172,224,.2);stroke-width:1.2}
+.wfl-blueprint .bp-d{fill:rgba(232,155,34,.06);stroke:rgba(255,197,94,.28);stroke-width:1.2}
+.wfl-blueprint .bp-p{fill:#FFC55E;opacity:.75}
+.wfl-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,13,33,.2) 0%,rgba(2,13,33,.05) 50%,rgba(2,13,33,.55) 72%,rgba(2,13,33,.85) 100%)}
+.wfl-orb{position:absolute;border-radius:50%;filter:blur(80px);mix-blend-mode:screen}
+.wfl-orb.o1{width:540px;height:540px;background:#E89B22;top:-220px;left:30%;opacity:.22;animation:wflOrb1 18s ease-in-out infinite alternate}
+.wfl-orb.o2{width:520px;height:520px;background:#134CAE;bottom:-240px;left:-6%;opacity:.28;animation:wflOrb2 22s ease-in-out infinite alternate}
+@keyframes wflOrb1{to{transform:translate3d(-90px,80px,0) scale(1.15)}}
+@keyframes wflOrb2{to{transform:translate3d(120px,-70px,0) scale(.9)}}
+
+/* ---------- story (left) ---------- */
+.wfl-story{position:fixed;top:0;bottom:0;inset-inline-start:0;width:58vw;z-index:1;color:#FFFFFF;padding:40px clamp(32px,4.5vw,68px) 32px;box-sizing:border-box;display:flex;flex-direction:column}
+.wfl-logo{display:block;height:40px;width:122px;background:url('capitra-logo.svg') left center/contain no-repeat;flex:0 0 auto}
+.wfl-copy{margin:auto 0;max-width:680px}
+.wfl-eyebrow{display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 10px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+  backdrop-filter:blur(8px);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);animation:wflUp .7s .05s both}
+.wfl-eyebrow i{width:8px;height:8px;border-radius:50%;background:#2B7AD4;animation:wflPulse 2.2s infinite}
+@keyframes wflPulse{0%{box-shadow:0 0 0 0 rgba(43,122,212,.6)}70%{box-shadow:0 0 0 10px rgba(43,122,212,0)}100%{box-shadow:0 0 0 0 rgba(43,122,212,0)}}
+.wfl-copy h2{font-size:clamp(34px,3.7vw,56px);line-height:1.05;letter-spacing:-.03em;margin:18px 0 14px;font-weight:800;color:#FFFFFF;animation:wflUp .8s .12s both}
+.wfl-copy h2 em{font-style:normal;background:linear-gradient(92deg,#FFD17A 0%,#F5B23C 45%,#E89B22 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wfl-copy p{font-size:16.5px;line-height:1.6;color:rgba(255,255,255,.76);margin:0 0 26px;max-width:560px;animation:wflUp .8s .2s both}
+@keyframes wflUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* designer window */
+.wfl-win{position:relative;max-width:720px;width:min(100%,720px,calc((100vh - 430px) * 2.25));min-width:min(100%,380px);border-radius:18px;background:rgba(5,19,46,.62);border:1px solid rgba(255,255,255,.14);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 30px 70px -20px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);animation:wflUp .8s .3s both}
+.wfl-bar{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.09);font-size:12.5px;color:rgba(255,255,255,.7)}
+.wfl-bar .dots{display:flex;gap:6px}.wfl-bar .dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.18)}
+.wfl-bar .dots i:first-child{background:#FFBA6B}.wfl-bar .dots i:nth-child(2){background:#FFCD6B}.wfl-bar .dots i:nth-child(3){background:#5F99D3}
+.wfl-bar b{color:#FFFFFF;font-weight:600;margin-inline-start:6px}
+.wfl-bar .chip{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;background:rgba(43,122,212,.14);color:#7FACE0;font-weight:600;font-size:11.5px}
+.wfl-bar .chip::before{content:"";width:6px;height:6px;border-radius:50%;background:#2B7AD4}
+.wfl-win svg.wfl-flow{display:block;width:100%;height:auto}
+.wfl-flow text{font-family:Inter,'Segoe UI',Arial,sans-serif}
+.wfl-props{position:absolute;inset-inline-end:-196px;top:58px;width:200px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.95);color:#0B1633;
+  box-shadow:0 24px 50px -14px rgba(0,0,0,.55);font-size:12px;animation:wflFloat 6s ease-in-out infinite}
+@keyframes wflFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.wfl-props h4{margin:0 0 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5F6B8A;font-weight:700}
+.wfl-props div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid #EDEFF4}
+.wfl-props div:first-of-type{border-top:0}
+.wfl-props span{color:#5F6B8A}.wfl-props b{font-weight:600;color:#0B1633}
+.wfl-props .acts{display:flex;gap:6px;margin-top:8px;border:0;justify-content:flex-start}
+.wfl-props .acts em{font-style:normal;font-weight:700;font-size:11px;padding:3px 9px;border-radius:7px;background:#E7EFF6;color:#144473}
+.wfl-props .acts em+em{background:#FDECEC;color:#B42318}
+.wfl-trust{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:44px;font-size:13px;color:rgba(255,255,255,.66);animation:wflUp .8s .4s both}
+.wfl-trust span{display:inline-flex;align-items:center;gap:7px}
+.wfl-trust svg{color:#FFC55E}
+.wfl-copyright{font-size:12.5px;color:rgba(255,255,255,.5);flex:0 0 auto}
+
+/* ---------- sign-in side ---------- */
+.t-Login-container{position:relative;z-index:2;height:100vh!important;min-height:0!important;width:auto!important;max-width:none!important;margin:0!important;margin-inline-start:58vw!important;
+  display:flex!important;flex-direction:column;align-items:center;justify-content:center;padding:72px clamp(20px,3vw,48px) 52px!important;box-sizing:border-box;background:transparent!important}
+.t-Login-containerHeader:empty,.t-Login-containerFooter:empty{display:none}
+.t-Login-containerBody{width:100%;max-width:420px;display:block!important;margin:0 auto}
+.t-Login-region{position:relative;width:100%!important;max-width:420px!important;margin:0!important;float:none!important;box-sizing:border-box;overflow:hidden;
+  background:rgba(255,255,255,.96)!important;border:1px solid rgba(255,255,255,.7)!important;border-radius:24px!important;padding:30px 34px 26px!important;
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 90px -20px rgba(0,0,0,.6),0 12px 30px -10px rgba(0,0,0,.35)!important;animation:wflCard .7s .15s cubic-bezier(.2,.8,.2,1) both}
+@keyframes wflCard{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
+.t-Login-header{padding:0!important;margin:0 0 22px!important;text-align:start!important}
+.t-Login-logo{display:none!important}
+.t-Login-title{margin:0!important;padding:0!important;font-size:inherit!important;font-weight:inherit!important;text-align:start!important;color:inherit!important}
+#wflHead{display:none}
+.t-Login-title #wflHead{display:block}
+.wfl-mob{display:none}
+.wfl-mark{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;margin-bottom:18px;position:relative;
+  background:linear-gradient(135deg,#002E7F,#011F55);box-shadow:0 12px 24px -6px rgba(0,40,109,.55)}
+.wfl-mark::before{content:"";width:21px;height:21px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z'/%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5'/%3E%3Cpath d='M9 7h7M9 11h5'/%3E%3C/svg%3E") center/contain no-repeat}
+.wfl-mark::after{content:"";position:absolute;inset:-5px;border-radius:18px;border:1px solid rgba(0,40,109,.18)}
+.wfl-hello{display:block;font-size:27px;font-weight:800;letter-spacing:-.02em;color:#0B1633;line-height:1.2}
+html[dir=rtl] .wfl-hello{letter-spacing:0}
+.wfl-sub{display:block;margin-top:6px;font-size:14.5px;font-weight:400;color:#5F6B8A;line-height:1.45}
+.t-Login-body{padding:0!important}
+.t-Login-region .t-Form-fieldContainer{margin:0 0 14px!important;padding:0!important;display:block!important}
+.t-Login-region .t-Form-labelContainer{padding:0 0 6px!important;text-align:start!important;width:auto!important;min-height:0!important}
+.t-Login-region .t-Form-label{font-size:13px!important;font-weight:600!important;color:#29375A!important;line-height:1.2!important;padding:0!important}
+.t-Login-region .t-Form-inputContainer{padding:0!important;width:auto!important}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper{display:flex!important;align-items:center;position:relative;height:48px;box-sizing:border-box;
+  border:1px solid #D9DDE7;border-radius:13px;background:#F6F7FA;overflow:hidden;transition:border-color .15s,box-shadow .15s,background .15s}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper:hover,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper:hover{border-color:#B9C1D1}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper:focus-within,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper:focus-within{border-color:#00286D;background:#FFFFFF;box-shadow:0 0 0 4px rgba(0,40,109,.13)}
+.t-Login-region .apex-item-icon{display:none!important}
+#P9999_USERNAME,#P9999_PASSWORD{flex:1 1 auto;min-width:0;width:100%!important;height:46px!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;outline:0!important;font-size:15px!important;color:#0B1633!important;padding:0 12px 0 11px!important;background:transparent!important;
+  opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+html[dir=rtl] #P9999_USERNAME,html[dir=rtl] #P9999_PASSWORD{padding:0 11px 0 12px!important}
+#P9999_USERNAME::placeholder,#P9999_PASSWORD::placeholder{color:#939BAF}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper button:not(.wfl-eye),
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper .t-Form-itemText--post,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper .t-Form-itemText:has(button),
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper [class*="passwordToggle"],
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper [class*="password-toggle"],
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper [class*="reveal"]{display:none!important}
+/* any extra wrapper APEX puts around the input simply stretches */
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper>*:has(#P9999_USERNAME),
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper>*:has(#P9999_PASSWORD){flex:1 1 auto!important;min-width:0!important;display:flex!important;align-items:center;
+  border:0!important;background:transparent!important;box-shadow:none!important;margin:0!important;padding:0!important;height:46px}
+/* field icons sit on the wrapper, so browser autofill cannot remove them */
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper::before,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper::before{content:"";flex:0 0 18px;width:18px;height:18px;margin-inline-start:15px;order:-1;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235F6B8A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21a8 8 0 0 1 16 0'/%3E%3C/svg%3E") center/18px 18px no-repeat}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235F6B8A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='11' width='16' height='10' rx='2'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 8 0v4'/%3E%3C/svg%3E")}
+#P9999_USERNAME:-webkit-autofill,#P9999_PASSWORD:-webkit-autofill,#P9999_USERNAME:-webkit-autofill:focus,#P9999_PASSWORD:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 100px #F6F7FA inset!important;box-shadow:0 0 0 100px #F6F7FA inset!important;-webkit-text-fill-color:#0B1633!important;caret-color:#0B1633}
+.wfl-eye{flex:0 0 auto;width:44px;height:46px;display:grid!important;place-items:center;margin:0;padding:0;border:0;background:transparent;color:#5F6B8A;cursor:pointer;border-radius:0}
+.wfl-eye:hover{color:#00286D}
+.wfl-eye:focus-visible{outline:2px solid rgba(0,40,109,.4);outline-offset:-4px;border-radius:10px}
+.wfl-eye svg{display:block}
+.wfl-caps{display:flex;align-items:center;gap:6px;margin:-6px 0 12px;font-size:12.5px;font-weight:600;color:#B4740E}
+.wfl-caps[hidden]{display:none}
+.t-Login-region .apex-item-single-checkbox,.t-Login-region .apex-item-checkbox{display:flex!important;align-items:center;gap:10px;margin:2px 0 4px!important;position:relative}
+#P9999_REMEMBER,#P9999_PERSISTENT_AUTH{order:-1}
+#P9999_REMEMBER,#P9999_PERSISTENT_AUTH{-webkit-appearance:none!important;appearance:none!important;position:relative!important;inset:auto!important;opacity:1!important;clip:auto!important;clip-path:none!important;
+  pointer-events:auto!important;width:38px!important;height:22px!important;min-width:38px;margin:0!important;padding:0!important;border:0!important;border-radius:99px!important;cursor:pointer;flex:0 0 38px;z-index:1;
+  background:radial-gradient(circle at 11px 50%,#FFFFFF 0 7.5px,transparent 8.5px),#C9CEDA!important;box-shadow:none!important}
+#P9999_REMEMBER:checked,#P9999_PERSISTENT_AUTH:checked{background:radial-gradient(circle at 27px 50%,#FFFFFF 0 7.5px,transparent 8.5px),#00286D!important}
+html[dir=rtl] #P9999_REMEMBER,html[dir=rtl] #P9999_PERSISTENT_AUTH{background:radial-gradient(circle at 27px 50%,#FFFFFF 0 7.5px,transparent 8.5px),#C9CEDA!important}
+html[dir=rtl] #P9999_REMEMBER:checked,html[dir=rtl] #P9999_PERSISTENT_AUTH:checked{background:radial-gradient(circle at 11px 50%,#FFFFFF 0 7.5px,transparent 8.5px),#00286D!important}
+#P9999_REMEMBER:focus-visible,#P9999_PERSISTENT_AUTH:focus-visible{outline:3px solid rgba(0,40,109,.25)!important;outline-offset:2px}
+#P9999_REMEMBER::before,#P9999_REMEMBER::after,#P9999_PERSISTENT_AUTH::before,#P9999_PERSISTENT_AUTH::after{display:none!important}
+label[for=P9999_REMEMBER],label[for=P9999_PERSISTENT_AUTH]{padding:0!important;margin:0!important;font-size:14px!important;font-weight:500!important;color:#29375A!important;cursor:pointer;line-height:22px!important;min-height:0!important}
+label[for=P9999_REMEMBER]::before,label[for=P9999_REMEMBER]::after,label[for=P9999_PERSISTENT_AUTH]::before,label[for=P9999_PERSISTENT_AUTH]::after{display:none!important;content:none!important}
+.t-Login-buttons{padding:10px 0 0!important;margin:0!important;display:block!important;min-height:0!important}
+.t-Login-region .t-Button.login-button,.login-button.t-Button{box-sizing:border-box!important;min-height:0!important;max-height:46px;padding:0 20px!important;line-height:1!important;margin:10px 0 0!important;position:relative;overflow:hidden;height:46px!important;width:100%!important;display:flex!important;align-items:center;justify-content:center;gap:10px;border:0!important;
+  border-radius:13px!important;font-size:15.5px!important;font-weight:700!important;color:#FFFFFF!important;letter-spacing:.01em!important;
+  background:linear-gradient(135deg,#F5B23C 0%,#E89B22 55%,#D98C1A 100%)!important;box-shadow:0 14px 28px -8px rgba(232,155,34,.6),inset 0 1px 0 rgba(255,255,255,.25)!important;
+  transition:transform .15s,box-shadow .15s,filter .15s}
+.t-Login-region .t-Button.login-button::after{content:"";position:absolute;top:0;bottom:0;width:60%;left:-80%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-20deg);animation:wflShine 5.5s 1.2s ease-in-out infinite}
+@keyframes wflShine{0%,70%{left:-80%}100%{left:130%}}
+.t-Login-region .t-Button.login-button:hover{transform:translateY(-1px);filter:brightness(1.04);box-shadow:0 18px 34px -8px rgba(232,155,34,.7)!important}
+.t-Login-region .t-Button.login-button:active{transform:translateY(0)}
+.t-Login-region .t-Button.login-button:focus-visible{outline:3px solid rgba(232,155,34,.35);outline-offset:2px}
+.t-Login-region .t-Button.login-button .t-Icon{color:#FFFFFF!important;margin:0!important;transition:transform .2s}
+.t-Login-region .t-Button.login-button:hover .t-Icon{transform:translateX(3px)}
+html[dir=rtl] .t-Login-region .t-Button.login-button .t-Icon{transform:scaleX(-1)}
+html[dir=rtl] .t-Login-region .t-Button.login-button:hover .t-Icon{transform:scaleX(-1) translateX(3px)}
+.t-Login-links:empty{display:none}
+.wfl-note{display:flex;align-items:center;gap:10px;margin:20px -34px -26px;padding:13px 34px;border-top:1px solid #EDEFF4;background:#F7F8FB;color:#5F6B8A;font-size:12.5px;line-height:1.4}
+.wfl-note svg{color:#00286D;flex:0 0 auto}
+.t-Login-container .t-Alert{border-radius:14px!important;margin:0 0 14px!important;max-width:420px}
+
+.wfl-foot{position:fixed;bottom:20px;inset-inline-start:58vw;inset-inline-end:32px;z-index:2;display:flex;justify-content:center;gap:16px;font-size:12.5px;color:rgba(255,255,255,.6)}
+.wfl-foot span+span::before{content:"\00B7";margin-inline-end:16px}
+@media(prefers-reduced-motion:reduce){.wfl-dots,.wfl-blueprint,.wfl-blueprint .bp-e,.wfl-orb,.wfl-props,.wfl-eyebrow i,.t-Login-region .t-Button.login-button::after{animation:none!important}}
+@media(max-height:780px){.wfl-props{display:none}.wfl-trust{margin-top:22px}}
+@media(max-height:700px){.wfl-trust,.wfl-foot{display:none}.wfl-mark{display:none}.wfl-copy p{display:none}.wfl-copy h2{font-size:clamp(30px,3.2vw,44px);margin:12px 0 16px}.wfl-win{width:min(100%,720px,calc((100vh - 300px) * 2.25))}}
+@media(max-height:620px){.wfl-note{display:none}.t-Login-container{padding-top:60px!important}.wfl-story{padding-top:24px;padding-bottom:20px}.wfl-copy h2{font-size:clamp(26px,2.8vw,36px)}.wfl-win{width:min(100%,720px,calc((100vh - 250px) * 2.25))}}
+@media(max-height:440px){.wfl-win{display:none}}
+@media(max-width:1400px){.wfl-props{display:none}}
+@media(max-width:900px){
+  .wfl-story{display:none}
+  .wfl-shade{background:linear-gradient(180deg,rgba(2,14,36,.55),rgba(2,14,36,.9))!important}
+  .t-Login-container{height:auto!important;min-height:100vh!important;margin-inline-start:0!important;padding:56px 16px 40px!important;justify-content:flex-start}
+  .t-Login-region{padding:24px 22px 22px!important}
+  .wfl-note{margin:18px -22px -22px;padding:12px 22px}
+  .wfl-foot{display:none}
+  .wfl-mark{display:none}
+  .wfl-mob{display:block;height:52px;border-radius:12px;margin-bottom:20px;
+    background:url('capitra-logo.svg') 14px center/auto 26px no-repeat,linear-gradient(135deg,#021435,#011F55)}
+}
+
+.gla{display:block;width:100%;height:auto;overflow:visible}
+.gla text{font-family:Inter,'Segoe UI',Arial,sans-serif}
+.gla-card{fill:#0B1E41;stroke:rgba(255,255,255,.14);stroke-width:1.2}
+.gla-eng{fill:rgba(11,30,65,.55);stroke:rgba(127,172,224,.22);stroke-width:1.2;stroke-dasharray:4 4}
+.gla-h{fill:#FFFFFF;font-size:14px;font-weight:700}
+.gla-sub{fill:rgba(255,255,255,.6);font-size:11px}
+.gla-chip{fill:rgba(255,197,94,.16);stroke:rgba(255,197,94,.5)}
+.gla-chipt{fill:#FFDC9A;font-size:10.5px;font-weight:700;text-anchor:middle;letter-spacing:.04em}
+#glaState.posted .gla-chip{fill:rgba(43,122,212,.16);stroke:rgba(43,122,212,.55)}#glaState.posted .gla-chipt{fill:#7FACE0}
+.gla-col{fill:rgba(255,255,255,.5);font-size:9.5px;font-weight:700;letter-spacing:.09em}
+.gla-ref{fill:#FFDC9A;font-size:10px;font-weight:700;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.gla-rule{stroke:rgba(255,255,255,.12);stroke-width:1}.gla-rule.strong{stroke:rgba(255,255,255,.3)}
+.gla-code{fill:rgba(127,172,224,.14);stroke:rgba(127,172,224,.45)}
+.gla-codet{fill:#7FACE0;font-size:10.5px;font-weight:700;text-anchor:middle;font-variant-numeric:tabular-nums}
+.gla-name{fill:#FFFFFF;font-size:11px;font-weight:600}
+.gla-amt{fill:#FFFFFF;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.gla-amt.cr{fill:#FFDC9A}
+.gla-tot{fill:#FFFFFF;font-size:11px;font-weight:800}.gla-tot.n{font-variant-numeric:tabular-nums}
+.gla-dif{fill:rgba(255,255,255,.55);font-size:10px;font-weight:700}
+.gla-difn{fill:#FFC55E;font-size:10.5px;font-weight:800;font-variant-numeric:tabular-nums;transition:fill .3s}
+.gla-difn.zero{fill:#2B7AD4}
+/* engine steps */
+.gla-rail{stroke:rgba(255,255,255,.14);stroke-width:2;stroke-linecap:round}
+.gla-railon{stroke:#2B7AD4;stroke-width:2;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .6s ease}
+.gla-node{fill:#0B1E41;stroke:rgba(255,255,255,.3);stroke-width:1.6;transition:fill .3s,stroke .3s}
+.gla-halo{fill:none;stroke:#FFC55E;stroke-width:1.6;opacity:0;transform-box:fill-box;transform-origin:center}
+.gla-chk{fill:none;stroke:#05132E;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:12;stroke-dashoffset:12;transition:stroke-dashoffset .35s .1s}
+.gla-stt{fill:rgba(255,255,255,.55);font-size:10.5px;font-weight:700;transition:fill .3s}
+.gla-sts{fill:rgba(255,255,255,.38);font-size:9px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.gla-st.act .gla-node{stroke:#FFC55E;fill:rgba(255,197,94,.18)}
+.gla-st.act .gla-halo{animation:glaHalo 1s ease-out infinite}
+.gla-st.act .gla-stt{fill:#FFDC9A}
+.gla-st.done .gla-node{fill:#2B7AD4;stroke:#2B7AD4}
+.gla-st.done .gla-chk{stroke-dashoffset:0}
+.gla-st.done .gla-stt{fill:#FFFFFF}.gla-st.done .gla-sts{fill:#7FACE0}
+@keyframes glaHalo{0%{opacity:.9;transform:scale(.7)}100%{opacity:0;transform:scale(1.5)}}
+.gla-spark{fill:#D5E9FF;filter:drop-shadow(0 0 6px #2B7AD4)}
+/* ledgers + trial balance */
+.gla-lc{fill:#0B1E41;stroke:rgba(255,255,255,.14);stroke-width:1.2;transition:stroke .3s}
+.gla-lc.hit{stroke:#2B7AD4}
+.gla-lname{fill:#FFFFFF;font-size:11.5px;font-weight:600}
+.gla-lsub{fill:rgba(255,255,255,.5);font-size:9.5px;font-weight:700;letter-spacing:.08em}
+.gla-lbal{fill:#FFFFFF;font-size:15px;font-weight:800;text-anchor:end;font-variant-numeric:tabular-nums}
+.gla-ldelta{font-size:10.5px;font-weight:800;text-anchor:end;font-variant-numeric:tabular-nums}
+.gla-per{fill:rgba(43,122,212,.14);stroke:rgba(43,122,212,.5)}
+.gla-pert{fill:#7FACE0;font-size:9.5px;font-weight:800;text-anchor:middle;letter-spacing:.06em}
+.gla-tb{fill:rgba(255,255,255,.6);font-size:9.5px;font-weight:800}
+.gla-track{fill:rgba(255,255,255,.08)}
+.gla-tbn{fill:#FFFFFF;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.gla-tok circle:first-child{fill:#FFC55E;opacity:.55}.gla-tok circle:last-child{fill:#FFE9BF}
+.gla-tok.cr circle:first-child{fill:#2B7AD4}.gla-tok.cr circle:last-child{fill:#D5E9FF}
+#glaRows>g,#glaLed>g{transform-box:fill-box;transform-origin:left center}
+
+
+/* rotating headlines: words rise in one by one */
+.gl-hl{display:grid}
+.gl-h{grid-area:1/1;visibility:hidden}
+.gl-h.on,.gl-h.out{visibility:visible}
+.gl-h .w{display:inline-block;opacity:0;transform:translateY(.45em);filter:blur(8px);transition:opacity .55s ease,transform .7s cubic-bezier(.2,.8,.2,1),filter .6s ease;transition-delay:var(--d,0s)}
+.gl-h.on .w{opacity:1;transform:none;filter:none}
+.gl-h.out .w{opacity:0;transform:translateY(-.4em);filter:blur(6px);transition-duration:.35s,.45s,.35s;transition-delay:calc(var(--d,0s) * .4)}
+.wfl-copy h2 em .w{background:linear-gradient(92deg,#FFD17A 0%,#F5B23C 45%,#E89B22 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.gl-dots{display:flex;gap:6px;margin:-4px 0 18px}
+.gl-dots i{width:18px;height:3px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden;position:relative}
+.gl-dots i.on::after{content:"";position:absolute;inset:0;background:#FFC55E;transform-origin:left;animation:glDot var(--t,4.6s) linear forwards}
+@keyframes glDot{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* lite mode while signing in: motion continues, only the expensive live blur is dropped */
+body.gl-lite *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+body.gl-lite .wfl-win{background:rgba(5,19,46,.9)!important}
+body.gl-lite .gla-spark,body.gl-lite .gla-tok circle,body.gl-lite .gl-h .w{filter:none!important}
+body.gl-paused *,body.gl-paused *::after{animation-play-state:paused!important}
+/* Chrome marks a field it auto-fills: this empty animation lets the page notice it at once */
+input:-webkit-autofill{animation:glAutofill .01s}
+@keyframes glAutofill{from{outline-color:transparent}to{outline-color:transparent}}
+@media(prefers-reduced-motion:reduce){.gl-h .w{transition:none!important}.gl-dots i.on::after{animation:none!important;transform:none}}
+[id$="Note"],[id$="Head"],.fxl-lang,.fxl-note,.fxl-foot,.wfl-note,.wfl-foot{display:none!important}html,body{overflow:hidden!important}
+</style></head>
+<body class="t-PageBody--login fm-scene"><div class="t-Body"><div class="t-Body-wrap"><div class="t-Body-col t-Body-col--main"><div class="t-Body-content"><div class="t-Region">
+<div class="wfl-scene" aria-hidden="true"><div class="wfl-dots"></div><svg class="wfl-blueprint" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path class="bp-e" d="M120 180 H360 V300 H620"/><path class="bp-e" d="M760 300 H940 V160 H1180"/><path class="bp-e" d="M940 300 V460 H1180"/><path class="bp-e" d="M1320 160 H1480 V620"/><path class="bp-e" d="M1320 460 H1400 V620"/><path class="bp-e" d="M200 640 H460 V780 H760"/><path class="bp-e" d="M900 780 H1100 V880 H1380"/><path class="bp-e" d="M60 420 H240 V640"/><rect class="bp-n" x="40" y="150" width="80" height="60" rx="12"/><rect class="bp-n" x="620" y="270" width="140" height="60" rx="12"/><rect class="bp-n" x="1180" y="130" width="140" height="60" rx="12"/><rect class="bp-n" x="1180" y="430" width="140" height="60" rx="12"/><rect class="bp-n" x="760" y="750" width="140" height="60" rx="12"/><rect class="bp-n" x="60" y="610" width="140" height="60" rx="12"/><rect class="bp-n" x="1380" y="850" width="140" height="60" rx="12"/><rect class="bp-d" x="920" y="280" width="40" height="40" rx="4" transform="rotate(45 940 300)"/><rect class="bp-d" x="1460" y="600" width="40" height="40" rx="4" transform="rotate(45 1480 620)"/><circle class="bp-p" r="4"><animateMotion dur="14s" repeatCount="indefinite" path="M120 180 H360 V300 H620"/></circle><circle class="bp-p" r="4"><animateMotion dur="11s" repeatCount="indefinite" path="M760 300 H940 V160 H1180"/></circle><circle class="bp-p" r="4"><animateMotion dur="16s" repeatCount="indefinite" path="M200 640 H460 V780 H760"/></circle></svg><div class="wfl-shade"></div><div class="wfl-orb o1"></div><div class="wfl-orb o2"></div></div>
+<div class="wfl-story">
+  <span class="wfl-logo" role="img" aria-label="Capitra"></span>
+  <div class="wfl-copy">
+    <div class="wfl-eyebrow"><i></i><span>Capitra General Ledger</span></div>
+    <h2 class="gl-hl" id="glHl" aria-live="off"><span class="gl-h on"><span>Every entry balanced.</span><br><em>Every period in control.</em></span><span class="gl-h"><span>Sub-ledger events,</span><br><em>posted in real time.</em></span><span class="gl-h"><span>One chart of accounts.</span><br><em>Every business line.</em></span><span class="gl-h"><span>Close the month</span><br><em>in days, not weeks.</em></span><span class="gl-h"><span>Every posting traced.</span><br><em>Audit-ready by design.</em></span></h2>
+    <div class="gl-dots" id="glDots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <p>A segment-based chart of accounts, balanced journal sets posted in real time from every Capitra module, and controlled period opening and closing, in one ledger.</p>
+    <div class="wfl-win">
+      <div class="wfl-bar"><span class="dots"><i></i><i></i><i></i></span><b>Journal posting</b><span id="glaBarSub">&middot; Main ledger</span><span class="chip">Live</span></div>
+      <svg class="gla" viewBox="0 0 760 330" role="img" aria-label="Journals being validated and posted to the ledger in real time"><defs><filter id="glaGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2"/></filter><linearGradient id="glaBar" x1="0" x2="1"><stop offset="0" stop-color="#2E59A3"/><stop offset="1" stop-color="#7FACE0"/></linearGradient><linearGradient id="glaScan" x1="0" x2="1"><stop offset="0" stop-color="#7FACE0" stop-opacity="0"/><stop offset=".5" stop-color="#7FACE0" stop-opacity=".28"/><stop offset="1" stop-color="#7FACE0" stop-opacity="0"/></linearGradient><clipPath id="glaJclip"><rect x="14" y="16" width="304" height="298" rx="14"/></clipPath></defs><rect x="14" y="16" width="304" height="298" rx="14" class="gla-card"/><text x="32" y="44" class="gla-h" id="glaJno">Journal</text><text x="32" y="62" class="gla-sub" id="glaJdesc"></text><g id="glaState"><rect x="234" y="30" width="68" height="22" rx="11" class="gla-chip"/><text x="268" y="45" class="gla-chipt">Draft</text></g><text x="32" y="92" class="gla-col">ACCOUNT</text><text x="234" y="92" class="gla-col" text-anchor="end">DEBIT</text><text x="304" y="92" class="gla-col" text-anchor="end">CREDIT</text><line x1="28" x2="304" y1="100" y2="100" class="gla-rule"/><g id="glaRows"></g><rect x="14" y="100" width="70" height="160" fill="url(#glaScan)" clip-path="url(#glaJclip)" id="glaScanR" opacity="0"/><line x1="28" x2="304" y1="262" y2="262" class="gla-rule strong"/><text x="32" y="284" class="gla-tot">Total</text><text x="234" y="284" class="gla-tot n" text-anchor="end" id="glaTdr">0.00</text><text x="304" y="284" class="gla-tot n" text-anchor="end" id="glaTcr">0.00</text><text x="32" y="303" class="gla-dif">Difference</text><text x="304" y="303" class="gla-difn" text-anchor="end" id="glaDiff">0.00</text><rect x="330" y="16" width="120" height="298" rx="14" class="gla-eng"/><text x="390" y="40" class="gla-col" text-anchor="middle">POSTING ENGINE</text><text x="390" y="54" class="gla-ref" text-anchor="middle" id="glaRef">GL-000000</text><line x1="346" x2="346" y1="76" y2="274" class="gla-rail"/><line x1="346" x2="346" y1="76" y2="274" class="gla-railon" id="glaRailOn" pathLength="100"/><g class="gla-st" id="glaS0"><circle cx="346" cy="76" r="13" class="gla-halo"/><circle cx="346" cy="76" r="8.5" class="gla-node"/><path d="M341 76 l3.2 3.2 5.6-6.4" class="gla-chk"/><text x="363" y="74" class="gla-stt">Balanced</text><text x="363" y="88" class="gla-sts" id="glaSs0">Dr = Cr</text></g><g class="gla-st" id="glaS1"><circle cx="346" cy="142" r="13" class="gla-halo"/><circle cx="346" cy="142" r="8.5" class="gla-node"/><path d="M341 142 l3.2 3.2 5.6-6.4" class="gla-chk"/><text x="363" y="140" class="gla-stt">Accounts valid</text><text x="363" y="154" class="gla-sts" id="glaSs1">...</text></g><g class="gla-st" id="glaS2"><circle cx="346" cy="208" r="13" class="gla-halo"/><circle cx="346" cy="208" r="8.5" class="gla-node"/><path d="M341 208 l3.2 3.2 5.6-6.4" class="gla-chk"/><text x="363" y="206" class="gla-stt">Period open</text><text x="363" y="220" class="gla-sts" id="glaSs2">OCT-2026</text></g><g class="gla-st" id="glaS3"><circle cx="346" cy="274" r="13" class="gla-halo"/><circle cx="346" cy="274" r="8.5" class="gla-node"/><path d="M341 274 l3.2 3.2 5.6-6.4" class="gla-chk"/><text x="363" y="272" class="gla-stt">Posted</text><text x="363" y="286" class="gla-sts" id="glaSs3">to ledger</text></g><circle r="4" class="gla-spark" id="glaSpark" cx="346" cy="76" opacity="0"/><g id="glaLed"></g><rect x="462" y="246" width="284" height="68" rx="12" class="gla-card"/><text x="478" y="268" class="gla-col">TRIAL BALANCE</text><g id="glaPer"><rect x="652" y="255" width="80" height="20" rx="10" class="gla-per"/><text x="692" y="269" class="gla-pert" id="glaPerT">OCT-2026</text></g><text x="478" y="291" class="gla-tb">Dr</text><rect x="498" y="283" width="150" height="8" rx="4" class="gla-track"/><rect x="498" y="283" width="0" height="8" rx="4" fill="url(#glaBar)" id="glaTbD"/><text x="478" y="306" class="gla-tb">Cr</text><rect x="498" y="298" width="150" height="8" rx="4" class="gla-track"/><rect x="498" y="298" width="0" height="8" rx="4" fill="url(#glaBar)" id="glaTbC"/><text x="732" y="296" class="gla-tbn" text-anchor="end" id="glaTbN">0</text><g id="glaTok"></g></svg>
+    </div>
+    <div class="wfl-trust"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-3 7a4 4 0 0 0 6 0zM19 7l-3 7a4 4 0 0 0 6 0z"/></svg><span>Balanced posting engine</span></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg><span>Segment-based accounts</span></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Period open &amp; close control</span></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg><span>Full audit trail</span></span></div>
+  </div>
+  <div class="wfl-copyright">&copy; 2026 Capitra &middot; Digital Finance Platform</div>
+</div>
+<div id="wflHead"><span class="wfl-mob" aria-hidden="true"></span><span class="wfl-mark" aria-hidden="true"></span><span class="wfl-hello">Welcome back</span><span class="wfl-sub">Sign in to Capitra Accounting.</span></div>
+</div></div></div></div></div>
+<script>
+(function(){
+  function safe(name,f){try{f();}catch(e){if(window.console)console.warn('Login ('+name+'):',e);}}
+  function q(s){return document.querySelector(s);}
+  safe('heading',function(){var head=q('#wflHead'),h1=q('.t-Login-title');if(head&&h1){h1.textContent='';h1.appendChild(head);}});
+  safe('labels',function(){var b=q('.login-button .t-Button-label');if(b)b.textContent='Sign in';});
+  safe('note',function(){var note=q('#wflNote'),card=q('.t-Login-region');if(note&&card)card.appendChild(note);});
+  safe('eye',function(){
+    var pw=q('#P9999_PASSWORD'); if(!pw||q('.wfl-eye'))return;
+    var on='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+    var off='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.1-5.9"/><path d="M9.9 4.2A9.6 9.6 0 0 1 12 4c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.2 3.2"/><path d="m2 2 20 20"/></svg>';
+    var eye=document.createElement('button'); eye.type='button'; eye.className='wfl-eye';
+    function sync(){var shown=pw.type==='text';eye.innerHTML=shown?off:on;eye.setAttribute('aria-label',shown?'Hide password':'Show password');eye.setAttribute('aria-pressed',shown?'true':'false');}
+    sync(); (pw.closest('.t-Form-itemWrapper')||pw.parentNode).appendChild(eye);
+    eye.addEventListener('click',function(e){e.preventDefault();pw.type=pw.type==='password'?'text':'password';sync();pw.focus();});
+  });
+  safe('caps',function(){
+    var pw=q('#P9999_PASSWORD'); if(!pw)return;
+    var caps=document.createElement('div'); caps.className='wfl-caps'; caps.hidden=true; caps.setAttribute('role','status'); caps.textContent='Caps Lock is on';
+    var host=pw.closest('.t-Form-fieldContainer')||pw.parentNode; host.parentNode.insertBefore(caps,host.nextSibling);
+    var check=function(e){if(e.getModifierState)caps.hidden=!e.getModifierState('CapsLock');};
+    pw.addEventListener('keydown',check); pw.addEventListener('keyup',check); pw.addEventListener('blur',function(){caps.hidden=true;});
+  });
+})();
+
+(function(){
+  var svg=document.querySelector('svg.gla'); if(!svg||!Element.prototype.animate)return;
+  var NS='http://www.w3.org/2000/svg', reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $=function(id){return svg.querySelector('#'+id);};
+  var J=[
+    {no:'JV-24018',d:'Interest accrual · month end',l:[['1302','Accrued interest',48500,0],['4101','Interest income',0,48500]]},
+    {no:'JV-24019',d:'Financing disbursement',l:[['1201','Financing rec.',250000,0],['1101','Bank – current a/c',0,247500],['4201','Fee income',0,2500]]},
+    {no:'JV-24020',d:'FX revaluation · USD',l:[['1102','Bank – USD a/c',18200,0],['4301','Unrealised FX gain',0,18200]]},
+    {no:'JV-24021',d:'Shared cost allocation',l:[['6110','Branch expenses',36000,0],['6120','Head office exp.',14000,0],['6900','Allocation clearing',0,50000]]},
+    {no:'JV-24022',d:'Customer collection',l:[['1101','Bank – current a/c',96400,0],['1201','Financing rec.',0,88000],['1302','Accrued interest',0,8400]]},
+    {no:'JV-24023',d:'Credit loss provision',l:[['6500','Impairment expense',27500,0],['1209','Loss allowance',0,27500]]}
+  ];
+  var BAL={'1302':612400,'4101':2184000,'1201':9840000,'1101':3125600,'4201':286300,'1102':742900,'4301':51700,'6110':418200,'6120':173900,'6900':0,'6500':96300,'1209':352000};
+  var BR=['001','002','004','007'],CC=['100','210','320'];
+  var TB=48650000, k=0, ref=412, stopped=false, timers=[], anims=[];
+  var SY=[76,142,208,274],RX=346;
+  function fmt(n){return (+n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function fmt0(n){return Math.round(n).toLocaleString('en-US');}
+  function el(tag,attrs,txt){var e=document.createElementNS(NS,tag);for(var a in attrs)e.setAttribute(a,attrs[a]);if(txt!=null)e.textContent=txt;return e;}
+  function later(f,ms){var t=setTimeout(function(){if(!stopped)f();},ms);timers.push(t);}
+  function A(e,kf,o){if(stopped)return {finished:Promise.resolve()};var a=e.animate(kf,o);anims.push(a);return a;}
+  function count(node,from,to,ms,f){var t0=null;f=f||fmt;(function step(ts){if(stopped)return;if(t0===null)t0=ts;var p=Math.min(1,(ts-t0)/ms),e=1-Math.pow(1-p,3);
+    node.textContent=f(from+(to-from)*e);if(p<1)requestAnimationFrame(step);})(performance.now());}
+  function clear(g){while(g.firstChild)g.removeChild(g.firstChild);}
+  function step(i,state,sub){var g=$('glaS'+i);g.classList.remove('act','done');if(state)g.classList.add(state);if(sub!=null)$('glaSs'+i).textContent=sub;}
+  function rail(i){$('glaRailOn').style.strokeDashoffset=String(100-i/3*100);}
+  function spark(i){var s=$('glaSpark');if(i<1)return;A(s,[{opacity:0,transform:'translate(0,'+(SY[i-1]-SY[0])+'px)'},{opacity:1,offset:.2},{opacity:1,offset:.8},{opacity:0,transform:'translate(0,'+(SY[i]-SY[0])+'px)'}],{duration:600,easing:'ease-in-out'});}
+  function comb(x,i){return '01-'+BR[(k+i)%BR.length]+'-'+CC[(k+i)%CC.length]+'-'+x[0];}
+  function cycle(){
+    if(stopped)return; timers=[];anims=[];
+    var j=J[k%J.length]; k++; ref++;
+    var rows=$('glaRows'),led=$('glaLed'),tok=$('glaTok'),st=$('glaState'),dif=$('glaDiff');
+    clear(rows);clear(led);clear(tok);st.classList.remove('posted');st.querySelector('text').textContent='Draft';
+    [0,1,2,3].forEach(function(i){step(i,null,['Dr = Cr','waiting','OCT-2026','to ledger'][i]);});rail(0);
+    $('glaRef').textContent='GL-'+('000000'+ref).slice(-6);
+    $('glaJno').textContent='Journal '+j.no; $('glaJdesc').textContent=j.d; $('glaTdr').textContent=fmt(0); $('glaTcr').textContent=fmt(0);
+    dif.textContent=fmt(0);dif.classList.remove('zero');
+    var bs=document.getElementById('glaBarSub');if(bs)bs.textContent='· '+j.d;
+    var dr=0,cr=0,n=j.l.length;
+    // ledger cards (one per account in the journal)
+    j.l.forEach(function(x,i){var y=16+i*74,g=el('g',{opacity:0});
+      g.appendChild(el('rect',{x:462,y:y,width:284,height:64,rx:12,'class':'gla-lc'}));
+      g.appendChild(el('rect',{x:476,y:y+12,width:44,height:20,rx:6,'class':'gla-code'}));g.appendChild(el('text',{x:498,y:y+26,'class':'gla-codet'},x[0]));
+      g.appendChild(el('text',{x:528,y:y+26,'class':'gla-lname'},x[1]));
+      g.appendChild(el('text',{x:476,y:y+51,'class':'gla-lsub'},'LEDGER BALANCE'));
+      g.appendChild(el('text',{x:732,y:y+52,'class':'gla-lbal'},fmt0(BAL[x[0]]||0)));
+      g.appendChild(el('text',{x:732,y:y+28,'class':'gla-ldelta',fill:x[2]?'#FFDC9A':'#7FACE0',opacity:0},(x[2]?'+ Dr ':'+ Cr ')+fmt0(x[2]||x[3])));
+      led.appendChild(g);A(g,[{opacity:0,transform:'translateX(18px)'},{opacity:1,transform:'none'}],{duration:500,delay:150+i*120,fill:'forwards',easing:'ease-out'});});
+    // 1. lines keyed one by one; the difference counts toward zero
+    step(0,'act');
+    j.l.forEach(function(x,i){later(function(){
+      var y=118+i*46,g=el('g',{});
+      g.appendChild(el('rect',{x:30,y:y-15,width:44,height:22,rx:6,'class':'gla-code'}));g.appendChild(el('text',{x:52,y:y,'class':'gla-codet'},x[0]));
+      g.appendChild(el('text',{x:82,y:y,'class':'gla-name'},x[1]));
+      g.appendChild(el('text',{x:x[2]?234:304,y:y,'class':'gla-amt'+(x[2]?'':' cr'),'text-anchor':'end'},fmt(x[2]||x[3])));
+      rows.appendChild(g);A(g,[{opacity:0,transform:'translateX(-14px)'},{opacity:1,transform:'none'}],{duration:420,fill:'forwards',easing:'ease-out'});
+      var pd=dr,pc=cr,pdif=Math.abs(dr-cr);dr+=x[2];cr+=x[3];count($('glaTdr'),pd,dr,500);count($('glaTcr'),pc,cr,500);count(dif,pdif,Math.abs(dr-cr),500);
+    },600+i*700);});
+    var t=600+n*700+150;
+    // 2. engine: balanced -> accounts valid (combinations scroll) -> period open -> posted
+    later(function(){dif.classList.add('zero');step(0,'done','Dr = Cr ✓');rail(1);spark(1);step(1,'act');
+      var sc=$('glaScanR');sc.setAttribute('opacity','1');A(sc,[{transform:'translateY(-40px)'},{transform:'translateY(150px)'}],{duration:260*n+200,easing:'linear'});
+      j.l.forEach(function(x,i){later(function(){$('glaSs1').textContent=comb(x,i);},i*260);});},t);
+    t+=260*n+350;
+    later(function(){$('glaScanR').setAttribute('opacity','0');step(1,'done',n+' of '+n+' valid');rail(2);spark(2);step(2,'act');},t);
+    t+=550;
+    later(function(){step(2,'done','OCT-2026 · open');rail(3);spark(3);step(3,'act');},t);
+    t+=550;
+    later(function(){step(3,'done',$('glaRef').textContent);st.classList.add('posted');st.querySelector('text').textContent='Posted';},t);
+    // 3. each amount travels through the engine into its ledger account
+    j.l.forEach(function(x,i){later(function(){
+      var y0=118+i*46-4,x0=x[2]?214:286,y1=16+i*74+32,x1=470,amt=x[2]||x[3];
+      var tk=el('g',{'class':'gla-tok'+(x[2]?'':' cr')});tk.appendChild(el('circle',{r:10,filter:'url(#glaGlow)'}));tk.appendChild(el('circle',{r:4.5}));tok.appendChild(tk);
+      A(tk,[{transform:'translate('+x0+'px,'+y0+'px)',opacity:0},{transform:'translate('+RX+'px,'+SY[3]+'px)',opacity:1,offset:.45},{transform:'translate('+x1+'px,'+y1+'px)',opacity:1,offset:.92},{transform:'translate('+x1+'px,'+y1+'px)',opacity:0}],
+        {duration:1100,easing:'cubic-bezier(.45,0,.25,1)',fill:'forwards'}).finished.then(function(){if(stopped)return;
+          var card=led.children[i];if(!card)return;var r=card.querySelector('.gla-lc'),b=card.querySelector('.gla-lbal'),d=card.querySelector('.gla-ldelta');
+          r.classList.add('hit');var from=BAL[x[0]]||0,to=from+amt;BAL[x[0]]=to;count(b,from,to,700,fmt0);
+          A(d,[{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'none'}],{duration:350,fill:'forwards'});d.setAttribute('opacity','1');},function(){});
+    },t+200+i*220);});
+    t+=200+n*220+1000;
+    // 4. trial balance moves, Dr = Cr
+    var total=j.l.reduce(function(s,x){return s+x[2];},0);
+    later(function(){var from=TB;TB+=total;count($('glaTbN'),from,TB,800,fmt0);
+      var w=Math.min(150,40+(TB%2000000)/2000000*110);['glaTbD','glaTbC'].forEach(function(id){A($(id),[{width:$(id).getAttribute('width')+'px'},{width:w+'px'}],{duration:800,fill:'forwards',easing:'ease-out'});$(id).setAttribute('width',w);});
+      A($('glaPer'),[{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:500});},t);
+    // 5. hold, fade, next journal - forever
+    later(function(){var outs=[rows,led].map(function(g){return A(g,[{opacity:1},{opacity:0}],{duration:450,fill:'forwards'});});
+      Promise.all(outs.map(function(a){return a.finished;})).then(function(){anims.forEach(function(a){try{a.cancel();}catch(e){}});later(cycle,250);},function(){});
+    },t+2400);
+  }
+  window.GLA={stop:function(){if(stopped)return;stopped=true;timers.forEach(clearTimeout);anims.forEach(function(a){try{a.pause();}catch(e){}});},
+    // pause while the window is in the background (e.g. the Windows Hello / password manager prompt): nothing is painted;
+    // resume starts a fresh journal so no half-finished step is left on screen
+    pause:function(){if(stopped||reduce)return;stopped=true;window.GLA.paused=true;timers.forEach(clearTimeout);timers=[];anims.forEach(function(a){try{a.pause();}catch(e){}});},
+    resume:function(){if(!window.GLA.paused)return;window.GLA.paused=false;stopped=false;anims.forEach(function(a){try{a.cancel();}catch(e){}});anims=[];cycle();},
+    paused:false};
+  if(reduce){cycle();setTimeout(function(){window.GLA.stop();},9000);return;}
+  cycle();
+})();
+
+(function(){
+  // rotating headlines: split each into words, then cycle forever
+  var hl=document.getElementById('glHl'),dots=document.getElementById('glDots');
+  if(hl){
+    var items=[].slice.call(hl.querySelectorAll('.gl-h')),bars=dots?[].slice.call(dots.children):[],cur=0,T=4600;
+    items.forEach(function(h){var n=0;[].forEach.call(h.querySelectorAll('span,em'),function(part){
+      var words=part.textContent.split(' ');part.textContent='';
+      words.forEach(function(w,i){var s=document.createElement('span');s.className='w';s.style.setProperty('--d',(n++*0.07)+'s');s.textContent=w;part.appendChild(s);
+        if(i<words.length-1)part.appendChild(document.createTextNode(' '));});});});
+    function mark(i){bars.forEach(function(b,j){b.classList.remove('on');void b.offsetWidth;if(j===i){b.style.setProperty('--t',T+'ms');b.classList.add('on');}});}
+    mark(0);
+    var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduce)setInterval(function(){if(document.body.classList.contains('gl-paused'))return;var a=items[cur];a.classList.remove('on');a.classList.add('out');
+      setTimeout(function(){a.classList.remove('out');},700);
+      cur=(cur+1)%items.length;items[cur].classList.add('on');mark(cur);},T);
+  }
+  // lite mode: when the user starts signing in (typing, password manager, Windows Hello) the animation keeps running,
+  // only the live backdrop blur is switched off so the sign-in stays fast
+  var b=document.body,done=false;
+  function lite(){if(done)return;done=true;b.classList.add('gl-lite');}
+  ['pointerdown','keydown','input','change','focusin'].forEach(function(e){document.addEventListener(e,lite,{once:true,capture:true});});
+  document.addEventListener('animationstart',function(e){if(e.animationName==='glAutofill')lite();},true);
+  // tell the browser exactly which fields hold the sign-in, so the password manager fills them without searching
+  var u=document.getElementById('P9999_USERNAME'),pw=document.getElementById('P9999_PASSWORD');
+  if(u){u.setAttribute('autocomplete','username');u.setAttribute('autocapitalize','none');u.setAttribute('spellcheck','false');}
+  if(pw)pw.setAttribute('autocomplete','current-password');
+  // while the window is in the background (Windows Hello fingerprint prompt, another app) the scene is paused,
+  // so the browser and Windows have the machine to themselves; it starts again when the window is back
+  function bg(){b.classList.add('gl-paused');if(window.GLA&& GLA.pause)GLA.pause();}
+  function fg(){if(document.hidden)return;b.classList.remove('gl-paused');if(window.GLA&& GLA.resume)setTimeout(function(){GLA.resume();},400);}
+  window.addEventListener('blur',bg);window.addEventListener('focus',fg);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)bg();else fg();});
+})();
+</script>
+</body></html>
