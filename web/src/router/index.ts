@@ -124,16 +124,38 @@ const router = createRouter({
         },
         {
           path: 'mortgage/reference-data',
-          name: 'adm-reference-data',
+          name: 'mtg-reference-data',
           component: () => import('@/modules/adm/pages/ReferenceDataPage.vue'),
+          props: { module: 'MTG' },
           meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Reference Data' }
         },
         {
           path: 'mortgage/reference-data/:lookupName',
-          name: 'adm-lookup',
+          name: 'mtg-lookup',
           component: () => import('@/modules/adm/pages/LookupPage.vue'),
           props: true,
           meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Reference Data' }
+        },
+        // Administration: global settings shared by every application.
+        {
+          path: 'admin',
+          name: 'adm-home',
+          component: () => import('@/modules/adm/pages/AdministrationPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Administration' }
+        },
+        {
+          path: 'admin/reference-data',
+          name: 'adm-reference-data',
+          component: () => import('@/modules/adm/pages/ReferenceDataPage.vue'),
+          props: { module: 'ADM' },
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Reference Data' }
+        },
+        {
+          path: 'admin/reference-data/:lookupName',
+          name: 'adm-lookup',
+          component: () => import('@/modules/adm/pages/LookupPage.vue'),
+          props: true,
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Reference Data' }
         },
         {
           path: 'mortgage/developers',

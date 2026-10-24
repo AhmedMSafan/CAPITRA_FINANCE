@@ -7,7 +7,7 @@ defineProps<{
   description: string
   icon: string
   tiles: HubTile[]
-  apexPage: string
+  apexPage?: string
 }>()
 </script>
 
@@ -33,7 +33,7 @@ defineProps<{
         <i class="pi pi-angle-right hub-tile-go"></i>
       </RouterLink>
     </div>
-    <p class="apex-ref">Replaces APEX App 105 page {{ apexPage }}</p>
+    <p v-if="apexPage" class="apex-ref">Replaces APEX App 105 page {{ apexPage }}</p>
   </div>
 </template>
 

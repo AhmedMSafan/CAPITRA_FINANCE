@@ -8,7 +8,7 @@ type BusinessModule = {
   title: string
   description: string
   route: string
-  tone: 'crm' | 'factoring' | 'leasing' | 'mortgage'
+  tone: 'crm' | 'factoring' | 'leasing' | 'mortgage' | 'admin'
   icon: string
   enabled: boolean
 }
@@ -56,6 +56,15 @@ const modules: BusinessModule[] = [
     tone: 'leasing',
     icon: 'pi pi-wallet',
     enabled: false
+  },
+  {
+    code: 'ADMIN',
+    title: 'Administration',
+    description: 'Global reference data shared by every application: currencies, countries, statuses and document types.',
+    route: '/admin',
+    tone: 'admin',
+    icon: 'pi pi-cog',
+    enabled: true
   }
 ]
 
@@ -698,6 +707,18 @@ const filteredModules = computed(() => {
 .business-card--leasing .module-code,
 .business-card--leasing .business-card-action {
   color:#378fd4;
+}
+
+.business-card--admin {
+  border-top: 3px solid #5b6b82;
+}
+.business-card--admin .business-icon {
+  color:#4a5a70;
+  background:#edf0f5;
+}
+.business-card--admin .module-code,
+.business-card--admin .business-card-action {
+  color:#4a5a70;
 }
 
 .business-card--mortgage {

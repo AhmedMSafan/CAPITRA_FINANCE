@@ -284,7 +284,7 @@ watch(() => props.api, load, { immediate: true })
           </table>
         </div>
       </div>
-      <p class="apex-ref">Replaces APEX App {{ apexApp }} pages {{ apexPages }}</p>
+      <p v-if="apexPages" class="apex-ref">Replaces APEX App {{ apexApp }} pages {{ apexPages }}</p>
     </div>
 
     <div v-if="dialogVisible" class="modal-overlay" @click.self="closeDialog">

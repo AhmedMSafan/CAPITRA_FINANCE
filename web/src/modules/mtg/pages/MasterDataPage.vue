@@ -10,7 +10,7 @@ const tiles: HubTile[] = [
   { title: 'Projects', description: 'Developer projects: location, title deed, licence and completion.', icon: 'pi pi-map', to: '/mortgage/projects', apexPages: '105/106' },
   { title: 'Project Units', description: 'Units in each project with area, contract and market value.', icon: 'pi pi-building', to: '/mortgage/project-units', apexPages: '107/108' },
   { title: 'Investors', description: 'Unit buyers: identity, contact details, employer and income.', icon: 'pi pi-users', to: '/mortgage/investors', apexPages: '109/110' },
-  { title: 'Reference Data', description: 'Code lists: statuses, document types, check types, currencies and more.', icon: 'pi pi-database', to: '/mortgage/reference-data', apexPages: '3' }
+  { title: 'Reference Data', description: 'Portfolio acquisition code lists: statuses, inquiry, check and valuation types, unit types.', icon: 'pi pi-database', to: '/mortgage/reference-data', apexPages: '3' }
 ]
 </script>
 

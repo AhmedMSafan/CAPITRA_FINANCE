@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // Reference data hub (APEX App 105 page 3): one tile per code table.
+// ADM lists are global and live under Administration; MTG lists stay under Portfolio Acquisition.
 import { computed, ref, shallowRef } from 'vue'
 import HubPage from '@/shared/hub/HubPage.vue'
 import type { HubTile } from '@/shared/hub/types'
@@ -20,8 +21,26 @@ const ICONS: Record<string, string> = {
   'payment-status': 'pi pi-credit-card',
   'cheque-status': 'pi pi-wallet',
   currency: 'pi pi-dollar',
+  country: 'pi pi-globe',
   'unit-type': 'pi pi-building'
 }
+
+const props = defineProps<{ module: 'ADM' | 'MTG' }>()
+
+const AREAS = {
+  ADM: {
+    base: '/admin/reference-data',
+    description: 'Global code lists shared by every Capitra application: currencies, countries, statuses, document types and more.',
+    back: { to: '/admin', label: 'Administration' }
+  },
+  MTG: {
+    base: '/mortgage/reference-data',
+    description: 'Code lists used only by portfolio acquisition: portfolio statuses, inquiry, check and valuation types, approval steps and unit types.',
+    back: { to: '/mortgage', label: 'Master Data' }
+  }
+} as const
+
+const area = computed(() => AREAS[props.module])
 
 const definitions = shallowRef<LookupDefinition[]>([])
 const error = ref('')
@@ -31,11 +50,11 @@ getLookupDefinitions()
   .catch(e => (error.value = e instanceof Error ? e.message : 'Unable to load the reference data lists.'))
 
 const tiles = computed<HubTile[]>(() =>
-  definitions.value.map(d => ({
+  definitions.value.filter(d => d.module === props.module).map(d => ({
     title: d.title,
-    description: `${d.module === 'MTG' ? 'Portfolio acquisition' : 'Shared'} code list.`,
+    description: `${d.module === 'MTG' ? 'Portfolio acquisition' : 'Global'} code list.`,
     icon: ICONS[d.name] ?? 'pi pi-list',
-    to: `/mortgage/reference-data/${d.name}`,
+    to: `${area.value.base}/${d.name}`,
     apexPages: d.apexPages
   }))
 )
@@ -45,13 +64,13 @@ const tiles = computed<HubTile[]>(() =>
   <div v-if="error" class="hub-error">{{ error }}</div>
   <HubPage
     title="Reference Data"
-    description="Code lists used by portfolio acquisition: statuses, document types, check types, currencies and more."
+    :description="area.description"
     icon="pi pi-database"
     :tiles="tiles"
     apex-page="3"
   >
     <template #actions>
-      <RouterLink to="/mortgage" class="hub-link"><i class="pi pi-arrow-left"></i><span>Master Data</span></RouterLink>
+      <RouterLink :to="area.back.to" class="hub-link"><i class="pi pi-arrow-left"></i><span>{{ area.back.label }}</span></RouterLink>
     </template>
   </HubPage>
 </template>

@@ -5,6 +5,7 @@ namespace Capitra.Application.Modules.Adm.Lookups;
 
 /// <summary>
 /// Every lookup served by the generic lookup API and screen, taken from the APEX App 105 reference data pages (3, 11 to 40).
+/// ADM lookups are global lists shown under Administration; MTG lookups belong to portfolio acquisition.
 /// Add one entry here when a module adds a lookup table.
 /// </summary>
 public static class LookupRegistry
@@ -69,6 +70,12 @@ public static class LookupRegistry
                 NameMaxLength = 100,
                 ShowDisplayOrder = false,
                 Fields = [new("decimalPlaces", "Decimal Places", LookupFieldType.Number, Required: true, Min: 0, Max: 6)],
+            },
+            LookupDefinition.For<AdmLkpCountry>("country", "ADM", "Countries", "") with
+            {
+                CodeMaxLength = 2,
+                NameMaxLength = 100,
+                ShowDisplayOrder = false,
             },
             LookupDefinition.For<MtgLkpUnitType>("unit-type", "MTG", "Unit Types", "39/40") with
             {
