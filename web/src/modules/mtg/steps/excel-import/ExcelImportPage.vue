@@ -46,7 +46,9 @@ watch(id, () => {
 /** Results of this visit win over the stored status: the browser holds the file that was checked. */
 const status = computed<ImportStatus>(() => result.value?.importStatusCode ?? data.value?.importStatusCode ?? 'NOT_VALIDATED')
 const imported = computed(() => status.value === 'IMPORTED')
-const canImport = computed(() => canRun && !!file.value && result.value?.importStatusCode === 'VALIDATED')
+/** The server keeps the last validated workbook, so a later visit can import it without choosing the file again. */
+const storedReady = computed(() => !file.value && !result.value && !!data.value?.hasValidatedWorkbook)
+const canImport = computed(() => canRun && (storedReady.value || (!!file.value && result.value?.importStatusCode === 'VALIDATED')))
 
 const stages = computed(() => {
   const s = status.value
@@ -97,7 +99,6 @@ async function validate() {
 }
 
 async function runImport() {
-  if (!file.value) return
   busy.value = 'import'
   error.value = ''
   notice.value = ''
@@ -157,14 +158,14 @@ useFeedback({
     <!-- upload and check -->
     <section v-if="!imported" class="cp-card">
       <div class="cp-card__head">
-        <i class="pi pi-cloud-upload"></i>
+        <i class="pi pi-file-excel"></i>
         <h3>{{ status === 'NOT_VALIDATED' ? 'Upload the workbook' : 'Upload a corrected workbook' }}</h3>
         <span class="cp-spacer"></span>
         <button type="button" class="cp-btn cp-btn--small" @click="showFormat = true"><i class="pi pi-table"></i><span>Workbook format</span></button>
       </div>
       <div class="cp-card__body">
         <label class="drop">
-          <i class="pi pi-file-excel"></i>
+          <i class="pi pi-cloud-upload"></i>
           <b>{{ file ? file.name : 'Choose the seller workbook (.xlsx)' }}</b>
           <small>Needs 3 tabs: <code>INVESTORS</code> <code>UNITS</code> <code>ACCOUNTS</code></small>
           <input
@@ -178,7 +179,7 @@ useFeedback({
         </label>
         <p v-if="data.importStatusCode !== 'NOT_VALIDATED' && !result" class="cp-muted hint">
           Last check: <b>{{ data.fileName }}</b>, {{ data.validRowCount }} valid and {{ data.errorRowCount }} with errors.
-          Choose the file again to continue.
+          {{ data.hasValidatedWorkbook ? 'Ready: press Import & complete step, or choose another file.' : data.importStatusCode === 'VALIDATED' ? 'Choose the file once more and press Validate.' : 'Choose a corrected file to continue.' }}
         </p>
         <p v-if="!canRun" class="cp-muted hint">You can view this step. Loading the workbook needs the Excel import permission.</p>
         <div class="actions">
@@ -297,7 +298,7 @@ useFeedback({
 .notice--bad { border-color: var(--cap-warning-border); background: var(--cap-warning-bg); color: var(--cap-warning); }
 .drop { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 28px 16px; border: 2px dashed var(--cap-border); border-radius: 12px; background: var(--cap-bg); color: var(--cap-ink-soft); text-align: center; cursor: pointer; }
 .drop:hover { border-color: var(--cap-faint); }
-.drop > i { color: var(--cap-primary); font-size: 28px; }
+.drop > i { margin-bottom: 4px; color: var(--cap-orange); font-size: 56px; }
 .drop b { color: var(--cap-heading); font-size: 14px; }
 .drop small { color: var(--cap-muted); font-size: 12px; }
 .drop code { margin: 0 2px; padding: 1px 6px; border-radius: 4px; background: var(--cap-primary-tint); color: var(--cap-heading); font-size: 11px; }

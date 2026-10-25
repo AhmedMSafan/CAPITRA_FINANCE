@@ -18,6 +18,7 @@ export type ExcelImport = {
   validRowCount: number
   errorRowCount: number
   importedRowCount: number
+  hasValidatedWorkbook: boolean
   figures: {
     accountCount: number
     investorCount: number
@@ -72,6 +73,7 @@ export const excelImportApi = {
   get: (portfolioId: number) => http.get<ExcelImport>(`/api/mtg/portfolios/${portfolioId}/excel-import`),
   validate: (portfolioId: number, file: File) =>
     http.upload<WorkbookResult>(`/api/mtg/portfolios/${portfolioId}/excel-import/validate`, form(file)),
-  import: (portfolioId: number, file: File) =>
-    http.upload<WorkbookResult>(`/api/mtg/portfolios/${portfolioId}/excel-import/import`, form(file))
+  /** Without a file the API imports the workbook kept by the last successful Validate. */
+  import: (portfolioId: number, file: File | null) =>
+    http.upload<WorkbookResult>(`/api/mtg/portfolios/${portfolioId}/excel-import/import`, file ? form(file) : new FormData())
 }

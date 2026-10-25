@@ -21,6 +21,7 @@ public sealed record ExcelImportDto(
     int ValidRowCount,
     int ErrorRowCount,
     int ImportedRowCount,
+    bool HasValidatedWorkbook, // Import can run without choosing the file again
     ImportedFiguresDto Figures,
     IReadOnlyList<ImportedAccountDto> Accounts,
     IReadOnlyList<WorkbookSheetDto> Format);
@@ -76,14 +77,17 @@ public interface IMtgExcelImportService
     Task<WorkbookResultDto> ValidateAsync(long portfolioId, string fileName, Stream content, CancellationToken cancellationToken);
 
     Task<WorkbookResultDto> ImportAsync(long portfolioId, string fileName, Stream content, CancellationToken cancellationToken);
+
+    /// <summary>Imports the workbook kept by the last successful Validate, so the file need not be chosen again.</summary>
+    Task<WorkbookResultDto> ImportValidatedAsync(long portfolioId, CancellationToken cancellationToken);
 }
 
 /// <summary>
 /// Workflow step "Excel Import &amp; Validation" (APEX App 105 page 208): check the seller workbook, then load its
 /// investors, units and accounts into the portfolio.
 /// <para>
-/// APEX kept the validated file in the session between Validate and Import. The API keeps no file: Import receives
-/// the workbook again and checks it again, so what is imported is always what passed the checks.
+/// APEX kept the validated file in the session between Validate and Import. Here Validate keeps the workbook on its
+/// import row, and Import checks it again before loading, so what is imported is always what passed the checks.
 /// </para>
 /// </summary>
 public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader reader) : IMtgExcelImportService
@@ -138,14 +142,17 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
             header.PortfolioId, header.PortfolioNo, header.ProjectCode, header.ProjectName, header.PortfolioStatusCode,
             header.StatusName, batch?.ImportStatusCode ?? NotValidatedStatus, batch?.FileName,
             batch?.TotalRowCount ?? 0, batch?.ValidRowCount ?? 0, batch?.ErrorRowCount ?? 0, batch?.ImportedRowCount ?? 0,
+            batch is { ImportStatusCode: MtgPurchasedPortfolioImport.ValidatedStatus, WorkbookContent: not null },
             figures, list, Format);
     }
 
     public async Task<WorkbookResultDto> ValidateAsync(
         long portfolioId, string fileName, Stream content, CancellationToken cancellationToken)
     {
-        var plan = await AnalyseAsync(portfolioId, fileName, content, cancellationToken);
-        await SaveBatchAsync(portfolioId, fileName, plan, plan.IsValid ? MtgPurchasedPortfolioImport.ValidatedStatus : MtgPurchasedPortfolioImport.ErrorStatus, 0, cancellationToken);
+        var bytes = await ReadAllAsync(content, cancellationToken);
+        var plan = await AnalyseAsync(portfolioId, fileName, new MemoryStream(bytes), cancellationToken);
+        await SaveBatchAsync(portfolioId, fileName, plan, plan.IsValid ? MtgPurchasedPortfolioImport.ValidatedStatus : MtgPurchasedPortfolioImport.ErrorStatus, 0, cancellationToken,
+            plan.IsValid ? bytes : null);
         return plan.ToResult(plan.IsValid ? MtgPurchasedPortfolioImport.ValidatedStatus : MtgPurchasedPortfolioImport.ErrorStatus, fileName, 0);
     }
 
@@ -194,6 +201,25 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
 
         await transaction.CommitAsync(cancellationToken);
         return plan.ToResult(MtgPurchasedPortfolioImport.ImportedStatus, fileName, plan.Accounts.Count);
+    }
+
+    public async Task<WorkbookResultDto> ImportValidatedAsync(long portfolioId, CancellationToken cancellationToken)
+    {
+        var batch = await db.Set<MtgPurchasedPortfolioImport>().AsNoTracking()
+            .Where(x => x.PortfolioId == portfolioId)
+            .Select(x => new { x.FileName, x.ImportStatusCode, x.WorkbookContent })
+            .FirstOrDefaultAsync(cancellationToken);
+        if (batch is null || batch.ImportStatusCode != MtgPurchasedPortfolioImport.ValidatedStatus || batch.WorkbookContent is null)
+            throw BusinessValidationException.For("file", "Validate the workbook first, then import it.");
+
+        return await ImportAsync(portfolioId, batch.FileName, new MemoryStream(batch.WorkbookContent), cancellationToken);
+    }
+
+    private static async Task<byte[]> ReadAllAsync(Stream content, CancellationToken cancellationToken)
+    {
+        using var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, cancellationToken);
+        return buffer.ToArray();
     }
 
     /// <summary>APEX "Validate Portfolio Workbook", plus the checks the APEX import left to the database.</summary>
@@ -491,7 +517,8 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
     }
 
     private async Task SaveBatchAsync(
-        long portfolioId, string fileName, ImportPlan plan, string status, int imported, CancellationToken cancellationToken)
+        long portfolioId, string fileName, ImportPlan plan, string status, int imported, CancellationToken cancellationToken,
+        byte[]? workbook = null)
     {
         var batch = await db.Set<MtgPurchasedPortfolioImport>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
         if (batch is null)
@@ -506,6 +533,11 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
         batch.ValidRowCount = plan.Rows.Count(x => x.IsValid);
         batch.ErrorRowCount = plan.Rows.Count(x => !x.IsValid);
         batch.ImportedRowCount = imported;
+        // Kept while it waits for Import and after it is imported (the file the portfolio was loaded from); dropped on errors.
+        if (workbook is not null)
+            batch.WorkbookContent = workbook;
+        else if (status == MtgPurchasedPortfolioImport.ErrorStatus)
+            batch.WorkbookContent = null;
         await db.SaveChangesAsync(cancellationToken);
     }
 

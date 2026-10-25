@@ -28,4 +28,7 @@ public class MtgPurchasedPortfolioImport : AuditableEntity
     public int ErrorRowCount { get; set; }
 
     public int ImportedRowCount { get; set; }
+
+    /// <summary>The workbook as last validated, so Import can load it without the user choosing the file again.</summary>
+    public byte[]? WorkbookContent { get; set; }
 }

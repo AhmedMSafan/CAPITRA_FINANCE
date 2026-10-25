@@ -28,12 +28,18 @@ public sealed class MtgExcelImportController(IMtgExcelImportService service) : C
         return await service.ValidateAsync(portfolioId, file!.FileName, content, cancellationToken);
     }
 
-    /// <summary>Checks the workbook again and, when it has no errors, loads it and completes the step.</summary>
+    /// <summary>
+    /// Checks the workbook again and, when it has no errors, loads it and completes the step.
+    /// Without a file it imports the workbook kept by the last successful Validate.
+    /// </summary>
     [HttpPost("import")]
     [HasPermission(Permissions.Mtg.StepExcelImport)]
     [RequestSizeLimit(MaxWorkbookBytes)]
     public async Task<WorkbookResultDto> Import(long portfolioId, IFormFile? file, CancellationToken cancellationToken)
     {
+        if (file is null || file.Length == 0)
+            return await service.ImportValidatedAsync(portfolioId, cancellationToken);
+
         await using var content = Open(file);
         return await service.ImportAsync(portfolioId, file!.FileName, content, cancellationToken);
     }

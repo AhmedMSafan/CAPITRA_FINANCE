@@ -2771,6 +2771,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("VALID_ROW_COUNT");
 
+                    b.Property<byte[]>("WorkbookContent")
+                        .HasColumnType("bytea")
+                        .HasColumnName("WORKBOOK_CONTENT");
+
                     b.HasKey("PortfolioImportId")
                         .HasName("PK_MTG_PURCHASED_PORTFOLIO_IMPORTS");
 
