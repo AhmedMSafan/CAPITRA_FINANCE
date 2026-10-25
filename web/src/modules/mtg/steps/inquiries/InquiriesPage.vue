@@ -65,21 +65,15 @@ const counts = computed(() => {
   }
 })
 
-const confirmExclude = ref<number | null>(null)
-
-async function exclude(portfolioAccountId: number) {
-  if (confirmExclude.value !== portfolioAccountId) {
-    confirmExclude.value = portfolioAccountId
-    return
-  }
-  confirmExclude.value = null
+/** Include and exclude can be switched freely until the step is completed. */
+async function decide(portfolioAccountId: number, decision: 'SELECTED' | 'EXCLUDED') {
   busy.value = true
   error.value = ''
   try {
-    await inquiriesApi.exclude(id.value, [portfolioAccountId])
+    await inquiriesApi.saveDecisions(id.value, [portfolioAccountId], decision)
     await load()
   } catch (e) {
-    error.value = messageOf(e, 'Unable to exclude the investor.')
+    error.value = messageOf(e, 'Unable to save the deal decision.')
   } finally {
     busy.value = false
   }
@@ -290,17 +284,10 @@ useFeedback({
                     <span v-if="a.latestRiskLevelCode" class="cp-pill" :class="riskTone(a.latestRiskLevelCode)">{{ niceCode(a.latestRiskLevelCode) }}</span>
                   </td>
                   <td>
-                    <span v-if="a.dealDecisionCode === 'EXCLUDED'" class="cp-pill cp-pill--bad"><i class="pi pi-lock"></i> Excluded</span>
-                    <template v-else>
-                      <span class="cp-pill cp-pill--ok">Included</span>
-                      <button
-                        v-if="editable"
-                        type="button"
-                        class="cp-btn cp-btn--small cp-btn--danger exclude"
-                        :disabled="busy"
-                        @click="exclude(a.portfolioAccountId)"
-                      >{{ confirmExclude === a.portfolioAccountId ? 'Confirm: cannot be undone' : 'Exclude' }}</button>
-                    </template>
+                    <div class="toggle" role="group" :aria-label="`Deal decision for ${a.investorName}`">
+                      <button type="button" class="in" :aria-pressed="a.dealDecisionCode !== 'EXCLUDED'" :disabled="!editable || busy" @click="decide(a.portfolioAccountId, 'SELECTED')">Included</button>
+                      <button type="button" class="ex" :aria-pressed="a.dealDecisionCode === 'EXCLUDED'" :disabled="!editable || busy" @click="decide(a.portfolioAccountId, 'EXCLUDED')">Excluded</button>
+                    </div>
                   </td>
                 </tr>
                 <tr v-if="accounts.length === 0"><td colspan="7" class="cp-empty">{{ data.accounts.length ? 'No contracts match this filter.' : 'This portfolio has no investor contracts yet.' }}</td></tr>
@@ -409,7 +396,12 @@ useFeedback({
 .seg button[aria-pressed="true"] { background: var(--cap-selected); color: #fff; }
 .seg button[aria-pressed="true"] em { color: var(--cap-primary-tint-2); }
 tr.out td { opacity: .6; }
-.exclude { margin-inline-start: 8px; }
+.toggle { display: inline-flex; border: 1px solid var(--cap-border); border-radius: 8px; overflow: hidden; }
+.toggle button { height: 30px; padding: 0 12px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
+.toggle button + button { border-inline-start: 1px solid var(--cap-border); }
+.toggle button:disabled { cursor: default; }
+.toggle .in[aria-pressed="true"] { background: var(--cap-success); color: #fff; }
+.toggle .ex[aria-pressed="true"] { background: var(--cap-danger); color: #fff; }
 .code { color: var(--cap-heading); font-weight: 600; font-size: 11px; }
 .decide { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .req { color: var(--cap-danger); }

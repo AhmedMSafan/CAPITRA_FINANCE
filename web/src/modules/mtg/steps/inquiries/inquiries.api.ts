@@ -78,8 +78,8 @@ export const inquiriesApi = {
   update: (portfolioId: number, id: number, body: SaveInquiry) => http.put<Inquiry>(`${base(portfolioId)}/records/${id}`, body),
   remove: (portfolioId: number, row: Inquiry) =>
     http.delete<void>(`${base(portfolioId)}/records/${row.inquiryResultId}?rowVersion=${row.rowVersion}`),
-  exclude: (portfolioId: number, ids: number[]) =>
-    http.put<void>(`${base(portfolioId)}/deal-decisions`, { items: ids.map(id => ({ portfolioAccountId: id, dealDecisionCode: 'EXCLUDED' })) }),
+  saveDecisions: (portfolioId: number, ids: number[], dealDecisionCode: 'SELECTED' | 'EXCLUDED') =>
+    http.put<void>(`${base(portfolioId)}/deal-decisions`, { items: ids.map(id => ({ portfolioAccountId: id, dealDecisionCode })) }),
   decide: (portfolioId: number, action: 'APPROVE' | 'REJECT', comment: string) =>
     http.post<Inquiries>(`${base(portfolioId)}/decision`, { action, comment })
 }

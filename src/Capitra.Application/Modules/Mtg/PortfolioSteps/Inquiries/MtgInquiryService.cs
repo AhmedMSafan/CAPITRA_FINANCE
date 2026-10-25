@@ -187,11 +187,11 @@ public sealed class MtgInquiryService(ICapitraDbContext db) : IMtgInquiryService
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>APEX INQ_UPDATE_INVESTOR: unlike the AML review, an exclusion here cannot be undone.</summary>
+    /// <summary>APEX INQ_UPDATE_INVESTOR. Unlike APEX, an excluded investor can be included again until the step is completed (Ahmed, 25 Oct 2026).</summary>
     public async Task SaveDealDecisionsAsync(long portfolioId, SaveDealDecisionsRequest request, CancellationToken cancellationToken)
     {
         await PortfolioStatus.RequireAsync(db, portfolioId, StepName, OpenStatuses, cancellationToken);
-        await DealDecisions.SaveAsync(db, portfolioId, request, allowReinclude: false, cancellationToken);
+        await DealDecisions.SaveAsync(db, portfolioId, request, allowReinclude: true, cancellationToken);
     }
 
     /// <summary>APEX INQ_COMPLETE. The comment is optional here.</summary>

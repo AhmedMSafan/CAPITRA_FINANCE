@@ -110,7 +110,7 @@ public sealed class InquiryServiceTests
     }
 
     [Fact]
-    public async Task Exclusion_is_final_and_approve_keeps_the_selected_totals()
+    public async Task Investors_can_be_switched_until_approve_and_approve_keeps_the_selected_totals()
     {
         var s = await SeedAsync();
         await using var db = StepTestDb.Create(s.Database);
@@ -118,9 +118,13 @@ public sealed class InquiryServiceTests
 
         await service.SaveDealDecisionsAsync(s.PortfolioId,
             new SaveDealDecisionsRequest([new DealDecisionItem(s.Account2, MtgPurchasedPortfolioAccount.ExcludedDecision)]), default);
-        var error = await Assert.ThrowsAsync<ConflictException>(() => service.SaveDealDecisionsAsync(s.PortfolioId,
-            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account2, MtgPurchasedPortfolioAccount.SelectedDecision)]), default));
-        Assert.Equal("Excluded investors cannot be selected again.", error.Message);
+        // Included again, then excluded again: the choice stays open until the step is completed.
+        await service.SaveDealDecisionsAsync(s.PortfolioId,
+            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account2, MtgPurchasedPortfolioAccount.SelectedDecision)]), default);
+        Assert.Equal(MtgPurchasedPortfolioAccount.SelectedDecision,
+            (await db.Set<MtgPurchasedPortfolioAccount>().AsNoTracking().SingleAsync(a => a.PortfolioAccountId == s.Account2)).DealDecisionCode);
+        await service.SaveDealDecisionsAsync(s.PortfolioId,
+            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account2, MtgPurchasedPortfolioAccount.ExcludedDecision)]), default);
 
         var step = await service.DecideAsync(s.PortfolioId, new InquiryDecisionRequest("approve", null), default);
         Assert.Equal(MtgPurchasedPortfolio.InquiryAcceptedStatus, step.PortfolioStatusCode);
@@ -134,6 +138,9 @@ public sealed class InquiryServiceTests
         Assert.Equal("Portfolio Inquiry workflow task completed.", (await db.Set<MtgPurchasedPortfolioStatusHistory>().SingleAsync()).Comments);
 
         await Assert.ThrowsAsync<ConflictException>(() => service.CreateAsync(s.PortfolioId, Inquiry("DEVELOPER", s.DeveloperId), default));
+        // Once completed, no more include or exclude.
+        await Assert.ThrowsAsync<ConflictException>(() => service.SaveDealDecisionsAsync(s.PortfolioId,
+            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account2, MtgPurchasedPortfolioAccount.SelectedDecision)]), default));
     }
 
     [Fact]
