@@ -18,11 +18,11 @@
   --cap-orange-dark: #b8520f;
   --cap-orange-tint: #fff1e5;
   --cap-orange-border: #f7cba6;
-  /* Colour roles. Headings and figures are ink, not blue; selected states are dark orange;
+  /* Colour roles. Headings and figures are ink, not blue; selected states are blue;
      every New/Create/Add button is orange; every other main action button is blue. */
   --cap-heading: var(--cap-ink);
-  --cap-selected: var(--cap-orange-dark);
-  --cap-selected-tint: var(--cap-orange-tint);
+  --cap-selected: var(--cap-primary);
+  --cap-selected-tint: var(--cap-primary-tint);
   --cap-icon: var(--cap-orange);
   --cap-create: var(--cap-orange);
   --cap-create-hover: var(--cap-orange-hover);

@@ -44,7 +44,12 @@ watch(id, () => {
 }, { immediate: true })
 
 /** Results of this visit win over the stored status: the browser holds the file that was checked. */
-const status = computed<ImportStatus>(() => result.value?.importStatusCode ?? data.value?.importStatusCode ?? 'NOT_VALIDATED')
+const status = computed<ImportStatus>(() => {
+  if (result.value) return result.value.importStatusCode
+  // A check made before workbooks were kept cannot be imported, so it counts as not validated.
+  if (data.value?.importStatusCode === 'VALIDATED' && !data.value.hasValidatedWorkbook) return 'NOT_VALIDATED'
+  return data.value?.importStatusCode ?? 'NOT_VALIDATED'
+})
 const imported = computed(() => status.value === 'IMPORTED')
 /** The server keeps the last validated workbook, so a later visit can import it without choosing the file again. */
 const storedReady = computed(() => !file.value && !result.value && !!data.value?.hasValidatedWorkbook)
@@ -75,6 +80,8 @@ function onFile(event: Event) {
   result.value = null
   notice.value = ''
   error.value = ''
+  // Check the file straight away, so the user does not have to press Validate.
+  if (file.value && canRun) validate()
 }
 
 async function validate() {
@@ -179,7 +186,7 @@ useFeedback({
         </label>
         <p v-if="data.importStatusCode !== 'NOT_VALIDATED' && !result" class="cp-muted hint">
           Last check: <b>{{ data.fileName }}</b>, {{ data.validRowCount }} valid and {{ data.errorRowCount }} with errors.
-          {{ data.hasValidatedWorkbook ? 'Ready: press Import & complete step, or choose another file.' : data.importStatusCode === 'VALIDATED' ? 'Choose the file once more and press Validate.' : 'Choose a corrected file to continue.' }}
+          {{ data.hasValidatedWorkbook ? 'Ready: press Import & complete step, or choose another file.' : data.importStatusCode === 'VALIDATED' ? 'Click the cloud and choose the file once more; it is checked straight away.' : 'Choose a corrected file to continue.' }}
         </p>
         <p v-if="!canRun" class="cp-muted hint">You can view this step. Loading the workbook needs the Excel import permission.</p>
         <div class="actions">
