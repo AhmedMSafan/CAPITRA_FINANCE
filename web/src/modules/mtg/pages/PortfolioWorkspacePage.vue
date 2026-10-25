@@ -197,44 +197,47 @@ useFeedback({ errors: [error] })
         </div>
       </header>
 
-      <section class="cp-card gap">
-        <div class="cp-figures">
-          <div class="cp-figure" :title="formatAmount(f.faceValueAmount)">
-            <div class="cp-figure__label">Face value</div>
-            <div class="cp-figure__value">{{ formatShort(f.faceValueAmount) }}</div>
-            <div class="cp-figure__sub">{{ f.accountCount }} contracts</div>
+      <div class="money gap">
+        <section class="cp-card">
+          <div class="cp-card__head"><i class="pi pi-wallet"></i><h3>Balances</h3></div>
+          <div class="cp-table-wrap">
+            <table class="cp-table balances">
+              <thead>
+                <tr><th></th><th class="cp-num">Contracts</th><th class="cp-num">Face value</th><th class="cp-num">Paid</th><th class="cp-num">Outstanding</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Original</th>
+                  <td class="cp-num">{{ f.accountCount }}</td>
+                  <td class="cp-num">{{ formatAmount(f.faceValueAmount) }}</td>
+                  <td class="cp-num">{{ formatAmount(f.paidAmount) }}</td>
+                  <td class="cp-num">{{ formatAmount(f.outstandingAmount) }}</td>
+                </tr>
+                <tr class="balances__selected">
+                  <th scope="row">Selected for the deal</th>
+                  <template v-if="f.selectedAccountCount !== null">
+                    <td class="cp-num">{{ f.selectedAccountCount }}</td>
+                    <td class="cp-num">{{ formatAmount(f.selectedFaceValueAmount ?? 0) }}</td>
+                    <td class="cp-num">{{ formatAmount(f.selectedPaidAmount ?? 0) }}</td>
+                    <td class="cp-num">{{ formatAmount(f.selectedOutstandingAmount ?? 0) }}</td>
+                  </template>
+                  <td v-else colspan="4" class="cp-muted">Set when the workbook is imported.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="cp-figure" :title="formatAmount(f.outstandingAmount)">
-            <div class="cp-figure__label">Outstanding</div>
-            <div class="cp-figure__value">{{ formatShort(f.outstandingAmount) }}</div>
-            <div class="cp-figure__sub">{{ pctOf(f.outstandingAmount, f.faceValueAmount) }} {{ f.faceValueAmount > 0 ? 'of face value' : '' }}</div>
-          </div>
-          <div class="cp-figure" :title="formatAmount(f.proposedPurchaseAmount)">
-            <div class="cp-figure__label">Proposed purchase</div>
-            <div class="cp-figure__value">{{ formatShort(f.proposedPurchaseAmount) }}</div>
-            <div class="cp-figure__sub">
-              {{ f.outstandingAmount > 0 && f.proposedPurchaseAmount > 0 ? `${pctOf(f.proposedPurchaseAmount, f.outstandingAmount, 1)} of outstanding` : '' }}
-            </div>
-          </div>
-          <div class="cp-figure" :title="formatAmount(f.expectedReturnAmount)">
-            <div class="cp-figure__label">Expected return</div>
-            <div class="cp-figure__value">{{ formatShort(f.expectedReturnAmount) }}</div>
-            <div class="cp-figure__sub" :class="{ bad: f.arrearsAmount > 0 }">
-              {{ f.arrearsAmount > 0 ? `${formatShort(f.arrearsAmount)} in arrears` : '' }}
-            </div>
-          </div>
-        </div>
-        <div class="selected">
-          <span class="selected__label"><i class="pi pi-check-circle"></i>Selected for the deal</span>
-          <template v-if="f.selectedAccountCount !== null">
-            <span><b>{{ f.selectedAccountCount }}</b> of {{ f.accountCount }} contracts</span>
-            <span :title="formatAmount(f.selectedFaceValueAmount ?? 0)">Face value <b>{{ formatShort(f.selectedFaceValueAmount ?? 0) }}</b></span>
-            <span :title="formatAmount(f.selectedOutstandingAmount ?? 0)">Outstanding <b>{{ formatShort(f.selectedOutstandingAmount ?? 0) }}</b></span>
-            <span :title="formatAmount(f.selectedPaidAmount ?? 0)">Paid <b>{{ formatShort(f.selectedPaidAmount ?? 0) }}</b></span>
-          </template>
-          <span v-else class="cp-muted">Set when the workbook is imported.</span>
-        </div>
-      </section>
+          <p v-if="f.arrearsAmount > 0" class="balances__note">Arrears on the original contracts: <b class="bad">{{ formatAmount(f.arrearsAmount) }}</b></p>
+        </section>
+        <section class="cp-card">
+          <div class="cp-card__head"><i class="pi pi-calculator"></i><h3>Purchase</h3></div>
+          <dl class="cp-kv cp-card__body">
+            <dt>Proposed purchase</dt><dd>{{ formatAmount(f.proposedPurchaseAmount) }}</dd>
+            <dt>Of selected outstanding</dt><dd>{{ f.proposedPurchaseAmount > 0 && (f.selectedOutstandingAmount ?? 0) > 0 ? pctOf(f.proposedPurchaseAmount, f.selectedOutstandingAmount ?? 0, 1) : '–' }}</dd>
+            <dt>Expected return</dt><dd>{{ formatAmount(f.expectedReturnAmount) }}</dd>
+          </dl>
+          <p v-if="f.proposedPurchaseAmount === 0" class="balances__note cp-muted">Worked out in the financial review.</p>
+        </section>
+      </div>
 
       <div class="grid2 gap">
         <section class="cp-card">
@@ -418,9 +421,12 @@ useFeedback({ errors: [error] })
 .bad { color: var(--cap-danger) !important; }
 .note { margin: 0 20px 16px; padding: 10px 12px; border-radius: 10px; background: var(--cap-bg); color: var(--cap-ink-soft); font-size: 12px; white-space: pre-wrap; }
 .note b { display: block; margin-bottom: 4px; color: var(--cap-heading); }
-.selected { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; padding: 12px 20px; border-top: 1px solid var(--cap-border-soft); background: var(--cap-primary-tint); border-radius: 0 0 16px 16px; font-size: 13px; color: var(--cap-ink-soft); }
-.selected__label { display: inline-flex; align-items: center; gap: 7px; color: var(--cap-primary-dark); font-weight: 700; }
-.selected b { color: var(--cap-heading); }
+.money { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
+.balances th[scope="row"] { background: transparent; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--cap-ink-soft); font-weight: 600; text-align: start; white-space: nowrap; }
+.balances td { color: var(--cap-heading); font-weight: 600; }
+.balances__selected th[scope="row"], .balances__selected td { color: var(--cap-primary-dark); }
+.balances__note { margin: 0; padding: 10px 16px 14px; font-size: 12px; color: var(--cap-muted); }
+@media (max-width: 900px) { .money { grid-template-columns: 1fr; } }
 tr.out td { color: var(--cap-faint); }
 tr.out td b, tr.out td strong { color: var(--cap-muted); }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
