@@ -223,6 +223,16 @@ useFeedback({ errors: [error] })
             </div>
           </div>
         </div>
+        <div class="selected">
+          <span class="selected__label"><i class="pi pi-check-circle"></i>Selected for the deal</span>
+          <template v-if="f.selectedAccountCount !== null">
+            <span><b>{{ f.selectedAccountCount }}</b> of {{ f.accountCount }} contracts</span>
+            <span :title="formatAmount(f.selectedFaceValueAmount ?? 0)">Face value <b>{{ formatShort(f.selectedFaceValueAmount ?? 0) }}</b></span>
+            <span :title="formatAmount(f.selectedOutstandingAmount ?? 0)">Outstanding <b>{{ formatShort(f.selectedOutstandingAmount ?? 0) }}</b></span>
+            <span :title="formatAmount(f.selectedPaidAmount ?? 0)">Paid <b>{{ formatShort(f.selectedPaidAmount ?? 0) }}</b></span>
+          </template>
+          <span v-else class="cp-muted">Set when the workbook is imported.</span>
+        </div>
       </section>
 
       <div class="grid2 gap">
@@ -280,9 +290,9 @@ useFeedback({ errors: [error] })
         </div>
         <div class="cp-table-wrap">
           <table class="cp-table">
-            <thead><tr><th>Investor</th><th>Contracts</th><th class="cp-num">Contract value</th><th class="cp-num">Outstanding</th></tr></thead>
+            <thead><tr><th>Investor</th><th>Contracts</th><th class="cp-num">Contract value</th><th class="cp-num">Outstanding</th><th>Deal</th></tr></thead>
             <tbody>
-              <tr v-for="i in investors" :key="i.investorId">
+              <tr v-for="i in investors" :key="i.investorId" :class="{ out: i.excludedContractCount === i.contractCount }">
                 <td>
                   <div class="who">
                     <span class="avatar">{{ initials(i.fullNameEn || i.investorCode) }}</span>
@@ -296,8 +306,13 @@ useFeedback({ errors: [error] })
                 <td>{{ i.contractCount }}</td>
                 <td class="cp-num"><b :title="formatAmount(i.contractAmount)">{{ formatShort(i.contractAmount) }}</b><small class="cp-muted"> {{ pctOf(i.paidAmount, i.contractAmount) }} paid</small></td>
                 <td class="cp-num"><b :title="formatAmount(i.outstandingAmount)">{{ formatShort(i.outstandingAmount) }}</b></td>
+                <td>
+                  <span v-if="i.excludedContractCount === 0" class="cp-pill cp-pill--ok">Included</span>
+                  <span v-else-if="i.excludedContractCount === i.contractCount" class="cp-pill cp-pill--bad">Excluded</span>
+                  <span v-else class="cp-pill cp-pill--bad">{{ i.excludedContractCount }} of {{ i.contractCount }} excluded</span>
+                </td>
               </tr>
-              <tr v-if="investors.length === 0"><td colspan="4" class="cp-empty">{{ data.investors.length ? 'No investors match.' : 'No investors in this portfolio yet. Add the accounts first.' }}</td></tr>
+              <tr v-if="investors.length === 0"><td colspan="5" class="cp-empty">{{ data.investors.length ? 'No investors match.' : 'No investors in this portfolio yet. Add the accounts first.' }}</td></tr>
             </tbody>
           </table>
         </div>
@@ -402,6 +417,11 @@ useFeedback({ errors: [error] })
 .bad { color: var(--cap-danger) !important; }
 .note { margin: 0 20px 16px; padding: 10px 12px; border-radius: 10px; background: var(--cap-bg); color: var(--cap-ink-soft); font-size: 12px; white-space: pre-wrap; }
 .note b { display: block; margin-bottom: 4px; color: var(--cap-heading); }
+.selected { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; padding: 12px 20px; border-top: 1px solid var(--cap-border-soft); background: var(--cap-success-bg); border-radius: 0 0 16px 16px; font-size: 13px; color: var(--cap-ink-soft); }
+.selected__label { display: inline-flex; align-items: center; gap: 7px; color: var(--cap-success); font-weight: 700; }
+.selected b { color: var(--cap-heading); }
+tr.out td { color: var(--cap-faint); }
+tr.out td b, tr.out td strong { color: var(--cap-muted); }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .tabs button { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid var(--cap-border); border-radius: 10px; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 13px; cursor: pointer; }
 .tabs button em { min-width: 22px; padding: 1px 7px; border-radius: 999px; background: var(--cap-bg); color: var(--cap-ink-soft); font-size: 11px; font-style: normal; font-weight: 600; }

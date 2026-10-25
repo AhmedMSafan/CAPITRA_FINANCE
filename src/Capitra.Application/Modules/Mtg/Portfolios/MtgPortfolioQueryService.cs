@@ -44,7 +44,12 @@ public sealed record PortfolioFiguresDto(
     int AccountCount,
     int InvestorCount,
     int UnitCount,
-    int AgeDays);
+    int AgeDays,
+    // What stays in the deal, as saved by the last completed review step; null until one has completed.
+    int? SelectedAccountCount,
+    decimal? SelectedFaceValueAmount,
+    decimal? SelectedOutstandingAmount,
+    decimal? SelectedPaidAmount);
 
 public sealed record PortfolioProjectDto(
     string ProjectCode,
@@ -70,7 +75,8 @@ public sealed record PortfolioInvestorDto(
     int ContractCount,
     decimal ContractAmount,
     decimal PaidAmount,
-    decimal OutstandingAmount);
+    decimal OutstandingAmount,
+    int ExcludedContractCount);
 
 public sealed record PortfolioUnitDto(
     long PortfolioAccountId,
@@ -162,7 +168,8 @@ public sealed class MtgPortfolioQueryService(
                 group a by new { i.InvestorId, i.InvestorCode, i.FullNameEn, i.FullNameAr, i.NationalIdNo } into g
                 select new PortfolioInvestorDto(
                     g.Key.InvestorId, g.Key.InvestorCode, g.Key.FullNameEn, g.Key.FullNameAr, g.Key.NationalIdNo, g.Count(),
-                    g.Sum(x => x.ContractAmount), g.Sum(x => x.PaidAmount), g.Sum(x => x.OutstandingAmount)))
+                    g.Sum(x => x.ContractAmount), g.Sum(x => x.PaidAmount), g.Sum(x => x.OutstandingAmount),
+                    g.Count(x => x.DealDecisionCode == MtgPurchasedPortfolioAccount.ExcludedDecision)))
             .ToListAsync(cancellationToken);
         investors = [.. investors.OrderByDescending(x => x.OutstandingAmount).ThenBy(x => x.InvestorCode, StringComparer.Ordinal)];
 
@@ -195,7 +202,8 @@ public sealed class MtgPortfolioQueryService(
             entity.FaceValueAmount, entity.OutstandingAmount, entity.ProposedPurchaseAmount, entity.ExpectedReturnAmount,
             accountRows.Sum(x => x.PaidAmount), accountRows.Sum(x => x.ArrearsAmount), accountRows.Count,
             accountRows.Select(x => x.InvestorId).Distinct().Count(), accountRows.Select(x => x.ProjectUnitId).Distinct().Count(),
-            Today().DayNumber - entity.RequestDate.DayNumber);
+            Today().DayNumber - entity.RequestDate.DayNumber,
+            entity.SelectedAccountCount, entity.SelectedFaceValueAmount, entity.SelectedOutstandingAmount, entity.SelectedPaidAmount);
 
         return new PortfolioWorkspaceDto(portfolio, figures, project, investors, accountRows, units, history);
     }

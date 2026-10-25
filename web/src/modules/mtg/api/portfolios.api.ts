@@ -96,6 +96,11 @@ export type PortfolioWorkspace = {
     investorCount: number
     unitCount: number
     ageDays: number
+    /** Saved when a review step completes; null until then. */
+    selectedAccountCount: number | null
+    selectedFaceValueAmount: number | null
+    selectedOutstandingAmount: number | null
+    selectedPaidAmount: number | null
   }
   project: {
     projectCode: string
@@ -122,6 +127,7 @@ export type PortfolioWorkspace = {
     contractAmount: number
     paidAmount: number
     outstandingAmount: number
+    excludedContractCount: number
   }[]
   accounts: PortfolioAccount[]
   units: { portfolioAccountId: number; unitCode: string; unitTypeName: string | null; investorName: string; contractAmount: number }[]
