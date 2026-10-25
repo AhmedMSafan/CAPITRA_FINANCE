@@ -322,7 +322,7 @@ useFeedback({
 .seg { display: inline-flex; width: fit-content; border: 1px solid var(--cap-border); border-radius: 8px; overflow: hidden; }
 .seg button { height: 34px; padding: 0 14px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
 .seg button + button { border-inline-start: 1px solid var(--cap-border); }
-.seg button[aria-pressed="true"] { background: var(--cap-primary-dark); color: #fff; }
+.seg button[aria-pressed="true"] { background: var(--cap-selected); color: #fff; }
 .seg button:disabled { cursor: default; }
 .amount { width: 130px; height: 32px; padding: 0 8px; border: 1px solid var(--cap-border); border-radius: 6px; font: inherit; font-size: 12px; text-align: end; }
 .yn { display: inline-flex; border: 1px solid var(--cap-border); border-radius: 8px; overflow: hidden; }
@@ -339,7 +339,7 @@ tr.out td:last-child { opacity: 1; }
 .fall dd.minus { color: var(--cap-danger-dark); }
 .price { display: grid; gap: 2px; margin-top: 14px; padding: 14px; border-radius: 10px; background: var(--cap-bg); }
 .price small { font-size: 11px; color: var(--cap-muted); }
-.price b { font-size: 22px; color: var(--cap-primary-dark); font-variant-numeric: tabular-nums; }
+.price b { font-size: 22px; color: var(--cap-heading); font-variant-numeric: tabular-nums; }
 .price b.bad { color: var(--cap-danger); }
 .none { margin: 0; font-size: 13px; }
 .hint { margin: 10px 0 0; font-size: 12px; color: var(--cap-warning); }

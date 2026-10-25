@@ -322,7 +322,7 @@ useFeedback({ errors: [formError] })
         </button>
         <span class="cp-spacer"></span>
         <button type="button" class="cp-btn" :disabled="saving" @click="close">{{ canEdit ? 'Cancel' : 'Close' }}</button>
-        <button v-if="canEdit" type="button" class="cp-btn cp-btn--primary" :disabled="saving" @click="save">
+        <button v-if="canEdit" type="button" class="cp-btn" :class="isNew ? 'cp-btn--create' : 'cp-btn--primary'" :disabled="saving" @click="save">
           <i :class="saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"></i>
           <span>{{ saving ? 'Saving...' : isNew ? 'Create portfolio' : 'Save changes' }}</span>
         </button>

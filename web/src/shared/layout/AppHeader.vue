@@ -351,7 +351,7 @@
 
   .capitra-user-menu-name {
     padding: 15px 16px 2px;
-    color: var(--cap-primary-dark);
+    color: var(--cap-heading);
     font-weight: 900;
   }
 

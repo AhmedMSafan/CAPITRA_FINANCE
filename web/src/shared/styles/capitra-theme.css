@@ -12,6 +12,20 @@
   --cap-primary-tint-2: #cddcf5;
   --cap-accent: #f5a524;
   --cap-accent-dark: #c47f0a;
+  /* Orange family (25 Oct 2026): breaks up the blue. */
+  --cap-orange: #ee7b22;
+  --cap-orange-hover: #d9661a;
+  --cap-orange-dark: #b8520f;
+  --cap-orange-tint: #fff1e5;
+  --cap-orange-border: #f7cba6;
+  /* Colour roles. Headings and figures are ink, not blue; selected states are dark orange;
+     every New/Create/Add button is orange; every other main action button is blue. */
+  --cap-heading: var(--cap-ink);
+  --cap-selected: var(--cap-orange-dark);
+  --cap-selected-tint: var(--cap-orange-tint);
+  --cap-icon: var(--cap-orange);
+  --cap-create: var(--cap-orange);
+  --cap-create-hover: var(--cap-orange-hover);
 
   --cap-ink: #14213a;
   --cap-ink-soft: #3b4a63;

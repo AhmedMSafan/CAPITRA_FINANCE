@@ -383,7 +383,7 @@ useFeedback({ errors: [pageError, formError] })
           <button type="button" class="cancel-button" :disabled="saving" @click="closeDialog">
             {{ canEdit ? 'Cancel' : 'Close' }}
           </button>
-          <button v-if="canEdit" type="button" class="save-button" :disabled="saving" @click="save">
+          <button v-if="canEdit" type="button" class="save-button" :class="{ 'save-button--create': !editingRow }" :disabled="saving" @click="save">
             <i :class="saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"></i>
             <span>{{ saving ? 'Saving...' : editingRow ? 'Save Changes' : 'Create' }}</span>
           </button>
@@ -400,12 +400,12 @@ useFeedback({ errors: [pageError, formError] })
 .crud-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 18px; }
 .crud-header { display: flex; align-items: center; gap: 15px; }
 .crud-header-icon { width: 54px; height: 54px; flex: 0 0 54px; display: grid; place-items: center; border-radius: 14px; background: var(--cap-warning-bg); color: var(--cap-warning); font-size: 22px; }
-.crud-header h2 { margin: 0; color: var(--cap-primary-dark); font-size: 20px; font-weight: 600; }
+.crud-header h2 { margin: 0; color: var(--cap-heading); font-size: 20px; font-weight: 600; }
 .crud-header p { margin: 5px 0 0; color: var(--cap-muted); font-size: 13px; }
 .crud-actions { display: flex; gap: 8px; align-items: center; }
 .add-button, .secondary-button { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 15px; border-radius: 7px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
-.add-button { border: 0; background: var(--cap-primary); color: #fff; }
-.add-button:hover { background: var(--cap-primary-hover); }
+.add-button { border: 0; background: var(--cap-create); color: #fff; font-weight: 600; }
+.add-button:hover { background: var(--cap-create-hover); }
 .secondary-button { border: 1px solid var(--cap-border); background: #fff; color: var(--cap-ink-soft); }
 .secondary-button:hover { background: var(--cap-bg); }
 .error-message { margin-bottom: 16px; padding: 10px 14px; border: 1px solid var(--cap-danger-border); border-radius: 8px; background: var(--cap-danger-bg); color: var(--cap-danger); font-size: 12px; }
@@ -416,7 +416,7 @@ useFeedback({ errors: [pageError, formError] })
 .grid-select, :slotted(.grid-select) { height: 42px; min-width: 180px; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 8px; background: #fff; color: var(--cap-ink); font: inherit; font-size: 12px; }
 .grid-meta { color: var(--cap-muted); font-size: 11px; white-space: nowrap; }
 .grid-panel { overflow: hidden; border: 1px solid var(--cap-border-soft); border-radius: 12px; background: #fff; }
-.grid-panel__title { min-height: 42px; display: flex; align-items: center; gap: 9px; padding: 0 16px; background: var(--cap-primary-dark); color: #fff; font-size: 13px; font-weight: 500; }
+.grid-panel__title { min-height: 42px; display: flex; align-items: center; gap: 9px; padding: 0 16px; border-bottom: 2px solid var(--cap-orange-border); background: var(--cap-orange-tint); color: var(--cap-orange-dark); font-size: 13px; font-weight: 500; }
 .grid-table-wrap { width: 100%; overflow-x: auto; }
 .grid-table { width: 100%; border-collapse: collapse; }
 .grid-table th, .grid-table td { padding: 11px 14px; border-bottom: 1px solid var(--cap-border-soft); text-align: left; vertical-align: middle; color: var(--cap-ink-soft); font-size: 12px; white-space: nowrap; }
@@ -424,7 +424,7 @@ useFeedback({ errors: [pageError, formError] })
 .grid-table th.num, .grid-table td.num { text-align: right; }
 .grid-table tbody tr:last-child td { border-bottom: 0; }
 .grid-table tbody tr:hover { background: var(--cap-bg); }
-.code-cell { color: var(--cap-primary-dark) !important; font-weight: 600; }
+.code-cell { color: var(--cap-heading) !important; font-weight: 600; }
 .actions-col { width: 70px; text-align: center !important; }
 .status-pill { min-width: 62px; display: inline-flex; justify-content: center; padding: 4px 9px; border-radius: 6px; font-size: 10px; font-weight: 500; }
 .status-pill--active { background: var(--cap-success-bg); border: 1px solid var(--cap-success-border); color: var(--cap-success); }
@@ -437,7 +437,7 @@ useFeedback({ errors: [pageError, formError] })
 .modal-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(6, 16, 31, .46); }
 .edit-modal { width: min(760px, calc(100vw - 36px)); max-height: calc(100vh - 36px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--cap-border-soft); border-radius: 16px; background: #fff; box-shadow: 0 24px 70px rgba(0, 0, 0, .24); }
 .edit-modal__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 17px 20px 14px; border-bottom: 1px solid var(--cap-border-soft); }
-.edit-modal__header h3 { margin: 0; color: var(--cap-primary-dark); font-size: 18px; font-weight: 600; }
+.edit-modal__header h3 { margin: 0; color: var(--cap-heading); font-size: 18px; font-weight: 600; }
 .edit-modal__header p { margin: 4px 0 0; color: var(--cap-muted); font-size: 11px; }
 .close-button { width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center; border: 1px solid var(--cap-border); border-radius: 50%; background: #fff; color: var(--cap-muted); cursor: pointer; }
 .modal-error { margin: 14px 20px 0; }
@@ -460,6 +460,8 @@ useFeedback({ errors: [pageError, formError] })
 .cancel-button, .save-button, .delete-button { height: 40px; display: inline-flex; align-items: center; gap: 7px; padding: 0 15px; border-radius: 7px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
 .cancel-button { border: 1px solid var(--cap-border); background: #fff; color: var(--cap-muted); }
 .save-button { border: 1px solid var(--cap-primary); background: var(--cap-primary); color: #fff; }
+.save-button--create { border-color: var(--cap-create); background: var(--cap-create); }
+.save-button--create:hover { background: var(--cap-create-hover) !important; }
 .save-button:hover { background: var(--cap-primary-hover); }
 .delete-button { border: 1px solid var(--cap-danger-border); background: var(--cap-danger-bg); color: var(--cap-danger); }
 .delete-button:hover { background: var(--cap-danger-bg); }

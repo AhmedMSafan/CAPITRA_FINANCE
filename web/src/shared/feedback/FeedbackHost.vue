@@ -249,7 +249,7 @@ onUnmounted(() => {
 .is-done .fb-sheet, .is-done .fb-calc, .is-done .fb-orbit { opacity: 0; transition: opacity 0.2s; }
 
 .fb-body { flex: 1 1 auto; min-width: 0; }
-.fb-body h2 { margin: 0 0 12px; color: var(--cap-primary-dark); font-size: 18px; font-weight: 800; }
+.fb-body h2 { margin: 0 0 12px; color: var(--cap-heading); font-size: 18px; font-weight: 800; }
 .fb-steps { display: grid; gap: 7px; margin: 0 0 14px; padding: 0; list-style: none; }
 .fb-steps li { display: flex; align-items: center; gap: 9px; color: var(--cap-faint); font-size: 13px; transition: color 0.25s; }
 .fb-steps li.now { color: var(--cap-ink); font-weight: 600; }

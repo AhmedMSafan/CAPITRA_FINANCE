@@ -383,6 +383,8 @@ useFeedback({ errors: [error] })
 
 <style scoped>
 .steps { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 20px; }
+.steps .cp-btn i { color: var(--cap-icon); }
+.steps .cp-btn:hover { border-color: var(--cap-orange-border); background: var(--cap-orange-tint); color: var(--cap-orange-dark); }
 .steps__label { margin-inline-end: 6px; color: var(--cap-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 .crumbs { display: flex; gap: 8px; margin-bottom: 14px; color: var(--cap-muted); font-size: 12px; }
 .crumbs a { color: var(--cap-primary-dark); text-decoration: none; }
@@ -390,7 +392,7 @@ useFeedback({ errors: [error] })
 .gap { margin-top: 16px; }
 .hero { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; padding: 22px 28px; }
 .hero__eyebrow { color: var(--cap-warning); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
-.hero h1 { margin: 4px 0 8px; color: var(--cap-primary-dark); font-size: 26px; font-weight: 700; }
+.hero h1 { margin: 4px 0 8px; color: var(--cap-heading); font-size: 26px; font-weight: 700; }
 .hero__sub { display: flex; flex-wrap: wrap; gap: 16px; color: var(--cap-muted); font-size: 13px; }
 .hero__sub i { margin-inline-end: 6px; color: var(--cap-faint); font-size: 12px; }
 .hero__status { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
@@ -399,11 +401,11 @@ useFeedback({ errors: [error] })
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .bad { color: var(--cap-danger) !important; }
 .note { margin: 0 20px 16px; padding: 10px 12px; border-radius: 10px; background: var(--cap-bg); color: var(--cap-ink-soft); font-size: 12px; white-space: pre-wrap; }
-.note b { display: block; margin-bottom: 4px; color: var(--cap-primary-dark); }
+.note b { display: block; margin-bottom: 4px; color: var(--cap-heading); }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .tabs button { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid var(--cap-border); border-radius: 10px; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 13px; cursor: pointer; }
 .tabs button em { min-width: 22px; padding: 1px 7px; border-radius: 999px; background: var(--cap-bg); color: var(--cap-ink-soft); font-size: 11px; font-style: normal; font-weight: 600; }
-.tabs button[aria-selected="true"] { border-color: var(--cap-primary-dark); background: var(--cap-primary-dark); color: #fff; }
+.tabs button[aria-selected="true"] { border-color: var(--cap-selected); background: var(--cap-selected); color: #fff; }
 .tabs button[aria-selected="true"] em { background: rgba(255, 255, 255, .2); color: #fff; }
 .search { flex: 1; max-width: 420px; height: 38px; display: flex; align-items: center; gap: 9px; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 8px; }
 .search i { color: var(--cap-muted); font-size: 12px; }
@@ -411,11 +413,11 @@ useFeedback({ errors: [error] })
 .who { display: flex; align-items: center; gap: 10px; }
 .who strong { display: block; color: var(--cap-ink); font-weight: 600; }
 .who small { display: block; color: var(--cap-muted); }
-.avatar { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 50%; background: var(--cap-primary-dark); color: #fff; font-size: 12px; font-weight: 600; }
-.code { color: var(--cap-primary-dark); font-weight: 600; font-size: 11px; }
+.avatar { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 50%; background: var(--cap-orange-dark); color: #fff; font-size: 12px; font-weight: 600; }
+.code { color: var(--cap-heading); font-weight: 600; font-size: 11px; }
 .hist { margin: 0; padding: 18px 22px; list-style: none; }
 .hist li { position: relative; padding: 0 0 16px 22px; font-size: 13px; }
-.hist li > i { position: absolute; inset-inline-start: 0; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--cap-primary); }
+.hist li > i { position: absolute; inset-inline-start: 0; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--cap-orange); }
 .hist li small { display: block; margin-top: 3px; color: var(--cap-muted); font-size: 11px; }
 .apex-ref { margin: 14px 2px 0; color: var(--cap-faint); font-size: 10px; }
 @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }

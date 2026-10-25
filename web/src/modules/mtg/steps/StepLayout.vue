@@ -87,7 +87,7 @@ const counter = computed(() => {
 .hero { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 18px 28px; padding: 22px 28px; }
 .hero__text { flex: 1 1 380px; }
 .hero__eyebrow { color: var(--cap-warning); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
-.hero h1 { margin: 4px 0 6px; color: var(--cap-primary-dark); font-size: 26px; font-weight: 700; }
+.hero h1 { margin: 4px 0 6px; color: var(--cap-heading); font-size: 26px; font-weight: 700; }
 .hero p { margin: 0; max-width: 620px; color: var(--cap-muted); font-size: 13px; line-height: 1.5; }
 .facts { display: grid; grid-template-columns: repeat(2, minmax(120px, auto)); gap: 10px 26px; margin: 0; }
 .facts dt { color: var(--cap-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
@@ -97,9 +97,9 @@ const counter = computed(() => {
 .counter svg { width: 64px; height: 64px; transform: rotate(-90deg); }
 .counter { position: relative; }
 .counter__track { fill: none; stroke: var(--cap-border-soft); stroke-width: 6; }
-.counter__bar { fill: none; stroke: var(--cap-primary); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset .8s cubic-bezier(.2, .8, .2, 1), stroke .3s; animation: counterIn 1s cubic-bezier(.2, .8, .2, 1); }
+.counter__bar { fill: none; stroke: var(--cap-orange); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset .8s cubic-bezier(.2, .8, .2, 1), stroke .3s; animation: counterIn 1s cubic-bezier(.2, .8, .2, 1); }
 .counter--complete .counter__bar { stroke: var(--cap-success-strong); }
-.counter__value { position: absolute; left: 0; top: 0; width: 64px; height: 64px; display: grid; place-items: center; grid-auto-flow: column; justify-content: center; align-items: baseline; padding-top: 20px; color: var(--cap-primary-dark); }
+.counter__value { position: absolute; left: 0; top: 0; width: 64px; height: 64px; display: grid; place-items: center; grid-auto-flow: column; justify-content: center; align-items: baseline; padding-top: 20px; color: var(--cap-heading); }
 .counter__value b { font-size: 20px; font-weight: 800; line-height: 1; }
 .counter__value span { font-size: 12px; font-weight: 700; color: var(--cap-muted); }
 .counter--complete .counter__value { padding-top: 0; align-items: center; color: var(--cap-success-strong); font-size: 20px; }
@@ -110,8 +110,8 @@ const counter = computed(() => {
 .stages { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 0; padding: 14px 0 0; border-top: 1px solid var(--cap-border-soft); list-style: none; }
 .stages li { display: flex; align-items: center; gap: 9px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--cap-bg); color: var(--cap-muted); font-size: 12px; }
 .stages b { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--cap-border-soft); color: var(--cap-muted); font-size: 11px; }
-.stage--now { background: var(--cap-primary-tint) !important; color: var(--cap-primary-dark) !important; font-weight: 600; }
-.stage--now b { background: var(--cap-primary-dark) !important; color: #fff !important; }
+.stage--now { background: var(--cap-selected-tint) !important; color: var(--cap-selected) !important; font-weight: 600; }
+.stage--now b { background: var(--cap-selected) !important; color: #fff !important; }
 .stage--done { color: var(--cap-success) !important; }
 .stage--done b { background: var(--cap-success-strong) !important; color: #fff !important; }
 .body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 16px; }

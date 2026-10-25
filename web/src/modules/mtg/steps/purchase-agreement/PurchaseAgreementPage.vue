@@ -254,22 +254,22 @@ useFeedback({ errors: [error] })
 
 <style scoped>
 .warn { padding: 10px 14px; border: 1px solid var(--cap-warning-border); border-radius: 8px; background: var(--cap-warning-bg); color: var(--cap-warning); font-size: 13px; }
-.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px; font-size: 13px; color: var(--cap-primary-dark); }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px; font-size: 13px; color: var(--cap-heading); }
 .doc { padding: 40px 44px; border: 1px solid var(--cap-border-soft); border-radius: 12px; background: #fff; color: var(--cap-ink); font-size: 13px; line-height: 1.65; }
 .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; padding: 14px 0; border-bottom: 1px solid var(--cap-bg); }
-.row h3 { margin: 0 0 6px; font-size: 13px; color: var(--cap-primary-dark); }
+.row h3 { margin: 0 0 6px; font-size: 13px; color: var(--cap-heading); }
 .row p { margin: 0; white-space: pre-line; }
 .head { padding-top: 0; border-bottom: 2px solid var(--cap-primary-dark); }
-.head h1 { margin: 6px 0 4px; font-size: 20px; color: var(--cap-primary-dark); }
+.head h1 { margin: 6px 0 4px; font-size: 20px; color: var(--cap-heading); }
 .head p { color: var(--cap-ink-soft); }
 .draft { display: inline-block; padding: 2px 8px; border-radius: 4px; background: var(--cap-danger-bg); color: var(--cap-danger-dark); font-size: 11px; font-weight: 600; }
 .ar { text-align: right; font-family: 'Noto Naskh Arabic', 'Segoe UI', Tahoma, sans-serif; }
 .blank { display: inline-block; min-width: 90px; border-bottom: 1px dotted var(--cap-muted); vertical-align: baseline; height: 1em; }
 .sign { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; margin: 28px 0 8px; }
-.sign h4 { margin: 0 0 8px; font-size: 13px; color: var(--cap-primary-dark); }
+.sign h4 { margin: 0 0 8px; font-size: 13px; color: var(--cap-heading); }
 .sign p { margin: 0 0 10px; }
 .annex { margin-top: 28px; break-before: page; }
-.annex h2 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0 0 10px; font-size: 15px; color: var(--cap-primary-dark); }
+.annex h2 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0 0 10px; font-size: 15px; color: var(--cap-heading); }
 .annex table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .annex th, .annex td { padding: 6px 8px; border: 1px solid var(--cap-border-soft); text-align: start; vertical-align: top; }
 .annex th { background: var(--cap-bg); font-weight: 600; }

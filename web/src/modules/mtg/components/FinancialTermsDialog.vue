@@ -97,6 +97,6 @@ useFeedback({ errors: [formError] })
 .terms { width: min(640px, calc(100vw - 36px)); }
 .terms__in { position: relative; }
 .terms__in input { padding-inline-end: 58px; }
-.terms__in span { position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%); min-width: 30px; height: 28px; padding: 0 6px; display: grid; place-items: center; border-radius: 6px; background: var(--cap-primary-tint); color: var(--cap-primary-dark); font-size: 12px; font-weight: 700; }
+.terms__in span { position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%); min-width: 30px; height: 28px; padding: 0 6px; display: grid; place-items: center; border-radius: 6px; background: var(--cap-primary-tint); color: var(--cap-heading); font-size: 12px; font-weight: 700; }
 .terms__note { margin: 16px 0 0; padding: 10px 12px; border: 1px solid var(--cap-warning-border); border-radius: 10px; background: var(--cap-warning-bg); color: var(--cap-warning); font-size: 12px; }
 </style>

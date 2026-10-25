@@ -337,7 +337,7 @@ useFeedback({
 .checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .check { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--cap-border); border-radius: 10px; background: #fff; }
 .check.yes { border-color: var(--cap-success-border); background: var(--cap-success-bg); }
-.check__icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--cap-bg); color: var(--cap-primary-dark); font-size: 14px; flex: none; }
+.check__icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--cap-bg); color: var(--cap-heading); font-size: 14px; flex: none; }
 .check.yes .check__icon { background: var(--cap-success-bg); color: var(--cap-success); }
 .check__text { display: grid; gap: 2px; min-width: 0; flex: 1; }
 .check__text strong { font-size: 13px; color: var(--cap-ink); }
@@ -350,7 +350,7 @@ useFeedback({
 .yn button[aria-pressed="true"]:last-child, .toggle .ex[aria-pressed="true"] { background: var(--cap-danger); color: #fff; }
 .findings { margin-top: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .signoff { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.sub { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; font-size: 13px; color: var(--cap-primary-dark); }
+.sub { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; font-size: 13px; color: var(--cap-heading); }
 .save { display: flex; align-items: center; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--cap-border-soft); }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 20px; }
 .search { flex: 1; max-width: 420px; height: 36px; display: flex; align-items: center; gap: 9px; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 8px; }
@@ -360,11 +360,11 @@ useFeedback({
 .seg button { height: 34px; padding: 0 12px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
 .seg button + button { border-inline-start: 1px solid var(--cap-border); }
 .seg button em { margin-inline-start: 4px; color: var(--cap-muted); font-style: normal; }
-.seg button[aria-pressed="true"] { background: var(--cap-primary-dark); color: #fff; }
+.seg button[aria-pressed="true"] { background: var(--cap-selected); color: #fff; }
 .seg button[aria-pressed="true"] em { color: var(--cap-primary-tint-2); }
 tr.out td { opacity: .6; }
 tr.out td:last-child { opacity: 1; }
-.code { color: var(--cap-primary-dark); font-weight: 600; font-size: 11px; }
+.code { color: var(--cap-heading); font-weight: 600; font-size: 11px; }
 .ready { list-style: none; margin: 0; display: grid; gap: 8px; font-size: 13px; color: var(--cap-muted); }
 .ready li { display: flex; align-items: center; gap: 8px; }
 .ready li.ok { color: var(--cap-success); }

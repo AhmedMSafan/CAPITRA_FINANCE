@@ -308,7 +308,7 @@ useFeedback({
 .kpi { display: grid; gap: 2px; padding: 12px 14px; border-radius: 10px; background: var(--cap-bg); }
 .kpi small { font-size: 11px; color: var(--cap-muted); }
 .kpi b { font-size: 17px; color: var(--cap-ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.kpi.main b { font-size: 20px; color: var(--cap-primary-dark); }
+.kpi.main b { font-size: 20px; color: var(--cap-heading); }
 .meta { margin: 12px 0 0; font-size: 12px; color: var(--cap-muted); }
 .foot { padding-top: 10px; padding-bottom: 14px; }
 .two { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
@@ -317,7 +317,7 @@ useFeedback({
 .fall dt small { display: block; font-size: 11px; color: var(--cap-muted); }
 .fall dd { margin: 0; text-align: end; font-variant-numeric: tabular-nums; }
 .fall dd.minus { color: var(--cap-danger-dark); }
-.fall .total { padding-top: 8px; border-top: 1px solid var(--cap-border-soft); font-weight: 600; color: var(--cap-primary-dark); }
+.fall .total { padding-top: 8px; border-top: 1px solid var(--cap-border-soft); font-weight: 600; color: var(--cap-heading); }
 .terms { font-size: 13px; }
 .dd { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .dd-item { display: grid; gap: 6px; align-content: start; padding: 12px 14px; border: 1px solid var(--cap-border-soft); border-radius: 10px; }

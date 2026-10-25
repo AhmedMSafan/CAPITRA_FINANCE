@@ -323,7 +323,7 @@ const filteredModules = computed(() => {
 
 .workspace-capitra {
   flex: 0 0 auto;
-  color: var(--cap-primary-dark);
+  color: var(--cap-heading);
   font-size: 34px;
   line-height: 1;
   font-weight: 900;
@@ -345,7 +345,7 @@ const filteredModules = computed(() => {
 
 .workspace-welcome {
   display: block;
-  color: var(--cap-primary-dark);
+  color: var(--cap-heading);
   font-size: 14px;
   font-weight: 850;
 }
@@ -382,7 +382,7 @@ const filteredModules = computed(() => {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--cap-primary-dark);
+  color: var(--cap-heading);
   font: inherit;
   font-size: 12.5px;
 }

@@ -267,7 +267,7 @@ useFeedback({
             <h3>{{ selected ? `Cheques of ${selected.investorName}` : 'Cheques' }}</h3>
             <span class="cp-spacer"></span>
             <span v-if="selected" class="cp-muted">Remaining {{ formatAmount(Math.max(0, selected.outstandingAmount - selected.chequeAmount)) }}</span>
-            <button v-if="editable && selected" type="button" class="cp-btn cp-btn--small cp-btn--primary" @click="openForm(null)"><i class="pi pi-plus"></i><span>Add cheque</span></button>
+            <button v-if="editable && selected" type="button" class="cp-btn cp-btn--small cp-btn--create" @click="openForm(null)"><i class="pi pi-plus"></i><span>Add cheque</span></button>
           </div>
           <div v-if="!selected" class="cp-card__body cp-muted">Select an investor above to see their outstanding balance and enter their cheques.</div>
           <div v-else class="cp-table-wrap">
@@ -394,17 +394,17 @@ useFeedback({
 .seg button { height: 34px; padding: 0 12px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
 .seg button + button { border-inline-start: 1px solid var(--cap-border); }
 .seg button em { margin-inline-start: 4px; color: var(--cap-muted); font-style: normal; }
-.seg button[aria-pressed="true"] { background: var(--cap-primary-dark); color: #fff; }
+.seg button[aria-pressed="true"] { background: var(--cap-selected); color: #fff; }
 .seg button[aria-pressed="true"] em { color: var(--cap-primary-tint-2); }
 tr.pick { cursor: pointer; }
 tr.pick:hover td { background: var(--cap-bg); }
-tr.picked td { background: var(--cap-primary-tint); }
-tr.picked td:first-child { box-shadow: inset 3px 0 0 var(--cap-primary-dark); }
+tr.picked td { background: var(--cap-selected-tint); }
+tr.picked td:first-child { box-shadow: inset 3px 0 0 var(--cap-selected); }
 .cov { display: flex; align-items: center; gap: 8px; min-width: 170px; }
 .bar { width: 80px; height: 8px; border-radius: 999px; background: var(--cap-border-soft); overflow: hidden; flex: none; }
 .bar i { display: block; height: 100%; border-radius: inherit; background: var(--cap-warning); }
 .bar.full i { background: var(--cap-success); }
-.code { color: var(--cap-primary-dark); font-weight: 600; font-size: 11px; }
+.code { color: var(--cap-heading); font-weight: 600; font-size: 11px; }
 .rules { list-style: none; margin: 0; display: grid; gap: 14px; }
 .rules li { display: flex; gap: 10px; color: var(--cap-muted); }
 .rules li > i { margin-top: 2px; }
@@ -417,7 +417,7 @@ tr.picked td:first-child { box-shadow: inset 3px 0 0 var(--cap-primary-dark); }
 .yn { display: inline-flex; width: fit-content; border: 1px solid var(--cap-border); border-radius: 8px; overflow: hidden; }
 .yn button { height: 34px; padding: 0 14px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
 .yn button + button { border-inline-start: 1px solid var(--cap-border); }
-.yn button[aria-pressed="true"] { background: var(--cap-primary-dark); color: #fff; }
+.yn button[aria-pressed="true"] { background: var(--cap-selected); color: #fff; }
 .decide { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .req { color: var(--cap-danger); }
 @media (max-width: 1100px) { .grid { grid-template-columns: minmax(0, 1fr); } }

@@ -41,13 +41,13 @@ defineProps<{
 .hub-page { padding: 24px 30px 36px; font-family: Inter, "Segoe UI", Arial, sans-serif; }
 .hub-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 20px 28px; border: 1px solid var(--cap-border-soft); border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(14, 58, 134, .06); }
 .hub-header-icon { width: 54px; height: 54px; flex: 0 0 54px; display: grid; place-items: center; border-radius: 14px; background: var(--cap-warning-bg); color: var(--cap-warning); font-size: 22px; }
-.hub-header h2 { margin: 0; color: var(--cap-primary-dark); font-size: 20px; font-weight: 600; }
+.hub-header h2 { margin: 0; color: var(--cap-heading); font-size: 20px; font-weight: 600; }
 .hub-header p { margin: 5px 0 0; color: var(--cap-muted); font-size: 13px; }
 .spacer { flex: 1; }
 .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 .hub-tile { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid var(--cap-border-soft); border-radius: 12px; background: #fff; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
-.hub-tile:hover { border-color: var(--cap-primary-tint-2); box-shadow: 0 6px 18px rgba(14, 58, 134, .08); }
-.hub-tile-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 10px; background: var(--cap-primary-tint); color: var(--cap-primary-dark); font-size: 17px; }
+.hub-tile:hover { border-color: var(--cap-orange-border); box-shadow: 0 6px 18px rgba(14, 58, 134, .08); }
+.hub-tile-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 10px; background: var(--cap-orange-tint); color: var(--cap-orange-dark); font-size: 17px; }
 .hub-tile-text { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
 .hub-tile-text strong { color: var(--cap-ink); font-size: 14px; font-weight: 600; }
 .hub-tile-text span { color: var(--cap-muted); font-size: 12px; line-height: 1.4; }

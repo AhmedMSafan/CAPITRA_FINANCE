@@ -113,7 +113,7 @@ useFeedback({ errors: [error] })
         <option value="">All developers</option>
         <option v-for="o in developers" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
-      <button v-if="canEdit" type="button" class="cp-btn cp-btn--primary" @click="creating = true">
+      <button v-if="canEdit" type="button" class="cp-btn cp-btn--create" @click="creating = true">
         <i class="pi pi-plus"></i><span>New portfolio</span>
       </button>
     </header>
@@ -207,7 +207,7 @@ useFeedback({ errors: [error] })
 <style scoped>
 .cases-head { display: flex; align-items: center; gap: 15px; padding: 20px 28px; }
 .cases-head__icon { width: 54px; height: 54px; flex: 0 0 54px; display: grid; place-items: center; border-radius: 14px; background: var(--cap-warning-bg); color: var(--cap-warning); font-size: 22px; }
-.cases-head h2 { margin: 0; color: var(--cap-primary-dark); font-size: 20px; font-weight: 600; }
+.cases-head h2 { margin: 0; color: var(--cap-heading); font-size: 20px; font-weight: 600; }
 .cases-head p { margin: 5px 0 0; color: var(--cap-muted); font-size: 13px; }
 .cases-gap { margin-top: 16px; }
 .cases-select { height: 40px; min-width: 200px; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 8px; background: #fff; color: var(--cap-ink); font: inherit; font-size: 12px; }
@@ -216,7 +216,7 @@ useFeedback({ errors: [error] })
 .pipe__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .pipe__chips button { display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 999px; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
 .pipe__chips button i { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--cap-primary-dark)); }
-.pipe__chips button[aria-pressed="true"] { border-color: var(--cap-primary-dark); background: var(--cap-primary-tint); color: var(--cap-primary-dark); }
+.pipe__chips button[aria-pressed="true"] { border-color: var(--cap-selected); background: var(--cap-selected-tint); color: var(--cap-selected); }
 .cases-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 18px 0 14px; }
 .cases-search { flex: 1 1 320px; height: 42px; display: flex; align-items: center; gap: 9px; padding: 0 13px; border: 1px solid var(--cap-border); border-radius: 8px; background: #fff; }
 .cases-search i { color: var(--cap-muted); font-size: 12px; }
@@ -226,7 +226,7 @@ useFeedback({ errors: [error] })
 .case { display: block; width: 100%; padding: 16px 18px; border-top: 4px solid var(--c); text-align: start; font: inherit; cursor: pointer; transition: box-shadow .15s, transform .15s; }
 .case:hover { box-shadow: 0 12px 28px rgba(14, 58, 134, .12); transform: translateY(-1px); }
 .case__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.case__top strong { color: var(--cap-primary-dark); font-size: 15px; }
+.case__top strong { color: var(--cap-heading); font-size: 15px; }
 .case__status { padding: 3px 9px; border-radius: 999px; background: color-mix(in srgb, var(--c) 12%, #fff); color: var(--c); font-size: 11px; font-weight: 600; white-space: nowrap; }
 .case__sub { margin-top: 5px; color: var(--cap-muted); font-size: 12px; }
 .case__figs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--cap-bg); }

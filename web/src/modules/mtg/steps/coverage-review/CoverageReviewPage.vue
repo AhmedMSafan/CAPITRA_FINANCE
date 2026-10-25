@@ -249,7 +249,7 @@ useFeedback({
 .stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .rule { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .rule__value { display: grid; gap: 2px; padding: 12px 16px; border-radius: 10px; background: var(--cap-bg); }
-.rule__value b { font-size: 22px; color: var(--cap-primary-dark); }
+.rule__value b { font-size: 22px; color: var(--cap-heading); }
 .rule__value small { font-size: 11px; color: var(--cap-muted); }
 .rule__text { flex: 1; min-width: 220px; margin: 0; font-size: 13px; color: var(--cap-ink-soft); }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 20px; }
@@ -260,7 +260,7 @@ useFeedback({
 .seg button { height: 34px; padding: 0 12px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
 .seg button + button { border-inline-start: 1px solid var(--cap-border); }
 .seg button em { margin-inline-start: 4px; color: var(--cap-muted); font-style: normal; }
-.seg button[aria-pressed="true"] { background: var(--cap-primary-dark); color: #fff; }
+.seg button[aria-pressed="true"] { background: var(--cap-selected); color: #fff; }
 .seg button[aria-pressed="true"] em { color: var(--cap-primary-tint-2); }
 .share { display: flex; align-items: center; gap: 8px; min-width: 190px; font-size: 12px; }
 .bar { position: relative; width: 90px; height: 8px; border-radius: 999px; background: var(--cap-border-soft); flex: none; }

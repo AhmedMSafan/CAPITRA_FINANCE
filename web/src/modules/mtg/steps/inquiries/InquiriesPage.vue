@@ -234,7 +234,7 @@ useFeedback({
           <div class="cp-card__head">
             <i class="pi pi-comments"></i><h3>Inquiries</h3><span class="cp-spacer"></span>
             <span class="cp-muted">{{ counts.inquiries }} inquiries<template v-if="counts.awaiting"> · {{ counts.awaiting }} awaiting result</template></span>
-            <button v-if="editable" type="button" class="cp-btn cp-btn--small cp-btn--primary" @click="openForm(null)"><i class="pi pi-plus"></i><span>Add inquiry</span></button>
+            <button v-if="editable" type="button" class="cp-btn cp-btn--small cp-btn--create" @click="openForm(null)"><i class="pi pi-plus"></i><span>Add inquiry</span></button>
           </div>
           <div class="cp-table-wrap">
             <table class="cp-table">
@@ -397,15 +397,15 @@ useFeedback({
 .seg button { height: 34px; padding: 0 12px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
 .seg button + button { border-inline-start: 1px solid var(--cap-border); }
 .seg button em { margin-inline-start: 4px; color: var(--cap-muted); font-style: normal; }
-.seg button[aria-pressed="true"] { background: var(--cap-primary-dark); color: #fff; }
+.seg button[aria-pressed="true"] { background: var(--cap-selected); color: #fff; }
 .seg button[aria-pressed="true"] em { color: var(--cap-primary-tint-2); }
 tr.out td { opacity: .6; }
 .exclude { margin-inline-start: 8px; }
-.code { color: var(--cap-primary-dark); font-weight: 600; font-size: 11px; }
+.code { color: var(--cap-heading); font-weight: 600; font-size: 11px; }
 .decide { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .req { color: var(--cap-danger); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips button { height: 32px; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 999px; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
-.chips button[aria-pressed="true"] { border-color: var(--cap-primary-dark); background: var(--cap-primary-dark); color: #fff; }
+.chips button[aria-pressed="true"] { border-color: var(--cap-selected); background: var(--cap-selected); color: #fff; }
 @media (max-width: 1100px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

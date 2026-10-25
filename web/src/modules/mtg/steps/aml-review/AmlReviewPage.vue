@@ -375,7 +375,7 @@ useFeedback({
 .seg button { height: 34px; padding: 0 12px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
 .seg button + button { border-inline-start: 1px solid var(--cap-border); }
 .seg button em { margin-inline-start: 4px; color: var(--cap-muted); font-style: normal; }
-.seg button[aria-pressed="true"] { background: var(--cap-primary-dark); color: #fff; }
+.seg button[aria-pressed="true"] { background: var(--cap-selected); color: #fff; }
 .seg button[aria-pressed="true"] em { color: var(--cap-primary-tint-2); }
 .toggle { display: inline-flex; border: 1px solid var(--cap-border); border-radius: 7px; overflow: hidden; }
 .toggle button { height: 30px; padding: 0 10px; border: 0; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
@@ -384,7 +384,7 @@ useFeedback({
 .toggle button[aria-pressed="true"]:last-child { background: var(--cap-danger); color: #fff; }
 .toggle button:disabled { cursor: default; }
 tr.out td { opacity: .6; }
-.code { color: var(--cap-primary-dark); font-weight: 600; font-size: 11px; }
+.code { color: var(--cap-heading); font-weight: 600; font-size: 11px; }
 .ready { margin: 0 0 14px; padding: 0; list-style: none; font-size: 12px; }
 .ready li { display: flex; align-items: center; gap: 8px; padding: 4px 0; color: var(--cap-warning); }
 .ready li.ok { color: var(--cap-success); }
@@ -393,6 +393,6 @@ tr.out td { opacity: .6; }
 .req { color: var(--cap-danger); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips button { height: 32px; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 999px; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
-.chips button[aria-pressed="true"] { border-color: var(--cap-primary-dark); background: var(--cap-primary-dark); color: #fff; }
+.chips button[aria-pressed="true"] { border-color: var(--cap-selected); background: var(--cap-selected); color: #fff; }
 @media (max-width: 1100px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 </style>
