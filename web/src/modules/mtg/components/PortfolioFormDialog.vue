@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // Portfolio details (APEX App 105 page 202): register a portfolio, change it, or delete it while it is a draft.
+import { statusPillStyle } from '@/shared/format/statusTone'
 import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { showSuccess, showWarning } from '@/shared/feedback/feedback'
 import { useFeedback } from '@/shared/feedback/useFeedback'
@@ -215,7 +216,7 @@ useFeedback({ errors: [formError] })
           <p v-if="isNew">Register the portfolio you are buying. You will add its accounts next.</p>
           <p v-else>Update the portfolio details. Developer and project are locked once accounts exist.</p>
         </div>
-        <span v-if="portfolio" class="cp-pill cp-pill--info">{{ portfolio.portfolioStatusName }}</span>
+        <span v-if="portfolio" class="cp-pill" :style="statusPillStyle(portfolio.portfolioStatusCode)">{{ portfolio.portfolioStatusName }}</span>
         <button type="button" class="cp-modal__close" :disabled="saving" aria-label="Close" @click="close">
           <i class="pi pi-times"></i>
         </button>

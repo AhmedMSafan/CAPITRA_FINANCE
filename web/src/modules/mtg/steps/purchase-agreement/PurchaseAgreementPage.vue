@@ -156,6 +156,7 @@ useFeedback({ errors: [error] })
     :project-name="data.projectNameEn"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
+    :status-code="data.portfolioStatusCode"
     :stages="stages"
     apex-page="216"
   >

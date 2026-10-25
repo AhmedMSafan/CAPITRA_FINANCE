@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // Frame shared by every portfolio workflow step page: breadcrumb, title, the case facts and the step's own progress.
+import { statusPillStyle } from '@/shared/format/statusTone'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -10,6 +11,7 @@ const props = defineProps<{
   projectName: string
   projectCode: string
   statusName: string
+  statusCode?: string
   /** Progress inside the step, e.g. upload, validate, import. */
   stages?: { label: string; state: 'done' | 'now' | 'todo' }[]
   /** APEX page this step replaces. */
@@ -48,7 +50,7 @@ const counter = computed(() => {
         <div><dt>Portfolio</dt><dd>{{ portfolioNo }}</dd></div>
         <div><dt>Project</dt><dd>{{ projectName }}</dd></div>
         <div><dt>Project code</dt><dd>{{ projectCode }}</dd></div>
-        <div><dt>Status</dt><dd><span class="cp-pill cp-pill--info">{{ statusName }}</span></dd></div>
+        <div><dt>Status</dt><dd><span class="cp-pill" :style="statusPillStyle(statusCode)">{{ statusName }}</span></dd></div>
       </dl>
       <div v-if="counter.total" class="counter" :class="{ 'counter--complete': counter.complete }" role="img"
            :aria-label="counter.complete ? 'All steps complete' : counter.waiting ? 'Not started' : `Step ${counter.position} of ${counter.total}`">

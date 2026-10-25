@@ -3,6 +3,7 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useFeedback } from '@/shared/feedback/useFeedback'
 import { useRouter } from 'vue-router'
+import { statusPillStyle } from '@/shared/format/statusTone'
 import CrudPage from '@/shared/crud/CrudPage.vue'
 import type { CrudApi, CrudColumn, CrudField, FieldOption, FormValues } from '@/shared/crud/types'
 import { hasPermission } from '@/shared/auth/session'
@@ -184,7 +185,7 @@ useFeedback({ errors: [error] })
         <span class="cp-spacer"></span>
         <div class="hero__status">
           <small>Status</small>
-          <span class="cp-pill cp-pill--info">{{ p.portfolioStatusName }}</span>
+          <span class="cp-pill" :style="statusPillStyle(p.portfolioStatusCode)">{{ p.portfolioStatusName }}</span>
         </div>
         <div class="hero__actions">
           <RouterLink class="cp-btn" :to="{ name: 'mtg-portfolio-payments', params: { portfolioId: p.portfolioId } }">
@@ -410,15 +411,15 @@ useFeedback({ errors: [error] })
 .hero h1 { margin: 4px 0 8px; color: var(--cap-heading); font-size: 26px; font-weight: 700; }
 .hero__sub { display: flex; flex-wrap: wrap; gap: 16px; color: var(--cap-muted); font-size: 13px; }
 .hero__sub i { margin-inline-end: 6px; color: var(--cap-faint); font-size: 12px; }
-.hero__status { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.hero__status { display: flex; align-items: center; gap: 8px; }
 .hero__status small { color: var(--cap-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
 .hero__actions { display: flex; gap: 8px; }
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .bad { color: var(--cap-danger) !important; }
 .note { margin: 0 20px 16px; padding: 10px 12px; border-radius: 10px; background: var(--cap-bg); color: var(--cap-ink-soft); font-size: 12px; white-space: pre-wrap; }
 .note b { display: block; margin-bottom: 4px; color: var(--cap-heading); }
-.selected { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; padding: 12px 20px; border-top: 1px solid var(--cap-border-soft); background: var(--cap-success-bg); border-radius: 0 0 16px 16px; font-size: 13px; color: var(--cap-ink-soft); }
-.selected__label { display: inline-flex; align-items: center; gap: 7px; color: var(--cap-success); font-weight: 700; }
+.selected { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; padding: 12px 20px; border-top: 1px solid var(--cap-border-soft); background: var(--cap-primary-tint); border-radius: 0 0 16px 16px; font-size: 13px; color: var(--cap-ink-soft); }
+.selected__label { display: inline-flex; align-items: center; gap: 7px; color: var(--cap-primary-dark); font-weight: 700; }
 .selected b { color: var(--cap-heading); }
 tr.out td { color: var(--cap-faint); }
 tr.out td b, tr.out td strong { color: var(--cap-muted); }

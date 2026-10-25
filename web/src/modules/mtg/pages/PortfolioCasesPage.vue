@@ -2,6 +2,7 @@
 // Portfolio cases (APEX App 105 page 201): every acquisition case, its status and value, filtered by developer.
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { statusTone } from '@/shared/format/statusTone'
 import { useRouter } from 'vue-router'
 import { hasPermission } from '@/shared/auth/session'
 import type { FieldOption } from '@/shared/crud/types'
@@ -75,18 +76,7 @@ const visible = computed(() => {
   return sorted
 })
 
-/** Colour of a status, by the same keywords page 201 uses. */
-function tone(code: string): string {
-  const c = code.toUpperCase()
-  if (c.includes('REJECT')) return 'var(--cap-danger)'
-  if (c.includes('CANCEL')) return 'var(--cap-muted)'
-  if (c.includes('DRAFT')) return 'var(--cap-orange)'
-  if (['ACCEPT', 'COMPLET', 'APPROV'].some(k => c.includes(k))) return 'var(--cap-success)'
-  if (c.includes('INPROG')) return 'var(--cap-primary)'
-  if (c.includes('REVIEW') || c.includes('AML')) return 'var(--cap-orange-dark)'
-  if (c.includes('LOAD')) return 'var(--cap-primary)'
-  return 'var(--cap-primary)'
-}
+const tone = statusTone
 
 function open(c: PortfolioCase) {
   router.push({ name: 'mtg-portfolio', params: { portfolioId: c.portfolioId } })

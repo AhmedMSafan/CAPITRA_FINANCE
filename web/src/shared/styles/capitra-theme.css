@@ -48,6 +48,8 @@
   --cap-danger-bg: #fff3f3;
   --cap-danger-border: #f2c4c4;
   --cap-warning: #9a6700;
+  /* Portfolio steps in progress: violet, so green stays for the final approval only. */
+  --cap-progress: #6247c4;
   --cap-warning-bg: #fff4e2;
   --cap-warning-border: #f1d3a8;
 
