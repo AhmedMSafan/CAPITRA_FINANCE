@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Portfolio cases (APEX App 105 page 201): every acquisition case, its status and value, filtered by developer.
 import { computed, ref, shallowRef, watch } from 'vue'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { useRouter } from 'vue-router'
 import { hasPermission } from '@/shared/auth/session'
 import type { FieldOption } from '@/shared/crud/types'
@@ -94,6 +95,9 @@ function onCreated(p: Portfolio) {
   creating.value = false
   router.push({ name: 'mtg-portfolio', params: { portfolioId: p.portfolioId } })
 }
+
+// Errors open the app-wide pop-up.
+useFeedback({ errors: [error] })
 </script>
 
 <template>
@@ -114,7 +118,6 @@ function onCreated(p: Portfolio) {
       </button>
     </header>
 
-    <div v-if="error" class="cp-error cases-gap">{{ error }}</div>
 
     <section class="cp-card cases-gap">
       <div class="cp-figures">

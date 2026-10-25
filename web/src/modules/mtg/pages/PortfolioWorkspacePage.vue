@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Portfolio overview (APEX App 105 page 203): value, terms, investors, accounts, project and history of one portfolio.
 import { computed, ref, shallowRef, watch } from 'vue'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { useRouter } from 'vue-router'
 import CrudPage from '@/shared/crud/CrudPage.vue'
 import type { CrudApi, CrudColumn, CrudField, FieldOption, FormValues } from '@/shared/crud/types'
@@ -153,6 +154,9 @@ function onDeleted() {
   editing.value = false
   router.push({ name: 'mtg-portfolios' })
 }
+
+// Errors open the app-wide pop-up.
+useFeedback({ errors: [error] })
 </script>
 
 <template>
@@ -162,7 +166,7 @@ function onDeleted() {
       <span v-if="p">/ {{ p.portfolioNo }}</span>
     </nav>
 
-    <div v-if="error" class="cp-error">{{ error }}</div>
+    <div v-if="error && !data" class="cp-empty"><i class="pi pi-exclamation-circle"></i> This page could not be loaded.</div>
     <div v-else-if="!data || !p || !f" class="cp-empty"><i class="pi pi-spin pi-spinner"></i> Loading...</div>
 
     <template v-else>

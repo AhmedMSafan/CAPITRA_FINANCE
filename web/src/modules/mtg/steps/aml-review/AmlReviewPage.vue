@@ -5,6 +5,7 @@ import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatShort } from '@/shared/format/money'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import StepLayout from '../StepLayout.vue'
 import { messageOf, niceCode } from '../stepUtils'
 import { amlReviewApi, isFlagged, type AmlReview, type DealDecision } from './amlReview.api'
@@ -37,6 +38,21 @@ watch(id, () => {
   error.value = ''
   load()
 }, { immediate: true })
+
+// ----- progress inside the step: screen the developer, screen investors and decide, then accept -----
+const stages = computed(() => {
+  const d = data.value
+  if (!d) return []
+  const decided = !d.isOpen
+  const developerDone = decided || d.developer.amlStatusCode !== 'NOT_SCREENED'
+  const investorsDone = decided || (counts.value.notScreened === 0 && counts.value.undecided === 0)
+  const state = (done: boolean, ready: boolean) => (done ? 'done' : ready ? 'now' : 'todo')
+  return [
+    { label: 'Screen developer', state: state(developerDone, true) },
+    { label: 'Screen investors & decide contracts', state: state(investorsDone, developerDone) },
+    { label: 'Accept or reject the review', state: state(decided, developerDone && investorsDone) }
+  ] as { label: string; state: 'done' | 'now' | 'todo' }[]
+})
 
 // ----- investors (one row per contract) -----
 const investors = computed(() => {
@@ -162,6 +178,14 @@ function tone(code: string): string {
   if (isFlagged(code)) return 'cp-pill--warn'
   return ''
 }
+
+// Messages open the app-wide pop-up; saving shows the progress screen.
+useFeedback({
+  errors: [error, formError],
+  notices: [notice],
+  busy,
+  busyAs: () => ({ title: 'Saving the AML review', kind: 'save', steps: ['Checking the screening results', 'Saving the decisions', 'Updating the portfolio'] })
+})
 </script>
 
 <template>
@@ -177,10 +201,9 @@ function tone(code: string): string {
     :project-name="data.projectName"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
+    :stages="stages"
     apex-page="209"
   >
-    <div v-if="error" class="cp-error">{{ error }}</div>
-    <div v-if="notice" class="notice">{{ notice }}</div>
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. The AML review is not open for a portfolio in status {{ data.portfolioStatusName }}.</div>
     <div v-else-if="!canAct" class="readonly"><i class="pi pi-eye"></i> Read-only view. Recording the review needs the AML review permission.</div>
     <div v-if="data.rejectionReason" class="rejected"><b>Last rejection</b>{{ data.rejectionReason }}</div>
@@ -306,7 +329,6 @@ function tone(code: string): string {
           <button type="button" class="cp-modal__close" aria-label="Close" @click="screening = null"><i class="pi pi-times"></i></button>
         </header>
         <div class="cp-modal__body">
-          <div v-if="formError" class="cp-error">{{ formError }}</div>
           <div class="cp-form">
             <div class="cp-field cp-field--wide">
               <label>Check type</label>

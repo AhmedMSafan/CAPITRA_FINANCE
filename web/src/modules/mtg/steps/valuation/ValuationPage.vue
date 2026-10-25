@@ -5,6 +5,7 @@ import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatPct, formatShort } from '@/shared/format/money'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import { valuationApi, type Valuation, type Valuations } from './valuation.api'
@@ -158,6 +159,14 @@ async function complete() {
     busy.value = false
   }
 }
+
+// Messages open the app-wide pop-up; saving shows the progress screen.
+useFeedback({
+  errors: [error, formError],
+  notices: [notice],
+  busy,
+  busyAs: () => ({ title: 'Saving the valuation', kind: 'save', steps: ['Checking the valuation', 'Saving the figures', 'Updating the portfolio'] })
+})
 </script>
 
 <template>
@@ -180,8 +189,6 @@ async function complete() {
     ]"
     apex-page="401"
   >
-    <div v-if="error" class="cp-error">{{ error }}</div>
-    <div v-if="notice" class="notice">{{ notice }}</div>
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. Valuation is not open for a portfolio in status {{ data.portfolioStatusName }}.</div>
     <div v-else-if="!canAct" class="readonly"><i class="pi pi-eye"></i> Read-only view. Recording valuations needs the valuation permission.</div>
 
@@ -270,7 +277,6 @@ async function complete() {
           <button type="button" class="cp-modal__close" aria-label="Close" @click="formOpen = false"><i class="pi pi-times"></i></button>
         </header>
         <div class="cp-modal__body">
-          <div v-if="formError" class="cp-error">{{ formError }}</div>
           <div class="cp-form">
             <div class="cp-field cp-field--wide">
               <label>Valuation type <span class="req">*</span></label>

@@ -2,6 +2,8 @@
 // One list + one modal form: the Vue version of an APEX interactive report page and its modal form page.
 import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { ApiError } from '@/shared/api/http'
+import { showSuccess, showWarning } from '@/shared/feedback/feedback'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { downloadCsv, formatCell, toCsv } from './format'
 import type { CrudApi, CrudColumn, CrudField, FormValues } from './types'
 
@@ -123,13 +125,18 @@ function checkRequired(): boolean {
 
 async function save() {
   clearErrors()
-  if (!checkRequired()) return
+  if (!checkRequired()) {
+    showWarning('Fill in the required fields marked in red.')
+    return
+  }
 
   saving.value = true
   try {
+    const created = !editingRow.value
     if (editingRow.value) await props.api.update(editingRow.value, body())
     else await props.api.create(body())
     dialogVisible.value = false
+    showSuccess(`${props.entityLabel} ${created ? 'added' : 'saved'}.`)
     await load()
   } catch (error) {
     showError(error)
@@ -150,6 +157,7 @@ async function remove() {
   try {
     await props.api.remove(editingRow.value)
     dialogVisible.value = false
+    showSuccess(`${props.entityLabel} deleted.`)
     await load()
   } catch (error) {
     confirmDelete.value = false
@@ -195,6 +203,9 @@ function exportCsv() {
 defineExpose({ reload: load })
 
 watch(() => props.api, load, { immediate: true })
+
+// Errors and confirmations open the app-wide pop-up; field errors stay beside their fields.
+useFeedback({ errors: [pageError, formError] })
 </script>
 
 <template>
@@ -220,7 +231,6 @@ watch(() => props.api, load, { immediate: true })
         </div>
       </div>
 
-      <div v-if="pageError" class="error-message">{{ pageError }}</div>
 
       <div class="grid-filters">
         <div class="grid-search">
@@ -299,7 +309,6 @@ watch(() => props.api, load, { immediate: true })
           </button>
         </header>
 
-        <div v-if="formError" class="error-message modal-error">{{ formError }}</div>
 
         <div class="edit-modal__body">
           <fieldset class="form-grid" :disabled="!canEdit || saving">

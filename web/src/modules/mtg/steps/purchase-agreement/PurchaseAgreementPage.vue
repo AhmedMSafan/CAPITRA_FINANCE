@@ -4,6 +4,7 @@
 // their cheques (annex B). Blanks are left for what Capitra does not hold (register numbers, signatories, terms to
 // negotiate). Print or save as PDF from the browser.
 import { computed, ref, shallowRef, watch } from 'vue'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { formatDate } from '@/shared/format/datetime'
 import { formatAmount, formatPct } from '@/shared/format/money'
 import StepLayout from '../StepLayout.vue'
@@ -122,7 +123,24 @@ const clauses = computed<Clause[]>(() => {
 const contractTotal = computed(() => data.value?.contracts.reduce((t, c) => t + c.outstandingAmount, 0) ?? 0)
 const chequeTotal = computed(() => data.value?.cheques.reduce((t, c) => t + c.chequeAmount, 0) ?? 0)
 const date = (d: string) => formatDate(d + 'T00:00:00Z')
-const print = () => window.print()
+const printed = ref(false)
+const print = () => {
+  window.print()
+  printed.value = true
+}
+
+/** Progress inside the step: the board approval it rests on, reviewing the draft, then printing it for signature. */
+const stages = computed(() => {
+  const approved = !!data.value?.boardDecisionNo
+  return [
+    { label: 'Board approval', state: approved ? 'done' : 'now' },
+    { label: 'Review the agreement & annexes', state: printed.value ? 'done' : approved ? 'now' : 'todo' },
+    { label: 'Print or save as PDF', state: printed.value ? 'done' : 'todo' }
+  ] as { label: string; state: 'done' | 'now' | 'todo' }[]
+})
+
+// Errors open the app-wide pop-up.
+useFeedback({ errors: [error] })
 </script>
 
 <template>
@@ -138,6 +156,7 @@ const print = () => window.print()
     :project-name="data.projectNameEn"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
+    :stages="stages"
     apex-page="216"
   >
     <div v-if="!data.isBoardApproved" class="warn"><i class="pi pi-exclamation-triangle"></i> The board has not approved this purchase yet, so the price and the resolution may still change.</div>

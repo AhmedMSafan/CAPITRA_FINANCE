@@ -5,6 +5,7 @@ import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatShort } from '@/shared/format/money'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import { LEGAL_CHECKS, legalReviewApi, type LegalReview, type LegalReviewForm } from './legalReview.api'
@@ -171,6 +172,14 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
     busy.value = false
   }
 }
+
+// Messages open the app-wide pop-up; saving shows the progress screen.
+useFeedback({
+  errors: [error, formError],
+  notices: [notice],
+  busy,
+  busyAs: () => ({ title: 'Saving the legal review', kind: 'save', steps: ['Checking the legal checklist', 'Saving the decisions', 'Updating the portfolio'] })
+})
 </script>
 
 <template>
@@ -194,8 +203,6 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
     ]"
     apex-page="211"
   >
-    <div v-if="error" class="cp-error">{{ error }}</div>
-    <div v-if="notice" class="notice">{{ notice }}</div>
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. The legal review is not open for a portfolio in status {{ data.portfolioStatusName }}.</div>
     <div v-else-if="!canAct" class="readonly"><i class="pi pi-eye"></i> Read-only view. Recording the legal review needs the legal review permission.</div>
 
@@ -207,7 +214,6 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
             <span class="cp-pill" :class="checksDone === 6 ? 'cp-pill--ok' : 'cp-pill--warn'">{{ checksDone }} of 6 verified</span>
           </div>
           <div class="cp-card__body">
-            <div v-if="formError" class="cp-error">{{ formError }}</div>
             <div class="checks">
               <div v-for="c in LEGAL_CHECKS" :key="c.key" class="check" :class="{ yes: form[c.key] }">
                 <i :class="c.icon" class="check__icon"></i>

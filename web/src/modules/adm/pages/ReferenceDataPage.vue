@@ -2,6 +2,7 @@
 // Reference data hub (APEX App 105 page 3): one tile per code table.
 // ADM lists are global and live under Administration; MTG lists stay under Portfolio Acquisition.
 import { computed, ref, shallowRef } from 'vue'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import HubPage from '@/shared/hub/HubPage.vue'
 import type { HubTile } from '@/shared/hub/types'
 import { getLookupDefinitions, type LookupDefinition } from '../api/lookups.api'
@@ -58,10 +59,12 @@ const tiles = computed<HubTile[]>(() =>
     apexPages: d.apexPages
   }))
 )
+
+// Errors open the app-wide pop-up.
+useFeedback({ errors: [error] })
 </script>
 
 <template>
-  <div v-if="error" class="hub-error">{{ error }}</div>
   <HubPage
     title="Reference Data"
     :description="area.description"

@@ -4,6 +4,7 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatAmount, formatPct, formatShort } from '@/shared/format/money'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import { coverageReviewApi, type CoverageReview } from './coverageReview.api'
@@ -107,6 +108,14 @@ function finish(action: 'ACCEPT' | 'REJECT') {
     comment.value = ''
   }, 'Unable to record the decision.')
 }
+
+// Messages open the app-wide pop-up; saving shows the progress screen.
+useFeedback({
+  errors: [error],
+  notices: [notice],
+  busy,
+  busyAs: () => ({ title: 'Saving the coverage review', kind: 'save', steps: ['Checking coverage per contract', 'Saving the decisions', 'Updating the portfolio'] })
+})
 </script>
 
 <template>
@@ -129,8 +138,6 @@ function finish(action: 'ACCEPT' | 'REJECT') {
     ]"
     apex-page="212"
   >
-    <div v-if="error" class="cp-error">{{ error }}</div>
-    <div v-if="notice" class="notice">{{ notice }}</div>
     <div v-if="data.rejectionReason && data.isOpen" class="rejected"><i class="pi pi-replay"></i> Last rejected: {{ data.rejectionReason }}</div>
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. The coverage review is not open for a portfolio in status {{ data.portfolioStatusName }}.</div>
     <div v-else-if="!canAct" class="readonly"><i class="pi pi-eye"></i> Read-only view. Recording the coverage review needs the coverage review permission.</div>

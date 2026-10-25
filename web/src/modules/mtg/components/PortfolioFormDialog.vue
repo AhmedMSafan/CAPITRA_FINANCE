@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // Portfolio details (APEX App 105 page 202): register a portfolio, change it, or delete it while it is a draft.
 import { computed, reactive, ref, shallowRef, watch } from 'vue'
+import { showSuccess, showWarning } from '@/shared/feedback/feedback'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { todayInCairo } from '@/shared/format/datetime'
 import { splitApiError } from '@/shared/crud/errors'
 import type { FieldOption } from '@/shared/crud/types'
@@ -159,10 +161,14 @@ function checkRequired(): boolean {
 
 async function save() {
   formError.value = ''
-  if (!checkRequired()) return
+  if (!checkRequired()) {
+    showWarning('Fill in the required fields marked in red.')
+    return
+  }
   saving.value = true
   try {
     const saved = props.portfolio ? await portfoliosApi.update(props.portfolio, body()) : await portfoliosApi.create(body())
+    showSuccess(props.portfolio ? `Portfolio ${saved.portfolioNo} saved.` : `Portfolio ${saved.portfolioNo} created. Start with the Excel import step.`)
     emit('saved', saved)
   } catch (error) {
     const split = splitApiError(error, FIELDS, 'Unable to save the portfolio.')
@@ -183,6 +189,7 @@ async function remove() {
   formError.value = ''
   try {
     await portfoliosApi.remove(props.portfolio)
+    showSuccess('Portfolio deleted.')
     emit('deleted')
   } catch (error) {
     confirmDelete.value = false
@@ -195,6 +202,8 @@ async function remove() {
 function close() {
   if (!saving.value) emit('close')
 }
+
+useFeedback({ errors: [formError] })
 </script>
 
 <template>
@@ -213,7 +222,6 @@ function close() {
       </header>
 
       <div class="cp-modal__body">
-        <div v-if="formError" class="cp-error" role="alert">{{ formError }}</div>
 
         <fieldset class="cp-form" :disabled="!canEdit || saving">
           <div class="cp-field">

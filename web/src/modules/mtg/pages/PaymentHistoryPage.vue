@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Payment history (APEX App 105 pages 206/207): the instalments of one account of a portfolio.
 import { computed, ref, shallowRef, watch } from 'vue'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import CrudPage from '@/shared/crud/CrudPage.vue'
 import type { CrudColumn, CrudField, FieldOption, FormValues } from '@/shared/crud/types'
 import { hasPermission } from '@/shared/auth/session'
@@ -71,6 +72,9 @@ const fields = computed<CrudField[]>(() => [
 function newPayment(): FormValues {
   return { paidAmount: 0, daysLate: 0 }
 }
+
+// Errors open the app-wide pop-up.
+useFeedback({ errors: [error] })
 </script>
 
 <template>
@@ -84,7 +88,7 @@ function newPayment(): FormValues {
       </template>
     </nav>
 
-    <div v-if="error" class="cp-error">{{ error }}</div>
+    <div v-if="error && !portfolio" class="cp-empty"><i class="pi pi-exclamation-circle"></i> This page could not be loaded.</div>
     <div v-else-if="!portfolio" class="cp-empty"><i class="pi pi-spin pi-spinner"></i> Loading...</div>
 
     <template v-else>

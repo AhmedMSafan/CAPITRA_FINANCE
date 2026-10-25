@@ -4,6 +4,7 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatAmount, formatShort } from '@/shared/format/money'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import { excelImportApi, type ExcelImport, type ImportStatus, type WorkbookResult } from './excelImport.api'
@@ -121,6 +122,17 @@ async function runImport() {
 function pctOf(part: number, whole: number): string {
   return whole > 0 ? `${Math.round((part / whole) * 100)}%` : '0%'
 }
+
+// Messages open the app-wide pop-up; validating and importing show the progress screen.
+useFeedback({
+  errors: [error],
+  notices: [notice],
+  noticeKind: () => (status.value === 'ERROR' ? 'warning' : 'success'),
+  busy,
+  busyAs: value => value === 'import'
+    ? { title: 'Importing the workbook', kind: 'excel', steps: ['Uploading the workbook', 'Checking every row again', 'Creating investors, units and accounts', 'Completing the step'] }
+    : { title: 'Validating the workbook', kind: 'excel', steps: ['Uploading the workbook', 'Reading INVESTORS, UNITS and ACCOUNTS', 'Checking every row against the rules', 'Preparing the results'] }
+})
 </script>
 
 <template>
@@ -141,8 +153,6 @@ function pctOf(part: number, whole: number): string {
     :stages="stages"
     apex-page="208"
   >
-    <div v-if="error" class="cp-error">{{ error }}</div>
-    <div v-if="notice" class="notice" :class="{ 'notice--bad': status === 'ERROR' }">{{ notice }}</div>
 
     <!-- upload and check -->
     <section v-if="!imported" class="cp-card">

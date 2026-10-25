@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // "Financial rates & fees" dialog of the portfolio overview (APEX App 105 page 203, process FIN_TERMS_SAVE).
 import { reactive, ref } from 'vue'
+import { showSuccess } from '@/shared/feedback/feedback'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { splitApiError } from '@/shared/crud/errors'
 import { portfoliosApi, type FinancialTerms, type Portfolio } from '../api/portfolios.api'
 
@@ -33,7 +35,9 @@ async function save() {
   fieldErrors.value = {}
   try {
     const terms = Object.fromEntries(FIELDS.map(f => [f.key, form[f.key] === '' ? null : Number(form[f.key])])) as FinancialTerms
-    emit('saved', await portfoliosApi.saveFinancialTerms(props.portfolio, terms))
+    const saved = await portfoliosApi.saveFinancialTerms(props.portfolio, terms)
+    showSuccess('Rates and fees saved.')
+    emit('saved', saved)
   } catch (error) {
     const split = splitApiError(error, FIELDS.map(f => f.key), 'Not saved.')
     fieldErrors.value = split.fields
@@ -46,6 +50,8 @@ async function save() {
 function close() {
   if (!saving.value) emit('close')
 }
+
+useFeedback({ errors: [formError] })
 </script>
 
 <template>
@@ -61,7 +67,6 @@ function close() {
         </button>
       </header>
       <div class="cp-modal__body">
-        <div v-if="formError" class="cp-error" role="alert">{{ formError }}</div>
         <fieldset class="cp-form" :disabled="saving">
           <div v-for="f in FIELDS" :key="f.key" class="cp-field">
             <label :for="`ft-${f.key}`">{{ f.label }}</label>

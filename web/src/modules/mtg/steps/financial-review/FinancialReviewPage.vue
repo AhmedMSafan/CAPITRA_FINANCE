@@ -6,6 +6,7 @@ import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { formatAmount, formatPct, formatShort } from '@/shared/format/money'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import {
@@ -128,6 +129,14 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
 }
 
 const date = (d: string) => formatDate(d + 'T00:00:00Z')
+
+// Messages open the app-wide pop-up; saving shows the progress screen.
+useFeedback({
+  errors: [error, calcError],
+  notices: [notice],
+  busy,
+  busyAs: () => ({ title: 'Working on the financial review', kind: 'calc', steps: ['Reading cheques and terms', 'Calculating present values and charges', 'Saving the results'] })
+})
 </script>
 
 <template>
@@ -150,8 +159,6 @@ const date = (d: string) => formatDate(d + 'T00:00:00Z')
     ]"
     apex-page="214"
   >
-    <div v-if="error" class="cp-error">{{ error }}</div>
-    <div v-if="notice" class="notice">{{ notice }}</div>
     <div v-if="data.rejectionReason && data.isOpen" class="rejected"><i class="pi pi-replay"></i> Last rejected: {{ data.rejectionReason }}</div>
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. The financial review is not open for a portfolio in status {{ data.portfolioStatusName }}.</div>
     <div v-else-if="!canAct" class="readonly"><i class="pi pi-eye"></i> Read-only view. Saving the financial review needs the financial review permission.</div>
@@ -187,7 +194,6 @@ const date = (d: string) => formatDate(d + 'T00:00:00Z')
               </select>
             </div>
           </div>
-          <div v-if="calcError" class="cp-error inline">{{ calcError }}</div>
         </section>
 
         <section v-if="calc" class="cp-card">

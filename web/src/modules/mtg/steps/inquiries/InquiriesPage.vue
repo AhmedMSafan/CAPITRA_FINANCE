@@ -5,6 +5,7 @@ import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatShort } from '@/shared/format/money'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import StepLayout from '../StepLayout.vue'
 import { messageOf, niceCode } from '../stepUtils'
 import { SUBJECT_TYPES, inquiriesApi, type Inquiries, type Inquiry, type SubjectType } from './inquiries.api'
@@ -193,6 +194,14 @@ function riskTone(code: string | null): string {
   if (code === 'HIGH' || code === 'CRITICAL') return 'cp-pill--bad'
   return ''
 }
+
+// Messages open the app-wide pop-up; saving shows the progress screen.
+useFeedback({
+  errors: [error, formError],
+  notices: [notice],
+  busy,
+  busyAs: () => ({ title: 'Saving the inquiries', kind: 'save', steps: ['Checking the inquiry results', 'Saving', 'Updating the portfolio'] })
+})
 </script>
 
 <template>
@@ -216,8 +225,6 @@ function riskTone(code: string | null): string {
     ]"
     apex-page="210"
   >
-    <div v-if="error" class="cp-error">{{ error }}</div>
-    <div v-if="notice" class="notice">{{ notice }}</div>
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. Inquiries are not open for a portfolio in status {{ data.portfolioStatusName }}.</div>
     <div v-else-if="!canAct" class="readonly"><i class="pi pi-eye"></i> Read-only view. Recording inquiries needs the inquiries permission.</div>
 
@@ -326,7 +333,6 @@ function riskTone(code: string | null): string {
           <button type="button" class="cp-modal__close" aria-label="Close" @click="formOpen = false"><i class="pi pi-times"></i></button>
         </header>
         <div class="cp-modal__body">
-          <div v-if="formError" class="cp-error">{{ formError }}</div>
           <div class="cp-form">
             <div class="cp-field cp-field--wide">
               <label>Inquiry type <span class="req">*</span></label>

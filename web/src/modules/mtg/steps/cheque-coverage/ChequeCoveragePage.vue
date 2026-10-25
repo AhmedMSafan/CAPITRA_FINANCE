@@ -5,6 +5,7 @@ import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatDate } from '@/shared/format/datetime'
 import { formatAmount, formatShort } from '@/shared/format/money'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import { chequeCoverageApi, type Cheque, type ChequeCoverage } from './chequeCoverage.api'
@@ -184,6 +185,14 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
     busy.value = false
   }
 }
+
+// Messages open the app-wide pop-up; saving shows the progress screen.
+useFeedback({
+  errors: [error, formError],
+  notices: [notice],
+  busy,
+  busyAs: () => ({ title: 'Saving the cheque coverage', kind: 'save', steps: ['Checking the cheques', 'Saving', 'Updating the portfolio'] })
+})
 </script>
 
 <template>
@@ -206,8 +215,6 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
     ]"
     apex-page="213"
   >
-    <div v-if="error" class="cp-error">{{ error }}</div>
-    <div v-if="notice" class="notice">{{ notice }}</div>
     <div v-if="data.rejectionReason && data.isOpen" class="rejected"><i class="pi pi-replay"></i> Last rejected: {{ data.rejectionReason }}</div>
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. Cheque coverage is not open for a portfolio in status {{ data.portfolioStatusName }}.</div>
     <div v-else-if="!canAct" class="readonly"><i class="pi pi-eye"></i> Read-only view. Entering cheques needs the cheque coverage permission.</div>
@@ -328,7 +335,6 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
           <button type="button" class="cp-modal__close" aria-label="Close" @click="formOpen = false"><i class="pi pi-times"></i></button>
         </header>
         <div class="cp-modal__body">
-          <div v-if="formError" class="cp-error">{{ formError }}</div>
           <div class="cp-form">
             <div class="cp-field cp-field--wide">
               <label for="chq-account">Contract <span class="req">*</span></label>

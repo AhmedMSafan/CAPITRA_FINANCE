@@ -5,6 +5,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { login } from '@/modules/sec/api/auth.api'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 
 const SCENES = [
   { key: 'portfolio', label: 'Portfolio', title: 'Portfolio Acquisition' },
@@ -25,6 +26,7 @@ const showPassword = ref(false)
 const capsLock = ref(false)
 const errorMessage = ref('')
 const loading = ref(false)
+useFeedback({ errors: [errorMessage] })
 
 // ---------- rotating application scenes ----------
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
@@ -200,10 +202,6 @@ async function submitLogin(): Promise<void> {
           <h1 class="cl-hello">Welcome to Capitra</h1>
           <p class="cl-sub">Sign in once to reach every Capitra application.</p>
         </header>
-
-        <div v-if="errorMessage" class="cl-error" role="alert">
-          <i class="pi pi-exclamation-circle"></i><span>{{ errorMessage }}</span>
-        </div>
 
         <div class="cl-field">
           <label for="cl-user">Username</label>

@@ -5,6 +5,7 @@ import { computed, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatPct } from '@/shared/format/money'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import StepLayout from '../StepLayout.vue'
 import { messageOf, niceCode } from '../stepUtils'
 import { boardReviewApi, type BoardAction, type BoardReview } from './boardReview.api'
@@ -102,6 +103,14 @@ async function decide(action: BoardAction) {
     busy.value = false
   }
 }
+
+// Messages open the app-wide pop-up; saving shows the progress screen.
+useFeedback({
+  errors: [error],
+  notices: [notice],
+  busy,
+  busyAs: () => ({ title: 'Recording the board decision', kind: 'save', steps: ['Checking the resolution', 'Saving the decision', 'Updating the portfolio'] })
+})
 </script>
 
 <template>
@@ -123,8 +132,6 @@ async function decide(action: BoardAction) {
     ]"
     apex-page="215"
   >
-    <div v-if="error" class="cp-error">{{ error }}</div>
-    <div v-if="notice" class="notice">{{ notice }}</div>
     <div v-if="data.rejectionReason && data.isOpen" class="rejected"><i class="pi pi-replay"></i> Last rejected: {{ data.rejectionReason }}</div>
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. The board review is not open for a portfolio in status {{ data.portfolioStatusName }}.</div>
     <div v-else-if="!canAct" class="readonly"><i class="pi pi-eye"></i> Read-only view. Recording the board decision needs the board review permission.</div>
