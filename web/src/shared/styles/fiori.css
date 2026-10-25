@@ -1,0 +1,97 @@
+/* =========================================================
+   SAP Fiori (Horizon) look, tried on branch fiori-look (25 Oct 2026).
+   Loaded last; #app raises specificity above component styles,
+   so removing this file restores the previous look.
+   ========================================================= */
+:root {
+  --cap-primary: #0070f2; --cap-primary-hover: #0064d9; --cap-primary-dark: #0057d2;
+  --cap-primary-tint: #ebf8ff; --cap-primary-tint-2: #d1efff;
+  --cap-selected: #0070f2; --cap-selected-tint: #ebf8ff;
+  --cap-create: #0070f2; --cap-create-hover: #0064d9;
+  --cap-icon: #556b82; --cap-heading: #1d2d3e;
+  --cap-ink: #1d2d3e; --cap-ink-soft: #32363a; --cap-muted: #556b82; --cap-faint: #8396a8;
+  --cap-border: #d9d9d9; --cap-border-soft: #e5e5e5; --cap-bg: #f5f6f7;
+  --cap-success: #256f3a; --cap-success-strong: #30914c; --cap-success-bg: #f5fae5; --cap-success-border: #bde986;
+  --cap-danger: #aa0808; --cap-danger-bg: #ffeaf4; --cap-danger-border: #ffb2d2;
+  --cap-warning: #b44f00; --cap-warning-bg: #fff8d6; --cap-warning-border: #ffdf72;
+  --cap-orange: #c35500; --cap-progress: #0064d9;
+  --fiori-shadow: 0 0 .125rem 0 rgba(34, 53, 72, .15), 0 .125rem .5rem 0 rgba(34, 53, 72, .1);
+  --fiori-font: Inter, "72", "Segoe UI", Arial, sans-serif;
+}
+html, body { background: var(--cap-bg); font-family: var(--fiori-font); }
+#app .cp-page, #app .crud-page, #app .cp-modal, #app .edit-modal { font-family: var(--fiori-font); color: var(--cap-ink); }
+
+/* Shell bar */
+#app .capitra-app-header { min-height: 52px; background: #fff; color: var(--cap-ink); border-bottom: 1px solid var(--cap-border-soft); box-shadow: var(--fiori-shadow); }
+#app .capitra-brand-name { color: var(--cap-ink); font-size: 16px; letter-spacing: .02em; }
+#app .capitra-brand-divider { background: var(--cap-border); }
+#app .capitra-module-name { color: var(--cap-ink); font-weight: 600; }
+#app .capitra-function-name { color: var(--cap-muted); }
+#app .capitra-header-pill, #app .capitra-user-button, #app .capitra-user-info-tag, #app .capitra-name-button {
+  background: transparent; border: 1px solid transparent; color: var(--cap-ink-soft); box-shadow: none; }
+#app .capitra-name-button:hover, #app .capitra-header-pill:hover { background: var(--cap-bg); border-color: transparent; }
+#app .capitra-header-pill i, #app .capitra-name-button i { color: var(--cap-muted); }
+#app .capitra-user-info-tag, #app .capitra-user-info-tag *, #app .capitra-tag-label, #app .department-tag .capitra-tag-label { color: var(--cap-muted); background: transparent; }
+#app .capitra-shortcut, #app .capitra-shortcut-icon { background: transparent; border-color: transparent; color: var(--cap-ink-soft); box-shadow: none; }
+#app .capitra-shortcut:hover .capitra-shortcut-icon { background: var(--cap-bg); }
+#app .capitra-name-button > .pi-user { background: #5d36ff1a; color: #5d36ff; }
+
+/* Cards: Fiori tiles, no border, soft shadow, 12px corners */
+#app .cp-card, #app .crud-card, #app .grid-panel { border: 0; border-radius: 12px; box-shadow: var(--fiori-shadow); background: #fff; }
+#app .cp-card__head { border-bottom: 0; padding: 16px 20px 8px; }
+#app .cp-card__head h3 { font-size: 16px; font-weight: 700; color: var(--cap-heading); }
+#app .cp-card__head > i, #app .cp-card__head h3 i { display: none; }
+
+/* Headers of pages */
+#app .hero__eyebrow { color: var(--cap-muted); font-weight: 400; letter-spacing: 0; text-transform: none; font-size: 13px; }
+#app .hero h1 { font-size: 22px; font-weight: 700; }
+#app .crud-header-icon, #app .cases-head__icon, #app .hub-header-icon { display: none; }
+#app .crud-header h2, #app .cases-head h2 { font-size: 20px; font-weight: 700; }
+#app .crumbs a { color: var(--cap-primary); }
+
+/* Key figures like Fiori header KPIs */
+#app .cp-figure__label { color: var(--cap-muted); font-size: 13px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+#app .cp-figure__value { font-size: 24px; font-weight: 300; color: var(--cap-heading); }
+#app .facts dt { text-transform: none; letter-spacing: 0; font-size: 13px; }
+#app .facts dd { font-weight: 400; font-size: 14px; }
+
+/* Step progress as a Fiori process flow */
+#app .stages { gap: 6px; border-top: 0; padding-top: 6px; }
+#app .stages li { padding: 4px 12px 4px 4px; border: 1px solid var(--cap-border); background: #fff; color: var(--cap-muted); border-radius: 14px; }
+#app .stages b { width: 20px; height: 20px; background: var(--cap-bg); }
+#app .stages .stage--now { border-color: var(--cap-primary); background: var(--cap-primary-tint) !important; color: var(--cap-primary) !important; }
+#app .stages .stage--now b { background: var(--cap-primary) !important; }
+#app .stages .stage--done { border-color: var(--cap-success-border); background: var(--cap-success-bg); }
+#app .counter__bar { stroke: var(--cap-primary); }
+
+/* Buttons: Fiori emphasized = filled blue, default = outlined blue */
+#app .cp-btn, #app .secondary-button { height: 36px; border-radius: 8px; border: 1px solid var(--cap-primary); background: #fff; color: var(--cap-primary); font-weight: 600; }
+#app .cp-btn:hover, #app .secondary-button:hover { background: var(--cap-primary-tint); }
+#app .cp-btn--primary, #app .cp-btn--create, #app .add-button { background: var(--cap-primary); border: 1px solid var(--cap-primary); color: #fff; }
+#app .cp-btn--primary:hover, #app .cp-btn--create:hover, #app .add-button:hover { background: var(--cap-primary-hover); }
+#app .cp-btn--danger { border-color: var(--cap-danger); background: #fff; color: var(--cap-danger); }
+#app .cp-btn--small { height: 28px; }
+#app .cp-btn:disabled { opacity: .45; }
+#app .steps .cp-btn { border-color: var(--cap-border); color: var(--cap-ink-soft); font-weight: 500; }
+#app .steps .cp-btn i { color: var(--cap-muted); }
+
+/* Tables: Fiori responsive table */
+#app .cp-table th, #app .grid-table th { background: #fff; color: var(--cap-muted); font-size: 13px; font-weight: 400; text-transform: none; letter-spacing: 0; border-bottom: 1px solid var(--cap-border-soft); }
+#app .cp-table td, #app .grid-table td { font-size: 14px; color: var(--cap-ink-soft); padding-top: 11px; padding-bottom: 11px; }
+#app .grid-table tbody tr:hover, #app .cp-table tbody tr:hover { background: #f7f7f7; }
+#app .grid-panel__title { background: #fff; border-bottom: 1px solid var(--cap-border-soft); color: var(--cap-heading); font-weight: 700; }
+#app .grid-panel__title i { display: none; }
+
+/* Inputs: Fiori fields */
+#app .cp-field input, #app .cp-field select, #app .cp-field textarea, #app .field input, #app .field select, #app .field textarea,
+#app .grid-search, #app .grid-select { border: 1px solid #8396a8; border-radius: 6px; height: 36px; }
+#app .cp-field textarea, #app .field textarea { height: auto; }
+#app .cp-field > label, #app .field > label { color: var(--cap-muted); font-size: 13px; font-weight: 400; }
+
+/* Status pills: Fiori object status (square-ish) */
+#app .cp-pill, #app .status-pill, #app .case__status { border-radius: 4px; font-size: 12px; }
+#app .avatar { background: #5d36ff1a; color: #5d36ff; }
+#app .tabs button { border-radius: 0; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--cap-muted); font-weight: 600; }
+#app .tabs button[aria-selected="true"] { background: transparent; color: var(--cap-primary); border-bottom-color: var(--cap-primary); }
+#app .tabs button[aria-selected="true"] em { background: var(--cap-primary-tint); color: var(--cap-primary); }
+#app .balances th[scope="row"] { font-size: 14px; color: var(--cap-ink-soft); border-bottom: 1px solid var(--cap-border-soft); }

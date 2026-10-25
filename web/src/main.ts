@@ -10,6 +10,8 @@ import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 import { definePreset } from '@primeuix/themes'
 import 'primeicons/primeicons.css'
+// SAP Fiori look under trial: delete this line to go back.
+import './shared/styles/fiori.css'
 
 // PrimeVue components follow the Capitra Navy theme (primary = blue instead of Aura's emerald).
 const CapitraPreset = definePreset(Aura, {
