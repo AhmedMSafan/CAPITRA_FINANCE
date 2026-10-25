@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Capitra.Infrastructure.Identity;
 
-/// <summary>SEC_ROLE: role. Permissions are granted as role claims (SEC_ROLE_CLAIM).</summary>
+/// <summary>SEC_ROLES: role. Permissions are granted as role claims (SEC_ROLE_CLAIMS).</summary>
 public class SecRole : IdentityRole, IAuditable
 {
     public SecRole()

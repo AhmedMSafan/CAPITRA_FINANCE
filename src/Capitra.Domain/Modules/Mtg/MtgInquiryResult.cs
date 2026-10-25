@@ -3,7 +3,7 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_INQUIRY_RESULT: one inquiry made about the portfolio or one of its parties and what came back
+/// MTG_INQUIRY_RESULTS: one inquiry made about the portfolio or one of its parties and what came back
 /// (APEX FNV_INQUIRY_RESULT, App 105 page 210).
 /// </summary>
 public class MtgInquiryResult : AuditableEntity
@@ -30,7 +30,7 @@ public class MtgInquiryResult : AuditableEntity
     /// <summary>Id of the portfolio, developer, project, investor, signatory or guarantee, by <see cref="SubjectTypeCode"/>.</summary>
     public long SubjectId { get; set; }
 
-    /// <summary>MTG_LKP_INQUIRY_TYPE code.</summary>
+    /// <summary>MTG_LKP_INQUIRY_TYPES code.</summary>
     public string InquiryTypeCode { get; set; } = string.Empty;
 
     public DateOnly? InquiryDate { get; set; }

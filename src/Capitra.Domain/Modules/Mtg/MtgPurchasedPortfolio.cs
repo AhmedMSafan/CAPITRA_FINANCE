@@ -3,10 +3,10 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_PORTFOLIO: a mortgage portfolio being bought from a developer (APEX FNV_PURSHASED_PORTFOLIO,
+/// MTG_PURCHASED_PORTFOLIOS: a mortgage portfolio being bought from a developer (APEX FNV_PURSHASED_PORTFOLIO,
 /// App 105 pages 201-203). Face value and outstanding are totals of its accounts, kept by the service.
 /// </summary>
-public class MtgPortfolio : AuditableEntity
+public class MtgPurchasedPortfolio : AuditableEntity
 {
     /// <summary>Status every new portfolio starts in.</summary>
     public const string DraftStatus = "DRAFT";
@@ -74,10 +74,10 @@ public class MtgPortfolio : AuditableEntity
 
     public DateOnly RequestDate { get; set; }
 
-    /// <summary>MTG_LKP_PORTFOLIO_STATUS code.</summary>
+    /// <summary>MTG_LKP_PORTFOLIO_STATUSES code.</summary>
     public string PortfolioStatusCode { get; set; } = DraftStatus;
 
-    /// <summary>ADM_LKP_CURRENCY code.</summary>
+    /// <summary>ADM_LKP_CURRENCIES code.</summary>
     public string CurrencyCode { get; set; } = string.Empty;
 
     public int? TermMonths { get; set; }

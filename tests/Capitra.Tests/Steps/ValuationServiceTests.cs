@@ -12,7 +12,7 @@ public sealed class ValuationServiceTests
     private sealed record Seeded(string Database, long PortfolioId, long ProjectId, long Unit1, long OtherProjectUnit);
 
     /// <summary>A portfolio whose legal review is accepted, its project with one unit, and another project's unit.</summary>
-    private static async Task<Seeded> SeedAsync(string status = MtgPortfolio.LegalReviewAcceptedStatus)
+    private static async Task<Seeded> SeedAsync(string status = MtgPurchasedPortfolio.LegalReviewAcceptedStatus)
     {
         var database = Guid.NewGuid().ToString();
         await using var db = StepTestDb.Create(database);
@@ -28,7 +28,7 @@ public sealed class ValuationServiceTests
         await db.SaveChangesAsync();
         var unit1 = new MtgProjectUnit { ProjectId = project.ProjectId, UnitCode = "U-1" };
         var otherUnit = new MtgProjectUnit { ProjectId = other.ProjectId, UnitCode = "X-1" };
-        var portfolio = new MtgPortfolio
+        var portfolio = new MtgPurchasedPortfolio
         {
             PortfolioNo = "PF-1", DeveloperId = developer.DeveloperId, ProjectId = project.ProjectId,
             RequestDate = new DateOnly(2026, 10, 1), CurrencyCode = "EGP", PortfolioStatusCode = status,
@@ -102,9 +102,9 @@ public sealed class ValuationServiceTests
         // A missing recommended value does not block completion, as in APEX.
         await service.CreateAsync(s.PortfolioId, Valuation(recommended: null), default);
         var step = await service.CompleteAsync(s.PortfolioId, new CompleteValuationRequest("  "), default);
-        Assert.Equal(MtgPortfolio.ValuationCompletedStatus, step.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.ValuationCompletedStatus, step.PortfolioStatusCode);
         Assert.False(step.IsOpen);
-        Assert.Equal("Valuation step completed.", (await db.Set<MtgPortfolioStatusHistory>().SingleAsync()).Comments);
+        Assert.Equal("Valuation step completed.", (await db.Set<MtgPurchasedPortfolioStatusHistory>().SingleAsync()).Comments);
 
         await Assert.ThrowsAsync<ConflictException>(() => service.CreateAsync(s.PortfolioId, Valuation(), default));
     }
@@ -112,7 +112,7 @@ public sealed class ValuationServiceTests
     [Fact]
     public async Task The_step_is_closed_before_the_legal_review_is_accepted()
     {
-        var s = await SeedAsync(MtgPortfolio.LegalReviewRejectedStatus);
+        var s = await SeedAsync(MtgPurchasedPortfolio.LegalReviewRejectedStatus);
         await using var db = StepTestDb.Create(s.Database);
 
         Assert.False((await Service(db).GetAsync(s.PortfolioId, default)).IsOpen);

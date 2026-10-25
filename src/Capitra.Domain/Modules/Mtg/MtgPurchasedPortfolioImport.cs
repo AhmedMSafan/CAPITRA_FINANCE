@@ -3,10 +3,10 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_PORTFOLIO_IMPORT: the seller workbook of a portfolio and the result of its last validation
+/// MTG_PURCHASED_PORTFOLIO_IMPORTS: the seller workbook of a portfolio and the result of its last validation
 /// (APEX MTG_PORTFOLIO_EXCEL_STAGING, App 105 page 208). One row per portfolio.
 /// </summary>
-public class MtgPortfolioImport : AuditableEntity
+public class MtgPurchasedPortfolioImport : AuditableEntity
 {
     public const string ValidatedStatus = "VALIDATED";
     public const string ErrorStatus = "ERROR";

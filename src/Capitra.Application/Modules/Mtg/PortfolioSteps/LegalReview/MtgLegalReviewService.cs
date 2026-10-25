@@ -91,12 +91,12 @@ public sealed class MtgLegalReviewService(ICapitraDbContext db) : IMtgLegalRevie
     /// Open after the inquiries step is completed, and after its own rejection so the review can be redone.
     /// The workflow engine (build step 4) will open it through a legal review task instead.
     /// </summary>
-    private static readonly string[] OpenStatuses = [MtgPortfolio.InquiryAcceptedStatus, MtgPortfolio.LegalReviewRejectedStatus];
+    private static readonly string[] OpenStatuses = [MtgPurchasedPortfolio.InquiryAcceptedStatus, MtgPurchasedPortfolio.LegalReviewRejectedStatus];
 
     public async Task<LegalReviewDto> GetAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var header = await (
-            from p in db.Set<MtgPortfolio>()
+            from p in db.Set<MtgPurchasedPortfolio>()
             join d in db.Set<MtgDeveloper>() on p.DeveloperId equals d.DeveloperId
             join prj in db.Set<MtgProject>() on p.ProjectId equals prj.ProjectId
             join s in db.Set<MtgLkpPortfolioStatus>() on p.PortfolioStatusCode equals s.Code into statuses
@@ -114,7 +114,7 @@ public sealed class MtgLegalReviewService(ICapitraDbContext db) : IMtgLegalRevie
             .FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
 
         var accounts = await (
-            from a in db.Set<MtgPortfolioAccount>()
+            from a in db.Set<MtgPurchasedPortfolioAccount>()
             join i in db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
             join u in db.Set<MtgProjectUnit>() on a.ProjectUnitId equals u.ProjectUnitId into units
             from u in units.DefaultIfEmpty()
@@ -199,7 +199,7 @@ public sealed class MtgLegalReviewService(ICapitraDbContext db) : IMtgLegalRevie
 
         if (action == RejectAction)
         {
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.LegalReviewRejectedStatus,
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.LegalReviewRejectedStatus,
                 comment ?? "Legal Review rejected.", cancellationToken);
         }
         else
@@ -207,13 +207,13 @@ public sealed class MtgLegalReviewService(ICapitraDbContext db) : IMtgLegalRevie
             var review = await db.Set<MtgLegalReview>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
             if (review is null || !review.IsComplete)
                 throw new ConflictException("Legal Review cannot be accepted until all six legal checks are Yes and both Review Date and Approved Date are completed.");
-            if (await db.Set<MtgPortfolioAccount>().AnyAsync(x => x.PortfolioId == portfolioId
-                    && x.DealDecisionCode != MtgPortfolioAccount.SelectedDecision
-                    && x.DealDecisionCode != MtgPortfolioAccount.ExcludedDecision, cancellationToken))
+            if (await db.Set<MtgPurchasedPortfolioAccount>().AnyAsync(x => x.PortfolioId == portfolioId
+                    && x.DealDecisionCode != MtgPurchasedPortfolioAccount.SelectedDecision
+                    && x.DealDecisionCode != MtgPurchasedPortfolioAccount.ExcludedDecision, cancellationToken))
                 throw new ConflictException("Every investor must be either Selected or Excluded before Legal Review can be accepted.");
 
             await PortfolioTotals.RecalculateSelectedAsync(db, portfolioId, cancellationToken);
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.LegalReviewAcceptedStatus,
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.LegalReviewAcceptedStatus,
                 comment ?? "Legal Review accepted.", cancellationToken);
         }
 

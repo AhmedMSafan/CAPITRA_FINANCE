@@ -13,7 +13,7 @@ public sealed class AmlReviewServiceTests
     private sealed record Seeded(string Database, long PortfolioId, long DeveloperId, long Investor1, long Investor2, long Account1, long Account2);
 
     /// <summary>A portfolio whose data is loaded: two investors, one contract each, no deal decisions yet.</summary>
-    private static async Task<Seeded> SeedAsync(string status = MtgPortfolio.DataLoadingCompletedStatus)
+    private static async Task<Seeded> SeedAsync(string status = MtgPurchasedPortfolio.DataLoadingCompletedStatus)
     {
         var database = Guid.NewGuid().ToString();
         await using var db = StepTestDb.Create(database);
@@ -28,19 +28,19 @@ public sealed class AmlReviewServiceTests
         await db.SaveChangesAsync();
         var unit1 = new MtgProjectUnit { ProjectId = project.ProjectId, UnitCode = "U-1" };
         var unit2 = new MtgProjectUnit { ProjectId = project.ProjectId, UnitCode = "U-2" };
-        var portfolio = new MtgPortfolio
+        var portfolio = new MtgPurchasedPortfolio
         {
             PortfolioNo = "PF-1", DeveloperId = developer.DeveloperId, ProjectId = project.ProjectId,
             RequestDate = new DateOnly(2026, 10, 1), CurrencyCode = "EGP", PortfolioStatusCode = status
         };
         db.AddRange(unit1, unit2, portfolio);
         await db.SaveChangesAsync();
-        var account1 = new MtgPortfolioAccount
+        var account1 = new MtgPurchasedPortfolioAccount
         {
             PortfolioId = portfolio.PortfolioId, InvestorId = investor1.InvestorId, ProjectUnitId = unit1.ProjectUnitId,
             ContractAmount = 1000, PaidAmount = 200, OutstandingAmount = 800
         };
-        var account2 = new MtgPortfolioAccount
+        var account2 = new MtgPurchasedPortfolioAccount
         {
             PortfolioId = portfolio.PortfolioId, InvestorId = investor2.InvestorId, ProjectUnitId = unit2.ProjectUnitId,
             ContractAmount = 3000, PaidAmount = 1000, OutstandingAmount = 2000
@@ -78,22 +78,22 @@ public sealed class AmlReviewServiceTests
 
         await service.SaveDealDecisionsAsync(s.PortfolioId, new SaveDealDecisionsRequest(
         [
-            new DealDecisionItem(s.Account1, MtgPortfolioAccount.SelectedDecision),
-            new DealDecisionItem(s.Account2, MtgPortfolioAccount.ExcludedDecision)
+            new DealDecisionItem(s.Account1, MtgPurchasedPortfolioAccount.SelectedDecision),
+            new DealDecisionItem(s.Account2, MtgPurchasedPortfolioAccount.ExcludedDecision)
         ]), default);
 
         var review = await service.DecideAsync(s.PortfolioId, accept, default);
-        Assert.Equal(MtgPortfolio.AmlAcceptedStatus, review.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.AmlAcceptedStatus, review.PortfolioStatusCode);
         Assert.False(review.IsOpen);
         Assert.Equal("POTENTIAL_MATCH", review.Accounts.Single(a => a.PortfolioAccountId == s.Account2).AmlStatusCode);
         Assert.Equal("Developer One", review.Results.Single(r => r.SubjectTypeCode == "DEVELOPER").SubjectName);
 
-        var portfolio = await db.Set<MtgPortfolio>().AsNoTracking().SingleAsync();
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().AsNoTracking().SingleAsync();
         Assert.Equal(1, portfolio.SelectedAccountCount);
         Assert.Equal(1000m, portfolio.SelectedFaceValueAmount);
         Assert.Equal(800m, portfolio.SelectedOutstandingAmount);
         Assert.Equal(200m, portfolio.SelectedPaidAmount);
-        var history = await db.Set<MtgPortfolioStatusHistory>().SingleAsync();
+        var history = await db.Set<MtgPurchasedPortfolioStatusHistory>().SingleAsync();
         Assert.Equal("All clear.", history.Comments);
 
         // Once accepted the step is closed.
@@ -112,7 +112,7 @@ public sealed class AmlReviewServiceTests
         Assert.Equal("A comment is required for both AML Accept and Reject.", missing.Errors["Comment"][0]);
 
         var review = await service.DecideAsync(s.PortfolioId, new AmlDecisionRequest("REJECT", "Investor on sanctions list."), default);
-        Assert.Equal(MtgPortfolio.AmlRejectedStatus, review.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.AmlRejectedStatus, review.PortfolioStatusCode);
         Assert.Equal("Investor on sanctions list.", review.RejectionReason);
         Assert.True(review.IsOpen);
     }
@@ -140,7 +140,7 @@ public sealed class AmlReviewServiceTests
     [Fact]
     public async Task The_step_is_closed_before_the_data_is_loaded()
     {
-        var s = await SeedAsync(MtgPortfolio.DraftStatus);
+        var s = await SeedAsync(MtgPurchasedPortfolio.DraftStatus);
         await using var db = StepTestDb.Create(s.Database);
 
         Assert.False((await Service(db).GetAsync(s.PortfolioId, default)).IsOpen);

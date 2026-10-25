@@ -13,13 +13,13 @@ internal static class PortfolioTotals
 {
     public static async Task RecalculateAsync(ICapitraDbContext db, long portfolioId, CancellationToken cancellationToken)
     {
-        var totals = await db.Set<MtgPortfolioAccount>()
+        var totals = await db.Set<MtgPurchasedPortfolioAccount>()
             .Where(x => x.PortfolioId == portfolioId)
             .GroupBy(x => x.PortfolioId)
             .Select(g => new { Contract = g.Sum(x => x.ContractAmount), Outstanding = g.Sum(x => x.OutstandingAmount) })
             .FirstOrDefaultAsync(cancellationToken);
 
-        var portfolio = await db.Set<MtgPortfolio>().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
         portfolio.FaceValueAmount = totals?.Contract ?? 0;
         portfolio.OutstandingAmount = totals?.Outstanding ?? 0;
         await db.SaveChangesAsync(cancellationToken);
@@ -28,8 +28,8 @@ internal static class PortfolioTotals
     /// <summary>Count and totals of the accounts kept in the deal (deal decision SELECTED).</summary>
     public static async Task RecalculateSelectedAsync(ICapitraDbContext db, long portfolioId, CancellationToken cancellationToken)
     {
-        var selected = await db.Set<MtgPortfolioAccount>()
-            .Where(x => x.PortfolioId == portfolioId && x.DealDecisionCode == MtgPortfolioAccount.SelectedDecision)
+        var selected = await db.Set<MtgPurchasedPortfolioAccount>()
+            .Where(x => x.PortfolioId == portfolioId && x.DealDecisionCode == MtgPurchasedPortfolioAccount.SelectedDecision)
             .GroupBy(x => x.PortfolioId)
             .Select(g => new
             {
@@ -40,7 +40,7 @@ internal static class PortfolioTotals
             })
             .FirstOrDefaultAsync(cancellationToken);
 
-        var portfolio = await db.Set<MtgPortfolio>().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
         portfolio.SelectedAccountCount = selected?.Count ?? 0;
         portfolio.SelectedFaceValueAmount = selected?.Face ?? 0;
         portfolio.SelectedOutstandingAmount = selected?.Outstanding ?? 0;

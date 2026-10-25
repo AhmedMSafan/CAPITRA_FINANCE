@@ -4,5 +4,5 @@ namespace Capitra.Infrastructure.Persistence.Configurations.Adm;
 
 public sealed class AdmLkpDecisionTypeConfiguration : LookupConfiguration<AdmLkpDecisionType>
 {
-    protected override string TableName => "ADM_LKP_DECISION_TYPE";
+    protected override string TableName => "ADM_LKP_DECISION_TYPES";
 }

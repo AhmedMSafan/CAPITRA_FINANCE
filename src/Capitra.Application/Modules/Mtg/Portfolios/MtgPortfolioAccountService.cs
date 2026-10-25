@@ -57,7 +57,7 @@ public interface IMtgPortfolioAccountService : ICrudService<PortfolioAccountDto,
 /// as the page's "Recalculate Portfolio" process does.
 /// </summary>
 public sealed class MtgPortfolioAccountService(ICapitraDbContext db)
-    : CrudService<MtgPortfolioAccount, PortfolioAccountDto, SavePortfolioAccountRequest>(db), IMtgPortfolioAccountService
+    : CrudService<MtgPurchasedPortfolioAccount, PortfolioAccountDto, SavePortfolioAccountRequest>(db), IMtgPortfolioAccountService
 {
     private const decimal MaxAmount = 9_999_999_999_999_999m;
 
@@ -66,11 +66,11 @@ public sealed class MtgPortfolioAccountService(ICapitraDbContext db)
     public Task<IReadOnlyList<PortfolioAccountDto>> ListAsync(long portfolioId, CancellationToken cancellationToken) =>
         ListAsync(x => x.PortfolioId == portfolioId, cancellationToken);
 
-    protected override long IdOf(MtgPortfolioAccount entity) => entity.PortfolioAccountId;
+    protected override long IdOf(MtgPurchasedPortfolioAccount entity) => entity.PortfolioAccountId;
 
-    protected override Expression<Func<MtgPortfolioAccount, bool>> HasId(long id) => x => x.PortfolioAccountId == id;
+    protected override Expression<Func<MtgPurchasedPortfolioAccount, bool>> HasId(long id) => x => x.PortfolioAccountId == id;
 
-    protected override IQueryable<PortfolioAccountDto> Project(IQueryable<MtgPortfolioAccount> rows) =>
+    protected override IQueryable<PortfolioAccountDto> Project(IQueryable<MtgPurchasedPortfolioAccount> rows) =>
         from a in rows
         join i in Db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
         join u in Db.Set<MtgProjectUnit>() on a.ProjectUnitId equals u.ProjectUnitId
@@ -81,7 +81,7 @@ public sealed class MtgPortfolioAccountService(ICapitraDbContext db)
             a.InstallmentFrequency, a.LastPaymentDate, a.RegularPaymentMonths, a.ArrearsAmount, a.AccountStatus, a.RowVersion);
 
     protected override async Task ValidateAsync(
-        SavePortfolioAccountRequest r, MtgPortfolioAccount? existing, ValidationErrors errors, CancellationToken cancellationToken)
+        SavePortfolioAccountRequest r, MtgPurchasedPortfolioAccount? existing, ValidationErrors errors, CancellationToken cancellationToken)
     {
         errors.Text(nameof(r.InstallmentFrequency), "Installment Frequency", r.InstallmentFrequency, 30);
         errors.Text(nameof(r.AccountStatus), "Account Status", r.AccountStatus, 30);
@@ -99,7 +99,7 @@ public sealed class MtgPortfolioAccountService(ICapitraDbContext db)
         if (existing is not null && existing.PortfolioId != r.PortfolioId)
             errors.Add(nameof(r.PortfolioId), "An account cannot be moved to another portfolio.");
 
-        var projectId = await Db.Set<MtgPortfolio>()
+        var projectId = await Db.Set<MtgPurchasedPortfolio>()
             .Where(x => x.PortfolioId == r.PortfolioId)
             .Select(x => (long?)x.ProjectId)
             .FirstOrDefaultAsync(cancellationToken);
@@ -121,7 +121,7 @@ public sealed class MtgPortfolioAccountService(ICapitraDbContext db)
             errors.Add(nameof(r.ProjectUnitId), "Select an active unit of the portfolio's project.");
     }
 
-    protected override void Apply(MtgPortfolioAccount e, SavePortfolioAccountRequest r)
+    protected override void Apply(MtgPurchasedPortfolioAccount e, SavePortfolioAccountRequest r)
     {
         e.PortfolioId = r.PortfolioId;
         e.InvestorId = r.InvestorId;
@@ -139,13 +139,13 @@ public sealed class MtgPortfolioAccountService(ICapitraDbContext db)
         e.AccountStatus = MasterDataRules.Clean(r.AccountStatus);
     }
 
-    protected override async Task BeforeDeleteAsync(MtgPortfolioAccount entity, CancellationToken cancellationToken)
+    protected override async Task BeforeDeleteAsync(MtgPurchasedPortfolioAccount entity, CancellationToken cancellationToken)
     {
         if (await Db.Set<MtgAccountPayment>().AnyAsync(x => x.PortfolioAccountId == entity.PortfolioAccountId, cancellationToken))
             throw new ConflictException("This account has payment history. Delete its payments first.");
     }
 
-    protected override Task AfterChangeAsync(MtgPortfolioAccount entity, CancellationToken cancellationToken) =>
+    protected override Task AfterChangeAsync(MtgPurchasedPortfolioAccount entity, CancellationToken cancellationToken) =>
         PortfolioTotals.RecalculateAsync(Db, entity.PortfolioId, cancellationToken);
 
     private static void Amount(ValidationErrors errors, string field, string label, decimal? value, bool required)

@@ -74,18 +74,18 @@ public interface IMtgPortfolioService : ICrudService<PortfolioDto, SavePortfolio
 /// Delete Draft Portfolio, and FNV_PURSHASED_PORTFOLIO_PKG.create_portfolio), plus the rates and fees of page 203.
 /// </summary>
 public sealed class MtgPortfolioService(ICapitraDbContext db)
-    : CrudService<MtgPortfolio, PortfolioDto, SavePortfolioRequest>(db), IMtgPortfolioService
+    : CrudService<MtgPurchasedPortfolio, PortfolioDto, SavePortfolioRequest>(db), IMtgPortfolioService
 {
     private const decimal MaxAmount = 9_999_999_999_999_999m;
     private const decimal MaxPct = 999.999999m;
 
     protected override string Title => "Portfolio";
 
-    protected override long IdOf(MtgPortfolio entity) => entity.PortfolioId;
+    protected override long IdOf(MtgPurchasedPortfolio entity) => entity.PortfolioId;
 
-    protected override Expression<Func<MtgPortfolio, bool>> HasId(long id) => x => x.PortfolioId == id;
+    protected override Expression<Func<MtgPurchasedPortfolio, bool>> HasId(long id) => x => x.PortfolioId == id;
 
-    protected override IQueryable<PortfolioDto> Project(IQueryable<MtgPortfolio> rows) =>
+    protected override IQueryable<PortfolioDto> Project(IQueryable<MtgPurchasedPortfolio> rows) =>
         from p in rows
         join d in Db.Set<MtgDeveloper>() on p.DeveloperId equals d.DeveloperId
         join j in Db.Set<MtgProject>() on p.ProjectId equals j.ProjectId
@@ -95,10 +95,10 @@ public sealed class MtgPortfolioService(ICapitraDbContext db)
             j.ProjectNameEn ?? j.ProjectNameAr, p.RequestDate, p.PortfolioStatusCode, s.NameEn, p.CurrencyCode, p.TermMonths,
             p.Comments, p.CoveragePct, p.ReservedAmountPct, p.PvRate, p.LateFeeRate, p.MarginPct, p.AdminExpensePct,
             p.LegalFeePerUnitAmount, p.ValuationFeePerUnitAmount,
-            Db.Set<MtgPortfolioAccount>().Count(a => a.PortfolioId == p.PortfolioId), p.RowVersion);
+            Db.Set<MtgPurchasedPortfolioAccount>().Count(a => a.PortfolioId == p.PortfolioId), p.RowVersion);
 
     protected override async Task ValidateAsync(
-        SavePortfolioRequest r, MtgPortfolio? existing, ValidationErrors errors, CancellationToken cancellationToken)
+        SavePortfolioRequest r, MtgPurchasedPortfolio? existing, ValidationErrors errors, CancellationToken cancellationToken)
     {
         var no = errors.Text(nameof(r.PortfolioNo), "Portfolio No.", r.PortfolioNo, 30, required: true);
         errors.Text(nameof(r.Comments), "Comments", r.Comments, 4000);
@@ -142,14 +142,14 @@ public sealed class MtgPortfolioService(ICapitraDbContext db)
 
         if (existing is not null
             && (existing.DeveloperId != r.DeveloperId || existing.ProjectId != r.ProjectId)
-            && await Db.Set<MtgPortfolioAccount>().AnyAsync(x => x.PortfolioId == existing.PortfolioId, cancellationToken))
+            && await Db.Set<MtgPurchasedPortfolioAccount>().AnyAsync(x => x.PortfolioId == existing.PortfolioId, cancellationToken))
             errors.Add(nameof(r.ProjectId), "Developer/Project cannot be changed after portfolio accounts exist.");
 
-        if (existing is null && !await Db.Set<MtgLkpPortfolioStatus>().AnyAsync(x => x.Code == MtgPortfolio.DraftStatus, cancellationToken))
-            errors.Add(nameof(r.PortfolioNo), $"Portfolio status {MtgPortfolio.DraftStatus} is missing from the reference data.");
+        if (existing is null && !await Db.Set<MtgLkpPortfolioStatus>().AnyAsync(x => x.Code == MtgPurchasedPortfolio.DraftStatus, cancellationToken))
+            errors.Add(nameof(r.PortfolioNo), $"Portfolio status {MtgPurchasedPortfolio.DraftStatus} is missing from the reference data.");
     }
 
-    protected override void Apply(MtgPortfolio e, SavePortfolioRequest r)
+    protected override void Apply(MtgPurchasedPortfolio e, SavePortfolioRequest r)
     {
         e.PortfolioNo = r.PortfolioNo.Trim();
         e.DeveloperId = r.DeveloperId;
@@ -169,33 +169,33 @@ public sealed class MtgPortfolioService(ICapitraDbContext db)
         e.ValuationFeePerUnitAmount = r.ValuationFeePerUnitAmount;
     }
 
-    protected override async Task AfterCreateAsync(MtgPortfolio entity, CancellationToken cancellationToken)
+    protected override async Task AfterCreateAsync(MtgPurchasedPortfolio entity, CancellationToken cancellationToken)
     {
-        Db.Add(new MtgPortfolioStatusHistory
+        Db.Add(new MtgPurchasedPortfolioStatusHistory
         {
             PortfolioId = entity.PortfolioId,
             FromStatusCode = null,
-            ToStatusCode = MtgPortfolio.DraftStatus,
+            ToStatusCode = MtgPurchasedPortfolio.DraftStatus,
             Comments = "Portfolio created"
         });
         await Db.SaveChangesAsync(cancellationToken);
     }
 
-    protected override async Task BeforeDeleteAsync(MtgPortfolio entity, CancellationToken cancellationToken)
+    protected override async Task BeforeDeleteAsync(MtgPurchasedPortfolio entity, CancellationToken cancellationToken)
     {
-        if (entity.PortfolioStatusCode != MtgPortfolio.DraftStatus)
+        if (entity.PortfolioStatusCode != MtgPurchasedPortfolio.DraftStatus)
             throw new ConflictException("Only draft portfolios can be deleted.");
-        if (await Db.Set<MtgPortfolioAccount>().AnyAsync(x => x.PortfolioId == entity.PortfolioId, cancellationToken))
+        if (await Db.Set<MtgPurchasedPortfolioAccount>().AnyAsync(x => x.PortfolioId == entity.PortfolioId, cancellationToken))
             throw new ConflictException("Remove portfolio accounts before deleting the portfolio.");
 
-        await Db.Set<MtgPortfolioStatusHistory>().Where(x => x.PortfolioId == entity.PortfolioId).ExecuteDeleteAsync(cancellationToken);
+        await Db.Set<MtgPurchasedPortfolioStatusHistory>().Where(x => x.PortfolioId == entity.PortfolioId).ExecuteDeleteAsync(cancellationToken);
     }
 
     public async Task<PortfolioDto> SaveFinancialTermsAsync(
         long portfolioId, SaveFinancialTermsRequest request, CancellationToken cancellationToken)
     {
         var r = request;
-        var entity = await Db.Set<MtgPortfolio>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken)
+        var entity = await Db.Set<MtgPurchasedPortfolio>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken)
                      ?? throw new NotFoundException($"Portfolio {portfolioId} was not found.");
 
         var errors = new ValidationErrors();

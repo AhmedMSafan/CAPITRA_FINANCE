@@ -107,7 +107,7 @@ public sealed class MtgPortfolioQueryService(
 
     public async Task<IReadOnlyList<PortfolioCaseDto>> ListCasesAsync(long? developerId, CancellationToken cancellationToken)
     {
-        var portfolios = db.Set<MtgPortfolio>().AsNoTracking();
+        var portfolios = db.Set<MtgPurchasedPortfolio>().AsNoTracking();
         if (developerId is { } id)
             portfolios = portfolios.Where(x => x.DeveloperId == id);
 
@@ -122,8 +122,8 @@ public sealed class MtgPortfolioQueryService(
                 p.PortfolioId, p.PortfolioNo, p.PortfolioStatusCode, StatusEn = s.NameEn, StatusAr = s.NameAr, s.DisplayOrder,
                 p.DeveloperId, Developer = d.LegalNameEn ?? d.LegalNameAr, Project = j.ProjectNameEn ?? j.ProjectNameAr,
                 p.RequestDate, p.CurrencyCode, p.FaceValueAmount, p.OutstandingAmount,
-                Accounts = db.Set<MtgPortfolioAccount>().Count(a => a.PortfolioId == p.PortfolioId),
-                Arrears = db.Set<MtgPortfolioAccount>().Where(a => a.PortfolioId == p.PortfolioId).Sum(a => (decimal?)a.ArrearsAmount) ?? 0
+                Accounts = db.Set<MtgPurchasedPortfolioAccount>().Count(a => a.PortfolioId == p.PortfolioId),
+                Arrears = db.Set<MtgPurchasedPortfolioAccount>().Where(a => a.PortfolioId == p.PortfolioId).Sum(a => (decimal?)a.ArrearsAmount) ?? 0
             })
             .Take(BoardLimit)
             .ToListAsync(cancellationToken);
@@ -139,7 +139,7 @@ public sealed class MtgPortfolioQueryService(
     public async Task<PortfolioWorkspaceDto> GetWorkspaceAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var portfolio = await portfolios.GetAsync(portfolioId, cancellationToken);
-        var entity = await db.Set<MtgPortfolio>().AsNoTracking().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
+        var entity = await db.Set<MtgPurchasedPortfolio>().AsNoTracking().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
         var accountRows = await accounts.ListAsync(portfolioId, cancellationToken);
 
         var project = await (
@@ -156,7 +156,7 @@ public sealed class MtgPortfolioQueryService(
 
         // Investors tab: one row per investor, largest outstanding first (page 203, region Portfolio Details).
         var investors = await (
-                from a in db.Set<MtgPortfolioAccount>()
+                from a in db.Set<MtgPurchasedPortfolioAccount>()
                 join i in db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
                 where a.PortfolioId == portfolioId
                 group a by new { i.InvestorId, i.InvestorCode, i.FullNameEn, i.FullNameAr, i.NationalIdNo } into g
@@ -167,7 +167,7 @@ public sealed class MtgPortfolioQueryService(
         investors = [.. investors.OrderByDescending(x => x.OutstandingAmount).ThenBy(x => x.InvestorCode, StringComparer.Ordinal)];
 
         var units = await (
-                from a in db.Set<MtgPortfolioAccount>()
+                from a in db.Set<MtgPurchasedPortfolioAccount>()
                 join u in db.Set<MtgProjectUnit>() on a.ProjectUnitId equals u.ProjectUnitId
                 join i in db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
                 join t in db.Set<MtgLkpUnitType>() on u.UnitTypeCode equals t.Code into types
@@ -179,7 +179,7 @@ public sealed class MtgPortfolioQueryService(
             .ToListAsync(cancellationToken);
 
         var history = await (
-                from h in db.Set<MtgPortfolioStatusHistory>()
+                from h in db.Set<MtgPurchasedPortfolioStatusHistory>()
                 join f in db.Set<MtgLkpPortfolioStatus>() on h.FromStatusCode equals f.Code into fromStatuses
                 from f in fromStatuses.DefaultIfEmpty()
                 join t in db.Set<MtgLkpPortfolioStatus>() on h.ToStatusCode equals t.Code into toStatuses

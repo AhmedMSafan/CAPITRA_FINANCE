@@ -103,12 +103,12 @@ public sealed class MtgChequeCoverageService(ICapitraDbContext db) : IMtgChequeC
     /// Open after the coverage review is accepted, and after its own rejection so the review can be redone.
     /// The workflow engine (build step 4) will open it through a cheque coverage task instead.
     /// </summary>
-    private static readonly string[] OpenStatuses = [MtgPortfolio.CoverageReviewAcceptedStatus, MtgPortfolio.ChequeCoverageRejectedStatus];
+    private static readonly string[] OpenStatuses = [MtgPurchasedPortfolio.CoverageReviewAcceptedStatus, MtgPurchasedPortfolio.ChequeCoverageRejectedStatus];
 
     public async Task<ChequeCoverageDto> GetAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var header = await (
-            from p in db.Set<MtgPortfolio>()
+            from p in db.Set<MtgPurchasedPortfolio>()
             join prj in db.Set<MtgProject>() on p.ProjectId equals prj.ProjectId
             join s in db.Set<MtgLkpPortfolioStatus>() on p.PortfolioStatusCode equals s.Code into statuses
             from s in statuses.DefaultIfEmpty()
@@ -121,11 +121,11 @@ public sealed class MtgChequeCoverageService(ICapitraDbContext db) : IMtgChequeC
             ?? throw new NotFoundException($"Portfolio {portfolioId} was not found.");
 
         var accounts = await (
-            from a in db.Set<MtgPortfolioAccount>()
+            from a in db.Set<MtgPurchasedPortfolioAccount>()
             join i in db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
             join u in db.Set<MtgProjectUnit>() on a.ProjectUnitId equals u.ProjectUnitId into units
             from u in units.DefaultIfEmpty()
-            where a.PortfolioId == portfolioId && a.DealDecisionCode != MtgPortfolioAccount.ExcludedDecision
+            where a.PortfolioId == portfolioId && a.DealDecisionCode != MtgPurchasedPortfolioAccount.ExcludedDecision
             orderby i.InvestorCode, a.PortfolioAccountId
             select new
             {
@@ -169,7 +169,7 @@ public sealed class MtgChequeCoverageService(ICapitraDbContext db) : IMtgChequeC
     public async Task<ChequeDto> CreateAsync(long portfolioId, SaveChequeRequest request, CancellationToken cancellationToken)
     {
         await PortfolioStatus.RequireAsync(db, portfolioId, StepName, OpenStatuses, cancellationToken);
-        var entity = new MtgPortfolioCheque { PortfolioId = portfolioId };
+        var entity = new MtgPurchasedPortfolioCheque { PortfolioId = portfolioId };
         await ApplyAsync(entity, request, cancellationToken);
         db.Add(entity);
         await db.SaveChangesAsync(cancellationToken);
@@ -217,7 +217,7 @@ public sealed class MtgChequeCoverageService(ICapitraDbContext db) : IMtgChequeC
         if (action == RejectAction)
         {
             portfolio.RejectionReason = comment;
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.ChequeCoverageRejectedStatus, comment, cancellationToken);
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.ChequeCoverageRejectedStatus, comment, cancellationToken);
         }
         else
         {
@@ -234,19 +234,19 @@ public sealed class MtgChequeCoverageService(ICapitraDbContext db) : IMtgChequeC
                     $"Total cheques ({cheques.ToString("N2", CultureInfo.InvariantCulture)}) do not cover the portfolio outstanding ({outstanding.ToString("N2", CultureInfo.InvariantCulture)}).");
 
             portfolio.RejectionReason = null;
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.ChequeCoverageAcceptedStatus, comment, cancellationToken);
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.ChequeCoverageAcceptedStatus, comment, cancellationToken);
         }
 
         await transaction.CommitAsync(cancellationToken);
         return await GetAsync(portfolioId, cancellationToken);
     }
 
-    private async Task ApplyAsync(MtgPortfolioCheque entity, SaveChequeRequest r, CancellationToken cancellationToken)
+    private async Task ApplyAsync(MtgPurchasedPortfolioCheque entity, SaveChequeRequest r, CancellationToken cancellationToken)
     {
         var errors = new ValidationErrors();
 
-        if (!await db.Set<MtgPortfolioAccount>().AnyAsync(x => x.PortfolioAccountId == r.PortfolioAccountId
-                && x.PortfolioId == entity.PortfolioId && x.DealDecisionCode != MtgPortfolioAccount.ExcludedDecision, cancellationToken))
+        if (!await db.Set<MtgPurchasedPortfolioAccount>().AnyAsync(x => x.PortfolioAccountId == r.PortfolioAccountId
+                && x.PortfolioId == entity.PortfolioId && x.DealDecisionCode != MtgPurchasedPortfolioAccount.ExcludedDecision, cancellationToken))
             errors.Add(nameof(r.PortfolioAccountId), "Choose a contract of an investor who is included in the deal.");
 
         var chequeNo = errors.Text(nameof(r.ChequeNo), "Cheque No.", r.ChequeNo, 100, required: true);
@@ -256,7 +256,7 @@ public sealed class MtgChequeCoverageService(ICapitraDbContext db) : IMtgChequeC
         if (r.DueDate is null)
             errors.Add(nameof(r.DueDate), "Due Date is required.");
 
-        var status = string.IsNullOrWhiteSpace(r.ChequeStatusCode) ? MtgPortfolioCheque.PendingStatus : r.ChequeStatusCode.Trim().ToUpperInvariant();
+        var status = string.IsNullOrWhiteSpace(r.ChequeStatusCode) ? MtgPurchasedPortfolioCheque.PendingStatus : r.ChequeStatusCode.Trim().ToUpperInvariant();
         if (status != entity.ChequeStatusCode || entity.ChequeId == 0)
         {
             if (!await db.Set<AdmLkpChequeStatus>().AnyAsync(x => x.Code == status && x.IsActive, cancellationToken))
@@ -278,15 +278,15 @@ public sealed class MtgChequeCoverageService(ICapitraDbContext db) : IMtgChequeC
         entity.ReturnReason = returnReason;
     }
 
-    private async Task<MtgPortfolioCheque> FindAsync(long portfolioId, long chequeId, CancellationToken cancellationToken) =>
-        await db.Set<MtgPortfolioCheque>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId && x.ChequeId == chequeId, cancellationToken)
+    private async Task<MtgPurchasedPortfolioCheque> FindAsync(long portfolioId, long chequeId, CancellationToken cancellationToken) =>
+        await db.Set<MtgPurchasedPortfolioCheque>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId && x.ChequeId == chequeId, cancellationToken)
         ?? throw new NotFoundException("This cheque was not found in the portfolio.");
 
     /// <summary>The portfolio's cheques by due date; or just one of them.</summary>
     private async Task<IReadOnlyList<ChequeDto>> ChequesAsync(long portfolioId, long? chequeId, CancellationToken cancellationToken) =>
         await (
-            from c in db.Set<MtgPortfolioCheque>()
-            join a in db.Set<MtgPortfolioAccount>() on c.PortfolioAccountId equals a.PortfolioAccountId
+            from c in db.Set<MtgPurchasedPortfolioCheque>()
+            join a in db.Set<MtgPurchasedPortfolioAccount>() on c.PortfolioAccountId equals a.PortfolioAccountId
             join u in db.Set<MtgProjectUnit>() on a.ProjectUnitId equals u.ProjectUnitId into units
             from u in units.DefaultIfEmpty()
             join s in db.Set<AdmLkpChequeStatus>() on c.ChequeStatusCode equals s.Code into statuses

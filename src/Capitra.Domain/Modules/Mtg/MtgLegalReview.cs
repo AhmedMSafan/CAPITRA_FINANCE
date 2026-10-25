@@ -3,7 +3,7 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_LEGAL_REVIEW: the legal checklist, findings and sign-off for a portfolio, one per portfolio
+/// MTG_LEGAL_REVIEWS: the legal checklist, findings and sign-off for a portfolio, one per portfolio
 /// (APEX FNV_LEGAL_REVIEW, App 105 page 211).
 /// </summary>
 public class MtgLegalReview : AuditableEntity

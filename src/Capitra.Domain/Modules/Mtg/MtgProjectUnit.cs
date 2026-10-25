@@ -2,7 +2,7 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Mtg;
 
-/// <summary>MTG_PROJECT_UNIT: a unit inside a project (APEX App 105 pages 107/108).</summary>
+/// <summary>MTG_PROJECT_UNITS: a unit inside a project (APEX App 105 pages 107/108).</summary>
 public class MtgProjectUnit : AuditableEntity
 {
     public long ProjectUnitId { get; set; }
@@ -11,7 +11,7 @@ public class MtgProjectUnit : AuditableEntity
 
     public string UnitCode { get; set; } = string.Empty;
 
-    /// <summary>MTG_LKP_UNIT_TYPE code.</summary>
+    /// <summary>MTG_LKP_UNIT_TYPES code.</summary>
     public string? UnitTypeCode { get; set; }
 
     public string? BuildingNo { get; set; }

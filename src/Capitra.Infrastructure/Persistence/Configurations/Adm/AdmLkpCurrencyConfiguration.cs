@@ -5,7 +5,7 @@ namespace Capitra.Infrastructure.Persistence.Configurations.Adm;
 
 public sealed class AdmLkpCurrencyConfiguration : LookupConfiguration<AdmLkpCurrency>
 {
-    protected override string TableName => "ADM_LKP_CURRENCY";
+    protected override string TableName => "ADM_LKP_CURRENCIES";
 
     protected override int NameMaxLength => 100;
 

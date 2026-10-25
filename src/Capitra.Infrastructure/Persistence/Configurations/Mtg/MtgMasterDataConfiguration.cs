@@ -11,7 +11,7 @@ public sealed class MtgDeveloperConfiguration : IEntityTypeConfiguration<MtgDeve
 {
     public void Configure(EntityTypeBuilder<MtgDeveloper> builder)
     {
-        builder.ToTable("MTG_DEVELOPER");
+        builder.ToTable("MTG_DEVELOPERS");
         builder.HasKey(x => x.DeveloperId);
         builder.HasIndex(x => x.DeveloperCode).IsUnique();
 
@@ -34,7 +34,7 @@ public sealed class MtgDeveloperSignatoryConfiguration : IEntityTypeConfiguratio
 {
     public void Configure(EntityTypeBuilder<MtgDeveloperSignatory> builder)
     {
-        builder.ToTable("MTG_DEVELOPER_SIGNATORY");
+        builder.ToTable("MTG_DEVELOPER_SIGNATORIES");
         builder.HasKey(x => x.DeveloperSignatoryId);
 
         builder.Property(x => x.SignatoryName).HasMaxLength(300);
@@ -51,7 +51,7 @@ public sealed class MtgProjectConfiguration : IEntityTypeConfiguration<MtgProjec
 {
     public void Configure(EntityTypeBuilder<MtgProject> builder)
     {
-        builder.ToTable("MTG_PROJECT");
+        builder.ToTable("MTG_PROJECTS");
         builder.HasKey(x => x.ProjectId);
         builder.HasIndex(x => x.ProjectCode).IsUnique();
 
@@ -73,7 +73,7 @@ public sealed class MtgProjectUnitConfiguration : IEntityTypeConfiguration<MtgPr
 {
     public void Configure(EntityTypeBuilder<MtgProjectUnit> builder)
     {
-        builder.ToTable("MTG_PROJECT_UNIT");
+        builder.ToTable("MTG_PROJECT_UNITS");
         builder.HasKey(x => x.ProjectUnitId);
         builder.HasIndex(x => new { x.ProjectId, x.UnitCode }).IsUnique();
 
@@ -95,7 +95,7 @@ public sealed class MtgInvestorConfiguration : IEntityTypeConfiguration<MtgInves
 {
     public void Configure(EntityTypeBuilder<MtgInvestor> builder)
     {
-        builder.ToTable("MTG_INVESTOR");
+        builder.ToTable("MTG_INVESTORS");
         builder.HasKey(x => x.InvestorId);
         builder.HasIndex(x => x.InvestorCode).IsUnique();
 

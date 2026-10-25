@@ -83,7 +83,7 @@ public sealed class MtgAccountPaymentService(ICapitraDbContext db)
         if (existing is not null && existing.PortfolioAccountId != r.PortfolioAccountId)
             errors.Add(nameof(r.PortfolioAccountId), "A payment cannot be moved to another account.");
         else if (existing is null
-                 && !await Db.Set<MtgPortfolioAccount>().AnyAsync(x => x.PortfolioAccountId == r.PortfolioAccountId, cancellationToken))
+                 && !await Db.Set<MtgPurchasedPortfolioAccount>().AnyAsync(x => x.PortfolioAccountId == r.PortfolioAccountId, cancellationToken))
             errors.Add(nameof(r.PortfolioAccountId), $"Portfolio account {r.PortfolioAccountId} was not found.");
 
         var status = MasterDataRules.Code(r.PaymentStatusCode);

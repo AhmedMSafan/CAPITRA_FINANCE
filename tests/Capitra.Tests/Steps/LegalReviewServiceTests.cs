@@ -13,7 +13,7 @@ public sealed class LegalReviewServiceTests
     private sealed record Seeded(string Database, long PortfolioId, long Account1, long Account2);
 
     /// <summary>A portfolio whose inquiries step is completed: two investors, one contract each, both selected.</summary>
-    private static async Task<Seeded> SeedAsync(string status = MtgPortfolio.InquiryAcceptedStatus)
+    private static async Task<Seeded> SeedAsync(string status = MtgPurchasedPortfolio.InquiryAcceptedStatus)
     {
         var database = Guid.NewGuid().ToString();
         await using var db = StepTestDb.Create(database);
@@ -27,22 +27,22 @@ public sealed class LegalReviewServiceTests
         await db.SaveChangesAsync();
         var unit1 = new MtgProjectUnit { ProjectId = project.ProjectId, UnitCode = "U-1" };
         var unit2 = new MtgProjectUnit { ProjectId = project.ProjectId, UnitCode = "U-2" };
-        var portfolio = new MtgPortfolio
+        var portfolio = new MtgPurchasedPortfolio
         {
             PortfolioNo = "PF-1", DeveloperId = developer.DeveloperId, ProjectId = project.ProjectId,
             RequestDate = new DateOnly(2026, 10, 1), CurrencyCode = "EGP", PortfolioStatusCode = status
         };
         db.AddRange(unit1, unit2, portfolio);
         await db.SaveChangesAsync();
-        var account1 = new MtgPortfolioAccount
+        var account1 = new MtgPurchasedPortfolioAccount
         {
             PortfolioId = portfolio.PortfolioId, InvestorId = investor1.InvestorId, ProjectUnitId = unit1.ProjectUnitId,
-            ContractAmount = 1000, PaidAmount = 200, OutstandingAmount = 800, DealDecisionCode = MtgPortfolioAccount.SelectedDecision
+            ContractAmount = 1000, PaidAmount = 200, OutstandingAmount = 800, DealDecisionCode = MtgPurchasedPortfolioAccount.SelectedDecision
         };
-        var account2 = new MtgPortfolioAccount
+        var account2 = new MtgPurchasedPortfolioAccount
         {
             PortfolioId = portfolio.PortfolioId, InvestorId = investor2.InvestorId, ProjectUnitId = unit2.ProjectUnitId,
-            ContractAmount = 3000, PaidAmount = 1000, OutstandingAmount = 2000, DealDecisionCode = MtgPortfolioAccount.SelectedDecision
+            ContractAmount = 3000, PaidAmount = 1000, OutstandingAmount = 2000, DealDecisionCode = MtgPurchasedPortfolioAccount.SelectedDecision
         };
         db.AddRange(account1, account2);
         await db.SaveChangesAsync();
@@ -82,18 +82,18 @@ public sealed class LegalReviewServiceTests
         Assert.Equal(1, await db.Set<MtgLegalReview>().CountAsync());
 
         await service.SaveDealDecisionsAsync(s.PortfolioId,
-            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account2, MtgPortfolioAccount.ExcludedDecision)]), default);
+            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account2, MtgPurchasedPortfolioAccount.ExcludedDecision)]), default);
 
         step = await service.DecideAsync(s.PortfolioId, Accept, default);
-        Assert.Equal(MtgPortfolio.LegalReviewAcceptedStatus, step.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.LegalReviewAcceptedStatus, step.PortfolioStatusCode);
         Assert.False(step.IsOpen);
 
-        var portfolio = await db.Set<MtgPortfolio>().AsNoTracking().SingleAsync();
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().AsNoTracking().SingleAsync();
         Assert.Equal(1, portfolio.SelectedAccountCount);
         Assert.Equal(1000m, portfolio.SelectedFaceValueAmount);
         Assert.Equal(800m, portfolio.SelectedOutstandingAmount);
         Assert.Equal(200m, portfolio.SelectedPaidAmount);
-        Assert.Equal("Legal Review accepted.", (await db.Set<MtgPortfolioStatusHistory>().SingleAsync()).Comments);
+        Assert.Equal("Legal Review accepted.", (await db.Set<MtgPurchasedPortfolioStatusHistory>().SingleAsync()).Comments);
 
         await Assert.ThrowsAsync<ConflictException>(() => service.SaveAsync(s.PortfolioId, Review(rowVersion: step.Review!.RowVersion), default));
     }
@@ -104,7 +104,7 @@ public sealed class LegalReviewServiceTests
         var s = await SeedAsync();
         await using (var setup = StepTestDb.Create(s.Database))
         {
-            var account = await setup.Set<MtgPortfolioAccount>().SingleAsync(x => x.PortfolioAccountId == s.Account1);
+            var account = await setup.Set<MtgPurchasedPortfolioAccount>().SingleAsync(x => x.PortfolioAccountId == s.Account1);
             account.DealDecisionCode = null;
             await setup.SaveChangesAsync();
         }
@@ -117,11 +117,11 @@ public sealed class LegalReviewServiceTests
         Assert.Equal("Every investor must be either Selected or Excluded before Legal Review can be accepted.", error.Message);
 
         await service.SaveDealDecisionsAsync(s.PortfolioId,
-            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account1, MtgPortfolioAccount.ExcludedDecision)]), default);
+            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account1, MtgPurchasedPortfolioAccount.ExcludedDecision)]), default);
         await service.SaveDealDecisionsAsync(s.PortfolioId,
-            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account1, MtgPortfolioAccount.SelectedDecision)]), default);
+            new SaveDealDecisionsRequest([new DealDecisionItem(s.Account1, MtgPurchasedPortfolioAccount.SelectedDecision)]), default);
         var step = await service.GetAsync(s.PortfolioId, default);
-        Assert.All(step.Accounts, a => Assert.Equal(MtgPortfolioAccount.SelectedDecision, a.DealDecisionCode));
+        Assert.All(step.Accounts, a => Assert.Equal(MtgPurchasedPortfolioAccount.SelectedDecision, a.DealDecisionCode));
     }
 
     [Fact]
@@ -133,12 +133,12 @@ public sealed class LegalReviewServiceTests
         await Assert.ThrowsAsync<BusinessValidationException>(
             () => Service(db).DecideAsync(s.PortfolioId, new LegalDecisionRequest("APPROVE", null), default));
         var step = await Service(db).DecideAsync(s.PortfolioId, new LegalDecisionRequest("REJECT", "Title deed missing."), default);
-        Assert.Equal(MtgPortfolio.LegalReviewRejectedStatus, step.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.LegalReviewRejectedStatus, step.PortfolioStatusCode);
         Assert.True(step.IsOpen);
         Assert.Null(step.Review);
-        Assert.Equal("Title deed missing.", (await db.Set<MtgPortfolioStatusHistory>().SingleAsync()).Comments);
+        Assert.Equal("Title deed missing.", (await db.Set<MtgPurchasedPortfolioStatusHistory>().SingleAsync()).Comments);
 
-        var early = await SeedAsync(MtgPortfolio.AmlAcceptedStatus);
+        var early = await SeedAsync(MtgPurchasedPortfolio.AmlAcceptedStatus);
         await using var earlyDb = StepTestDb.Create(early.Database);
         Assert.False((await Service(earlyDb).GetAsync(early.PortfolioId, default)).IsOpen);
         await Assert.ThrowsAsync<ConflictException>(() => Service(earlyDb).SaveAsync(early.PortfolioId, Review(), default));

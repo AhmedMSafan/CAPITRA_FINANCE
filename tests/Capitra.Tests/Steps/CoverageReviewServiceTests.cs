@@ -15,7 +15,7 @@ public sealed class CoverageReviewServiceTests
     /// A portfolio whose valuation is completed. Investor 1 has paid 30% over two contracts, investor 2 has paid 10%,
     /// investor 3 has a contract with no value.
     /// </summary>
-    private static async Task<Seeded> SeedAsync(decimal? coveragePct = 20, string status = MtgPortfolio.ValuationCompletedStatus)
+    private static async Task<Seeded> SeedAsync(decimal? coveragePct = 20, string status = MtgPurchasedPortfolio.ValuationCompletedStatus)
     {
         var database = Guid.NewGuid().ToString();
         await using var db = StepTestDb.Create(database);
@@ -28,23 +28,23 @@ public sealed class CoverageReviewServiceTests
         var investor3 = new MtgInvestor { InvestorCode = "INV3", FullNameAr = "مستثمر ٣" };
         db.AddRange(project, investor1, investor2, investor3);
         await db.SaveChangesAsync();
-        var portfolio = new MtgPortfolio
+        var portfolio = new MtgPurchasedPortfolio
         {
             PortfolioNo = "PF-1", DeveloperId = developer.DeveloperId, ProjectId = project.ProjectId,
             RequestDate = new DateOnly(2026, 10, 1), CurrencyCode = "EGP", PortfolioStatusCode = status, CoveragePct = coveragePct
         };
         db.Add(portfolio);
         await db.SaveChangesAsync();
-        MtgPortfolioAccount Account(MtgInvestor investor, decimal contract, decimal paid, string? decision) => new()
+        MtgPurchasedPortfolioAccount Account(MtgInvestor investor, decimal contract, decimal paid, string? decision) => new()
         {
             PortfolioId = portfolio.PortfolioId, InvestorId = investor.InvestorId,
             ContractAmount = contract, PaidAmount = paid, OutstandingAmount = contract - paid, DealDecisionCode = decision
         };
         db.AddRange(
-            Account(investor1, 1000, 100, MtgPortfolioAccount.ExcludedDecision),
-            Account(investor1, 1000, 500, MtgPortfolioAccount.SelectedDecision),
-            Account(investor2, 3000, 300, MtgPortfolioAccount.SelectedDecision),
-            Account(investor3, 0, 0, MtgPortfolioAccount.ExcludedDecision));
+            Account(investor1, 1000, 100, MtgPurchasedPortfolioAccount.ExcludedDecision),
+            Account(investor1, 1000, 500, MtgPurchasedPortfolioAccount.SelectedDecision),
+            Account(investor2, 3000, 300, MtgPurchasedPortfolioAccount.SelectedDecision),
+            Account(investor3, 0, 0, MtgPurchasedPortfolioAccount.ExcludedDecision));
         await db.SaveChangesAsync();
         return new Seeded(database, portfolio.PortfolioId, investor1.InvestorId, investor2.InvestorId, investor3.InvestorId);
     }
@@ -77,14 +77,14 @@ public sealed class CoverageReviewServiceTests
         var result = await Service(db).ApplyRuleAsync(s.PortfolioId, default);
         Assert.Equal(2, result.ChangedInvestorCount);
         var decisions = result.Review.Investors.ToDictionary(i => i.InvestorId, i => i.DealDecisionCode);
-        Assert.Equal(MtgPortfolioAccount.SelectedDecision, decisions[s.Investor1]);
-        Assert.Equal(MtgPortfolioAccount.ExcludedDecision, decisions[s.Investor2]);
-        Assert.Equal(MtgPortfolioAccount.ExcludedDecision, decisions[s.Investor3]); // no contract value: left as it was
+        Assert.Equal(MtgPurchasedPortfolioAccount.SelectedDecision, decisions[s.Investor1]);
+        Assert.Equal(MtgPurchasedPortfolioAccount.ExcludedDecision, decisions[s.Investor2]);
+        Assert.Equal(MtgPurchasedPortfolioAccount.ExcludedDecision, decisions[s.Investor3]); // no contract value: left as it was
 
         Assert.Equal(0, (await Service(db).ApplyRuleAsync(s.PortfolioId, default)).ChangedInvestorCount);
 
         var manual = await Service(db).SetInvestorDecisionAsync(s.PortfolioId, s.Investor2, new("selected"), default);
-        Assert.Equal(MtgPortfolioAccount.SelectedDecision, manual.Investors.Single(i => i.InvestorId == s.Investor2).DealDecisionCode);
+        Assert.Equal(MtgPurchasedPortfolioAccount.SelectedDecision, manual.Investors.Single(i => i.InvestorId == s.Investor2).DealDecisionCode);
         await Assert.ThrowsAsync<NotFoundException>(() => Service(db).SetInvestorDecisionAsync(s.PortfolioId, 999, new("EXCLUDED"), default));
         await Assert.ThrowsAsync<BusinessValidationException>(() => Service(db).SetInvestorDecisionAsync(s.PortfolioId, s.Investor2, new("MAYBE"), default));
     }
@@ -118,10 +118,10 @@ public sealed class CoverageReviewServiceTests
 
         await service.SetInvestorDecisionAsync(s.PortfolioId, s.Investor1, new("SELECTED"), default);
         var review = await service.DecideAsync(s.PortfolioId, new("accept", "Coverage met."), default);
-        Assert.Equal(MtgPortfolio.CoverageReviewAcceptedStatus, review.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.CoverageReviewAcceptedStatus, review.PortfolioStatusCode);
         Assert.False(review.IsOpen);
 
-        var portfolio = await db.Set<MtgPortfolio>().AsNoTracking().SingleAsync();
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().AsNoTracking().SingleAsync();
         Assert.Equal((2, 2000m, 1400m, 600m),
             (portfolio.SelectedAccountCount, portfolio.SelectedFaceValueAmount, portfolio.SelectedOutstandingAmount, portfolio.SelectedPaidAmount));
         Assert.Null(portfolio.RejectionReason);
@@ -134,11 +134,11 @@ public sealed class CoverageReviewServiceTests
         await using var db = StepTestDb.Create(s.Database);
 
         var review = await Service(db).DecideAsync(s.PortfolioId, new("REJECT", "Too many investors below coverage."), default);
-        Assert.Equal(MtgPortfolio.CoverageReviewRejectedStatus, review.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.CoverageReviewRejectedStatus, review.PortfolioStatusCode);
         Assert.Equal("Too many investors below coverage.", review.RejectionReason);
         Assert.True(review.IsOpen);
 
-        var early = await SeedAsync(status: MtgPortfolio.LegalReviewAcceptedStatus);
+        var early = await SeedAsync(status: MtgPurchasedPortfolio.LegalReviewAcceptedStatus);
         await using var earlyDb = StepTestDb.Create(early.Database);
         Assert.False((await Service(earlyDb).GetAsync(early.PortfolioId, default)).IsOpen);
         await Assert.ThrowsAsync<ConflictException>(() => Service(earlyDb).ApplyRuleAsync(early.PortfolioId, default));

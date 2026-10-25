@@ -19,11 +19,11 @@ internal static class DealDecisions
         var items = request.Items ?? [];
         if (items.Count == 0)
             throw BusinessValidationException.For(nameof(request.Items), "Choose at least one contract.");
-        if (items.Any(x => x.DealDecisionCode is not (MtgPortfolioAccount.SelectedDecision or MtgPortfolioAccount.ExcludedDecision)))
+        if (items.Any(x => x.DealDecisionCode is not (MtgPurchasedPortfolioAccount.SelectedDecision or MtgPurchasedPortfolioAccount.ExcludedDecision)))
             throw BusinessValidationException.For(nameof(request.Items), "Decision must be SELECTED or EXCLUDED.");
 
         var ids = items.Select(x => x.PortfolioAccountId).Distinct().ToList();
-        var accounts = await db.Set<MtgPortfolioAccount>()
+        var accounts = await db.Set<MtgPurchasedPortfolioAccount>()
             .Where(x => x.PortfolioId == portfolioId && ids.Contains(x.PortfolioAccountId))
             .ToDictionaryAsync(x => x.PortfolioAccountId, cancellationToken);
         if (accounts.Count != ids.Count)
@@ -32,8 +32,8 @@ internal static class DealDecisions
         foreach (var item in items)
         {
             var account = accounts[item.PortfolioAccountId];
-            if (!allowReinclude && account.DealDecisionCode == MtgPortfolioAccount.ExcludedDecision
-                                && item.DealDecisionCode != MtgPortfolioAccount.ExcludedDecision)
+            if (!allowReinclude && account.DealDecisionCode == MtgPurchasedPortfolioAccount.ExcludedDecision
+                                && item.DealDecisionCode != MtgPurchasedPortfolioAccount.ExcludedDecision)
                 throw new ConflictException("Excluded investors cannot be selected again.");
             account.DealDecisionCode = item.DealDecisionCode;
         }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Capitra.Infrastructure.Identity;
 
-/// <summary>SEC_USER_LOGIN: external login of a user.</summary>
+/// <summary>SEC_USER_LOGINS: external login of a user.</summary>
 public class SecUserLogin : IdentityUserLogin<string>, IAuditable
 {
     public string CreatedBy { get; set; } = string.Empty;

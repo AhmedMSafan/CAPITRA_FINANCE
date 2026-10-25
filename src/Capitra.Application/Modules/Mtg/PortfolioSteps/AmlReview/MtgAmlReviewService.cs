@@ -98,12 +98,12 @@ public sealed class MtgAmlReviewService(ICapitraDbContext db) : IMtgAmlReviewSer
     /// The step is open once the portfolio data is loaded, and stays open after a rejection so the review can be redone.
     /// The workflow engine (build step 4) will open it through an AML review task instead.
     /// </summary>
-    private static readonly string[] OpenStatuses = [MtgPortfolio.DataLoadingCompletedStatus, MtgPortfolio.AmlRejectedStatus];
+    private static readonly string[] OpenStatuses = [MtgPurchasedPortfolio.DataLoadingCompletedStatus, MtgPurchasedPortfolio.AmlRejectedStatus];
 
     public async Task<AmlReviewDto> GetAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var header = await (
-            from p in db.Set<MtgPortfolio>()
+            from p in db.Set<MtgPurchasedPortfolio>()
             join prj in db.Set<MtgProject>() on p.ProjectId equals prj.ProjectId
             join d in db.Set<MtgDeveloper>() on p.DeveloperId equals d.DeveloperId
             join s in db.Set<MtgLkpPortfolioStatus>() on p.PortfolioStatusCode equals s.Code into statuses
@@ -123,7 +123,7 @@ public sealed class MtgAmlReviewService(ICapitraDbContext db) : IMtgAmlReviewSer
                 .MaxBy(r => r.AmlResultId)?.AmlResultCode ?? NotScreened;
 
         var accounts = await (
-            from a in db.Set<MtgPortfolioAccount>()
+            from a in db.Set<MtgPurchasedPortfolioAccount>()
             join i in db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
             join u in db.Set<MtgProjectUnit>() on a.ProjectUnitId equals u.ProjectUnitId into units
             from u in units.DefaultIfEmpty()
@@ -215,39 +215,39 @@ public sealed class MtgAmlReviewService(ICapitraDbContext db) : IMtgAmlReviewSer
         if (action == RejectAction)
         {
             portfolio.RejectionReason = comment;
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.AmlRejectedStatus, comment, cancellationToken);
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.AmlRejectedStatus, comment, cancellationToken);
         }
         else
         {
             await EnsureReadyToAcceptAsync(portfolio, cancellationToken);
             await PortfolioTotals.RecalculateSelectedAsync(db, portfolioId, cancellationToken);
             portfolio.RejectionReason = null;
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.AmlAcceptedStatus, comment, cancellationToken);
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.AmlAcceptedStatus, comment, cancellationToken);
         }
 
         await transaction.CommitAsync(cancellationToken);
         return await GetAsync(portfolioId, cancellationToken);
     }
 
-    private async Task EnsureReadyToAcceptAsync(MtgPortfolio portfolio, CancellationToken cancellationToken)
+    private async Task EnsureReadyToAcceptAsync(MtgPurchasedPortfolio portfolio, CancellationToken cancellationToken)
     {
         var results = db.Set<MtgAmlResult>().Where(x => x.PortfolioId == portfolio.PortfolioId);
 
         if (!await results.AnyAsync(x => x.SubjectTypeCode == MtgAmlResult.DeveloperSubject && x.SubjectId == portfolio.DeveloperId, cancellationToken))
             throw new ConflictException("AML information is required for the portfolio developer.");
 
-        var accounts = db.Set<MtgPortfolioAccount>().Where(x => x.PortfolioId == portfolio.PortfolioId);
+        var accounts = db.Set<MtgPurchasedPortfolioAccount>().Where(x => x.PortfolioId == portfolio.PortfolioId);
         if (await accounts.AnyAsync(a => !results.Any(x => x.SubjectTypeCode == MtgAmlResult.InvestorSubject && x.SubjectId == a.InvestorId), cancellationToken))
             throw new ConflictException("AML information is missing for one or more portfolio investors.");
 
-        if (await accounts.AnyAsync(a => a.DealDecisionCode != MtgPortfolioAccount.SelectedDecision && a.DealDecisionCode != MtgPortfolioAccount.ExcludedDecision, cancellationToken))
+        if (await accounts.AnyAsync(a => a.DealDecisionCode != MtgPurchasedPortfolioAccount.SelectedDecision && a.DealDecisionCode != MtgPurchasedPortfolioAccount.ExcludedDecision, cancellationToken))
             throw new ConflictException("Every investor must be either Selected or Excluded before AML can be accepted.");
     }
 
-    private async Task<bool> BelongsToPortfolioAsync(MtgPortfolio portfolio, string subjectType, long subjectId, CancellationToken cancellationToken) =>
+    private async Task<bool> BelongsToPortfolioAsync(MtgPurchasedPortfolio portfolio, string subjectType, long subjectId, CancellationToken cancellationToken) =>
         subjectType == MtgAmlResult.DeveloperSubject
             ? portfolio.DeveloperId == subjectId
-            : await db.Set<MtgPortfolioAccount>().AnyAsync(x => x.PortfolioId == portfolio.PortfolioId && x.InvestorId == subjectId, cancellationToken);
+            : await db.Set<MtgPurchasedPortfolioAccount>().AnyAsync(x => x.PortfolioId == portfolio.PortfolioId && x.InvestorId == subjectId, cancellationToken);
 
     /// <summary>The screening log, newest first, with the name of each subject.</summary>
     private async Task<IReadOnlyList<AmlResultDto>> ResultsAsync(long portfolioId, CancellationToken cancellationToken) =>

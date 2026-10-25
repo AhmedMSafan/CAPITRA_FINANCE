@@ -13,7 +13,7 @@ public sealed class SecUserConfiguration : IEntityTypeConfiguration<SecUser>
 {
     public void Configure(EntityTypeBuilder<SecUser> builder)
     {
-        builder.ToTable("SEC_USER");
+        builder.ToTable("SEC_USERS");
         builder.Property(x => x.Id).HasColumnName("USER_ID");
         builder.Property(x => x.PhoneNumber).HasColumnName("PHONE_NO").HasMaxLength(30);
         builder.Property(x => x.EmailConfirmed).HasColumnName("IS_EMAIL_CONFIRMED");
@@ -33,7 +33,7 @@ public sealed class SecRoleConfiguration : IEntityTypeConfiguration<SecRole>
 {
     public void Configure(EntityTypeBuilder<SecRole> builder)
     {
-        builder.ToTable("SEC_ROLE");
+        builder.ToTable("SEC_ROLES");
         builder.Property(x => x.Id).HasColumnName("ROLE_ID");
         builder.Property(x => x.Name).HasColumnName("ROLE_NAME");
         builder.Property(x => x.NormalizedName).HasColumnName("NORMALIZED_ROLE_NAME");
@@ -46,7 +46,7 @@ public sealed class SecUserClaimConfiguration : IEntityTypeConfiguration<SecUser
 {
     public void Configure(EntityTypeBuilder<SecUserClaim> builder)
     {
-        builder.ToTable("SEC_USER_CLAIM");
+        builder.ToTable("SEC_USER_CLAIMS");
         builder.Property(x => x.Id).HasColumnName("USER_CLAIM_ID");
         builder.ConfigureAudit();
     }
@@ -56,7 +56,7 @@ public sealed class SecRoleClaimConfiguration : IEntityTypeConfiguration<SecRole
 {
     public void Configure(EntityTypeBuilder<SecRoleClaim> builder)
     {
-        builder.ToTable("SEC_ROLE_CLAIM");
+        builder.ToTable("SEC_ROLE_CLAIMS");
         builder.Property(x => x.Id).HasColumnName("ROLE_CLAIM_ID");
         builder.ConfigureAudit();
     }
@@ -66,7 +66,7 @@ public sealed class SecUserRoleConfiguration : IEntityTypeConfiguration<SecUserR
 {
     public void Configure(EntityTypeBuilder<SecUserRole> builder)
     {
-        builder.ToTable("SEC_USER_ROLE");
+        builder.ToTable("SEC_USER_ROLES");
         builder.ConfigureAudit();
     }
 }
@@ -78,7 +78,7 @@ public sealed class SecUserLoginConfiguration : IEntityTypeConfiguration<SecUser
 
     public void Configure(EntityTypeBuilder<SecUserLogin> builder)
     {
-        builder.ToTable("SEC_USER_LOGIN");
+        builder.ToTable("SEC_USER_LOGINS");
         builder.Property(x => x.LoginProvider).HasMaxLength(KeyLength);
         builder.Property(x => x.ProviderKey).HasMaxLength(KeyLength);
         builder.ConfigureAudit();
@@ -89,7 +89,7 @@ public sealed class SecUserTokenConfiguration : IEntityTypeConfiguration<SecUser
 {
     public void Configure(EntityTypeBuilder<SecUserToken> builder)
     {
-        builder.ToTable("SEC_USER_TOKEN");
+        builder.ToTable("SEC_USER_TOKENS");
         builder.Property(x => x.LoginProvider).HasMaxLength(SecUserLoginConfiguration.KeyLength);
         builder.Property(x => x.Name).HasColumnName("TOKEN_NAME").HasMaxLength(SecUserLoginConfiguration.KeyLength);
         builder.Property(x => x.Value).HasColumnName("TOKEN_VALUE");
@@ -101,7 +101,7 @@ public sealed class SecUserPasskeyConfiguration : IEntityTypeConfiguration<SecUs
 {
     public void Configure(EntityTypeBuilder<SecUserPasskey> builder)
     {
-        builder.ToTable("SEC_USER_PASSKEY");
+        builder.ToTable("SEC_USER_PASSKEYS");
         builder.HasKey(x => x.CredentialId);
         builder.Property(x => x.CredentialId).HasMaxLength(1024);
         builder.HasOne<SecUser>().WithMany().HasForeignKey(x => x.UserId).IsRequired();

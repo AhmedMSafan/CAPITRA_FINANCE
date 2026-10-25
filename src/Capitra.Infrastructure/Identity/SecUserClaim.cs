@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Capitra.Infrastructure.Identity;
 
-/// <summary>SEC_USER_CLAIM: claim held by a user.</summary>
+/// <summary>SEC_USER_CLAIMS: claim held by a user.</summary>
 public class SecUserClaim : IdentityUserClaim<string>, IAuditable
 {
     public string CreatedBy { get; set; } = string.Empty;

@@ -6,7 +6,7 @@ namespace Capitra.Infrastructure.Persistence.Configurations.Adm;
 
 public sealed class AdmLkpDocumentTypeConfiguration : LookupConfiguration<AdmLkpDocumentType>
 {
-    protected override string TableName => "ADM_LKP_DOCUMENT_TYPE";
+    protected override string TableName => "ADM_LKP_DOCUMENT_TYPES";
 
     protected override int NameMaxLength => 100;
 

@@ -16,7 +16,7 @@ public sealed class ChequeCoverageServiceTests
     /// A portfolio whose coverage review is accepted. Investor 1 owes 800 + 200 over two contracts, investor 2 owes 500
     /// (no decision recorded, so kept), investor 3 is excluded.
     /// </summary>
-    private static async Task<Seeded> SeedAsync(string status = MtgPortfolio.CoverageReviewAcceptedStatus)
+    private static async Task<Seeded> SeedAsync(string status = MtgPurchasedPortfolio.CoverageReviewAcceptedStatus)
     {
         var database = Guid.NewGuid().ToString();
         await using var db = StepTestDb.Create(database);
@@ -32,22 +32,22 @@ public sealed class ChequeCoverageServiceTests
         var investor3 = new MtgInvestor { InvestorCode = "INV3", FullNameAr = "مستثمر ٣" };
         db.AddRange(project, investor1, investor2, investor3);
         await db.SaveChangesAsync();
-        var portfolio = new MtgPortfolio
+        var portfolio = new MtgPurchasedPortfolio
         {
             PortfolioNo = "PF-1", DeveloperId = developer.DeveloperId, ProjectId = project.ProjectId,
             RequestDate = new DateOnly(2026, 10, 1), CurrencyCode = "EGP", PortfolioStatusCode = status
         };
         db.Add(portfolio);
         await db.SaveChangesAsync();
-        MtgPortfolioAccount Account(MtgInvestor investor, decimal outstanding, string? decision) => new()
+        MtgPurchasedPortfolioAccount Account(MtgInvestor investor, decimal outstanding, string? decision) => new()
         {
             PortfolioId = portfolio.PortfolioId, InvestorId = investor.InvestorId,
             ContractAmount = outstanding * 2, PaidAmount = outstanding, OutstandingAmount = outstanding, DealDecisionCode = decision
         };
-        var a1a = Account(investor1, 800, MtgPortfolioAccount.SelectedDecision);
-        var a1b = Account(investor1, 200, MtgPortfolioAccount.SelectedDecision);
+        var a1a = Account(investor1, 800, MtgPurchasedPortfolioAccount.SelectedDecision);
+        var a1b = Account(investor1, 200, MtgPurchasedPortfolioAccount.SelectedDecision);
         var a2 = Account(investor2, 500, null);
-        var a3 = Account(investor3, 900, MtgPortfolioAccount.ExcludedDecision);
+        var a3 = Account(investor3, 900, MtgPurchasedPortfolioAccount.ExcludedDecision);
         db.AddRange(a1a, a1b, a2, a3);
         await db.SaveChangesAsync();
         return new Seeded(database, portfolio.PortfolioId, investor1.InvestorId, a1a.PortfolioAccountId, a1b.PortfolioAccountId,
@@ -68,7 +68,7 @@ public sealed class ChequeCoverageServiceTests
 
         var first = await service.CreateAsync(s.PortfolioId, Cheque(s.Account1a, 600.456m), default);
         Assert.Equal(600.46m, first.ChequeAmount);
-        Assert.Equal(MtgPortfolioCheque.PendingStatus, first.ChequeStatusCode);
+        Assert.Equal(MtgPurchasedPortfolioCheque.PendingStatus, first.ChequeStatusCode);
         Assert.Equal("Pending", first.ChequeStatusName);
         await service.CreateAsync(s.PortfolioId, Cheque(s.Account1b, 399.54m, "C-2", "cleared"), default);
 
@@ -116,9 +116,9 @@ public sealed class ChequeCoverageServiceTests
 
         await service.CreateAsync(s.PortfolioId, Cheque(s.Account2, 499.996m, "C-2"), default); // rounds to 500.00
         var step = await service.DecideAsync(s.PortfolioId, new("accept", "All covered."), default);
-        Assert.Equal(MtgPortfolio.ChequeCoverageAcceptedStatus, step.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.ChequeCoverageAcceptedStatus, step.PortfolioStatusCode);
         Assert.False(step.IsOpen);
-        Assert.Equal("All covered.", (await db.Set<MtgPortfolioStatusHistory>().SingleAsync()).Comments);
+        Assert.Equal("All covered.", (await db.Set<MtgPurchasedPortfolioStatusHistory>().SingleAsync()).Comments);
         await Assert.ThrowsAsync<ConflictException>(() => service.CreateAsync(s.PortfolioId, Cheque(s.Account1a, 1), default));
     }
 
@@ -128,7 +128,7 @@ public sealed class ChequeCoverageServiceTests
         var s = await SeedAsync();
         await using (var setup = StepTestDb.Create(s.Database))
         {
-            await setup.Set<MtgPortfolioAccount>().ForEachAsync(a => a.DealDecisionCode = MtgPortfolioAccount.ExcludedDecision);
+            await setup.Set<MtgPurchasedPortfolioAccount>().ForEachAsync(a => a.DealDecisionCode = MtgPurchasedPortfolioAccount.ExcludedDecision);
             await setup.SaveChangesAsync();
         }
 
@@ -144,11 +144,11 @@ public sealed class ChequeCoverageServiceTests
         await using var db = StepTestDb.Create(s.Database);
 
         var step = await Service(db).DecideAsync(s.PortfolioId, new("REJECT", "Cheques not endorsed."), default);
-        Assert.Equal(MtgPortfolio.ChequeCoverageRejectedStatus, step.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.ChequeCoverageRejectedStatus, step.PortfolioStatusCode);
         Assert.Equal("Cheques not endorsed.", step.RejectionReason);
         Assert.True(step.IsOpen);
 
-        var early = await SeedAsync(MtgPortfolio.ValuationCompletedStatus);
+        var early = await SeedAsync(MtgPurchasedPortfolio.ValuationCompletedStatus);
         await using var earlyDb = StepTestDb.Create(early.Database);
         Assert.False((await Service(earlyDb).GetAsync(early.PortfolioId, default)).IsOpen);
         await Assert.ThrowsAsync<ConflictException>(() => Service(earlyDb).CreateAsync(early.PortfolioId, Cheque(early.Account1a, 1), default));

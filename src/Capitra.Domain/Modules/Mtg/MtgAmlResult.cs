@@ -3,7 +3,7 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_AML_RESULT: one AML check of the portfolio's developer or of one of its investors
+/// MTG_AML_RESULTS: one AML check of the portfolio's developer or of one of its investors
 /// (APEX FNV_AML_RESULTS, App 105 page 209). Checks are only ever added; the latest one per subject is its AML status.
 /// </summary>
 public class MtgAmlResult : AuditableEntity

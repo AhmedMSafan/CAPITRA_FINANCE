@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Capitra.Infrastructure.Identity;
 
-/// <summary>SEC_USER_PASSKEY: WebAuthn passkey registered by a user (Identity schema version 3).</summary>
+/// <summary>SEC_USER_PASSKEYS: WebAuthn passkey registered by a user (Identity schema version 3).</summary>
 public class SecUserPasskey : IdentityUserPasskey<string>, IAuditable
 {
     public string CreatedBy { get; set; } = string.Empty;

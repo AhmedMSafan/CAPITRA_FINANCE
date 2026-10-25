@@ -20,7 +20,10 @@ public sealed partial class NamingStandardTests
 
     private static readonly string[] BareColumnNames = ["ID", "NAME", "TYPE", "STATUS", "DATE", "VALUE", "CODE_ID", "DESC"];
 
-    /// <summary>Singular words that end in S. Any other table ending in S is treated as plural.</summary>
+    /// <summary>History tables end in HIST or HISTORY and are not pluralised; every other table name ends in a plural word.</summary>
+    private static readonly string[] CollectiveLastWords = ["HIST", "HISTORY"];
+
+    /// <summary>Singular words that end in S, so a table ending in one of them is not plural.</summary>
     private static readonly string[] SingularWordsEndingInS = ["STATUS", "ADDRESS", "CLASS", "BASIS"];
 
     private static readonly IModel Model = new CapitraDbContextFactory().CreateDbContext([]).GetService<IDesignTimeModel>().Model;
@@ -49,8 +52,8 @@ public sealed partial class NamingStandardTests
                 errors.Add($"{table}: must start with a module prefix ({string.Join(", ", ModulePrefixes)})");
 
             var lastWord = table[(table.LastIndexOf('_') + 1)..];
-            if (lastWord.EndsWith('S') && !SingularWordsEndingInS.Contains(lastWord))
-                errors.Add($"{table}: table names are singular");
+            if (!CollectiveLastWords.Contains(lastWord) && (!lastWord.EndsWith('S') || SingularWordsEndingInS.Contains(lastWord)))
+                errors.Add($"{table}: table names are plural");
         }
 
         Assert.Empty(errors);
@@ -139,17 +142,21 @@ public sealed partial class NamingStandardTests
         foreach (var entity in Tables)
         {
             var table = entity.GetTableName()!;
+            // Approved abbreviation PP (purchased portfolio) for keys and indexes of the portfolio's child tables.
+            var owner = table.StartsWith("MTG_PURCHASED_PORTFOLIO_", StringComparison.Ordinal)
+                ? "MTG_PP_" + table["MTG_PURCHASED_PORTFOLIO_".Length..]
+                : table;
 
             if (entity.FindPrimaryKey()?.GetName() is { } pk && pk != $"PK_{table}")
                 errors.Add($"{table}: primary key is {pk}, expected PK_{table}");
 
             foreach (var fk in entity.GetForeignKeys())
-                if (fk.GetConstraintName() is { } name && (!name.StartsWith($"FK_{table}_", StringComparison.Ordinal) || name.Length > 63))
-                    errors.Add($"{table}: foreign key {name} must be FK_{table}_<PARENT> and at most 63 characters");
+                if (fk.GetConstraintName() is { } name && (!name.StartsWith($"FK_{owner}_", StringComparison.Ordinal) || name.Length > 63))
+                    errors.Add($"{table}: foreign key {name} must be FK_{owner}_<PARENT> and at most 63 characters");
 
             foreach (var index in entity.GetIndexes())
             {
-                var expected = (index.IsUnique ? "UQ_" : "IX_") + table + "_";
+                var expected = (index.IsUnique ? "UQ_" : "IX_") + owner + "_";
                 var name = index.GetDatabaseName();
                 if (name is null || !name.StartsWith(expected, StringComparison.Ordinal) || name.Length > 63)
                     errors.Add($"{table}: index {name} must be {expected}<COLUMNS> and at most 63 characters");

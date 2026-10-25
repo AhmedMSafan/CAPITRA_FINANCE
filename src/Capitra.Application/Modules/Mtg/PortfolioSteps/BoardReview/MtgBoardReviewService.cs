@@ -135,12 +135,12 @@ public sealed class MtgBoardReviewService(ICapitraDbContext db, IClock clock) : 
     /// Open once the financial review is accepted, and after its own rejection so the decision can be recorded again.
     /// The workflow engine (build step 4) will open it through a board review task instead.
     /// </summary>
-    private static readonly string[] OpenStatuses = [MtgPortfolio.FinancialReviewAcceptedStatus, MtgPortfolio.BoardReviewRejectedStatus];
+    private static readonly string[] OpenStatuses = [MtgPurchasedPortfolio.FinancialReviewAcceptedStatus, MtgPurchasedPortfolio.BoardReviewRejectedStatus];
 
     public async Task<BoardReviewDto> GetAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var header = await (
-            from po in db.Set<MtgPortfolio>()
+            from po in db.Set<MtgPurchasedPortfolio>()
             join d in db.Set<MtgDeveloper>() on po.DeveloperId equals d.DeveloperId
             join prj in db.Set<MtgProject>() on po.ProjectId equals prj.ProjectId
             where po.PortfolioId == portfolioId
@@ -155,15 +155,15 @@ public sealed class MtgBoardReviewService(ICapitraDbContext db, IClock clock) : 
 
         // A contract with no deal decision counts as kept, as in APEX.
         var accounts = await (
-            from a in db.Set<MtgPortfolioAccount>()
+            from a in db.Set<MtgPurchasedPortfolioAccount>()
             join i in db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
             where a.PortfolioId == portfolioId
             select new
             {
                 a.PortfolioAccountId, a.InvestorId, i.InvestorCode, InvestorName = i.FullNameEn ?? i.FullNameAr, a.ProjectUnitId,
-                a.ContractAmount, a.PaidAmount, a.OutstandingAmount, IsKept = a.DealDecisionCode != MtgPortfolioAccount.ExcludedDecision
+                a.ContractAmount, a.PaidAmount, a.OutstandingAmount, IsKept = a.DealDecisionCode != MtgPurchasedPortfolioAccount.ExcludedDecision
             }).AsNoTracking().ToListAsync(cancellationToken);
-        var cheques = await db.Set<MtgPortfolioCheque>().AsNoTracking()
+        var cheques = await db.Set<MtgPurchasedPortfolioCheque>().AsNoTracking()
             .Where(x => x.PortfolioId == portfolioId)
             .Select(x => new { x.PortfolioAccountId, x.ChequeAmount })
             .ToListAsync(cancellationToken);
@@ -190,7 +190,7 @@ public sealed class MtgBoardReviewService(ICapitraDbContext db, IClock clock) : 
             .OrderByDescending(x => x.SelectedContractCount).ThenBy(x => x.InvestorCode, StringComparer.Ordinal)
             .ToList();
 
-        var review = await db.Set<MtgPortfolioFinancialReview>().AsNoTracking()
+        var review = await db.Set<MtgPurchasedPortfolioFinancialReview>().AsNoTracking()
             .FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
         var pricing = review is null ? null : new BoardPricingDto(
             review.PvMethodCode, review.PvRate, review.PvBaseDate, review.ChequeCount, review.ChequesFaceAmount, review.ChequesPvAmount,
@@ -219,7 +219,7 @@ public sealed class MtgBoardReviewService(ICapitraDbContext db, IClock clock) : 
             inquiryRisks.Count, inquiryRisks.Count(x => x?.ToUpperInvariant() is "HIGH" or "CRITICAL"),
             legal, valuation);
 
-        var history = (await db.Set<MtgPortfolioStatusHistory>().AsNoTracking()
+        var history = (await db.Set<MtgPurchasedPortfolioStatusHistory>().AsNoTracking()
                 .Where(x => x.PortfolioId == portfolioId)
                 .OrderBy(x => x.CreatedAt).ThenBy(x => x.PortfolioStatusHistoryId)
                 .ToListAsync(cancellationToken))
@@ -260,9 +260,9 @@ public sealed class MtgBoardReviewService(ICapitraDbContext db, IClock clock) : 
         var portfolio = await PortfolioStatus.RequireAsync(db, portfolioId, StepName, OpenStatuses, cancellationToken);
 
         var accepted = action == AcceptAction;
-        if (accepted && !await db.Set<MtgPortfolioFinancialReview>().AnyAsync(x => x.PortfolioId == portfolioId, cancellationToken))
+        if (accepted && !await db.Set<MtgPurchasedPortfolioFinancialReview>().AnyAsync(x => x.PortfolioId == portfolioId, cancellationToken))
             throw new ConflictException("The financial review has not been saved, so there is no price to approve.");
-        portfolio.BoardDecisionCode = accepted ? MtgPortfolio.BoardAccepted : MtgPortfolio.BoardRejected;
+        portfolio.BoardDecisionCode = accepted ? MtgPurchasedPortfolio.BoardAccepted : MtgPurchasedPortfolio.BoardRejected;
         portfolio.BoardDecisionNo = decisionNo;
         portfolio.BoardDecisionDate = request.DecisionDate;
         portfolio.ApprovedDate = accepted ? Today() : null;
@@ -270,7 +270,7 @@ public sealed class MtgBoardReviewService(ICapitraDbContext db, IClock clock) : 
         portfolio.Comments = comment;
         portfolio.RejectionReason = accepted ? null : comment;
         await PortfolioStatus.ChangeAsync(
-            db, portfolio, accepted ? MtgPortfolio.BoardReviewAcceptedStatus : MtgPortfolio.BoardReviewRejectedStatus,
+            db, portfolio, accepted ? MtgPurchasedPortfolio.BoardReviewAcceptedStatus : MtgPurchasedPortfolio.BoardReviewRejectedStatus,
             $"Board decision {decisionNo}: {comment}", cancellationToken);
         await db.SaveChangesAsync(cancellationToken); // a second rejection keeps the status but records the new resolution
 

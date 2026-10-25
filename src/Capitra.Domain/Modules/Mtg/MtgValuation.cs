@@ -3,7 +3,7 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_VALUATION: one valuation of the portfolio's project, or of one of its units, by a registered valuer
+/// MTG_VALUATIONS: one valuation of the portfolio's project, or of one of its units, by a registered valuer
 /// (APEX FNV_VALUATION, App 105 page 401).
 /// </summary>
 public class MtgValuation : AuditableEntity
@@ -18,7 +18,7 @@ public class MtgValuation : AuditableEntity
     /// <summary>The unit valued; null when the whole project was valued.</summary>
     public long? ProjectUnitId { get; set; }
 
-    /// <summary>MTG_LKP_VALUATION_TYPE code.</summary>
+    /// <summary>MTG_LKP_VALUATION_TYPES code.</summary>
     public string ValuationTypeCode { get; set; } = string.Empty;
 
     public string ValuerName { get; set; } = string.Empty;

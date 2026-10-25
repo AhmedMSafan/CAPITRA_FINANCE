@@ -3,10 +3,10 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_PORTFOLIO_ACCOUNT: one investor's contract for one unit inside a portfolio
+/// MTG_PURCHASED_PORTFOLIO_ACCOUNTS: one investor's contract for one unit inside a portfolio
 /// (APEX FNV_PURSHASED_PORTFOLIO_ACCOUNT, App 105 page 205).
 /// </summary>
-public class MtgPortfolioAccount : AuditableEntity
+public class MtgPurchasedPortfolioAccount : AuditableEntity
 {
     /// <summary>The account stays in the deal.</summary>
     public const string SelectedDecision = "SELECTED";

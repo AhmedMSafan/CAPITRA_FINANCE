@@ -40,12 +40,15 @@ public static class NamingStandard
 
             entity.FindPrimaryKey()?.SetName($"PK_{table}");
 
+            // Keys and indexes of child tables use the approved short form, so names stay within PostgreSQL's 63 characters.
+            var owner = KeyPrefix(table);
+
             var foreignKeys = entity.GetForeignKeys().ToList();
             foreach (var foreignKey in foreignKeys)
             {
                 var principal = foreignKey.PrincipalEntityType.GetTableName();
                 var samePrincipal = foreignKeys.Count(x => x.PrincipalEntityType == foreignKey.PrincipalEntityType) > 1;
-                var name = $"FK_{table}_{principal}";
+                var name = $"FK_{owner}_{principal}";
 
                 if (samePrincipal)
                     name += "_" + string.Join("_", foreignKey.Properties.Select(p => p.GetColumnName()));
@@ -55,11 +58,21 @@ public static class NamingStandard
 
             foreach (var index in entity.GetIndexes())
             {
-                var columns = string.Join("_", index.Properties.Select(p => p.GetColumnName()));
-                index.SetDatabaseName($"{(index.IsUnique ? "UQ" : "IX")}_{table}_{columns}");
+                // Trailing columns are left out of the name when it would pass PostgreSQL's 63 characters.
+                var columns = index.Properties.Select(p => p.GetColumnName()).ToList();
+                string name;
+                while ((name = $"{(index.IsUnique ? "UQ" : "IX")}_{owner}_{string.Join("_", columns)}").Length > 63 && columns.Count > 1)
+                    columns.RemoveAt(columns.Count - 1);
+                index.SetDatabaseName(name);
             }
         }
     }
+
+    /// <summary>MTG_PURCHASED_PORTFOLIO_ACCOUNTS → MTG_PP_ACCOUNTS (approved abbreviation PP, keys and indexes only).</summary>
+    private static string KeyPrefix(string table) =>
+        table.StartsWith("MTG_PURCHASED_PORTFOLIO_", StringComparison.Ordinal)
+            ? "MTG_PP_" + table["MTG_PURCHASED_PORTFOLIO_".Length..]
+            : table;
 
     private static void ApplyNumericPrecision(IMutableProperty property)
     {

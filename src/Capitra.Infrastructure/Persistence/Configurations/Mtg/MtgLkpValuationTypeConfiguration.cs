@@ -4,5 +4,5 @@ namespace Capitra.Infrastructure.Persistence.Configurations.Mtg;
 
 public sealed class MtgLkpValuationTypeConfiguration : LookupConfiguration<MtgLkpValuationType>
 {
-    protected override string TableName => "MTG_LKP_VALUATION_TYPE";
+    protected override string TableName => "MTG_LKP_VALUATION_TYPES";
 }

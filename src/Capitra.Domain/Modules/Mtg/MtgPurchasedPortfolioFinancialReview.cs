@@ -3,10 +3,10 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_PORTFOLIO_FINANCIAL_REVIEW: how the purchase price of a portfolio was worked out, one per portfolio, saved with
+/// MTG_PURCHASED_PORTFOLIO_FINANCIAL_REVIEWS: how the purchase price of a portfolio was worked out, one per portfolio, saved with
 /// every input so the figures can be explained later (APEX FNV_PORTFOLIO_FINANCIAL_REVIEW, App 105 page 214).
 /// </summary>
-public class MtgPortfolioFinancialReview : AuditableEntity
+public class MtgPurchasedPortfolioFinancialReview : AuditableEntity
 {
     public long FinancialReviewId { get; set; }
 

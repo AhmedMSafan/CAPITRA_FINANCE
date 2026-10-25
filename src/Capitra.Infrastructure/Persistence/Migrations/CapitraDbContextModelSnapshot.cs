@@ -79,9 +79,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_CHEQUE_STATUS");
+                        .HasName("PK_ADM_LKP_CHEQUE_STATUSES");
 
-                    b.ToTable("ADM_LKP_CHEQUE_STATUS", (string)null);
+                    b.ToTable("ADM_LKP_CHEQUE_STATUSES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpCountry", b =>
@@ -141,9 +141,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_COUNTRY");
+                        .HasName("PK_ADM_LKP_COUNTRIES");
 
-                    b.ToTable("ADM_LKP_COUNTRY", (string)null);
+                    b.ToTable("ADM_LKP_COUNTRIES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpCurrency", b =>
@@ -207,9 +207,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_CURRENCY");
+                        .HasName("PK_ADM_LKP_CURRENCIES");
 
-                    b.ToTable("ADM_LKP_CURRENCY", (string)null);
+                    b.ToTable("ADM_LKP_CURRENCIES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDecisionType", b =>
@@ -269,9 +269,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_DECISION_TYPE");
+                        .HasName("PK_ADM_LKP_DECISION_TYPES");
 
-                    b.ToTable("ADM_LKP_DECISION_TYPE", (string)null);
+                    b.ToTable("ADM_LKP_DECISION_TYPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentGroup", b =>
@@ -331,9 +331,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_DOCUMENT_GROUP");
+                        .HasName("PK_ADM_LKP_DOCUMENT_GROUPS");
 
-                    b.ToTable("ADM_LKP_DOCUMENT_GROUP", (string)null);
+                    b.ToTable("ADM_LKP_DOCUMENT_GROUPS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentType", b =>
@@ -420,12 +420,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_DOCUMENT_TYPE");
+                        .HasName("PK_ADM_LKP_DOCUMENT_TYPES");
 
                     b.HasIndex("DocumentGroupCode")
-                        .HasDatabaseName("IX_ADM_LKP_DOCUMENT_TYPE_DOCUMENT_GROUP_CODE");
+                        .HasDatabaseName("IX_ADM_LKP_DOCUMENT_TYPES_DOCUMENT_GROUP_CODE");
 
-                    b.ToTable("ADM_LKP_DOCUMENT_TYPE", (string)null);
+                    b.ToTable("ADM_LKP_DOCUMENT_TYPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpGuaranteeType", b =>
@@ -489,9 +489,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_GUARANTEE_TYPE");
+                        .HasName("PK_ADM_LKP_GUARANTEE_TYPES");
 
-                    b.ToTable("ADM_LKP_GUARANTEE_TYPE", (string)null);
+                    b.ToTable("ADM_LKP_GUARANTEE_TYPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpInsuranceType", b =>
@@ -551,9 +551,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_INSURANCE_TYPE");
+                        .HasName("PK_ADM_LKP_INSURANCE_TYPES");
 
-                    b.ToTable("ADM_LKP_INSURANCE_TYPE", (string)null);
+                    b.ToTable("ADM_LKP_INSURANCE_TYPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpPaymentStatus", b =>
@@ -613,9 +613,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_PAYMENT_STATUS");
+                        .HasName("PK_ADM_LKP_PAYMENT_STATUSES");
 
-                    b.ToTable("ADM_LKP_PAYMENT_STATUS", (string)null);
+                    b.ToTable("ADM_LKP_PAYMENT_STATUSES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpRiskLevel", b =>
@@ -675,9 +675,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_ADM_LKP_RISK_LEVEL");
+                        .HasName("PK_ADM_LKP_RISK_LEVELS");
 
-                    b.ToTable("ADM_LKP_RISK_LEVEL", (string)null);
+                    b.ToTable("ADM_LKP_RISK_LEVELS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountPayment", b =>
@@ -756,15 +756,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("AccountPaymentId")
-                        .HasName("PK_MTG_ACCOUNT_PAYMENT");
+                        .HasName("PK_MTG_ACCOUNT_PAYMENTS");
 
                     b.HasIndex("PaymentStatusCode")
-                        .HasDatabaseName("IX_MTG_ACCOUNT_PAYMENT_PAYMENT_STATUS_CODE");
+                        .HasDatabaseName("IX_MTG_ACCOUNT_PAYMENTS_PAYMENT_STATUS_CODE");
 
                     b.HasIndex("PortfolioAccountId")
-                        .HasDatabaseName("IX_MTG_ACCOUNT_PAYMENT_PORTFOLIO_ACCOUNT_ID");
+                        .HasDatabaseName("IX_MTG_ACCOUNT_PAYMENTS_PORTFOLIO_ACCOUNT_ID");
 
-                    b.ToTable("MTG_ACCOUNT_PAYMENT", (string)null);
+                    b.ToTable("MTG_ACCOUNT_PAYMENTS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAmlResult", b =>
@@ -852,12 +852,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("AmlResultId")
-                        .HasName("PK_MTG_AML_RESULT");
+                        .HasName("PK_MTG_AML_RESULTS");
 
                     b.HasIndex("PortfolioId", "SubjectTypeCode", "SubjectId")
-                        .HasDatabaseName("IX_MTG_AML_RESULT_PORTFOLIO_ID_SUBJECT_TYPE_CODE_SUBJECT_ID");
+                        .HasDatabaseName("IX_MTG_AML_RESULTS_PORTFOLIO_ID_SUBJECT_TYPE_CODE_SUBJECT_ID");
 
-                    b.ToTable("MTG_AML_RESULT", (string)null);
+                    b.ToTable("MTG_AML_RESULTS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloper", b =>
@@ -949,16 +949,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("DeveloperId")
-                        .HasName("PK_MTG_DEVELOPER");
+                        .HasName("PK_MTG_DEVELOPERS");
 
                     b.HasIndex("DeveloperCode")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MTG_DEVELOPER_DEVELOPER_CODE");
+                        .HasDatabaseName("UQ_MTG_DEVELOPERS_DEVELOPER_CODE");
 
                     b.HasIndex("RiskLevelCode")
-                        .HasDatabaseName("IX_MTG_DEVELOPER_RISK_LEVEL_CODE");
+                        .HasDatabaseName("IX_MTG_DEVELOPERS_RISK_LEVEL_CODE");
 
-                    b.ToTable("MTG_DEVELOPER", (string)null);
+                    b.ToTable("MTG_DEVELOPERS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloperSignatory", b =>
@@ -1032,12 +1032,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("VALID_TO_DATE");
 
                     b.HasKey("DeveloperSignatoryId")
-                        .HasName("PK_MTG_DEVELOPER_SIGNATORY");
+                        .HasName("PK_MTG_DEVELOPER_SIGNATORIES");
 
                     b.HasIndex("DeveloperId")
-                        .HasDatabaseName("IX_MTG_DEVELOPER_SIGNATORY_DEVELOPER_ID");
+                        .HasDatabaseName("IX_MTG_DEVELOPER_SIGNATORIES_DEVELOPER_ID");
 
-                    b.ToTable("MTG_DEVELOPER_SIGNATORY", (string)null);
+                    b.ToTable("MTG_DEVELOPER_SIGNATORIES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInquiryResult", b =>
@@ -1118,15 +1118,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("InquiryResultId")
-                        .HasName("PK_MTG_INQUIRY_RESULT");
+                        .HasName("PK_MTG_INQUIRY_RESULTS");
 
                     b.HasIndex("InquiryTypeCode")
-                        .HasDatabaseName("IX_MTG_INQUIRY_RESULT_INQUIRY_TYPE_CODE");
+                        .HasDatabaseName("IX_MTG_INQUIRY_RESULTS_INQUIRY_TYPE_CODE");
 
                     b.HasIndex("PortfolioId", "SubjectTypeCode", "SubjectId")
-                        .HasDatabaseName("IX_MTG_INQUIRY_RESULT_PORTFOLIO_ID_SUBJECT_TYPE_CODE_SUBJECT_ID");
+                        .HasDatabaseName("IX_MTG_INQUIRY_RESULTS_PORTFOLIO_ID_SUBJECT_TYPE_CODE");
 
-                    b.ToTable("MTG_INQUIRY_RESULT", (string)null);
+                    b.ToTable("MTG_INQUIRY_RESULTS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInvestor", b =>
@@ -1218,13 +1218,13 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("InvestorId")
-                        .HasName("PK_MTG_INVESTOR");
+                        .HasName("PK_MTG_INVESTORS");
 
                     b.HasIndex("InvestorCode")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MTG_INVESTOR_INVESTOR_CODE");
+                        .HasDatabaseName("UQ_MTG_INVESTORS_INVESTOR_CODE");
 
-                    b.ToTable("MTG_INVESTOR", (string)null);
+                    b.ToTable("MTG_INVESTORS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLegalReview", b =>
@@ -1317,13 +1317,13 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("LegalReviewId")
-                        .HasName("PK_MTG_LEGAL_REVIEW");
+                        .HasName("PK_MTG_LEGAL_REVIEWS");
 
                     b.HasIndex("PortfolioId")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MTG_LEGAL_REVIEW_PORTFOLIO_ID");
+                        .HasDatabaseName("UQ_MTG_LEGAL_REVIEWS_PORTFOLIO_ID");
 
-                    b.ToTable("MTG_LEGAL_REVIEW", (string)null);
+                    b.ToTable("MTG_LEGAL_REVIEWS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpApprovalStep", b =>
@@ -1383,9 +1383,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_MTG_LKP_APPROVAL_STEP");
+                        .HasName("PK_MTG_LKP_APPROVAL_STEPS");
 
-                    b.ToTable("MTG_LKP_APPROVAL_STEP", (string)null);
+                    b.ToTable("MTG_LKP_APPROVAL_STEPS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpDdCheckType", b =>
@@ -1449,9 +1449,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_MTG_LKP_DD_CHECK_TYPE");
+                        .HasName("PK_MTG_LKP_DD_CHECK_TYPES");
 
-                    b.ToTable("MTG_LKP_DD_CHECK_TYPE", (string)null);
+                    b.ToTable("MTG_LKP_DD_CHECK_TYPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpInquiryType", b =>
@@ -1511,9 +1511,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_MTG_LKP_INQUIRY_TYPE");
+                        .HasName("PK_MTG_LKP_INQUIRY_TYPES");
 
-                    b.ToTable("MTG_LKP_INQUIRY_TYPE", (string)null);
+                    b.ToTable("MTG_LKP_INQUIRY_TYPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioStatus", b =>
@@ -1573,9 +1573,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_MTG_LKP_PORTFOLIO_STATUS");
+                        .HasName("PK_MTG_LKP_PORTFOLIO_STATUSES");
 
-                    b.ToTable("MTG_LKP_PORTFOLIO_STATUS", (string)null);
+                    b.ToTable("MTG_LKP_PORTFOLIO_STATUSES", (string)null);
 
                     b.HasData(
                         new
@@ -1824,9 +1824,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_MTG_LKP_UNIT_TYPE");
+                        .HasName("PK_MTG_LKP_UNIT_TYPES");
 
-                    b.ToTable("MTG_LKP_UNIT_TYPE", (string)null);
+                    b.ToTable("MTG_LKP_UNIT_TYPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpValuationType", b =>
@@ -1886,12 +1886,217 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_MTG_LKP_VALUATION_TYPE");
+                        .HasName("PK_MTG_LKP_VALUATION_TYPES");
 
-                    b.ToTable("MTG_LKP_VALUATION_TYPE", (string)null);
+                    b.ToTable("MTG_LKP_VALUATION_TYPES", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolio", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProject", b =>
+                {
+                    b.Property<long>("ProjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProjectId"));
+
+                    b.Property<DateOnly?>("BuildingLicenseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("BUILDING_LICENSE_DATE");
+
+                    b.Property<string>("BuildingLicenseNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BUILDING_LICENSE_NO");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DeveloperId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEVELOPER_ID");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<decimal?>("LandArea")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LAND_AREA");
+
+                    b.Property<string>("LocationText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("LOCATION_TEXT");
+
+                    b.Property<string>("ProjectCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PROJECT_CODE");
+
+                    b.Property<decimal?>("ProjectCompletionPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PROJECT_COMPLETION_PCT");
+
+                    b.Property<string>("ProjectNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("PROJECT_NAME_AR");
+
+                    b.Property<string>("ProjectNameEn")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("PROJECT_NAME_EN");
+
+                    b.Property<string>("ProjectStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PROJECT_STATUS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("TitleDeedNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("TITLE_DEED_NO");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProjectId")
+                        .HasName("PK_MTG_PROJECTS");
+
+                    b.HasIndex("DeveloperId")
+                        .HasDatabaseName("IX_MTG_PROJECTS_DEVELOPER_ID");
+
+                    b.HasIndex("ProjectCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PROJECTS_PROJECT_CODE");
+
+                    b.ToTable("MTG_PROJECTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProjectUnit", b =>
+                {
+                    b.Property<long>("ProjectUnitId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_UNIT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProjectUnitId"));
+
+                    b.Property<decimal?>("AreaSqm")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("AREA_SQM");
+
+                    b.Property<string>("BuildingNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("BUILDING_NO");
+
+                    b.Property<decimal?>("ContractAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CONTRACT_AMOUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("FloorNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("FLOOR_NO");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("LicenseStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("LICENSE_STATUS");
+
+                    b.Property<decimal?>("MarketValueAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARKET_VALUE_AMOUNT");
+
+                    b.Property<long>("ProjectId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("UnitCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("UNIT_CODE");
+
+                    b.Property<string>("UnitNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("UNIT_NO");
+
+                    b.Property<string>("UnitTypeCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("UNIT_TYPE_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProjectUnitId")
+                        .HasName("PK_MTG_PROJECT_UNITS");
+
+                    b.HasIndex("UnitTypeCode")
+                        .HasDatabaseName("IX_MTG_PROJECT_UNITS_UNIT_TYPE_CODE");
+
+                    b.HasIndex("ProjectId", "UnitCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PROJECT_UNITS_PROJECT_ID_UNIT_CODE");
+
+                    b.ToTable("MTG_PROJECT_UNITS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", b =>
                 {
                     b.Property<long>("PortfolioId")
                         .ValueGeneratedOnAdd()
@@ -2075,28 +2280,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("VALUATION_FEE_PER_UNIT_AMOUNT");
 
                     b.HasKey("PortfolioId")
-                        .HasName("PK_MTG_PORTFOLIO");
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIOS");
 
                     b.HasIndex("CurrencyCode")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_CURRENCY_CODE");
+                        .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_CURRENCY_CODE");
 
                     b.HasIndex("DeveloperId")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_DEVELOPER_ID");
+                        .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_DEVELOPER_ID");
 
                     b.HasIndex("PortfolioNo")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MTG_PORTFOLIO_PORTFOLIO_NO");
+                        .HasDatabaseName("UQ_MTG_PURCHASED_PORTFOLIOS_PORTFOLIO_NO");
 
                     b.HasIndex("PortfolioStatusCode")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_PORTFOLIO_STATUS_CODE");
+                        .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_PORTFOLIO_STATUS_CODE");
 
                     b.HasIndex("ProjectId")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_PROJECT_ID");
+                        .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_PROJECT_ID");
 
-                    b.ToTable("MTG_PORTFOLIO", (string)null);
+                    b.ToTable("MTG_PURCHASED_PORTFOLIOS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioAccount", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioAccount", b =>
                 {
                     b.Property<long>("PortfolioAccountId")
                         .ValueGeneratedOnAdd()
@@ -2203,22 +2408,22 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("PortfolioAccountId")
-                        .HasName("PK_MTG_PORTFOLIO_ACCOUNT");
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_ACCOUNTS");
 
                     b.HasIndex("InvestorId")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_ACCOUNT_INVESTOR_ID");
+                        .HasDatabaseName("IX_MTG_PP_ACCOUNTS_INVESTOR_ID");
 
                     b.HasIndex("ProjectUnitId")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_ACCOUNT_PROJECT_UNIT_ID");
+                        .HasDatabaseName("IX_MTG_PP_ACCOUNTS_PROJECT_UNIT_ID");
 
                     b.HasIndex("PortfolioId", "SellerContractNo")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MTG_PORTFOLIO_ACCOUNT_PORTFOLIO_ID_SELLER_CONTRACT_NO");
+                        .HasDatabaseName("UQ_MTG_PP_ACCOUNTS_PORTFOLIO_ID_SELLER_CONTRACT_NO");
 
-                    b.ToTable("MTG_PORTFOLIO_ACCOUNT", (string)null);
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_ACCOUNTS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioCheque", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioCheque", b =>
                 {
                     b.Property<long>("ChequeId")
                         .ValueGeneratedOnAdd()
@@ -2303,21 +2508,21 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("ChequeId")
-                        .HasName("PK_MTG_PORTFOLIO_CHEQUE");
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_CHEQUES");
 
                     b.HasIndex("ChequeStatusCode")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_CHEQUE_CHEQUE_STATUS_CODE");
+                        .HasDatabaseName("IX_MTG_PP_CHEQUES_CHEQUE_STATUS_CODE");
 
                     b.HasIndex("PortfolioAccountId")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_CHEQUE_PORTFOLIO_ACCOUNT_ID");
+                        .HasDatabaseName("IX_MTG_PP_CHEQUES_PORTFOLIO_ACCOUNT_ID");
 
                     b.HasIndex("PortfolioId")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_CHEQUE_PORTFOLIO_ID");
+                        .HasDatabaseName("IX_MTG_PP_CHEQUES_PORTFOLIO_ID");
 
-                    b.ToTable("MTG_PORTFOLIO_CHEQUE", (string)null);
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_CHEQUES", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioFinancialReview", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioFinancialReview", b =>
                 {
                     b.Property<long>("FinancialReviewId")
                         .ValueGeneratedOnAdd()
@@ -2492,16 +2697,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("VALUATION_FINAL_AMOUNT");
 
                     b.HasKey("FinancialReviewId")
-                        .HasName("PK_MTG_PORTFOLIO_FINANCIAL_REVIEW");
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_FINANCIAL_REVIEWS");
 
                     b.HasIndex("PortfolioId")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MTG_PORTFOLIO_FINANCIAL_REVIEW_PORTFOLIO_ID");
+                        .HasDatabaseName("UQ_MTG_PP_FINANCIAL_REVIEWS_PORTFOLIO_ID");
 
-                    b.ToTable("MTG_PORTFOLIO_FINANCIAL_REVIEW", (string)null);
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_FINANCIAL_REVIEWS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioImport", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioImport", b =>
                 {
                     b.Property<long>("PortfolioImportId")
                         .ValueGeneratedOnAdd()
@@ -2567,16 +2772,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("VALID_ROW_COUNT");
 
                     b.HasKey("PortfolioImportId")
-                        .HasName("PK_MTG_PORTFOLIO_IMPORT");
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_IMPORTS");
 
                     b.HasIndex("PortfolioId")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MTG_PORTFOLIO_IMPORT_PORTFOLIO_ID");
+                        .HasDatabaseName("UQ_MTG_PP_IMPORTS_PORTFOLIO_ID");
 
-                    b.ToTable("MTG_PORTFOLIO_IMPORT", (string)null);
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_IMPORTS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioStatusHistory", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioStatusHistory", b =>
                 {
                     b.Property<long>("PortfolioStatusHistoryId")
                         .ValueGeneratedOnAdd()
@@ -2630,217 +2835,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("PortfolioStatusHistoryId")
-                        .HasName("PK_MTG_PORTFOLIO_STATUS_HISTORY");
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_STATUS_HIST");
 
                     b.HasIndex("PortfolioId")
-                        .HasDatabaseName("IX_MTG_PORTFOLIO_STATUS_HISTORY_PORTFOLIO_ID");
+                        .HasDatabaseName("IX_MTG_PP_STATUS_HIST_PORTFOLIO_ID");
 
-                    b.ToTable("MTG_PORTFOLIO_STATUS_HISTORY", (string)null);
-                });
-
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProject", b =>
-                {
-                    b.Property<long>("ProjectId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("PROJECT_ID");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProjectId"));
-
-                    b.Property<DateOnly?>("BuildingLicenseDate")
-                        .HasColumnType("date")
-                        .HasColumnName("BUILDING_LICENSE_DATE");
-
-                    b.Property<string>("BuildingLicenseNo")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("BUILDING_LICENSE_NO");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("CREATED_AT");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("CREATED_BY");
-
-                    b.Property<long>("DeveloperId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("DEVELOPER_ID");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("IS_ACTIVE");
-
-                    b.Property<decimal?>("LandArea")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("LAND_AREA");
-
-                    b.Property<string>("LocationText")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("LOCATION_TEXT");
-
-                    b.Property<string>("ProjectCode")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("PROJECT_CODE");
-
-                    b.Property<decimal?>("ProjectCompletionPct")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("PROJECT_COMPLETION_PCT");
-
-                    b.Property<string>("ProjectNameAr")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("PROJECT_NAME_AR");
-
-                    b.Property<string>("ProjectNameEn")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("PROJECT_NAME_EN");
-
-                    b.Property<string>("ProjectStatus")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("PROJECT_STATUS");
-
-                    b.Property<int>("RowVersion")
-                        .IsConcurrencyToken()
-                        .HasColumnType("integer")
-                        .HasColumnName("ROW_VERSION");
-
-                    b.Property<string>("TitleDeedNo")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("TITLE_DEED_NO");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("UPDATED_AT");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("UPDATED_BY");
-
-                    b.HasKey("ProjectId")
-                        .HasName("PK_MTG_PROJECT");
-
-                    b.HasIndex("DeveloperId")
-                        .HasDatabaseName("IX_MTG_PROJECT_DEVELOPER_ID");
-
-                    b.HasIndex("ProjectCode")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_MTG_PROJECT_PROJECT_CODE");
-
-                    b.ToTable("MTG_PROJECT", (string)null);
-                });
-
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProjectUnit", b =>
-                {
-                    b.Property<long>("ProjectUnitId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("PROJECT_UNIT_ID");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProjectUnitId"));
-
-                    b.Property<decimal?>("AreaSqm")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("AREA_SQM");
-
-                    b.Property<string>("BuildingNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("BUILDING_NO");
-
-                    b.Property<decimal?>("ContractAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("CONTRACT_AMOUNT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("CREATED_AT");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("CREATED_BY");
-
-                    b.Property<string>("FloorNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("FLOOR_NO");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("LicenseStatus")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("LICENSE_STATUS");
-
-                    b.Property<decimal?>("MarketValueAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("MARKET_VALUE_AMOUNT");
-
-                    b.Property<long>("ProjectId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("PROJECT_ID");
-
-                    b.Property<int>("RowVersion")
-                        .IsConcurrencyToken()
-                        .HasColumnType("integer")
-                        .HasColumnName("ROW_VERSION");
-
-                    b.Property<string>("UnitCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("UNIT_CODE");
-
-                    b.Property<string>("UnitNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("UNIT_NO");
-
-                    b.Property<string>("UnitTypeCode")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("UNIT_TYPE_CODE");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("UPDATED_AT");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("UPDATED_BY");
-
-                    b.HasKey("ProjectUnitId")
-                        .HasName("PK_MTG_PROJECT_UNIT");
-
-                    b.HasIndex("UnitTypeCode")
-                        .HasDatabaseName("IX_MTG_PROJECT_UNIT_UNIT_TYPE_CODE");
-
-                    b.HasIndex("ProjectId", "UnitCode")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_MTG_PROJECT_UNIT_PROJECT_ID_UNIT_CODE");
-
-                    b.ToTable("MTG_PROJECT_UNIT", (string)null);
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_STATUS_HIST", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgValuation", b =>
@@ -2939,21 +2939,21 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("VALUER_REGISTRATION_NO");
 
                     b.HasKey("ValuationId")
-                        .HasName("PK_MTG_VALUATION");
+                        .HasName("PK_MTG_VALUATIONS");
 
                     b.HasIndex("PortfolioId")
-                        .HasDatabaseName("IX_MTG_VALUATION_PORTFOLIO_ID");
+                        .HasDatabaseName("IX_MTG_VALUATIONS_PORTFOLIO_ID");
 
                     b.HasIndex("ProjectId")
-                        .HasDatabaseName("IX_MTG_VALUATION_PROJECT_ID");
+                        .HasDatabaseName("IX_MTG_VALUATIONS_PROJECT_ID");
 
                     b.HasIndex("ProjectUnitId")
-                        .HasDatabaseName("IX_MTG_VALUATION_PROJECT_UNIT_ID");
+                        .HasDatabaseName("IX_MTG_VALUATIONS_PROJECT_UNIT_ID");
 
                     b.HasIndex("ValuationTypeCode")
-                        .HasDatabaseName("IX_MTG_VALUATION_VALUATION_TYPE_CODE");
+                        .HasDatabaseName("IX_MTG_VALUATIONS_VALUATION_TYPE_CODE");
 
-                    b.ToTable("MTG_VALUATION", (string)null);
+                    b.ToTable("MTG_VALUATIONS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRole", b =>
@@ -3007,13 +3007,13 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Id")
-                        .HasName("PK_SEC_ROLE");
+                        .HasName("PK_SEC_ROLES");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("UQ_SEC_ROLE_NORMALIZED_ROLE_NAME");
+                        .HasDatabaseName("UQ_SEC_ROLES_NORMALIZED_ROLE_NAME");
 
-                    b.ToTable("SEC_ROLE", (string)null);
+                    b.ToTable("SEC_ROLES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRoleClaim", b =>
@@ -3063,12 +3063,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Id")
-                        .HasName("PK_SEC_ROLE_CLAIM");
+                        .HasName("PK_SEC_ROLE_CLAIMS");
 
                     b.HasIndex("RoleId")
-                        .HasDatabaseName("IX_SEC_ROLE_CLAIM_ROLE_ID");
+                        .HasDatabaseName("IX_SEC_ROLE_CLAIMS_ROLE_ID");
 
-                    b.ToTable("SEC_ROLE_CLAIM", (string)null);
+                    b.ToTable("SEC_ROLE_CLAIMS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUser", b =>
@@ -3192,16 +3192,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("USER_NAME");
 
                     b.HasKey("Id")
-                        .HasName("PK_SEC_USER");
+                        .HasName("PK_SEC_USERS");
 
                     b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("IX_SEC_USER_NORMALIZED_EMAIL");
+                        .HasDatabaseName("IX_SEC_USERS_NORMALIZED_EMAIL");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UQ_SEC_USER_NORMALIZED_USER_NAME");
+                        .HasDatabaseName("UQ_SEC_USERS_NORMALIZED_USER_NAME");
 
-                    b.ToTable("SEC_USER", (string)null);
+                    b.ToTable("SEC_USERS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUserClaim", b =>
@@ -3251,12 +3251,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("USER_ID");
 
                     b.HasKey("Id")
-                        .HasName("PK_SEC_USER_CLAIM");
+                        .HasName("PK_SEC_USER_CLAIMS");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("IX_SEC_USER_CLAIM_USER_ID");
+                        .HasDatabaseName("IX_SEC_USER_CLAIMS_USER_ID");
 
-                    b.ToTable("SEC_USER_CLAIM", (string)null);
+                    b.ToTable("SEC_USER_CLAIMS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUserLogin", b =>
@@ -3305,12 +3305,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("USER_ID");
 
                     b.HasKey("LoginProvider", "ProviderKey")
-                        .HasName("PK_SEC_USER_LOGIN");
+                        .HasName("PK_SEC_USER_LOGINS");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("IX_SEC_USER_LOGIN_USER_ID");
+                        .HasDatabaseName("IX_SEC_USER_LOGINS_USER_ID");
 
-                    b.ToTable("SEC_USER_LOGIN", (string)null);
+                    b.ToTable("SEC_USER_LOGINS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUserPasskey", b =>
@@ -3350,12 +3350,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("USER_ID");
 
                     b.HasKey("CredentialId")
-                        .HasName("PK_SEC_USER_PASSKEY");
+                        .HasName("PK_SEC_USER_PASSKEYS");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("IX_SEC_USER_PASSKEY_USER_ID");
+                        .HasDatabaseName("IX_SEC_USER_PASSKEYS_USER_ID");
 
-                    b.ToTable("SEC_USER_PASSKEY", (string)null);
+                    b.ToTable("SEC_USER_PASSKEYS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUserRole", b =>
@@ -3393,12 +3393,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("UserId", "RoleId")
-                        .HasName("PK_SEC_USER_ROLE");
+                        .HasName("PK_SEC_USER_ROLES");
 
                     b.HasIndex("RoleId")
-                        .HasDatabaseName("IX_SEC_USER_ROLE_ROLE_ID");
+                        .HasDatabaseName("IX_SEC_USER_ROLES_ROLE_ID");
 
-                    b.ToTable("SEC_USER_ROLE", (string)null);
+                    b.ToTable("SEC_USER_ROLES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUserToken", b =>
@@ -3446,9 +3446,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("TOKEN_VALUE");
 
                     b.HasKey("UserId", "LoginProvider", "Name")
-                        .HasName("PK_SEC_USER_TOKEN");
+                        .HasName("PK_SEC_USER_TOKENS");
 
-                    b.ToTable("SEC_USER_TOKEN", (string)null);
+                    b.ToTable("SEC_USER_TOKENS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentType", b =>
@@ -3457,7 +3457,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("DocumentGroupCode")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_ADM_LKP_DOCUMENT_TYPE_ADM_LKP_DOCUMENT_GROUP");
+                        .HasConstraintName("FK_ADM_LKP_DOCUMENT_TYPES_ADM_LKP_DOCUMENT_GROUPS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountPayment", b =>
@@ -3467,24 +3467,24 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("PaymentStatusCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_ACCOUNT_PAYMENT_ADM_LKP_PAYMENT_STATUS");
+                        .HasConstraintName("FK_MTG_ACCOUNT_PAYMENTS_ADM_LKP_PAYMENT_STATUSES");
 
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolioAccount", null)
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioAccount", null)
                         .WithMany()
                         .HasForeignKey("PortfolioAccountId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_ACCOUNT_PAYMENT_MTG_PORTFOLIO_ACCOUNT");
+                        .HasConstraintName("FK_MTG_ACCOUNT_PAYMENTS_MTG_PURCHASED_PORTFOLIO_ACCOUNTS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAmlResult", b =>
                 {
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
                         .WithMany()
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_AML_RESULT_MTG_PORTFOLIO");
+                        .HasConstraintName("FK_MTG_AML_RESULTS_MTG_PURCHASED_PORTFOLIOS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloper", b =>
@@ -3493,7 +3493,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("RiskLevelCode")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_MTG_DEVELOPER_ADM_LKP_RISK_LEVEL");
+                        .HasConstraintName("FK_MTG_DEVELOPERS_ADM_LKP_RISK_LEVELS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloperSignatory", b =>
@@ -3503,7 +3503,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("DeveloperId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_DEVELOPER_SIGNATORY_MTG_DEVELOPER");
+                        .HasConstraintName("FK_MTG_DEVELOPER_SIGNATORIES_MTG_DEVELOPERS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInquiryResult", b =>
@@ -3513,133 +3513,24 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("InquiryTypeCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_INQUIRY_RESULT_MTG_LKP_INQUIRY_TYPE");
+                        .HasConstraintName("FK_MTG_INQUIRY_RESULTS_MTG_LKP_INQUIRY_TYPES");
 
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
                         .WithMany()
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_INQUIRY_RESULT_MTG_PORTFOLIO");
+                        .HasConstraintName("FK_MTG_INQUIRY_RESULTS_MTG_PURCHASED_PORTFOLIOS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLegalReview", b =>
                 {
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
                         .WithMany()
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_LEGAL_REVIEW_MTG_PORTFOLIO");
-                });
-
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolio", b =>
-                {
-                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpCurrency", null)
-                        .WithMany()
-                        .HasForeignKey("CurrencyCode")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_ADM_LKP_CURRENCY");
-
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgDeveloper", null)
-                        .WithMany()
-                        .HasForeignKey("DeveloperId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_MTG_DEVELOPER");
-
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioStatus", null)
-                        .WithMany()
-                        .HasForeignKey("PortfolioStatusCode")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_MTG_LKP_PORTFOLIO_STATUS");
-
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgProject", null)
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_MTG_PROJECT");
-                });
-
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioAccount", b =>
-                {
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgInvestor", null)
-                        .WithMany()
-                        .HasForeignKey("InvestorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_ACCOUNT_MTG_INVESTOR");
-
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
-                        .WithMany()
-                        .HasForeignKey("PortfolioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_ACCOUNT_MTG_PORTFOLIO");
-
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgProjectUnit", null)
-                        .WithMany()
-                        .HasForeignKey("ProjectUnitId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_ACCOUNT_MTG_PROJECT_UNIT");
-                });
-
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioCheque", b =>
-                {
-                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpChequeStatus", null)
-                        .WithMany()
-                        .HasForeignKey("ChequeStatusCode")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_CHEQUE_ADM_LKP_CHEQUE_STATUS");
-
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolioAccount", null)
-                        .WithMany()
-                        .HasForeignKey("PortfolioAccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_CHEQUE_MTG_PORTFOLIO_ACCOUNT");
-
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
-                        .WithMany()
-                        .HasForeignKey("PortfolioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_CHEQUE_MTG_PORTFOLIO");
-                });
-
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioFinancialReview", b =>
-                {
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
-                        .WithMany()
-                        .HasForeignKey("PortfolioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_FINANCIAL_REVIEW_MTG_PORTFOLIO");
-                });
-
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioImport", b =>
-                {
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
-                        .WithMany()
-                        .HasForeignKey("PortfolioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_IMPORT_MTG_PORTFOLIO");
-                });
-
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPortfolioStatusHistory", b =>
-                {
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
-                        .WithMany()
-                        .HasForeignKey("PortfolioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_MTG_PORTFOLIO_STATUS_HISTORY_MTG_PORTFOLIO");
+                        .HasConstraintName("FK_MTG_LEGAL_REVIEWS_MTG_PURCHASED_PORTFOLIOS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProject", b =>
@@ -3649,7 +3540,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("DeveloperId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_PROJECT_MTG_DEVELOPER");
+                        .HasConstraintName("FK_MTG_PROJECTS_MTG_DEVELOPERS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProjectUnit", b =>
@@ -3659,43 +3550,152 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_PROJECT_UNIT_MTG_PROJECT");
+                        .HasConstraintName("FK_MTG_PROJECT_UNITS_MTG_PROJECTS");
 
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpUnitType", null)
                         .WithMany()
                         .HasForeignKey("UnitTypeCode")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_MTG_PROJECT_UNIT_MTG_LKP_UNIT_TYPE");
+                        .HasConstraintName("FK_MTG_PROJECT_UNITS_MTG_LKP_UNIT_TYPES");
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgValuation", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", b =>
                 {
-                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPortfolio", null)
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpCurrency", null)
                         .WithMany()
-                        .HasForeignKey("PortfolioId")
+                        .HasForeignKey("CurrencyCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_VALUATION_MTG_PORTFOLIO");
+                        .HasConstraintName("FK_MTG_PURCHASED_PORTFOLIOS_ADM_LKP_CURRENCIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgDeveloper", null)
+                        .WithMany()
+                        .HasForeignKey("DeveloperId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PURCHASED_PORTFOLIOS_MTG_DEVELOPERS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioStatus", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PURCHASED_PORTFOLIOS_MTG_LKP_PORTFOLIO_STATUSES");
 
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgProject", null)
                         .WithMany()
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_VALUATION_MTG_PROJECT");
+                        .HasConstraintName("FK_MTG_PURCHASED_PORTFOLIOS_MTG_PROJECTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioAccount", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgInvestor", null)
+                        .WithMany()
+                        .HasForeignKey("InvestorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_ACCOUNTS_MTG_INVESTORS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_ACCOUNTS_MTG_PURCHASED_PORTFOLIOS");
 
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgProjectUnit", null)
                         .WithMany()
                         .HasForeignKey("ProjectUnitId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_MTG_VALUATION_MTG_PROJECT_UNIT");
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_ACCOUNTS_MTG_PROJECT_UNITS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioCheque", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpChequeStatus", null)
+                        .WithMany()
+                        .HasForeignKey("ChequeStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_CHEQUES_ADM_LKP_CHEQUE_STATUSES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioAccount", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_CHEQUES_MTG_PURCHASED_PORTFOLIO_ACCOUNTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_CHEQUES_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioFinancialReview", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_FINANCIAL_REVIEWS_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioImport", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_IMPORTS_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioStatusHistory", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_STATUS_HIST_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgValuation", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_VALUATIONS_MTG_PURCHASED_PORTFOLIOS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgProject", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_VALUATIONS_MTG_PROJECTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgProjectUnit", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_VALUATIONS_MTG_PROJECT_UNITS");
 
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpValuationType", null)
                         .WithMany()
                         .HasForeignKey("ValuationTypeCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MTG_VALUATION_MTG_LKP_VALUATION_TYPE");
+                        .HasConstraintName("FK_MTG_VALUATIONS_MTG_LKP_VALUATION_TYPES");
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRoleClaim", b =>
@@ -3705,7 +3705,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_SEC_ROLE_CLAIM_SEC_ROLE");
+                        .HasConstraintName("FK_SEC_ROLE_CLAIMS_SEC_ROLES");
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUserClaim", b =>
@@ -3715,7 +3715,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_SEC_USER_CLAIM_SEC_USER");
+                        .HasConstraintName("FK_SEC_USER_CLAIMS_SEC_USERS");
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUserLogin", b =>
@@ -3725,7 +3725,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_SEC_USER_LOGIN_SEC_USER");
+                        .HasConstraintName("FK_SEC_USER_LOGINS_SEC_USERS");
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUserPasskey", b =>
@@ -3735,7 +3735,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_SEC_USER_PASSKEY_SEC_USER");
+                        .HasConstraintName("FK_SEC_USER_PASSKEYS_SEC_USERS");
 
                     b.OwnsOne("Microsoft.AspNetCore.Identity.IdentityPasskeyData", "Data", b1 =>
                         {
@@ -3766,7 +3766,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("SecUserPasskeyCredentialId");
 
-                            b1.ToTable("SEC_USER_PASSKEY");
+                            b1.ToTable("SEC_USER_PASSKEYS");
 
                             b1
                                 .ToJson("PASSKEY_DATA")
@@ -3787,14 +3787,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_SEC_USER_ROLE_SEC_ROLE");
+                        .HasConstraintName("FK_SEC_USER_ROLES_SEC_ROLES");
 
                     b.HasOne("Capitra.Infrastructure.Identity.SecUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_SEC_USER_ROLE_SEC_USER");
+                        .HasConstraintName("FK_SEC_USER_ROLES_SEC_USERS");
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUserToken", b =>
@@ -3804,7 +3804,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_SEC_USER_TOKEN_SEC_USER");
+                        .HasConstraintName("FK_SEC_USER_TOKENS_SEC_USERS");
                 });
 #pragma warning restore 612, 618
         }

@@ -43,7 +43,7 @@ public sealed class ExcelImportServiceTests
         db.Add(new MtgInvestor { InvestorCode = "Inv1", FullNameAr = "مستثمر قائم" });
         await db.SaveChangesAsync();
         db.Add(new MtgProjectUnit { ProjectId = project.ProjectId, UnitCode = "U-1" });
-        var portfolio = new MtgPortfolio
+        var portfolio = new MtgPurchasedPortfolio
         {
             PortfolioNo = PortfolioNo, DeveloperId = developer.DeveloperId, ProjectId = project.ProjectId,
             RequestDate = new DateOnly(2026, 10, 1), CurrencyCode = "EGP"
@@ -100,7 +100,7 @@ public sealed class ExcelImportServiceTests
             using var file = ValidWorkbook();
             var result = await service.ImportAsync(portfolioId, "seller.xlsx", file, CancellationToken.None);
 
-            Assert.Equal(MtgPortfolioImport.ImportedStatus, result.ImportStatusCode);
+            Assert.Equal(MtgPurchasedPortfolioImport.ImportedStatus, result.ImportStatusCode);
             Assert.Equal(0, result.ErrorRowCount);
             Assert.Equal(2, result.ImportedRowCount);
         }
@@ -114,29 +114,29 @@ public sealed class ExcelImportServiceTests
             Assert.Equal(new DateOnly(1990, 1, 1), newInvestor.BirthDate);
             Assert.Equal(120000m, newInvestor.DeclaredIncomeAmount);
 
-            var accounts = await db.Set<MtgPortfolioAccount>().OrderBy(x => x.SellerContractNo).ToListAsync();
+            var accounts = await db.Set<MtgPurchasedPortfolioAccount>().OrderBy(x => x.SellerContractNo).ToListAsync();
             Assert.Equal(["SC-1", "SC-2"], accounts.Select(x => x.SellerContractNo));
             Assert.Equal(new DateOnly(2024, 1, 10), accounts[0].BookingDate);
             Assert.Equal(12, accounts[0].RegularPaymentMonths);
             Assert.Equal(2000000m, accounts[1].ContractAmount);
             Assert.Equal(0, accounts[1].RegularPaymentMonths);
             Assert.Equal("LATE", accounts[1].AccountStatus);
-            Assert.All(accounts, a => Assert.Equal(MtgPortfolioAccount.SelectedDecision, a.DealDecisionCode));
+            Assert.All(accounts, a => Assert.Equal(MtgPurchasedPortfolioAccount.SelectedDecision, a.DealDecisionCode));
 
-            var portfolio = await db.Set<MtgPortfolio>().SingleAsync();
+            var portfolio = await db.Set<MtgPurchasedPortfolio>().SingleAsync();
             Assert.Equal(3500000m, portfolio.FaceValueAmount);
             Assert.Equal(2600000m, portfolio.OutstandingAmount);
-            Assert.Equal(MtgPortfolio.DataLoadingCompletedStatus, portfolio.PortfolioStatusCode);
+            Assert.Equal(MtgPurchasedPortfolio.DataLoadingCompletedStatus, portfolio.PortfolioStatusCode);
             Assert.Equal(2, portfolio.SelectedAccountCount);
             Assert.Equal(3500000m, portfolio.SelectedFaceValueAmount);
 
-            var history = await db.Set<MtgPortfolioStatusHistory>().SingleAsync();
-            Assert.Equal(MtgPortfolio.DraftStatus, history.FromStatusCode);
-            Assert.Equal(MtgPortfolio.DataLoadingCompletedStatus, history.ToStatusCode);
+            var history = await db.Set<MtgPurchasedPortfolioStatusHistory>().SingleAsync();
+            Assert.Equal(MtgPurchasedPortfolio.DraftStatus, history.FromStatusCode);
+            Assert.Equal(MtgPurchasedPortfolio.DataLoadingCompletedStatus, history.ToStatusCode);
             Assert.Equal("loader", history.CreatedBy);
 
-            var batch = await db.Set<MtgPortfolioImport>().SingleAsync();
-            Assert.Equal(MtgPortfolioImport.ImportedStatus, batch.ImportStatusCode);
+            var batch = await db.Set<MtgPurchasedPortfolioImport>().SingleAsync();
+            Assert.Equal(MtgPurchasedPortfolioImport.ImportedStatus, batch.ImportStatusCode);
             Assert.Equal(6, batch.TotalRowCount);
             Assert.Equal(2, batch.ImportedRowCount);
         }
@@ -168,7 +168,7 @@ public sealed class ExcelImportServiceTests
         var service = new MtgExcelImportService(db, new ExcelWorkbookReader());
         var result = await service.ImportAsync(portfolioId, "seller.xlsx", file, CancellationToken.None);
 
-        Assert.Equal(MtgPortfolioImport.ErrorStatus, result.ImportStatusCode);
+        Assert.Equal(MtgPurchasedPortfolioImport.ErrorStatus, result.ImportStatusCode);
         Assert.Equal(0, result.ImportedRowCount);
         string MessageOf(string sheet, int row) => result.Rows.Single(r => r.Sheet == sheet && r.RowNumber == row).Message;
         Assert.Contains("FULL_NAME_AR is required for a new investor.", MessageOf("INVESTORS", 2), StringComparison.Ordinal);
@@ -182,10 +182,10 @@ public sealed class ExcelImportServiceTests
         Assert.Contains("UNIT_CODE does not exist in UNITS sheet.", MessageOf("ACCOUNTS", 3), StringComparison.Ordinal);
         Assert.Contains("REGULAR_PAYMENT_MONTHS must be a whole number", MessageOf("ACCOUNTS", 3), StringComparison.Ordinal);
 
-        Assert.Empty(await db.Set<MtgPortfolioAccount>().ToListAsync());
+        Assert.Empty(await db.Set<MtgPurchasedPortfolioAccount>().ToListAsync());
         Assert.Single(await db.Set<MtgInvestor>().ToListAsync());
-        Assert.Equal(MtgPortfolio.DraftStatus, (await db.Set<MtgPortfolio>().SingleAsync()).PortfolioStatusCode);
-        Assert.Equal(MtgPortfolioImport.ErrorStatus, (await db.Set<MtgPortfolioImport>().SingleAsync()).ImportStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.DraftStatus, (await db.Set<MtgPurchasedPortfolio>().SingleAsync()).PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolioImport.ErrorStatus, (await db.Set<MtgPurchasedPortfolioImport>().SingleAsync()).ImportStatusCode);
     }
 
     [Fact]

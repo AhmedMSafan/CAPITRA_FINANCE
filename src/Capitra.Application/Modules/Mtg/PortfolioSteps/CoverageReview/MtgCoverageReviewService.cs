@@ -64,12 +64,12 @@ public sealed class MtgCoverageReviewService(ICapitraDbContext db) : IMtgCoverag
     /// Open after the valuation step is completed, and after its own rejection so the review can be redone.
     /// The workflow engine (build step 4) will open it through a coverage task instead.
     /// </summary>
-    private static readonly string[] OpenStatuses = [MtgPortfolio.ValuationCompletedStatus, MtgPortfolio.CoverageReviewRejectedStatus];
+    private static readonly string[] OpenStatuses = [MtgPurchasedPortfolio.ValuationCompletedStatus, MtgPurchasedPortfolio.CoverageReviewRejectedStatus];
 
     public async Task<CoverageReviewDto> GetAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var header = await (
-            from p in db.Set<MtgPortfolio>()
+            from p in db.Set<MtgPurchasedPortfolio>()
             join prj in db.Set<MtgProject>() on p.ProjectId equals prj.ProjectId
             join s in db.Set<MtgLkpPortfolioStatus>() on p.PortfolioStatusCode equals s.Code into statuses
             from s in statuses.DefaultIfEmpty()
@@ -82,7 +82,7 @@ public sealed class MtgCoverageReviewService(ICapitraDbContext db) : IMtgCoverag
             ?? throw new NotFoundException($"Portfolio {portfolioId} was not found.");
 
         var accounts = await (
-            from a in db.Set<MtgPortfolioAccount>()
+            from a in db.Set<MtgPurchasedPortfolioAccount>()
             join i in db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
             where a.PortfolioId == portfolioId
             select new
@@ -125,7 +125,7 @@ public sealed class MtgCoverageReviewService(ICapitraDbContext db) : IMtgCoverag
         if (portfolio.CoveragePct is not { } required)
             throw new ConflictException("Set the required coverage percentage on the portfolio first.");
 
-        var accounts = await db.Set<MtgPortfolioAccount>().Where(x => x.PortfolioId == portfolioId).ToListAsync(cancellationToken);
+        var accounts = await db.Set<MtgPurchasedPortfolioAccount>().Where(x => x.PortfolioId == portfolioId).ToListAsync(cancellationToken);
         var changed = 0;
         foreach (var investor in accounts.GroupBy(x => x.InvestorId))
         {
@@ -133,8 +133,8 @@ public sealed class MtgCoverageReviewService(ICapitraDbContext db) : IMtgCoverag
             if (contract <= 0)
                 continue;
             var decision = investor.Sum(x => x.PaidAmount) / contract * 100 < required
-                ? MtgPortfolioAccount.ExcludedDecision
-                : MtgPortfolioAccount.SelectedDecision;
+                ? MtgPurchasedPortfolioAccount.ExcludedDecision
+                : MtgPurchasedPortfolioAccount.SelectedDecision;
             var toChange = investor.Where(x => x.DealDecisionCode != decision).ToList();
             toChange.ForEach(x => x.DealDecisionCode = decision);
             if (toChange.Count > 0)
@@ -150,11 +150,11 @@ public sealed class MtgCoverageReviewService(ICapitraDbContext db) : IMtgCoverag
         long portfolioId, long investorId, CoverageInvestorDecisionRequest request, CancellationToken cancellationToken)
     {
         var decision = request.DealDecisionCode?.Trim().ToUpperInvariant();
-        if (decision is not (MtgPortfolioAccount.SelectedDecision or MtgPortfolioAccount.ExcludedDecision))
+        if (decision is not (MtgPurchasedPortfolioAccount.SelectedDecision or MtgPurchasedPortfolioAccount.ExcludedDecision))
             throw BusinessValidationException.For(nameof(request.DealDecisionCode), "Decision must be SELECTED or EXCLUDED.");
 
         await PortfolioStatus.RequireAsync(db, portfolioId, StepName, OpenStatuses, cancellationToken);
-        var accounts = await db.Set<MtgPortfolioAccount>()
+        var accounts = await db.Set<MtgPurchasedPortfolioAccount>()
             .Where(x => x.PortfolioId == portfolioId && x.InvestorId == investorId)
             .ToListAsync(cancellationToken);
         if (accounts.Count == 0)
@@ -183,7 +183,7 @@ public sealed class MtgCoverageReviewService(ICapitraDbContext db) : IMtgCoverag
         if (action == RejectAction)
         {
             portfolio.RejectionReason = comment;
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.CoverageReviewRejectedStatus, comment, cancellationToken);
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.CoverageReviewRejectedStatus, comment, cancellationToken);
         }
         else
         {
@@ -191,10 +191,10 @@ public sealed class MtgCoverageReviewService(ICapitraDbContext db) : IMtgCoverag
                 throw new ConflictException("Set the required coverage percentage on the portfolio before accepting.");
 
             // APEX counts a contract with no decision as kept; record that so the selected totals agree.
-            var undecided = await db.Set<MtgPortfolioAccount>()
+            var undecided = await db.Set<MtgPurchasedPortfolioAccount>()
                 .Where(x => x.PortfolioId == portfolioId && x.DealDecisionCode == null)
                 .ToListAsync(cancellationToken);
-            undecided.ForEach(x => x.DealDecisionCode = MtgPortfolioAccount.SelectedDecision);
+            undecided.ForEach(x => x.DealDecisionCode = MtgPurchasedPortfolioAccount.SelectedDecision);
             await db.SaveChangesAsync(cancellationToken);
 
             await PortfolioTotals.RecalculateSelectedAsync(db, portfolioId, cancellationToken);
@@ -202,7 +202,7 @@ public sealed class MtgCoverageReviewService(ICapitraDbContext db) : IMtgCoverag
                 throw new ConflictException("At least one investor must stay in the deal before coverage can be accepted.");
 
             portfolio.RejectionReason = null;
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.CoverageReviewAcceptedStatus, comment, cancellationToken);
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.CoverageReviewAcceptedStatus, comment, cancellationToken);
         }
 
         await transaction.CommitAsync(cancellationToken);

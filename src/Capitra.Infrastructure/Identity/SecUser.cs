@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Capitra.Infrastructure.Identity;
 
-/// <summary>SEC_USER: application user (ASP.NET Core Identity).</summary>
+/// <summary>SEC_USERS: application user (ASP.NET Core Identity).</summary>
 public class SecUser : IdentityUser, IAuditable
 {
     public string? FullName { get; set; }

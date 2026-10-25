@@ -3,10 +3,10 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_PORTFOLIO_CHEQUE: a post-dated cheque an investor hands over for one of their contracts in the portfolio
+/// MTG_PURCHASED_PORTFOLIO_CHEQUES: a post-dated cheque an investor hands over for one of their contracts in the portfolio
 /// (APEX FNV_PURCHASED_PORTFOLIO_CHEQUE, App 105 page 213).
 /// </summary>
-public class MtgPortfolioCheque : AuditableEntity
+public class MtgPurchasedPortfolioCheque : AuditableEntity
 {
     /// <summary>Status a cheque gets when none is chosen, as in APEX.</summary>
     public const string PendingStatus = "PENDING";
@@ -30,7 +30,7 @@ public class MtgPortfolioCheque : AuditableEntity
 
     public bool IsEndorsedToCompany { get; set; }
 
-    /// <summary>ADM_LKP_CHEQUE_STATUS code.</summary>
+    /// <summary>ADM_LKP_CHEQUE_STATUSES code.</summary>
     public string ChequeStatusCode { get; set; } = PendingStatus;
 
     public DateOnly? ClearingDate { get; set; }

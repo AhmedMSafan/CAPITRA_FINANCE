@@ -24,26 +24,26 @@ public sealed class PurchaseAgreementServiceTests
         db.AddRange(project, a, b);
         await db.SaveChangesAsync();
         var unit = new MtgProjectUnit { ProjectId = project.ProjectId, UnitCode = "U-1" };
-        var portfolio = new MtgPortfolio
+        var portfolio = new MtgPurchasedPortfolio
         {
             PortfolioNo = "PF-1", DeveloperId = developer.DeveloperId, ProjectId = project.ProjectId, RequestDate = new DateOnly(2026, 10, 1),
-            CurrencyCode = "EGP", PortfolioStatusCode = MtgPortfolio.BoardReviewAcceptedStatus, BoardDecisionCode = MtgPortfolio.BoardAccepted,
+            CurrencyCode = "EGP", PortfolioStatusCode = MtgPurchasedPortfolio.BoardReviewAcceptedStatus, BoardDecisionCode = MtgPurchasedPortfolio.BoardAccepted,
             BoardDecisionNo = "BR-7", BoardDecisionDate = new DateOnly(2026, 10, 22), ProposedPurchaseAmount = 925, PvRate = 12, ReservedAmountPct = 10
         };
         db.AddRange(unit, portfolio);
         await db.SaveChangesAsync();
-        MtgPortfolioAccount Account(MtgInvestor investor, long unitId, string no, decimal outstanding, string? decision) => new()
+        MtgPurchasedPortfolioAccount Account(MtgInvestor investor, long unitId, string no, decimal outstanding, string? decision) => new()
         {
             PortfolioId = portfolio.PortfolioId, InvestorId = investor.InvestorId, ProjectUnitId = unitId, SellerContractNo = no,
             ContractAmount = outstanding, OutstandingAmount = outstanding, DealDecisionCode = decision
         };
-        var b1 = Account(b, unit.ProjectUnitId, "C-1", 600, MtgPortfolioAccount.SelectedDecision);
+        var b1 = Account(b, unit.ProjectUnitId, "C-1", 600, MtgPurchasedPortfolioAccount.SelectedDecision);
         var b2 = Account(b, unit.ProjectUnitId, "C-2", 400, null);
-        var a1 = Account(a, 999, "C-3", 300, MtgPortfolioAccount.SelectedDecision);
-        var x = Account(a, 998, "C-4", 700, MtgPortfolioAccount.ExcludedDecision);
+        var a1 = Account(a, 999, "C-3", 300, MtgPurchasedPortfolioAccount.SelectedDecision);
+        var x = Account(a, 998, "C-4", 700, MtgPurchasedPortfolioAccount.ExcludedDecision);
         db.AddRange(b1, b2, a1, x);
         await db.SaveChangesAsync();
-        MtgPortfolioCheque Cheque(MtgPortfolioAccount account, string no, DateOnly due, decimal amount) => new()
+        MtgPurchasedPortfolioCheque Cheque(MtgPurchasedPortfolioAccount account, string no, DateOnly due, decimal amount) => new()
         {
             PortfolioId = portfolio.PortfolioId, PortfolioAccountId = account.PortfolioAccountId, ChequeNo = no, BankName = "QNB", DueDate = due, ChequeAmount = amount
         };
@@ -52,7 +52,7 @@ public sealed class PurchaseAgreementServiceTests
             Cheque(b2, "Q-1", new DateOnly(2027, 1, 1), 400),
             Cheque(x, "Q-9", new DateOnly(2026, 12, 1), 700));
         if (priced)
-            db.Add(new MtgPortfolioFinancialReview
+            db.Add(new MtgPurchasedPortfolioFinancialReview
             {
                 PortfolioId = portfolio.PortfolioId, PvMethodCode = "ANNUAL", AdminFinalAmount = 10, IsAdminIncluded = true,
                 LegalFinalAmount = 20, IsLegalIncluded = false, ValuationFinalAmount = 5, IsValuationIncluded = true

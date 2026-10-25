@@ -95,7 +95,7 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
     public async Task<ExcelImportDto> GetAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var header = await (
-            from p in db.Set<MtgPortfolio>()
+            from p in db.Set<MtgPurchasedPortfolio>()
             join prj in db.Set<MtgProject>() on p.ProjectId equals prj.ProjectId
             join s in db.Set<MtgLkpPortfolioStatus>() on p.PortfolioStatusCode equals s.Code into statuses
             from s in statuses.DefaultIfEmpty()
@@ -107,10 +107,10 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
             }).FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException($"Portfolio {portfolioId} was not found.");
 
-        var batch = await db.Set<MtgPortfolioImport>().AsNoTracking()
+        var batch = await db.Set<MtgPurchasedPortfolioImport>().AsNoTracking()
             .FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
 
-        var accounts = db.Set<MtgPortfolioAccount>().Where(x => x.PortfolioId == portfolioId);
+        var accounts = db.Set<MtgPurchasedPortfolioAccount>().Where(x => x.PortfolioId == portfolioId);
         var figures = await accounts
             .GroupBy(x => x.PortfolioId)
             .Select(g => new ImportedFiguresDto(
@@ -145,8 +145,8 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
         long portfolioId, string fileName, Stream content, CancellationToken cancellationToken)
     {
         var plan = await AnalyseAsync(portfolioId, fileName, content, cancellationToken);
-        await SaveBatchAsync(portfolioId, fileName, plan, plan.IsValid ? MtgPortfolioImport.ValidatedStatus : MtgPortfolioImport.ErrorStatus, 0, cancellationToken);
-        return plan.ToResult(plan.IsValid ? MtgPortfolioImport.ValidatedStatus : MtgPortfolioImport.ErrorStatus, fileName, 0);
+        await SaveBatchAsync(portfolioId, fileName, plan, plan.IsValid ? MtgPurchasedPortfolioImport.ValidatedStatus : MtgPurchasedPortfolioImport.ErrorStatus, 0, cancellationToken);
+        return plan.ToResult(plan.IsValid ? MtgPurchasedPortfolioImport.ValidatedStatus : MtgPurchasedPortfolioImport.ErrorStatus, fileName, 0);
     }
 
     public async Task<WorkbookResultDto> ImportAsync(
@@ -155,8 +155,8 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
         var plan = await AnalyseAsync(portfolioId, fileName, content, cancellationToken);
         if (!plan.IsValid)
         {
-            await SaveBatchAsync(portfolioId, fileName, plan, MtgPortfolioImport.ErrorStatus, 0, cancellationToken);
-            return plan.ToResult(MtgPortfolioImport.ErrorStatus, fileName, 0);
+            await SaveBatchAsync(portfolioId, fileName, plan, MtgPurchasedPortfolioImport.ErrorStatus, 0, cancellationToken);
+            return plan.ToResult(MtgPurchasedPortfolioImport.ErrorStatus, fileName, 0);
         }
 
         await using var transaction = await db.BeginTransactionAsync(cancellationToken);
@@ -180,20 +180,20 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
 
         // APEX puts every account without a deal decision in the deal; the AML review can exclude them later.
         // Tracked updates, so the audit columns and row version move as for any other change.
-        foreach (var undecided in await db.Set<MtgPortfolioAccount>()
+        foreach (var undecided in await db.Set<MtgPurchasedPortfolioAccount>()
                      .Where(x => x.PortfolioId == portfolioId && x.DealDecisionCode == null).ToListAsync(cancellationToken))
-            undecided.DealDecisionCode = MtgPortfolioAccount.SelectedDecision;
+            undecided.DealDecisionCode = MtgPurchasedPortfolioAccount.SelectedDecision;
         await db.SaveChangesAsync(cancellationToken);
 
         await PortfolioTotals.RecalculateAsync(db, portfolioId, cancellationToken);
         await PortfolioTotals.RecalculateSelectedAsync(db, portfolioId, cancellationToken);
-        await SaveBatchAsync(portfolioId, fileName, plan, MtgPortfolioImport.ImportedStatus, plan.Accounts.Count, cancellationToken);
-        var portfolio = await db.Set<MtgPortfolio>().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
+        await SaveBatchAsync(portfolioId, fileName, plan, MtgPurchasedPortfolioImport.ImportedStatus, plan.Accounts.Count, cancellationToken);
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().FirstAsync(x => x.PortfolioId == portfolioId, cancellationToken);
         await PortfolioStatus.ChangeAsync(
-            db, portfolio, MtgPortfolio.DataLoadingCompletedStatus, "Excel portfolio data loaded successfully.", cancellationToken);
+            db, portfolio, MtgPurchasedPortfolio.DataLoadingCompletedStatus, "Excel portfolio data loaded successfully.", cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
-        return plan.ToResult(MtgPortfolioImport.ImportedStatus, fileName, plan.Accounts.Count);
+        return plan.ToResult(MtgPurchasedPortfolioImport.ImportedStatus, fileName, plan.Accounts.Count);
     }
 
     /// <summary>APEX "Validate Portfolio Workbook", plus the checks the APEX import left to the database.</summary>
@@ -203,15 +203,15 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
             throw BusinessValidationException.For("file", "Choose an Excel workbook (.xlsx).");
 
         var portfolio = await (
-            from p in db.Set<MtgPortfolio>()
+            from p in db.Set<MtgPurchasedPortfolio>()
             join prj in db.Set<MtgProject>() on p.ProjectId equals prj.ProjectId
             where p.PortfolioId == portfolioId
             select new { p.PortfolioNo, p.ProjectId, prj.ProjectCode }).FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException($"Portfolio {portfolioId} was not found.");
 
-        var status = await db.Set<MtgPortfolioImport>()
+        var status = await db.Set<MtgPurchasedPortfolioImport>()
             .Where(x => x.PortfolioId == portfolioId).Select(x => x.ImportStatusCode).FirstOrDefaultAsync(cancellationToken);
-        if (status == MtgPortfolioImport.ImportedStatus)
+        if (status == MtgPurchasedPortfolioImport.ImportedStatus)
             throw new ConflictException("The workbook of this portfolio has already been imported.");
 
         IReadOnlyDictionary<string, IReadOnlyList<WorkbookRow>> sheets;
@@ -374,7 +374,7 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
         IReadOnlyList<WorkbookRow> rows, SheetContext context, long portfolioId, ImportPlan plan, CancellationToken cancellationToken)
     {
 #pragma warning disable CA1862 // EF Core translates ToUpper to SQL upper().
-        var existing = (await db.Set<MtgPortfolioAccount>()
+        var existing = (await db.Set<MtgPurchasedPortfolioAccount>()
             .Where(x => x.PortfolioId == portfolioId && x.SellerContractNo != null)
             .Select(x => x.SellerContractNo!.ToUpper())
             .ToListAsync(cancellationToken)).ToHashSet();
@@ -425,7 +425,7 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
 
             if (errors.Count == 0)
             {
-                plan.Accounts.Add(new PlannedAccount(investor!, unit!, new MtgPortfolioAccount
+                plan.Accounts.Add(new PlannedAccount(investor!, unit!, new MtgPurchasedPortfolioAccount
                 {
                     PortfolioId = portfolioId,
                     SellerContractNo = contractNo,
@@ -440,7 +440,7 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
                     RegularPaymentMonths = (int)(months ?? 0),
                     ArrearsAmount = arrears ?? 0,
                     AccountStatus = Text(row, Account.AccountStatus) ?? "ACTIVE",
-                    DealDecisionCode = MtgPortfolioAccount.SelectedDecision
+                    DealDecisionCode = MtgPurchasedPortfolioAccount.SelectedDecision
                 }));
             }
         }
@@ -493,10 +493,10 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
     private async Task SaveBatchAsync(
         long portfolioId, string fileName, ImportPlan plan, string status, int imported, CancellationToken cancellationToken)
     {
-        var batch = await db.Set<MtgPortfolioImport>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
+        var batch = await db.Set<MtgPurchasedPortfolioImport>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
         if (batch is null)
         {
-            batch = new MtgPortfolioImport { PortfolioId = portfolioId };
+            batch = new MtgPurchasedPortfolioImport { PortfolioId = portfolioId };
             db.Add(batch);
         }
 
@@ -523,7 +523,7 @@ public sealed class MtgExcelImportService(ICapitraDbContext db, IWorkbookReader 
         }
     }
 
-    private sealed record PlannedAccount(string InvestorCode, string UnitCode, MtgPortfolioAccount Account);
+    private sealed record PlannedAccount(string InvestorCode, string UnitCode, MtgPurchasedPortfolioAccount Account);
 
     private sealed class ImportPlan(long projectId)
     {

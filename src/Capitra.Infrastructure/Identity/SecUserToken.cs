@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Capitra.Infrastructure.Identity;
 
-/// <summary>SEC_USER_TOKEN: token stored for a user.</summary>
+/// <summary>SEC_USER_TOKENS: token stored for a user.</summary>
 public class SecUserToken : IdentityUserToken<string>, IAuditable
 {
     public string CreatedBy { get; set; } = string.Empty;

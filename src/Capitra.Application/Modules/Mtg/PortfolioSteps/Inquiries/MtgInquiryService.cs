@@ -98,12 +98,12 @@ public sealed class MtgInquiryService(ICapitraDbContext db) : IMtgInquiryService
     /// Open after the AML review is accepted, and after its own rejection so the step can be redone.
     /// The workflow engine (build step 4) will open it through an inquiry task instead.
     /// </summary>
-    private static readonly string[] OpenStatuses = [MtgPortfolio.AmlAcceptedStatus, MtgPortfolio.InquiryRejectedStatus];
+    private static readonly string[] OpenStatuses = [MtgPurchasedPortfolio.AmlAcceptedStatus, MtgPurchasedPortfolio.InquiryRejectedStatus];
 
     public async Task<InquiriesDto> GetAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var header = await (
-            from p in db.Set<MtgPortfolio>()
+            from p in db.Set<MtgPurchasedPortfolio>()
             join prj in db.Set<MtgProject>() on p.ProjectId equals prj.ProjectId
             join s in db.Set<MtgLkpPortfolioStatus>() on p.PortfolioStatusCode equals s.Code into statuses
             from s in statuses.DefaultIfEmpty()
@@ -119,7 +119,7 @@ public sealed class MtgInquiryService(ICapitraDbContext db) : IMtgInquiryService
         var inquiries = await InquiriesAsync(portfolioId, subjects, cancellationToken);
 
         var accounts = await (
-            from a in db.Set<MtgPortfolioAccount>()
+            from a in db.Set<MtgPurchasedPortfolioAccount>()
             join i in db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
             join u in db.Set<MtgProjectUnit>() on a.ProjectUnitId equals u.ProjectUnitId into units
             from u in units.DefaultIfEmpty()
@@ -209,13 +209,13 @@ public sealed class MtgInquiryService(ICapitraDbContext db) : IMtgInquiryService
 
         if (action == RejectAction)
         {
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.InquiryRejectedStatus,
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.InquiryRejectedStatus,
                 comment ?? "Portfolio Inquiry rejected.", cancellationToken);
         }
         else
         {
             await PortfolioTotals.RecalculateSelectedAsync(db, portfolioId, cancellationToken);
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.InquiryAcceptedStatus,
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.InquiryAcceptedStatus,
                 comment ?? "Portfolio Inquiry workflow task completed.", cancellationToken);
         }
 
@@ -278,7 +278,7 @@ public sealed class MtgInquiryService(ICapitraDbContext db) : IMtgInquiryService
     private async Task<IReadOnlyList<InquirySubjectDto>> SubjectsAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var p = await (
-            from x in db.Set<MtgPortfolio>()
+            from x in db.Set<MtgPurchasedPortfolio>()
             join d in db.Set<MtgDeveloper>() on x.DeveloperId equals d.DeveloperId
             join prj in db.Set<MtgProject>() on x.ProjectId equals prj.ProjectId
             where x.PortfolioId == portfolioId
@@ -290,7 +290,7 @@ public sealed class MtgInquiryService(ICapitraDbContext db) : IMtgInquiryService
 
         var investors = await (
             from i in db.Set<MtgInvestor>()
-            where db.Set<MtgPortfolioAccount>().Any(a => a.PortfolioId == portfolioId && a.InvestorId == i.InvestorId)
+            where db.Set<MtgPurchasedPortfolioAccount>().Any(a => a.PortfolioId == portfolioId && a.InvestorId == i.InvestorId)
             orderby i.InvestorCode
             select new InquirySubjectDto(MtgInquiryResult.InvestorSubject, i.InvestorId, i.InvestorCode + " - " + (i.FullNameEn ?? i.FullNameAr)))
             .ToListAsync(cancellationToken);

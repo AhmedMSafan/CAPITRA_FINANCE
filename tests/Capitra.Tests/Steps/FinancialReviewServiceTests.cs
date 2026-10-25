@@ -22,7 +22,7 @@ public sealed class FinancialReviewServiceTests
     /// Contract A (outstanding 1000, unit 1) has a 1000 cheque due in a year, contract B (500, unit 2, no decision so kept)
     /// a 500 cheque due today, and the excluded contract C has a cheque that must be ignored.
     /// </summary>
-    private static async Task<Seeded> SeedAsync(string status = MtgPortfolio.ChequeCoverageAcceptedStatus)
+    private static async Task<Seeded> SeedAsync(string status = MtgPurchasedPortfolio.ChequeCoverageAcceptedStatus)
     {
         var database = Guid.NewGuid().ToString();
         await using var db = StepTestDb.Create(database);
@@ -33,7 +33,7 @@ public sealed class FinancialReviewServiceTests
         var investor = new MtgInvestor { InvestorCode = "INV1", FullNameAr = "مستثمر", FullNameEn = "Investor One" };
         db.AddRange(project, investor);
         await db.SaveChangesAsync();
-        var portfolio = new MtgPortfolio
+        var portfolio = new MtgPurchasedPortfolio
         {
             PortfolioNo = "PF-1", DeveloperId = developer.DeveloperId, ProjectId = project.ProjectId,
             RequestDate = new DateOnly(2026, 10, 1), CurrencyCode = "EGP", PortfolioStatusCode = status,
@@ -41,17 +41,17 @@ public sealed class FinancialReviewServiceTests
         };
         db.Add(portfolio);
         await db.SaveChangesAsync();
-        MtgPortfolioAccount Account(long unit, decimal outstanding, string? decision) => new()
+        MtgPurchasedPortfolioAccount Account(long unit, decimal outstanding, string? decision) => new()
         {
             PortfolioId = portfolio.PortfolioId, InvestorId = investor.InvestorId, ProjectUnitId = unit,
             ContractAmount = outstanding * 2, PaidAmount = outstanding, OutstandingAmount = outstanding, DealDecisionCode = decision
         };
-        var a = Account(1, 1000, MtgPortfolioAccount.SelectedDecision);
+        var a = Account(1, 1000, MtgPurchasedPortfolioAccount.SelectedDecision);
         var b = Account(2, 500, null);
-        var c = Account(3, 900, MtgPortfolioAccount.ExcludedDecision);
+        var c = Account(3, 900, MtgPurchasedPortfolioAccount.ExcludedDecision);
         db.AddRange(a, b, c);
         await db.SaveChangesAsync();
-        MtgPortfolioCheque Cheque(MtgPortfolioAccount account, string no, DateOnly due, decimal amount) => new()
+        MtgPurchasedPortfolioCheque Cheque(MtgPurchasedPortfolioAccount account, string no, DateOnly due, decimal amount) => new()
         {
             PortfolioId = portfolio.PortfolioId, PortfolioAccountId = account.PortfolioAccountId, ChequeNo = no, DueDate = due, ChequeAmount = amount
         };
@@ -134,15 +134,15 @@ public sealed class FinancialReviewServiceTests
         Assert.Equal("loader", saved.Saved.SavedBy);
         Assert.Equal(inputs, saved.Inputs); // the admin override comes back, untouched amounts stay null
 
-        var portfolio = await db.Set<MtgPortfolio>().AsNoTracking().SingleAsync();
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().AsNoTracking().SingleAsync();
         Assert.Equal((1295.86m, 204.14m, 12m), (portfolio.ProposedPurchaseAmount, portfolio.ExpectedReturnAmount, portfolio.AdminExpenseAmount));
 
         // A stale save is refused; a current one replaces the row.
         await Assert.ThrowsAsync<ConflictException>(() => service.SaveAsync(s.PortfolioId, new(inputs, saved.Saved.RowVersion + 1), default));
         var again = await service.SaveAsync(s.PortfolioId, new(FinancialReviewInputs.Default with { IsAdminIncluded = false }, saved.Saved.RowVersion), default);
         Assert.Equal(1287.86m, again.Saved!.ProposedPurchaseAmount);
-        Assert.Equal(1, await db.Set<MtgPortfolioFinancialReview>().CountAsync());
-        Assert.Equal(0m, (await db.Set<MtgPortfolio>().AsNoTracking().SingleAsync()).AdminExpenseAmount);
+        Assert.Equal(1, await db.Set<MtgPurchasedPortfolioFinancialReview>().CountAsync());
+        Assert.Equal(0m, (await db.Set<MtgPurchasedPortfolio>().AsNoTracking().SingleAsync()).AdminExpenseAmount);
     }
 
     [Fact]
@@ -159,11 +159,11 @@ public sealed class FinancialReviewServiceTests
 
         await service.SaveAsync(s.PortfolioId, new(FinancialReviewInputs.Default, null), default);
         var step = await service.DecideAsync(s.PortfolioId, new("accept", "Priced."), default);
-        Assert.Equal(MtgPortfolio.FinancialReviewAcceptedStatus, step.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.FinancialReviewAcceptedStatus, step.PortfolioStatusCode);
         Assert.False(step.IsOpen);
-        var portfolio = await db.Set<MtgPortfolio>().AsNoTracking().SingleAsync();
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().AsNoTracking().SingleAsync();
         Assert.Equal(new DateOnly(2026, 10, 23), portfolio.SubmittedDate);
-        Assert.Equal("Priced.", (await db.Set<MtgPortfolioStatusHistory>().SingleAsync()).Comments);
+        Assert.Equal("Priced.", (await db.Set<MtgPurchasedPortfolioStatusHistory>().SingleAsync()).Comments);
         await Assert.ThrowsAsync<ConflictException>(() => service.SaveAsync(s.PortfolioId, new(FinancialReviewInputs.Default, step.Saved!.RowVersion), default));
     }
 
@@ -179,7 +179,7 @@ public sealed class FinancialReviewServiceTests
         var negative = await Assert.ThrowsAsync<ConflictException>(() => service.DecideAsync(s.PortfolioId, new("ACCEPT", "ok"), default));
         Assert.Equal("The proposed purchase value must be above zero.", negative.Message);
 
-        db.RemoveRange(db.Set<MtgPortfolioCheque>());
+        db.RemoveRange(db.Set<MtgPurchasedPortfolioCheque>());
         await db.SaveChangesAsync();
         await service.SaveAsync(s.PortfolioId, new(FinancialReviewInputs.Default, saved.Saved.RowVersion), default);
         var none = await Assert.ThrowsAsync<ConflictException>(() => service.DecideAsync(s.PortfolioId, new("ACCEPT", "ok"), default));
@@ -193,11 +193,11 @@ public sealed class FinancialReviewServiceTests
         await using var db = StepTestDb.Create(s.Database);
 
         var step = await Service(db).DecideAsync(s.PortfolioId, new("REJECT", "Margin too thin."), default);
-        Assert.Equal(MtgPortfolio.FinancialReviewRejectedStatus, step.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.FinancialReviewRejectedStatus, step.PortfolioStatusCode);
         Assert.Equal("Margin too thin.", step.RejectionReason);
         Assert.True(step.IsOpen);
 
-        var early = await SeedAsync(MtgPortfolio.CoverageReviewAcceptedStatus);
+        var early = await SeedAsync(MtgPurchasedPortfolio.CoverageReviewAcceptedStatus);
         await using var earlyDb = StepTestDb.Create(early.Database);
         Assert.False((await Service(earlyDb).GetAsync(early.PortfolioId, default)).IsOpen);
         await Assert.ThrowsAsync<ConflictException>(() => Service(earlyDb).SaveAsync(early.PortfolioId, new(FinancialReviewInputs.Default, null), default));

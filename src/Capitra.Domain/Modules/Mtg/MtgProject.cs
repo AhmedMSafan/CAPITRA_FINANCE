@@ -2,7 +2,7 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Mtg;
 
-/// <summary>MTG_PROJECT: a developer's real estate project (APEX App 105 pages 105/106).</summary>
+/// <summary>MTG_PROJECTS: a developer's real estate project (APEX App 105 pages 105/106).</summary>
 public class MtgProject : AuditableEntity
 {
     public long ProjectId { get; set; }

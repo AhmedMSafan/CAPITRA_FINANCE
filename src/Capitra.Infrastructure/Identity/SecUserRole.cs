@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Capitra.Infrastructure.Identity;
 
-/// <summary>SEC_USER_ROLE: user to role link.</summary>
+/// <summary>SEC_USER_ROLES: user to role link.</summary>
 public class SecUserRole : IdentityUserRole<string>, IAuditable
 {
     public string CreatedBy { get; set; } = string.Empty;

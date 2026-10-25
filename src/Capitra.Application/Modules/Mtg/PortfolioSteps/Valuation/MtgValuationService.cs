@@ -87,12 +87,12 @@ public sealed class MtgValuationService(ICapitraDbContext db) : IMtgValuationSer
     /// Open after the legal review is accepted. The workflow engine (build step 4) will open it through a
     /// valuation task instead.
     /// </summary>
-    private static readonly string[] OpenStatuses = [MtgPortfolio.LegalReviewAcceptedStatus];
+    private static readonly string[] OpenStatuses = [MtgPurchasedPortfolio.LegalReviewAcceptedStatus];
 
     public async Task<ValuationsDto> GetAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var header = await (
-            from p in db.Set<MtgPortfolio>()
+            from p in db.Set<MtgPurchasedPortfolio>()
             join d in db.Set<MtgDeveloper>() on p.DeveloperId equals d.DeveloperId
             join prj in db.Set<MtgProject>() on p.ProjectId equals prj.ProjectId
             join s in db.Set<MtgLkpPortfolioStatus>() on p.PortfolioStatusCode equals s.Code into statuses
@@ -172,7 +172,7 @@ public sealed class MtgValuationService(ICapitraDbContext db) : IMtgValuationSer
         if (!await db.Set<MtgValuation>().AnyAsync(x => x.PortfolioId == portfolioId, cancellationToken))
             throw new ConflictException("Record at least one valuation before completing the valuation step.");
 
-        await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.ValuationCompletedStatus,
+        await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.ValuationCompletedStatus,
             comment ?? "Valuation step completed.", cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return await GetAsync(portfolioId, cancellationToken);

@@ -23,22 +23,22 @@ public sealed class BoardReviewServiceTests
     /// A portfolio whose financial review is accepted: investor 1 kept with two contracts (one cheque), investor 2 excluded
     /// (one cheque), one flagged AML result, one high risk inquiry, a legal review, two valuations and a saved price.
     /// </summary>
-    private static async Task<Seeded> SeedAsync(string status = MtgPortfolio.FinancialReviewAcceptedStatus, bool priced = true)
+    private static async Task<Seeded> SeedAsync(string status = MtgPurchasedPortfolio.FinancialReviewAcceptedStatus, bool priced = true)
     {
         var database = Guid.NewGuid().ToString();
         await using var db = StepTestDb.Create(database);
         var developer = new MtgDeveloper { DeveloperCode = "DEV1", LegalNameAr = "مطور", LegalNameEn = "Developer One" };
         db.Add(developer);
         db.AddRange(
-            new MtgLkpPortfolioStatus { Code = MtgPortfolio.CoverageReviewAcceptedStatus, NameAr = "-", NameEn = "Coverage Review Accepted" },
-            new MtgLkpPortfolioStatus { Code = MtgPortfolio.FinancialReviewAcceptedStatus, NameAr = "-", NameEn = "Financial Review Accepted" });
+            new MtgLkpPortfolioStatus { Code = MtgPurchasedPortfolio.CoverageReviewAcceptedStatus, NameAr = "-", NameEn = "Coverage Review Accepted" },
+            new MtgLkpPortfolioStatus { Code = MtgPurchasedPortfolio.FinancialReviewAcceptedStatus, NameAr = "-", NameEn = "Financial Review Accepted" });
         await db.SaveChangesAsync();
         var project = new MtgProject { DeveloperId = developer.DeveloperId, ProjectCode = "PRJ1", ProjectNameAr = "مشروع" };
         var investor1 = new MtgInvestor { InvestorCode = "INV1", FullNameAr = "مستثمر ١", FullNameEn = "Investor One" };
         var investor2 = new MtgInvestor { InvestorCode = "INV2", FullNameAr = "مستثمر ٢" };
         db.AddRange(project, investor1, investor2);
         await db.SaveChangesAsync();
-        var portfolio = new MtgPortfolio
+        var portfolio = new MtgPurchasedPortfolio
         {
             PortfolioNo = "PF-1", DeveloperId = developer.DeveloperId, ProjectId = project.ProjectId,
             RequestDate = new DateOnly(2026, 10, 1), CurrencyCode = "EGP", PortfolioStatusCode = status,
@@ -47,19 +47,19 @@ public sealed class BoardReviewServiceTests
         db.Add(portfolio);
         await db.SaveChangesAsync();
         var id = portfolio.PortfolioId;
-        MtgPortfolioAccount Account(MtgInvestor investor, long unit, decimal outstanding, string? decision) => new()
+        MtgPurchasedPortfolioAccount Account(MtgInvestor investor, long unit, decimal outstanding, string? decision) => new()
         {
             PortfolioId = id, InvestorId = investor.InvestorId, ProjectUnitId = unit,
             ContractAmount = outstanding * 2, PaidAmount = outstanding, OutstandingAmount = outstanding, DealDecisionCode = decision
         };
-        var a1 = Account(investor1, 1, 800, MtgPortfolioAccount.SelectedDecision);
+        var a1 = Account(investor1, 1, 800, MtgPurchasedPortfolioAccount.SelectedDecision);
         var a2 = Account(investor1, 1, 200, null);
-        var a3 = Account(investor2, 2, 500, MtgPortfolioAccount.ExcludedDecision);
+        var a3 = Account(investor2, 2, 500, MtgPurchasedPortfolioAccount.ExcludedDecision);
         db.AddRange(a1, a2, a3);
         await db.SaveChangesAsync();
         db.AddRange(
-            new MtgPortfolioCheque { PortfolioId = id, PortfolioAccountId = a1.PortfolioAccountId, ChequeNo = "C-1", DueDate = Today, ChequeAmount = 1000 },
-            new MtgPortfolioCheque { PortfolioId = id, PortfolioAccountId = a3.PortfolioAccountId, ChequeNo = "C-2", DueDate = Today, ChequeAmount = 500 },
+            new MtgPurchasedPortfolioCheque { PortfolioId = id, PortfolioAccountId = a1.PortfolioAccountId, ChequeNo = "C-1", DueDate = Today, ChequeAmount = 1000 },
+            new MtgPurchasedPortfolioCheque { PortfolioId = id, PortfolioAccountId = a3.PortfolioAccountId, ChequeNo = "C-2", DueDate = Today, ChequeAmount = 500 },
             new MtgAmlResult { PortfolioId = id, SubjectTypeCode = "INVESTOR", AmlTypeCode = "AML_SCREENING", AmlResultCode = "CLEAR", RiskLevelCode = "LOW" },
             new MtgAmlResult { PortfolioId = id, SubjectTypeCode = "INVESTOR", AmlTypeCode = "AML_SCREENING", AmlResultCode = "POTENTIAL_MATCH", RiskLevelCode = "HIGH" },
             new MtgInquiryResult { PortfolioId = id, SubjectTypeCode = "PORTFOLIO", InquiryTypeCode = "CREDIT", RiskLevelCode = "critical" },
@@ -67,9 +67,9 @@ public sealed class BoardReviewServiceTests
             new MtgLegalReview { PortfolioId = id, IsOwnershipVerified = true, IsTitleDeedVerified = true, LegalRecommendation = "Proceed" },
             new MtgValuation { PortfolioId = id, ValuationTypeCode = "MARKET", ValuerName = "Old", ValuationDate = new DateOnly(2026, 9, 1), MarketValueAmount = 1 },
             new MtgValuation { PortfolioId = id, ValuationTypeCode = "MARKET", ValuerName = "New", ValuationDate = new DateOnly(2026, 10, 10), MarketValueAmount = 2000 },
-            new MtgPortfolioStatusHistory { PortfolioId = id, FromStatusCode = MtgPortfolio.CoverageReviewAcceptedStatus, ToStatusCode = MtgPortfolio.FinancialReviewAcceptedStatus, Comments = "Priced." });
+            new MtgPurchasedPortfolioStatusHistory { PortfolioId = id, FromStatusCode = MtgPurchasedPortfolio.CoverageReviewAcceptedStatus, ToStatusCode = MtgPurchasedPortfolio.FinancialReviewAcceptedStatus, Comments = "Priced." });
         if (priced)
-            db.Add(new MtgPortfolioFinancialReview
+            db.Add(new MtgPurchasedPortfolioFinancialReview
             {
                 PortfolioId = id, PvMethodCode = "ANNUAL", PvRate = 12, PvBaseDate = Today, ChequeCount = 1, ChequesFaceAmount = 1000,
                 ChequesPvAmount = 1000, MarginPct = 5, MarginAmount = 50, AdminFinalAmount = 10, IsAdminIncluded = false,
@@ -119,10 +119,10 @@ public sealed class BoardReviewServiceTests
 
         var r = await Service(db).DecideAsync(s.PortfolioId, Decision("accept"), default);
 
-        Assert.Equal(MtgPortfolio.BoardReviewAcceptedStatus, r.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.BoardReviewAcceptedStatus, r.PortfolioStatusCode);
         Assert.False(r.IsOpen);
-        Assert.Equal(new BoardDecisionDto(MtgPortfolio.BoardAccepted, "BR-7", new DateOnly(2026, 10, 22), Today), r.Decision);
-        var portfolio = await db.Set<MtgPortfolio>().AsNoTracking().SingleAsync();
+        Assert.Equal(new BoardDecisionDto(MtgPurchasedPortfolio.BoardAccepted, "BR-7", new DateOnly(2026, 10, 22), Today), r.Decision);
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().AsNoTracking().SingleAsync();
         Assert.Equal(("Approved as priced.", null, new DateOnly(2026, 10, 20)), (portfolio.Comments, portfolio.RejectionReason, portfolio.SubmittedDate));
         Assert.Equal("Board decision BR-7: Approved as priced.", r.History[^1].Comments);
         await Assert.ThrowsAsync<ConflictException>(() => Service(db).DecideAsync(s.PortfolioId, Decision("REJECT"), default));
@@ -136,10 +136,10 @@ public sealed class BoardReviewServiceTests
         var service = Service(db);
 
         var r = await service.DecideAsync(s.PortfolioId, Decision("REJECT", "BR-8", "Price too high."), default);
-        Assert.Equal(MtgPortfolio.BoardReviewRejectedStatus, r.PortfolioStatusCode);
+        Assert.Equal(MtgPurchasedPortfolio.BoardReviewRejectedStatus, r.PortfolioStatusCode);
         Assert.Equal("Price too high.", r.RejectionReason);
         Assert.True(r.IsOpen);
-        Assert.Equal((MtgPortfolio.BoardRejected, (DateOnly?)null), (r.Decision!.BoardDecisionCode, r.Decision.ApprovedDate));
+        Assert.Equal((MtgPurchasedPortfolio.BoardRejected, (DateOnly?)null), (r.Decision!.BoardDecisionCode, r.Decision.ApprovedDate));
 
         // The board can decide again at a later meeting.
         r = await service.DecideAsync(s.PortfolioId, Decision("ACCEPT", "BR-9"), default);
@@ -172,7 +172,7 @@ public sealed class BoardReviewServiceTests
         var error = await Assert.ThrowsAsync<ConflictException>(() => Service(db).DecideAsync(unpriced.PortfolioId, Decision("ACCEPT"), default));
         Assert.Equal("The financial review has not been saved, so there is no price to approve.", error.Message);
 
-        var early = await SeedAsync(MtgPortfolio.ChequeCoverageAcceptedStatus);
+        var early = await SeedAsync(MtgPurchasedPortfolio.ChequeCoverageAcceptedStatus);
         await using var earlyDb = StepTestDb.Create(early.Database);
         Assert.False((await Service(earlyDb).GetAsync(early.PortfolioId, default)).IsOpen);
         await Assert.ThrowsAsync<ConflictException>(() => Service(earlyDb).DecideAsync(early.PortfolioId, Decision("REJECT"), default));

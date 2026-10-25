@@ -64,12 +64,12 @@ public sealed class MtgFinancialReviewService(ICapitraDbContext db, IClock clock
     /// Open after the cheque coverage is accepted, and after its own rejection so the review can be redone.
     /// The workflow engine (build step 4) will open it through a financial review task instead.
     /// </summary>
-    private static readonly string[] OpenStatuses = [MtgPortfolio.ChequeCoverageAcceptedStatus, MtgPortfolio.FinancialReviewRejectedStatus];
+    private static readonly string[] OpenStatuses = [MtgPurchasedPortfolio.ChequeCoverageAcceptedStatus, MtgPurchasedPortfolio.FinancialReviewRejectedStatus];
 
     public async Task<FinancialReviewDto> GetAsync(long portfolioId, CancellationToken cancellationToken)
     {
         var header = await (
-            from p in db.Set<MtgPortfolio>()
+            from p in db.Set<MtgPurchasedPortfolio>()
             join prj in db.Set<MtgProject>() on p.ProjectId equals prj.ProjectId
             join s in db.Set<MtgLkpPortfolioStatus>() on p.PortfolioStatusCode equals s.Code into statuses
             from s in statuses.DefaultIfEmpty()
@@ -82,7 +82,7 @@ public sealed class MtgFinancialReviewService(ICapitraDbContext db, IClock clock
             }).FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException($"Portfolio {portfolioId} was not found.");
 
-        var saved = await db.Set<MtgPortfolioFinancialReview>().AsNoTracking()
+        var saved = await db.Set<MtgPurchasedPortfolioFinancialReview>().AsNoTracking()
             .FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
         var inputs = saved is null
             ? FinancialReviewInputs.Default
@@ -105,7 +105,7 @@ public sealed class MtgFinancialReviewService(ICapitraDbContext db, IClock clock
     /// <summary>The figures for these choices, without saving them.</summary>
     public async Task<FinancialCalculationDto> CalculateAsync(long portfolioId, FinancialReviewInputs inputs, CancellationToken cancellationToken)
     {
-        var portfolio = await db.Set<MtgPortfolio>().AsNoTracking().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken)
+        var portfolio = await db.Set<MtgPurchasedPortfolio>().AsNoTracking().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken)
                         ?? throw new NotFoundException($"Portfolio {portfolioId} was not found.");
         return await CalculateCoreAsync(portfolioId, TermsOf(portfolio), Validate(inputs), cancellationToken);
     }
@@ -118,10 +118,10 @@ public sealed class MtgFinancialReviewService(ICapitraDbContext db, IClock clock
         var portfolio = await PortfolioStatus.RequireAsync(db, portfolioId, StepName, OpenStatuses, cancellationToken);
         var c = await CalculateCoreAsync(portfolioId, TermsOf(portfolio), inputs, cancellationToken);
 
-        var review = await db.Set<MtgPortfolioFinancialReview>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
+        var review = await db.Set<MtgPurchasedPortfolioFinancialReview>().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken);
         if (review is null)
         {
-            review = new MtgPortfolioFinancialReview { PortfolioId = portfolioId };
+            review = new MtgPurchasedPortfolioFinancialReview { PortfolioId = portfolioId };
             db.Add(review);
         }
         else if (request.RowVersion != review.RowVersion)
@@ -185,11 +185,11 @@ public sealed class MtgFinancialReviewService(ICapitraDbContext db, IClock clock
         if (action == RejectAction)
         {
             portfolio.RejectionReason = comment;
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.FinancialReviewRejectedStatus, comment, cancellationToken);
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.FinancialReviewRejectedStatus, comment, cancellationToken);
         }
         else
         {
-            var review = await db.Set<MtgPortfolioFinancialReview>().AsNoTracking().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken)
+            var review = await db.Set<MtgPurchasedPortfolioFinancialReview>().AsNoTracking().FirstOrDefaultAsync(x => x.PortfolioId == portfolioId, cancellationToken)
                          ?? throw new ConflictException("Save the financial review before completing the step.");
             if (review.ChequeCount == 0)
                 throw new ConflictException("There are no cheques to value for the included investors.");
@@ -198,7 +198,7 @@ public sealed class MtgFinancialReviewService(ICapitraDbContext db, IClock clock
 
             portfolio.RejectionReason = null;
             portfolio.SubmittedDate = Today();
-            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPortfolio.FinancialReviewAcceptedStatus, comment, cancellationToken);
+            await PortfolioStatus.ChangeAsync(db, portfolio, MtgPurchasedPortfolio.FinancialReviewAcceptedStatus, comment, cancellationToken);
         }
 
         await transaction.CommitAsync(cancellationToken);
@@ -212,16 +212,16 @@ public sealed class MtgFinancialReviewService(ICapitraDbContext db, IClock clock
             throw new ConflictException("Set the Present Value Calculation Rate on the portfolio first.");
 
         // A contract with no deal decision counts as kept, as in APEX.
-        var kept = await db.Set<MtgPortfolioAccount>()
-            .Where(x => x.PortfolioId == portfolioId && x.DealDecisionCode != MtgPortfolioAccount.ExcludedDecision)
+        var kept = await db.Set<MtgPurchasedPortfolioAccount>()
+            .Where(x => x.PortfolioId == portfolioId && x.DealDecisionCode != MtgPurchasedPortfolioAccount.ExcludedDecision)
             .Select(x => new { x.OutstandingAmount, x.ContractAmount, x.ProjectUnitId })
             .ToListAsync(cancellationToken);
 
         var cheques = await (
-            from c in db.Set<MtgPortfolioCheque>()
-            join a in db.Set<MtgPortfolioAccount>() on c.PortfolioAccountId equals a.PortfolioAccountId
+            from c in db.Set<MtgPurchasedPortfolioCheque>()
+            join a in db.Set<MtgPurchasedPortfolioAccount>() on c.PortfolioAccountId equals a.PortfolioAccountId
             join i in db.Set<MtgInvestor>() on a.InvestorId equals i.InvestorId
-            where c.PortfolioId == portfolioId && a.DealDecisionCode != MtgPortfolioAccount.ExcludedDecision
+            where c.PortfolioId == portfolioId && a.DealDecisionCode != MtgPurchasedPortfolioAccount.ExcludedDecision
             orderby c.DueDate, c.ChequeId
             select new ChequeToValue(c.ChequeId, c.ChequeNo, i.FullNameEn ?? i.FullNameAr, c.DueDate, c.ChequeAmount))
             .ToListAsync(cancellationToken);
@@ -254,7 +254,7 @@ public sealed class MtgFinancialReviewService(ICapitraDbContext db, IClock clock
     private static string Code(string? value, string fallback) =>
         string.IsNullOrWhiteSpace(value) ? fallback : value.Trim().ToUpperInvariant();
 
-    private static FinancialTerms TermsOf(MtgPortfolio p) =>
+    private static FinancialTerms TermsOf(MtgPurchasedPortfolio p) =>
         new(p.PvRate, p.MarginPct, p.AdminExpensePct, p.LegalFeePerUnitAmount, p.ValuationFeePerUnitAmount);
 
     private DateOnly Today() => DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(clock.UtcNow, Cairo));

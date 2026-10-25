@@ -2,7 +2,7 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Mtg;
 
-/// <summary>MTG_INVESTOR: end investor (unit buyer) whose accounts are purchased (APEX App 105 pages 109/110).</summary>
+/// <summary>MTG_INVESTORS: end investor (unit buyer) whose accounts are purchased (APEX App 105 pages 109/110).</summary>
 public class MtgInvestor : AuditableEntity
 {
     public long InvestorId { get; set; }
