@@ -6,6 +6,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatShort } from '@/shared/format/money'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { buildStages, stepPhase } from '../stepPhase'
 import StepLayout from '../StepLayout.vue'
 import { messageOf, niceCode } from '../stepUtils'
 import { SUBJECT_TYPES, inquiriesApi, type Inquiries, type Inquiry, type SubjectType } from './inquiries.api'
@@ -195,6 +196,19 @@ function riskTone(code: string | null): string {
   return ''
 }
 
+
+// Progress inside the step. Nothing is ticked before the portfolio reaches this step, everything once it has passed it.
+const stages = computed(() => {
+  const d = data.value
+  if (!d) return []
+  return buildStages(stepPhase('INQUIRY_ACCEPTED', d.portfolioStatusCode), [
+    { label: 'Record inquiries', done: counts.value.inquiries > 0 },
+    { label: 'Capture results', done: counts.value.inquiries > 0 && counts.value.awaiting === 0 },
+    { label: 'Review investors', done: false },
+    { label: 'Complete step', done: false }
+  ])
+})
+
 // Messages open the app-wide pop-up; saving shows the progress screen.
 useFeedback({
   errors: [error, formError],
@@ -217,12 +231,7 @@ useFeedback({
     :project-name="data.projectName"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
-    :stages="[
-      { label: 'Record inquiries', state: counts.inquiries ? 'done' : 'now' },
-      { label: 'Capture results', state: counts.inquiries && !counts.awaiting ? 'done' : counts.inquiries ? 'now' : 'todo' },
-      { label: 'Review investors', state: data.isOpen ? (counts.inquiries ? 'now' : 'todo') : 'done' },
-      { label: 'Complete step', state: data.isOpen ? 'todo' : 'done' }
-    ]"
+    :stages="stages"
     apex-page="210"
   >
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. Inquiries are not open for a portfolio in status {{ data.portfolioStatusName }}.</div>

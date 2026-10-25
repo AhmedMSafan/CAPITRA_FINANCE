@@ -7,6 +7,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { formatAmount, formatPct, formatShort } from '@/shared/format/money'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { buildStages, stepPhase } from '../stepPhase'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import {
@@ -130,6 +131,18 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
 
 const date = (d: string) => formatDate(d + 'T00:00:00Z')
 
+
+// Progress inside the step. Nothing is ticked before the portfolio reaches this step, everything once it has passed it.
+const stages = computed(() => {
+  const d = data.value
+  if (!d) return []
+  return buildStages(stepPhase('FINANCIAL_REVIEW_ACCEPTED', d.portfolioStatusCode), [
+    { label: 'Choose the method', done: !!d.saved },
+    { label: 'Save the figures', done: !!d.saved && !dirty.value },
+    { label: 'Complete step', done: false }
+  ])
+})
+
 // Messages open the app-wide pop-up; saving shows the progress screen.
 useFeedback({
   errors: [error, calcError],
@@ -152,11 +165,7 @@ useFeedback({
     :project-name="data.projectName"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
-    :stages="[
-      { label: 'Choose the method', state: data.saved ? 'done' : 'now' },
-      { label: 'Save the figures', state: data.saved && !dirty ? 'done' : data.isOpen ? 'now' : 'todo' },
-      { label: 'Complete step', state: data.isOpen ? (data.saved && !dirty ? 'now' : 'todo') : 'done' }
-    ]"
+    :stages="stages"
     apex-page="214"
   >
     <div v-if="data.rejectionReason && data.isOpen" class="rejected"><i class="pi pi-replay"></i> Last rejected: {{ data.rejectionReason }}</div>

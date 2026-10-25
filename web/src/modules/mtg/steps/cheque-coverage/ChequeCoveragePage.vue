@@ -6,6 +6,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { formatDate } from '@/shared/format/datetime'
 import { formatAmount, formatShort } from '@/shared/format/money'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { buildStages, stepPhase } from '../stepPhase'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import { chequeCoverageApi, type Cheque, type ChequeCoverage } from './chequeCoverage.api'
@@ -186,6 +187,18 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
   }
 }
 
+
+// Progress inside the step. Nothing is ticked before the portfolio reaches this step, everything once it has passed it.
+const stages = computed(() => {
+  const d = data.value
+  if (!d) return []
+  return buildStages(stepPhase('CHEQUE_COVERAGE_ACCEPTED', d.portfolioStatusCode), [
+    { label: 'Enter cheques', done: d.cheques.length > 0 },
+    { label: 'Cover every investor', done: rules.value[0]!.ok && rules.value[1]!.ok },
+    { label: 'Accept or reject', done: false }
+  ])
+})
+
 // Messages open the app-wide pop-up; saving shows the progress screen.
 useFeedback({
   errors: [error, formError],
@@ -208,11 +221,7 @@ useFeedback({
     :project-name="data.projectName"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
-    :stages="[
-      { label: 'Enter cheques', state: data.cheques.length ? 'done' : 'now' },
-      { label: 'Cover every investor', state: rules[0]!.ok ? 'done' : data.cheques.length ? 'now' : 'todo' },
-      { label: 'Accept or reject', state: data.isOpen ? (rules[0]!.ok && rules[1]!.ok ? 'now' : 'todo') : 'done' }
-    ]"
+    :stages="stages"
     apex-page="213"
   >
     <div v-if="data.rejectionReason && data.isOpen" class="rejected"><i class="pi pi-replay"></i> Last rejected: {{ data.rejectionReason }}</div>

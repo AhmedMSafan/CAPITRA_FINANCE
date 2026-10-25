@@ -6,6 +6,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatShort } from '@/shared/format/money'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { buildStages, stepPhase } from '../stepPhase'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import { LEGAL_CHECKS, legalReviewApi, type LegalReview, type LegalReviewForm } from './legalReview.api'
@@ -173,6 +174,19 @@ async function finish(action: 'ACCEPT' | 'REJECT') {
   }
 }
 
+
+// Progress inside the step. Nothing is ticked before the portfolio reaches this step, everything once it has passed it.
+const stages = computed(() => {
+  const d = data.value
+  if (!d) return []
+  return buildStages(stepPhase('LEGAL_REVIEW_ACCEPTED', d.portfolioStatusCode), [
+    { label: 'Legal checklist', done: checksDone.value === 6 },
+    { label: 'Findings & sign-off', done: !!form.reviewDate && !!form.approvedDate },
+    { label: 'Review investors', done: counts.value.undecided === 0 },
+    { label: 'Accept step', done: false }
+  ])
+})
+
 // Messages open the app-wide pop-up; saving shows the progress screen.
 useFeedback({
   errors: [error, formError],
@@ -195,12 +209,7 @@ useFeedback({
     :project-name="data.projectName"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
-    :stages="[
-      { label: 'Legal checklist', state: checksDone === 6 ? 'done' : 'now' },
-      { label: 'Findings & sign-off', state: form.reviewDate && form.approvedDate ? 'done' : checksDone === 6 ? 'now' : 'todo' },
-      { label: 'Review investors', state: data.isOpen ? (ready ? 'done' : 'todo') : 'done' },
-      { label: 'Accept step', state: data.isOpen ? (ready ? 'now' : 'todo') : 'done' }
-    ]"
+    :stages="stages"
     apex-page="211"
   >
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. The legal review is not open for a portfolio in status {{ data.portfolioStatusName }}.</div>

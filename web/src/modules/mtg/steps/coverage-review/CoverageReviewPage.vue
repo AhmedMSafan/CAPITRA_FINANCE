@@ -5,6 +5,7 @@ import { computed, ref, shallowRef, watch } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { formatAmount, formatPct, formatShort } from '@/shared/format/money'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { buildStages, stepPhase } from '../stepPhase'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import { coverageReviewApi, type CoverageReview } from './coverageReview.api'
@@ -109,6 +110,18 @@ function finish(action: 'ACCEPT' | 'REJECT') {
   }, 'Unable to record the decision.')
 }
 
+
+// Progress inside the step. Nothing is ticked before the portfolio reaches this step, everything once it has passed it.
+const stages = computed(() => {
+  const d = data.value
+  if (!d) return []
+  return buildStages(stepPhase('COVERAGE_REVIEW_ACCEPTED', d.portfolioStatusCode), [
+    { label: 'Required coverage', done: d.requiredCoveragePct !== null },
+    { label: 'Review investors', done: false },
+    { label: 'Accept step', done: false }
+  ])
+})
+
 // Messages open the app-wide pop-up; saving shows the progress screen.
 useFeedback({
   errors: [error],
@@ -131,11 +144,7 @@ useFeedback({
     :project-name="data.projectName"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
-    :stages="[
-      { label: 'Required coverage', state: data.requiredCoveragePct !== null ? 'done' : 'now' },
-      { label: 'Review investors', state: !data.isOpen ? 'done' : data.requiredCoveragePct !== null ? 'now' : 'todo' },
-      { label: 'Accept step', state: data.isOpen ? 'todo' : 'done' }
-    ]"
+    :stages="stages"
     apex-page="212"
   >
     <div v-if="data.rejectionReason && data.isOpen" class="rejected"><i class="pi pi-replay"></i> Last rejected: {{ data.rejectionReason }}</div>

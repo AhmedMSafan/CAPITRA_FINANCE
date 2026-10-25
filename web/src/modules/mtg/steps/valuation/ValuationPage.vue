@@ -6,6 +6,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatPct, formatShort } from '@/shared/format/money'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { buildStages, stepPhase } from '../stepPhase'
 import StepLayout from '../StepLayout.vue'
 import { messageOf } from '../stepUtils'
 import { valuationApi, type Valuation, type Valuations } from './valuation.api'
@@ -160,6 +161,18 @@ async function complete() {
   }
 }
 
+
+// Progress inside the step. Nothing is ticked before the portfolio reaches this step, everything once it has passed it.
+const stages = computed(() => {
+  const d = data.value
+  if (!d) return []
+  return buildStages(stepPhase('VALUATION_COMPLETED', d.portfolioStatusCode), [
+    { label: 'Record valuations', done: totals.value.count > 0 },
+    { label: 'Set recommended values', done: checks.value[1]!.ok },
+    { label: 'Complete step', done: false }
+  ])
+})
+
 // Messages open the app-wide pop-up; saving shows the progress screen.
 useFeedback({
   errors: [error, formError],
@@ -182,11 +195,7 @@ useFeedback({
     :project-name="data.projectName"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
-    :stages="[
-      { label: 'Record valuations', state: totals.count ? 'done' : 'now' },
-      { label: 'Set recommended values', state: checks[1]!.ok ? 'done' : totals.count ? 'now' : 'todo' },
-      { label: 'Complete step', state: data.isOpen ? (totals.count ? 'now' : 'todo') : 'done' }
-    ]"
+    :stages="stages"
     apex-page="401"
   >
     <div v-if="!data.isOpen" class="readonly"><i class="pi pi-eye"></i> Read-only view. Valuation is not open for a portfolio in status {{ data.portfolioStatusName }}.</div>

@@ -6,6 +6,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatPct } from '@/shared/format/money'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { buildStages, stepPhase } from '../stepPhase'
 import StepLayout from '../StepLayout.vue'
 import { messageOf, niceCode } from '../stepUtils'
 import { boardReviewApi, type BoardAction, type BoardReview } from './boardReview.api'
@@ -104,6 +105,17 @@ async function decide(action: BoardAction) {
   }
 }
 
+
+// Progress inside the step. Nothing is ticked before the portfolio reaches this step, everything once it has passed it.
+const stages = computed(() => {
+  const d = data.value
+  if (!d) return []
+  return buildStages(stepPhase('BOARD_REVIEW_ACCEPTED', d.portfolioStatusCode), [
+    { label: 'Read the report', done: !!d.pricing },
+    { label: 'Record the resolution', done: !!d.decision }
+  ])
+})
+
 // Messages open the app-wide pop-up; saving shows the progress screen.
 useFeedback({
   errors: [error],
@@ -126,10 +138,7 @@ useFeedback({
     :project-name="data.projectName"
     :project-code="data.projectCode"
     :status-name="data.portfolioStatusName"
-    :stages="[
-      { label: 'Read the report', state: data.isOpen ? 'now' : 'done' },
-      { label: 'Record the resolution', state: data.isOpen ? 'now' : 'done' }
-    ]"
+    :stages="stages"
     apex-page="215"
   >
     <div v-if="data.rejectionReason && data.isOpen" class="rejected"><i class="pi pi-replay"></i> Last rejected: {{ data.rejectionReason }}</div>

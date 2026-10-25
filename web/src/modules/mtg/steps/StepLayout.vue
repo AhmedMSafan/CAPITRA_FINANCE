@@ -25,7 +25,8 @@ const counter = computed(() => {
   const done = list.filter(s => s.state === 'done').length
   const now = list.findIndex(s => s.state === 'now')
   const position = done === total ? total : now >= 0 ? now + 1 : Math.min(done + 1, total)
-  return { total, done, position, complete: total > 0 && done === total, offset: RING - (RING * done) / Math.max(total, 1) }
+  const waiting = total > 0 && list.every(s => s.state === 'todo') // an earlier step is not finished yet
+  return { total, done, position, waiting, complete: total > 0 && done === total, offset: RING - (RING * done) / Math.max(total, 1) }
 })
 </script>
 
@@ -50,18 +51,18 @@ const counter = computed(() => {
         <div><dt>Status</dt><dd><span class="cp-pill cp-pill--info">{{ statusName }}</span></dd></div>
       </dl>
       <div v-if="counter.total" class="counter" :class="{ 'counter--complete': counter.complete }" role="img"
-           :aria-label="counter.complete ? 'All steps complete' : `Step ${counter.position} of ${counter.total}`">
+           :aria-label="counter.complete ? 'All steps complete' : counter.waiting ? 'Not started' : `Step ${counter.position} of ${counter.total}`">
         <svg viewBox="0 0 64 64" aria-hidden="true">
           <circle class="counter__track" cx="32" cy="32" r="26" />
           <circle class="counter__bar" cx="32" cy="32" r="26" :style="{ strokeDasharray: RING, strokeDashoffset: counter.offset }" />
         </svg>
         <div class="counter__value">
           <i v-if="counter.complete" class="pi pi-check"></i>
-          <template v-else><b>{{ counter.position }}</b><span>/{{ counter.total }}</span></template>
+          <template v-else><b>{{ counter.waiting ? 0 : counter.position }}</b><span>/{{ counter.total }}</span></template>
         </div>
         <div class="counter__text">
-          <strong>{{ counter.complete ? 'Step complete' : `Step ${counter.position} of ${counter.total}` }}</strong>
-          <small>{{ counter.complete ? 'Nothing left to do here' : `${counter.total - counter.done} left to finish` }}</small>
+          <strong>{{ counter.complete ? 'Step complete' : counter.waiting ? 'Not started' : `Step ${counter.position} of ${counter.total}` }}</strong>
+          <small>{{ counter.complete ? 'Nothing left to do here' : counter.waiting ? 'Finish the earlier steps first' : `${counter.total - counter.done} left to finish` }}</small>
         </div>
       </div>
       <ol v-if="stages?.length" class="stages">

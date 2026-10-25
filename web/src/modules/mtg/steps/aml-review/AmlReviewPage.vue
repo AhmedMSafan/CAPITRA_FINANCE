@@ -6,6 +6,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount, formatShort } from '@/shared/format/money'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { buildStages, stepPhase } from '../stepPhase'
 import StepLayout from '../StepLayout.vue'
 import { messageOf, niceCode } from '../stepUtils'
 import { amlReviewApi, isFlagged, type AmlReview, type DealDecision } from './amlReview.api'
@@ -43,15 +44,11 @@ watch(id, () => {
 const stages = computed(() => {
   const d = data.value
   if (!d) return []
-  const decided = !d.isOpen
-  const developerDone = decided || d.developer.amlStatusCode !== 'NOT_SCREENED'
-  const investorsDone = decided || (counts.value.notScreened === 0 && counts.value.undecided === 0)
-  const state = (done: boolean, ready: boolean) => (done ? 'done' : ready ? 'now' : 'todo')
-  return [
-    { label: 'Screen developer', state: state(developerDone, true) },
-    { label: 'Screen investors & decide contracts', state: state(investorsDone, developerDone) },
-    { label: 'Accept or reject the review', state: state(decided, developerDone && investorsDone) }
-  ] as { label: string; state: 'done' | 'now' | 'todo' }[]
+  return buildStages(stepPhase('AML_ACCEPTED', d.portfolioStatusCode), [
+    { label: 'Screen developer', done: d.developer.amlStatusCode !== 'NOT_SCREENED' },
+    { label: 'Screen investors & decide contracts', done: counts.value.all > 0 && counts.value.notScreened === 0 && counts.value.undecided === 0 },
+    { label: 'Accept or reject the review', done: false }
+  ])
 })
 
 // ----- investors (one row per contract) -----
