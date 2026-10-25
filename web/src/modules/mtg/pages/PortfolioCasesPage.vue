@@ -79,12 +79,13 @@ const visible = computed(() => {
 function tone(code: string): string {
   const c = code.toUpperCase()
   if (c.includes('REJECT')) return 'var(--cap-danger)'
-  if (c.includes('CANCEL') || c.includes('DRAFT')) return 'var(--cap-faint)'
+  if (c.includes('CANCEL')) return 'var(--cap-muted)'
+  if (c.includes('DRAFT')) return 'var(--cap-orange)'
   if (['ACCEPT', 'COMPLET', 'APPROV'].some(k => c.includes(k))) return 'var(--cap-success)'
   if (c.includes('INPROG')) return 'var(--cap-primary)'
-  if (c.includes('REVIEW') || c.includes('AML')) return 'var(--cap-accent-dark)'
-  if (c.includes('LOAD')) return 'var(--cap-primary-hover)'
-  return 'var(--cap-primary-dark)'
+  if (c.includes('REVIEW') || c.includes('AML')) return 'var(--cap-orange-dark)'
+  if (c.includes('LOAD')) return 'var(--cap-primary)'
+  return 'var(--cap-primary)'
 }
 
 function open(c: PortfolioCase) {
