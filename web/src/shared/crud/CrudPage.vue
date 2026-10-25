@@ -396,7 +396,7 @@ useFeedback({ errors: [pageError, formError] })
 <style scoped>
 .crud-page { padding: 24px 30px 36px; font-family: Inter, "Segoe UI", Arial, sans-serif; }
 .crud-page--embedded { padding: 0; }
-.crud-card { background: #fff; border: 1px solid var(--cap-border-soft); border-radius: 16px; padding: 20px 28px 22px; box-shadow: 0 8px 24px rgba(14, 58, 134, .06); }
+.crud-card { background: #fff; border: 1px solid var(--cap-border-soft); border-radius: 16px; padding: 20px 28px 22px; box-shadow: 0 8px 24px rgba(13, 42, 46, .06); }
 .crud-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 18px; }
 .crud-header { display: flex; align-items: center; gap: 15px; }
 .crud-header-icon { width: 54px; height: 54px; flex: 0 0 54px; display: grid; place-items: center; border-radius: 14px; background: var(--cap-warning-bg); color: var(--cap-warning); font-size: 22px; }
@@ -449,7 +449,7 @@ useFeedback({ errors: [pageError, formError] })
 .field input:not([type="checkbox"]), .field select, .field textarea { width: 100%; box-sizing: border-box; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 8px; outline: none; background: #fff; color: var(--cap-ink-soft); font: inherit; font-size: 13px; }
 .field input:not([type="checkbox"]), .field select { height: 42px; }
 .field textarea { padding: 10px 12px; resize: vertical; }
-.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--cap-faint); box-shadow: 0 0 0 2px rgba(31, 95, 209, .08); }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--cap-faint); box-shadow: 0 0 0 2px rgba(15, 118, 110, .08); }
 .field input:disabled, .field select:disabled, .field textarea:disabled { background: var(--cap-bg); color: var(--cap-muted); }
 .field .upper { text-transform: uppercase; }
 .check { display: flex !important; align-items: center; gap: 8px; height: 42px; margin: 0 !important; color: var(--cap-ink-soft) !important; font-size: 13px !important; cursor: pointer; }

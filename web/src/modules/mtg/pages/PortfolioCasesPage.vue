@@ -225,7 +225,7 @@ useFeedback({ errors: [error] })
 .cases-count { font-size: 11px; }
 .cases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
 .case { display: block; width: 100%; padding: 16px 18px; border-top: 4px solid var(--c); text-align: start; font: inherit; cursor: pointer; transition: box-shadow .15s, transform .15s; }
-.case:hover { box-shadow: 0 12px 28px rgba(14, 58, 134, .12); transform: translateY(-1px); }
+.case:hover { box-shadow: 0 12px 28px rgba(13, 42, 46, .12); transform: translateY(-1px); }
 .case__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .case__top strong { color: var(--cap-heading); font-size: 15px; }
 .case__status { padding: 3px 9px; border-radius: 999px; background: color-mix(in srgb, var(--c) 12%, #fff); color: var(--c); font-size: 11px; font-weight: 600; white-space: nowrap; }

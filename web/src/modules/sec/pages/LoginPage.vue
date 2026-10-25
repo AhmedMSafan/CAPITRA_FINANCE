@@ -269,15 +269,15 @@ async function submitLogin(): Promise<void> {
 <style scoped>
 /* Colours: Capitra Navy (theme option A). */
 .cl-page {
-  --cl-scene: #06101f;
+  --cl-scene: #081c1f;
   --cl-ink: #14213a;
   --cl-muted: #5b6880;
   --cl-label: #2a3b57;
   --cl-line: #d3dbe6;
   --cl-field: #f5f7fb;
-  --cl-primary: #1f5fd1;
-  --cl-primary-dark: #0e3a86;
-  --cl-accent: #f5a524;
+  --cl-primary: #0f766e;
+  --cl-primary-dark: #134e4a;
+  --cl-accent: #e0b04a;
   position: relative;
   min-height: 100vh;
   overflow: hidden;
@@ -294,7 +294,7 @@ async function submitLogin(): Promise<void> {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: radial-gradient(120% 120% at 0% 0%, #16427a 0%, #0b1e3a 50%, #06101f 100%);
+  background: radial-gradient(120% 120% at 0% 0%, #14524c 0%, #0d2a2e 50%, #081c1f 100%);
 }
 .fm-stage iframe {
   position: absolute;
@@ -346,7 +346,7 @@ async function submitLogin(): Promise<void> {
 .fm-rail button.on { color: #fff; background: rgba(255, 255, 255, 0.11); }
 .fm-rail button:focus-visible { outline: 2px solid var(--cl-accent); outline-offset: 1px; }
 .fm-rail i { display: block; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, 0.18); overflow: hidden; }
-.fm-rail b { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #f5a524, #e8950f); }
+.fm-rail b { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #e0b04a, #c08a1e); }
 .fm-rail button.on b { animation: fmFill var(--fm-ms, 3000ms) linear forwards; }
 .fm-rail button.done b { width: 100%; background: rgba(255, 255, 255, 0.45); }
 @keyframes fmFill { from { width: 0; } to { width: 100%; } }
@@ -391,8 +391,8 @@ async function submitLogin(): Promise<void> {
   border-radius: 14px;
   margin-bottom: 18px;
   position: relative;
-  background: linear-gradient(135deg, #2a6fe0, #0e3a86);
-  box-shadow: 0 12px 24px -6px rgba(31, 95, 209, 0.55);
+  background: linear-gradient(135deg, #14918a, #134e4a);
+  box-shadow: 0 12px 24px -6px rgba(15, 118, 110, 0.55);
   animation: fmMark 3.2s ease-in-out 1.2s infinite !important;
 }
 .cl-mark::before {
@@ -401,7 +401,7 @@ async function submitLogin(): Promise<void> {
   height: 21px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7' rx='1.5'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1.5'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1.5'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1.5'/%3E%3C/svg%3E") center/contain no-repeat;
 }
-.cl-mark::after { content: ''; position: absolute; inset: -5px; border-radius: 18px; border: 1px solid rgba(31, 95, 209, 0.18); }
+.cl-mark::after { content: ''; position: absolute; inset: -5px; border-radius: 18px; border: 1px solid rgba(15, 118, 110, 0.18); }
 .cl-hello { display: block; margin: 0; font-size: 27px; font-weight: 800; letter-spacing: -0.02em; color: var(--cl-ink); line-height: 1.2; }
 .cl-sub { display: block; margin: 6px 0 0; font-size: 14.5px; color: var(--cl-muted); line-height: 1.45; }
 
@@ -432,7 +432,7 @@ async function submitLogin(): Promise<void> {
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 .cl-input:hover { border-color: #b5c3d8; }
-.cl-input:focus-within { border-color: var(--cl-primary); background: #fff; box-shadow: 0 0 0 4px rgba(31, 95, 209, 0.13); }
+.cl-input:focus-within { border-color: var(--cl-primary); background: #fff; box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.13); }
 .cl-input::before {
   content: '';
   flex: 0 0 18px;
@@ -476,7 +476,7 @@ async function submitLogin(): Promise<void> {
   cursor: pointer;
 }
 .cl-eye:hover { color: var(--cl-primary); }
-.cl-eye:focus-visible { outline: 2px solid rgba(31, 95, 209, 0.4); outline-offset: -4px; border-radius: 10px; }
+.cl-eye:focus-visible { outline: 2px solid rgba(15, 118, 110, 0.4); outline-offset: -4px; border-radius: 10px; }
 .cl-caps { margin: -6px 0 12px; font-size: 12.5px; font-weight: 600; color: #a5650a; }
 
 .cl-remember {
@@ -502,7 +502,7 @@ async function submitLogin(): Promise<void> {
   transition: background 0.15s;
 }
 .cl-remember input:checked { background: radial-gradient(circle at 27px 50%, #fff 0 7.5px, transparent 8.5px), var(--cl-primary); }
-.cl-remember input:focus-visible { outline: 3px solid rgba(31, 95, 209, 0.25); outline-offset: 2px; }
+.cl-remember input:focus-visible { outline: 3px solid rgba(15, 118, 110, 0.25); outline-offset: 2px; }
 
 .cl-button {
   position: relative;
@@ -522,8 +522,8 @@ async function submitLogin(): Promise<void> {
   color: #fff;
   letter-spacing: 0.01em;
   cursor: pointer;
-  background: linear-gradient(135deg, #2a6fe0 0%, #1f5fd1 55%, #174db0 100%);
-  box-shadow: 0 14px 28px -8px rgba(31, 95, 209, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: linear-gradient(135deg, #14918a 0%, #0f766e 55%, #115e59 100%);
+  box-shadow: 0 14px 28px -8px rgba(15, 118, 110, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
   transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
   animation: fmRise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.8s both;
 }
@@ -539,8 +539,8 @@ async function submitLogin(): Promise<void> {
   animation: clShine 5.5s 1.2s ease-in-out infinite;
 }
 @keyframes clShine { 0%, 70% { left: -80%; } 100% { left: 130%; } }
-.cl-button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 18px 34px -8px rgba(31, 95, 209, 0.7); }
-.cl-button:focus-visible { outline: 3px solid rgba(31, 95, 209, 0.35); outline-offset: 2px; }
+.cl-button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 18px 34px -8px rgba(15, 118, 110, 0.7); }
+.cl-button:focus-visible { outline: 3px solid rgba(15, 118, 110, 0.35); outline-offset: 2px; }
 .cl-button:disabled { cursor: progress; filter: saturate(0.8); }
 .cl-button i { transition: transform 0.2s; }
 .cl-button:hover i.pi-arrow-right { transform: translateX(3px); }
@@ -581,7 +581,7 @@ async function submitLogin(): Promise<void> {
 @media (max-width: 1100px) { .fm-rail button { min-width: 64px; padding: 6px 8px 7px; } .fm-rail span { font-size: 11px; } }
 @media (max-width: 900px) {
   .fm-stage iframe, .fm-rail, .cl-foot, .cl-mark { display: none; }
-  .fm-stage { background: linear-gradient(180deg, #0b1e3a, #06101f); }
+  .fm-stage { background: linear-gradient(180deg, #0d2a2e, #081c1f); }
   .cl-side { margin-inline-start: 0; justify-content: flex-start; padding: 56px 16px 40px; }
   .cl-card { padding: 24px 22px 22px; }
   .cl-note { margin: 18px -22px -22px; padding: 12px 22px; }
@@ -590,7 +590,7 @@ async function submitLogin(): Promise<void> {
     height: 52px;
     border-radius: 12px;
     margin-bottom: 20px;
-    background: url('/login-scenes/capitra-logo.svg') 14px center/auto 28px no-repeat, linear-gradient(135deg, #0a1a33, #0e3a86);
+    background: url('/login-scenes/capitra-logo.svg') 14px center/auto 28px no-repeat, linear-gradient(135deg, #0d2a2e, #134e4a);
   }
 }
 @media (prefers-reduced-motion: reduce) {

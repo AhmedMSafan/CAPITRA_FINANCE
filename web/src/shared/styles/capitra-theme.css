@@ -1,25 +1,27 @@
 @import './admin.css';
 @import './ui.css';
 :root {
-  /* Capitra Navy (theme option A, agreed 24 Oct 2026). Every screen takes its colours from these tokens. */
-  --cap-scene: #06101f;
-  --cap-navy: #0a1a33;
-  --cap-navy-2: #123a6b;
-  --cap-primary: #1f5fd1;
-  --cap-primary-hover: #174db0;
-  --cap-primary-dark: #0e3a86;
-  --cap-primary-tint: #e6eefc;
-  --cap-primary-tint-2: #cddcf5;
-  --cap-accent: #f5a524;
-  --cap-accent-dark: #c47f0a;
-  /* Orange family (25 Oct 2026): breaks up the blue. */
-  --cap-orange: #ee7b22;
-  --cap-orange-hover: #d9661a;
-  --cap-orange-dark: #b8520f;
-  --cap-orange-tint: #fff1e5;
-  --cap-orange-border: #f7cba6;
-  /* Colour roles. Headings and figures are ink, not blue; selected states are blue;
-     every New/Create/Add button is orange; every other main action button is blue. */
+  /* Capitra Teal & Gold (agreed 25 Oct 2026). Every screen takes its colours from these tokens.
+     The navy/primary/orange names are kept so existing styles keep working: navy is now dark teal,
+     primary is teal, and the orange family is gold. */
+  --cap-scene: #081c1f;
+  --cap-navy: #0d2a2e;
+  --cap-navy-2: #134e4a;
+  --cap-primary: #0f766e;
+  --cap-primary-hover: #115e59;
+  --cap-primary-dark: #134e4a;
+  --cap-primary-tint: #e3f3f0;
+  --cap-primary-tint-2: #c5e6e0;
+  --cap-accent: #e0b04a;
+  --cap-accent-dark: #a87a14;
+  /* Gold family (kept under the orange names). */
+  --cap-orange: #c08a1e;
+  --cap-orange-hover: #a87a14;
+  --cap-orange-dark: #8a6310;
+  --cap-orange-tint: #fbf4e3;
+  --cap-orange-border: #ecd9a8;
+  /* Colour roles. Headings and figures are ink, not blue; selected states are teal;
+     every New/Create/Add button is gold; every other main action button is teal. */
   --cap-heading: var(--cap-ink);
   --cap-selected: var(--cap-primary);
   --cap-selected-tint: var(--cap-primary-tint);
@@ -27,13 +29,13 @@
   --cap-create: var(--cap-orange);
   --cap-create-hover: var(--cap-orange-hover);
 
-  --cap-ink: #14213a;
-  --cap-ink-soft: #3b4a63;
-  --cap-muted: #5b6880;
-  --cap-faint: #8e9ab0;
-  --cap-border: #d5deea;
-  --cap-border-soft: #e6ebf2;
-  --cap-bg: #f4f7fc;
+  --cap-ink: #1c2b2d;
+  --cap-ink-soft: #3d4f51;
+  --cap-muted: #5e6f71;
+  --cap-faint: #93a3a4;
+  --cap-border: #d6e0de;
+  --cap-border-soft: #e5ecea;
+  --cap-bg: #f4f7f6;
   --cap-surface: #ffffff;
 
   /* Status colours: green only for success, red only for errors. */
