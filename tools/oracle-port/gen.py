@@ -76,7 +76,7 @@ def singular(word):
 
 
 # Oracle prefix -> Capitra prefix for whole modules (REF_ lookups become <module>_LKP_)
-PREFIXES = {'FNV_': 'CAP_', 'REF_MFF_': 'MFF_LKP_'}
+PREFIXES = {'FNV_': 'CAP_', 'REF_MFF_': 'MFF_LKP_', 'FND_CHEQUE_': 'CHQ_', 'LKP_CHEQUE_': 'CHQ_LKP_'}
 
 
 def reprefix(oracle):

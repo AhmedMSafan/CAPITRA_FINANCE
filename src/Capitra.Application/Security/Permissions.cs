@@ -56,6 +56,15 @@ public static class Permissions
         public const string JournalPost = "GL.JOURNAL.POST";
     }
 
+    public static class Chq
+    {
+        /// <summary>Read the cheques wallet: cheques, upload batches, movements and the action catalog (App 122).</summary>
+        public const string View = "CHQ.VIEW";
+
+        /// <summary>Upload cheques, move them and apply their actions (App 122).</summary>
+        public const string Edit = "CHQ.EDIT";
+    }
+
     public static class Mff
     {
         /// <summary>Read the mortgage finance applications, loans, collections and reports (App 110).</summary>

@@ -1,6 +1,7 @@
 {
  "_comment": "Oracle table -> [Capitra table, class]. Tables not listed get the default rules in gen.py (FNV -> CAP, plural).",
  "FCT_CLIENTS": ["CRM_CLIENTS", "CrmClient"],
+ "FND_CHEQUE": ["CHQ_CHEQUES", "ChqCheque"],
  "FNV_ACCOUNT_PAYMENT": ["MTG_ACCOUNT_PAYMENTS", "MtgAccountPayment"],
  "FNV_ACCOUNT_SNAPSHOT": ["MTG_ACCOUNT_SNAPSHOTS", "MtgAccountSnapshot"],
  "FNV_AML_RESULTS": ["MTG_AML_RESULTS", "MtgAmlResult"],
