@@ -1,6 +1,6 @@
 # App 110: SQL translated to PostgreSQL
 
-93 of 93 run.
+123 of 123 run.
 
 - OK     P141_FUND_MONTHLY_REPORT_REPORT
 - OK     P142_PORTFOLIO_SUMMARY_REPORT
@@ -93,5 +93,35 @@
 - OK     LOV_P165_STATUS (inline (first line only in items.txt))
 - OK     LOV_P166_PENDING_ONLY (static)
 - OK     LOV_P166_STATUS (inline (first line only in items.txt))
+- OK     LOAD_P1
+- OK     LOAD_P10
+- OK     LOAD_P11
+- OK     LOAD_P13
+- OK     LOAD_P20
+- OK     LOAD_P21
 - OK     LOAD_P22
+- OK     LOAD_P23
+- OK     LOAD_P24
+- OK     LOAD_P25
+- OK     LOAD_P26
+- OK     LOAD_P27
+- OK     LOAD_P28
+- OK     LOAD_P29
+- OK     LOAD_P30
+- OK     LOAD_P40
+- OK     LOAD_P50
+- OK     LOAD_P53
+- OK     LOAD_P81
+- OK     LOAD_P82
+- OK     LOAD_P83
+- OK     LOAD_P84
+- OK     LOAD_P120
+- OK     LOAD_P121
+- OK     LOAD_P130
+- OK     LOAD_P131
+- OK     LOAD_P132
+- OK     LOAD_P133
+- OK     LOAD_P134
+- OK     LOAD_P135
+- OK     LOAD_P140
 - OK     CONTROL_READINESS

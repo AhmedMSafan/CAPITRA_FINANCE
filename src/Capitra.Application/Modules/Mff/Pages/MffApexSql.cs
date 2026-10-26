@@ -152,17 +152,483 @@ public static class MffApexSql
 
     public static readonly IReadOnlyList<ApexSqlLoad> Loads =
     [
+        new(110, 1, Permissions.Mff.View, Q.LOAD_P1),
+        new(110, 10, Permissions.Mff.View, Q.LOAD_P10),
+        new(110, 11, Permissions.Mff.View, Q.LOAD_P11),
+        new(110, 13, Permissions.Mff.View, Q.LOAD_P13),
+        new(110, 20, Permissions.Mff.View, Q.LOAD_P20),
+        new(110, 21, Permissions.Mff.View, Q.LOAD_P21),
         new(110, 22, Permissions.Mff.View, Q.LOAD_P22),
+        new(110, 23, Permissions.Mff.View, Q.LOAD_P23),
+        new(110, 24, Permissions.Mff.View, Q.LOAD_P24),
+        new(110, 25, Permissions.Mff.View, Q.LOAD_P25),
+        new(110, 26, Permissions.Mff.View, Q.LOAD_P26),
+        new(110, 27, Permissions.Mff.View, Q.LOAD_P27),
+        new(110, 28, Permissions.Mff.View, Q.LOAD_P28),
+        new(110, 29, Permissions.Mff.View, Q.LOAD_P29),
+        new(110, 30, Permissions.Mff.View, Q.LOAD_P30),
+        new(110, 40, Permissions.Mff.View, Q.LOAD_P40),
+        new(110, 50, Permissions.Mff.View, Q.LOAD_P50),
+        new(110, 53, Permissions.Mff.View, Q.LOAD_P53),
+        new(110, 81, Permissions.Mff.View, Q.LOAD_P81),
+        new(110, 82, Permissions.Mff.View, Q.LOAD_P82),
+        new(110, 83, Permissions.Mff.View, Q.LOAD_P83),
+        new(110, 84, Permissions.Mff.View, Q.LOAD_P84),
+        new(110, 120, Permissions.Mff.View, Q.LOAD_P120),
+        new(110, 121, Permissions.Mff.View, Q.LOAD_P121),
+        new(110, 130, Permissions.Mff.View, Q.LOAD_P130),
+        new(110, 131, Permissions.Mff.View, Q.LOAD_P131),
+        new(110, 132, Permissions.Mff.View, Q.LOAD_P132),
+        new(110, 133, Permissions.Mff.View, Q.LOAD_P133),
+        new(110, 134, Permissions.Mff.View, Q.LOAD_P134),
+        new(110, 135, Permissions.Mff.View, Q.LOAD_P135),
+        new(110, 140, Permissions.Mff.View, Q.LOAD_P140),
     ];
 
     private static class Q
     {
+        public const string LOAD_P1 = """
+        select count(*) "P1_TOTAL", sum(case when "STATUS_CODE" = 'IMPORTED' then 1 else 0 end) "P1_IMPORTED", sum(case when "STATUS_CODE" in ('DOCUMENTS_PENDING', 'CREDIT_INQUIRY', 'CREDIT_ACCEPTED', 'UNDER_DOC_REVIEW', 'DOC_REVIEWED', 'REVIEW_APPROVED', 'CREDIT_STUDY') then 1 else 0 end) "P1_REVIEW", sum(case when "STATUS_CODE" in ('CREDIT_APPROVED', 'CONDITIONAL_APPROVAL', 'OFFERED', 'SUBSIDY_PENDING', 'CONTRACT_PENDING') then 1 else 0 end) "P1_APPROVED", sum(case when "STATUS_CODE" in ('ACTIVE', 'DISBURSED') then 1 else 0 end) "P1_ACTIVE", sum(case when "STATUS_CODE" in ('DELINQUENT', 'LEGAL_ACTION') then 1 else 0 end) "P1_DELINQ", sum(case when "STATUS_CODE" in ('IMPORTED', 'DOCUMENTS_PENDING') then 1 else 0 end) "P1_PIPE_INTAKE", sum(case when "STATUS_CODE" in ('CREDIT_INQUIRY', 'CREDIT_ACCEPTED') then 1 else 0 end) "P1_PIPE_CREDIT", sum(case when "STATUS_CODE" in ('UNDER_DOC_REVIEW', 'DOC_REVIEWED', 'REVIEW_APPROVED', 'CREDIT_STUDY') then 1 else 0 end) "P1_PIPE_STUDY", sum(case when "STATUS_CODE" in ('CREDIT_APPROVED', 'CONDITIONAL_APPROVAL', 'OFFERED', 'SUBSIDY_PENDING', 'CONTRACT_PENDING') then 1 else 0 end) "P1_PIPE_APPROVAL", sum(case when "STATUS_CODE" in ('DISBURSED', 'ACTIVE', 'DELINQUENT', 'LEGAL_ACTION', 'EARLY_SETTLEMENT') then 1 else 0 end) "P1_PIPE_LIVE", to_char(localtimestamp, 'DD Mon YYYY') "P1_TODAY"
+        from "MFF_APPLICATIONS"
+        """;
+
+        public const string LOAD_P10 = """
+        select count(*) "P10_TOTAL", sum(case when "BATCH_STATUS" = 'COMPLETED' then 1 else 0 end) "P10_DONE", sum(case when "BATCH_STATUS" = 'PROCESSING' then 1 else 0 end) "P10_PROC", sum(case when coalesce("ERROR_COUNT", 0) > 0 then 1 else 0 end) "P10_ERR"
+        from "MFF_IMPORT_BATCHES"
+        """;
+
+        public const string LOAD_P11 = """
+        select count(*) "P11_TOTAL", sum(case when "VALIDATION_STATUS" = 'IMPORTED' then 1 else 0 end) "P11_IMPORTED", sum(case when "VALIDATION_STATUS" = 'ERROR' then 1 else 0 end) "P11_ERRORS", sum(case when coalesce("VALIDATION_STATUS", 'NEW') not in ('IMPORTED', 'ERROR') then 1 else 0 end) "P11_PENDING"
+        from "MFF_IMPORT_STAGINGS" where (@P11_BATCH_ID::bigint is null or "BATCH_ID" = @P11_BATCH_ID::bigint)
+        """;
+
+        public const string LOAD_P120 = """
+        with "MFF_VW_INSTALLMENTS_DUE" AS (
+        select i."INSTALLMENT_ID", i."LOAN_ID", l."LOAN_ACCOUNT_NO", l."APPLICATION_ID", a."APPLICATION_NO", i."INSTALLMENT_NO", i."DUE_DATE", i."BORROWER_DUE", i."SUBSIDY_DUE", i."TOTAL_DUE", i."PAID_AMOUNT", i."PAYMENT_STATUS_CODE", greatest(current_date - i."DUE_DATE", 0) "DAYS_PAST_DUE", greatest(coalesce(i."TOTAL_DUE", 0) - coalesce(i."PAID_AMOUNT", 0), 0) "OUTSTANDING_DUE"
+        from "MFF_INSTALLMENTS" i
+        join "MFF_LOANS" l on l."LOAN_ID" = i."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        where i."PAYMENT_STATUS_CODE" in ('DUE', 'PARTIAL', 'OVERDUE')
+        )
+        select count(*) "P120_TOTAL", sum(case when "DAYS_PAST_DUE" > 0 then 1 else 0 end) "P120_OVER", coalesce(to_char(sum("OUTSTANDING_DUE"), 'FM999G999G999G990D00'), '0') "P120_AMT", sum(case when "DAYS_PAST_DUE" >= 30 then 1 else 0 end) "P120_30"
+        from "MFF_VW_INSTALLMENTS_DUE"
+        """;
+
+        public const string LOAD_P121 = """
+        select l."LOAN_ACCOUNT_NO" "P121_LOAN_ACCOUNT_NO", l."OUTSTANDING_PRINCIPAL" "P121_OUTSTANDING", l."NEXT_DUE_DATE" "P121_NEXT_DUE" from (select 1 "ONE") d
+        left join "MFF_LOANS" l on l."LOAN_ID" = @P121_LOAN_ID::bigint
+        """;
+
+        public const string LOAD_P13 = """
+        select x."FILE_NAME" "P13_FILE_NAME", coalesce(x."BATCH_STATUS", 'Not Found') "P13_BATCH_STATUS", coalesce(x."ROW_COUNT", 0) "P13_ROWS", coalesce(x."VALID_COUNT", 0) "P13_IMPORTED", coalesce(x."ERROR_COUNT", 0) "P13_ERRORS" from (select 1 "ONE") d
+        left join (select "FILE_NAME", "BATCH_STATUS", "ROW_COUNT", "VALID_COUNT", "ERROR_COUNT"
+        from "MFF_IMPORT_BATCHES"
+        where "BATCH_ID" = @P13_BATCH_ID::bigint) x on 1 = 1
+        """;
+
+        public const string LOAD_P130 = """
+        with "MFF_VW_DELINQUENCY" AS (
+        select d."DELINQUENCY_ID", d."LOAN_ID", l."LOAN_ACCOUNT_NO", a."APPLICATION_NO", p."FULL_NAME_AR" "APPLICANT_NAME_AR", f."ORG_NAME_AR" "FINANCIER_NAME_AR", d."START_DATE", d."STAGE_CODE", s."NAME_AR" "STAGE_NAME_AR", d."DAYS_PAST_DUE", d."OVERDUE_AMOUNT", d."OVERDUE_INSTALLMENTS", d."DELINQUENCY_STATUS" AS "STATUS", d."COLLECTION_ACTION_AR", l."OUTSTANDING_PRINCIPAL"
+        from "MFF_DELINQUENCIES" d
+        join "MFF_LOANS" l on l."LOAN_ID" = d."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
+        join "MFF_LKP_DELINQUENCY_STAGES" s on s."CODE" = d."STAGE_CODE"
+        where coalesce(d."DELINQUENCY_STATUS", 'OPEN') <> 'CLOSED'
+        )
+        select count(*) "P130_TOTAL", sum(case when "DAYS_PAST_DUE" >= 90 then 1 else 0 end) "P130_90", sum(case when "STAGE_CODE" = 'LEGAL' then 1 else 0 end) "P130_LEGAL", coalesce(to_char(sum("OVERDUE_AMOUNT"), 'FM999G999G999G990D00'), '0') "P130_AMT"
+        from "MFF_VW_DELINQUENCY"
+        """;
+
+        public const string LOAD_P131 = """
+        select l."LOAN_ACCOUNT_NO" "P131_LOAN_ACCOUNT_NO", l."APPLICATION_NO" "P131_APPLICATION_NO", l."FULL_NAME_AR" "P131_APPLICANT", case when q."DELINQUENCY_ID" is null then l."DELINQUENT_DAYS" else q."DAYS_PAST_DUE" end "P131_DPD", q."DELINQUENCY_ID" "P131_DELINQUENCY_ID", q."STAGE_CODE" "P131_STAGE_CODE", case when l."LOAN_ID" is not null then coalesce(q."DELINQUENCY_STATUS", 'OPEN') end "P131_STATUS", case when l."LOAN_ID" is not null then coalesce(q."OVERDUE_AMOUNT", 0) end "P131_OVERDUE_AMOUNT", case when l."LOAN_ID" is not null then coalesce(q."OVERDUE_INSTALLMENTS", 0) end "P131_OVERDUE_INSTALLMENTS", q."COLLECTION_ACTION_AR" "P131_COLLECTION_ACTION" from (select 1 "ONE") d
+        left join (select l."LOAN_ID", l."LOAN_ACCOUNT_NO", a."APPLICATION_NO", p."FULL_NAME_AR", l."DELINQUENT_DAYS"
+        from "MFF_LOANS" l
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where l."LOAN_ID" = @P131_LOAN_ID::bigint) l on 1 = 1
+        left join (select *
+        from "MFF_DELINQUENCIES"
+        where "LOAN_ID" = @P131_LOAN_ID::bigint
+        order by "DELINQUENCY_ID" desc fetch first 1 rows only) q on l."LOAN_ID" is not null
+        """;
+
+        public const string LOAD_P132 = """
+        select l."LOAN_ACCOUNT_NO" "P132_LOAN_ACCOUNT_NO", coalesce(l."OUTSTANDING_PRINCIPAL", l."PRINCIPAL_AMOUNT") "P132_OUTSTANDING", l."PRINCIPAL_AMOUNT" "P132_PRINCIPAL_AMOUNT", l."DISBURSEMENT_DATE" "P132_DISBURSEMENT_DATE", coalesce(a."TOTAL_SUBSIDY_AMOUNT", 0) "P132_TOTAL_SUBSIDY"
+        from "MFF_LOANS" l
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        where l."LOAN_ID" = @P132_LOAN_ID::bigint
+        """;
+
+        public const string LOAD_P133 = """
+        with "MFF_VW_INSTALLMENTS_DUE" AS (
+        select i."INSTALLMENT_ID", i."LOAN_ID", l."LOAN_ACCOUNT_NO", l."APPLICATION_ID", a."APPLICATION_NO", i."INSTALLMENT_NO", i."DUE_DATE", i."BORROWER_DUE", i."SUBSIDY_DUE", i."TOTAL_DUE", i."PAID_AMOUNT", i."PAYMENT_STATUS_CODE", greatest(current_date - i."DUE_DATE", 0) "DAYS_PAST_DUE", greatest(coalesce(i."TOTAL_DUE", 0) - coalesce(i."PAID_AMOUNT", 0), 0) "OUTSTANDING_DUE"
+        from "MFF_INSTALLMENTS" i
+        join "MFF_LOANS" l on l."LOAN_ID" = i."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        where i."PAYMENT_STATUS_CODE" in ('DUE', 'PARTIAL', 'OVERDUE')
+        )
+        select "LOAN_ACCOUNT_NO" "P133_LOAN_ACCOUNT_NO", coalesce("OUTSTANDING_PRINCIPAL", "PRINCIPAL_AMOUNT") "P133_OUTSTANDING", "TERM_MONTHS" "P133_OLD_TERM_MONTHS", "ANNUAL_RATE_PCT" "P133_OLD_RATE_PCT", "INITIAL_INSTALLMENT" "P133_OLD_INSTALLMENT", (select coalesce(sum("OUTSTANDING_DUE"), 0)
+        from "MFF_VW_INSTALLMENTS_DUE"
+        where "LOAN_ID" = @P133_LOAN_ID::bigint) "P133_CAPITALIZED_ARREARS"
+        from "MFF_LOANS"
+        where "LOAN_ID" = @P133_LOAN_ID::bigint
+        """;
+
+        public const string LOAD_P134 = """
+        select l."LOAN_ACCOUNT_NO" "P134_LOAN_ACCOUNT_NO", l."APPLICATION_ID" "P134_APPLICATION_ID", p."FULL_NAME_AR" "P134_APPLICANT"
+        from "MFF_LOANS" l
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where l."LOAN_ID" = @P134_LOAN_ID::bigint
+        """;
+
+        public const string LOAD_P135 = """
+        select l."LOAN_ACCOUNT_NO" "P135_LOAN_ACCOUNT_NO", p."FULL_NAME_AR" "P135_APPLICANT"
+        from "MFF_LOANS" l
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where l."LOAN_ID" = @P135_LOAN_ID::bigint
+        """;
+
+        public const string LOAD_P140 = """
+        with "MFF_VW_FUND_MONTHLY_REPORT" AS (
+        select l."APPLICATION_ID", a."APPLICATION_NO", l."LOAN_ID", l."LOAN_ACCOUNT_NO", a."FINANCIER_ID", f."ORG_NAME_AR" "FINANCIER_NAME_AR", 'DELINQUENCY' "REPORT_EVENT_TYPE", d."START_DATE" "EVENT_DATE", (d."DAYS_PAST_DUE")::text "EVENT_VALUE", d."COLLECTION_ACTION_AR" "EVENT_DETAILS_AR"
+        from "MFF_DELINQUENCIES" d
+        join "MFF_LOANS" l on l."LOAN_ID" = d."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
+        union all select l."APPLICATION_ID", a."APPLICATION_NO", l."LOAN_ID", l."LOAN_ACCOUNT_NO", a."FINANCIER_ID", f."ORG_NAME_AR", 'LEGAL_ACTION', la."ACTION_DATE", la."LEGAL_ACTION_STATUS" AS "STATUS", la."OUTCOME_AR"
+        from "MFF_LEGAL_ACTIONS" la
+        join "MFF_LOANS" l on l."LOAN_ID" = la."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
+        union all select l."APPLICATION_ID", a."APPLICATION_NO", l."LOAN_ID", l."LOAN_ACCOUNT_NO", a."FINANCIER_ID", f."ORG_NAME_AR", 'EARLY_SETTLEMENT', es."REQUEST_DATE", es."SETTLEMENT_TYPE", es."NOTES_AR"
+        from "MFF_EARLY_SETTLEMENTS" es
+        join "MFF_LOANS" l on l."LOAN_ID" = es."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
+        union all select l."APPLICATION_ID", a."APPLICATION_NO", l."LOAN_ID", l."LOAN_ACCOUNT_NO", a."FINANCIER_ID", f."ORG_NAME_AR", e."EVENT_TYPE_CODE", e."EVENT_DATE", e."LOAN_EVENT_STATUS" AS "STATUS", e."DETAILS_AR"
+        from "MFF_LOAN_EVENTS" e
+        join "MFF_LOANS" l on l."LOAN_ID" = e."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
+        ),
+        "MFF_VW_DELINQUENCY" AS (
+        select d."DELINQUENCY_ID", d."LOAN_ID", l."LOAN_ACCOUNT_NO", a."APPLICATION_NO", p."FULL_NAME_AR" "APPLICANT_NAME_AR", f."ORG_NAME_AR" "FINANCIER_NAME_AR", d."START_DATE", d."STAGE_CODE", s."NAME_AR" "STAGE_NAME_AR", d."DAYS_PAST_DUE", d."OVERDUE_AMOUNT", d."OVERDUE_INSTALLMENTS", d."DELINQUENCY_STATUS" AS "STATUS", d."COLLECTION_ACTION_AR", l."OUTSTANDING_PRINCIPAL"
+        from "MFF_DELINQUENCIES" d
+        join "MFF_LOANS" l on l."LOAN_ID" = d."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
+        join "MFF_LKP_DELINQUENCY_STAGES" s on s."CODE" = d."STAGE_CODE"
+        where coalesce(d."DELINQUENCY_STATUS", 'OPEN') <> 'CLOSED'
+        )
+        select l."LOANS" "P140_LOANS", l."OUTSTANDING" "P140_OUTSTANDING", (select to_char(coalesce(sum("TOTAL_SUBSIDY_AMOUNT"), 0), 'FM999G999G999G990D00')
+        from "MFF_APPLICATIONS") "P140_SUBSIDY", q."DQ" "P140_DQ", (select count(*)
+        from "MFF_VW_FUND_MONTHLY_REPORT") "P140_FUND_EVENTS", case when l."LOANS" = 0 then '0.00' else to_char(100 * q."DQ" / (l."LOANS")::numeric, 'FM990D00') end "P140_DQ_RATE" from (select count(*) "LOANS", to_char(coalesce(sum("OUTSTANDING_PRINCIPAL"), 0), 'FM999G999G999G990D00') "OUTSTANDING"
+        from "MFF_LOANS"
+        where "LOAN_STATUS" <> 'CLOSED') l, (select count(*) "DQ"
+        from "MFF_VW_DELINQUENCY") q
+        """;
+
+        public const string LOAD_P20 = """
+        select count(*) "P20_TOTAL", sum(case when "STATUS_CODE" in ('DOCUMENTS_PENDING', 'CREDIT_INQUIRY', 'CREDIT_ACCEPTED', 'UNDER_DOC_REVIEW', 'DOC_REVIEWED', 'REVIEW_APPROVED', 'CREDIT_STUDY') then 1 else 0 end) "P20_REVIEW", sum(case when "STATUS_CODE" in ('CREDIT_APPROVED', 'CONDITIONAL_APPROVAL', 'OFFERED', 'SUBSIDY_PENDING', 'CONTRACT_PENDING') then 1 else 0 end) "P20_APPROVED", sum(case when "STATUS_CODE" in ('DISBURSED', 'ACTIVE') then 1 else 0 end) "P20_LIVE"
+        from "MFF_APPLICATIONS"
+        """;
+
+        public const string LOAD_P21 = """
+        with "MFF_VW_APPLICATION_360" AS (
+        with last_decision as (select d.*, row_number() over (partition by d."APPLICATION_ID"
+        order by d."DECISION_DATE" desc, d."DECISION_ID" desc) "RN"
+        from "MFF_CREDIT_DECISIONS" d), last_inquiry as (select q.*, row_number() over (partition by q."APPLICATION_ID"
+        order by q."RESPONSE_DATE" desc nulls last, q."INQUIRY_ID" desc) "RN"
+        from "MFF_CREDIT_INQUIRIES" q) select a."APPLICATION_ID", a."APPLICATION_NO", a."APPLICATION_DATE", a."STATUS_CODE", s."NAME_AR" "STATUS_NAME_AR", p."PERSON_ID", p."FULL_NAME_AR" "APPLICANT_NAME_AR", p."NATIONAL_ID", p."MARITAL_STATUS_CODE", p."EMPLOYMENT_TYPE_CODE", a."MONTHLY_INCOME_TOTAL", a."PROPERTY_PRICE", a."DOWNPAYMENT_AMOUNT", a."REQUESTED_FINANCE_AMOUNT", a."APPROVED_FINANCE_AMOUNT", a."TOTAL_SUBSIDY_AMOUNT", f."ORG_ID" "FINANCIER_ID", f."ORG_NAME_AR" "FINANCIER_NAME_AR", f."ORG_TYPE_CODE" "FINANCIER_TYPE_CODE", f."REGULATOR_CODE", fund."ORG_NAME_AR" "FUND_NAME_AR", pv."PROGRAM_CODE", pv."VERSION_NO" "PROGRAM_VERSION_NO", hp."PROJECT_NAME_AR", pr."GOVERNORATE_CODE", pr."CITY_CODE", pr."AREA_SQM", pr."SALE_PRICE", pr."APPRAISED_VALUE", "ld"."DECISION_CODE" "LAST_DECISION_CODE", "ld"."DECISION_DATE" "LAST_DECISION_DATE", "li"."CREDIT_SCORE" "LAST_CREDIT_SCORE", "li"."RESULT_CODE" "LAST_CREDIT_INQUIRY_RESULT", a."CURRENT_OWNER_USER", a."BRANCH_CODE"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
+        join "MFF_ORGANIZATIONS" fund on fund."ORG_ID" = a."FUND_ORG_ID"
+        join "MFF_PROGRAM_VERSIONS" pv on pv."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID"
+        join "MFF_LKP_APPLICATION_STATUSES" s on s."CODE" = a."STATUS_CODE"
+        left join "MFF_APPLICATION_PROPERTIES" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
+        left join "MFF_PROPERTIES" pr on pr."PROPERTY_ID" = ap."PROPERTY_ID"
+        left join "MFF_HOUSING_PROJECTS" hp on hp."PROJECT_ID" = pr."PROJECT_ID"
+        left join last_decision ld on "ld"."APPLICATION_ID" = a."APPLICATION_ID" and "ld"."RN" = 1
+        left join last_inquiry li on "li"."APPLICATION_ID" = a."APPLICATION_ID" and "li"."RN" = 1
+        )
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P21_APP_NO", x."STATUS_NAME_AR" "P21_STATUS", x."APPLICANT_NAME_AR" "P21_APPLICANT", coalesce(x."INCOME", '0') "P21_INCOME", coalesce(x."PROPERTY", '0') "P21_PROPERTY", coalesce(x."FINANCE", '0') "P21_FINANCE", x."NATIONAL_ID" "P21_NID", x."FINANCIER_NAME_AR" "P21_FINANCIER", x."PROGRAM_CODE" "P21_PROGRAM", coalesce(x."SCORE", '—') "P21_SCORE", coalesce(x."DECISION", '—') "P21_DECISION", coalesce(x."OWNER", '—') "P21_OWNER" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", st."NAME_AR" "STATUS_NAME_AR", "APPLICANT_NAME_AR", to_char("MONTHLY_INCOME_TOTAL", 'FM999G999G990D00') "INCOME", to_char("PROPERTY_PRICE", 'FM999G999G999G990D00') "PROPERTY", to_char("REQUESTED_FINANCE_AMOUNT", 'FM999G999G999G990D00') "FINANCE", "NATIONAL_ID", "FINANCIER_NAME_AR", "PROGRAM_CODE", coalesce(("LAST_CREDIT_SCORE")::text, '—') "SCORE", coalesce("LAST_DECISION_CODE", '—') "DECISION", coalesce("CURRENT_OWNER_USER", '—') "OWNER"
+        from "MFF_VW_APPLICATION_360" v
+        join "MFF_LKP_APPLICATION_STATUSES" st on st."CODE" = v."STATUS_CODE"
+        where v."APPLICATION_ID" = @P21_APPLICATION_ID::numeric) x on 1 = 1
+        """;
+
         public const string LOAD_P22 = """
         select coalesce(x."APPLICATION_NO", 'Not Found') "P22_APPLICATION_NO", x."FUND_FILE_NO" "P22_FUND_FILE_NO", x."FULL_NAME_AR" "P22_FULL_NAME_AR", x."NATIONAL_ID" "P22_NATIONAL_ID", x."BIRTH_DATE" "P22_BIRTH_DATE", x."GENDER_CODE" "P22_GENDER_CODE", x."MARITAL_STATUS_CODE" "P22_MARITAL_STATUS_CODE", x."MOBILE_NO" "P22_MOBILE_NO", x."EMAIL" "P22_EMAIL", x."ADDRESS_AR" "P22_ADDRESS_AR", x."EMPLOYMENT_TYPE_CODE" "P22_EMPLOYMENT_TYPE_CODE", x."EMPLOYER_NAME" "P22_EMPLOYER_NAME", x."HIRE_DATE" "P22_HIRE_DATE", x."REQUESTED_FINANCE_AMOUNT" "P22_REQUESTED_FINANCE_AMOUNT", x."PROPERTY_PRICE" "P22_PROPERTY_PRICE", x."DOWNPAYMENT_AMOUNT" "P22_DOWNPAYMENT_AMOUNT", x."STATUS_CODE" "P22_APP_STATUS", x."APPLICATION_NO" "P22_APP_NO", x."FULL_NAME_AR" "P22_APPLICANT" from (select 1 "ONE") d
         left join (select a."APPLICATION_NO", a."FUND_FILE_NO", p."FULL_NAME_AR", p."NATIONAL_ID", p."BIRTH_DATE", p."GENDER_CODE", p."MARITAL_STATUS_CODE", p."MOBILE_NO", p."EMAIL", p."ADDRESS_AR", p."EMPLOYMENT_TYPE_CODE", p."EMPLOYER_NAME", p."HIRE_DATE", a."REQUESTED_FINANCE_AMOUNT", a."PROPERTY_PRICE", a."DOWNPAYMENT_AMOUNT", a."STATUS_CODE"
         from "MFF_APPLICATIONS" a
         join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
         where a."APPLICATION_ID" = @P22_APPLICATION_ID::bigint) x on 1 = 1
+        """;
+
+        public const string LOAD_P23 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P23_APP_NO", x."STATUS_CODE" "P23_APP_STATUS", x."FULL_NAME_AR" "P23_APPLICANT", (select min("APPLICATION_PARTY_ID")
+        from "MFF_APPLICATION_PARTIES"
+        where "APPLICATION_ID" = @P23_APPLICATION_ID::bigint and "PARTY_ROLE_CODE" = 'APPLICANT') "P23_APPLICATION_PARTY_ID" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P23_APPLICATION_ID::bigint) x on 1 = 1
+        """;
+
+        public const string LOAD_P24 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P24_APP_NO", x."STATUS_CODE" "P24_APP_STATUS", x."FULL_NAME_AR" "P24_APPLICANT", y."PROPERTY_ID" "P24_PROPERTY_ID", y."PROJECT_ID" "P24_PROJECT_ID", y."GOVERNORATE_CODE" "P24_GOVERNORATE_CODE", y."CITY_CODE" "P24_CITY_CODE", y."DISTRICT_AR" "P24_DISTRICT_AR", y."NEIGHBORHOOD_AR" "P24_NEIGHBORHOOD_AR", y."BUILDING_NO" "P24_BUILDING_NO", y."FLOOR_NO" "P24_FLOOR_NO", y."UNIT_NO" "P24_UNIT_NO", y."AREA_SQM" "P24_AREA_SQM", y."ADDRESS_AR" "P24_ADDRESS_AR", y."REGISTRATION_STATUS_CODE" "P24_REGISTRATION_STATUS_CODE", y."REGISTRY_REFERENCE" "P24_REGISTRY_REFERENCE", y."SALE_PRICE" "P24_SALE_PRICE", y."APPRAISED_VALUE" "P24_APPRAISED_VALUE", y."MAINTENANCE_DEPOSIT" "P24_MAINTENANCE_DEPOSIT" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P24_APPLICATION_ID::bigint) x on 1 = 1
+        left join (select p."PROPERTY_ID", p."PROJECT_ID", p."GOVERNORATE_CODE", p."CITY_CODE", p."DISTRICT_AR", p."NEIGHBORHOOD_AR", p."BUILDING_NO", p."FLOOR_NO", p."UNIT_NO", p."AREA_SQM", p."ADDRESS_AR", p."REGISTRATION_STATUS_CODE", p."REGISTRY_REFERENCE", p."SALE_PRICE", p."APPRAISED_VALUE", p."MAINTENANCE_DEPOSIT"
+        from "MFF_APPLICATION_PROPERTIES" ap
+        join "MFF_PROPERTIES" p on p."PROPERTY_ID" = ap."PROPERTY_ID"
+        where ap."APPLICATION_ID" = @P24_APPLICATION_ID::bigint and ap."IS_SELECTED"
+        order by ap."APP_PROPERTY_ID" fetch first 1 rows only) y on 1 = 1
+        """;
+
+        public const string LOAD_P25 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P25_APP_NO", x."STATUS_CODE" "P25_APP_STATUS", x."FULL_NAME_AR" "P25_APPLICANT" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P25_APPLICATION_ID::bigint) x on 1 = 1
+        """;
+
+        public const string LOAD_P26 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P26_APP_NO", x."STATUS_CODE" "P26_APP_STATUS", x."FULL_NAME_AR" "P26_APPLICANT", coalesce((@P26_REQUEST_DATE::text)::date, current_date) "P26_REQUEST_DATE" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P26_APPLICATION_ID::bigint) x on 1 = 1
+        """;
+
+        public const string LOAD_P27 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P27_APP_NO", x."STATUS_CODE" "P27_APP_STATUS", x."FULL_NAME_AR" "P27_APPLICANT", coalesce((@P27_STUDY_DATE::text)::date, current_date) "P27_STUDY_DATE", y."MONTHLY_INCOME_TOTAL" "P27_VERIFIED_INCOME_AMOUNT", y."REQUESTED_FINANCE_AMOUNT" "P27_PROPOSED_FINANCE_AMOUNT", y."LTV" "P27_LTV_PCT", (coalesce(@P27_MONTHLY_OBLIGATIONS_AMOUNT::numeric, 0) + 0) "P27_MONTHLY_OBLIGATIONS_AMOUNT", coalesce(y."MONTHLY_INCOME_TOTAL", 0) - (coalesce(@P27_MONTHLY_OBLIGATIONS_AMOUNT::numeric, 0) + 0) "P27_DISPOSABLE_INCOME_AMOUNT" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P27_APPLICATION_ID::bigint) x on 1 = 1
+        left join (select "MONTHLY_INCOME_TOTAL", "REQUESTED_FINANCE_AMOUNT", case when "PROPERTY_PRICE" > 0 then "REQUESTED_FINANCE_AMOUNT" / ("PROPERTY_PRICE")::numeric * 100 end "LTV"
+        from "MFF_APPLICATIONS"
+        where "APPLICATION_ID" = @P27_APPLICATION_ID::bigint) y on 1 = 1
+        """;
+
+        public const string LOAD_P28 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P28_APP_NO", x."STATUS_CODE" "P28_APP_STATUS", x."FULL_NAME_AR" "P28_APPLICANT", coalesce((@P28_DECISION_DATE::text)::date, current_date) "P28_DECISION_DATE", (select coalesce("APPROVED_FINANCE_AMOUNT", "REQUESTED_FINANCE_AMOUNT")
+        from "MFF_APPLICATIONS"
+        where "APPLICATION_ID" = @P28_APPLICATION_ID::bigint) "P28_APPROVED_FINANCE_AMOUNT" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P28_APPLICATION_ID::bigint) x on 1 = 1
+        """;
+
+        public const string LOAD_P29 = """
+        select x."STATUS_CODE" "P29_CURRENT_STATUS", x."OWNER" "P29_CURRENT_OWNER" from (select 1 "ONE") d
+        left join (select "STATUS_CODE", coalesce("CURRENT_OWNER_USER", '—') "OWNER"
+        from "MFF_APPLICATIONS"
+        where "APPLICATION_ID" = @P29_APPLICATION_ID::bigint) x on 1 = 1
+        """;
+
+        public const string LOAD_P30 = """
+        with "MFF_VW_CREDIT_INQUIRY_QUEUE" AS (
+        select a."APPLICATION_ID", a."APPLICATION_NO", p."FULL_NAME_AR" "APPLICANT_NAME_AR", p."NATIONAL_ID", a."FINANCIER_ID", o."ORG_NAME_AR" "FINANCIER_NAME_AR", a."STATUS_CODE", q."INQUIRY_ID", q."REQUEST_DATE", q."RESPONSE_DATE", q."CREDIT_SCORE", q."RESULT_CODE", q."REFERENCE_NO"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        join "MFF_ORGANIZATIONS" o on o."ORG_ID" = a."FINANCIER_ID"
+        left join "MFF_CREDIT_INQUIRIES" q on q."APPLICATION_ID" = a."APPLICATION_ID"
+        where a."STATUS_CODE" in ('CREDIT_INQUIRY', 'CREDIT_ACCEPTED')
+        )
+        select count(*) "P30_TOTAL", sum(case when "RESPONSE_DATE" is null then 1 else 0 end) "P30_WAIT", sum(case when upper(coalesce("RESULT_CODE", '-')) in ('ACCEPTED', 'PASS', 'OK') then 1 else 0 end) "P30_ACCEPT", sum(case when upper(coalesce("RESULT_CODE", '-')) in ('REJECTED', 'FAIL', 'DECLINED') then 1 else 0 end) "P30_REJECT"
+        from "MFF_VW_CREDIT_INQUIRY_QUEUE"
+        """;
+
+        public const string LOAD_P40 = """
+        with "MFF_VW_MISSING_DOCUMENTS" AS (
+        select a."APPLICATION_ID", a."APPLICATION_NO", r."REQUIREMENT_ID", r."DOCUMENT_TYPE_CODE", dt."NAME_AR" "DOCUMENT_NAME_AR", r."PARTY_ROLE_CODE", r."EMPLOYMENT_TYPE_CODE", r."NOTES_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PROGRAM_DOC_REQUIREMENTS" r on r."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID" and r."IS_REQUIRED" and current_date between coalesce(r."EFFECTIVE_FROM_DATE", date '1900-01-01') and coalesce(r."EFFECTIVE_TO_DATE", date '2999-12-31')
+        join "MFF_LKP_DOCUMENT_TYPES" dt on dt."CODE" = r."DOCUMENT_TYPE_CODE"
+        join "MFF_PERSONS" pp on pp."PERSON_ID" = a."PRIMARY_PERSON_ID" where (r."EMPLOYMENT_TYPE_CODE" is null or r."EMPLOYMENT_TYPE_CODE" = pp."EMPLOYMENT_TYPE_CODE") and not exists (select 1
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and d."DOCUMENT_TYPE_CODE" = r."DOCUMENT_TYPE_CODE" and coalesce(d."VERIFICATION_STATUS", 'RECEIVED') in ('RECEIVED', 'VERIFIED', 'ACCEPTED'))
+        )
+        select count(*) "P40_TOTAL", count(distinct "APPLICATION_ID") "P40_APPS", sum(case when "DOCUMENT_TYPE_CODE" in ('NATIONAL_ID', 'UTILITY_BILL', 'INCOME_CERT') then 1 else 0 end) "P40_ID", sum(case when "DOCUMENT_TYPE_CODE" in ('PROPERTY_OWNERSHIP', 'REAL_ESTATE_DISPOSAL_CERT', 'ALLOCATION_DECISION', 'LAND_HANDOVER', 'BUILDING_LICENSE', 'PROPERTY_TAX_CERT') then 1 else 0 end) "P40_PROP"
+        from "MFF_VW_MISSING_DOCUMENTS"
+        """;
+
+        public const string LOAD_P50 = """
+        with "MFF_VW_WORK_QUEUE" AS (
+        select w."ASSIGNMENT_ID", w."APPLICATION_ID", a."APPLICATION_NO", p."FULL_NAME_AR" "APPLICANT_NAME_AR", a."STATUS_CODE", w."ASSIGNMENT_TYPE", w."ASSIGNED_TO", w."ASSIGNED_BY", w."ASSIGNED_AT", w."DUE_DATE", w."ASSIGNMENT_STATUS", case when w."DUE_DATE" < current_date and w."COMPLETED_AT" is null then 'Y' else 'N' end "OVERDUE_FLAG"
+        from "MFF_WORK_ASSIGNMENTS" w
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = w."APPLICATION_ID"
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where coalesce(w."ASSIGNMENT_STATUS", 'OPEN') <> 'COMPLETED'
+        )
+        select count(*) "P50_TOTAL", count(distinct "APPLICATION_ID") "P50_MINE", sum(case when "DUE_DATE" < current_date then 1 else 0 end) "P50_OVERDUE", sum(case when "DUE_DATE" = current_date then 1 else 0 end) "P50_TODAY"
+        from "MFF_VW_WORK_QUEUE"
+        where upper("ASSIGNED_TO") = upper(@APP_USER::text)
+        """;
+
+        public const string LOAD_P53 = """
+        with "MFF_VW_MISSING_DOCUMENTS" AS (
+        select a."APPLICATION_ID", a."APPLICATION_NO", r."REQUIREMENT_ID", r."DOCUMENT_TYPE_CODE", dt."NAME_AR" "DOCUMENT_NAME_AR", r."PARTY_ROLE_CODE", r."EMPLOYMENT_TYPE_CODE", r."NOTES_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PROGRAM_DOC_REQUIREMENTS" r on r."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID" and r."IS_REQUIRED" and current_date between coalesce(r."EFFECTIVE_FROM_DATE", date '1900-01-01') and coalesce(r."EFFECTIVE_TO_DATE", date '2999-12-31')
+        join "MFF_LKP_DOCUMENT_TYPES" dt on dt."CODE" = r."DOCUMENT_TYPE_CODE"
+        join "MFF_PERSONS" pp on pp."PERSON_ID" = a."PRIMARY_PERSON_ID" where (r."EMPLOYMENT_TYPE_CODE" is null or r."EMPLOYMENT_TYPE_CODE" = pp."EMPLOYMENT_TYPE_CODE") and not exists (select 1
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and d."DOCUMENT_TYPE_CODE" = r."DOCUMENT_TYPE_CODE" and coalesce(d."VERIFICATION_STATUS", 'RECEIVED') in ('RECEIVED', 'VERIFIED', 'ACCEPTED'))
+        ),
+        "MFF_VW_APPLICATION_READINESS" AS (
+        select a."APPLICATION_ID", a."APPLICATION_NO", a."STATUS_CODE", a."CURRENT_OWNER_USER", case when a."PRIMARY_PERSON_ID" is not null then 'Y' else 'N' end "APPLICANT_READY", case when exists (select 1
+        from "MFF_APPLICATION_PARTIES" ap
+        join "MFF_INCOME_SOURCES" i on i."APPLICATION_PARTY_ID" = ap."APPLICATION_PARTY_ID"
+        where ap."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(i."IS_VERIFIED", false)) then 'Y' else 'N' end "INCOME_READY", case when exists (select 1
+        from "MFF_APPLICATION_PROPERTIES" x
+        where x."APPLICATION_ID" = a."APPLICATION_ID" and x."IS_SELECTED") then 'Y' else 'N' end "PROPERTY_READY", (select count(*)
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID") "DOCUMENT_COUNT", (select count(*)
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(d."VERIFICATION_STATUS", 'PENDING') = 'PENDING') "DOCUMENT_PENDING_COUNT", (select count(*)
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and d."VERIFICATION_STATUS" = 'REJECTED') "DOCUMENT_REJECTED_COUNT", (select count(*)
+        from "MFF_VW_MISSING_DOCUMENTS" md
+        where "md"."APPLICATION_ID" = a."APPLICATION_ID") "MISSING_REQUIRED_DOCUMENT_COUNT", case when exists (select 1
+        from "MFF_CREDIT_INQUIRIES" q
+        where q."APPLICATION_ID" = a."APPLICATION_ID" and q."RESULT_CODE" = 'PASS') then 'Y' else 'N' end "CREDIT_INQUIRY_READY", case when exists (select 1
+        from "MFF_CREDIT_STUDIES" s
+        where s."APPLICATION_ID" = a."APPLICATION_ID") then 'Y' else 'N' end "CREDIT_STUDY_READY", case when exists (select 1
+        from "MFF_CREDIT_DECISIONS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and c."DECISION_CODE" in ('APPROVE', 'CONDITIONAL')) then 'Y' else 'N' end "CREDIT_DECISION_READY", case when exists (select 1
+        from "MFF_CALCULATION_RUNS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(c."CALC_STATUS", 'COMPLETE') = 'COMPLETE') then 'Y' else 'N' end "CALCULATION_READY", case when exists (select 1
+        from "MFF_SUBSIDY_APPROVALS" s
+        where s."APPLICATION_ID" = a."APPLICATION_ID" and s."APPROVAL_STATUS" = 'APPROVED') then 'Y' else 'N' end "SUBSIDY_READY", case when exists (select 1
+        from "MFF_FINANCE_OFFERS" o
+        where o."APPLICATION_ID" = a."APPLICATION_ID" and o."OFFER_STATUS" in ('ISSUED', 'ACCEPTED')) then 'Y' else 'N' end "OFFER_READY", case when exists (select 1
+        from "MFF_CONTRACTS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and (c."IS_SIGNED" or c."CONTRACT_STATUS" = 'SIGNED')) then 'Y' else 'N' end "CONTRACT_READY", case when exists (select 1
+        from "MFF_LOANS" l
+        where l."APPLICATION_ID" = a."APPLICATION_ID") then 'Y' else 'N' end "LOAN_READY", (select count(*)
+        from "MFF_WORK_ASSIGNMENTS" w
+        where w."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(w."ASSIGNMENT_STATUS", 'OPEN') <> 'COMPLETED') "OPEN_TASKS", (select count(*)
+        from "MFF_WORK_ASSIGNMENTS" w
+        where w."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(w."ASSIGNMENT_STATUS", 'OPEN') <> 'COMPLETED' and w."DUE_DATE" < current_date) "OVERDUE_TASKS", round(100 * (case when a."PRIMARY_PERSON_ID" is not null then 1 else 0 end + case when exists (select 1
+        from "MFF_APPLICATION_PARTIES" ap
+        join "MFF_INCOME_SOURCES" i on i."APPLICATION_PARTY_ID" = ap."APPLICATION_PARTY_ID"
+        where ap."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(i."IS_VERIFIED", false)) then 1 else 0 end + case when exists (select 1
+        from "MFF_APPLICATION_PROPERTIES" x
+        where x."APPLICATION_ID" = a."APPLICATION_ID" and x."IS_SELECTED") then 1 else 0 end + case when exists (select 1
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID") and not exists (select 1
+        from "MFF_VW_MISSING_DOCUMENTS" md
+        where "md"."APPLICATION_ID" = a."APPLICATION_ID") and not exists (select 1
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and d."VERIFICATION_STATUS" = 'REJECTED') then 1 else 0 end + case when exists (select 1
+        from "MFF_CREDIT_INQUIRIES" q
+        where q."APPLICATION_ID" = a."APPLICATION_ID" and q."RESULT_CODE" = 'PASS') then 1 else 0 end + case when exists (select 1
+        from "MFF_CREDIT_STUDIES" s
+        where s."APPLICATION_ID" = a."APPLICATION_ID") then 1 else 0 end + case when exists (select 1
+        from "MFF_CREDIT_DECISIONS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and c."DECISION_CODE" in ('APPROVE', 'CONDITIONAL')) then 1 else 0 end + case when exists (select 1
+        from "MFF_CALCULATION_RUNS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(c."CALC_STATUS", 'COMPLETE') = 'COMPLETE') then 1 else 0 end + case when exists (select 1
+        from "MFF_SUBSIDY_APPROVALS" s
+        where s."APPLICATION_ID" = a."APPLICATION_ID" and s."APPROVAL_STATUS" = 'APPROVED') then 1 else 0 end + case when exists (select 1
+        from "MFF_FINANCE_OFFERS" o
+        where o."APPLICATION_ID" = a."APPLICATION_ID" and o."OFFER_STATUS" in ('ISSUED', 'ACCEPTED')) then 1 else 0 end + case when exists (select 1
+        from "MFF_CONTRACTS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and (c."IS_SIGNED" or c."CONTRACT_STATUS" = 'SIGNED')) then 1 else 0 end + case when exists (select 1
+        from "MFF_LOANS" l
+        where l."APPLICATION_ID" = a."APPLICATION_ID") then 1 else 0 end) / (12)::numeric, 0) "READINESS_PCT"
+        from "MFF_APPLICATIONS" a
+        )
+        select coalesce(x."READINESS_PCT", 0) "P53_READINESS_PCT", x."STATUS_CODE" "P53_STATUS", coalesce(x."OPEN_TASKS", 0) "P53_OPEN_TASKS", coalesce(x."OVERDUE_TASKS", 0) "P53_OVERDUE_TASKS" from (select 1 "ONE") d
+        left join (select "READINESS_PCT", "STATUS_CODE", "OPEN_TASKS", "OVERDUE_TASKS"
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric) x on 1 = 1
+        """;
+
+        public const string LOAD_P81 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P81_APP_NO", x."STATUS_CODE" "P81_APP_STATUS", x."FULL_NAME_AR" "P81_APPLICANT", y."SUBSIDY_APPROVAL_ID" "P81_SUBSIDY_APPROVAL_ID", y."SUPPORT_TYPE_CODE" "P81_SUPPORT_TYPE_CODE", y."APPROVAL_NO" "P81_APPROVAL_NO", y."APPROVAL_DATE" "P81_APPROVAL_DATE", y."EXPIRY_DATE" "P81_EXPIRY_DATE", y."INSTALLMENT_SUPPORT_NPV" "P81_INSTALLMENT_SUPPORT_NPV", y."DOWNPAYMENT_SUPPORT" "P81_DOWNPAYMENT_SUPPORT", y."TOTAL_SUPPORT" "P81_TOTAL_SUPPORT", coalesce(y."IS_DEDICATED_ACCOUNT", false) "P81_DEDICATED_ACCOUNT_FLAG", coalesce(y."APPROVAL_STATUS", 'PENDING') "P81_APPROVAL_STATUS", y."FUND_NOTES" "P81_FUND_NOTES" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P81_APPLICATION_ID::bigint) x on 1 = 1
+        left join (select *
+        from "MFF_SUBSIDY_APPROVALS"
+        where "APPLICATION_ID" = @P81_APPLICATION_ID::bigint
+        order by "SUBSIDY_APPROVAL_ID" desc fetch first 1 rows only) y on 1 = 1
+        """;
+
+        public const string LOAD_P82 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P82_APP_NO", x."STATUS_CODE" "P82_APP_STATUS", x."FULL_NAME_AR" "P82_APPLICANT", o."OFFER_ID" "P82_OFFER_ID", o."OFFER_NO" "P82_OFFER_NO", case when o."OFFER_ID" is null then current_date else o."OFFER_DATE" end "P82_OFFER_DATE", o."EXPIRY_DATE" "P82_EXPIRY_DATE", case when o."OFFER_ID" is null then a."FIN" else o."FINANCE_AMOUNT" end "P82_FINANCE_AMOUNT", case when o."OFFER_ID" is null then c."APPROVED_TERM_MONTHS" else o."TERM_MONTHS" end "P82_TERM_MONTHS", case when o."OFFER_ID" is null then c."APPROVED_RATE_PCT" else o."ANNUAL_RATE_PCT" end "P82_ANNUAL_RATE_PCT", case when o."OFFER_ID" is null then r."OUT_INITIAL_PAYMENT" else o."INITIAL_INSTALLMENT" end "P82_INITIAL_INSTALLMENT", case when o."OFFER_ID" is null then a."DOWNPAYMENT_AMOUNT" else o."DOWNPAYMENT_AMOUNT" end "P82_DOWNPAYMENT_AMOUNT", case when o."OFFER_ID" is null then a."TOTAL_SUBSIDY_AMOUNT" else o."SUBSIDY_AMOUNT" end "P82_SUBSIDY_AMOUNT", case when o."OFFER_ID" is null then a."LTV" else o."LTV_PCT" end "P82_LTV_PCT", case when o."OFFER_ID" is null then 'DRAFT' else o."OFFER_STATUS" end "P82_OFFER_STATUS", o."ACCEPTED_DATE" "P82_ACCEPTED_DATE", o."NOTES" "P82_NOTES" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P82_APPLICATION_ID::bigint) x on 1 = 1
+        left join (select *
+        from "MFF_FINANCE_OFFERS"
+        where "APPLICATION_ID" = @P82_APPLICATION_ID::bigint
+        order by "OFFER_ID" desc fetch first 1 rows only) o on 1 = 1
+        left join (select coalesce("APPROVED_FINANCE_AMOUNT", "REQUESTED_FINANCE_AMOUNT") "FIN", "DOWNPAYMENT_AMOUNT", "TOTAL_SUBSIDY_AMOUNT", case when "PROPERTY_PRICE" > 0 then coalesce("APPROVED_FINANCE_AMOUNT", "REQUESTED_FINANCE_AMOUNT") / ("PROPERTY_PRICE")::numeric * 100 end "LTV"
+        from "MFF_APPLICATIONS"
+        where "APPLICATION_ID" = @P82_APPLICATION_ID::bigint) a on 1 = 1
+        left join (select "APPROVED_TERM_MONTHS", "APPROVED_RATE_PCT"
+        from "MFF_CREDIT_DECISIONS"
+        where "APPLICATION_ID" = @P82_APPLICATION_ID::bigint and "DECISION_CODE" in ('APPROVE', 'CONDITIONAL')
+        order by "DECISION_ID" desc fetch first 1 rows only) c on 1 = 1
+        left join (select "OUT_INITIAL_PAYMENT"
+        from "MFF_CALCULATION_RUNS"
+        where "APPLICATION_ID" = @P82_APPLICATION_ID::bigint
+        order by "CALC_RUN_ID" desc fetch first 1 rows only) r on 1 = 1
+        """;
+
+        public const string LOAD_P83 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P83_APP_NO", x."STATUS_CODE" "P83_APP_STATUS", x."FULL_NAME_AR" "P83_APPLICANT", a."PRIMARY_PERSON_ID" "P83_BUYER_PERSON_ID", a."FINANCIER_ID" "P83_FINANCIER_ID", (select min("PROPERTY_ID")
+        from "MFF_APPLICATION_PROPERTIES"
+        where "APPLICATION_ID" = @P83_APPLICATION_ID::bigint and "IS_SELECTED") "P83_PROPERTY_ID", c."CONTRACT_ID" "P83_CONTRACT_ID", c."CONTRACT_NO" "P83_CONTRACT_NO", case when c."CONTRACT_ID" is null then current_date else c."CONTRACT_DATE" end "P83_CONTRACT_DATE", c."SELLER_PERSON_ID" "P83_SELLER_PERSON_ID", case when c."CONTRACT_ID" is null then a."FIN" else c."FINANCE_AMOUNT" end "P83_FINANCE_AMOUNT", case when c."CONTRACT_ID" is null then a."PROPERTY_PRICE" else c."PROPERTY_PRICE" end "P83_PROPERTY_PRICE", case when c."CONTRACT_ID" is null then 'N' else c."IS_SIGNED" end "P83_SIGNED_FLAG", case when c."CONTRACT_ID" is null then 'DRAFT' else c."CONTRACT_STATUS" end "P83_CONTRACT_STATUS" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P83_APPLICATION_ID::bigint) x on 1 = 1
+        left join (select "PRIMARY_PERSON_ID", "FINANCIER_ID", coalesce("APPROVED_FINANCE_AMOUNT", "REQUESTED_FINANCE_AMOUNT") "FIN", "PROPERTY_PRICE"
+        from "MFF_APPLICATIONS"
+        where "APPLICATION_ID" = @P83_APPLICATION_ID::bigint) a on 1 = 1
+        left join (select *
+        from "MFF_CONTRACTS"
+        where "APPLICATION_ID" = @P83_APPLICATION_ID::bigint
+        order by "CONTRACT_ID" desc fetch first 1 rows only) c on 1 = 1
+        """;
+
+        public const string LOAD_P84 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P84_APP_NO", x."STATUS_CODE" "P84_APP_STATUS", x."FULL_NAME_AR" "P84_APPLICANT", coalesce((@P84_DISBURSEMENT_DATE::text)::date, current_date) "P84_DISBURSEMENT_DATE", coalesce((@P84_FIRST_DUE_DATE::text)::date, ((current_date) + make_interval(months => 1))::date) "P84_FIRST_DUE_DATE", c."CONTRACT_ID" "P84_CONTRACT_ID", c."FINANCE_AMOUNT" "P84_PRINCIPAL_AMOUNT", o."ANNUAL_RATE_PCT" "P84_ANNUAL_RATE_PCT", o."TERM_MONTHS" "P84_TERM_MONTHS", o."INITIAL_INSTALLMENT" "P84_INITIAL_INSTALLMENT", coalesce((@P84_MATURITY_DATE::text)::date, ((coalesce((@P84_DISBURSEMENT_DATE::text)::date, current_date)) + make_interval(months => o."TERM_MONTHS"))::date) "P84_MATURITY_DATE", l."LOAN_ID" "P84_LOAN_ID", l."LOAN_ACCOUNT_NO" "P84_LOAN_ACCOUNT_NO" from (select 1 "ONE") d
+        left join (select "APPLICATION_NO", "STATUS_CODE", p."FULL_NAME_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P84_APPLICATION_ID::bigint) x on 1 = 1
+        left join (select "CONTRACT_ID", "FINANCE_AMOUNT"
+        from "MFF_CONTRACTS"
+        where "APPLICATION_ID" = @P84_APPLICATION_ID::bigint and ("IS_SIGNED" or "CONTRACT_STATUS" = 'SIGNED')
+        order by "CONTRACT_ID" desc fetch first 1 rows only) c on 1 = 1
+        left join (select "ANNUAL_RATE_PCT", "TERM_MONTHS", "INITIAL_INSTALLMENT"
+        from "MFF_FINANCE_OFFERS"
+        where "APPLICATION_ID" = @P84_APPLICATION_ID::bigint and "OFFER_STATUS" in ('ISSUED', 'ACCEPTED')
+        order by "OFFER_ID" desc fetch first 1 rows only) o on 1 = 1
+        left join (select "LOAN_ID", "LOAN_ACCOUNT_NO"
+        from "MFF_LOANS"
+        where "APPLICATION_ID" = @P84_APPLICATION_ID::bigint
+        order by "LOAN_ID" fetch first 1 rows only) l on 1 = 1
         """;
 
         public const string LOV_MFF_ACTIVE_LOAN = """
