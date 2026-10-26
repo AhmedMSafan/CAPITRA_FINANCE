@@ -1,0 +1,5 @@
+-- Page 202 Portfolio Details, region "Dialog Header".
+-- name: HEADER
+select p.PORTFOLIO_NO, nvl(s.STATUS_NAME_EN, p.PORTFOLIO_STATUS_CODE) STATUS
+  from FNV_PURSHASED_PORTFOLIO p left join REF_PORTFOLIO_STATUS s on s.STATUS_CODE = p.PORTFOLIO_STATUS_CODE
+ where p.PORTFOLIO_ID = :P202_PORTFOLIO_ID

@@ -328,6 +328,263 @@ public static class MtgApexPageSql
         where "PORTFOLIO_STATUS_CODE" = 'PENDING_APPROVAL'
         """;
 
+    public const string P201_TOTALS = """
+        with "FNV_V_CHEQUE_COVERAGE" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        left join "MTG_PURCHASED_PORTFOLIO_CHEQUES" c on c."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT"
+        ),
+        "FNV_V_DOCUMENT_COMPLETENESS" AS (
+        with req as (select count(*) "REQUIRED_COUNT"
+        from "ADM_LKP_DOCUMENT_TYPES"
+        where "IS_MANDATORY" and "IS_ACTIVE"), doc as (select "PORTFOLIO_ID", count(distinct "DOCUMENT_TYPE_CODE") "RECEIVED_REQUIRED_COUNT"
+        from "MTG_PURCHASED_PORTFOLIO_DOCUMENTS" d
+        where exists (select 1
+        from "ADM_LKP_DOCUMENT_TYPES" r
+        where r."DOCUMENT_TYPE_CODE" = d."DOCUMENT_TYPE_CODE" and r."IS_MANDATORY" and r."IS_ACTIVE")
+        group by "PORTFOLIO_ID") select p."PORTFOLIO_ID", p."PORTFOLIO_NO", r."REQUIRED_COUNT", coalesce(d."RECEIVED_REQUIRED_COUNT", 0) "RECEIVED_REQUIRED_COUNT", greatest(r."REQUIRED_COUNT" - coalesce(d."RECEIVED_REQUIRED_COUNT", 0), 0) "MISSING_REQUIRED_COUNT", case when r."REQUIRED_COUNT" = 0 then 100 else round(coalesce(d."RECEIVED_REQUIRED_COUNT", 0) / (r."REQUIRED_COUNT")::numeric * 100, 2) end "DOCUMENT_COMPLETION_PCT", case when coalesce(d."RECEIVED_REQUIRED_COUNT", 0) >= r."REQUIRED_COUNT" then 'Y' else 'N' end "DOCUMENT_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        cross join req r
+        left join doc d on d."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_GUARANTEE_STATUS" AS (
+        with req as (select count(*) "REQUIRED_COUNT"
+        from "ADM_LKP_GUARANTEE_TYPES"
+        where "IS_MANDATORY" and "IS_ACTIVE"), got as (select "PORTFOLIO_ID", count(distinct "GUARANTEE_TYPE_CODE") "VERIFIED_REQUIRED_COUNT"
+        from "MTG_GUARANTEES" g
+        where "IS_VERIFIED" and exists (select 1
+        from "ADM_LKP_GUARANTEE_TYPES" r
+        where r."GUARANTEE_TYPE_CODE" = g."GUARANTEE_TYPE_CODE" and r."IS_MANDATORY" and r."IS_ACTIVE")
+        group by "PORTFOLIO_ID") select p."PORTFOLIO_ID", p."PORTFOLIO_NO", r."REQUIRED_COUNT", coalesce(g."VERIFIED_REQUIRED_COUNT", 0) "VERIFIED_REQUIRED_COUNT", greatest(r."REQUIRED_COUNT" - coalesce(g."VERIFIED_REQUIRED_COUNT", 0), 0) "MISSING_REQUIRED_COUNT", case when coalesce(g."VERIFIED_REQUIRED_COUNT", 0) >= r."REQUIRED_COUNT" then 'Y' else 'N' end "GUARANTEE_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        cross join req r
+        left join got g on g."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_LEGAL_STATUS" AS (
+        select p."PORTFOLIO_ID", p."PORTFOLIO_NO", lr."LEGAL_REVIEW_ID", case when lr."IS_OWNERSHIP_VERIFIED" then 'Y' when not lr."IS_OWNERSHIP_VERIFIED" then 'N' end AS "OWNERSHIP_VERIFIED_FLAG", case when lr."IS_BUILDING_LICENSE_VERIFIED" then 'Y' when not lr."IS_BUILDING_LICENSE_VERIFIED" then 'N' end AS "BUILDING_LICENSE_VERIFIED_FLAG", case when lr."IS_REGISTRATION_POSSIBLE" then 'Y' when not lr."IS_REGISTRATION_POSSIBLE" then 'N' end AS "REGISTRATION_POSSIBLE_FLAG", case when lr."IS_MORTGAGE_POSSIBLE" then 'Y' when not lr."IS_MORTGAGE_POSSIBLE" then 'N' end AS "MORTGAGE_POSSIBLE_FLAG", case when lr."IS_ENCUMBRANCE_FREE" then 'Y' when not lr."IS_ENCUMBRANCE_FREE" then 'N' end AS "ENCUMBRANCE_FREE_FLAG", case when lr."IS_TITLE_DEED_VERIFIED" then 'Y' when not lr."IS_TITLE_DEED_VERIFIED" then 'N' end AS "TITLE_DEED_VERIFIED_FLAG", case when lr."LEGAL_REVIEW_ID" is not null and lr."IS_OWNERSHIP_VERIFIED" and lr."IS_BUILDING_LICENSE_VERIFIED" and lr."IS_REGISTRATION_POSSIBLE" and lr."IS_MORTGAGE_POSSIBLE" and lr."IS_ENCUMBRANCE_FREE" and lr."IS_TITLE_DEED_VERIFIED" then 'Y' else 'N' end "LEGAL_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "MTG_LEGAL_REVIEWS" lr on lr."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_PAYMENT_REGULARITY" AS (
+        select pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN", count(ap."PAYMENT_ID") as "PAYMENT_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'PAID' then 1 else 0 end) as "PAID_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'LATE' then 1 else 0 end) as "LATE_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" in ('PARTIAL', 'UNPAID') then 1 else 0 end) as "PROBLEM_COUNT", max(ap."DAYS_LATE") as "MAX_DAYS_LATE", sum(ap."DUE_AMOUNT") as "TOTAL_DUE", sum(ap."PAID_AMOUNT") as "TOTAL_PAID"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = pa."INVESTOR_ID"
+        left join "MTG_ACCOUNT_PAYMENTS" ap on ap."PORTFOLIO_ACCOUNT_ID" = pa."PORTFOLIO_ACCOUNT_ID"
+        group by pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN"
+        ),
+        "FNV_V_PORTFOLIO_READINESS" AS (
+        with f as (select p."PORTFOLIO_ID", p."PORTFOLIO_NO", case when dc."DOCUMENT_READY_FLAG" = 'Y' then 'Y' else 'N' end "DOCUMENT_READY_FLAG", case when exists (select 1
+        from "MTG_DUE_DILIGENCES" dd
+        where dd."PORTFOLIO_ID" = p."PORTFOLIO_ID" and dd."IS_EXCEPTION") then 'N' else 'Y' end "DD_READY_FLAG", case when exists (select 1
+        from "MTG_VALUATIONS" v
+        where v."PORTFOLIO_ID" = p."PORTFOLIO_ID") then 'Y' else 'N' end "VALUATION_READY_FLAG", case when ls."LEGAL_READY_FLAG" = 'Y' then 'Y' else 'N' end "LEGAL_READY_FLAG", case when exists (select 1
+        from "MTG_FINANCIAL_STUDIES" fs
+        where fs."PORTFOLIO_ID" = p."PORTFOLIO_ID") then 'Y' else 'N' end "FINANCE_READY_FLAG", case when cc."COVERAGE_OK_FLAG" = 'Y' then 'Y' else 'N' end "CHEQUE_READY_FLAG", case when gs."GUARANTEE_READY_FLAG" = 'Y' then 'Y' else 'N' end "GUARANTEE_READY_FLAG", case when exists (select 1
+        from "FNV_V_PAYMENT_REGULARITY" pr
+        where pr."PORTFOLIO_ID" = p."PORTFOLIO_ID" and (pr."PAYMENT_COUNT" < 12 or pr."PROBLEM_COUNT" > 0)) then 'N' else 'Y' end "PAYMENT_HISTORY_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "FNV_V_DOCUMENT_COMPLETENESS" dc on dc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_LEGAL_STATUS" ls on ls."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_CHEQUE_COVERAGE" cc on cc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_GUARANTEE_STATUS" gs on gs."PORTFOLIO_ID" = p."PORTFOLIO_ID") select f.*, case when "DOCUMENT_READY_FLAG" = 'Y' and "DD_READY_FLAG" = 'Y' and "VALUATION_READY_FLAG" = 'Y' and "LEGAL_READY_FLAG" = 'Y' and "FINANCE_READY_FLAG" = 'Y' and "CHEQUE_READY_FLAG" = 'Y' and "GUARANTEE_READY_FLAG" = 'Y' and "PAYMENT_HISTORY_READY_FLAG" = 'Y' then 'Y' else 'N' end "READY_FOR_SUBMISSION_FLAG"
+        from f
+        ),
+        "FNV_V_PORTFOLIO_SUMMARY" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."REQUEST_DATE", pf."PORTFOLIO_STATUS_CODE", s."STATUS_NAME_AR", s."STATUS_NAME_EN", d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR" as "DEVELOPER_NAME_AR", d."LEGAL_NAME_EN" as "DEVELOPER_NAME_EN", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", p."PROJECT_ID", p."PROJECT_CODE", p."PROJECT_NAME_AR", p."PROJECT_NAME_EN", pf."FACE_VALUE", pf."OUTSTANDING_VALUE", pf."PROPOSED_PURCHASE_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."TERM_MONTHS", pf."ADMIN_EXPENSE_AMOUNT", pf."CURRENCY_CODE", pf."CURRENT_APPROVAL_STEP", count(pa."PORTFOLIO_ACCOUNT_ID") as "ACCOUNT_COUNT", coalesce(sum(pa."ARREARS_AMOUNT"), 0) as "TOTAL_ARREARS"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        join "MTG_LKP_PORTFOLIO_STATUSES" s on s."STATUS_CODE" = pf."PORTFOLIO_STATUS_CODE"
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = pf."DEVELOPER_ID"
+        join "MTG_PROJECTS" p on p."PROJECT_ID" = pf."PROJECT_ID"
+        left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa on pa."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."REQUEST_DATE", pf."PORTFOLIO_STATUS_CODE", s."STATUS_NAME_AR", s."STATUS_NAME_EN", d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", p."PROJECT_ID", p."PROJECT_CODE", p."PROJECT_NAME_AR", p."PROJECT_NAME_EN", pf."FACE_VALUE", pf."OUTSTANDING_VALUE", pf."PROPOSED_PURCHASE_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."TERM_MONTHS", pf."ADMIN_EXPENSE_AMOUNT", pf."CURRENCY_CODE", pf."CURRENT_APPROVAL_STEP"
+        ),
+        "FNV_V_PORTFOLIO_WORKLIST" AS (
+        select s.*, r."DOCUMENT_READY_FLAG", r."DD_READY_FLAG", r."VALUATION_READY_FLAG", r."LEGAL_READY_FLAG", r."FINANCE_READY_FLAG", r."CHEQUE_READY_FLAG", r."GUARANTEE_READY_FLAG", r."PAYMENT_HISTORY_READY_FLAG", r."READY_FOR_SUBMISSION_FLAG", current_date - (s."REQUEST_DATE")::date as "AGE_DAYS"
+        from "FNV_V_PORTFOLIO_SUMMARY" s
+        left join "FNV_V_PORTFOLIO_READINESS" r on r."PORTFOLIO_ID" = s."PORTFOLIO_ID"
+        )
+        select count(*) "TOTAL", count(case when p."WORKFLOW_INSTANCE_ID" is not null then 1 end) "WF", count(case when v."READY_FOR_SUBMISSION_FLAG" = 'Y' then 1 end) "READY", coalesce(sum(v."FACE_VALUE"), 0) "FACE", coalesce(sum(v."OUTSTANDING_VALUE"), 0) "OUTSTANDING"
+        from "FNV_V_PORTFOLIO_WORKLIST" v
+        left join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = v."PORTFOLIO_ID" where (@P201_DEVELOPER_ID::numeric is null or v."DEVELOPER_ID" = @P201_DEVELOPER_ID::numeric)
+        """;
+
+    public const string P201_STATUSES = """
+        with "FNV_V_CHEQUE_COVERAGE" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        left join "MTG_PURCHASED_PORTFOLIO_CHEQUES" c on c."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT"
+        ),
+        "FNV_V_DOCUMENT_COMPLETENESS" AS (
+        with req as (select count(*) "REQUIRED_COUNT"
+        from "ADM_LKP_DOCUMENT_TYPES"
+        where "IS_MANDATORY" and "IS_ACTIVE"), doc as (select "PORTFOLIO_ID", count(distinct "DOCUMENT_TYPE_CODE") "RECEIVED_REQUIRED_COUNT"
+        from "MTG_PURCHASED_PORTFOLIO_DOCUMENTS" d
+        where exists (select 1
+        from "ADM_LKP_DOCUMENT_TYPES" r
+        where r."DOCUMENT_TYPE_CODE" = d."DOCUMENT_TYPE_CODE" and r."IS_MANDATORY" and r."IS_ACTIVE")
+        group by "PORTFOLIO_ID") select p."PORTFOLIO_ID", p."PORTFOLIO_NO", r."REQUIRED_COUNT", coalesce(d."RECEIVED_REQUIRED_COUNT", 0) "RECEIVED_REQUIRED_COUNT", greatest(r."REQUIRED_COUNT" - coalesce(d."RECEIVED_REQUIRED_COUNT", 0), 0) "MISSING_REQUIRED_COUNT", case when r."REQUIRED_COUNT" = 0 then 100 else round(coalesce(d."RECEIVED_REQUIRED_COUNT", 0) / (r."REQUIRED_COUNT")::numeric * 100, 2) end "DOCUMENT_COMPLETION_PCT", case when coalesce(d."RECEIVED_REQUIRED_COUNT", 0) >= r."REQUIRED_COUNT" then 'Y' else 'N' end "DOCUMENT_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        cross join req r
+        left join doc d on d."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_GUARANTEE_STATUS" AS (
+        with req as (select count(*) "REQUIRED_COUNT"
+        from "ADM_LKP_GUARANTEE_TYPES"
+        where "IS_MANDATORY" and "IS_ACTIVE"), got as (select "PORTFOLIO_ID", count(distinct "GUARANTEE_TYPE_CODE") "VERIFIED_REQUIRED_COUNT"
+        from "MTG_GUARANTEES" g
+        where "IS_VERIFIED" and exists (select 1
+        from "ADM_LKP_GUARANTEE_TYPES" r
+        where r."GUARANTEE_TYPE_CODE" = g."GUARANTEE_TYPE_CODE" and r."IS_MANDATORY" and r."IS_ACTIVE")
+        group by "PORTFOLIO_ID") select p."PORTFOLIO_ID", p."PORTFOLIO_NO", r."REQUIRED_COUNT", coalesce(g."VERIFIED_REQUIRED_COUNT", 0) "VERIFIED_REQUIRED_COUNT", greatest(r."REQUIRED_COUNT" - coalesce(g."VERIFIED_REQUIRED_COUNT", 0), 0) "MISSING_REQUIRED_COUNT", case when coalesce(g."VERIFIED_REQUIRED_COUNT", 0) >= r."REQUIRED_COUNT" then 'Y' else 'N' end "GUARANTEE_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        cross join req r
+        left join got g on g."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_LEGAL_STATUS" AS (
+        select p."PORTFOLIO_ID", p."PORTFOLIO_NO", lr."LEGAL_REVIEW_ID", case when lr."IS_OWNERSHIP_VERIFIED" then 'Y' when not lr."IS_OWNERSHIP_VERIFIED" then 'N' end AS "OWNERSHIP_VERIFIED_FLAG", case when lr."IS_BUILDING_LICENSE_VERIFIED" then 'Y' when not lr."IS_BUILDING_LICENSE_VERIFIED" then 'N' end AS "BUILDING_LICENSE_VERIFIED_FLAG", case when lr."IS_REGISTRATION_POSSIBLE" then 'Y' when not lr."IS_REGISTRATION_POSSIBLE" then 'N' end AS "REGISTRATION_POSSIBLE_FLAG", case when lr."IS_MORTGAGE_POSSIBLE" then 'Y' when not lr."IS_MORTGAGE_POSSIBLE" then 'N' end AS "MORTGAGE_POSSIBLE_FLAG", case when lr."IS_ENCUMBRANCE_FREE" then 'Y' when not lr."IS_ENCUMBRANCE_FREE" then 'N' end AS "ENCUMBRANCE_FREE_FLAG", case when lr."IS_TITLE_DEED_VERIFIED" then 'Y' when not lr."IS_TITLE_DEED_VERIFIED" then 'N' end AS "TITLE_DEED_VERIFIED_FLAG", case when lr."LEGAL_REVIEW_ID" is not null and lr."IS_OWNERSHIP_VERIFIED" and lr."IS_BUILDING_LICENSE_VERIFIED" and lr."IS_REGISTRATION_POSSIBLE" and lr."IS_MORTGAGE_POSSIBLE" and lr."IS_ENCUMBRANCE_FREE" and lr."IS_TITLE_DEED_VERIFIED" then 'Y' else 'N' end "LEGAL_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "MTG_LEGAL_REVIEWS" lr on lr."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_PAYMENT_REGULARITY" AS (
+        select pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN", count(ap."PAYMENT_ID") as "PAYMENT_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'PAID' then 1 else 0 end) as "PAID_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'LATE' then 1 else 0 end) as "LATE_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" in ('PARTIAL', 'UNPAID') then 1 else 0 end) as "PROBLEM_COUNT", max(ap."DAYS_LATE") as "MAX_DAYS_LATE", sum(ap."DUE_AMOUNT") as "TOTAL_DUE", sum(ap."PAID_AMOUNT") as "TOTAL_PAID"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = pa."INVESTOR_ID"
+        left join "MTG_ACCOUNT_PAYMENTS" ap on ap."PORTFOLIO_ACCOUNT_ID" = pa."PORTFOLIO_ACCOUNT_ID"
+        group by pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN"
+        ),
+        "FNV_V_PORTFOLIO_READINESS" AS (
+        with f as (select p."PORTFOLIO_ID", p."PORTFOLIO_NO", case when dc."DOCUMENT_READY_FLAG" = 'Y' then 'Y' else 'N' end "DOCUMENT_READY_FLAG", case when exists (select 1
+        from "MTG_DUE_DILIGENCES" dd
+        where dd."PORTFOLIO_ID" = p."PORTFOLIO_ID" and dd."IS_EXCEPTION") then 'N' else 'Y' end "DD_READY_FLAG", case when exists (select 1
+        from "MTG_VALUATIONS" v
+        where v."PORTFOLIO_ID" = p."PORTFOLIO_ID") then 'Y' else 'N' end "VALUATION_READY_FLAG", case when ls."LEGAL_READY_FLAG" = 'Y' then 'Y' else 'N' end "LEGAL_READY_FLAG", case when exists (select 1
+        from "MTG_FINANCIAL_STUDIES" fs
+        where fs."PORTFOLIO_ID" = p."PORTFOLIO_ID") then 'Y' else 'N' end "FINANCE_READY_FLAG", case when cc."COVERAGE_OK_FLAG" = 'Y' then 'Y' else 'N' end "CHEQUE_READY_FLAG", case when gs."GUARANTEE_READY_FLAG" = 'Y' then 'Y' else 'N' end "GUARANTEE_READY_FLAG", case when exists (select 1
+        from "FNV_V_PAYMENT_REGULARITY" pr
+        where pr."PORTFOLIO_ID" = p."PORTFOLIO_ID" and (pr."PAYMENT_COUNT" < 12 or pr."PROBLEM_COUNT" > 0)) then 'N' else 'Y' end "PAYMENT_HISTORY_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "FNV_V_DOCUMENT_COMPLETENESS" dc on dc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_LEGAL_STATUS" ls on ls."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_CHEQUE_COVERAGE" cc on cc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_GUARANTEE_STATUS" gs on gs."PORTFOLIO_ID" = p."PORTFOLIO_ID") select f.*, case when "DOCUMENT_READY_FLAG" = 'Y' and "DD_READY_FLAG" = 'Y' and "VALUATION_READY_FLAG" = 'Y' and "LEGAL_READY_FLAG" = 'Y' and "FINANCE_READY_FLAG" = 'Y' and "CHEQUE_READY_FLAG" = 'Y' and "GUARANTEE_READY_FLAG" = 'Y' and "PAYMENT_HISTORY_READY_FLAG" = 'Y' then 'Y' else 'N' end "READY_FOR_SUBMISSION_FLAG"
+        from f
+        ),
+        "FNV_V_PORTFOLIO_SUMMARY" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."REQUEST_DATE", pf."PORTFOLIO_STATUS_CODE", s."STATUS_NAME_AR", s."STATUS_NAME_EN", d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR" as "DEVELOPER_NAME_AR", d."LEGAL_NAME_EN" as "DEVELOPER_NAME_EN", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", p."PROJECT_ID", p."PROJECT_CODE", p."PROJECT_NAME_AR", p."PROJECT_NAME_EN", pf."FACE_VALUE", pf."OUTSTANDING_VALUE", pf."PROPOSED_PURCHASE_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."TERM_MONTHS", pf."ADMIN_EXPENSE_AMOUNT", pf."CURRENCY_CODE", pf."CURRENT_APPROVAL_STEP", count(pa."PORTFOLIO_ACCOUNT_ID") as "ACCOUNT_COUNT", coalesce(sum(pa."ARREARS_AMOUNT"), 0) as "TOTAL_ARREARS"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        join "MTG_LKP_PORTFOLIO_STATUSES" s on s."STATUS_CODE" = pf."PORTFOLIO_STATUS_CODE"
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = pf."DEVELOPER_ID"
+        join "MTG_PROJECTS" p on p."PROJECT_ID" = pf."PROJECT_ID"
+        left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa on pa."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."REQUEST_DATE", pf."PORTFOLIO_STATUS_CODE", s."STATUS_NAME_AR", s."STATUS_NAME_EN", d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", p."PROJECT_ID", p."PROJECT_CODE", p."PROJECT_NAME_AR", p."PROJECT_NAME_EN", pf."FACE_VALUE", pf."OUTSTANDING_VALUE", pf."PROPOSED_PURCHASE_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."TERM_MONTHS", pf."ADMIN_EXPENSE_AMOUNT", pf."CURRENCY_CODE", pf."CURRENT_APPROVAL_STEP"
+        ),
+        "FNV_V_PORTFOLIO_WORKLIST" AS (
+        select s.*, r."DOCUMENT_READY_FLAG", r."DD_READY_FLAG", r."VALUATION_READY_FLAG", r."LEGAL_READY_FLAG", r."FINANCE_READY_FLAG", r."CHEQUE_READY_FLAG", r."GUARANTEE_READY_FLAG", r."PAYMENT_HISTORY_READY_FLAG", r."READY_FOR_SUBMISSION_FLAG", current_date - (s."REQUEST_DATE")::date as "AGE_DAYS"
+        from "FNV_V_PORTFOLIO_SUMMARY" s
+        left join "FNV_V_PORTFOLIO_READINESS" r on r."PORTFOLIO_ID" = s."PORTFOLIO_ID"
+        )
+        select v."PORTFOLIO_STATUS_CODE" "C", coalesce(max(rs."STATUS_NAME_EN"), v."PORTFOLIO_STATUS_CODE") "N", max(rs."STATUS_NAME_AR") "NA", count(*) "K", coalesce(max(rs."DISPLAY_SEQ"), 999) "SEQ"
+        from "FNV_V_PORTFOLIO_WORKLIST" v
+        left join "MTG_LKP_PORTFOLIO_STATUSES" rs on rs."STATUS_CODE" = v."PORTFOLIO_STATUS_CODE" where (@P201_DEVELOPER_ID::numeric is null or v."DEVELOPER_ID" = @P201_DEVELOPER_ID::numeric)
+        group by v."PORTFOLIO_STATUS_CODE"
+        order by 5, 1
+        """;
+
+    public const string P201_CASES = """
+        with "FNV_V_CHEQUE_COVERAGE" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        left join "MTG_PURCHASED_PORTFOLIO_CHEQUES" c on c."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT"
+        ),
+        "FNV_V_DOCUMENT_COMPLETENESS" AS (
+        with req as (select count(*) "REQUIRED_COUNT"
+        from "ADM_LKP_DOCUMENT_TYPES"
+        where "IS_MANDATORY" and "IS_ACTIVE"), doc as (select "PORTFOLIO_ID", count(distinct "DOCUMENT_TYPE_CODE") "RECEIVED_REQUIRED_COUNT"
+        from "MTG_PURCHASED_PORTFOLIO_DOCUMENTS" d
+        where exists (select 1
+        from "ADM_LKP_DOCUMENT_TYPES" r
+        where r."DOCUMENT_TYPE_CODE" = d."DOCUMENT_TYPE_CODE" and r."IS_MANDATORY" and r."IS_ACTIVE")
+        group by "PORTFOLIO_ID") select p."PORTFOLIO_ID", p."PORTFOLIO_NO", r."REQUIRED_COUNT", coalesce(d."RECEIVED_REQUIRED_COUNT", 0) "RECEIVED_REQUIRED_COUNT", greatest(r."REQUIRED_COUNT" - coalesce(d."RECEIVED_REQUIRED_COUNT", 0), 0) "MISSING_REQUIRED_COUNT", case when r."REQUIRED_COUNT" = 0 then 100 else round(coalesce(d."RECEIVED_REQUIRED_COUNT", 0) / (r."REQUIRED_COUNT")::numeric * 100, 2) end "DOCUMENT_COMPLETION_PCT", case when coalesce(d."RECEIVED_REQUIRED_COUNT", 0) >= r."REQUIRED_COUNT" then 'Y' else 'N' end "DOCUMENT_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        cross join req r
+        left join doc d on d."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_GUARANTEE_STATUS" AS (
+        with req as (select count(*) "REQUIRED_COUNT"
+        from "ADM_LKP_GUARANTEE_TYPES"
+        where "IS_MANDATORY" and "IS_ACTIVE"), got as (select "PORTFOLIO_ID", count(distinct "GUARANTEE_TYPE_CODE") "VERIFIED_REQUIRED_COUNT"
+        from "MTG_GUARANTEES" g
+        where "IS_VERIFIED" and exists (select 1
+        from "ADM_LKP_GUARANTEE_TYPES" r
+        where r."GUARANTEE_TYPE_CODE" = g."GUARANTEE_TYPE_CODE" and r."IS_MANDATORY" and r."IS_ACTIVE")
+        group by "PORTFOLIO_ID") select p."PORTFOLIO_ID", p."PORTFOLIO_NO", r."REQUIRED_COUNT", coalesce(g."VERIFIED_REQUIRED_COUNT", 0) "VERIFIED_REQUIRED_COUNT", greatest(r."REQUIRED_COUNT" - coalesce(g."VERIFIED_REQUIRED_COUNT", 0), 0) "MISSING_REQUIRED_COUNT", case when coalesce(g."VERIFIED_REQUIRED_COUNT", 0) >= r."REQUIRED_COUNT" then 'Y' else 'N' end "GUARANTEE_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        cross join req r
+        left join got g on g."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_LEGAL_STATUS" AS (
+        select p."PORTFOLIO_ID", p."PORTFOLIO_NO", lr."LEGAL_REVIEW_ID", case when lr."IS_OWNERSHIP_VERIFIED" then 'Y' when not lr."IS_OWNERSHIP_VERIFIED" then 'N' end AS "OWNERSHIP_VERIFIED_FLAG", case when lr."IS_BUILDING_LICENSE_VERIFIED" then 'Y' when not lr."IS_BUILDING_LICENSE_VERIFIED" then 'N' end AS "BUILDING_LICENSE_VERIFIED_FLAG", case when lr."IS_REGISTRATION_POSSIBLE" then 'Y' when not lr."IS_REGISTRATION_POSSIBLE" then 'N' end AS "REGISTRATION_POSSIBLE_FLAG", case when lr."IS_MORTGAGE_POSSIBLE" then 'Y' when not lr."IS_MORTGAGE_POSSIBLE" then 'N' end AS "MORTGAGE_POSSIBLE_FLAG", case when lr."IS_ENCUMBRANCE_FREE" then 'Y' when not lr."IS_ENCUMBRANCE_FREE" then 'N' end AS "ENCUMBRANCE_FREE_FLAG", case when lr."IS_TITLE_DEED_VERIFIED" then 'Y' when not lr."IS_TITLE_DEED_VERIFIED" then 'N' end AS "TITLE_DEED_VERIFIED_FLAG", case when lr."LEGAL_REVIEW_ID" is not null and lr."IS_OWNERSHIP_VERIFIED" and lr."IS_BUILDING_LICENSE_VERIFIED" and lr."IS_REGISTRATION_POSSIBLE" and lr."IS_MORTGAGE_POSSIBLE" and lr."IS_ENCUMBRANCE_FREE" and lr."IS_TITLE_DEED_VERIFIED" then 'Y' else 'N' end "LEGAL_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "MTG_LEGAL_REVIEWS" lr on lr."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_PAYMENT_REGULARITY" AS (
+        select pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN", count(ap."PAYMENT_ID") as "PAYMENT_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'PAID' then 1 else 0 end) as "PAID_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'LATE' then 1 else 0 end) as "LATE_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" in ('PARTIAL', 'UNPAID') then 1 else 0 end) as "PROBLEM_COUNT", max(ap."DAYS_LATE") as "MAX_DAYS_LATE", sum(ap."DUE_AMOUNT") as "TOTAL_DUE", sum(ap."PAID_AMOUNT") as "TOTAL_PAID"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = pa."INVESTOR_ID"
+        left join "MTG_ACCOUNT_PAYMENTS" ap on ap."PORTFOLIO_ACCOUNT_ID" = pa."PORTFOLIO_ACCOUNT_ID"
+        group by pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN"
+        ),
+        "FNV_V_PORTFOLIO_READINESS" AS (
+        with f as (select p."PORTFOLIO_ID", p."PORTFOLIO_NO", case when dc."DOCUMENT_READY_FLAG" = 'Y' then 'Y' else 'N' end "DOCUMENT_READY_FLAG", case when exists (select 1
+        from "MTG_DUE_DILIGENCES" dd
+        where dd."PORTFOLIO_ID" = p."PORTFOLIO_ID" and dd."IS_EXCEPTION") then 'N' else 'Y' end "DD_READY_FLAG", case when exists (select 1
+        from "MTG_VALUATIONS" v
+        where v."PORTFOLIO_ID" = p."PORTFOLIO_ID") then 'Y' else 'N' end "VALUATION_READY_FLAG", case when ls."LEGAL_READY_FLAG" = 'Y' then 'Y' else 'N' end "LEGAL_READY_FLAG", case when exists (select 1
+        from "MTG_FINANCIAL_STUDIES" fs
+        where fs."PORTFOLIO_ID" = p."PORTFOLIO_ID") then 'Y' else 'N' end "FINANCE_READY_FLAG", case when cc."COVERAGE_OK_FLAG" = 'Y' then 'Y' else 'N' end "CHEQUE_READY_FLAG", case when gs."GUARANTEE_READY_FLAG" = 'Y' then 'Y' else 'N' end "GUARANTEE_READY_FLAG", case when exists (select 1
+        from "FNV_V_PAYMENT_REGULARITY" pr
+        where pr."PORTFOLIO_ID" = p."PORTFOLIO_ID" and (pr."PAYMENT_COUNT" < 12 or pr."PROBLEM_COUNT" > 0)) then 'N' else 'Y' end "PAYMENT_HISTORY_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "FNV_V_DOCUMENT_COMPLETENESS" dc on dc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_LEGAL_STATUS" ls on ls."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_CHEQUE_COVERAGE" cc on cc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_GUARANTEE_STATUS" gs on gs."PORTFOLIO_ID" = p."PORTFOLIO_ID") select f.*, case when "DOCUMENT_READY_FLAG" = 'Y' and "DD_READY_FLAG" = 'Y' and "VALUATION_READY_FLAG" = 'Y' and "LEGAL_READY_FLAG" = 'Y' and "FINANCE_READY_FLAG" = 'Y' and "CHEQUE_READY_FLAG" = 'Y' and "GUARANTEE_READY_FLAG" = 'Y' and "PAYMENT_HISTORY_READY_FLAG" = 'Y' then 'Y' else 'N' end "READY_FOR_SUBMISSION_FLAG"
+        from f
+        ),
+        "FNV_V_PORTFOLIO_SUMMARY" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."REQUEST_DATE", pf."PORTFOLIO_STATUS_CODE", s."STATUS_NAME_AR", s."STATUS_NAME_EN", d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR" as "DEVELOPER_NAME_AR", d."LEGAL_NAME_EN" as "DEVELOPER_NAME_EN", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", p."PROJECT_ID", p."PROJECT_CODE", p."PROJECT_NAME_AR", p."PROJECT_NAME_EN", pf."FACE_VALUE", pf."OUTSTANDING_VALUE", pf."PROPOSED_PURCHASE_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."TERM_MONTHS", pf."ADMIN_EXPENSE_AMOUNT", pf."CURRENCY_CODE", pf."CURRENT_APPROVAL_STEP", count(pa."PORTFOLIO_ACCOUNT_ID") as "ACCOUNT_COUNT", coalesce(sum(pa."ARREARS_AMOUNT"), 0) as "TOTAL_ARREARS"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        join "MTG_LKP_PORTFOLIO_STATUSES" s on s."STATUS_CODE" = pf."PORTFOLIO_STATUS_CODE"
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = pf."DEVELOPER_ID"
+        join "MTG_PROJECTS" p on p."PROJECT_ID" = pf."PROJECT_ID"
+        left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa on pa."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."REQUEST_DATE", pf."PORTFOLIO_STATUS_CODE", s."STATUS_NAME_AR", s."STATUS_NAME_EN", d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", p."PROJECT_ID", p."PROJECT_CODE", p."PROJECT_NAME_AR", p."PROJECT_NAME_EN", pf."FACE_VALUE", pf."OUTSTANDING_VALUE", pf."PROPOSED_PURCHASE_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."TERM_MONTHS", pf."ADMIN_EXPENSE_AMOUNT", pf."CURRENCY_CODE", pf."CURRENT_APPROVAL_STEP"
+        ),
+        "FNV_V_PORTFOLIO_WORKLIST" AS (
+        select s.*, r."DOCUMENT_READY_FLAG", r."DD_READY_FLAG", r."VALUATION_READY_FLAG", r."LEGAL_READY_FLAG", r."FINANCE_READY_FLAG", r."CHEQUE_READY_FLAG", r."GUARANTEE_READY_FLAG", r."PAYMENT_HISTORY_READY_FLAG", r."READY_FOR_SUBMISSION_FLAG", current_date - (s."REQUEST_DATE")::date as "AGE_DAYS"
+        from "FNV_V_PORTFOLIO_SUMMARY" s
+        left join "FNV_V_PORTFOLIO_READINESS" r on r."PORTFOLIO_ID" = s."PORTFOLIO_ID"
+        )
+        select v."PORTFOLIO_ID", v."PORTFOLIO_NO", v."PORTFOLIO_STATUS_CODE", coalesce(rs."STATUS_NAME_EN", v."STATUS_NAME_EN") "STATUS_EN", rs."STATUS_NAME_AR" "STATUS_AR", coalesce(v."DEVELOPER_NAME_EN", '-') "DEV", coalesce(v."PROJECT_NAME_EN", '-') "PROJ", v."REQUEST_DATE", v."FACE_VALUE", v."OUTSTANDING_VALUE", v."PROPOSED_PURCHASE_VALUE", v."DOCUMENT_READY_FLAG", v."DD_READY_FLAG", v."PAYMENT_HISTORY_READY_FLAG", v."VALUATION_READY_FLAG", v."LEGAL_READY_FLAG", v."FINANCE_READY_FLAG", v."CHEQUE_READY_FLAG", v."GUARANTEE_READY_FLAG", v."READY_FOR_SUBMISSION_FLAG", p."WORKFLOW_INSTANCE_ID", coalesce((select max("si"."STEP_NAME")
+        from "WFE_STEP_INSTANCES" si
+        join "WFE_WORKFLOW_INSTANCES" wi on "wi"."WORKFLOW_INSTANCE_ID" = "si"."WORKFLOW_INSTANCE_ID"
+        where "si"."WORKFLOW_INSTANCE_ID" = p."WORKFLOW_INSTANCE_ID" and "si"."ELEMENT_ID" = "wi"."CURRENT_ELEMENT_ID"), v."CURRENT_APPROVAL_STEP") "STEP_NAME"
+        from "FNV_V_PORTFOLIO_WORKLIST" v
+        left join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = v."PORTFOLIO_ID"
+        left join "MTG_LKP_PORTFOLIO_STATUSES" rs on rs."STATUS_CODE" = v."PORTFOLIO_STATUS_CODE" where (@P201_DEVELOPER_ID::numeric is null or v."DEVELOPER_ID" = @P201_DEVELOPER_ID::numeric)
+        order by v."REQUEST_DATE" desc nulls last, v."PORTFOLIO_NO" desc fetch first 300 rows only
+        """;
+
+    public const string P202_HEADER = """
+        select p."PORTFOLIO_NO", coalesce(s."STATUS_NAME_EN", p."PORTFOLIO_STATUS_CODE") "STATUS"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "MTG_LKP_PORTFOLIO_STATUSES" s on s."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE"
+        where p."PORTFOLIO_ID" = @P202_PORTFOLIO_ID::bigint
+        """;
+
     public const string P603_LOAD = """
         with "FNV_V_CHEQUE_COVERAGE" AS (
         select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"

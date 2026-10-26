@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // One wizard-built page of a copied app: its interactive reports, its form and its filter items, as APEX rendered them.
 // Modal pages open as a dialog over the report that links to them; closing it refreshes that report.
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, provide, reactive, ref, watch } from 'vue'
 import { http } from '@/shared/api/http'
 import { useRoute, useRouter } from 'vue-router'
 import ApexFormRegion from './ApexFormRegion.vue'
@@ -10,40 +10,57 @@ import ApexIrRegion from './ApexIrRegion.vue'
 import ApexItemsRegion from './ApexItemsRegion.vue'
 import { createApex, releasePageHandlers, routerUrl, runPageScript } from './apexRuntime'
 import { ApiError } from '@/shared/api/http'
-import { appPageUrl, flash, type WizardButton, type WizardPage } from './wizard'
+import { appPageUrl, flash, pageValuesKey, type WizardButton, type WizardPage } from './wizard'
 import 'font-awesome/css/font-awesome.min.css'
 import './apexAlerts.css'
 import './apexUt.css'
 
-const props = defineProps<{ app: number; pages: WizardPage[]; page: number }>()
-// reload: the page opens again after a submit, as APEX shows it again
-const emit = defineEmits<{ reload: [] }>()
+// query: the items a modal page opened in a dialog gets from its link (a page of its own reads them from the URL)
+const props = defineProps<{ app: number; pages: WizardPage[]; page: number; query?: Record<string, string> }>()
+// reload: the page opens again after a submit, as APEX shows it again; close: a dialog page closes (Close Dialog)
+const emit = defineEmits<{ reload: []; close: [message?: string] }>()
 
 const route = useRoute()
 const router = useRouter()
 const spec = computed(() => props.pages.find((p) => p.page === props.page)!)
+
+// Before Header: the items its process set (PAGE_LOAD)
+const loaded = ref<Record<string, string>>({})
+const loadDone = ref(false)
+const error = ref('')
 
 // page items: the item defaults, then the query (?p601_source_id=3 is P601_SOURCE_ID), as session state
 const items = computed<Record<string, string>>(() => {
   const out: Record<string, string> = {}
   for (const region of spec.value.regions)
     if (region.kind === 'items') for (const item of region.items ?? []) if (item.default != null) out[item.name] = item.default
-  for (const [k, v] of Object.entries(route.query))
+  for (const [k, v] of Object.entries(urlItems.value))
     if ((/^p?\d+_/i.test(k) || k === 'request') && typeof v === 'string') out[k.toUpperCase()] = v
   return { ...out, ...loaded.value }
 })
+const urlItems = computed<Record<string, unknown>>(() => props.query ?? route.query)
+
+// the values of the page's items as the user changes them in its regions of items; a submit sends them
+const values = reactive<Record<string, string>>({})
+provide(pageValuesKey, values)
+watch(
+  items,
+  (now) => {
+    for (const k of Object.keys(values)) delete values[k]
+    for (const region of spec.value.regions)
+      if (region.kind === 'items') for (const item of region.items ?? []) values[item.name] = now[item.name] ?? ''
+  },
+  { immediate: true }
+)
 
 // Before Header: the process that sets page items from the items in the URL
-const loaded = ref<Record<string, string>>({})
-const loadDone = ref(false)
-const error = ref('')
 watch(
   () => route.fullPath,
   async () => {
     loaded.value = {}
     if (spec.value.load) {
       const query: Record<string, string> = {}
-      for (const [k, v] of Object.entries(route.query)) if (typeof v === 'string') query[k.toUpperCase()] = v
+      for (const [k, v] of Object.entries(urlItems.value)) if (typeof v === 'string') query[k.toUpperCase()] = v
       try {
         const res = await http.post<{ ok: boolean; items?: Record<string, string> }>(`/api/apex/${props.app}/${props.page}/PAGE_LOAD`, {
           x01: JSON.stringify(query)
@@ -86,12 +103,19 @@ watch(loadDone, (d) => {
   if (d && htmlRegions.value === 0) setTimeout(runScripts)
 })
 
-// links in the regions' HTML are Capitra routes
+// links in the regions' HTML are Capitra routes; a link to a modal page of the app opens it as a dialog
 function followLink(event: MouseEvent) {
   const link = (event.target as HTMLElement).closest?.('a[href^="/"]') as HTMLAnchorElement | null
   if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || link.target === '_blank') return
   event.preventDefault()
-  void router.push(link.getAttribute('href')!)
+  const href = link.getAttribute('href')!
+  const to = router.resolve(href)
+  const page = props.pages.find((p) => p.modal && appPageUrl(props.app, p.page) === to.path)
+  if (page) {
+    const set: Record<string, string> = {}
+    for (const [k, v] of Object.entries(to.query)) if (typeof v === 'string') set[k.toUpperCase()] = v
+    open(page.page, set)
+  } else void router.push(href)
 }
 
 onBeforeUnmount(() => releasePageHandlers())
@@ -100,38 +124,50 @@ const success = ref('')
 const reports = ref<InstanceType<typeof ApexIrRegion>[]>([])
 
 // a modal page opened over this one, with the items its link set
-const dialog = ref<{ page: WizardPage; pk: string; items: Record<string, string> } | null>(null)
+const dialog = ref<{ page: WizardPage; pk: string; items: Record<string, string>; form: boolean } | null>(null)
 
 function open(page: number | null, set: Record<string, string> = {}) {
   if (page == null) {
-    router.back()
+    // Cancel of a dialog page: Close Dialog
+    if (props.query) emit('close')
+    else router.back()
     return
   }
   const target = props.pages.find((p) => p.page === page)
-  if (target?.modal && target.regions.some((r) => r.kind === 'form')) {
-    const pkItem = formOf(target).pkItem
-    dialog.value = { page: target, pk: (pkItem && set[pkItem]) || '', items: set }
+  if (target?.modal) {
+    const form = target.regions.some((r) => r.kind === 'form')
+    const pkItem = form ? formOf(target).pkItem : undefined
+    dialog.value = { page: target, pk: (pkItem && set[pkItem]) || '', items: set, form }
     return
   }
   void router.push(appPageUrl(props.app, page, set))
 }
 
 // Submit page from a region of items: the values become the page's items and the reports run with them
-async function submitItems(values: Record<string, string>, request: string) {
-  const all = { ...items.value, ...values }
+async function submitItems(changed: Record<string, string>, request: string) {
+  const all = { ...items.value, ...values, ...changed }
   if (spec.value.submit && !(await submitPage(request, all))) return
   void router.replace(appPageUrl(props.app, props.page, Object.fromEntries(Object.entries(all).filter(([k]) => !(k in loaded.value) && k !== 'REQUEST'))))
 }
 
 // Submit page: the page's After Submit processes for the button pressed (REQUEST), then the page again
-async function submitPage(request: string, values: Record<string, string> = items.value) {
+async function submitPage(request: string, sent: Record<string, string> = { ...items.value, ...values }) {
   error.value = ''
   try {
     const res = await http.post<{ ok?: boolean; message?: string }>(`/api/apex/${props.app}/${props.page}/SUBMIT`, {
-      items: { ...values, REQUEST: request }
+      items: { ...sent, REQUEST: request }
     })
     if (res.ok === false) {
       error.value = res.message ?? 'The request failed.'
+      return false
+    }
+    // a modal page closes after its processes (Close Dialog); the page under it opens again
+    if (spec.value.modal) {
+      if (props.query) emit('close', res.message ?? '')
+      else {
+        flash.message = res.message ?? ''
+        router.back()
+      }
       return false
     }
     flash.message = res.message ?? ''
@@ -147,9 +183,15 @@ function formOf(page: WizardPage) {
   return page.regions.find((r) => r.kind === 'form')!
 }
 
-// Dialog Closed: refresh the reports
+// Dialog Closed: refresh the reports; after the processes of a dialog page (a message) this page opens again
 function closed(message?: string) {
+  const form = dialog.value?.form ?? true
   dialog.value = null
+  if (!form && message !== undefined) {
+    flash.message = message
+    emit('reload')
+    return
+  }
   if (message) success.value = message
   for (const r of reports.value) void r.refresh()
 }
@@ -204,7 +246,15 @@ if (flash.message) {
 
     <template v-for="region in loadDone ? spec.regions : []" :key="region.key">
       <ApexIrRegion v-if="region.kind === 'ir'" ref="reports" :app="app" :page="page" :region="region" :items="items" @open="open" />
-      <ApexItemsRegion v-else-if="region.kind === 'items'" :app="app" :page="page" :region="region" :items="items" @submit="submitItems" @open="open" />
+      <ApexItemsRegion
+        v-else-if="region.kind === 'items'"
+        :app="app"
+        :page="page"
+        :region="region"
+        :items="items"
+        @submit="submitItems"
+        @open="open"
+      />
       <ApexHtmlRegion
         v-else-if="region.kind === 'plsql' || region.kind === 'html'"
         :app="app"
@@ -236,7 +286,9 @@ if (flash.message) {
           <button type="button" class="ui-dialog-close" aria-label="Close" @click="closed()">&times;</button>
         </div>
         <div class="ui-dialog-content">
+          <ApexWizardPage v-if="!dialog.form" :app="app" :pages="pages" :page="dialog.page.page" :query="dialog.items" @close="closed" />
           <ApexFormRegion
+            v-else
             :app="app"
             :page="dialog.page.page"
             :region="formOf(dialog.page)"

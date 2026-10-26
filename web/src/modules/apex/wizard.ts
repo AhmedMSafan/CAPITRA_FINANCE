@@ -1,3 +1,4 @@
+import type { InjectionKey } from 'vue'
 // Pages APEX built with its wizards: interactive reports and forms on one table.
 // Their definitions are generated from the APEX export (tools/oracle-port/apex_wizard.py).
 
@@ -179,3 +180,6 @@ export function substitute(html: string, items: Record<string, string>): string 
 
 /** The success message of a page submit, shown by the page when it opens again. */
 export const flash = { message: '' }
+
+/** The values of a page's items as the user changes them (provided by the page to its regions of items). */
+export const pageValuesKey: InjectionKey<Record<string, string>> = Symbol('apex-page-values')

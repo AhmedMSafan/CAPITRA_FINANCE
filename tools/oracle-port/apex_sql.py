@@ -87,7 +87,9 @@ def main():
 
     lov_items = []
     used = {}
-    for p in sorted(set(pages_of(cfg['pages'])) | set(pages_of(cfg.get('reports', [])))):
+    # every page that is copied ("custom": "all" copies the pages that are not skipped)
+    every = [int(d[1:]) for d in os.listdir(app_dir) if re.match(r'p\d{4}$', d)] if cfg.get('custom') == 'all' else []
+    for p in sorted((set(pages_of(cfg['pages'])) | set(pages_of(cfg.get('reports', []))) | set(every)) - set(cfg.get('skip', []))):
         d = os.path.join(app_dir, 'p%04d' % p)
         for it in items(d):
             if not it['lov'] or it['type'] not in ('NATIVE_SELECT_LIST', 'NATIVE_POPUP_LOV', 'NATIVE_RADIOGROUP', 'NATIVE_CHECKBOX'):

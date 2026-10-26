@@ -1,6 +1,6 @@
 # App 105: SQL translated to PostgreSQL
 
-114 of 114 run.
+127 of 128 run.
 
 - OK     P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY
 - OK     P206_PAYMENT_HISTORY
@@ -52,6 +52,8 @@
 - OK     LOV_FNV_PROJECT
 - OK     LOV_FNV_RISK_LEVEL
 - OK     LOV_FNV_UNIT_TYPE
+- OK     LOV_FNV_CURRENCY
+- OK     LOV_FNV_PROJECT_BY_DEVELOPER
 - OK     LOV_FNV_INVESTOR
 - OK     LOV_FNV_PROJECT_UNIT_BY_PORTFOLIO
 - OK     LOV_FNV_PORTFOLIO_ACCOUNT_BY_PORTFOLIO
@@ -71,6 +73,15 @@
 - OK     LOV_FNV_INSURANCE_TYPE
 - OK     LOV_FNV_INSURANCE_UNIT_BY_PORTFOLIO
 - OK     LOV_FNV_SECURITY_DOCUMENT_BY_PORTFOLIO
+- OK     LOV_FNV_DECISION_TYPE_ALL
+- OK     LOV_FNV_APPROVAL_STEP_ALL
+- OK     LOV_P608_PAYMENT_METHOD_CODE (static)
+- OK     LOV_P611_ACTIVE_FLAG (static)
+- OK     LOV_P611_MANDATORY_FLAG (static)
+- OK     LOV_P611_ORIGINAL_REQUIRED_FLAG (static)
+- FAILED LOV_P611_REQUIREMENT_CODE (inline (first line only in items.txt))
+  `ERROR:  relation "REF_PORT_DOCUMENT_REQUIREMENT" does not exist`
+- OK     LOV_P611_VERIFIED_REQUIRED_FLAG (static)
 - OK     LOV_P730_CURRENCY_CODE (inline (first line only in items.txt))
 - OK     LOV_P730_DEVELOPER_ID (inline (first line only in items.txt))
 - OK     LOV_P730_STATUS_CODE (inline (first line only in items.txt))
@@ -91,15 +102,15 @@
 - OK     LOV_P738_EXCEPTION_FLAG (static)
 - OK     LOV_P739_SUBJECT_TYPE (inline (first line only in items.txt))
 - OK     LOV_P741_PROJECT_ID (inline (first line only in items.txt))
-- OK     LOV_FNV_DECISION_TYPE_ALL
 - OK     LOV_P745_MEMO_STATUS (inline (first line only in items.txt))
 - OK     LOV_P746_READY_FLAG (static)
-- OK     LOV_FNV_APPROVAL_STEP_ALL
 - OK     LOV_P748_FROM_STATUS (inline (first line only in items.txt))
 - OK     LOV_P748_TO_STATUS (inline (first line only in items.txt))
 - OK     LOV_P749_ACCOUNTING_STATUS (inline (first line only in items.txt))
 - OK     LOV_P749_PAYMENT_METHOD (inline (first line only in items.txt))
 - OK     LOV_P749_SETTLEMENT_STATUS (inline (first line only in items.txt))
+- OK     LOAD_P201
+- OK     LOAD_P202
 - OK     LOAD_P403
 - OK     LOAD_P405
 - OK     LOAD_P407
@@ -108,6 +119,10 @@
 - OK     P1_FACE
 - OK     P1_READY
 - OK     P1_APPROVAL
+- OK     P201_TOTALS
+- OK     P201_STATUSES
+- OK     P201_CASES
+- OK     P202_HEADER
 - OK     P603_LOAD
 - OK     VALIDATION_DOCUMENT_READY
 - OK     VALIDATION_PAYMENT_PROBLEMS

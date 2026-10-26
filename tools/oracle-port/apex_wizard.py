@@ -124,6 +124,8 @@ def link_target(url):
 
 
 LOV_TYPES = ('NATIVE_SELECT_LIST', 'NATIVE_POPUP_LOV', 'NATIVE_RADIOGROUP', 'NATIVE_CHECKBOX')
+# Universal Theme region templates that print the region's content alone
+BLANK_TEMPLATES = ('4501440665235496320',)
 FORM_POSITIONS = ('CLOSE', 'DELETE', 'NEXT', 'CREATE', 'CHANGE', 'PREVIOUS')
 
 
@@ -308,7 +310,10 @@ def main():
                 report_links(region, r, i, None)
                 page['regions'].append(region)
                 continue
-            if r['type'] in (None, 'None', 'NATIVE_STATIC', 'NATIVE_PLSQL') and not any(b['region'] == r['id'] and b['position'] in FORM_POSITIONS for b in i['buttons']):
+            # a region whose buttons sit in form positions belongs to the wizard form, unless the page has no form
+            # (a dialog of page items whose processes are hand-written): then it is a region of buttons
+            has_form = any(x['type'] == 'NATIVE_FORM' for x in i['regions'])
+            if r['type'] in (None, 'None', 'NATIVE_STATIC', 'NATIVE_PLSQL') and (not has_form or not any(b['region'] == r['id'] and b['position'] in FORM_POSITIONS for b in i['buttons'])):
                 # a region of page items (the filters of a report) or of HTML; PL/SQL dynamic content runs on the server (REGION_<key>)
                 its = sorted((x for x in i['items'] if x['region'] == r['id']), key=lambda x: x['seq'])
                 shown_items = [x for x in its if x['type'] != 'NATIVE_HIDDEN']
@@ -327,6 +332,9 @@ def main():
                 if 'removeHeader' in r['template'] or 'hideHeader' in r['template']:
                     region['hideHeader'] = True
                 cls = template_classes(r)
+                if r['template'].split()[0] in BLANK_TEMPLATES:      # Blank with Attributes: the content alone
+                    region['hideHeader'] = True
+                    cls = (cls + ' apx-blank').strip()
                 if cls:
                     region['cls'] = cls
                 page['regions'].append(region)

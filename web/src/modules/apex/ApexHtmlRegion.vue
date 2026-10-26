@@ -12,6 +12,13 @@ const emit = defineEmits<{ ready: []; open: [page: number | null, items: Record<
 
 const body = ref<HTMLElement | null>(null)
 const buttons = computed(() => (props.region.buttons ?? []).filter((b) => shown(b, props.items)))
+// Close, Previous, Delete and Below Region buttons at the start, the others (Next, Create, Change) at the end
+const START = ['CLOSE', 'PREVIOUS', 'DELETE', 'BELOW_BOX']
+const startButtons = computed(() => buttons.value.filter((b) => START.includes(b.position ?? '')))
+const endButtons = computed(() => buttons.value.filter((b) => !START.includes(b.position ?? '')))
+function buttonClass(b: WizardButton) {
+  return b.position === 'DELETE' ? 't-Button--danger' : b.action === 'SUBMIT' ? 't-Button--hot' : ''
+}
 
 function press(button: WizardButton) {
   if (button.action === 'SUBMIT') emit('submit', button.name)
@@ -50,9 +57,16 @@ watch(() => JSON.stringify(props.items), load, { immediate: true })
     <!-- eslint-disable-next-line vue/no-v-html -- the region's own HTML, built on the server from escaped values as APEX did -->
     <div ref="body" class="t-Region-body" v-html="html"></div>
     <div v-if="buttons.length" class="t-Region-buttons">
-      <button v-for="b in buttons" :key="b.name" type="button" class="t-Button" :class="{ 't-Button--hot': b.action === 'SUBMIT' }" @click="press(b)">
-        {{ b.label }}
-      </button>
+      <div class="t-Region-buttons-left">
+        <button v-for="b in startButtons" :key="b.name" type="button" class="t-Button" :class="buttonClass(b)" @click="press(b)">
+          {{ b.label }}
+        </button>
+      </div>
+      <div class="t-Region-buttons-right">
+        <button v-for="b in endButtons" :key="b.name" type="button" class="t-Button" :class="buttonClass(b)" @click="press(b)">
+          {{ b.label }}
+        </button>
+      </div>
     </div>
   </div>
 </template>

@@ -89,6 +89,9 @@ public static class MtgApexSql
         new(105, 108, "P108_PROJECT_ID", Permissions.Mtg.MasterDataView, Q.LOV_FNV_PROJECT),
         new(105, 108, "P108_UNIT_TYPE_CODE", Permissions.Mtg.MasterDataView, Q.LOV_FNV_UNIT_TYPE),
         new(105, 110, "P110_ACTIVE_FLAG", Permissions.Mtg.MasterDataView, Q.LOV_FNV_YES_NO),
+        new(105, 202, "P202_CURRENCY_CODE", Permissions.Mtg.PortfolioView, Q.LOV_FNV_CURRENCY),
+        new(105, 202, "P202_DEVELOPER_ID", Permissions.Mtg.PortfolioView, Q.LOV_FNV_DEVELOPER),
+        new(105, 202, "P202_PROJECT_ID", Permissions.Mtg.PortfolioView, Q.LOV_FNV_PROJECT_BY_DEVELOPER),
         new(105, 205, "P205_INVESTOR_ID", Permissions.Mtg.PortfolioView, Q.LOV_FNV_INVESTOR),
         new(105, 205, "P205_UNIT_ID", Permissions.Mtg.PortfolioView, Q.LOV_FNV_PROJECT_UNIT_BY_PORTFOLIO),
         new(105, 206, "P206_PORTFOLIO_ACCOUNT_ID", Permissions.Mtg.PortfolioView, Q.LOV_FNV_PORTFOLIO_ACCOUNT_BY_PORTFOLIO),
@@ -124,6 +127,15 @@ public static class MtgApexSql
         new(105, 504, "P504_UNIT_ID", Permissions.Mtg.PortfolioView, Q.LOV_FNV_INSURANCE_UNIT_BY_PORTFOLIO),
         new(105, 506, "P506_BLOCKED_FLAG", Permissions.Mtg.PortfolioView, Q.LOV_FNV_YES_NO),
         new(105, 506, "P506_DOCUMENT_ID", Permissions.Mtg.PortfolioView, Q.LOV_FNV_SECURITY_DOCUMENT_BY_PORTFOLIO),
+        new(105, 605, "P605_BOARD_DECISION", Permissions.Mtg.PortfolioView, Q.LOV_FNV_DECISION_TYPE_ALL),
+        new(105, 605, "P605_RETURN_TO_STEP_CODE", Permissions.Mtg.PortfolioView, Q.LOV_FNV_APPROVAL_STEP_ALL),
+        new(105, 608, "P608_PAYMENT_METHOD_CODE", Permissions.Mtg.PortfolioView, Q.LOV_P608_PAYMENT_METHOD_CODE),
+        new(105, 608, "P608_PORTFOLIO_ID", Permissions.Mtg.PortfolioView, Q.LOV_FNV_PORTFOLIO),
+        new(105, 611, "P611_ACTIVE_FLAG", Permissions.Mtg.PortfolioView, Q.LOV_P611_ACTIVE_FLAG),
+        new(105, 611, "P611_MANDATORY_FLAG", Permissions.Mtg.PortfolioView, Q.LOV_P611_MANDATORY_FLAG),
+        new(105, 611, "P611_ORIGINAL_REQUIRED_FLAG", Permissions.Mtg.PortfolioView, Q.LOV_P611_ORIGINAL_REQUIRED_FLAG),
+        new(105, 611, "P611_REQUIREMENT_CODE", Permissions.Mtg.PortfolioView, Q.LOV_P611_REQUIREMENT_CODE),
+        new(105, 611, "P611_VERIFIED_REQUIRED_FLAG", Permissions.Mtg.PortfolioView, Q.LOV_P611_VERIFIED_REQUIRED_FLAG),
         new(105, 730, "P730_CURRENCY_CODE", Permissions.Mtg.PortfolioView, Q.LOV_P730_CURRENCY_CODE),
         new(105, 730, "P730_DEVELOPER_ID", Permissions.Mtg.PortfolioView, Q.LOV_P730_DEVELOPER_ID),
         new(105, 730, "P730_PROJECT_ID", Permissions.Mtg.PortfolioView, Q.LOV_FNV_PROJECT),
@@ -187,6 +199,8 @@ public static class MtgApexSql
 
     public static readonly IReadOnlyList<ApexSqlLoad> Loads =
     [
+        new(105, 201, Permissions.Mtg.PortfolioView, Q.LOAD_P201),
+        new(105, 202, Permissions.Mtg.PortfolioView, Q.LOAD_P202),
         new(105, 403, Permissions.Mtg.PortfolioView, Q.LOAD_P403),
         new(105, 405, Permissions.Mtg.PortfolioView, Q.LOAD_P405),
         new(105, 407, Permissions.Mtg.PortfolioView, Q.LOAD_P407),
@@ -195,6 +209,101 @@ public static class MtgApexSql
 
     private static class Q
     {
+        public const string LOAD_P201 = """
+        with "FNV_V_CHEQUE_COVERAGE" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        left join "MTG_PURCHASED_PORTFOLIO_CHEQUES" c on c."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT"
+        ),
+        "FNV_V_DOCUMENT_COMPLETENESS" AS (
+        with req as (select count(*) "REQUIRED_COUNT"
+        from "ADM_LKP_DOCUMENT_TYPES"
+        where "IS_MANDATORY" and "IS_ACTIVE"), doc as (select "PORTFOLIO_ID", count(distinct "DOCUMENT_TYPE_CODE") "RECEIVED_REQUIRED_COUNT"
+        from "MTG_PURCHASED_PORTFOLIO_DOCUMENTS" d
+        where exists (select 1
+        from "ADM_LKP_DOCUMENT_TYPES" r
+        where r."DOCUMENT_TYPE_CODE" = d."DOCUMENT_TYPE_CODE" and r."IS_MANDATORY" and r."IS_ACTIVE")
+        group by "PORTFOLIO_ID") select p."PORTFOLIO_ID", p."PORTFOLIO_NO", r."REQUIRED_COUNT", coalesce(d."RECEIVED_REQUIRED_COUNT", 0) "RECEIVED_REQUIRED_COUNT", greatest(r."REQUIRED_COUNT" - coalesce(d."RECEIVED_REQUIRED_COUNT", 0), 0) "MISSING_REQUIRED_COUNT", case when r."REQUIRED_COUNT" = 0 then 100 else round(coalesce(d."RECEIVED_REQUIRED_COUNT", 0) / (r."REQUIRED_COUNT")::numeric * 100, 2) end "DOCUMENT_COMPLETION_PCT", case when coalesce(d."RECEIVED_REQUIRED_COUNT", 0) >= r."REQUIRED_COUNT" then 'Y' else 'N' end "DOCUMENT_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        cross join req r
+        left join doc d on d."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_GUARANTEE_STATUS" AS (
+        with req as (select count(*) "REQUIRED_COUNT"
+        from "ADM_LKP_GUARANTEE_TYPES"
+        where "IS_MANDATORY" and "IS_ACTIVE"), got as (select "PORTFOLIO_ID", count(distinct "GUARANTEE_TYPE_CODE") "VERIFIED_REQUIRED_COUNT"
+        from "MTG_GUARANTEES" g
+        where "IS_VERIFIED" and exists (select 1
+        from "ADM_LKP_GUARANTEE_TYPES" r
+        where r."GUARANTEE_TYPE_CODE" = g."GUARANTEE_TYPE_CODE" and r."IS_MANDATORY" and r."IS_ACTIVE")
+        group by "PORTFOLIO_ID") select p."PORTFOLIO_ID", p."PORTFOLIO_NO", r."REQUIRED_COUNT", coalesce(g."VERIFIED_REQUIRED_COUNT", 0) "VERIFIED_REQUIRED_COUNT", greatest(r."REQUIRED_COUNT" - coalesce(g."VERIFIED_REQUIRED_COUNT", 0), 0) "MISSING_REQUIRED_COUNT", case when coalesce(g."VERIFIED_REQUIRED_COUNT", 0) >= r."REQUIRED_COUNT" then 'Y' else 'N' end "GUARANTEE_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        cross join req r
+        left join got g on g."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_LEGAL_STATUS" AS (
+        select p."PORTFOLIO_ID", p."PORTFOLIO_NO", lr."LEGAL_REVIEW_ID", case when lr."IS_OWNERSHIP_VERIFIED" then 'Y' when not lr."IS_OWNERSHIP_VERIFIED" then 'N' end AS "OWNERSHIP_VERIFIED_FLAG", case when lr."IS_BUILDING_LICENSE_VERIFIED" then 'Y' when not lr."IS_BUILDING_LICENSE_VERIFIED" then 'N' end AS "BUILDING_LICENSE_VERIFIED_FLAG", case when lr."IS_REGISTRATION_POSSIBLE" then 'Y' when not lr."IS_REGISTRATION_POSSIBLE" then 'N' end AS "REGISTRATION_POSSIBLE_FLAG", case when lr."IS_MORTGAGE_POSSIBLE" then 'Y' when not lr."IS_MORTGAGE_POSSIBLE" then 'N' end AS "MORTGAGE_POSSIBLE_FLAG", case when lr."IS_ENCUMBRANCE_FREE" then 'Y' when not lr."IS_ENCUMBRANCE_FREE" then 'N' end AS "ENCUMBRANCE_FREE_FLAG", case when lr."IS_TITLE_DEED_VERIFIED" then 'Y' when not lr."IS_TITLE_DEED_VERIFIED" then 'N' end AS "TITLE_DEED_VERIFIED_FLAG", case when lr."LEGAL_REVIEW_ID" is not null and lr."IS_OWNERSHIP_VERIFIED" and lr."IS_BUILDING_LICENSE_VERIFIED" and lr."IS_REGISTRATION_POSSIBLE" and lr."IS_MORTGAGE_POSSIBLE" and lr."IS_ENCUMBRANCE_FREE" and lr."IS_TITLE_DEED_VERIFIED" then 'Y' else 'N' end "LEGAL_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "MTG_LEGAL_REVIEWS" lr on lr."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        ),
+        "FNV_V_PAYMENT_REGULARITY" AS (
+        select pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN", count(ap."PAYMENT_ID") as "PAYMENT_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'PAID' then 1 else 0 end) as "PAID_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'LATE' then 1 else 0 end) as "LATE_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" in ('PARTIAL', 'UNPAID') then 1 else 0 end) as "PROBLEM_COUNT", max(ap."DAYS_LATE") as "MAX_DAYS_LATE", sum(ap."DUE_AMOUNT") as "TOTAL_DUE", sum(ap."PAID_AMOUNT") as "TOTAL_PAID"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = pa."INVESTOR_ID"
+        left join "MTG_ACCOUNT_PAYMENTS" ap on ap."PORTFOLIO_ACCOUNT_ID" = pa."PORTFOLIO_ACCOUNT_ID"
+        group by pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN"
+        ),
+        "FNV_V_PORTFOLIO_READINESS" AS (
+        with f as (select p."PORTFOLIO_ID", p."PORTFOLIO_NO", case when dc."DOCUMENT_READY_FLAG" = 'Y' then 'Y' else 'N' end "DOCUMENT_READY_FLAG", case when exists (select 1
+        from "MTG_DUE_DILIGENCES" dd
+        where dd."PORTFOLIO_ID" = p."PORTFOLIO_ID" and dd."IS_EXCEPTION") then 'N' else 'Y' end "DD_READY_FLAG", case when exists (select 1
+        from "MTG_VALUATIONS" v
+        where v."PORTFOLIO_ID" = p."PORTFOLIO_ID") then 'Y' else 'N' end "VALUATION_READY_FLAG", case when ls."LEGAL_READY_FLAG" = 'Y' then 'Y' else 'N' end "LEGAL_READY_FLAG", case when exists (select 1
+        from "MTG_FINANCIAL_STUDIES" fs
+        where fs."PORTFOLIO_ID" = p."PORTFOLIO_ID") then 'Y' else 'N' end "FINANCE_READY_FLAG", case when cc."COVERAGE_OK_FLAG" = 'Y' then 'Y' else 'N' end "CHEQUE_READY_FLAG", case when gs."GUARANTEE_READY_FLAG" = 'Y' then 'Y' else 'N' end "GUARANTEE_READY_FLAG", case when exists (select 1
+        from "FNV_V_PAYMENT_REGULARITY" pr
+        where pr."PORTFOLIO_ID" = p."PORTFOLIO_ID" and (pr."PAYMENT_COUNT" < 12 or pr."PROBLEM_COUNT" > 0)) then 'N' else 'Y' end "PAYMENT_HISTORY_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "FNV_V_DOCUMENT_COMPLETENESS" dc on dc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_LEGAL_STATUS" ls on ls."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_CHEQUE_COVERAGE" cc on cc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_GUARANTEE_STATUS" gs on gs."PORTFOLIO_ID" = p."PORTFOLIO_ID") select f.*, case when "DOCUMENT_READY_FLAG" = 'Y' and "DD_READY_FLAG" = 'Y' and "VALUATION_READY_FLAG" = 'Y' and "LEGAL_READY_FLAG" = 'Y' and "FINANCE_READY_FLAG" = 'Y' and "CHEQUE_READY_FLAG" = 'Y' and "GUARANTEE_READY_FLAG" = 'Y' and "PAYMENT_HISTORY_READY_FLAG" = 'Y' then 'Y' else 'N' end "READY_FOR_SUBMISSION_FLAG"
+        from f
+        ),
+        "FNV_V_PORTFOLIO_SUMMARY" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."REQUEST_DATE", pf."PORTFOLIO_STATUS_CODE", s."STATUS_NAME_AR", s."STATUS_NAME_EN", d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR" as "DEVELOPER_NAME_AR", d."LEGAL_NAME_EN" as "DEVELOPER_NAME_EN", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", p."PROJECT_ID", p."PROJECT_CODE", p."PROJECT_NAME_AR", p."PROJECT_NAME_EN", pf."FACE_VALUE", pf."OUTSTANDING_VALUE", pf."PROPOSED_PURCHASE_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."TERM_MONTHS", pf."ADMIN_EXPENSE_AMOUNT", pf."CURRENCY_CODE", pf."CURRENT_APPROVAL_STEP", count(pa."PORTFOLIO_ACCOUNT_ID") as "ACCOUNT_COUNT", coalesce(sum(pa."ARREARS_AMOUNT"), 0) as "TOTAL_ARREARS"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        join "MTG_LKP_PORTFOLIO_STATUSES" s on s."STATUS_CODE" = pf."PORTFOLIO_STATUS_CODE"
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = pf."DEVELOPER_ID"
+        join "MTG_PROJECTS" p on p."PROJECT_ID" = pf."PROJECT_ID"
+        left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa on pa."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."REQUEST_DATE", pf."PORTFOLIO_STATUS_CODE", s."STATUS_NAME_AR", s."STATUS_NAME_EN", d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", p."PROJECT_ID", p."PROJECT_CODE", p."PROJECT_NAME_AR", p."PROJECT_NAME_EN", pf."FACE_VALUE", pf."OUTSTANDING_VALUE", pf."PROPOSED_PURCHASE_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."TERM_MONTHS", pf."ADMIN_EXPENSE_AMOUNT", pf."CURRENCY_CODE", pf."CURRENT_APPROVAL_STEP"
+        ),
+        "FNV_V_PORTFOLIO_WORKLIST" AS (
+        select s.*, r."DOCUMENT_READY_FLAG", r."DD_READY_FLAG", r."VALUATION_READY_FLAG", r."LEGAL_READY_FLAG", r."FINANCE_READY_FLAG", r."CHEQUE_READY_FLAG", r."GUARANTEE_READY_FLAG", r."PAYMENT_HISTORY_READY_FLAG", r."READY_FOR_SUBMISSION_FLAG", current_date - (s."REQUEST_DATE")::date as "AGE_DAYS"
+        from "FNV_V_PORTFOLIO_SUMMARY" s
+        left join "FNV_V_PORTFOLIO_READINESS" r on r."PORTFOLIO_ID" = s."PORTFOLIO_ID"
+        )
+        select case when @P201_DEVELOPER_ID::bigint is null then 'All Developers' else coalesce((select coalesce("LEGAL_NAME_EN", "LEGAL_NAME_AR")
+        from "MTG_DEVELOPERS"
+        where "DEVELOPER_ID" = @P201_DEVELOPER_ID::bigint), 'Developer Not Found') end "P201_DEVELOPER_NAME", case when @P201_DEVELOPER_ID::bigint is null then 'ALL' else coalesce((select "DEVELOPER_CODE"
+        from "MTG_DEVELOPERS"
+        where "DEVELOPER_ID" = @P201_DEVELOPER_ID::bigint), '-') end "P201_DEVELOPER_CODE", case when @P201_DEVELOPER_ID::bigint is null then 'All projects' else coalesce((select string_agg((concat(coalesce("PROJECT_NAME_EN", "PROJECT_NAME_AR"), ' (', "PROJECT_CODE", ')'))::text, ', '
+        order by "PROJECT_CODE")
+        from "MTG_PROJECTS"
+        where "DEVELOPER_ID" = @P201_DEVELOPER_ID::bigint), 'No projects') end "P201_PROJECTS", (select count(*)
+        from "FNV_V_PORTFOLIO_WORKLIST" where (@P201_DEVELOPER_ID::bigint is null or "DEVELOPER_ID" = @P201_DEVELOPER_ID::bigint)) "P201_TOTAL_CASES", (select coalesce(sum(case when upper(coalesce("STATUS_NAME_EN", '-')) = 'DUE DILIGENCE' then 1 else 0 end), 0)
+        from "FNV_V_PORTFOLIO_WORKLIST" where (@P201_DEVELOPER_ID::bigint is null or "DEVELOPER_ID" = @P201_DEVELOPER_ID::bigint)) "P201_DUE_DILIGENCE", (select coalesce(sum(case when upper(coalesce("STATUS_NAME_EN", '-')) = 'PENDING APPROVAL' then 1 else 0 end), 0)
+        from "FNV_V_PORTFOLIO_WORKLIST" where (@P201_DEVELOPER_ID::bigint is null or "DEVELOPER_ID" = @P201_DEVELOPER_ID::bigint)) "P201_PENDING_APPROVAL", (select coalesce(sum(case when upper(coalesce("READY_FOR_SUBMISSION_FLAG", 'N')) = 'Y' then 1 else 0 end), 0)
+        from "FNV_V_PORTFOLIO_WORKLIST" where (@P201_DEVELOPER_ID::bigint is null or "DEVELOPER_ID" = @P201_DEVELOPER_ID::bigint)) "P201_READY_COUNT"
+        """;
+
+        public const string LOAD_P202 = """
+        select p."PORTFOLIO_NO" "P202_PORTFOLIO_NO", p."DEVELOPER_ID" "P202_DEVELOPER_ID", p."PROJECT_ID" "P202_PROJECT_ID", to_char(coalesce(p."REQUEST_DATE", case when @P202_PORTFOLIO_ID::bigint is null then localtimestamp end), 'YYYY-MM-DD') "P202_REQUEST_DATE", p."TERM_MONTHS" "P202_TERM_MONTHS", case when @P202_PORTFOLIO_ID::bigint is null then 'EGP' else p."CURRENCY_CODE" end "P202_CURRENCY_CODE", p."COMMENTS" "P202_COMMENTS", case when @P202_PORTFOLIO_ID::bigint is null then 20 else p."COVERAGE_PCT" end "P202_COVERAGE_PCT", case when @P202_PORTFOLIO_ID::bigint is null then 5 else p."RESERVED_AMOUNT_PERCENT" end "P202_RESERVED_AMOUNT_PERCENT", case when @P202_PORTFOLIO_ID::bigint is null then 13 else p."PV_RATE" end "P202_PV_RATE", case when @P202_PORTFOLIO_ID::bigint is null then 15 else p."LATE_FEE_RATE" end "P202_LATE_FEE_RATE", case when @P202_PORTFOLIO_ID::bigint is null then 3 else p."MARGIN_PERCENTAGE" end "P202_MARGIN_PERCENTAGE", case when @P202_PORTFOLIO_ID::bigint is null then 1 else p."ADMIN_EXPENSE_PERCENT" end "P202_ADMIN_EXPENSE_PERCENT", case when @P202_PORTFOLIO_ID::bigint is null then 300 else p."LEGAL_FEE_PER_UNIT" end "P202_LEGAL_FEE_PER_UNIT", case when @P202_PORTFOLIO_ID::bigint is null then 500 else p."VALUATION_FEE_PER_UNIT" end "P202_VALUATION_FEE_PER_UNIT" from (select 1 "X") "D"
+        left join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = @P202_PORTFOLIO_ID::bigint
+        """;
+
         public const string LOAD_P403 = """
         select l."LEGAL_REVIEW_ID" "P403_LEGAL_REVIEW_ID", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_OWNERSHIP_VERIFIED" then 'Yes' else 'No' end "P403_OWNERSHIP", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_BUILDING_LICENSE_VERIFIED" then 'Yes' else 'No' end "P403_BUILDING_LICENSE", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_REGISTRATION_POSSIBLE" then 'Yes' else 'No' end "P403_REGISTRATION", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_MORTGAGE_POSSIBLE" then 'Yes' else 'No' end "P403_MORTGAGE", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_ENCUMBRANCE_FREE" then 'Yes' else 'No' end "P403_ENCUMBRANCE", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_TITLE_DEED_VERIFIED" then 'Yes' else 'No' end "P403_TITLE_DEED", substr(l."LEGAL_FINDINGS", 1, 3500) "P403_FINDINGS", substr(l."LEGAL_RECOMMENDATION", 1, 3500) "P403_RECOMMENDATION", l."REVIEWED_BY" "P403_REVIEWED_BY", to_char(l."REVIEW_DATE", 'DD-MON-YYYY') "P403_REVIEW_DATE" from (select 1 "X") "D"
         left join "MTG_LEGAL_REVIEWS" l on l."LEGAL_REVIEW_ID" = (select max("LEGAL_REVIEW_ID")
@@ -278,6 +387,13 @@ public static class MtgApexSql
         from "ADM_LKP_CHEQUE_STATUSES"
         where "IS_ACTIVE"
         order by "CHEQUE_STATUS_EN"
+        """;
+
+        public const string LOV_FNV_CURRENCY = """
+        select concat("CURRENCY_NAME_EN", ' (', "CURRENCY_CODE", ')') "D", "CURRENCY_CODE" "R"
+        from "ADM_LKP_CURRENCIES"
+        where "IS_ACTIVE"
+        order by "CURRENCY_CODE"
         """;
 
         public const string LOV_FNV_DD_CHECK_TYPE = """
@@ -416,6 +532,13 @@ public static class MtgApexSql
         order by coalesce("PROJECT_NAME_EN", "PROJECT_NAME_AR")
         """;
 
+        public const string LOV_FNV_PROJECT_BY_DEVELOPER = """
+        select concat(coalesce("PROJECT_NAME_EN", '-'), ' (', "PROJECT_CODE", ')') "D", "PROJECT_ID" "R"
+        from "MTG_PROJECTS"
+        where "IS_ACTIVE" and "DEVELOPER_ID" = @P202_DEVELOPER_ID::bigint
+        order by coalesce("PROJECT_NAME_EN", "PROJECT_NAME_AR")
+        """;
+
         public const string LOV_FNV_PROJECT_UNIT_BY_PORTFOLIO = """
         select concat(u."UNIT_CODE", ' - ', coalesce(ut."UNIT_TYPE_NAME_EN", '-')) "D", u."UNIT_ID" "R"
         from "MTG_PROJECT_UNITS" u
@@ -475,6 +598,32 @@ public static class MtgApexSql
         select 'Yes' "D", 'Y' "R", 1 "SEQ"
         union all select 'No', 'N', 2
         order by "SEQ"
+        """;
+
+        public const string LOV_P608_PAYMENT_METHOD_CODE = """
+        select 'Bank Transfer' "D", 'Bank Transfer' "R" union all select 'Cheque' "D", 'Cheque' "R"
+        """;
+
+        public const string LOV_P611_ACTIVE_FLAG = """
+        select 'Yes' "D", 'Y' "R" union all select 'No' "D", 'N' "R"
+        """;
+
+        public const string LOV_P611_MANDATORY_FLAG = """
+        select 'Yes' "D", 'Y' "R" union all select 'No' "D", 'N' "R"
+        """;
+
+        public const string LOV_P611_ORIGINAL_REQUIRED_FLAG = """
+        select 'Yes' "D", 'Y' "R" union all select 'No' "D", 'N' "R"
+        """;
+
+        public const string LOV_P611_REQUIREMENT_CODE = """
+        select "REQUIREMENT_CODE" "D", "REQUIREMENT_CODE" "R"
+        from "REF_PORT_DOCUMENT_REQUIREMENT"
+        order by 1
+        """;
+
+        public const string LOV_P611_VERIFIED_REQUIRED_FLAG = """
+        select 'Yes' "D", 'Y' "R" union all select 'No' "D", 'N' "R"
         """;
 
         public const string LOV_P730_CURRENCY_CODE = """

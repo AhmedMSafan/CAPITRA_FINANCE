@@ -3457,7 +3457,9 @@ export const wizardPages: WizardPage[] = [
         "title": "Dialog Header",
         "kind": "plsql",
         "table": null,
-        "pk": null
+        "pk": null,
+        "hideHeader": true,
+        "cls": "apx-blank"
       },
       {
         "key": "PORTFOLIO_DETAILS",
@@ -3601,6 +3603,56 @@ export const wizardPages: WizardPage[] = [
         "buttons": [],
         "hideHeader": true,
         "cls": "t-Region--scrollBody t-Region--removeHeader"
+      },
+      {
+        "key": "BUTTONS",
+        "title": "Buttons",
+        "kind": "html",
+        "table": null,
+        "pk": null,
+        "html": "",
+        "buttons": [
+          {
+            "name": "CANCEL",
+            "label": "Cancel",
+            "action": "DEFINED_BY_DA_ACTION",
+            "position": "CLOSE",
+            "page": null
+          },
+          {
+            "name": "CREATE",
+            "label": "Create",
+            "action": "SUBMIT",
+            "position": "NEXT",
+            "page": null,
+            "cond": {
+              "type": "ITEM_IS_NULL",
+              "item": "P202_PORTFOLIO_ID"
+            }
+          },
+          {
+            "name": "DELETE",
+            "label": "Delete",
+            "action": "SUBMIT",
+            "position": "DELETE",
+            "page": null,
+            "cond": {
+              "type": "ITEM_IS_NOT_NULL",
+              "item": "P202_PORTFOLIO_ID"
+            }
+          },
+          {
+            "name": "SAVE",
+            "label": "Save",
+            "action": "SUBMIT",
+            "position": "NEXT",
+            "page": null,
+            "cond": {
+              "type": "ITEM_IS_NOT_NULL",
+              "item": "P202_PORTFOLIO_ID"
+            }
+          }
+        ]
       }
     ],
     "js": "(function(){\n  var tip;\n  function show(host){var el=host.querySelector('[data-tip]');if(!el)return;if(!tip){tip=document.createElement('div');tip.className='fx-tip';tip.setAttribute('role','tooltip');document.body.appendChild(tip);}\n    tip.textContent=el.getAttribute('data-tip');var r=host.getBoundingClientRect();tip.style.left=Math.max(8,r.left)+'px';tip.style.top='0px';tip.classList.add('on');\n    var h=tip.offsetHeight;tip.style.top=Math.max(8,r.top-h-10)+'px';}\n  function hide(){if(tip)tip.classList.remove('on');}\n  function init(){[].forEach.call(document.querySelectorAll('[data-tip]'),function(el){var host=el.closest('.t-Form-fieldContainer')||el.parentNode;host.setAttribute('data-tip-host','');\n    host.addEventListener('mouseenter',function(){show(host);});host.addEventListener('mouseleave',hide);el.addEventListener('focus',function(){show(host);});el.addEventListener('blur',hide);});}\n  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();\n})();",
@@ -4064,6 +4116,129 @@ export const wizardPages: WizardPage[] = [
         "pk": null,
         "hideHeader": true,
         "cls": "t-Region--removeHeader t-Region--noPadding"
+      },
+      {
+        "key": "UPLOAD_PORTFOLIO_WORKBOOK",
+        "title": "Upload Portfolio Workbook",
+        "kind": "items",
+        "table": null,
+        "pk": null,
+        "items": [
+          {
+            "name": "P208_PORTFOLIO_ID",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_FILE",
+            "type": "NATIVE_FILE",
+            "label": "Portfolio Workbook (.xlsx)",
+            "required": false
+          },
+          {
+            "name": "P208_TEMP_FILE_NAME",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_WF_INSTANCE_ID",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_TASK_ID",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_BATCH_STATUS",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_TOTAL_ROWS",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_VALID_ROWS",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_ERROR_ROWS",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_IMPORTED_ROWS",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_INV_SUMMARY",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_UNIT_SUMMARY",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_ACCOUNT_SUMMARY",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_PORTFOLIO_LABEL",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          },
+          {
+            "name": "P208_WF_STEP_NAME",
+            "type": "NATIVE_HIDDEN",
+            "label": "None",
+            "required": false
+          }
+        ],
+        "buttons": [
+          {
+            "name": "BACK_CASES",
+            "label": "Back to Portfolio Cases",
+            "action": "REDIRECT_PAGE",
+            "position": "CLOSE",
+            "page": 201
+          },
+          {
+            "name": "IMPORT",
+            "label": "Import & Complete",
+            "action": "SUBMIT",
+            "position": "NEXT",
+            "page": null
+          },
+          {
+            "name": "LOAD_VALIDATE",
+            "label": "Validate Workbook",
+            "action": "SUBMIT",
+            "position": "NEXT",
+            "page": null
+          }
+        ],
+        "cls": "t-Region--noPadding"
       },
       {
         "key": "STEP_ACTIONS",
@@ -7187,6 +7362,44 @@ export const wizardPages: WizardPage[] = [
         ],
         "buttons": [],
         "cls": "t-Region--scrollBody"
+      },
+      {
+        "key": "BUTTONS",
+        "title": "Buttons",
+        "kind": "html",
+        "table": null,
+        "pk": null,
+        "html": "",
+        "buttons": [
+          {
+            "name": "APPROVE",
+            "label": "Approve",
+            "action": "SUBMIT",
+            "position": "NEXT",
+            "page": null
+          },
+          {
+            "name": "CANCEL",
+            "label": "Cancel",
+            "action": "DEFINED_BY_DA_ACTION",
+            "position": "CLOSE",
+            "page": null
+          },
+          {
+            "name": "REJECT",
+            "label": "Reject",
+            "action": "SUBMIT",
+            "position": "NEXT",
+            "page": null
+          },
+          {
+            "name": "RETURN",
+            "label": "Return for Correction",
+            "action": "SUBMIT",
+            "position": "NEXT",
+            "page": null
+          }
+        ]
       }
     ],
     "load": true,
@@ -7487,6 +7700,40 @@ export const wizardPages: WizardPage[] = [
         "pk": null,
         "html": "<div class=\"fnv-journal\">\n<div class=\"fnv-journal-line\"><span>Debit</span><strong>Purchased Portfolio Asset</strong><em>&P608_PAYMENT_AMOUNT. &P608_CURRENCY_CODE.</em></div>\n<div class=\"fnv-journal-line\"><span>Credit</span><strong>Bank GL: &P608_BANK_GL_ACCOUNT_CODE.</strong><em>&P608_PAYMENT_AMOUNT. &P608_CURRENCY_CODE.</em></div>",
         "cls": "t-Region--scrollBody"
+      },
+      {
+        "key": "ACTIONS",
+        "title": "Actions",
+        "kind": "html",
+        "table": null,
+        "pk": null,
+        "html": "",
+        "buttons": [
+          {
+            "name": "BACK",
+            "label": "Back to Portfolio",
+            "action": "REDIRECT_PAGE",
+            "position": "CLOSE",
+            "page": 203,
+            "set": {
+              "P203_PORTFOLIO_ID": "&P608_PORTFOLIO_ID."
+            }
+          },
+          {
+            "name": "CONFIRM_SETTLEMENT",
+            "label": "Confirm Settlement",
+            "action": "SUBMIT",
+            "position": "NEXT",
+            "page": null
+          },
+          {
+            "name": "SAVE_DRAFT",
+            "label": "Save Draft",
+            "action": "SUBMIT",
+            "position": "NEXT",
+            "page": null
+          }
+        ]
       }
     ],
     "css": ".fnv-settle-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:8px}\n.fnv-settle-kpi{background:#fff;border:1px solid #d7e4e6;border-radius:12px;padding:14px;border-top:4px solid #E87722;box-shadow:0 2px 8px rgba(1,75,85,.06)}\n.fnv-settle-kpi small{display:block;color:#72878b;font-weight:600}.fnv-settle-kpi strong{display:block;color:#014B55;font-size:18px;margin-top:5px}\n.fnv-settle-note{padding:14px 16px;background:#EAF4F3;border-inline-start:4px solid #014B55;border-radius:10px;color:#173B3F}\n.fnv-journal{display:grid;gap:8px}.fnv-journal-line{display:grid;grid-template-columns:80px 1fr 160px;gap:10px;padding:10px 12px;background:#F7F9F9;border-radius:8px}\n.fnv-journal-line span{font-weight:800;color:#E87722}.fnv-journal-line strong{color:#014B55}.fnv-journal-line em{text-align:right;font-style:normal;font-weight:800;color:#173B3F}",
