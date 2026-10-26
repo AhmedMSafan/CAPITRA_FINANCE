@@ -152,10 +152,19 @@ public static class MffApexSql
 
     public static readonly IReadOnlyList<ApexSqlLoad> Loads =
     [
+        new(110, 22, Permissions.Mff.View, Q.LOAD_P22),
     ];
 
     private static class Q
     {
+        public const string LOAD_P22 = """
+        select coalesce(x."APPLICATION_NO", 'Not Found') "P22_APPLICATION_NO", x."FUND_FILE_NO" "P22_FUND_FILE_NO", x."FULL_NAME_AR" "P22_FULL_NAME_AR", x."NATIONAL_ID" "P22_NATIONAL_ID", x."BIRTH_DATE" "P22_BIRTH_DATE", x."GENDER_CODE" "P22_GENDER_CODE", x."MARITAL_STATUS_CODE" "P22_MARITAL_STATUS_CODE", x."MOBILE_NO" "P22_MOBILE_NO", x."EMAIL" "P22_EMAIL", x."ADDRESS_AR" "P22_ADDRESS_AR", x."EMPLOYMENT_TYPE_CODE" "P22_EMPLOYMENT_TYPE_CODE", x."EMPLOYER_NAME" "P22_EMPLOYER_NAME", x."HIRE_DATE" "P22_HIRE_DATE", x."REQUESTED_FINANCE_AMOUNT" "P22_REQUESTED_FINANCE_AMOUNT", x."PROPERTY_PRICE" "P22_PROPERTY_PRICE", x."DOWNPAYMENT_AMOUNT" "P22_DOWNPAYMENT_AMOUNT", x."STATUS_CODE" "P22_APP_STATUS", x."APPLICATION_NO" "P22_APP_NO", x."FULL_NAME_AR" "P22_APPLICANT" from (select 1 "ONE") d
+        left join (select a."APPLICATION_NO", a."FUND_FILE_NO", p."FULL_NAME_AR", p."NATIONAL_ID", p."BIRTH_DATE", p."GENDER_CODE", p."MARITAL_STATUS_CODE", p."MOBILE_NO", p."EMAIL", p."ADDRESS_AR", p."EMPLOYMENT_TYPE_CODE", p."EMPLOYER_NAME", p."HIRE_DATE", a."REQUESTED_FINANCE_AMOUNT", a."PROPERTY_PRICE", a."DOWNPAYMENT_AMOUNT", a."STATUS_CODE"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where a."APPLICATION_ID" = @P22_APPLICATION_ID::bigint) x on 1 = 1
+        """;
+
         public const string LOV_MFF_ACTIVE_LOAN = """
         select concat(l."LOAN_ACCOUNT_NO", ' - ', a."APPLICATION_NO") "D", l."LOAN_ID" "R"
         from "MFF_LOANS" l

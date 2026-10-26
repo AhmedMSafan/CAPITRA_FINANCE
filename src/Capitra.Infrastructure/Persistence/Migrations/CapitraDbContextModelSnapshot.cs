@@ -19668,9 +19668,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("INPUT_SUBSIDY_MONTHS");
 
-                    b.Property<bool>("IsHasNegativeAmortization")
+                    b.Property<bool>("IsNegativeAmortization")
                         .HasColumnType("boolean")
-                        .HasColumnName("IS_HAS_NEGATIVE_AMORTIZATION");
+                        .HasColumnName("IS_NEGATIVE_AMORTIZATION");
 
                     b.Property<decimal?>("MaxDownpaymentPct")
                         .HasPrecision(9, 6)

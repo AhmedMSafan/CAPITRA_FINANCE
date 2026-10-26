@@ -124,6 +124,7 @@ internal sealed class ApexSqlLovValues(IApexSqlReader reader)
     {
         null => null,
         bool b => b ? "Y" : "N",
+        DateOnly d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),  // the value of a date picker
         IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
         _ => value.ToString(),
     };

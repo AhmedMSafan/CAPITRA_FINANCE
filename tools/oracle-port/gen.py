@@ -249,6 +249,8 @@ def main():
                     base = base[len('REQUIRE_'):] + '_REQUIRED'
                 elif base.startswith('ALLOW_'):
                     base = base[len('ALLOW_'):] + '_ALLOWED'
+                elif base.startswith('HAS_'):  # HAS_NEGATIVE_AMORTIZATION -> IS_NEGATIVE_AMORTIZATION
+                    base = base[len('HAS_'):]
                 elif base.startswith('REQUIRES_'):
                     base = base[len('REQUIRES_'):] + '_REQUIRED'
                 name = base if base.startswith('IS_') else 'IS_' + base

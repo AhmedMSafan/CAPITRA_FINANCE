@@ -69,7 +69,7 @@ public class MffCalculationRun : AuditableEntity
 
     public decimal? OutMinPropertyValue { get; set; }
 
-    public bool IsHasNegativeAmortization { get; set; }
+    public bool IsNegativeAmortization { get; set; }
 
     public string? WarningMessageAr { get; set; }
 

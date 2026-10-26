@@ -727,7 +727,7 @@
     "kind": "decimal"
    },
    "HAS_NEGATIVE_AMORTIZATION": {
-    "column": "IS_HAS_NEGATIVE_AMORTIZATION",
+    "column": "IS_NEGATIVE_AMORTIZATION",
     "kind": "flag"
    },
    "WARNING_MESSAGE_AR": {
