@@ -17676,6 +17676,6018 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("GL_YEAR_END_CLOSE_RUNS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
+                {
+                    b.Property<long>("EntryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ENTRY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("EntryId"));
+
+                    b.Property<long?>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<string>("CoreJournalRef")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CORE_JOURNAL_REF");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal>("CreditAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CREDIT_AMOUNT");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<decimal>("DebitAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DEBIT_AMOUNT");
+
+                    b.Property<string>("DescriptionAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION_AR");
+
+                    b.Property<DateOnly>("EntryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ENTRY_DATE");
+
+                    b.Property<string>("EventCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("EVENT_CODE");
+
+                    b.Property<string>("GlAccountCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("GL_ACCOUNT_CODE");
+
+                    b.Property<long?>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<string>("PostingStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("POSTING_STATUS");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REFERENCE_NO");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("EntryId")
+                        .HasName("PK_MFF_ACCOUNTING_ENTRIES");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_ACCOUNTING_ENTRIES_APPLICATION_ID");
+
+                    b.HasIndex("EventCode")
+                        .HasDatabaseName("IX_MFF_ACCOUNTING_ENTRIES_EVENT_CODE");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_ACCOUNTING_ENTRIES_LOAN_ID");
+
+                    b.ToTable("MFF_ACCOUNTING_ENTRIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAppeal", b =>
+                {
+                    b.Property<long>("AppealId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPEAL_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AppealId"));
+
+                    b.Property<DateOnly>("AppealDate")
+                        .HasColumnType("date")
+                        .HasColumnName("APPEAL_DATE");
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DecisionCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DECISION_CODE");
+
+                    b.Property<DateOnly?>("DecisionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DECISION_DATE");
+
+                    b.Property<string>("DecisionReasonAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("DECISION_REASON_AR");
+
+                    b.Property<string>("ReasonAr")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("REASON_AR");
+
+                    b.Property<long?>("RejectionDecisionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REJECTION_DECISION_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AppealId")
+                        .HasName("PK_MFF_APPEALS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_APPEALS_APPLICATION_ID");
+
+                    b.HasIndex("DecisionCode")
+                        .HasDatabaseName("IX_MFF_APPEALS_DECISION_CODE");
+
+                    b.HasIndex("RejectionDecisionId")
+                        .HasDatabaseName("IX_MFF_APPEALS_REJECTION_DECISION_ID");
+
+                    b.ToTable("MFF_APPEALS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplication", b =>
+                {
+                    b.Property<long>("ApplicationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ApplicationId"));
+
+                    b.Property<DateOnly>("ApplicationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("APPLICATION_DATE");
+
+                    b.Property<string>("ApplicationNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("APPLICATION_NO");
+
+                    b.Property<decimal?>("ApprovedFinanceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("APPROVED_FINANCE_AMOUNT");
+
+                    b.Property<string>("BranchCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("BRANCH_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrentOwnerUser")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CURRENT_OWNER_USER");
+
+                    b.Property<decimal?>("DownpaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DOWNPAYMENT_AMOUNT");
+
+                    b.Property<DateOnly?>("EligibilityCertDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ELIGIBILITY_CERT_DATE");
+
+                    b.Property<DateOnly?>("EligibilityCertExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ELIGIBILITY_CERT_EXPIRY_DATE");
+
+                    b.Property<string>("EligibilityCertNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ELIGIBILITY_CERT_NO");
+
+                    b.Property<long>("FinancierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FINANCIER_ID");
+
+                    b.Property<string>("FundFileNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("FUND_FILE_NO");
+
+                    b.Property<long>("FundOrgId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FUND_ORG_ID");
+
+                    b.Property<long?>("ImportStagingId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("IMPORT_STAGING_ID");
+
+                    b.Property<decimal?>("MonthlyIncomeTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MONTHLY_INCOME_TOTAL");
+
+                    b.Property<long>("PrimaryPersonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRIMARY_PERSON_ID");
+
+                    b.Property<long>("ProgramVersionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROGRAM_VERSION_ID");
+
+                    b.Property<decimal?>("PropertyPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PROPERTY_PRICE");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("REJECTION_REASON");
+
+                    b.Property<decimal?>("RequestedFinanceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("REQUESTED_FINANCE_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceChannelCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("SOURCE_CHANNEL_CODE");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<decimal?>("TotalSubsidyAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_SUBSIDY_AMOUNT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ApplicationId")
+                        .HasName("PK_MFF_APPLICATIONS");
+
+                    b.HasIndex("ApplicationNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_APPLICATIONS_APPLICATION_NO");
+
+                    b.HasIndex("FinancierId")
+                        .HasDatabaseName("IX_MFF_APPLICATIONS_FINANCIER_ID");
+
+                    b.HasIndex("FundOrgId")
+                        .HasDatabaseName("IX_MFF_APPLICATIONS_FUND_ORG_ID");
+
+                    b.HasIndex("ImportStagingId")
+                        .HasDatabaseName("IX_MFF_APPLICATIONS_IMPORT_STAGING_ID");
+
+                    b.HasIndex("PrimaryPersonId")
+                        .HasDatabaseName("IX_MFF_APPLICATIONS_PRIMARY_PERSON_ID");
+
+                    b.HasIndex("ProgramVersionId")
+                        .HasDatabaseName("IX_MFF_APPLICATIONS_PROGRAM_VERSION_ID");
+
+                    b.HasIndex("SourceChannelCode")
+                        .HasDatabaseName("IX_MFF_APPLICATIONS_SOURCE_CHANNEL_CODE");
+
+                    b.HasIndex("StatusCode")
+                        .HasDatabaseName("IX_MFF_APPLICATIONS_STATUS_CODE");
+
+                    b.ToTable("MFF_APPLICATIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationDocument", b =>
+                {
+                    b.Property<long>("DocumentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DocumentId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DocumentNo")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("DOCUMENT_NO");
+
+                    b.Property<string>("DocumentTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("DOCUMENT_TYPE_CODE");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EXPIRY_DATE");
+
+                    b.Property<byte[]>("FileContent")
+                        .HasColumnType("bytea")
+                        .HasColumnName("FILE_CONTENT");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("FILE_NAME");
+
+                    b.Property<int?>("FileSizeBytes")
+                        .HasColumnType("integer")
+                        .HasColumnName("FILE_SIZE_BYTES");
+
+                    b.Property<DateOnly?>("IssueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ISSUE_DATE");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("MIME_TYPE");
+
+                    b.Property<long?>("PersonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PERSON_ID");
+
+                    b.Property<DateOnly?>("ReceivedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RECEIVED_DATE");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REJECTION_REASON");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("VerificationStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("VERIFICATION_STATUS");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("VERIFIED_AT");
+
+                    b.Property<string>("VerifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("VERIFIED_BY");
+
+                    b.HasKey("DocumentId")
+                        .HasName("PK_MFF_APPLICATION_DOCUMENTS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_APPLICATION_DOCUMENTS_APPLICATION_ID");
+
+                    b.HasIndex("DocumentTypeCode")
+                        .HasDatabaseName("IX_MFF_APPLICATION_DOCUMENTS_DOCUMENT_TYPE_CODE");
+
+                    b.HasIndex("PersonId")
+                        .HasDatabaseName("IX_MFF_APPLICATION_DOCUMENTS_PERSON_ID");
+
+                    b.ToTable("MFF_APPLICATION_DOCUMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationParty", b =>
+                {
+                    b.Property<long>("ApplicationPartyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_PARTY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ApplicationPartyId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsIncomeIncluded")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_INCOME_INCLUDED");
+
+                    b.Property<decimal?>("OwnershipSharePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("OWNERSHIP_SHARE_PCT");
+
+                    b.Property<string>("PartyRoleCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PARTY_ROLE_CODE");
+
+                    b.Property<long>("PersonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PERSON_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ApplicationPartyId")
+                        .HasName("PK_MFF_APPLICATION_PARTIES");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_APPLICATION_PARTIES_APPLICATION_ID");
+
+                    b.HasIndex("PartyRoleCode")
+                        .HasDatabaseName("IX_MFF_APPLICATION_PARTIES_PARTY_ROLE_CODE");
+
+                    b.HasIndex("PersonId")
+                        .HasDatabaseName("IX_MFF_APPLICATION_PARTIES_PERSON_ID");
+
+                    b.HasIndex("ApplicationId", "PersonId", "PartyRoleCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_APPLICATION_PARTIES_APPLICATION_ID_PERSON_ID");
+
+                    b.ToTable("MFF_APPLICATION_PARTIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationProperty", b =>
+                {
+                    b.Property<long>("AppPropertyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("APP_PROPERTY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AppPropertyId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsSelected")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_SELECTED");
+
+                    b.Property<long>("PropertyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROPERTY_ID");
+
+                    b.Property<decimal?>("RequestedPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("REQUESTED_PRICE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly?>("SelectionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SELECTION_DATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AppPropertyId")
+                        .HasName("PK_MFF_APPLICATION_PROPERTYS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_APPLICATION_PROPERTYS_APPLICATION_ID");
+
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("IX_MFF_APPLICATION_PROPERTYS_PROPERTY_ID");
+
+                    b.HasIndex("ApplicationId", "PropertyId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_APPLICATION_PROPERTYS_APPLICATION_ID_PROPERTY_ID");
+
+                    b.ToTable("MFF_APPLICATION_PROPERTYS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationStatusHist", b =>
+                {
+                    b.Property<long>("StatusHistId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("STATUS_HIST_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("StatusHistId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CHANGED_AT");
+
+                    b.Property<string>("ChangedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHANGED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("NewStatusCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("NEW_STATUS_CODE");
+
+                    b.Property<string>("OldStatusCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("OLD_STATUS_CODE");
+
+                    b.Property<string>("RemarksAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("REMARKS_AR");
+
+                    b.Property<string>("RoleCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ROLE_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("StatusHistId")
+                        .HasName("PK_MFF_APPLICATION_STATUS_HIST");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_APPLICATION_STATUS_HIST_APPLICATION_ID");
+
+                    b.HasIndex("NewStatusCode")
+                        .HasDatabaseName("IX_MFF_APPLICATION_STATUS_HIST_NEW_STATUS_CODE");
+
+                    b.HasIndex("OldStatusCode")
+                        .HasDatabaseName("IX_MFF_APPLICATION_STATUS_HIST_OLD_STATUS_CODE");
+
+                    b.HasIndex("RoleCode")
+                        .HasDatabaseName("IX_MFF_APPLICATION_STATUS_HIST_ROLE_CODE");
+
+                    b.ToTable("MFF_APPLICATION_STATUS_HIST", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAppraisal", b =>
+                {
+                    b.Property<long>("AppraisalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPRAISAL_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AppraisalId"));
+
+                    b.Property<decimal?>("AcceptedValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ACCEPTED_VALUE");
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<string>("AppraisalStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("APPRAISAL_STATUS");
+
+                    b.Property<string>("AppraiserName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("APPRAISER_NAME");
+
+                    b.Property<long?>("AppraiserOrgId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPRAISER_ORG_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("ForcedSaleValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FORCED_SALE_VALUE");
+
+                    b.Property<string>("LicenseNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("LICENSE_NO");
+
+                    b.Property<decimal?>("MarketValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARKET_VALUE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<long>("PropertyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROPERTY_ID");
+
+                    b.Property<DateOnly?>("ReportDate")
+                        .HasColumnType("date")
+                        .HasColumnName("REPORT_DATE");
+
+                    b.Property<long?>("ReportDocumentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPORT_DOCUMENT_ID");
+
+                    b.Property<DateOnly?>("RequestDate")
+                        .HasColumnType("date")
+                        .HasColumnName("REQUEST_DATE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AppraisalId")
+                        .HasName("PK_MFF_APPRAISALS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_APPRAISALS_APPLICATION_ID");
+
+                    b.HasIndex("AppraiserOrgId")
+                        .HasDatabaseName("IX_MFF_APPRAISALS_APPRAISER_ORG_ID");
+
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("IX_MFF_APPRAISALS_PROPERTY_ID");
+
+                    b.HasIndex("ReportDocumentId")
+                        .HasDatabaseName("IX_MFF_APPRAISALS_REPORT_DOCUMENT_ID");
+
+                    b.ToTable("MFF_APPRAISALS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAuditLog", b =>
+                {
+                    b.Property<long>("AuditId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("AUDIT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AuditId"));
+
+                    b.Property<DateTime>("ActionAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ACTION_AT");
+
+                    b.Property<string>("ActionBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ACTION_BY");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ACTION_TYPE");
+
+                    b.Property<long?>("AppId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APP_ID");
+
+                    b.Property<string>("ClientIp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CLIENT_IP");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("NewDataJson")
+                        .HasColumnType("text")
+                        .HasColumnName("NEW_DATA_JSON");
+
+                    b.Property<string>("OldDataJson")
+                        .HasColumnType("text")
+                        .HasColumnName("OLD_DATA_JSON");
+
+                    b.Property<long?>("PageId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PAGE_ID");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("RECORD_KEY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("SESSION_ID");
+
+                    b.Property<string>("TableName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("TABLE_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AuditId")
+                        .HasName("PK_MFF_AUDIT_LOGS");
+
+                    b.ToTable("MFF_AUDIT_LOGS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCalculationRun", b =>
+                {
+                    b.Property<long>("CalcRunId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CALC_RUN_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CalcRunId"));
+
+                    b.Property<long?>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<string>("CalcStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CALC_STATUS");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("DiscountFactorPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("DISCOUNT_FACTOR_PCT");
+
+                    b.Property<long?>("FinancierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FINANCIER_ID");
+
+                    b.Property<decimal?>("InputDownpayment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INPUT_DOWNPAYMENT");
+
+                    b.Property<decimal?>("InputIncome")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INPUT_INCOME");
+
+                    b.Property<decimal?>("InputMonthlySubsidy")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INPUT_MONTHLY_SUBSIDY");
+
+                    b.Property<decimal?>("InputPropertyValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INPUT_PROPERTY_VALUE");
+
+                    b.Property<int?>("InputSubsidyMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("INPUT_SUBSIDY_MONTHS");
+
+                    b.Property<bool>("IsHasNegativeAmortization")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_HAS_NEGATIVE_AMORTIZATION");
+
+                    b.Property<decimal?>("MaxDownpaymentPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_DOWNPAYMENT_PCT");
+
+                    b.Property<decimal?>("MaxPaymentIncomePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_PAYMENT_INCOME_PCT");
+
+                    b.Property<decimal?>("MaxSubsidyAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MAX_SUBSIDY_AMOUNT");
+
+                    b.Property<decimal?>("MinDownpaymentPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MIN_DOWNPAYMENT_PCT");
+
+                    b.Property<decimal?>("MortgageRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MORTGAGE_RATE_PCT");
+
+                    b.Property<decimal?>("OutBasicMortgage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_BASIC_MORTGAGE");
+
+                    b.Property<decimal?>("OutBorrowerDownpayment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_BORROWER_DOWNPAYMENT");
+
+                    b.Property<decimal?>("OutDownpaymentAssist")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_DOWNPAYMENT_ASSIST");
+
+                    b.Property<decimal?>("OutInitialPayment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_INITIAL_PAYMENT");
+
+                    b.Property<decimal?>("OutLtvPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("OUT_LTV_PCT");
+
+                    b.Property<decimal?>("OutMaxMortgage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_MAX_MORTGAGE");
+
+                    b.Property<decimal?>("OutMaxPropertyValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_MAX_PROPERTY_VALUE");
+
+                    b.Property<decimal?>("OutMinPropertyValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_MIN_PROPERTY_VALUE");
+
+                    b.Property<decimal?>("OutMortgageLoan")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_MORTGAGE_LOAN");
+
+                    b.Property<decimal?>("OutPropertyValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_PROPERTY_VALUE");
+
+                    b.Property<decimal?>("OutPvBuydownSubsidy")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_PV_BUYDOWN_SUBSIDY");
+
+                    b.Property<decimal?>("OutTotalSubsidy")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUT_TOTAL_SUBSIDY");
+
+                    b.Property<decimal?>("PaymentGrowthYears")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("PAYMENT_GROWTH_YEARS");
+
+                    b.Property<long>("ProgramVersionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROGRAM_VERSION_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("RunType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RUN_TYPE");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("SOURCE_REFERENCE");
+
+                    b.Property<decimal?>("TermYears")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("TERM_YEARS");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<decimal?>("WageIncreasePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("WAGE_INCREASE_PCT");
+
+                    b.Property<string>("WarningMessageAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("WARNING_MESSAGE_AR");
+
+                    b.HasKey("CalcRunId")
+                        .HasName("PK_MFF_CALCULATION_RUNS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_CALCULATION_RUNS_APPLICATION_ID");
+
+                    b.HasIndex("FinancierId")
+                        .HasDatabaseName("IX_MFF_CALCULATION_RUNS_FINANCIER_ID");
+
+                    b.HasIndex("ProgramVersionId")
+                        .HasDatabaseName("IX_MFF_CALCULATION_RUNS_PROGRAM_VERSION_ID");
+
+                    b.ToTable("MFF_CALCULATION_RUNS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCalculationSchedule", b =>
+                {
+                    b.Property<long>("CalcScheduleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CALC_SCHEDULE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CalcScheduleId"));
+
+                    b.Property<decimal?>("BorrowerPayment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("BORROWER_PAYMENT");
+
+                    b.Property<decimal?>("BulletPayment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("BULLET_PAYMENT");
+
+                    b.Property<long>("CalcRunId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CALC_RUN_ID");
+
+                    b.Property<decimal?>("ClosingPrincipal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CLOSING_PRINCIPAL");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly?>("DueMonthDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DUE_MONTH_DATE");
+
+                    b.Property<int>("InstallmentNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("INSTALLMENT_NO");
+
+                    b.Property<decimal?>("InterestAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_AMOUNT");
+
+                    b.Property<decimal?>("OpeningPrincipal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OPENING_PRINCIPAL");
+
+                    b.Property<decimal?>("PrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PRINCIPAL_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal?>("SubsidyPayment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SUBSIDY_PAYMENT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("CalcScheduleId")
+                        .HasName("PK_MFF_CALCULATION_SCHEDULES");
+
+                    b.HasIndex("CalcRunId")
+                        .HasDatabaseName("IX_MFF_CALCULATION_SCHEDULES_CALC_RUN_ID");
+
+                    b.HasIndex("CalcRunId", "InstallmentNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_CALCULATION_SCHEDULES_CALC_RUN_ID_INSTALLMENT_NO");
+
+                    b.ToTable("MFF_CALCULATION_SCHEDULES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffContract", b =>
+                {
+                    b.Property<long>("ContractId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CONTRACT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ContractId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<long>("BuyerPersonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BUYER_PERSON_ID");
+
+                    b.Property<DateOnly?>("ContractDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CONTRACT_DATE");
+
+                    b.Property<string>("ContractNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CONTRACT_NO");
+
+                    b.Property<string>("ContractStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CONTRACT_STATUS");
+
+                    b.Property<string>("ContractType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CONTRACT_TYPE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long?>("DocumentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    b.Property<decimal?>("FinanceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FINANCE_AMOUNT");
+
+                    b.Property<long>("FinancierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FINANCIER_ID");
+
+                    b.Property<bool>("IsSigned")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_SIGNED");
+
+                    b.Property<long>("PropertyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROPERTY_ID");
+
+                    b.Property<decimal?>("PropertyPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PROPERTY_PRICE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long?>("SellerPersonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SELLER_PERSON_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ContractId")
+                        .HasName("PK_MFF_CONTRACTS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_CONTRACTS_APPLICATION_ID");
+
+                    b.HasIndex("BuyerPersonId")
+                        .HasDatabaseName("IX_MFF_CONTRACTS_BUYER_PERSON_ID");
+
+                    b.HasIndex("ContractNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_CONTRACTS_CONTRACT_NO");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("IX_MFF_CONTRACTS_DOCUMENT_ID");
+
+                    b.HasIndex("FinancierId")
+                        .HasDatabaseName("IX_MFF_CONTRACTS_FINANCIER_ID");
+
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("IX_MFF_CONTRACTS_PROPERTY_ID");
+
+                    b.HasIndex("SellerPersonId")
+                        .HasDatabaseName("IX_MFF_CONTRACTS_SELLER_PERSON_ID");
+
+                    b.ToTable("MFF_CONTRACTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCreditDecision", b =>
+                {
+                    b.Property<long>("DecisionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DECISION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DecisionId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<decimal?>("ApprovedFinanceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("APPROVED_FINANCE_AMOUNT");
+
+                    b.Property<decimal?>("ApprovedRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("APPROVED_RATE_PCT");
+
+                    b.Property<int?>("ApprovedTermMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("APPROVED_TERM_MONTHS");
+
+                    b.Property<string>("CommitteeReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("COMMITTEE_REFERENCE");
+
+                    b.Property<string>("ConditionsText")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("CONDITIONS_TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DecidedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DECIDED_BY");
+
+                    b.Property<string>("DecisionCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("DECISION_CODE");
+
+                    b.Property<DateOnly>("DecisionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DECISION_DATE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DecisionId")
+                        .HasName("PK_MFF_CREDIT_DECISIONS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_CREDIT_DECISIONS_APPLICATION_ID");
+
+                    b.HasIndex("DecisionCode")
+                        .HasDatabaseName("IX_MFF_CREDIT_DECISIONS_DECISION_CODE");
+
+                    b.ToTable("MFF_CREDIT_DECISIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCreditInquiry", b =>
+                {
+                    b.Property<long>("InquiryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INQUIRY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InquiryId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<long>("BureauOrgId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BUREAU_ORG_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("CreditScore")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("CREDIT_SCORE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REFERENCE_NO");
+
+                    b.Property<long?>("ReportDocumentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPORT_DOCUMENT_ID");
+
+                    b.Property<DateOnly>("RequestDate")
+                        .HasColumnType("date")
+                        .HasColumnName("REQUEST_DATE");
+
+                    b.Property<DateOnly?>("ResponseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RESPONSE_DATE");
+
+                    b.Property<string>("ResultCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("RESULT_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("InquiryId")
+                        .HasName("PK_MFF_CREDIT_INQUIRIES");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_CREDIT_INQUIRIES_APPLICATION_ID");
+
+                    b.HasIndex("BureauOrgId")
+                        .HasDatabaseName("IX_MFF_CREDIT_INQUIRIES_BUREAU_ORG_ID");
+
+                    b.HasIndex("ReportDocumentId")
+                        .HasDatabaseName("IX_MFF_CREDIT_INQUIRIES_REPORT_DOCUMENT_ID");
+
+                    b.ToTable("MFF_CREDIT_INQUIRIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCreditStudy", b =>
+                {
+                    b.Property<long>("CreditStudyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CREDIT_STUDY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CreditStudyId"));
+
+                    b.Property<string>("AnalystUser")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ANALYST_USER");
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("DisposableIncomeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DISPOSABLE_INCOME_AMOUNT");
+
+                    b.Property<decimal?>("InstallmentIncomePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("INSTALLMENT_INCOME_PCT");
+
+                    b.Property<decimal?>("LtvPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("LTV_PCT");
+
+                    b.Property<decimal?>("MonthlyObligationsAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MONTHLY_OBLIGATIONS_AMOUNT");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("NOTES");
+
+                    b.Property<decimal?>("ProposedFinanceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PROPOSED_FINANCE_AMOUNT");
+
+                    b.Property<decimal?>("ProposedRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PROPOSED_RATE_PCT");
+
+                    b.Property<int?>("ProposedTermMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("PROPOSED_TERM_MONTHS");
+
+                    b.Property<string>("RecommendationCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("RECOMMENDATION_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly>("StudyDate")
+                        .HasColumnType("date")
+                        .HasColumnName("STUDY_DATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<decimal?>("VerifiedIncomeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("VERIFIED_INCOME_AMOUNT");
+
+                    b.HasKey("CreditStudyId")
+                        .HasName("PK_MFF_CREDIT_STUDIES");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_CREDIT_STUDIES_APPLICATION_ID");
+
+                    b.HasIndex("RecommendationCode")
+                        .HasDatabaseName("IX_MFF_CREDIT_STUDIES_RECOMMENDATION_CODE");
+
+                    b.ToTable("MFF_CREDIT_STUDIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffDelinquency", b =>
+                {
+                    b.Property<long>("DelinquencyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DELINQUENCY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DelinquencyId"));
+
+                    b.Property<string>("CollectionActionAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("COLLECTION_ACTION_AR");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DaysPastDue")
+                        .HasColumnType("integer")
+                        .HasColumnName("DAYS_PAST_DUE");
+
+                    b.Property<string>("DelinquencyStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DELINQUENCY_STATUS");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("END_DATE");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<decimal>("OverdueAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OVERDUE_AMOUNT");
+
+                    b.Property<int>("OverdueInstallments")
+                        .HasColumnType("integer")
+                        .HasColumnName("OVERDUE_INSTALLMENTS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StageCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("STAGE_CODE");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("START_DATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DelinquencyId")
+                        .HasName("PK_MFF_DELINQUENCIES");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_DELINQUENCIES_LOAN_ID");
+
+                    b.HasIndex("StageCode")
+                        .HasDatabaseName("IX_MFF_DELINQUENCIES_STAGE_CODE");
+
+                    b.ToTable("MFF_DELINQUENCIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffEarlySettlement", b =>
+                {
+                    b.Property<long>("SettlementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SETTLEMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SettlementId"));
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("EarlySettlementStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("EARLY_SETTLEMENT_STATUS");
+
+                    b.Property<decimal?>("FinancePctSettled")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)")
+                        .HasColumnName("FINANCE_PCT_SETTLED");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<string>("NotesAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES_AR");
+
+                    b.Property<decimal>("PrincipalSettled")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PRINCIPAL_SETTLED");
+
+                    b.Property<DateOnly>("RequestDate")
+                        .HasColumnType("date")
+                        .HasColumnName("REQUEST_DATE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly?>("SettlementDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SETTLEMENT_DATE");
+
+                    b.Property<string>("SettlementType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("SETTLEMENT_TYPE");
+
+                    b.Property<decimal?>("SubsidyRefundAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SUBSIDY_REFUND_AMOUNT");
+
+                    b.Property<decimal?>("SubsidyRefundPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("SUBSIDY_REFUND_PCT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("SettlementId")
+                        .HasName("PK_MFF_EARLY_SETTLEMENTS");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_EARLY_SETTLEMENTS_LOAN_ID");
+
+                    b.ToTable("MFF_EARLY_SETTLEMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffFinanceOffer", b =>
+                {
+                    b.Property<long>("OfferId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("OFFER_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("OfferId"));
+
+                    b.Property<DateOnly?>("AcceptedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ACCEPTED_DATE");
+
+                    b.Property<decimal?>("AnnualRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("ANNUAL_RATE_PCT");
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("DownpaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DOWNPAYMENT_AMOUNT");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EXPIRY_DATE");
+
+                    b.Property<decimal?>("FinanceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FINANCE_AMOUNT");
+
+                    b.Property<decimal?>("InitialInstallment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INITIAL_INSTALLMENT");
+
+                    b.Property<decimal?>("LtvPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("LTV_PCT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<DateOnly>("OfferDate")
+                        .HasColumnType("date")
+                        .HasColumnName("OFFER_DATE");
+
+                    b.Property<string>("OfferNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("OFFER_NO");
+
+                    b.Property<string>("OfferStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("OFFER_STATUS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal?>("SubsidyAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SUBSIDY_AMOUNT");
+
+                    b.Property<int?>("TermMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("TERM_MONTHS");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("OfferId")
+                        .HasName("PK_MFF_FINANCE_OFFERS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_FINANCE_OFFERS_APPLICATION_ID");
+
+                    b.HasIndex("OfferNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_FINANCE_OFFERS_OFFER_NO");
+
+                    b.ToTable("MFF_FINANCE_OFFERS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffGlAccountMap", b =>
+                {
+                    b.Property<long>("MapId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("MAP_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MapId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CreditAccount")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREDIT_ACCOUNT");
+
+                    b.Property<string>("DebitAccount")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DEBIT_ACCOUNT");
+
+                    b.Property<DateOnly?>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<string>("EventCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("EVENT_CODE");
+
+                    b.Property<long>("FinancierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FINANCIER_ID");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("MapId")
+                        .HasName("PK_MFF_GL_ACCOUNT_MAPS");
+
+                    b.HasIndex("EventCode")
+                        .HasDatabaseName("IX_MFF_GL_ACCOUNT_MAPS_EVENT_CODE");
+
+                    b.HasIndex("FinancierId")
+                        .HasDatabaseName("IX_MFF_GL_ACCOUNT_MAPS_FINANCIER_ID");
+
+                    b.HasIndex("FinancierId", "EventCode", "EffectiveFromDate")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_GL_ACCOUNT_MAPS_FINANCIER_ID_EVENT_CODE");
+
+                    b.ToTable("MFF_GL_ACCOUNT_MAPS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffHousingAnnouncement", b =>
+                {
+                    b.Property<long>("AnnouncementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ANNOUNCEMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AnnouncementId"));
+
+                    b.Property<string>("AnnouncementCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ANNOUNCEMENT_CODE");
+
+                    b.Property<string>("AnnouncementNameAr")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("ANNOUNCEMENT_NAME_AR");
+
+                    b.Property<DateOnly?>("CloseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CLOSE_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<DateOnly?>("IssueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ISSUE_DATE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("SOURCE_REFERENCE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AnnouncementId")
+                        .HasName("PK_MFF_HOUSING_ANNOUNCEMENTS");
+
+                    b.HasIndex("AnnouncementCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_HOUSING_ANNOUNCEMENTS_ANNOUNCEMENT_CODE");
+
+                    b.ToTable("MFF_HOUSING_ANNOUNCEMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffHousingProject", b =>
+                {
+                    b.Property<long>("ProjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProjectId"));
+
+                    b.Property<long?>("AnnouncementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ANNOUNCEMENT_ID");
+
+                    b.Property<string>("CityCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CITY_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("DefaultAreaSqm")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("DEFAULT_AREA_SQM");
+
+                    b.Property<string>("DistrictAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("DISTRICT_AR");
+
+                    b.Property<string>("GovernorateCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("GOVERNORATE_CODE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NeighborhoodAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NEIGHBORHOOD_AR");
+
+                    b.Property<string>("ProjectCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PROJECT_CODE");
+
+                    b.Property<string>("ProjectNameAr")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("PROJECT_NAME_AR");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SiteDescription")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("SITE_DESCRIPTION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProjectId")
+                        .HasName("PK_MFF_HOUSING_PROJECTS");
+
+                    b.HasIndex("AnnouncementId")
+                        .HasDatabaseName("IX_MFF_HOUSING_PROJECTS_ANNOUNCEMENT_ID");
+
+                    b.HasIndex("CityCode")
+                        .HasDatabaseName("IX_MFF_HOUSING_PROJECTS_CITY_CODE");
+
+                    b.HasIndex("GovernorateCode")
+                        .HasDatabaseName("IX_MFF_HOUSING_PROJECTS_GOVERNORATE_CODE");
+
+                    b.HasIndex("ProjectCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_HOUSING_PROJECTS_PROJECT_CODE");
+
+                    b.ToTable("MFF_HOUSING_PROJECTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffImportBatch", b =>
+                {
+                    b.Property<long>("BatchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("BATCH_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("BatchId"));
+
+                    b.Property<string>("BatchStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BATCH_STATUS");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("ErrorCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("ERROR_COUNT");
+
+                    b.Property<string>("FileChecksum")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("FILE_CHECKSUM");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("FILE_NAME");
+
+                    b.Property<long?>("FinancierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FINANCIER_ID");
+
+                    b.Property<long?>("FundOrgId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FUND_ORG_ID");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<long?>("ProgramVersionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROGRAM_VERSION_ID");
+
+                    b.Property<DateTime>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("RECEIVED_AT");
+
+                    b.Property<int>("RowCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_COUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceChannelCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("SOURCE_CHANNEL_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<int>("ValidCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("VALID_COUNT");
+
+                    b.HasKey("BatchId")
+                        .HasName("PK_MFF_IMPORT_BATCHES");
+
+                    b.HasIndex("FinancierId")
+                        .HasDatabaseName("IX_MFF_IMPORT_BATCHES_FINANCIER_ID");
+
+                    b.HasIndex("FundOrgId")
+                        .HasDatabaseName("IX_MFF_IMPORT_BATCHES_FUND_ORG_ID");
+
+                    b.HasIndex("ProgramVersionId")
+                        .HasDatabaseName("IX_MFF_IMPORT_BATCHES_PROGRAM_VERSION_ID");
+
+                    b.HasIndex("SourceChannelCode")
+                        .HasDatabaseName("IX_MFF_IMPORT_BATCHES_SOURCE_CHANNEL_CODE");
+
+                    b.ToTable("MFF_IMPORT_BATCHES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffImportStaging", b =>
+                {
+                    b.Property<long>("StagingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("STAGING_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("StagingId"));
+
+                    b.Property<string>("AnnouncementRaw")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("ANNOUNCEMENT_RAW");
+
+                    b.Property<string>("ApplicantNameAr")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("APPLICANT_NAME_AR");
+
+                    b.Property<string>("ApplicantNationalId")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("APPLICANT_NATIONAL_ID");
+
+                    b.Property<long?>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<decimal?>("AreaSqm")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("AREA_SQM");
+
+                    b.Property<long>("BatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BATCH_ID");
+
+                    b.Property<string>("BuildingNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BUILDING_NO");
+
+                    b.Property<string>("CityRaw")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CITY_RAW");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("CustomerDownpayment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CUSTOMER_DOWNPAYMENT");
+
+                    b.Property<string>("DistrictRaw")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("DISTRICT_RAW");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("ERROR_MESSAGE");
+
+                    b.Property<decimal?>("FinanceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FINANCE_AMOUNT");
+
+                    b.Property<string>("FloorNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("FLOOR_NO");
+
+                    b.Property<string>("GovernorateRaw")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("GOVERNORATE_RAW");
+
+                    b.Property<decimal?>("MaintenanceDeposit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MAINTENANCE_DEPOSIT");
+
+                    b.Property<string>("MaritalStatusRaw")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("MARITAL_STATUS_RAW");
+
+                    b.Property<string>("MobileNo")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("MOBILE_NO");
+
+                    b.Property<decimal?>("MonthlyIncome")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MONTHLY_INCOME");
+
+                    b.Property<string>("NeighborhoodRaw")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NEIGHBORHOOD_RAW");
+
+                    b.Property<string>("ProjectRaw")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("PROJECT_RAW");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SiteRaw")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("SITE_RAW");
+
+                    b.Property<int>("SourceRowNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("SOURCE_ROW_NO");
+
+                    b.Property<string>("SpouseNameAr")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("SPOUSE_NAME_AR");
+
+                    b.Property<string>("SpouseNationalId")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SPOUSE_NATIONAL_ID");
+
+                    b.Property<decimal?>("TotalSubsidy")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_SUBSIDY");
+
+                    b.Property<string>("UnitNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("UNIT_NO");
+
+                    b.Property<decimal?>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("UNIT_PRICE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("ValidationStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("VALIDATION_STATUS");
+
+                    b.HasKey("StagingId")
+                        .HasName("PK_MFF_IMPORT_STAGINGS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_IMPORT_STAGINGS_APPLICATION_ID");
+
+                    b.HasIndex("BatchId")
+                        .HasDatabaseName("IX_MFF_IMPORT_STAGINGS_BATCH_ID");
+
+                    b.HasIndex("BatchId", "SourceRowNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_IMPORT_STAGINGS_BATCH_ID_SOURCE_ROW_NO");
+
+                    b.ToTable("MFF_IMPORT_STAGINGS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffIncomeSource", b =>
+                {
+                    b.Property<long>("IncomeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INCOME_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("IncomeId"));
+
+                    b.Property<decimal?>("AnnualNetIncome")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ANNUAL_NET_INCOME");
+
+                    b.Property<long>("ApplicationPartyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_PARTY_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("EmployerName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("EMPLOYER_NAME");
+
+                    b.Property<string>("IncomeTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("INCOME_TYPE_CODE");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_VERIFIED");
+
+                    b.Property<decimal>("MonthlyNetIncome")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MONTHLY_NET_INCOME");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("SOURCE_REFERENCE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly?>("VerificationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VERIFICATION_DATE");
+
+                    b.HasKey("IncomeId")
+                        .HasName("PK_MFF_INCOME_SOURCES");
+
+                    b.HasIndex("ApplicationPartyId")
+                        .HasDatabaseName("IX_MFF_INCOME_SOURCES_APPLICATION_PARTY_ID");
+
+                    b.HasIndex("IncomeTypeCode")
+                        .HasDatabaseName("IX_MFF_INCOME_SOURCES_INCOME_TYPE_CODE");
+
+                    b.ToTable("MFF_INCOME_SOURCES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffInstallment", b =>
+                {
+                    b.Property<long>("InstallmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INSTALLMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InstallmentId"));
+
+                    b.Property<decimal?>("BorrowerDue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("BORROWER_DUE");
+
+                    b.Property<decimal?>("ClosingPrincipal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CLOSING_PRINCIPAL");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DUE_DATE");
+
+                    b.Property<decimal?>("FeesDue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FEES_DUE");
+
+                    b.Property<int>("InstallmentNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("INSTALLMENT_NO");
+
+                    b.Property<decimal?>("InsuranceDue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INSURANCE_DUE");
+
+                    b.Property<decimal?>("InterestDue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_DUE");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<decimal?>("OpeningPrincipal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OPENING_PRINCIPAL");
+
+                    b.Property<decimal?>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PAID_AMOUNT");
+
+                    b.Property<DateOnly?>("PaidDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PAID_DATE");
+
+                    b.Property<string>("PaymentStatusCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PAYMENT_STATUS_CODE");
+
+                    b.Property<decimal?>("PrincipalDue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PRINCIPAL_DUE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal?>("SubsidyDue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SUBSIDY_DUE");
+
+                    b.Property<decimal?>("TotalDue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_DUE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("InstallmentId")
+                        .HasName("PK_MFF_INSTALLMENTS");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_INSTALLMENTS_LOAN_ID");
+
+                    b.HasIndex("PaymentStatusCode")
+                        .HasDatabaseName("IX_MFF_INSTALLMENTS_PAYMENT_STATUS_CODE");
+
+                    b.HasIndex("LoanId", "InstallmentNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_INSTALLMENTS_LOAN_ID_INSTALLMENT_NO");
+
+                    b.ToTable("MFF_INSTALLMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffInsurancePolicy", b =>
+                {
+                    b.Property<long>("PolicyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("POLICY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PolicyId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("END_DATE");
+
+                    b.Property<string>("InsurancePolicyStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INSURANCE_POLICY_STATUS");
+
+                    b.Property<long>("InsurerOrgId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("INSURER_ORG_ID");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<string>("PolicyNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("POLICY_NO");
+
+                    b.Property<string>("PolicyType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("POLICY_TYPE");
+
+                    b.Property<decimal?>("PremiumAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PREMIUM_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("START_DATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("PolicyId")
+                        .HasName("PK_MFF_INSURANCE_POLICIES");
+
+                    b.HasIndex("InsurerOrgId")
+                        .HasDatabaseName("IX_MFF_INSURANCE_POLICIES_INSURER_ORG_ID");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_INSURANCE_POLICIES_LOAN_ID");
+
+                    b.HasIndex("PolicyNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_INSURANCE_POLICIES_POLICY_NO");
+
+                    b.ToTable("MFF_INSURANCE_POLICIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffIntegrationLog", b =>
+                {
+                    b.Property<long>("IntegrationLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INTEGRATION_LOG_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("IntegrationLogId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("DIRECTION");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("ERROR_MESSAGE");
+
+                    b.Property<int?>("HttpStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("HTTP_STATUS");
+
+                    b.Property<string>("IntegrationLogStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INTEGRATION_LOG_STATUS");
+
+                    b.Property<string>("InterfaceName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("INTERFACE_NAME");
+
+                    b.Property<string>("ReferenceKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("REFERENCE_KEY");
+
+                    b.Property<DateTime>("RequestAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REQUEST_AT");
+
+                    b.Property<string>("RequestPayload")
+                        .HasColumnType("text")
+                        .HasColumnName("REQUEST_PAYLOAD");
+
+                    b.Property<DateTime?>("ResponseAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("RESPONSE_AT");
+
+                    b.Property<string>("ResponsePayload")
+                        .HasColumnType("text")
+                        .HasColumnName("RESPONSE_PAYLOAD");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("IntegrationLogId")
+                        .HasName("PK_MFF_INTEGRATION_LOGS");
+
+                    b.ToTable("MFF_INTEGRATION_LOGS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLegalAction", b =>
+                {
+                    b.Property<long>("LegalActionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEGAL_ACTION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LegalActionId"));
+
+                    b.Property<DateOnly>("ActionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ACTION_DATE");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ACTION_TYPE");
+
+                    b.Property<long?>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<string>("CaseNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CASE_NO");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("LegalActionStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("LEGAL_ACTION_STATUS");
+
+                    b.Property<long?>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<DateOnly?>("NextActionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("NEXT_ACTION_DATE");
+
+                    b.Property<string>("OutcomeAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("OUTCOME_AR");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("LegalActionId")
+                        .HasName("PK_MFF_LEGAL_ACTIONS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_LEGAL_ACTIONS_APPLICATION_ID");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_LEGAL_ACTIONS_LOAN_ID");
+
+                    b.ToTable("MFF_LEGAL_ACTIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLegalReview", b =>
+                {
+                    b.Property<long>("LegalReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEGAL_REVIEW_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LegalReviewId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsMortgageFeasible")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_MORTGAGE_FEASIBLE");
+
+                    b.Property<bool>("IsRegistrationFeasible")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_REGISTRATION_FEASIBLE");
+
+                    b.Property<string>("Issues")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("ISSUES");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<long?>("PropertyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROPERTY_ID");
+
+                    b.Property<string>("ResultCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RESULT_CODE");
+
+                    b.Property<DateOnly?>("ReviewDate")
+                        .HasColumnType("date")
+                        .HasColumnName("REVIEW_DATE");
+
+                    b.Property<string>("ReviewerUser")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REVIEWER_USER");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("LegalReviewId")
+                        .HasName("PK_MFF_LEGAL_REVIEWS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_LEGAL_REVIEWS_APPLICATION_ID");
+
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("IX_MFF_LEGAL_REVIEWS_PROPERTY_ID");
+
+                    b.ToTable("MFF_LEGAL_REVIEWS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpAccountEvent", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_ACCOUNT_EVENTS");
+
+                    b.ToTable("MFF_LKP_ACCOUNT_EVENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpApplicationStatus", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_APPLICATION_STATUSES");
+
+                    b.ToTable("MFF_LKP_APPLICATION_STATUSES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpCity", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<string>("GovernorateCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("GOVERNORATE_CODE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_CITYS");
+
+                    b.HasIndex("GovernorateCode")
+                        .HasDatabaseName("IX_MFF_LKP_CITYS_GOVERNORATE_CODE");
+
+                    b.ToTable("MFF_LKP_CITYS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpDecisionCode", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_DECISION_CODES");
+
+                    b.ToTable("MFF_LKP_DECISION_CODES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpDelinquencyStage", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_DELINQUENCY_STAGES");
+
+                    b.ToTable("MFF_LKP_DELINQUENCY_STAGES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpDocumentType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_DOCUMENT_TYPES");
+
+                    b.ToTable("MFF_LKP_DOCUMENT_TYPES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpEmploymentType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_EMPLOYMENT_TYPES");
+
+                    b.ToTable("MFF_LKP_EMPLOYMENT_TYPES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpEventType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_EVENT_TYPES");
+
+                    b.ToTable("MFF_LKP_EVENT_TYPES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpGovernorate", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_GOVERNORATES");
+
+                    b.ToTable("MFF_LKP_GOVERNORATES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpIncomeType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_INCOME_TYPES");
+
+                    b.ToTable("MFF_LKP_INCOME_TYPES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpMaritalStatus", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_MARITAL_STATUSES");
+
+                    b.ToTable("MFF_LKP_MARITAL_STATUSES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpOrgType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_ORG_TYPES");
+
+                    b.ToTable("MFF_LKP_ORG_TYPES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpPartyRole", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_PARTY_ROLES");
+
+                    b.ToTable("MFF_LKP_PARTY_ROLES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpPaymentStatus", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_PAYMENT_STATUSES");
+
+                    b.ToTable("MFF_LKP_PAYMENT_STATUSES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpPropertyRegStatus", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_PROPERTY_REG_STATUSES");
+
+                    b.ToTable("MFF_LKP_PROPERTY_REG_STATUSES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpRegulator", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_REGULATORS");
+
+                    b.ToTable("MFF_LKP_REGULATORS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpSourceChannel", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_SOURCE_CHANNELS");
+
+                    b.ToTable("MFF_LKP_SOURCE_CHANNELS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpStatusTransition", b =>
+                {
+                    b.Property<string>("FromStatusCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("FROM_STATUS_CODE");
+
+                    b.Property<string>("ToStatusCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("TO_STATUS_CODE");
+
+                    b.Property<string>("ActionCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ACTION_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("RoleCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ROLE_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("FromStatusCode", "ToStatusCode")
+                        .HasName("PK_MFF_LKP_STATUS_TRANSITIONS");
+
+                    b.HasIndex("FromStatusCode")
+                        .HasDatabaseName("IX_MFF_LKP_STATUS_TRANSITIONS_FROM_STATUS_CODE");
+
+                    b.HasIndex("RoleCode")
+                        .HasDatabaseName("IX_MFF_LKP_STATUS_TRANSITIONS_ROLE_CODE");
+
+                    b.HasIndex("ToStatusCode")
+                        .HasDatabaseName("IX_MFF_LKP_STATUS_TRANSITIONS_TO_STATUS_CODE");
+
+                    b.HasIndex("FromStatusCode", "ToStatusCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_LKP_STATUS_TRANSITIONS_FROM_STATUS_CODE_TO_STATUS_CODE");
+
+                    b.ToTable("MFF_LKP_STATUS_TRANSITIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpSupportType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_SUPPORT_TYPES");
+
+                    b.ToTable("MFF_LKP_SUPPORT_TYPES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpUserRole", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_MFF_LKP_USER_ROLES");
+
+                    b.ToTable("MFF_LKP_USER_ROLES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLoan", b =>
+                {
+                    b.Property<long>("LoanId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LoanId"));
+
+                    b.Property<decimal?>("AnnualRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("ANNUAL_RATE_PCT");
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<long>("ContractId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CONTRACT_ID");
+
+                    b.Property<string>("CoreSystemRef")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CORE_SYSTEM_REF");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DelinquentDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("DELINQUENT_DAYS");
+
+                    b.Property<DateOnly>("DisbursementDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DISBURSEMENT_DATE");
+
+                    b.Property<decimal?>("InitialInstallment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INITIAL_INSTALLMENT");
+
+                    b.Property<string>("InstallmentFrequency")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("INSTALLMENT_FREQUENCY");
+
+                    b.Property<string>("LoanAccountNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("LOAN_ACCOUNT_NO");
+
+                    b.Property<string>("LoanStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("LOAN_STATUS");
+
+                    b.Property<DateOnly?>("MaturityDate")
+                        .HasColumnType("date")
+                        .HasColumnName("MATURITY_DATE");
+
+                    b.Property<DateOnly?>("NextDueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("NEXT_DUE_DATE");
+
+                    b.Property<decimal?>("OutstandingPrincipal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUTSTANDING_PRINCIPAL");
+
+                    b.Property<decimal>("PrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PRINCIPAL_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("TermMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("TERM_MONTHS");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("LoanId")
+                        .HasName("PK_MFF_LOANS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_LOANS_APPLICATION_ID");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("IX_MFF_LOANS_CONTRACT_ID");
+
+                    b.HasIndex("LoanAccountNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_LOANS_LOAN_ACCOUNT_NO");
+
+                    b.ToTable("MFF_LOANS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLoanEvent", b =>
+                {
+                    b.Property<long>("LoanEventId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_EVENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LoanEventId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DetailsAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("DETAILS_AR");
+
+                    b.Property<DateOnly>("EventDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EVENT_DATE");
+
+                    b.Property<string>("EventTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("EVENT_TYPE_CODE");
+
+                    b.Property<string>("LoanEventStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("LOAN_EVENT_STATUS");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<DateOnly>("ReportedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("REPORTED_DATE");
+
+                    b.Property<string>("ResolutionAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("RESOLUTION_AR");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("LoanEventId")
+                        .HasName("PK_MFF_LOAN_EVENTS");
+
+                    b.HasIndex("EventTypeCode")
+                        .HasDatabaseName("IX_MFF_LOAN_EVENTS_EVENT_TYPE_CODE");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_LOAN_EVENTS_LOAN_ID");
+
+                    b.ToTable("MFF_LOAN_EVENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLoanMonthlySnapshot", b =>
+                {
+                    b.Property<long>("SnapshotId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SNAPSHOT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SnapshotId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DaysPastDue")
+                        .HasColumnType("integer")
+                        .HasColumnName("DAYS_PAST_DUE");
+
+                    b.Property<decimal?>("LastPaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LAST_PAYMENT_AMOUNT");
+
+                    b.Property<DateOnly?>("LastPaymentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("LAST_PAYMENT_DATE");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<string>("LoanStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("LOAN_STATUS");
+
+                    b.Property<decimal>("OutstandingPrincipal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUTSTANDING_PRINCIPAL");
+
+                    b.Property<decimal>("OverdueAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OVERDUE_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly>("SnapshotMonthDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SNAPSHOT_MONTH_DATE");
+
+                    b.Property<decimal>("SubsidyBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SUBSIDY_BALANCE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("SnapshotId")
+                        .HasName("PK_MFF_LOAN_MONTHLY_SNAPSHOTS");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_LOAN_MONTHLY_SNAPSHOTS_LOAN_ID");
+
+                    b.HasIndex("SnapshotMonthDate", "LoanId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_LOAN_MONTHLY_SNAPSHOTS_SNAPSHOT_MONTH_DATE_LOAN_ID");
+
+                    b.ToTable("MFF_LOAN_MONTHLY_SNAPSHOTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLoanRestructuring", b =>
+                {
+                    b.Property<long>("RestructuringId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("RESTRUCTURING_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RestructuringId"));
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<decimal>("CapitalizedArrears")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CAPITALIZED_ARREARS");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly?>("DecisionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DECISION_DATE");
+
+                    b.Property<DateOnly?>("EffectiveDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_DATE");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<string>("LoanRestructuringStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("LOAN_RESTRUCTURING_STATUS");
+
+                    b.Property<decimal?>("NewInstallment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("NEW_INSTALLMENT");
+
+                    b.Property<decimal?>("NewRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("NEW_RATE_PCT");
+
+                    b.Property<int?>("NewTermMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("NEW_TERM_MONTHS");
+
+                    b.Property<string>("NotesAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("NOTES_AR");
+
+                    b.Property<decimal?>("OldInstallment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OLD_INSTALLMENT");
+
+                    b.Property<decimal?>("OldRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("OLD_RATE_PCT");
+
+                    b.Property<int?>("OldTermMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("OLD_TERM_MONTHS");
+
+                    b.Property<string>("ReasonAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REASON_AR");
+
+                    b.Property<DateOnly>("RequestDate")
+                        .HasColumnType("date")
+                        .HasColumnName("REQUEST_DATE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("RestructuringId")
+                        .HasName("PK_MFF_LOAN_RESTRUCTURINGS");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_LOAN_RESTRUCTURINGS_LOAN_ID");
+
+                    b.ToTable("MFF_LOAN_RESTRUCTURINGS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffOrganization", b =>
+                {
+                    b.Property<long>("OrgId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ORG_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("OrgId"));
+
+                    b.Property<string>("AddressAr")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ADDRESS_AR");
+
+                    b.Property<string>("BankCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("BANK_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("EMAIL");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("LegacyNameAr")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("LEGACY_NAME_AR");
+
+                    b.Property<DateOnly?>("LicenseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("LICENSE_DATE");
+
+                    b.Property<string>("LicenseNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("LICENSE_NO");
+
+                    b.Property<string>("OrgCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ORG_CODE");
+
+                    b.Property<string>("OrgNameAr")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("ORG_NAME_AR");
+
+                    b.Property<string>("OrgNameEn")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("ORG_NAME_EN");
+
+                    b.Property<string>("OrgTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ORG_TYPE_CODE");
+
+                    b.Property<string>("PhoneNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PHONE_NO");
+
+                    b.Property<string>("RegulatorCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("REGULATOR_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("TaxId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("TAX_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("OrgId")
+                        .HasName("PK_MFF_ORGANIZATIONS");
+
+                    b.HasIndex("OrgCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_ORGANIZATIONS_ORG_CODE");
+
+                    b.HasIndex("OrgTypeCode")
+                        .HasDatabaseName("IX_MFF_ORGANIZATIONS_ORG_TYPE_CODE");
+
+                    b.HasIndex("RegulatorCode")
+                        .HasDatabaseName("IX_MFF_ORGANIZATIONS_REGULATOR_CODE");
+
+                    b.ToTable("MFF_ORGANIZATIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffPayment", b =>
+                {
+                    b.Property<long>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PAYMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PaymentId"));
+
+                    b.Property<decimal?>("AllocatedFees")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ALLOCATED_FEES");
+
+                    b.Property<decimal?>("AllocatedInsurance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ALLOCATED_INSURANCE");
+
+                    b.Property<decimal?>("AllocatedInterest")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ALLOCATED_INTEREST");
+
+                    b.Property<decimal?>("AllocatedPrincipal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ALLOCATED_PRINCIPAL");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long?>("InstallmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("INSTALLMENT_ID");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<decimal>("PaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PAYMENT_AMOUNT");
+
+                    b.Property<string>("PaymentChannel")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PAYMENT_CHANNEL");
+
+                    b.Property<DateOnly>("PaymentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PAYMENT_DATE");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PAYMENT_TYPE");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REFERENCE_NO");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("PaymentId")
+                        .HasName("PK_MFF_PAYMENTS");
+
+                    b.HasIndex("InstallmentId")
+                        .HasDatabaseName("IX_MFF_PAYMENTS_INSTALLMENT_ID");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_PAYMENTS_LOAN_ID");
+
+                    b.HasIndex("StatusCode")
+                        .HasDatabaseName("IX_MFF_PAYMENTS_STATUS_CODE");
+
+                    b.ToTable("MFF_PAYMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffPerson", b =>
+                {
+                    b.Property<long>("PersonId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PERSON_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PersonId"));
+
+                    b.Property<string>("AddressAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("ADDRESS_AR");
+
+                    b.Property<DateOnly?>("BirthDate")
+                        .HasColumnType("date")
+                        .HasColumnName("BIRTH_DATE");
+
+                    b.Property<string>("CommercialRegNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("COMMERCIAL_REG_NO");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("EMAIL");
+
+                    b.Property<string>("EmployerName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("EMPLOYER_NAME");
+
+                    b.Property<string>("EmploymentTypeCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("EMPLOYMENT_TYPE_CODE");
+
+                    b.Property<string>("FullNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("FULL_NAME_AR");
+
+                    b.Property<string>("GenderCode")
+                        .HasMaxLength(1)
+                        .HasColumnType("character varying(1)")
+                        .HasColumnName("GENDER_CODE");
+
+                    b.Property<DateOnly?>("HireDate")
+                        .HasColumnType("date")
+                        .HasColumnName("HIRE_DATE");
+
+                    b.Property<string>("MaritalStatusCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("MARITAL_STATUS_CODE");
+
+                    b.Property<string>("MobileNo")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("MOBILE_NO");
+
+                    b.Property<string>("NationalId")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("NATIONAL_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("TaxNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("TAX_NO");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("PersonId")
+                        .HasName("PK_MFF_PERSONS");
+
+                    b.HasIndex("EmploymentTypeCode")
+                        .HasDatabaseName("IX_MFF_PERSONS_EMPLOYMENT_TYPE_CODE");
+
+                    b.HasIndex("MaritalStatusCode")
+                        .HasDatabaseName("IX_MFF_PERSONS_MARITAL_STATUS_CODE");
+
+                    b.HasIndex("NationalId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_PERSONS_NATIONAL_ID");
+
+                    b.ToTable("MFF_PERSONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProgramDocRequirement", b =>
+                {
+                    b.Property<long>("RequirementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("REQUIREMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RequirementId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DocumentTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("DOCUMENT_TYPE_CODE");
+
+                    b.Property<DateOnly?>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<string>("EmploymentTypeCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("EMPLOYMENT_TYPE_CODE");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_REQUIRED");
+
+                    b.Property<string>("NotesAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES_AR");
+
+                    b.Property<string>("PartyRoleCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PARTY_ROLE_CODE");
+
+                    b.Property<long>("ProgramVersionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROGRAM_VERSION_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<int?>("ValidityDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("VALIDITY_DAYS");
+
+                    b.HasKey("RequirementId")
+                        .HasName("PK_MFF_PROGRAM_DOC_REQUIREMENTS");
+
+                    b.HasIndex("DocumentTypeCode")
+                        .HasDatabaseName("IX_MFF_PROGRAM_DOC_REQUIREMENTS_DOCUMENT_TYPE_CODE");
+
+                    b.HasIndex("EmploymentTypeCode")
+                        .HasDatabaseName("IX_MFF_PROGRAM_DOC_REQUIREMENTS_EMPLOYMENT_TYPE_CODE");
+
+                    b.HasIndex("PartyRoleCode")
+                        .HasDatabaseName("IX_MFF_PROGRAM_DOC_REQUIREMENTS_PARTY_ROLE_CODE");
+
+                    b.HasIndex("ProgramVersionId")
+                        .HasDatabaseName("IX_MFF_PROGRAM_DOC_REQUIREMENTS_PROGRAM_VERSION_ID");
+
+                    b.HasIndex("ProgramVersionId", "DocumentTypeCode", "PartyRoleCode", "EmploymentTypeCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_PROGRAM_DOC_REQUIREMENTS_PROGRAM_VERSION_ID");
+
+                    b.ToTable("MFF_PROGRAM_DOC_REQUIREMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProgramParam", b =>
+                {
+                    b.Property<long>("ParamId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PARAM_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ParamId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly?>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<long?>("FinancierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FINANCIER_ID");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("ParamCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("PARAM_CODE");
+
+                    b.Property<string>("ParamNameAr")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("PARAM_NAME_AR");
+
+                    b.Property<long>("ProgramVersionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROGRAM_VERSION_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("SOURCE_REFERENCE");
+
+                    b.Property<string>("UnitCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("UNIT_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<decimal?>("ValueNumber")
+                        .HasPrecision(24, 6)
+                        .HasColumnType("numeric(24,6)")
+                        .HasColumnName("VALUE_NUMBER");
+
+                    b.Property<string>("ValueText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("VALUE_TEXT");
+
+                    b.HasKey("ParamId")
+                        .HasName("PK_MFF_PROGRAM_PARAMS");
+
+                    b.HasIndex("FinancierId")
+                        .HasDatabaseName("IX_MFF_PROGRAM_PARAMS_FINANCIER_ID");
+
+                    b.HasIndex("ProgramVersionId")
+                        .HasDatabaseName("IX_MFF_PROGRAM_PARAMS_PROGRAM_VERSION_ID");
+
+                    b.HasIndex("ProgramVersionId", "FinancierId", "ParamCode", "EffectiveFromDate")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_PROGRAM_PARAMS_PROGRAM_VERSION_ID_FINANCIER_ID");
+
+                    b.ToTable("MFF_PROGRAM_PARAMS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProgramParamHist", b =>
+                {
+                    b.Property<long>("ParamHistId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PARAM_HIST_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ParamHistId"));
+
+                    b.Property<string>("ChangeReasonAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("CHANGE_REASON_AR");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CHANGED_AT");
+
+                    b.Property<string>("ChangedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHANGED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long?>("FinancierOrgId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FINANCIER_ORG_ID");
+
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("NEW_VALUE");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("OLD_VALUE");
+
+                    b.Property<string>("ParamCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PARAM_CODE");
+
+                    b.Property<long>("ParamId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PARAM_ID");
+
+                    b.Property<long>("ProgramVersionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROGRAM_VERSION_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ParamHistId")
+                        .HasName("PK_MFF_PROGRAM_PARAM_HIST");
+
+                    b.HasIndex("FinancierOrgId")
+                        .HasDatabaseName("IX_MFF_PROGRAM_PARAM_HIST_FINANCIER_ORG_ID");
+
+                    b.HasIndex("ParamId")
+                        .HasDatabaseName("IX_MFF_PROGRAM_PARAM_HIST_PARAM_ID");
+
+                    b.HasIndex("ProgramVersionId")
+                        .HasDatabaseName("IX_MFF_PROGRAM_PARAM_HIST_PROGRAM_VERSION_ID");
+
+                    b.ToTable("MFF_PROGRAM_PARAM_HIST", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProgramVersion", b =>
+                {
+                    b.Property<long>("ProgramVersionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROGRAM_VERSION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProgramVersionId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<DateOnly?>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<bool>("IsOperational")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_OPERATIONAL");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("ProgramCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PROGRAM_CODE");
+
+                    b.Property<string>("ProgramNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("PROGRAM_NAME_AR");
+
+                    b.Property<long?>("ProtocolId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROTOCOL_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("SOURCE_REFERENCE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("VersionNo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("VERSION_NO");
+
+                    b.HasKey("ProgramVersionId")
+                        .HasName("PK_MFF_PROGRAM_VERSIONS");
+
+                    b.HasIndex("ProtocolId")
+                        .HasDatabaseName("IX_MFF_PROGRAM_VERSIONS_PROTOCOL_ID");
+
+                    b.HasIndex("ProgramCode", "VersionNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_PROGRAM_VERSIONS_PROGRAM_CODE_VERSION_NO");
+
+                    b.ToTable("MFF_PROGRAM_VERSIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProperty", b =>
+                {
+                    b.Property<long>("PropertyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROPERTY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PropertyId"));
+
+                    b.Property<string>("AddressAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("ADDRESS_AR");
+
+                    b.Property<decimal?>("AppraisedValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("APPRAISED_VALUE");
+
+                    b.Property<decimal?>("AreaSqm")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("AREA_SQM");
+
+                    b.Property<string>("BuildingNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BUILDING_NO");
+
+                    b.Property<string>("CityCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CITY_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DistrictAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("DISTRICT_AR");
+
+                    b.Property<string>("FloorNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("FLOOR_NO");
+
+                    b.Property<string>("GovernorateCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("GOVERNORATE_CODE");
+
+                    b.Property<decimal?>("MaintenanceDeposit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MAINTENANCE_DEPOSIT");
+
+                    b.Property<string>("NeighborhoodAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NEIGHBORHOOD_AR");
+
+                    b.Property<long?>("ProjectId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROJECT_ID");
+
+                    b.Property<string>("RegistrationStatusCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("REGISTRATION_STATUS_CODE");
+
+                    b.Property<string>("RegistryReference")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("REGISTRY_REFERENCE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal?>("SalePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SALE_PRICE");
+
+                    b.Property<long?>("SellerPersonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SELLER_PERSON_ID");
+
+                    b.Property<string>("UnitNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("UNIT_NO");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("PropertyId")
+                        .HasName("PK_MFF_PROPERTIES");
+
+                    b.HasIndex("CityCode")
+                        .HasDatabaseName("IX_MFF_PROPERTIES_CITY_CODE");
+
+                    b.HasIndex("GovernorateCode")
+                        .HasDatabaseName("IX_MFF_PROPERTIES_GOVERNORATE_CODE");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("IX_MFF_PROPERTIES_PROJECT_ID");
+
+                    b.HasIndex("RegistrationStatusCode")
+                        .HasDatabaseName("IX_MFF_PROPERTIES_REGISTRATION_STATUS_CODE");
+
+                    b.HasIndex("SellerPersonId")
+                        .HasDatabaseName("IX_MFF_PROPERTIES_SELLER_PERSON_ID");
+
+                    b.ToTable("MFF_PROPERTIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProtocol", b =>
+                {
+                    b.Property<long>("ProtocolId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROTOCOL_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProtocolId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly?>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<long>("FundOrgId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FUND_ORG_ID");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("LegalReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("LEGAL_REFERENCE");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("ProtocolCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PROTOCOL_CODE");
+
+                    b.Property<string>("ProtocolNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("PROTOCOL_NAME_AR");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly?>("SignedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SIGNED_DATE");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("SOURCE_REFERENCE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProtocolId")
+                        .HasName("PK_MFF_PROTOCOLS");
+
+                    b.HasIndex("FundOrgId")
+                        .HasDatabaseName("IX_MFF_PROTOCOLS_FUND_ORG_ID");
+
+                    b.HasIndex("ProtocolCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_PROTOCOLS_PROTOCOL_CODE");
+
+                    b.ToTable("MFF_PROTOCOLS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProtocolParty", b =>
+                {
+                    b.Property<long>("ProtocolPartyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROTOCOL_PARTY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProtocolPartyId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly?>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<long>("OrgId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ORG_ID");
+
+                    b.Property<string>("PartyRole")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("PARTY_ROLE");
+
+                    b.Property<long>("ProtocolId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROTOCOL_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProtocolPartyId")
+                        .HasName("PK_MFF_PROTOCOL_PARTIES");
+
+                    b.HasIndex("OrgId")
+                        .HasDatabaseName("IX_MFF_PROTOCOL_PARTIES_ORG_ID");
+
+                    b.HasIndex("ProtocolId")
+                        .HasDatabaseName("IX_MFF_PROTOCOL_PARTIES_PROTOCOL_ID");
+
+                    b.HasIndex("ProtocolId", "OrgId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_PROTOCOL_PARTIES_PROTOCOL_ID_ORG_ID");
+
+                    b.ToTable("MFF_PROTOCOL_PARTIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffReviewCheck", b =>
+                {
+                    b.Property<long>("CheckId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CHECK_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CheckId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<string>("CheckCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHECK_CODE");
+
+                    b.Property<string>("CheckType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CHECK_TYPE");
+
+                    b.Property<DateTime>("CheckedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CHECKED_AT");
+
+                    b.Property<string>("CheckedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHECKED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("ResultCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RESULT_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("CheckId")
+                        .HasName("PK_MFF_REVIEW_CHECKS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_REVIEW_CHECKS_APPLICATION_ID");
+
+                    b.ToTable("MFF_REVIEW_CHECKS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffSubsidyAccount", b =>
+                {
+                    b.Property<long>("SubsidyAccountId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBSIDY_ACCOUNT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SubsidyAccountId"));
+
+                    b.Property<string>("AccountNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ACCOUNT_NO");
+
+                    b.Property<string>("AccountStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ACCOUNT_STATUS");
+
+                    b.Property<string>("CoreSystemRef")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CORE_SYSTEM_REF");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal>("CurrentBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CURRENT_BALANCE");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<DateOnly>("OpenDate")
+                        .HasColumnType("date")
+                        .HasColumnName("OPEN_DATE");
+
+                    b.Property<decimal>("OpeningAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OPENING_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("SubsidyAccountId")
+                        .HasName("PK_MFF_SUBSIDY_ACCOUNTS");
+
+                    b.HasIndex("AccountNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MFF_SUBSIDY_ACCOUNTS_ACCOUNT_NO");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_MFF_SUBSIDY_ACCOUNTS_LOAN_ID");
+
+                    b.ToTable("MFF_SUBSIDY_ACCOUNTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffSubsidyApproval", b =>
+                {
+                    b.Property<long>("SubsidyApprovalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBSIDY_APPROVAL_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SubsidyApprovalId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateOnly?>("ApprovalDate")
+                        .HasColumnType("date")
+                        .HasColumnName("APPROVAL_DATE");
+
+                    b.Property<string>("ApprovalNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("APPROVAL_NO");
+
+                    b.Property<string>("ApprovalStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("APPROVAL_STATUS");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("DownpaymentSupport")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DOWNPAYMENT_SUPPORT");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EXPIRY_DATE");
+
+                    b.Property<string>("FundNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("FUND_NOTES");
+
+                    b.Property<decimal?>("InstallmentSupportNpv")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INSTALLMENT_SUPPORT_NPV");
+
+                    b.Property<bool>("IsDedicatedAccount")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_DEDICATED_ACCOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SupportTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("SUPPORT_TYPE_CODE");
+
+                    b.Property<decimal?>("TotalSupport")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_SUPPORT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("SubsidyApprovalId")
+                        .HasName("PK_MFF_SUBSIDY_APPROVALS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_SUBSIDY_APPROVALS_APPLICATION_ID");
+
+                    b.HasIndex("SupportTypeCode")
+                        .HasDatabaseName("IX_MFF_SUBSIDY_APPROVALS_SUPPORT_TYPE_CODE");
+
+                    b.ToTable("MFF_SUBSIDY_APPROVALS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffSubsidyMovement", b =>
+                {
+                    b.Property<long>("MovementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("MOVEMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MovementId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("AMOUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DescriptionAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION_AR");
+
+                    b.Property<long?>("InstallmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("INSTALLMENT_ID");
+
+                    b.Property<DateOnly>("MovementDate")
+                        .HasColumnType("date")
+                        .HasColumnName("MOVEMENT_DATE");
+
+                    b.Property<string>("MovementType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("MOVEMENT_TYPE");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REFERENCE_NO");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long>("SubsidyAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBSIDY_ACCOUNT_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("MovementId")
+                        .HasName("PK_MFF_SUBSIDY_MOVEMENTS");
+
+                    b.HasIndex("InstallmentId")
+                        .HasDatabaseName("IX_MFF_SUBSIDY_MOVEMENTS_INSTALLMENT_ID");
+
+                    b.HasIndex("SubsidyAccountId")
+                        .HasDatabaseName("IX_MFF_SUBSIDY_MOVEMENTS_SUBSIDY_ACCOUNT_ID");
+
+                    b.ToTable("MFF_SUBSIDY_MOVEMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffWorkAssignment", b =>
+                {
+                    b.Property<long>("AssignmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ASSIGNMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AssignmentId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ASSIGNED_AT");
+
+                    b.Property<string>("AssignedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ASSIGNED_BY");
+
+                    b.Property<string>("AssignedTo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ASSIGNED_TO");
+
+                    b.Property<string>("AssignmentStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ASSIGNMENT_STATUS");
+
+                    b.Property<string>("AssignmentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ASSIGNMENT_TYPE");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("COMPLETED_AT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DUE_DATE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AssignmentId")
+                        .HasName("PK_MFF_WORK_ASSIGNMENTS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_MFF_WORK_ASSIGNMENTS_APPLICATION_ID");
+
+                    b.ToTable("MFF_WORK_ASSIGNMENTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountPayment", b =>
                 {
                     b.Property<long>("PaymentId")
@@ -25677,6 +31689,896 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("TargetFiscalYearId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_GL_YEAR_END_CLOSE_RUNS_GL_FISCAL_YEARS_TARGET_FISCAL_YEAR_ID");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_ACCOUNTING_ENTRIES_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpAccountEvent", null)
+                        .WithMany()
+                        .HasForeignKey("EventCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_ACCOUNTING_ENTRIES_MFF_LKP_ACCOUNT_EVENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_ACCOUNTING_ENTRIES_MFF_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAppeal", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPEALS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpDecisionCode", null)
+                        .WithMany()
+                        .HasForeignKey("DecisionCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_APPEALS_MFF_LKP_DECISION_CODES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffCreditDecision", null)
+                        .WithMany()
+                        .HasForeignKey("RejectionDecisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_APPEALS_MFF_CREDIT_DECISIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplication", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FinancierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATIONS_MFF_ORGANIZATIONS_FINANCIER_ID");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FundOrgId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATIONS_MFF_ORGANIZATIONS_FUND_ORG_ID");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffImportStaging", null)
+                        .WithMany()
+                        .HasForeignKey("ImportStagingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_APPLICATIONS_MFF_IMPORT_STAGINGS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffPerson", null)
+                        .WithMany()
+                        .HasForeignKey("PrimaryPersonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATIONS_MFF_PERSONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProgramVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ProgramVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATIONS_MFF_PROGRAM_VERSIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpSourceChannel", null)
+                        .WithMany()
+                        .HasForeignKey("SourceChannelCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATIONS_MFF_LKP_SOURCE_CHANNELS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpApplicationStatus", null)
+                        .WithMany()
+                        .HasForeignKey("StatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATIONS_MFF_LKP_APPLICATION_STATUSES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationDocument", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATION_DOCUMENTS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpDocumentType", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATION_DOCUMENTS_MFF_LKP_DOCUMENT_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffPerson", null)
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_APPLICATION_DOCUMENTS_MFF_PERSONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationParty", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATION_PARTIES_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpPartyRole", null)
+                        .WithMany()
+                        .HasForeignKey("PartyRoleCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATION_PARTIES_MFF_LKP_PARTY_ROLES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffPerson", null)
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATION_PARTIES_MFF_PERSONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationProperty", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATION_PROPERTYS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProperty", null)
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATION_PROPERTYS_MFF_PROPERTIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationStatusHist", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATION_STATUS_HIST_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpApplicationStatus", null)
+                        .WithMany()
+                        .HasForeignKey("NewStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPLICATION_STATUS_HIST_MFF_LKP_APPLICATION_STA_DE3D331C");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpApplicationStatus", null)
+                        .WithMany()
+                        .HasForeignKey("OldStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_APPLICATION_STATUS_HIST_MFF_LKP_APPLICATION_STA_9F8B368C");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpUserRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_APPLICATION_STATUS_HIST_MFF_LKP_USER_ROLES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAppraisal", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPRAISALS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("AppraiserOrgId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_APPRAISALS_MFF_ORGANIZATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProperty", null)
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_APPRAISALS_MFF_PROPERTIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplicationDocument", null)
+                        .WithMany()
+                        .HasForeignKey("ReportDocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_APPRAISALS_MFF_APPLICATION_DOCUMENTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCalculationRun", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_CALCULATION_RUNS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FinancierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_CALCULATION_RUNS_MFF_ORGANIZATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProgramVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ProgramVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CALCULATION_RUNS_MFF_PROGRAM_VERSIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCalculationSchedule", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffCalculationRun", null)
+                        .WithMany()
+                        .HasForeignKey("CalcRunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CALCULATION_SCHEDULES_MFF_CALCULATION_RUNS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffContract", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CONTRACTS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffPerson", null)
+                        .WithMany()
+                        .HasForeignKey("BuyerPersonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CONTRACTS_MFF_PERSONS_BUYER_PERSON_ID");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplicationDocument", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_CONTRACTS_MFF_APPLICATION_DOCUMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FinancierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CONTRACTS_MFF_ORGANIZATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProperty", null)
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CONTRACTS_MFF_PROPERTIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffPerson", null)
+                        .WithMany()
+                        .HasForeignKey("SellerPersonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_CONTRACTS_MFF_PERSONS_SELLER_PERSON_ID");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCreditDecision", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CREDIT_DECISIONS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpDecisionCode", null)
+                        .WithMany()
+                        .HasForeignKey("DecisionCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CREDIT_DECISIONS_MFF_LKP_DECISION_CODES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCreditInquiry", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CREDIT_INQUIRIES_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("BureauOrgId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CREDIT_INQUIRIES_MFF_ORGANIZATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplicationDocument", null)
+                        .WithMany()
+                        .HasForeignKey("ReportDocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_CREDIT_INQUIRIES_MFF_APPLICATION_DOCUMENTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffCreditStudy", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_CREDIT_STUDIES_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpDecisionCode", null)
+                        .WithMany()
+                        .HasForeignKey("RecommendationCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_CREDIT_STUDIES_MFF_LKP_DECISION_CODES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffDelinquency", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_DELINQUENCIES_MFF_LOANS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpDelinquencyStage", null)
+                        .WithMany()
+                        .HasForeignKey("StageCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_DELINQUENCIES_MFF_LKP_DELINQUENCY_STAGES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffEarlySettlement", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_EARLY_SETTLEMENTS_MFF_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffFinanceOffer", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_FINANCE_OFFERS_MFF_APPLICATIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffGlAccountMap", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpAccountEvent", null)
+                        .WithMany()
+                        .HasForeignKey("EventCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_GL_ACCOUNT_MAPS_MFF_LKP_ACCOUNT_EVENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FinancierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_GL_ACCOUNT_MAPS_MFF_ORGANIZATIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffHousingProject", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffHousingAnnouncement", null)
+                        .WithMany()
+                        .HasForeignKey("AnnouncementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_HOUSING_PROJECTS_MFF_HOUSING_ANNOUNCEMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpCity", null)
+                        .WithMany()
+                        .HasForeignKey("CityCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_HOUSING_PROJECTS_MFF_LKP_CITYS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpGovernorate", null)
+                        .WithMany()
+                        .HasForeignKey("GovernorateCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_HOUSING_PROJECTS_MFF_LKP_GOVERNORATES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffImportBatch", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FinancierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_IMPORT_BATCHES_MFF_ORGANIZATIONS_FINANCIER_ID");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FundOrgId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_IMPORT_BATCHES_MFF_ORGANIZATIONS_FUND_ORG_ID");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProgramVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ProgramVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_IMPORT_BATCHES_MFF_PROGRAM_VERSIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpSourceChannel", null)
+                        .WithMany()
+                        .HasForeignKey("SourceChannelCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_IMPORT_BATCHES_MFF_LKP_SOURCE_CHANNELS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffImportStaging", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_IMPORT_STAGINGS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffImportBatch", null)
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_IMPORT_STAGINGS_MFF_IMPORT_BATCHES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffIncomeSource", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplicationParty", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationPartyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_INCOME_SOURCES_MFF_APPLICATION_PARTIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpIncomeType", null)
+                        .WithMany()
+                        .HasForeignKey("IncomeTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_INCOME_SOURCES_MFF_LKP_INCOME_TYPES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffInstallment", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_INSTALLMENTS_MFF_LOANS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpPaymentStatus", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_INSTALLMENTS_MFF_LKP_PAYMENT_STATUSES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffInsurancePolicy", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("InsurerOrgId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_INSURANCE_POLICIES_MFF_ORGANIZATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_INSURANCE_POLICIES_MFF_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLegalAction", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_LEGAL_ACTIONS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_LEGAL_ACTIONS_MFF_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLegalReview", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LEGAL_REVIEWS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProperty", null)
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_LEGAL_REVIEWS_MFF_PROPERTIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpCity", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpGovernorate", null)
+                        .WithMany()
+                        .HasForeignKey("GovernorateCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LKP_CITYS_MFF_LKP_GOVERNORATES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpStatusTransition", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpApplicationStatus", null)
+                        .WithMany()
+                        .HasForeignKey("FromStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LKP_STATUS_TRANSITIONS_MFF_LKP_APPLICATION_STAT_A02ACA4E");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpUserRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_LKP_STATUS_TRANSITIONS_MFF_LKP_USER_ROLES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpApplicationStatus", null)
+                        .WithMany()
+                        .HasForeignKey("ToStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LKP_STATUS_TRANSITIONS_MFF_LKP_APPLICATION_STAT_F920E979");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLoan", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LOANS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffContract", null)
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LOANS_MFF_CONTRACTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLoanEvent", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpEventType", null)
+                        .WithMany()
+                        .HasForeignKey("EventTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LOAN_EVENTS_MFF_LKP_EVENT_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LOAN_EVENTS_MFF_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLoanMonthlySnapshot", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LOAN_MONTHLY_SNAPSHOTS_MFF_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLoanRestructuring", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_LOAN_RESTRUCTURINGS_MFF_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffOrganization", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpOrgType", null)
+                        .WithMany()
+                        .HasForeignKey("OrgTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_ORGANIZATIONS_MFF_LKP_ORG_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpRegulator", null)
+                        .WithMany()
+                        .HasForeignKey("RegulatorCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_ORGANIZATIONS_MFF_LKP_REGULATORS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffPayment", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffInstallment", null)
+                        .WithMany()
+                        .HasForeignKey("InstallmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PAYMENTS_MFF_INSTALLMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PAYMENTS_MFF_LOANS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpPaymentStatus", null)
+                        .WithMany()
+                        .HasForeignKey("StatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PAYMENTS_MFF_LKP_PAYMENT_STATUSES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffPerson", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpEmploymentType", null)
+                        .WithMany()
+                        .HasForeignKey("EmploymentTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PERSONS_MFF_LKP_EMPLOYMENT_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpMaritalStatus", null)
+                        .WithMany()
+                        .HasForeignKey("MaritalStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PERSONS_MFF_LKP_MARITAL_STATUSES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProgramDocRequirement", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpDocumentType", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PROGRAM_DOC_REQUIREMENTS_MFF_LKP_DOCUMENT_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpEmploymentType", null)
+                        .WithMany()
+                        .HasForeignKey("EmploymentTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROGRAM_DOC_REQUIREMENTS_MFF_LKP_EMPLOYMENT_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpPartyRole", null)
+                        .WithMany()
+                        .HasForeignKey("PartyRoleCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROGRAM_DOC_REQUIREMENTS_MFF_LKP_PARTY_ROLES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProgramVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ProgramVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PROGRAM_DOC_REQUIREMENTS_MFF_PROGRAM_VERSIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProgramParam", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FinancierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROGRAM_PARAMS_MFF_ORGANIZATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProgramVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ProgramVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PROGRAM_PARAMS_MFF_PROGRAM_VERSIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProgramParamHist", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FinancierOrgId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROGRAM_PARAM_HIST_MFF_ORGANIZATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProgramParam", null)
+                        .WithMany()
+                        .HasForeignKey("ParamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PROGRAM_PARAM_HIST_MFF_PROGRAM_PARAMS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProgramVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ProgramVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PROGRAM_PARAM_HIST_MFF_PROGRAM_VERSIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProgramVersion", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProtocol", null)
+                        .WithMany()
+                        .HasForeignKey("ProtocolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROGRAM_VERSIONS_MFF_PROTOCOLS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProperty", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpCity", null)
+                        .WithMany()
+                        .HasForeignKey("CityCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROPERTIES_MFF_LKP_CITYS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpGovernorate", null)
+                        .WithMany()
+                        .HasForeignKey("GovernorateCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROPERTIES_MFF_LKP_GOVERNORATES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffHousingProject", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROPERTIES_MFF_HOUSING_PROJECTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpPropertyRegStatus", null)
+                        .WithMany()
+                        .HasForeignKey("RegistrationStatusCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROPERTIES_MFF_LKP_PROPERTY_REG_STATUSES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffPerson", null)
+                        .WithMany()
+                        .HasForeignKey("SellerPersonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_PROPERTIES_MFF_PERSONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProtocol", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("FundOrgId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PROTOCOLS_MFF_ORGANIZATIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffProtocolParty", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffOrganization", null)
+                        .WithMany()
+                        .HasForeignKey("OrgId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PROTOCOL_PARTIES_MFF_ORGANIZATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffProtocol", null)
+                        .WithMany()
+                        .HasForeignKey("ProtocolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_PROTOCOL_PARTIES_MFF_PROTOCOLS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffReviewCheck", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_REVIEW_CHECKS_MFF_APPLICATIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffSubsidyAccount", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_SUBSIDY_ACCOUNTS_MFF_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffSubsidyApproval", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_SUBSIDY_APPROVALS_MFF_APPLICATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffLkpSupportType", null)
+                        .WithMany()
+                        .HasForeignKey("SupportTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_SUBSIDY_APPROVALS_MFF_LKP_SUPPORT_TYPES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffSubsidyMovement", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffInstallment", null)
+                        .WithMany()
+                        .HasForeignKey("InstallmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MFF_SUBSIDY_MOVEMENTS_MFF_INSTALLMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffSubsidyAccount", null)
+                        .WithMany()
+                        .HasForeignKey("SubsidyAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_SUBSIDY_MOVEMENTS_MFF_SUBSIDY_ACCOUNTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffWorkAssignment", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mff.MffApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MFF_WORK_ASSIGNMENTS_MFF_APPLICATIONS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountPayment", b =>

@@ -14,7 +14,7 @@ namespace Capitra.Tests.Persistence;
 public sealed partial class NamingStandardTests
 {
     private static readonly string[] ModulePrefixes =
-        ["ADM_", "MTG_", "FCT_", "FIN_", "GL_", "WFE_", "CHW_", "COL_", "CRM_", "TRS_", "TLS_", "SEC_", "RPT_", "SYS_"];
+        ["ADM_", "MTG_", "MFF_", "FCT_", "FIN_", "GL_", "WFE_", "CHW_", "COL_", "CRM_", "TRS_", "TLS_", "SEC_", "RPT_", "SYS_"];
 
     private static readonly string[] AuditColumns = ["CREATED_BY", "CREATED_AT", "UPDATED_BY", "UPDATED_AT", "ROW_VERSION"];
 

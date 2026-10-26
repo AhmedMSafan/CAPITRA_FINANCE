@@ -34,6 +34,8 @@ AUDIT_MAP = {'CREATED_BY': 'CreatedBy', 'CREATED_DT': 'CreatedAt', 'CREATED_AT':
              'CREATED_DATE': 'CreatedAt', 'UPDATED_DATE': 'UpdatedAt', 'LAST_MODIFIED_BY': 'UpdatedBy', 'LAST_MODIFIED_DATE': 'UpdatedAt'}
 # Oracle table -> [Capitra table, class] where the default rules below do not give the agreed name.
 NAMES = {k: v for k, v in json.load(open(os.path.join(os.path.dirname(__file__), 'names.json'))).items() if not k.startswith('_')}
+# generic column names the naming standard does not allow alone: they are qualified by the table
+BARE = {'ID', 'NAME', 'TYPE', 'STATUS', 'DATE', 'VALUE', 'CODE_ID', 'DESC'}
 CS_KEYWORDS = {'Type', 'Object', 'String', 'Decimal', 'Base', 'Event', 'Checked', 'Operator', 'Params', 'Lock'}
 AMOUNT_WORDS = ('AMOUNT', 'AMT', 'BALANCE', 'TOTAL', 'DR', 'CR', 'DEBIT', 'CREDIT', 'PRICE', 'VALUE',
                 'COST', 'FEE', 'PRINCIPAL', 'INTEREST', 'VARIANCE', 'TOLERANCE', 'LIMIT', 'DIFFERENCE')
@@ -73,10 +75,21 @@ def singular(word):
     return w
 
 
+# Oracle prefix -> Capitra prefix for whole modules (REF_ lookups become <module>_LKP_)
+PREFIXES = {'FNV_': 'CAP_', 'REF_MFF_': 'MFF_LKP_'}
+
+
+def reprefix(oracle):
+    for a, b in PREFIXES.items():
+        if oracle.startswith(a):
+            return b + oracle[len(a):]
+    return oracle
+
+
 def table_name(oracle):
     if oracle in NAMES:
         return NAMES[oracle][0]
-    t = oracle.replace('FNV_', 'CAP_', 1) if oracle.startswith('FNV_') else oracle
+    t = reprefix(oracle)
     t = re.sub(r'_HISTORY$', '_HIST', t)
     last = t.split('_')[-1]
     if last not in ('HIST',) and not (last.endswith('S') and last not in ('STATUS', 'ADDRESS', 'CLASS', 'BASIS')):
@@ -87,7 +100,7 @@ def table_name(oracle):
 def class_name(oracle):
     if oracle in NAMES:
         return NAMES[oracle][1]
-    t = oracle.replace('FNV_', 'CAP_', 1) if oracle.startswith('FNV_') else oracle
+    t = reprefix(oracle)
     parts = t.split('_')
     if parts[-1] == 'HISTORY':
         return pascal('_'.join(parts))
@@ -220,6 +233,8 @@ def main():
                 flag = True
 
             name = on.replace('FNV', 'CAP')
+            if name in BARE:  # MFF_DELINQUENCIES.STATUS -> DELINQUENCY_STATUS
+                name = '_'.join(tbl.split('_')[1:-1] + [singular(tbl.split('_')[-1]), name])
             comment = None
             init = None
             dflt = (c['DATA_DEFAULT_VC'] or '').strip().strip('\n').strip()
