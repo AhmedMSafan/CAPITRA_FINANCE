@@ -290,7 +290,8 @@ def main():
             page['css'] = read(os.path.join(i['dir'], 'page.css')).strip()
         # Before Header processes: the PAGE_LOAD process (sql-<app>/loads, or ported by hand) sets the page's items
         procs = os.path.join(i['dir'], 'processes')
-        if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sql-%d' % app, 'loads', 'P%d.sql' % p)) or (
+        loads = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sql-%d' % app, 'loads')
+        if any(os.path.exists(os.path.join(loads, n % p)) for n in ('P%d.sql', 'P%04d.sql')) or (
                 os.path.isdir(procs) and not any(r['type'] == 'NATIVE_FORM' for r in i['regions'])
                 and any('point: BEFORE_HEADER' in read(os.path.join(procs, f)) for f in os.listdir(procs))):
             page['load'] = True

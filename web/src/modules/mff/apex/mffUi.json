@@ -1,0 +1,1100 @@
+{
+ "dict": {
+  "Dashboard": "لوحة المعلومات",
+  "Fund Intake": "استلام ملفات الصندوق",
+  "Import Batches": "دفعات الاستيراد",
+  "Staging Cases": "حالات الاستقبال",
+  "Upload Fund File": "رفع ملف الصندوق",
+  "Process Batch": "معالجة الدفعة",
+  "Origination": "منح التمويل",
+  "Financing": "التمويل",
+  "Servicing & Collections": "خدمة التمويل والتحصيل",
+  "MIS & Reports": "التقارير والإدارة",
+  "Upload Parameters": "بيانات التحميل",
+  "Program Version": "إصدار البرنامج",
+  "Financier": "جهة التمويل",
+  "Fund": "الصندوق",
+  "Excel File": "ملف Excel",
+  "Notes": "ملاحظات",
+  "Batch ID": "رقم الدفعة",
+  "Upload & Stage": "تحميل وتجهيز",
+  "Open Batch": "فتح الدفعة",
+  "Applicant & Application": "بيانات العميل والطلب",
+  "Application & Applicant Details": "بيانات الطلب والعميل",
+  "Application No.": "رقم الطلب",
+  "Fund File No.": "رقم ملف الصندوق",
+  "Applicant Full Name": "اسم العميل",
+  "National ID": "الرقم القومي",
+  "Birth Date": "تاريخ الميلاد",
+  "Gender": "النوع",
+  "Marital Status": "الحالة الاجتماعية",
+  "Mobile": "المحمول",
+  "Email": "البريد الإلكتروني",
+  "Current Address": "العنوان الحالي",
+  "Employment Type": "نوع العمل",
+  "Employer": "جهة العمل",
+  "Hire / Activity Start Date": "تاريخ التعيين أو بدء النشاط",
+  "Requested Finance": "التمويل المطلوب",
+  "Property Price": "قيمة الوحدة",
+  "Customer Downpayment": "مقدم العميل",
+  "Save Changes": "حفظ التعديلات",
+  "Income Sources": "مصادر الدخل",
+  "Add Income Source": "إضافة مصدر دخل",
+  "Income Type": "نوع الدخل",
+  "Monthly Net Income": "صافي الدخل الشهري",
+  "Annual Net Income": "صافي الدخل السنوي",
+  "Verified": "تم التحقق",
+  "Verification Date": "تاريخ التحقق",
+  "Source Reference": "مرجع المستند",
+  "Add Income": "إضافة الدخل",
+  "Mortgage Calculator": "حاسبة التمويل العقاري",
+  "Calculation Inputs": "مدخلات الحاسبة",
+  "Application ID": "رقم الطلب",
+  "Annual Rate %": "سعر العائد %",
+  "Term Years": "مدة التمويل بالسنوات",
+  "Annual Payment Growth %": "الزيادة السنوية للقسط %",
+  "Growth Years": "سنوات الزيادة",
+  "Max Payment to Income %": "الحد الأقصى للقسط من الدخل %",
+  "Downpayment Assistance": "دعم المقدم",
+  "Monthly Payment Subsidy": "دعم القسط الشهري",
+  "Subsidy Months": "أشهر الدعم",
+  "Discount Rate %": "معدل الخصم %",
+  "Calculate": "احتساب",
+  "Mortgage Loan": "مبلغ التمويل",
+  "Initial Payment": "القسط الأول",
+  "Total Subsidy": "إجمالي الدعم",
+  "LTV %": "نسبة التمويل",
+  "Borrower Downpayment": "مقدم العميل",
+  "Property Value": "قيمة الوحدة",
+  "Max Property Value": "أقصى قيمة للوحدة",
+  "Negative Amortization": "استهلاك سالب",
+  "Calculation Results": "نتائج الحاسبة",
+  "Process Fund Batch": "معالجة دفعة الصندوق",
+  "Batch Processing": "معالجة الدفعة",
+  "Batch Staging Rows": "سجلات الدفعة المؤقتة",
+  "File Name": "اسم الملف",
+  "Batch Status": "حالة الدفعة",
+  "Rows": "عدد السجلات",
+  "Applications Created": "طلبات تم إنشاؤها",
+  "Errors": "أخطاء",
+  "Load Batch": "تحميل بيانات الدفعة",
+  "Create Applications": "إنشاء الطلبات",
+  "Open Staging": "فتح السجلات",
+  "Review the staged Fund file and create mortgage applications from validated cases.": "مراجعة ملف الصندوق المرحلي وإنشاء طلبات التمويل من الحالات الصحيحة",
+  "Fund Subsidy": "دعم الصندوق",
+  "Subsidy Approval": "موافقة الدعم",
+  "Support Type": "نوع الدعم",
+  "Eligibility / Approval No.": "رقم شهادة الصلاحية أو الموافقة",
+  "Approval Date": "تاريخ الموافقة",
+  "Expiry Date": "تاريخ الانتهاء",
+  "Installment Support NPV": "القيمة الحالية لدعم الأقساط",
+  "Downpayment Support": "دعم المقدم",
+  "Total Support": "إجمالي الدعم",
+  "Dedicated Subsidy Account": "الحساب المجنب للدعم",
+  "Approval Status": "حالة الموافقة",
+  "Fund Notes": "ملاحظات الصندوق",
+  "Save Subsidy": "حفظ الدعم",
+  "Record the Fund eligibility approval, subsidy structure and certificate validity.": "تسجيل موافقة الصندوق وهيكل الدعم وصلاحية الشهادة",
+  "Finance Offer": "عرض التمويل",
+  "Offer No.": "رقم العرض",
+  "Offer Date": "تاريخ العرض",
+  "Finance Amount": "مبلغ التمويل",
+  "Term Months": "المدة بالشهور",
+  "Initial Installment": "القسط الأول",
+  "Downpayment": "المقدم",
+  "Subsidy": "الدعم",
+  "Offer Status": "حالة العرض",
+  "Accepted Date": "تاريخ القبول",
+  "Save Offer": "حفظ العرض",
+  "Prepare the approved financing terms and track customer acceptance.": "إعداد شروط التمويل المعتمدة ومتابعة قبول العميل",
+  "Tripartite Contract": "العقد الثلاثي",
+  "Contract Details": "بيانات العقد",
+  "Contract No.": "رقم العقد",
+  "Contract Date": "تاريخ العقد",
+  "Seller Person ID": "رقم البائع",
+  "Signed by Parties": "تم التوقيع من الأطراف",
+  "Contract Status": "حالة العقد",
+  "Save Contract": "حفظ العقد",
+  "Capture the tripartite agreement between the customer, financier and property seller.": "تسجيل الاتفاق الثلاثي بين العميل وجهة التمويل وبائع الوحدة",
+  "Disbursement": "صرف التمويل",
+  "Loan & Disbursement": "التمويل والصرف",
+  "Generated Installments": "الأقساط المنشأة",
+  "Contract ID": "رقم العقد",
+  "Loan Account No.": "رقم حساب التمويل",
+  "Disbursement Date": "تاريخ الصرف",
+  "Principal Amount": "أصل التمويل",
+  "Maturity Date": "تاريخ الاستحقاق النهائي",
+  "First Due Date": "تاريخ أول قسط",
+  "Annual Installment Growth %": "الزيادة السنوية للقسط %",
+  "Core System Reference": "مرجع النظام الأساسي",
+  "Loan ID": "رقم التمويل",
+  "Disburse & Generate Schedule": "صرف وإنشاء الجدول",
+  "Open the loan account, record disbursement and generate the installment schedule.": "فتح حساب التمويل وتسجيل الصرف وإنشاء جدول الأقساط",
+  "Row": "السجل",
+  "Applicant": "العميل",
+  "Monthly Income": "الدخل الشهري",
+  "Finance": "التمويل",
+  "Status": "الحالة",
+  "Error": "الخطأ",
+  "No.": "رقم القسط",
+  "Due Date": "تاريخ الاستحقاق",
+  "Opening Principal": "رصيد أول المدة",
+  "Borrower Due": "المستحق على العميل",
+  "Principal": "الأصل",
+  "Interest": "العائد",
+  "Closing Principal": "رصيد آخر المدة",
+  "Fund Rules + Financier Parameters": "قواعد الصندوق ومحددات جهة التمويل",
+  "Post Payment": "تسجيل سداد",
+  "Payment Posting": "تسجيل السداد",
+  "Payment Date": "تاريخ السداد",
+  "Payment Amount": "مبلغ السداد",
+  "Payment Channel": "قناة السداد",
+  "Reference No.": "رقم المرجع",
+  "Payment ID": "رقم السداد",
+  "Outstanding Principal": "الرصيد القائم",
+  "Next Due Date": "تاريخ القسط القادم",
+  "Load Loan": "تحميل التمويل",
+  "Post Payment Now": "تسجيل السداد الآن",
+  "Payment History": "سجل السداد",
+  "Delinquency Case": "ملف التعثر",
+  "Collection Case": "ملف التحصيل",
+  "Days Past Due": "أيام التأخير",
+  "Overdue Amount": "المبلغ المتأخر",
+  "Overdue Installments": "الأقساط المتأخرة",
+  "Delinquency Stage": "مرحلة التعثر",
+  "Collection Action": "إجراء التحصيل",
+  "Refresh Delinquency": "تحديث التعثر",
+  "Save Collection Action": "حفظ إجراء التحصيل",
+  "Early Settlement": "السداد المعجل",
+  "Settlement Request": "طلب السداد المعجل",
+  "Settlement Type": "نوع السداد",
+  "Principal to Settle": "أصل التمويل المطلوب سداده",
+  "Finance % Settled": "نسبة التمويل المسددة",
+  "Subsidy Refund %": "نسبة رد الدعم",
+  "Subsidy Refund Amount": "قيمة رد الدعم",
+  "Calculate Refund": "احتساب رد الدعم",
+  "Save Request": "حفظ الطلب",
+  "Restructuring": "إعادة الجدولة",
+  "Restructuring Request": "طلب إعادة الجدولة",
+  "Request Date": "تاريخ الطلب",
+  "Effective Date": "تاريخ السريان",
+  "Reason": "السبب",
+  "Old Term Months": "المدة القديمة",
+  "New Term Months": "المدة الجديدة",
+  "Old Rate %": "العائد القديم",
+  "New Rate %": "العائد الجديد",
+  "Old Installment": "القسط القديم",
+  "New Installment": "القسط الجديد",
+  "Capitalized Arrears": "المتأخرات المرسملة",
+  "Legal Actions": "الإجراءات القانونية",
+  "Legal Action": "إجراء قانوني",
+  "Action Type": "نوع الإجراء",
+  "Action Date": "تاريخ الإجراء",
+  "Case No.": "رقم القضية",
+  "Outcome": "النتيجة",
+  "Next Action Date": "تاريخ الإجراء التالي",
+  "Loan Events": "أحداث التمويل",
+  "Loan Event": "حدث التمويل",
+  "Event Type": "نوع الحدث",
+  "Event Date": "تاريخ الحدث",
+  "Reported Date": "تاريخ الإبلاغ",
+  "Details": "التفاصيل",
+  "Resolution": "المعالجة",
+  "Fund Monthly Report": "التقرير الشهري للصندوق",
+  "Portfolio Summary": "ملخص المحفظة",
+  "Delinquency MIS": "تحليل التعثر",
+  "Origination Funnel": "قمع منح التمويل",
+  "Turnaround Time": "زمن الإنجاز",
+  "Subsidy MIS": "تحليل الدعم",
+  "Geography MIS": "التحليل الجغرافي",
+  "Refresh Current Snapshot": "تحديث لقطة الشهر الحالي",
+  "Workflow & Controls": "سير العمل والضوابط",
+  "Workflow Control": "التحكم في سير العمل",
+  "Current Status": "الحالة الحالية",
+  "Current Owner": "المسؤول الحالي",
+  "Role": "الدور",
+  "Target Status": "الحالة المستهدفة",
+  "Transition Remarks": "ملاحظات الانتقال",
+  "Apply Transition": "تنفيذ الانتقال",
+  "Work Assignment": "إسناد مهمة",
+  "Assignment Type": "نوع المهمة",
+  "Assigned To": "المكلف",
+  "Assignment Notes": "ملاحظات المهمة",
+  "Assign Work": "إسناد المهمة",
+  "Open Assignment": "المهمة المفتوحة",
+  "Complete Task": "إتمام المهمة",
+  "Status History": "تاريخ الحالات",
+  "Application Readiness": "جاهزية الطلب",
+  "Readiness %": "نسبة الجاهزية",
+  "Open Tasks": "المهام المفتوحة",
+  "Overdue Tasks": "المهام المتأخرة",
+  "Next Allowed Status": "الحالة التالية المتاحة",
+  "Review Control": "ضبط المراجعة",
+  "Document Verification": "مراجعة المستند",
+  "Document": "المستند",
+  "Verification Status": "حالة المراجعة",
+  "Rejection Reason": "سبب الرفض",
+  "Update Document": "تحديث المستند",
+  "Review Check": "بند المراجعة",
+  "Check Type": "نوع الفحص",
+  "Check Code": "كود الفحص",
+  "Check Result": "نتيجة الفحص",
+  "Check Notes": "ملاحظات الفحص",
+  "Add Check": "إضافة فحص",
+  "Load Application": "تحميل الطلب",
+  "Readiness Details": "تفاصيل الجاهزية",
+  "Milestone": "المرحلة",
+  "Ready": "جاهز",
+  "Evidence": "الدليل"
+ },
+ "layouts": {
+  "12": [
+   [
+    "fund-upload-form",
+    [
+     [
+      "P12_PROGRAM_VERSION_ID",
+      4
+     ],
+     [
+      "P12_FINANCIER_ID",
+      4
+     ],
+     [
+      "P12_FUND_ORG_ID",
+      4
+     ],
+     [
+      "P12_FILE",
+      6
+     ],
+     [
+      "P12_BATCH_ID",
+      6
+     ],
+     [
+      "P12_NOTES",
+      12
+     ]
+    ]
+   ]
+  ],
+  "13": [
+   [
+    "batch-process-form",
+    [
+     [
+      "P13_BATCH_ID",
+      3
+     ],
+     [
+      "P13_FILE_NAME",
+      5
+     ],
+     [
+      "P13_BATCH_STATUS",
+      4
+     ],
+     [
+      "P13_ROWS",
+      4
+     ],
+     [
+      "P13_IMPORTED",
+      4
+     ],
+     [
+      "P13_ERRORS",
+      4
+     ]
+    ]
+   ]
+  ],
+  "22": [
+   [
+    "applicant-form",
+    [
+     [
+      "P22_APPLICATION_NO",
+      3
+     ],
+     [
+      "P22_FUND_FILE_NO",
+      3
+     ],
+     [
+      "P22_FULL_NAME_AR",
+      6
+     ],
+     [
+      "P22_NATIONAL_ID",
+      4
+     ],
+     [
+      "P22_BIRTH_DATE",
+      4
+     ],
+     [
+      "P22_GENDER_CODE",
+      4
+     ],
+     [
+      "P22_MARITAL_STATUS_CODE",
+      4
+     ],
+     [
+      "P22_MOBILE_NO",
+      4
+     ],
+     [
+      "P22_EMAIL",
+      4
+     ],
+     [
+      "P22_ADDRESS_AR",
+      12
+     ],
+     [
+      "P22_EMPLOYMENT_TYPE_CODE",
+      4
+     ],
+     [
+      "P22_EMPLOYER_NAME",
+      8
+     ],
+     [
+      "P22_HIRE_DATE",
+      4
+     ],
+     [
+      "P22_REQUESTED_FINANCE_AMOUNT",
+      4
+     ],
+     [
+      "P22_PROPERTY_PRICE",
+      4
+     ],
+     [
+      "P22_DOWNPAYMENT_AMOUNT",
+      4
+     ]
+    ]
+   ]
+  ],
+  "23": [
+   [
+    "income-form",
+    [
+     [
+      "P23_INCOME_TYPE_CODE",
+      4
+     ],
+     [
+      "P23_EMPLOYER_NAME",
+      8
+     ],
+     [
+      "P23_MONTHLY_NET_INCOME",
+      3
+     ],
+     [
+      "P23_ANNUAL_NET_INCOME",
+      3
+     ],
+     [
+      "P23_VERIFIED_FLAG",
+      3
+     ],
+     [
+      "P23_VERIFICATION_DATE",
+      3
+     ],
+     [
+      "P23_SOURCE_REFERENCE",
+      6
+     ],
+     [
+      "P23_NOTES",
+      6
+     ]
+    ]
+   ]
+  ],
+  "80": [
+   [
+    "mff-calculator-form",
+    [
+     [
+      "P80_APPLICATION_ID",
+      4
+     ],
+     [
+      "P80_RATE",
+      4
+     ],
+     [
+      "P80_TERM_YEARS",
+      4
+     ],
+     [
+      "P80_GROWTH_PCT",
+      4
+     ],
+     [
+      "P80_GROWTH_YEARS",
+      4
+     ],
+     [
+      "P80_MAX_PTI",
+      4
+     ],
+     [
+      "P80_DP_ASSIST",
+      4
+     ],
+     [
+      "P80_MONTHLY_SUBSIDY",
+      4
+     ],
+     [
+      "P80_SUBSIDY_MONTHS",
+      4
+     ],
+     [
+      "P80_DISCOUNT_RATE",
+      4
+     ]
+    ]
+   ]
+  ],
+  "81": [
+   [
+    "subsidy-form",
+    [
+     [
+      "P81_SUPPORT_TYPE_CODE",
+      4
+     ],
+     [
+      "P81_APPROVAL_NO",
+      4
+     ],
+     [
+      "P81_APPROVAL_STATUS",
+      4
+     ],
+     [
+      "P81_APPROVAL_DATE",
+      4
+     ],
+     [
+      "P81_EXPIRY_DATE",
+      4
+     ],
+     [
+      "P81_DEDICATED_ACCOUNT_FLAG",
+      4
+     ],
+     [
+      "P81_INSTALLMENT_SUPPORT_NPV",
+      4
+     ],
+     [
+      "P81_DOWNPAYMENT_SUPPORT",
+      4
+     ],
+     [
+      "P81_TOTAL_SUPPORT",
+      4
+     ],
+     [
+      "P81_FUND_NOTES",
+      12
+     ]
+    ]
+   ]
+  ],
+  "82": [
+   [
+    "offer-form",
+    [
+     [
+      "P82_OFFER_NO",
+      4
+     ],
+     [
+      "P82_OFFER_DATE",
+      4
+     ],
+     [
+      "P82_EXPIRY_DATE",
+      4
+     ],
+     [
+      "P82_FINANCE_AMOUNT",
+      4
+     ],
+     [
+      "P82_TERM_MONTHS",
+      4
+     ],
+     [
+      "P82_ANNUAL_RATE_PCT",
+      4
+     ],
+     [
+      "P82_INITIAL_INSTALLMENT",
+      4
+     ],
+     [
+      "P82_DOWNPAYMENT_AMOUNT",
+      4
+     ],
+     [
+      "P82_SUBSIDY_AMOUNT",
+      4
+     ],
+     [
+      "P82_LTV_PCT",
+      4
+     ],
+     [
+      "P82_OFFER_STATUS",
+      4
+     ],
+     [
+      "P82_ACCEPTED_DATE",
+      4
+     ],
+     [
+      "P82_NOTES",
+      12
+     ]
+    ]
+   ]
+  ],
+  "83": [
+   [
+    "contract-form",
+    [
+     [
+      "P83_CONTRACT_NO",
+      4
+     ],
+     [
+      "P83_CONTRACT_DATE",
+      4
+     ],
+     [
+      "P83_SELLER_PERSON_ID",
+      4
+     ],
+     [
+      "P83_FINANCE_AMOUNT",
+      4
+     ],
+     [
+      "P83_PROPERTY_PRICE",
+      4
+     ],
+     [
+      "P83_SIGNED_FLAG",
+      4
+     ],
+     [
+      "P83_CONTRACT_STATUS",
+      4
+     ]
+    ]
+   ]
+  ],
+  "84": [
+   [
+    "disbursement-form",
+    [
+     [
+      "P84_CONTRACT_ID",
+      4
+     ],
+     [
+      "P84_LOAN_ACCOUNT_NO",
+      4
+     ],
+     [
+      "P84_DISBURSEMENT_DATE",
+      4
+     ],
+     [
+      "P84_PRINCIPAL_AMOUNT",
+      4
+     ],
+     [
+      "P84_ANNUAL_RATE_PCT",
+      4
+     ],
+     [
+      "P84_TERM_MONTHS",
+      4
+     ],
+     [
+      "P84_MATURITY_DATE",
+      4
+     ],
+     [
+      "P84_INITIAL_INSTALLMENT",
+      4
+     ],
+     [
+      "P84_FIRST_DUE_DATE",
+      4
+     ],
+     [
+      "P84_ANNUAL_GROWTH_PCT",
+      4
+     ],
+     [
+      "P84_GROWTH_YEARS",
+      4
+     ],
+     [
+      "P84_MONTHLY_SUBSIDY",
+      4
+     ],
+     [
+      "P84_SUBSIDY_MONTHS",
+      4
+     ],
+     [
+      "P84_CORE_SYSTEM_REF",
+      4
+     ],
+     [
+      "P84_LOAN_ID",
+      4
+     ]
+    ]
+   ]
+  ],
+  "121": [
+   [
+    "payment-post-form",
+    [
+     [
+      "P121_LOAN_ID",
+      4
+     ],
+     [
+      "P121_LOAN_ACCOUNT_NO",
+      4
+     ],
+     [
+      "P121_OUTSTANDING",
+      4
+     ],
+     [
+      "P121_NEXT_DUE",
+      4
+     ],
+     [
+      "P121_PAYMENT_DATE",
+      4
+     ],
+     [
+      "P121_AMOUNT",
+      4
+     ],
+     [
+      "P121_CHANNEL",
+      4
+     ],
+     [
+      "P121_REFERENCE_NO",
+      4
+     ],
+     [
+      "P121_PAYMENT_ID",
+      4
+     ]
+    ]
+   ]
+  ],
+  "131": [
+   [
+    "delinquency-case-form",
+    [
+     [
+      "P131_LOAN_ID",
+      4
+     ],
+     [
+      "P131_LOAN_ACCOUNT_NO",
+      4
+     ],
+     [
+      "P131_APPLICATION_NO",
+      4
+     ],
+     [
+      "P131_APPLICANT",
+      6
+     ],
+     [
+      "P131_DPD",
+      3
+     ],
+     [
+      "P131_OVERDUE_AMOUNT",
+      3
+     ],
+     [
+      "P131_OVERDUE_INSTALLMENTS",
+      3
+     ],
+     [
+      "P131_STAGE_CODE",
+      3
+     ],
+     [
+      "P131_STATUS",
+      3
+     ],
+     [
+      "P131_COLLECTION_ACTION",
+      12
+     ]
+    ]
+   ]
+  ],
+  "132": [
+   [
+    "early-settlement-form",
+    [
+     [
+      "P132_LOAN_ID",
+      4
+     ],
+     [
+      "P132_LOAN_ACCOUNT_NO",
+      4
+     ],
+     [
+      "P132_OUTSTANDING",
+      4
+     ],
+     [
+      "P132_REQUEST_DATE",
+      4
+     ],
+     [
+      "P132_SETTLEMENT_TYPE",
+      4
+     ],
+     [
+      "P132_PRINCIPAL_SETTLED",
+      4
+     ],
+     [
+      "P132_FINANCE_PCT_SETTLED",
+      4
+     ],
+     [
+      "P132_TOTAL_SUBSIDY",
+      4
+     ],
+     [
+      "P132_SUBSIDY_REFUND_PCT",
+      4
+     ],
+     [
+      "P132_SUBSIDY_REFUND_AMOUNT",
+      4
+     ],
+     [
+      "P132_NOTES",
+      12
+     ]
+    ]
+   ]
+  ],
+  "133": [
+   [
+    "restructuring-form",
+    [
+     [
+      "P133_LOAN_ID",
+      4
+     ],
+     [
+      "P133_LOAN_ACCOUNT_NO",
+      4
+     ],
+     [
+      "P133_OUTSTANDING",
+      4
+     ],
+     [
+      "P133_REQUEST_DATE",
+      4
+     ],
+     [
+      "P133_EFFECTIVE_DATE",
+      4
+     ],
+     [
+      "P133_OLD_TERM_MONTHS",
+      4
+     ],
+     [
+      "P133_NEW_TERM_MONTHS",
+      4
+     ],
+     [
+      "P133_OLD_RATE_PCT",
+      4
+     ],
+     [
+      "P133_NEW_RATE_PCT",
+      4
+     ],
+     [
+      "P133_OLD_INSTALLMENT",
+      4
+     ],
+     [
+      "P133_NEW_INSTALLMENT",
+      4
+     ],
+     [
+      "P133_CAPITALIZED_ARREARS",
+      4
+     ],
+     [
+      "P133_REASON",
+      12
+     ],
+     [
+      "P133_NOTES",
+      12
+     ]
+    ]
+   ]
+  ],
+  "134": [
+   [
+    "legal-action-form",
+    [
+     [
+      "P134_LOAN_ID",
+      4
+     ],
+     [
+      "P134_LOAN_ACCOUNT_NO",
+      4
+     ],
+     [
+      "P134_APPLICATION_ID",
+      4
+     ],
+     [
+      "P134_APPLICANT",
+      8
+     ],
+     [
+      "P134_ACTION_TYPE",
+      4
+     ],
+     [
+      "P134_ACTION_DATE",
+      4
+     ],
+     [
+      "P134_CASE_NO",
+      4
+     ],
+     [
+      "P134_STATUS",
+      4
+     ],
+     [
+      "P134_NEXT_ACTION_DATE",
+      4
+     ],
+     [
+      "P134_OUTCOME",
+      12
+     ]
+    ]
+   ]
+  ],
+  "135": [
+   [
+    "loan-event-form",
+    [
+     [
+      "P135_LOAN_ID",
+      4
+     ],
+     [
+      "P135_LOAN_ACCOUNT_NO",
+      4
+     ],
+     [
+      "P135_APPLICANT",
+      4
+     ],
+     [
+      "P135_EVENT_TYPE_CODE",
+      4
+     ],
+     [
+      "P135_EVENT_DATE",
+      4
+     ],
+     [
+      "P135_REPORTED_DATE",
+      4
+     ],
+     [
+      "P135_STATUS",
+      4
+     ],
+     [
+      "P135_DETAILS",
+      12
+     ],
+     [
+      "P135_RESOLUTION",
+      12
+     ]
+    ]
+   ]
+  ],
+  "29": [
+   [
+    "workflow-control-form",
+    [
+     [
+      "P29_APPLICATION_ID",
+      4
+     ],
+     [
+      "P29_ROLE_CODE",
+      4
+     ],
+     [
+      "P29_CURRENT_STATUS",
+      4
+     ],
+     [
+      "P29_CURRENT_OWNER",
+      4
+     ],
+     [
+      "P29_TARGET_STATUS",
+      4
+     ],
+     [
+      "P29_REMARKS",
+      12
+     ]
+    ]
+   ],
+   [
+    "work-assignment-form",
+    [
+     [
+      "P29_ASSIGNMENT_TYPE",
+      4
+     ],
+     [
+      "P29_ASSIGNED_TO",
+      4
+     ],
+     [
+      "P29_DUE_DATE",
+      4
+     ],
+     [
+      "P29_ASSIGN_NOTES",
+      8
+     ],
+     [
+      "P29_ASSIGNMENT_ID",
+      4
+     ]
+    ]
+   ]
+  ],
+  "52": [
+   [
+    "history-filter-form",
+    [
+     [
+      "P52_APPLICATION_ID",
+      8
+     ]
+    ]
+   ]
+  ],
+  "53": [
+   [
+    "readiness-filter-form",
+    [
+     [
+      "P53_APPLICATION_ID",
+      8
+     ]
+    ]
+   ]
+  ],
+  "54": [
+   [
+    "review-filter-form",
+    [
+     [
+      "P54_APPLICATION_ID",
+      8
+     ]
+    ]
+   ],
+   [
+    "document-verification-form",
+    [
+     [
+      "P54_DOCUMENT_ID",
+      4
+     ],
+     [
+      "P54_VERIFICATION_STATUS",
+      4
+     ],
+     [
+      "P54_REJECTION_REASON",
+      12
+     ]
+    ]
+   ],
+   [
+    "review-check-form",
+    [
+     [
+      "P54_CHECK_TYPE",
+      4
+     ],
+     [
+      "P54_CHECK_CODE",
+      4
+     ],
+     [
+      "P54_RESULT_CODE",
+      4
+     ],
+     [
+      "P54_CHECK_NOTES",
+      12
+     ]
+    ]
+   ]
+  ]
+ }
+}

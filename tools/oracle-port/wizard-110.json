@@ -9,7 +9,7 @@
  "permissions": [{"from": 0, "to": 9998, "view": "Permissions.Mff.View", "edit": "Permissions.Mff.Edit"}],
  "tableEdit": {"ADM_": "Permissions.Adm.LookupEdit"},
  "pages": [[1, 135]],
- "reports": [[140, 166]],
+ "reports": [[1, 166]],
  "index": "web/src/modules/mff/apex/pages.ts",
  "skip": [0, 9999],
  "custom": "all",

@@ -76,14 +76,20 @@ def main():
     reports = []
     for p in pages_of(cfg.get('reports', [])):
         d = os.path.join(app_dir, 'p%04d' % p)
-        for r in regions(d):
+        seen = {}
+        # in the page's order, as apex_wizard.py keys them: two regions with one title, the second key gets _2
+        for r in sorted(regions(d), key=lambda r: (r['type'] != 'NATIVE_BREADCRUMB', r['seq'])):
+            k = key(r['title'])
+            seen[k] = seen.get(k, 0) + 1
+            if seen[k] > 1:
+                k += '_%d' % seen[k]
             if r['type'] != 'NATIVE_IR' or r['table']:
                 continue
             body = open(os.path.join(d, 'regions', r['file']), encoding='utf-8').read().split('\n\n', 1)[1].strip()
-            name = 'P%d_%s' % (p, key(r['title']))
+            name = 'P%d_%s' % (p, k)
             sql, notes = translate(name, body)
             results.append((name, sql, check(sql), notes))
-            reports.append((p, key(r['title']), name))
+            reports.append((p, k, name))
 
     lov_items = []
     used = {}

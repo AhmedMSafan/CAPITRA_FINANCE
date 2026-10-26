@@ -31,6 +31,15 @@ const modules: BusinessModule[] = [
     enabled: true
   },
   {
+    code: 'MORTGAGE_FINANCE',
+    title: 'Mortgage Finance',
+    description: 'Fund-supported mortgage finance: Fund file intake, credit, subsidy, offer, contract, disbursement, servicing and collections.',
+    route: '/mortgage-finance',
+    tone: 'mortgage',
+    icon: 'pi pi-building',
+    enabled: true
+  },
+  {
     code: 'WORKFLOW',
     title: 'Workflow',
     description: 'Approval inbox, step assignment, committees and SLA tracking for every business process.',

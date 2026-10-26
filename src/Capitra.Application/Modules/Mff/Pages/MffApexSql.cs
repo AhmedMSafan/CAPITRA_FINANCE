@@ -9,6 +9,33 @@ public static class MffApexSql
 {
     public static readonly IReadOnlyList<ApexSqlReport> Reports =
     [
+        new(110, 10, "FUND_INTAKE_BATCHES", Permissions.Mff.View, Q.P10_FUND_INTAKE_BATCHES),
+        new(110, 11, "FUND_STAGING_CASES", Permissions.Mff.View, Q.P11_FUND_STAGING_CASES),
+        new(110, 13, "BATCH_STAGING_ROWS", Permissions.Mff.View, Q.P13_BATCH_STAGING_ROWS),
+        new(110, 20, "MORTGAGE_APPLICATIONS", Permissions.Mff.View, Q.P20_MORTGAGE_APPLICATIONS),
+        new(110, 23, "INCOME_SOURCES_2", Permissions.Mff.View, Q.P23_INCOME_SOURCES_2),
+        new(110, 25, "UPLOADED_DOCUMENTS", Permissions.Mff.View, Q.P25_UPLOADED_DOCUMENTS),
+        new(110, 26, "CREDIT_INQUIRY_HISTORY", Permissions.Mff.View, Q.P26_CREDIT_INQUIRY_HISTORY),
+        new(110, 27, "CREDIT_STUDY_HISTORY", Permissions.Mff.View, Q.P27_CREDIT_STUDY_HISTORY),
+        new(110, 28, "DECISION_HISTORY", Permissions.Mff.View, Q.P28_DECISION_HISTORY),
+        new(110, 29, "OPEN_ASSIGNMENTS", Permissions.Mff.View, Q.P29_OPEN_ASSIGNMENTS),
+        new(110, 29, "RECENT_STATUS_HISTORY", Permissions.Mff.View, Q.P29_RECENT_STATUS_HISTORY),
+        new(110, 30, "CREDIT_INQUIRY_QUEUE", Permissions.Mff.View, Q.P30_CREDIT_INQUIRY_QUEUE),
+        new(110, 40, "DOCUMENT_REVIEW_MISSING_DOCUMENTS", Permissions.Mff.View, Q.P40_DOCUMENT_REVIEW_MISSING_DOCUMENTS),
+        new(110, 50, "MY_WORK_QUEUE", Permissions.Mff.View, Q.P50_MY_WORK_QUEUE),
+        new(110, 52, "APPLICATION_STATUS_HISTORY", Permissions.Mff.View, Q.P52_APPLICATION_STATUS_HISTORY),
+        new(110, 53, "READINESS_DETAILS", Permissions.Mff.View, Q.P53_READINESS_DETAILS),
+        new(110, 54, "DOCUMENTS", Permissions.Mff.View, Q.P54_DOCUMENTS),
+        new(110, 54, "REVIEW_CHECKS", Permissions.Mff.View, Q.P54_REVIEW_CHECKS),
+        new(110, 84, "GENERATED_INSTALLMENTS", Permissions.Mff.View, Q.P84_GENERATED_INSTALLMENTS),
+        new(110, 120, "INSTALLMENTS_DUE_COLLECTIONS", Permissions.Mff.View, Q.P120_INSTALLMENTS_DUE_COLLECTIONS),
+        new(110, 121, "PAYMENT_HISTORY", Permissions.Mff.View, Q.P121_PAYMENT_HISTORY),
+        new(110, 130, "DELINQUENCY_MANAGEMENT", Permissions.Mff.View, Q.P130_DELINQUENCY_MANAGEMENT),
+        new(110, 131, "DELINQUENCY_HISTORY", Permissions.Mff.View, Q.P131_DELINQUENCY_HISTORY),
+        new(110, 132, "EARLY_SETTLEMENT_HISTORY", Permissions.Mff.View, Q.P132_EARLY_SETTLEMENT_HISTORY),
+        new(110, 133, "RESTRUCTURING_HISTORY", Permissions.Mff.View, Q.P133_RESTRUCTURING_HISTORY),
+        new(110, 134, "LEGAL_ACTION_HISTORY", Permissions.Mff.View, Q.P134_LEGAL_ACTION_HISTORY),
+        new(110, 135, "LOAN_EVENT_HISTORY", Permissions.Mff.View, Q.P135_LOAN_EVENT_HISTORY),
         new(110, 141, "FUND_MONTHLY_REPORT_REPORT", Permissions.Mff.View, Q.P141_FUND_MONTHLY_REPORT_REPORT),
         new(110, 142, "PORTFOLIO_SUMMARY_REPORT", Permissions.Mff.View, Q.P142_PORTFOLIO_SUMMARY_REPORT),
         new(110, 143, "DELINQUENCY_MIS_REPORT", Permissions.Mff.View, Q.P143_DELINQUENCY_MIS_REPORT),
@@ -1047,6 +1074,96 @@ public static class MffApexSql
         order by "LOAN_RESTRUCTURING_STATUS"
         """;
 
+        public const string P10_FUND_INTAKE_BATCHES = """
+        select "BATCH_ID", "FILE_NAME", "SOURCE_CHANNEL_CODE", cast("RECEIVED_AT" as date) "RECEIVED_AT", "ROW_COUNT", "VALID_COUNT", "ERROR_COUNT", "BATCH_STATUS", "NOTES"
+        from "MFF_IMPORT_BATCHES"
+        order by "BATCH_ID" desc
+        """;
+
+        public const string P11_FUND_STAGING_CASES = """
+        select "STAGING_ID", "BATCH_ID", "SOURCE_ROW_NO", "APPLICANT_NAME_AR", "APPLICANT_NATIONAL_ID", "MONTHLY_INCOME", "UNIT_PRICE", "FINANCE_AMOUNT", "TOTAL_SUBSIDY", "VALIDATION_STATUS", "APPLICATION_ID"
+        from "MFF_IMPORT_STAGINGS" where (@P11_BATCH_ID::bigint is null or "BATCH_ID" = @P11_BATCH_ID::bigint)
+        order by "BATCH_ID" desc, "SOURCE_ROW_NO"
+        """;
+
+        public const string P120_INSTALLMENTS_DUE_COLLECTIONS = """
+        with "MFF_VW_INSTALLMENTS_DUE" AS (
+        select i."INSTALLMENT_ID", i."LOAN_ID", l."LOAN_ACCOUNT_NO", l."APPLICATION_ID", a."APPLICATION_NO", i."INSTALLMENT_NO", i."DUE_DATE", i."BORROWER_DUE", i."SUBSIDY_DUE", i."TOTAL_DUE", i."PAID_AMOUNT", i."PAYMENT_STATUS_CODE", greatest(current_date - i."DUE_DATE", 0) "DAYS_PAST_DUE", greatest(coalesce(i."TOTAL_DUE", 0) - coalesce(i."PAID_AMOUNT", 0), 0) "OUTSTANDING_DUE"
+        from "MFF_INSTALLMENTS" i
+        join "MFF_LOANS" l on l."LOAN_ID" = i."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        where i."PAYMENT_STATUS_CODE" in ('DUE', 'PARTIAL', 'OVERDUE')
+        )
+        select "INSTALLMENT_ID", "LOAN_ACCOUNT_NO", "APPLICATION_NO", "INSTALLMENT_NO", "DUE_DATE", "BORROWER_DUE", "SUBSIDY_DUE", "TOTAL_DUE", "PAID_AMOUNT", "PAYMENT_STATUS_CODE", "DAYS_PAST_DUE", "OUTSTANDING_DUE"
+        from "MFF_VW_INSTALLMENTS_DUE"
+        order by "DUE_DATE"
+        """;
+
+        public const string P121_PAYMENT_HISTORY = """
+        select "PAYMENT_ID", "PAYMENT_DATE", "PAYMENT_AMOUNT", "PAYMENT_TYPE", "PAYMENT_CHANNEL", "REFERENCE_NO", "ALLOCATED_PRINCIPAL", "ALLOCATED_INTEREST", "ALLOCATED_FEES", "ALLOCATED_INSURANCE", "STATUS_CODE"
+        from "MFF_PAYMENTS"
+        where "LOAN_ID" = @P121_LOAN_ID::bigint
+        order by "PAYMENT_DATE" desc, "PAYMENT_ID" desc
+        """;
+
+        public const string P130_DELINQUENCY_MANAGEMENT = """
+        with "MFF_VW_DELINQUENCY" AS (
+        select d."DELINQUENCY_ID", d."LOAN_ID", l."LOAN_ACCOUNT_NO", a."APPLICATION_NO", p."FULL_NAME_AR" "APPLICANT_NAME_AR", f."ORG_NAME_AR" "FINANCIER_NAME_AR", d."START_DATE", d."STAGE_CODE", s."NAME_AR" "STAGE_NAME_AR", d."DAYS_PAST_DUE", d."OVERDUE_AMOUNT", d."OVERDUE_INSTALLMENTS", d."DELINQUENCY_STATUS" AS "STATUS", d."COLLECTION_ACTION_AR", l."OUTSTANDING_PRINCIPAL"
+        from "MFF_DELINQUENCIES" d
+        join "MFF_LOANS" l on l."LOAN_ID" = d."LOAN_ID"
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = l."APPLICATION_ID"
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
+        join "MFF_LKP_DELINQUENCY_STAGES" s on s."CODE" = d."STAGE_CODE"
+        where coalesce(d."DELINQUENCY_STATUS", 'OPEN') <> 'CLOSED'
+        )
+        select "DELINQUENCY_ID", "LOAN_ACCOUNT_NO", "APPLICATION_NO", "APPLICANT_NAME_AR", "FINANCIER_NAME_AR", "START_DATE", "STAGE_NAME_AR", "DAYS_PAST_DUE", "OVERDUE_AMOUNT", "OVERDUE_INSTALLMENTS", "STATUS", "OUTSTANDING_PRINCIPAL"
+        from "MFF_VW_DELINQUENCY"
+        order by "DAYS_PAST_DUE" desc
+        """;
+
+        public const string P131_DELINQUENCY_HISTORY = """
+        select "DELINQUENCY_ID", "START_DATE", "END_DATE", "STAGE_CODE", "DAYS_PAST_DUE", "OVERDUE_AMOUNT", "OVERDUE_INSTALLMENTS", "DELINQUENCY_STATUS" AS "STATUS", "COLLECTION_ACTION_AR"
+        from "MFF_DELINQUENCIES"
+        where "LOAN_ID" = @P131_LOAN_ID::bigint
+        order by "DELINQUENCY_ID" desc
+        """;
+
+        public const string P132_EARLY_SETTLEMENT_HISTORY = """
+        select "SETTLEMENT_ID", "REQUEST_DATE", "SETTLEMENT_DATE", "SETTLEMENT_TYPE", "PRINCIPAL_SETTLED", "FINANCE_PCT_SETTLED", "SUBSIDY_REFUND_PCT", "SUBSIDY_REFUND_AMOUNT", "EARLY_SETTLEMENT_STATUS" AS "STATUS", "APPROVED_BY"
+        from "MFF_EARLY_SETTLEMENTS"
+        where "LOAN_ID" = @P132_LOAN_ID::bigint
+        order by "SETTLEMENT_ID" desc
+        """;
+
+        public const string P133_RESTRUCTURING_HISTORY = """
+        select "RESTRUCTURING_ID", "REQUEST_DATE", "DECISION_DATE", "EFFECTIVE_DATE", "OLD_TERM_MONTHS", "NEW_TERM_MONTHS", "OLD_RATE_PCT", "NEW_RATE_PCT", "OLD_INSTALLMENT", "NEW_INSTALLMENT", "CAPITALIZED_ARREARS", "LOAN_RESTRUCTURING_STATUS" AS "STATUS", "APPROVED_BY"
+        from "MFF_LOAN_RESTRUCTURINGS"
+        where "LOAN_ID" = @P133_LOAN_ID::bigint
+        order by "RESTRUCTURING_ID" desc
+        """;
+
+        public const string P134_LEGAL_ACTION_HISTORY = """
+        select "LEGAL_ACTION_ID", "ACTION_TYPE", "ACTION_DATE", "CASE_NO", "LEGAL_ACTION_STATUS" AS "STATUS", "OUTCOME_AR", "NEXT_ACTION_DATE"
+        from "MFF_LEGAL_ACTIONS"
+        where "LOAN_ID" = @P134_LOAN_ID::bigint
+        order by "LEGAL_ACTION_ID" desc
+        """;
+
+        public const string P135_LOAN_EVENT_HISTORY = """
+        select "LOAN_EVENT_ID", "EVENT_TYPE_CODE", "EVENT_DATE", "REPORTED_DATE", "LOAN_EVENT_STATUS" AS "STATUS", "DETAILS_AR", "RESOLUTION_AR"
+        from "MFF_LOAN_EVENTS"
+        where "LOAN_ID" = @P135_LOAN_ID::bigint
+        order by "LOAN_EVENT_ID" desc
+        """;
+
+        public const string P13_BATCH_STAGING_ROWS = """
+        select "SOURCE_ROW_NO", "APPLICANT_NAME_AR", "APPLICANT_NATIONAL_ID", "MONTHLY_INCOME", "FINANCE_AMOUNT", "VALIDATION_STATUS", "APPLICATION_ID", "ERROR_MESSAGE"
+        from "MFF_IMPORT_STAGINGS"
+        where "BATCH_ID" = @P13_BATCH_ID::bigint
+        order by "SOURCE_ROW_NO"
+        """;
+
         public const string P141_FUND_MONTHLY_REPORT_REPORT = """
         with "MFF_VW_FUND_MONTHLY_REPORT" AS (
         select l."APPLICATION_ID", a."APPLICATION_NO", l."LOAN_ID", l."LOAN_ACCOUNT_NO", a."FINANCIER_ID", f."ORG_NAME_AR" "FINANCIER_NAME_AR", 'DELINQUENCY' "REPORT_EVENT_TYPE", d."START_DATE" "EVENT_DATE", (d."DAYS_PAST_DUE")::text "EVENT_VALUE", d."COLLECTION_ACTION_AR" "EVENT_DETAILS_AR"
@@ -1404,6 +1521,269 @@ public static class MffApexSql
         join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
         join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID" where (@P166_FINANCIER_ID::bigint is null or a."FINANCIER_ID" = @P166_FINANCIER_ID::bigint) and (@P166_STATUS::text is null or r."LOAN_RESTRUCTURING_STATUS" = @P166_STATUS::text) and (@P166_REQUEST_FROM::text is null or r."REQUEST_DATE" >= (@P166_REQUEST_FROM::text)::date) and (@P166_REQUEST_TO::text is null or r."REQUEST_DATE" < (@P166_REQUEST_TO::text)::date + interval '1 day') and (@P166_PENDING_ONLY::text is null or @P166_PENDING_ONLY::text <> 'Y' or coalesce(r."LOAN_RESTRUCTURING_STATUS", 'REQUESTED') in ('REQUESTED', 'PENDING'))
         order by r."REQUEST_DATE" desc, r."RESTRUCTURING_ID" desc
+        """;
+
+        public const string P20_MORTGAGE_APPLICATIONS = """
+        with "MFF_VW_APPLICATION_360" AS (
+        with last_decision as (select d.*, row_number() over (partition by d."APPLICATION_ID"
+        order by d."DECISION_DATE" desc, d."DECISION_ID" desc) "RN"
+        from "MFF_CREDIT_DECISIONS" d), last_inquiry as (select q.*, row_number() over (partition by q."APPLICATION_ID"
+        order by q."RESPONSE_DATE" desc nulls last, q."INQUIRY_ID" desc) "RN"
+        from "MFF_CREDIT_INQUIRIES" q) select a."APPLICATION_ID", a."APPLICATION_NO", a."APPLICATION_DATE", a."STATUS_CODE", s."NAME_AR" "STATUS_NAME_AR", p."PERSON_ID", p."FULL_NAME_AR" "APPLICANT_NAME_AR", p."NATIONAL_ID", p."MARITAL_STATUS_CODE", p."EMPLOYMENT_TYPE_CODE", a."MONTHLY_INCOME_TOTAL", a."PROPERTY_PRICE", a."DOWNPAYMENT_AMOUNT", a."REQUESTED_FINANCE_AMOUNT", a."APPROVED_FINANCE_AMOUNT", a."TOTAL_SUBSIDY_AMOUNT", f."ORG_ID" "FINANCIER_ID", f."ORG_NAME_AR" "FINANCIER_NAME_AR", f."ORG_TYPE_CODE" "FINANCIER_TYPE_CODE", f."REGULATOR_CODE", fund."ORG_NAME_AR" "FUND_NAME_AR", pv."PROGRAM_CODE", pv."VERSION_NO" "PROGRAM_VERSION_NO", hp."PROJECT_NAME_AR", pr."GOVERNORATE_CODE", pr."CITY_CODE", pr."AREA_SQM", pr."SALE_PRICE", pr."APPRAISED_VALUE", "ld"."DECISION_CODE" "LAST_DECISION_CODE", "ld"."DECISION_DATE" "LAST_DECISION_DATE", "li"."CREDIT_SCORE" "LAST_CREDIT_SCORE", "li"."RESULT_CODE" "LAST_CREDIT_INQUIRY_RESULT", a."CURRENT_OWNER_USER", a."BRANCH_CODE"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
+        join "MFF_ORGANIZATIONS" fund on fund."ORG_ID" = a."FUND_ORG_ID"
+        join "MFF_PROGRAM_VERSIONS" pv on pv."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID"
+        join "MFF_LKP_APPLICATION_STATUSES" s on s."CODE" = a."STATUS_CODE"
+        left join "MFF_APPLICATION_PROPERTIES" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
+        left join "MFF_PROPERTIES" pr on pr."PROPERTY_ID" = ap."PROPERTY_ID"
+        left join "MFF_HOUSING_PROJECTS" hp on hp."PROJECT_ID" = pr."PROJECT_ID"
+        left join last_decision ld on "ld"."APPLICATION_ID" = a."APPLICATION_ID" and "ld"."RN" = 1
+        left join last_inquiry li on "li"."APPLICATION_ID" = a."APPLICATION_ID" and "li"."RN" = 1
+        )
+        select "APPLICATION_ID", "APPLICATION_NO", "APPLICATION_DATE", "APPLICANT_NAME_AR", "NATIONAL_ID", "STATUS_NAME_AR", "FINANCIER_NAME_AR", "PROGRAM_CODE", "MONTHLY_INCOME_TOTAL", "PROPERTY_PRICE", "REQUESTED_FINANCE_AMOUNT", "TOTAL_SUBSIDY_AMOUNT", "CURRENT_OWNER_USER"
+        from "MFF_VW_APPLICATION_360"
+        order by "APPLICATION_ID" desc
+        """;
+
+        public const string P23_INCOME_SOURCES_2 = """
+        select i."INCOME_ID", coalesce(t."NAME_EN", t."NAME_AR") "INCOME_TYPE", i."EMPLOYER_NAME", i."MONTHLY_NET_INCOME", i."ANNUAL_NET_INCOME", i."IS_VERIFIED" AS "VERIFIED_FLAG", i."VERIFICATION_DATE", i."NOTES"
+        from "MFF_INCOME_SOURCES" i
+        join "MFF_APPLICATION_PARTIES" ap on ap."APPLICATION_PARTY_ID" = i."APPLICATION_PARTY_ID"
+        left join "MFF_LKP_INCOME_TYPES" t on t."CODE" = i."INCOME_TYPE_CODE"
+        where ap."APPLICATION_ID" = @P23_APPLICATION_ID::bigint
+        order by i."INCOME_ID" desc
+        """;
+
+        public const string P25_UPLOADED_DOCUMENTS = """
+        select d."DOCUMENT_ID", coalesce(t."NAME_EN", t."NAME_AR") "DOCUMENT_TYPE", d."FILE_NAME", d."DOCUMENT_NO", d."ISSUE_DATE", d."EXPIRY_DATE", d."RECEIVED_DATE", d."VERIFICATION_STATUS", d."VERIFIED_BY"
+        from "MFF_APPLICATION_DOCUMENTS" d
+        left join "MFF_LKP_DOCUMENT_TYPES" t on t."CODE" = d."DOCUMENT_TYPE_CODE"
+        where d."APPLICATION_ID" = @P25_APPLICATION_ID::bigint
+        order by d."DOCUMENT_ID" desc
+        """;
+
+        public const string P26_CREDIT_INQUIRY_HISTORY = """
+        select q."INQUIRY_ID", coalesce(o."ORG_NAME_EN", o."ORG_NAME_AR") "BUREAU", q."REQUEST_DATE", q."RESPONSE_DATE", q."CREDIT_SCORE", q."RESULT_CODE", q."REFERENCE_NO", q."NOTES"
+        from "MFF_CREDIT_INQUIRIES" q
+        left join "MFF_ORGANIZATIONS" o on o."ORG_ID" = q."BUREAU_ORG_ID"
+        where q."APPLICATION_ID" = @P26_APPLICATION_ID::bigint
+        order by q."INQUIRY_ID" desc
+        """;
+
+        public const string P27_CREDIT_STUDY_HISTORY = """
+        select "CREDIT_STUDY_ID", "STUDY_DATE", "ANALYST_USER", "VERIFIED_INCOME_AMOUNT", "MONTHLY_OBLIGATIONS_AMOUNT", "PROPOSED_FINANCE_AMOUNT", "PROPOSED_TERM_MONTHS", "PROPOSED_RATE_PCT", "LTV_PCT", "RECOMMENDATION_CODE"
+        from "MFF_CREDIT_STUDIES"
+        where "APPLICATION_ID" = @P27_APPLICATION_ID::bigint
+        order by "CREDIT_STUDY_ID" desc
+        """;
+
+        public const string P28_DECISION_HISTORY = """
+        select d."DECISION_ID", d."DECISION_DATE", coalesce(r."NAME_EN", r."NAME_AR") "DECISION", d."APPROVED_FINANCE_AMOUNT", d."APPROVED_TERM_MONTHS", d."APPROVED_RATE_PCT", d."DECIDED_BY", d."COMMITTEE_REFERENCE"
+        from "MFF_CREDIT_DECISIONS" d
+        left join "MFF_LKP_DECISION_CODES" r on r."CODE" = d."DECISION_CODE"
+        where d."APPLICATION_ID" = @P28_APPLICATION_ID::bigint
+        order by d."DECISION_ID" desc
+        """;
+
+        public const string P29_OPEN_ASSIGNMENTS = """
+        select "ASSIGNMENT_ID", "ASSIGNMENT_TYPE", "ASSIGNED_TO", "ASSIGNED_BY", cast("ASSIGNED_AT" as date) "ASSIGNED_AT", "DUE_DATE", "ASSIGNMENT_STATUS", "NOTES"
+        from "MFF_WORK_ASSIGNMENTS"
+        where "APPLICATION_ID" = @P29_APPLICATION_ID::bigint and coalesce("ASSIGNMENT_STATUS", 'OPEN') <> 'COMPLETED'
+        order by "ASSIGNMENT_ID" desc
+        """;
+
+        public const string P29_RECENT_STATUS_HISTORY = """
+        select h."STATUS_HIST_ID", h."OLD_STATUS_CODE", h."NEW_STATUS_CODE", cast(h."CHANGED_AT" as date) "CHANGED_AT", h."CHANGED_BY", h."ROLE_CODE", h."REMARKS_AR"
+        from "MFF_APPLICATION_STATUS_HIST" h
+        where h."APPLICATION_ID" = @P29_APPLICATION_ID::bigint
+        order by h."STATUS_HIST_ID" desc
+        """;
+
+        public const string P30_CREDIT_INQUIRY_QUEUE = """
+        with "MFF_VW_CREDIT_INQUIRY_QUEUE" AS (
+        select a."APPLICATION_ID", a."APPLICATION_NO", p."FULL_NAME_AR" "APPLICANT_NAME_AR", p."NATIONAL_ID", a."FINANCIER_ID", o."ORG_NAME_AR" "FINANCIER_NAME_AR", a."STATUS_CODE", q."INQUIRY_ID", q."REQUEST_DATE", q."RESPONSE_DATE", q."CREDIT_SCORE", q."RESULT_CODE", q."REFERENCE_NO"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        join "MFF_ORGANIZATIONS" o on o."ORG_ID" = a."FINANCIER_ID"
+        left join "MFF_CREDIT_INQUIRIES" q on q."APPLICATION_ID" = a."APPLICATION_ID"
+        where a."STATUS_CODE" in ('CREDIT_INQUIRY', 'CREDIT_ACCEPTED')
+        )
+        select "APPLICATION_ID", "APPLICATION_NO", "APPLICANT_NAME_AR", "NATIONAL_ID", "FINANCIER_NAME_AR", "STATUS_CODE", "REQUEST_DATE", "RESPONSE_DATE", "CREDIT_SCORE", "RESULT_CODE", "REFERENCE_NO"
+        from "MFF_VW_CREDIT_INQUIRY_QUEUE"
+        order by "APPLICATION_ID" desc
+        """;
+
+        public const string P40_DOCUMENT_REVIEW_MISSING_DOCUMENTS = """
+        with "MFF_VW_MISSING_DOCUMENTS" AS (
+        select a."APPLICATION_ID", a."APPLICATION_NO", r."REQUIREMENT_ID", r."DOCUMENT_TYPE_CODE", dt."NAME_AR" "DOCUMENT_NAME_AR", r."PARTY_ROLE_CODE", r."EMPLOYMENT_TYPE_CODE", r."NOTES_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PROGRAM_DOC_REQUIREMENTS" r on r."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID" and r."IS_REQUIRED" and current_date between coalesce(r."EFFECTIVE_FROM_DATE", date '1900-01-01') and coalesce(r."EFFECTIVE_TO_DATE", date '2999-12-31')
+        join "MFF_LKP_DOCUMENT_TYPES" dt on dt."CODE" = r."DOCUMENT_TYPE_CODE"
+        join "MFF_PERSONS" pp on pp."PERSON_ID" = a."PRIMARY_PERSON_ID" where (r."EMPLOYMENT_TYPE_CODE" is null or r."EMPLOYMENT_TYPE_CODE" = pp."EMPLOYMENT_TYPE_CODE") and not exists (select 1
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and d."DOCUMENT_TYPE_CODE" = r."DOCUMENT_TYPE_CODE" and coalesce(d."VERIFICATION_STATUS", 'RECEIVED') in ('RECEIVED', 'VERIFIED', 'ACCEPTED'))
+        )
+        select "APPLICATION_ID", "APPLICATION_NO", "DOCUMENT_TYPE_CODE", "DOCUMENT_NAME_AR", "PARTY_ROLE_CODE", "EMPLOYMENT_TYPE_CODE", "NOTES_AR"
+        from "MFF_VW_MISSING_DOCUMENTS"
+        order by "APPLICATION_NO", "DOCUMENT_TYPE_CODE"
+        """;
+
+        public const string P50_MY_WORK_QUEUE = """
+        with "MFF_VW_WORK_QUEUE" AS (
+        select w."ASSIGNMENT_ID", w."APPLICATION_ID", a."APPLICATION_NO", p."FULL_NAME_AR" "APPLICANT_NAME_AR", a."STATUS_CODE", w."ASSIGNMENT_TYPE", w."ASSIGNED_TO", w."ASSIGNED_BY", w."ASSIGNED_AT", w."DUE_DATE", w."ASSIGNMENT_STATUS", case when w."DUE_DATE" < current_date and w."COMPLETED_AT" is null then 'Y' else 'N' end "OVERDUE_FLAG"
+        from "MFF_WORK_ASSIGNMENTS" w
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = w."APPLICATION_ID"
+        join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
+        where coalesce(w."ASSIGNMENT_STATUS", 'OPEN') <> 'COMPLETED'
+        )
+        select "ASSIGNMENT_ID", "APPLICATION_ID", "APPLICATION_NO", "APPLICANT_NAME_AR", "STATUS_CODE", "ASSIGNMENT_TYPE", "ASSIGNED_TO", cast("ASSIGNED_AT" as date) "ASSIGNED_AT", "DUE_DATE", "ASSIGNMENT_STATUS"
+        from "MFF_VW_WORK_QUEUE"
+        where upper("ASSIGNED_TO") = upper(@APP_USER::text)
+        order by "DUE_DATE" nulls last, "ASSIGNMENT_ID"
+        """;
+
+        public const string P52_APPLICATION_STATUS_HISTORY = """
+        select h."STATUS_HIST_ID", h."APPLICATION_ID", a."APPLICATION_NO", h."OLD_STATUS_CODE", h."NEW_STATUS_CODE", cast(h."CHANGED_AT" as date) "CHANGED_AT", h."CHANGED_BY", h."ROLE_CODE", h."REMARKS_AR"
+        from "MFF_APPLICATION_STATUS_HIST" h
+        join "MFF_APPLICATIONS" a on a."APPLICATION_ID" = h."APPLICATION_ID" where (@P52_APPLICATION_ID::bigint is null or h."APPLICATION_ID" = @P52_APPLICATION_ID::bigint)
+        order by h."STATUS_HIST_ID" desc
+        """;
+
+        public const string P53_READINESS_DETAILS = """
+        with "MFF_VW_MISSING_DOCUMENTS" AS (
+        select a."APPLICATION_ID", a."APPLICATION_NO", r."REQUIREMENT_ID", r."DOCUMENT_TYPE_CODE", dt."NAME_AR" "DOCUMENT_NAME_AR", r."PARTY_ROLE_CODE", r."EMPLOYMENT_TYPE_CODE", r."NOTES_AR"
+        from "MFF_APPLICATIONS" a
+        join "MFF_PROGRAM_DOC_REQUIREMENTS" r on r."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID" and r."IS_REQUIRED" and current_date between coalesce(r."EFFECTIVE_FROM_DATE", date '1900-01-01') and coalesce(r."EFFECTIVE_TO_DATE", date '2999-12-31')
+        join "MFF_LKP_DOCUMENT_TYPES" dt on dt."CODE" = r."DOCUMENT_TYPE_CODE"
+        join "MFF_PERSONS" pp on pp."PERSON_ID" = a."PRIMARY_PERSON_ID" where (r."EMPLOYMENT_TYPE_CODE" is null or r."EMPLOYMENT_TYPE_CODE" = pp."EMPLOYMENT_TYPE_CODE") and not exists (select 1
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and d."DOCUMENT_TYPE_CODE" = r."DOCUMENT_TYPE_CODE" and coalesce(d."VERIFICATION_STATUS", 'RECEIVED') in ('RECEIVED', 'VERIFIED', 'ACCEPTED'))
+        ),
+        "MFF_VW_APPLICATION_READINESS" AS (
+        select a."APPLICATION_ID", a."APPLICATION_NO", a."STATUS_CODE", a."CURRENT_OWNER_USER", case when a."PRIMARY_PERSON_ID" is not null then 'Y' else 'N' end "APPLICANT_READY", case when exists (select 1
+        from "MFF_APPLICATION_PARTIES" ap
+        join "MFF_INCOME_SOURCES" i on i."APPLICATION_PARTY_ID" = ap."APPLICATION_PARTY_ID"
+        where ap."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(i."IS_VERIFIED", false)) then 'Y' else 'N' end "INCOME_READY", case when exists (select 1
+        from "MFF_APPLICATION_PROPERTIES" x
+        where x."APPLICATION_ID" = a."APPLICATION_ID" and x."IS_SELECTED") then 'Y' else 'N' end "PROPERTY_READY", (select count(*)
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID") "DOCUMENT_COUNT", (select count(*)
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(d."VERIFICATION_STATUS", 'PENDING') = 'PENDING') "DOCUMENT_PENDING_COUNT", (select count(*)
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and d."VERIFICATION_STATUS" = 'REJECTED') "DOCUMENT_REJECTED_COUNT", (select count(*)
+        from "MFF_VW_MISSING_DOCUMENTS" md
+        where "md"."APPLICATION_ID" = a."APPLICATION_ID") "MISSING_REQUIRED_DOCUMENT_COUNT", case when exists (select 1
+        from "MFF_CREDIT_INQUIRIES" q
+        where q."APPLICATION_ID" = a."APPLICATION_ID" and q."RESULT_CODE" = 'PASS') then 'Y' else 'N' end "CREDIT_INQUIRY_READY", case when exists (select 1
+        from "MFF_CREDIT_STUDIES" s
+        where s."APPLICATION_ID" = a."APPLICATION_ID") then 'Y' else 'N' end "CREDIT_STUDY_READY", case when exists (select 1
+        from "MFF_CREDIT_DECISIONS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and c."DECISION_CODE" in ('APPROVE', 'CONDITIONAL')) then 'Y' else 'N' end "CREDIT_DECISION_READY", case when exists (select 1
+        from "MFF_CALCULATION_RUNS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(c."CALC_STATUS", 'COMPLETE') = 'COMPLETE') then 'Y' else 'N' end "CALCULATION_READY", case when exists (select 1
+        from "MFF_SUBSIDY_APPROVALS" s
+        where s."APPLICATION_ID" = a."APPLICATION_ID" and s."APPROVAL_STATUS" = 'APPROVED') then 'Y' else 'N' end "SUBSIDY_READY", case when exists (select 1
+        from "MFF_FINANCE_OFFERS" o
+        where o."APPLICATION_ID" = a."APPLICATION_ID" and o."OFFER_STATUS" in ('ISSUED', 'ACCEPTED')) then 'Y' else 'N' end "OFFER_READY", case when exists (select 1
+        from "MFF_CONTRACTS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and (c."IS_SIGNED" or c."CONTRACT_STATUS" = 'SIGNED')) then 'Y' else 'N' end "CONTRACT_READY", case when exists (select 1
+        from "MFF_LOANS" l
+        where l."APPLICATION_ID" = a."APPLICATION_ID") then 'Y' else 'N' end "LOAN_READY", (select count(*)
+        from "MFF_WORK_ASSIGNMENTS" w
+        where w."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(w."ASSIGNMENT_STATUS", 'OPEN') <> 'COMPLETED') "OPEN_TASKS", (select count(*)
+        from "MFF_WORK_ASSIGNMENTS" w
+        where w."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(w."ASSIGNMENT_STATUS", 'OPEN') <> 'COMPLETED' and w."DUE_DATE" < current_date) "OVERDUE_TASKS", round(100 * (case when a."PRIMARY_PERSON_ID" is not null then 1 else 0 end + case when exists (select 1
+        from "MFF_APPLICATION_PARTIES" ap
+        join "MFF_INCOME_SOURCES" i on i."APPLICATION_PARTY_ID" = ap."APPLICATION_PARTY_ID"
+        where ap."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(i."IS_VERIFIED", false)) then 1 else 0 end + case when exists (select 1
+        from "MFF_APPLICATION_PROPERTIES" x
+        where x."APPLICATION_ID" = a."APPLICATION_ID" and x."IS_SELECTED") then 1 else 0 end + case when exists (select 1
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID") and not exists (select 1
+        from "MFF_VW_MISSING_DOCUMENTS" md
+        where "md"."APPLICATION_ID" = a."APPLICATION_ID") and not exists (select 1
+        from "MFF_APPLICATION_DOCUMENTS" d
+        where d."APPLICATION_ID" = a."APPLICATION_ID" and d."VERIFICATION_STATUS" = 'REJECTED') then 1 else 0 end + case when exists (select 1
+        from "MFF_CREDIT_INQUIRIES" q
+        where q."APPLICATION_ID" = a."APPLICATION_ID" and q."RESULT_CODE" = 'PASS') then 1 else 0 end + case when exists (select 1
+        from "MFF_CREDIT_STUDIES" s
+        where s."APPLICATION_ID" = a."APPLICATION_ID") then 1 else 0 end + case when exists (select 1
+        from "MFF_CREDIT_DECISIONS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and c."DECISION_CODE" in ('APPROVE', 'CONDITIONAL')) then 1 else 0 end + case when exists (select 1
+        from "MFF_CALCULATION_RUNS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(c."CALC_STATUS", 'COMPLETE') = 'COMPLETE') then 1 else 0 end + case when exists (select 1
+        from "MFF_SUBSIDY_APPROVALS" s
+        where s."APPLICATION_ID" = a."APPLICATION_ID" and s."APPROVAL_STATUS" = 'APPROVED') then 1 else 0 end + case when exists (select 1
+        from "MFF_FINANCE_OFFERS" o
+        where o."APPLICATION_ID" = a."APPLICATION_ID" and o."OFFER_STATUS" in ('ISSUED', 'ACCEPTED')) then 1 else 0 end + case when exists (select 1
+        from "MFF_CONTRACTS" c
+        where c."APPLICATION_ID" = a."APPLICATION_ID" and (c."IS_SIGNED" or c."CONTRACT_STATUS" = 'SIGNED')) then 1 else 0 end + case when exists (select 1
+        from "MFF_LOANS" l
+        where l."APPLICATION_ID" = a."APPLICATION_ID") then 1 else 0 end) / (12)::numeric, 0) "READINESS_PCT"
+        from "MFF_APPLICATIONS" a
+        )
+        select 1 "SEQ", 'Applicant' "MILESTONE", "APPLICANT_READY" "READY", 'Primary applicant recorded' "EVIDENCE"
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 2, 'Verified Income', "INCOME_READY", 'At least one verified income source'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 3, 'Selected Property', "PROPERTY_READY", 'Selected property/unit exists'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 4, 'Documents', case when "DOCUMENT_COUNT" > 0 and "MISSING_REQUIRED_DOCUMENT_COUNT" = 0 and "DOCUMENT_REJECTED_COUNT" = 0 then 'Y' else 'N' end, concat('Uploaded=', "DOCUMENT_COUNT", ', Missing/Unverified Required=', "MISSING_REQUIRED_DOCUMENT_COUNT", ', Rejected=', "DOCUMENT_REJECTED_COUNT")
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 5, 'Credit Inquiry', "CREDIT_INQUIRY_READY", 'Accepted inquiry result'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 6, 'Credit Study', "CREDIT_STUDY_READY", 'Credit study recorded'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 7, 'Credit Decision', "CREDIT_DECISION_READY", 'Approved/conditional decision'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 8, 'Calculation', "CALCULATION_READY", 'Completed mortgage calculation'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 9, 'Fund Subsidy', "SUBSIDY_READY", 'Approved Fund subsidy'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 10, 'Finance Offer', "OFFER_READY", 'Issued/accepted offer'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 11, 'Signed Contract', "CONTRACT_READY", 'Signed tripartite contract'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        union all select 12, 'Loan Account', "LOAN_READY", 'Disbursed loan account'
+        from "MFF_VW_APPLICATION_READINESS"
+        where "APPLICATION_ID" = @P53_APPLICATION_ID::numeric
+        order by "SEQ"
+        """;
+
+        public const string P54_DOCUMENTS = """
+        select d."DOCUMENT_ID", coalesce(t."NAME_EN", t."NAME_AR") "DOCUMENT_TYPE", d."FILE_NAME", d."DOCUMENT_NO", d."RECEIVED_DATE", d."VERIFICATION_STATUS", d."VERIFIED_BY", cast(d."VERIFIED_AT" as date) "VERIFIED_AT", d."REJECTION_REASON"
+        from "MFF_APPLICATION_DOCUMENTS" d
+        left join "MFF_LKP_DOCUMENT_TYPES" t on t."CODE" = d."DOCUMENT_TYPE_CODE"
+        where d."APPLICATION_ID" = @P54_APPLICATION_ID::bigint
+        order by d."DOCUMENT_ID" desc
+        """;
+
+        public const string P54_REVIEW_CHECKS = """
+        select "CHECK_ID", "CHECK_TYPE", "CHECK_CODE", "RESULT_CODE", "CHECKED_BY", cast("CHECKED_AT" as date) "CHECKED_AT", "NOTES"
+        from "MFF_REVIEW_CHECKS"
+        where "APPLICATION_ID" = @P54_APPLICATION_ID::bigint
+        order by "CHECK_ID" desc
+        """;
+
+        public const string P84_GENERATED_INSTALLMENTS = """
+        select "INSTALLMENT_NO", "DUE_DATE", "OPENING_PRINCIPAL", "BORROWER_DUE", "SUBSIDY_DUE", "PRINCIPAL_DUE", "INTEREST_DUE", "CLOSING_PRINCIPAL", "PAYMENT_STATUS_CODE"
+        from "MFF_INSTALLMENTS"
+        where "LOAN_ID" = @P84_LOAN_ID::bigint
+        order by "INSTALLMENT_NO"
         """;
     }
 }

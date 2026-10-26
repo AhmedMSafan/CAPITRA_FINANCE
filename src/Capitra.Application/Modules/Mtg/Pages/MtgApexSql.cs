@@ -9,7 +9,7 @@ public static class MtgApexSql
 {
     public static readonly IReadOnlyList<ApexSqlReport> Reports =
     [
-        new(105, 46, "PORTFOLIO_PROTECTION_COVERAGE_SUMMARY", Permissions.Mtg.MasterDataView, Q.P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY),
+        new(105, 46, "PORTFOLIO_PROTECTION_COVERAGE_SUMMARY_2", Permissions.Mtg.MasterDataView, Q.P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY_2),
         new(105, 206, "PAYMENT_HISTORY", Permissions.Mtg.PortfolioView, Q.P206_PAYMENT_HISTORY),
         new(105, 301, "PORTFOLIO_DOCUMENTS", Permissions.Mtg.PortfolioView, Q.P301_PORTFOLIO_DOCUMENTS),
         new(105, 303, "DUE_DILIGENCE", Permissions.Mtg.PortfolioView, Q.P303_DUE_DILIGENCE),
@@ -942,7 +942,7 @@ public static class MtgApexSql
         order by c."DUE_DATE", c."CHEQUE_NO"
         """;
 
-        public const string P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY = """
+        public const string P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY_2 = """
         with g as (select "PORTFOLIO_ID", count(*) "GUARANTEE_COUNT", sum(coalesce("GUARANTEE_AMOUNT", 0)) "GUARANTEE_AMOUNT", sum(case when "IS_VERIFIED" then 1 else 0 end) "VERIFIED_GUARANTEE_COUNT", sum(case when "EXPIRY_DATE" between current_date and current_date + 30 then 1 else 0 end) "GUARANTEE_EXPIRING_30"
         from "MTG_GUARANTEES"
         group by "PORTFOLIO_ID"), ins as (select "PORTFOLIO_ID", count(*) "INSURANCE_COUNT", sum(coalesce("SUM_INSURED", 0)) "SUM_INSURED", sum(case when "IS_ASSIGNED_TO_COMPANY" then 1 else 0 end) "ASSIGNED_POLICY_COUNT", sum(case when "VALID_TO_DATE" between current_date and current_date + 30 then 1 else 0 end) "INSURANCE_EXPIRING_30"
