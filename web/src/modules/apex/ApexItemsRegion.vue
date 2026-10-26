@@ -39,6 +39,19 @@ function changed(item: WizardItem) {
   else if (item.lov) void loadLovs()
 }
 
+// File Browse: the file goes to the user's APEX session now; the item's value is its name there (APEX_APPLICATION_TEMP_FILES)
+async function upload(item: WizardItem, event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) {
+    values[item.name] = ''
+    return
+  }
+  const form = new FormData()
+  form.append('file', file)
+  const res = await http.upload<{ name: string }>(`/api/apex/${props.app}/${props.page}/files`, form)
+  values[item.name] = res.name
+}
+
 function press(button: WizardButton) {
   if (button.action === 'SUBMIT') submit(button.name)
   else emit('open', button.page, resolveSet(button.set, {}, props.items))
@@ -53,7 +66,7 @@ watch(() => JSON.stringify(props.items), loadLovs, { immediate: true })
     <div class="t-Region-body">
       <div class="t-Form">
         <div v-for="(row, n) in rows" :key="n" class="apx-row">
-          <div v-for="item in row" :key="item.name" class="t-Form-fieldContainer" :class="{ 'is-required': item.required }">
+          <div v-for="item in row" :id="`${item.name}_CONTAINER`" :key="item.name" class="t-Form-fieldContainer" :class="{ 'is-required': item.required }">
             <label class="t-Form-label" :for="item.name">{{ item.label ?? item.name }}</label>
             <select v-if="item.lov" :id="item.name" v-model="values[item.name]" class="t-Form-field" @change="changed(item)">
               <option value=""></option>
@@ -63,6 +76,7 @@ watch(() => JSON.stringify(props.items), loadLovs, { immediate: true })
               <option value="N">No</option>
               <option value="Y">Yes</option>
             </select>
+            <input v-else-if="item.type === 'NATIVE_FILE'" :id="item.name" type="file" class="t-Form-field" @change="upload(item, $event)" />
             <textarea v-else-if="item.type === 'NATIVE_TEXTAREA'" :id="item.name" v-model="values[item.name]" class="t-Form-field" rows="4"></textarea>
             <input v-else-if="item.type === 'NATIVE_DATE_PICKER_APEX'" :id="item.name" v-model="values[item.name]" type="date" class="t-Form-field" />
             <input
@@ -78,7 +92,7 @@ watch(() => JSON.stringify(props.items), loadLovs, { immediate: true })
           </div>
           <template v-if="n === rows.length - 1">
             <div v-for="b in buttons" :key="b.name" class="t-Form-fieldContainer t-Form-fieldContainer--button">
-              <button type="button" class="t-Button" :class="{ 't-Button--hot': b.action === 'SUBMIT' }" @click="press(b)">{{ b.label }}</button>
+              <button :id="b.staticId" type="button" class="t-Button" :class="{ 't-Button--hot': b.action === 'SUBMIT' }" @click="press(b)">{{ b.label }}</button>
             </div>
           </template>
         </div>

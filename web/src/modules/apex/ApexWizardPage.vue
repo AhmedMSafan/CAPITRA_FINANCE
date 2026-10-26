@@ -62,9 +62,11 @@ watch(
       const query: Record<string, string> = {}
       for (const [k, v] of Object.entries(urlItems.value)) if (typeof v === 'string') query[k.toUpperCase()] = v
       try {
-        const res = await http.post<{ ok: boolean; items?: Record<string, string> }>(`/api/apex/${props.app}/${props.page}/PAGE_LOAD`, {
+        const res = await http.post<{ ok: boolean; message?: string; items?: Record<string, string> }>(`/api/apex/${props.app}/${props.page}/PAGE_LOAD`, {
           x01: JSON.stringify(query)
         })
+        // an error the Before Header process raised shows on the page, as APEX showed it
+        if (res.ok === false) error.value = res.message ?? 'The page could not be loaded.'
         loaded.value = res.items ?? {}
       } catch (e) {
         error.value = e instanceof Error ? e.message : 'The page could not be loaded.'
@@ -87,15 +89,16 @@ const apex = computed(() => {
   return apexApi
 })
 const htmlRegions = computed(() => spec.value.regions.filter((r) => r.kind === 'plsql' || r.kind === 'html').length)
-let readyCount = 0
+const regionScripts = new Map<string, () => void>()
 let scriptsRan = false
-function regionReady() {
-  readyCount++
-  if (readyCount >= htmlRegions.value) runScripts()
+function regionReady(key: string, run: () => void) {
+  regionScripts.set(key, run)
+  if (regionScripts.size >= htmlRegions.value) runScripts()
 }
 function runScripts() {
   if (scriptsRan || !apex.value) return
   scriptsRan = true
+  for (const region of spec.value.regions) regionScripts.get(region.key)?.()
   if (spec.value.js) runPageScript(spec.value.js, apex.value)
   if (spec.value.onload) runPageScript(spec.value.onload, apex.value)
 }
@@ -170,7 +173,7 @@ async function submitItems(changed: Record<string, string>, request: string) {
 async function submitPage(request: string, sent: Record<string, string> = { ...items.value, ...values }) {
   error.value = ''
   try {
-    const res = await http.post<{ ok?: boolean; message?: string }>(`/api/apex/${props.app}/${props.page}/SUBMIT`, {
+    const res = await http.post<{ ok?: boolean; message?: string; items?: Record<string, string | null> }>(`/api/apex/${props.app}/${props.page}/SUBMIT`, {
       items: { ...sent, REQUEST: request }
     })
     if (res.ok === false) {
@@ -187,6 +190,15 @@ async function submitPage(request: string, sent: Record<string, string> = { ...i
       return false
     }
     flash.message = res.message ?? ''
+    // the items the processes set (:P208_BATCH_STATUS := ...) stay in the session for the page shown next, as in APEX
+    if (res.items && Object.keys(res.items).length) {
+      const kept = Object.fromEntries(Object.entries(sent).filter(([k]) => !(k in loaded.value) && k !== 'REQUEST'))
+      for (const [k, v] of Object.entries(res.items)) kept[k] = v ?? ''
+      const url = appPageUrl(props.app, props.page, Object.fromEntries(Object.entries(kept).filter(([, v]) => v !== '')))
+      if (router.resolve(url).fullPath === router.currentRoute.value.fullPath) emit('reload')
+      else void router.replace(url)
+      return false
+    }
     emit('reload')
     return true
   } catch (e) {
@@ -278,7 +290,7 @@ if (flash.message) {
         :region="region"
         :items="items"
         :apex="apex"
-        @ready="regionReady"
+        @ready="(run: () => void) => regionReady(region.key, run)"
         @open="open"
         @submit="submitPage"
       />

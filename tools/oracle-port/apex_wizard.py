@@ -409,6 +409,9 @@ def main():
             end = marks[n + 1][0] if n + 1 < len(marks) else len(page['regions'])
             a = attrs.get(r['id'] or '', {})
             for region in page['regions'][start:end]:
+                for b in region.get('buttons', []):
+                    if attrs.get('%s:%s' % (r['id'], b['name']), {}).get('staticId'):
+                        b['staticId'] = attrs['%s:%s' % (r['id'], b['name'])]['staticId']
                 if a.get('staticId'):
                     region['staticId'] = a['staticId']
                 if a.get('cls'):

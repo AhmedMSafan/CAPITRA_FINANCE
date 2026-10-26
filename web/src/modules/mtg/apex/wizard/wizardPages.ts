@@ -4305,21 +4305,24 @@ export const wizardPages: WizardPage[] = [
             "label": "Back to Portfolio Cases",
             "action": "REDIRECT_PAGE",
             "position": "CLOSE",
-            "page": 201
+            "page": 201,
+            "staticId": "back-cases"
           },
           {
             "name": "IMPORT",
             "label": "Import & Complete",
             "action": "SUBMIT",
             "position": "NEXT",
-            "page": null
+            "page": null,
+            "staticId": "import-complete"
           },
           {
             "name": "LOAD_VALIDATE",
             "label": "Validate Workbook",
             "action": "SUBMIT",
             "position": "NEXT",
-            "page": null
+            "page": null,
+            "staticId": "validate-workbook"
           }
         ],
         "cls": "t-Region--noPadding ld-native",

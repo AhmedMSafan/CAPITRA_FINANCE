@@ -59,15 +59,15 @@ public sealed class MtgWorkflowSteps(ICapitraDbContext db, WfeRuntime runtime, W
     }
 
     /// <summary>
-    /// APPROVE_TASK / REJECT_TASK / COMPLETE_TASK with the comment; APPROVE falls back to COMPLETE when the step has no
-    /// Approve action (sqlcode -20012). Returns the next open task of the workflow (p_new_task_id).
+    /// APPROVE_TASK / REJECT_TASK / COMPLETE_TASK with the comment; APPROVE falls back to COMPLETE (and COMPLETE to
+    /// APPROVE) when the step does not have that action (sqlcode -20012). Returns the next open task (p_new_task_id).
     /// </summary>
     public async Task<long?> DecideAsync(long taskId, string action, string? comment, CancellationToken ct)
     {
         var task = await db.Set<WfeTask>().Include(t => t.StepInstance).FirstAsync(t => t.TaskId == taskId, ct);
         var allowed = (task.AllowedActions ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (action == "APPROVE" && allowed.Length > 0 && !allowed.Contains("APPROVE", StringComparer.OrdinalIgnoreCase))
-            action = "COMPLETE";
+        if (allowed.Length > 0 && !allowed.Contains(action, StringComparer.OrdinalIgnoreCase))
+            action = action == "APPROVE" ? "COMPLETE" : action == "COMPLETE" ? "APPROVE" : action;
         var variables = string.IsNullOrWhiteSpace(comment) ? null : new Dictionary<string, string?> { ["TASK_COMMENT"] = comment };
         var instanceId = task.StepInstance!.WorkflowInstanceId;
         await runtime.CompleteAsync(taskId, action, Me, variables, ct);

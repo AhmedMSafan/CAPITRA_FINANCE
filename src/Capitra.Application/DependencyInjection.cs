@@ -52,6 +52,8 @@ public static class DependencyInjection
                      .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IApexFormHooks).IsAssignableFrom(t)))
             services.AddScoped(typeof(IApexFormHooks), type);
         services.AddScoped<ApexProcessRegistry>();
+        services.AddSingleton<ApexSessionStore>();
+        services.AddScoped<ApexSession>();
 
         // The PL/SQL packages App 105 calls, ported.
         services.AddScoped<Modules.Mtg.Packages.MtgFinancePackage>();

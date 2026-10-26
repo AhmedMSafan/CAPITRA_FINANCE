@@ -7,8 +7,9 @@ import { runInlineScripts, type createApex } from './apexRuntime'
 import { resolveSet, shown, substitute, type WizardButton, type WizardRegion } from './wizard'
 
 const props = defineProps<{ app: number; page: number; region: WizardRegion; items: Record<string, string>; apex?: ReturnType<typeof createApex> }>()
-// ready: the region's HTML is on the page (and its scripts ran); open: a button that redirects to a page
-const emit = defineEmits<{ ready: []; open: [page: number | null, items: Record<string, string>]; submit: [request: string] }>()
+// ready: the region's HTML is on the page, with the function that runs its scripts (the page runs them once every
+// region's HTML is there, in the regions' order, as APEX rendered the whole page first); open: a button that redirects
+const emit = defineEmits<{ ready: [runScripts: () => void]; open: [page: number | null, items: Record<string, string>]; submit: [request: string] }>()
 
 const body = ref<HTMLElement | null>(null)
 const buttons = computed(() => (props.region.buttons ?? []).filter((b) => shown(b, props.items)))
@@ -41,11 +42,12 @@ async function load() {
   await done()
 }
 
-// the <script> blocks the PL/SQL printed run once the HTML is on the page, as in APEX
+// the <script> blocks the PL/SQL printed run once the whole page is there, as in APEX
 async function done() {
   await nextTick()
-  if (body.value && props.apex) runInlineScripts(body.value, props.apex)
-  emit('ready')
+  emit('ready', () => {
+    if (body.value && props.apex) runInlineScripts(body.value, props.apex)
+  })
 }
 
 watch(() => JSON.stringify(props.items), load, { immediate: true })
@@ -58,12 +60,12 @@ watch(() => JSON.stringify(props.items), load, { immediate: true })
     <div ref="body" class="t-Region-body" v-html="html"></div>
     <div v-if="buttons.length" class="t-Region-buttons">
       <div class="t-Region-buttons-left">
-        <button v-for="b in startButtons" :key="b.name" type="button" class="t-Button" :class="buttonClass(b)" @click="press(b)">
+        <button v-for="b in startButtons" :id="b.staticId" :key="b.name" type="button" class="t-Button" :class="buttonClass(b)" @click="press(b)">
           {{ b.label }}
         </button>
       </div>
       <div class="t-Region-buttons-right">
-        <button v-for="b in endButtons" :key="b.name" type="button" class="t-Button" :class="buttonClass(b)" @click="press(b)">
+        <button v-for="b in endButtons" :id="b.staticId" :key="b.name" type="button" class="t-Button" :class="buttonClass(b)" @click="press(b)">
           {{ b.label }}
         </button>
       </div>

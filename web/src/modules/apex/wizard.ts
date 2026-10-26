@@ -45,6 +45,8 @@ export type WizardButton = {
   page: number | null
   set?: WizardSet
   cond?: WizardCondition
+  /** The button's Static ID: page scripts click it (#import-complete) and page CSS styles it. */
+  staticId?: string
 }
 
 /** Whether a button's condition holds for the page items. */
