@@ -205,6 +205,7 @@ public static class MtgApexSql
         new(105, 403, Permissions.Mtg.PortfolioView, Q.LOAD_P403),
         new(105, 405, Permissions.Mtg.PortfolioView, Q.LOAD_P405),
         new(105, 407, Permissions.Mtg.PortfolioView, Q.LOAD_P407),
+        new(105, 605, Permissions.Mtg.PortfolioView, Q.LOAD_P605),
         new(105, 710, Permissions.Mtg.PortfolioView, Q.LOAD_P710),
     ];
 
@@ -425,6 +426,16 @@ public static class MtgApexSql
         )
         select case when v."PORTFOLIO_ID" is null then '-' else to_char(v."REQUIRED_COVERAGE_AMOUNT", 'FM999G999G999G990D00') end "P407_REQUIRED_COVERAGE", case when v."PORTFOLIO_ID" is null then '0.00' else to_char(v."CHEQUE_TOTAL_AMOUNT", 'FM999G999G999G990D00') end "P407_CHEQUE_TOTAL", case when v."PORTFOLIO_ID" is null or v."CHEQUE_COVERAGE_PCT" is null then '-' else concat(to_char(v."CHEQUE_COVERAGE_PCT", 'FM999G990D00'), '%') end "P407_COVERAGE_PCT", case when v."PORTFOLIO_ID" is null then 'Not Available' when v."COVERAGE_OK_FLAG" = 'Y' then 'Covered' else 'Insufficient' end "P407_COVERAGE_STATUS" from (select 1 "X") "D"
         left join "FNV_V_CHEQUE_COVERAGE" v on v."PORTFOLIO_ID" = @P407_PORTFOLIO_ID::numeric
+        """;
+
+        public const string LOAD_P605 = """
+        select a."PORTFOLIO_ID" "P605_PORTFOLIO_ID", a."STEP_CODE" "P605_STEP_CODE", p."PORTFOLIO_NO" "P605_PORTFOLIO_NO", s."STEP_NAME_EN" "P605_STEP_NAME", concat(coalesce(d."LEGAL_NAME_EN", '-'), ' | ', coalesce(prj."PROJECT_NAME_EN", '-')) "P605_DEVELOPER_PROJECT", concat(to_char(p."PROPOSED_PURCHASE_VALUE", 'FM999G999G999G990D00'), ' ', p."CURRENCY_CODE") "P605_PURCHASE_VALUE", coalesce(a."ASSIGNED_TO", 'Unassigned') "P605_ASSIGNED_TO", to_char(a."ASSIGNED_DATE", 'DD-MON-YYYY') "P605_ASSIGNED_DATE", p."BOARD_DECISION_NO" "P605_BOARD_DECISION_NO", to_char(p."BOARD_DECISION_DATE", 'YYYY-MM-DD') "P605_BOARD_DECISION_DATE", p."BOARD_DECISION" "P605_BOARD_DECISION"
+        from "MTG_PURCHASED_PORTFOLIO_APPROVALS" a
+        join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = a."PORTFOLIO_ID"
+        join "MTG_LKP_APPROVAL_STEPS" s on s."STEP_CODE" = a."STEP_CODE"
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        join "MTG_PROJECTS" prj on prj."PROJECT_ID" = p."PROJECT_ID"
+        where a."APPROVAL_ID" = @P605_APPROVAL_ID::bigint
         """;
 
         public const string LOAD_P710 = """
