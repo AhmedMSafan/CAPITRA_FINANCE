@@ -1251,6 +1251,60 @@ public static class MtgApexPageSql
         order by c."DUE_DATE" nulls first, c."CHEQUE_ID"
         """;
 
+    public const string P215_HEADER = """
+        select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", coalesce(prj."PROJECT_NAME_EN", prj."PROJECT_NAME_AR") "PRJ", p."CURRENCY_CODE", p."COVERAGE_PCT", p."MARGIN_PERCENTAGE", p."PV_RATE", p."RESERVED_AMOUNT_PERCENT", p."LATE_FEE_RATE", p."ADMIN_EXPENSE_PERCENT", p."LEGAL_FEE_PER_UNIT", p."VALUATION_FEE_PER_UNIT", p."TERM_MONTHS", (select s."STATUS_NAME_EN"
+        from "MTG_LKP_PORTFOLIO_STATUSES" s
+        where s."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE") "STATUS_NAME"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        join "MTG_PROJECTS" prj on prj."PROJECT_ID" = p."PROJECT_ID"
+        where p."PORTFOLIO_ID" = @P215_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P215_ACCOUNTS = """
+        select coalesce(sum(a."CONTRACT_VALUE"), 0) "FACE", coalesce(sum(a."OUTSTANDING_VALUE"), 0) "OUT", coalesce(sum(a."PAID_VALUE"), 0) "PAID", count(*) "N", count(distinct a."INVESTOR_ID") "INV", coalesce(sum(case when coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED' then a."CONTRACT_VALUE" end), 0) "SFACE", coalesce(sum(case when coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED' then a."OUTSTANDING_VALUE" end), 0) "SOUT", coalesce(sum(case when coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED' then a."PAID_VALUE" end), 0) "SPAID", count(case when coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED' then 1 end) "SN", count(distinct case when coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED' then a."INVESTOR_ID" end) "SINV", count(distinct case when coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED' then a."UNIT_ID" end) "UNITS"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        where a."PORTFOLIO_ID" = @P215_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P215_CHEQUES = """
+        select count(*) "N", coalesce(sum(c."CHEQUE_AMOUNT"), 0) "AMT"
+        from "MTG_PURCHASED_PORTFOLIO_CHEQUES" c
+        join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."PORTFOLIO_ACCOUNT_ID" = c."PORTFOLIO_ACCOUNT_ID"
+        where c."PORTFOLIO_ID" = @P215_PORTFOLIO_ID::bigint and coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED'
+        """;
+
+    public const string P215_AML = """
+        select count(*) "N", count(case when upper(coalesce(r."RESULT_CODE", 'X')) <> 'CLEAR' then 1 end) "FLAG"
+        from "MTG_AML_RESULTS" r
+        where r."PORTFOLIO_ID" = @P215_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P215_INQ = """
+        select count(*) "N", count(case when upper(q."RISK_LEVEL_CODE") in ('HIGH', 'CRITICAL') then 1 end) "HIGH"
+        from "MTG_INQUIRY_RESULTS" q
+        where q."PORTFOLIO_ID" = @P215_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P215_VALUATION = """
+        select v."MARKET_VALUE", v."RECOMMENDED_VALUE", v."VALUATION_DATE", v."VALUER_NAME", v."PROJECT_COMPLETION_PCT"
+        from "MTG_VALUATIONS" v
+        where v."PORTFOLIO_ID" = @P215_PORTFOLIO_ID::bigint
+        order by v."VALUATION_DATE" desc nulls last, v."VALUATION_ID" desc fetch first 1 rows only
+        """;
+
+    public const string P215_INVESTORS = """
+        select a."INVESTOR_ID", max(coalesce(inv."FULL_NAME_EN", inv."FULL_NAME_AR")) "NM", max(inv."INVESTOR_CODE") "CD", count(*) "N", sum(coalesce(a."OUTSTANDING_VALUE", 0)) "OV", sum(coalesce(a."CONTRACT_VALUE", 0)) "CV", sum(coalesce(a."PAID_VALUE", 0)) "PV", count(case when coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED' then 1 end) "SN", (select coalesce(sum(c."CHEQUE_AMOUNT"), 0)
+        from "MTG_PURCHASED_PORTFOLIO_CHEQUES" c
+        join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a2 on a2."PORTFOLIO_ACCOUNT_ID" = c."PORTFOLIO_ACCOUNT_ID"
+        where c."PORTFOLIO_ID" = @P215_PORTFOLIO_ID::bigint and a2."INVESTOR_ID" = a."INVESTOR_ID") "CHQ"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        join "MTG_INVESTORS" inv on inv."INVESTOR_ID" = a."INVESTOR_ID"
+        where a."PORTFOLIO_ID" = @P215_PORTFOLIO_ID::bigint
+        group by a."INVESTOR_ID"
+        order by count(case when coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED' then 1 end) desc, max(inv."INVESTOR_CODE")
+        """;
+
     public const string P401_HEADER = """
         select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", coalesce(prj."PROJECT_NAME_EN", prj."PROJECT_NAME_AR") "PROJECT", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", coalesce(p."CURRENCY_CODE", 'EGP') "CUR", (select s."STATUS_NAME_EN"
         from "MTG_LKP_PORTFOLIO_STATUSES" s
