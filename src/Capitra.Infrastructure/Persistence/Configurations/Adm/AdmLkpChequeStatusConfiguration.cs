@@ -1,10 +1,20 @@
 using Capitra.Domain.Modules.Adm;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Capitra.Infrastructure.Persistence.Configurations.Adm;
 
-public sealed class AdmLkpChequeStatusConfiguration : LookupConfiguration<AdmLkpChequeStatus>
+public sealed class AdmLkpChequeStatusConfiguration : IEntityTypeConfiguration<AdmLkpChequeStatus>
 {
-    protected override string TableName => "ADM_LKP_CHEQUE_STATUSES";
+    public void Configure(EntityTypeBuilder<AdmLkpChequeStatus> builder)
+    {
+        builder.ToTable("ADM_LKP_CHEQUE_STATUSES");
+        builder.HasKey(x => x.ChequeStatusCode);
 
-    protected override int NameMaxLength => 100;
+        builder.Property(x => x.ChequeStatusCode).HasMaxLength(20);
+        builder.Property(x => x.ChequeStatusAr).HasMaxLength(100);
+        builder.Property(x => x.ChequeStatusEn).HasMaxLength(100);
+
+        builder.ConfigureAudit();
+    }
 }

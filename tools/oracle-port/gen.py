@@ -25,10 +25,15 @@ from decimal import Decimal, InvalidOperation
 csv.field_size_limit(1 << 30)
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 AUDIT = {'CREATED_BY', 'CREATED_DT', 'UPDATED_BY', 'UPDATED_DT', 'CREATED_AT', 'UPDATED_AT',
-         'CREATION_DATE', 'LAST_UPDATE_DATE', 'LAST_UPDATED_BY'}
+         'CREATION_DATE', 'LAST_UPDATE_DATE', 'LAST_UPDATED_BY', 'CREATED_ON', 'UPDATED_ON', 'ROW_VERSION_NO',
+         'CREATED_DATE', 'UPDATED_DATE', 'LAST_MODIFIED_BY', 'LAST_MODIFIED_DATE'}
 AUDIT_MAP = {'CREATED_BY': 'CreatedBy', 'CREATED_DT': 'CreatedAt', 'CREATED_AT': 'CreatedAt',
              'CREATION_DATE': 'CreatedAt', 'UPDATED_BY': 'UpdatedBy', 'LAST_UPDATED_BY': 'UpdatedBy',
-             'UPDATED_DT': 'UpdatedAt', 'UPDATED_AT': 'UpdatedAt', 'LAST_UPDATE_DATE': 'UpdatedAt'}
+             'UPDATED_DT': 'UpdatedAt', 'UPDATED_AT': 'UpdatedAt', 'LAST_UPDATE_DATE': 'UpdatedAt',
+             'CREATED_ON': 'CreatedAt', 'UPDATED_ON': 'UpdatedAt', 'ROW_VERSION_NO': 'RowVersion',
+             'CREATED_DATE': 'CreatedAt', 'UPDATED_DATE': 'UpdatedAt', 'LAST_MODIFIED_BY': 'UpdatedBy', 'LAST_MODIFIED_DATE': 'UpdatedAt'}
+# Oracle table -> [Capitra table, class] where the default rules below do not give the agreed name.
+NAMES = {k: v for k, v in json.load(open(os.path.join(os.path.dirname(__file__), 'names.json'))).items() if not k.startswith('_')}
 CS_KEYWORDS = {'Type', 'Object', 'String', 'Decimal', 'Base', 'Event', 'Checked', 'Operator', 'Params', 'Lock'}
 AMOUNT_WORDS = ('AMOUNT', 'AMT', 'BALANCE', 'TOTAL', 'DR', 'CR', 'DEBIT', 'CREDIT', 'PRICE', 'VALUE',
                 'COST', 'FEE', 'PRINCIPAL', 'INTEREST', 'VARIANCE', 'TOLERANCE', 'LIMIT', 'DIFFERENCE')
@@ -44,6 +49,19 @@ def pascal(name):
     return ''.join(p[:1] + p[1:].lower() for p in name.split('_') if p)
 
 
+def upper_snake(prop):
+    """The column name Capitra's EF naming convention (DbNames.ToUpperSnake) gives a property."""
+    out = []
+    for i, c in enumerate(prop):
+        if c.isupper() and i > 0:
+            prev = prop[i - 1]
+            next_lower = i + 1 < len(prop) and prop[i + 1].islower()
+            if prev.islower() or prev.isdigit() or (prev.isupper() and next_lower):
+                out.append('_')
+        out.append(c.upper())
+    return ''.join(out)
+
+
 def singular(word):
     w = word
     for a, b in (('IES', 'Y'), ('SSES', 'SS'), ('STATUSES', 'STATUS'), ('CHES', 'CH'), ('SHES', 'SH'),
@@ -56,6 +74,8 @@ def singular(word):
 
 
 def table_name(oracle):
+    if oracle in NAMES:
+        return NAMES[oracle][0]
     t = oracle.replace('FNV_', 'CAP_', 1) if oracle.startswith('FNV_') else oracle
     t = re.sub(r'_HISTORY$', '_HIST', t)
     last = t.split('_')[-1]
@@ -65,6 +85,8 @@ def table_name(oracle):
 
 
 def class_name(oracle):
+    if oracle in NAMES:
+        return NAMES[oracle][1]
     t = oracle.replace('FNV_', 'CAP_', 1) if oracle.startswith('FNV_') else oracle
     parts = t.split('_')
     if parts[-1] == 'HISTORY':
@@ -94,7 +116,7 @@ def in_list(cond, col):
 
 def scan_data(path, cols):
     """Per column: max decimals, max integer digits, any time part, max length."""
-    info = {c: {'dec': 0, 'int': 0, 'time': False, 'len': 0, 'nonempty': 0} for c in cols}
+    info = {c: {'dec': 0, 'int': 0, 'time': False, 'len': 0, 'nonempty': 0, 'vals': set()} for c in cols}
     if not os.path.exists(path):
         return info
     for r in rd(path):
@@ -105,6 +127,8 @@ def scan_data(path, cols):
             i = info[c]
             i['nonempty'] += 1
             i['len'] = max(i['len'], len(v))
+            if len(i['vals']) < 4:
+                i['vals'].add(v.strip())
             if re.fullmatch(r'-?\d*\.?\d+(E[-+]?\d+)?', v, re.I):
                 try:
                     d = Decimal(v)
@@ -189,7 +213,10 @@ def main():
                     vals = v
             if vals and sorted(vals) == ['N', 'Y']:
                 flag = True
-            if on.endswith('_FLAG') and dt in ('CHAR', 'VARCHAR2') and int(c['CHAR_LENGTH'] or 0) == 1:
+            # a one-character IS_ column, or one that only ever holds Y or N, is a Y/N flag too
+            if dt in ('CHAR', 'VARCHAR2') and int(c['CHAR_LENGTH'] or 0) == 1 and (on.startswith('IS_') or (ci['vals'] and ci['vals'] <= {'Y', 'N'})):
+                flag = True
+            if on.endswith(('_FLAG', '_YN')) and dt in ('CHAR', 'VARCHAR2') and int(c['CHAR_LENGTH'] or 0) == 1:
                 flag = True
 
             name = on.replace('FNV', 'CAP')
@@ -197,12 +224,16 @@ def main():
             init = None
             dflt = (c['DATA_DEFAULT_VC'] or '').strip().strip('\n').strip()
             if flag:
-                base = re.sub(r'_FLAG$', '', name)
+                base = re.sub(r'_(FLAG|YN)$', '', name)
                 if base.startswith('REQUIRE_'):
                     base = base[len('REQUIRE_'):] + '_REQUIRED'
                 elif base.startswith('ALLOW_'):
                     base = base[len('ALLOW_'):] + '_ALLOWED'
+                elif base.startswith('REQUIRES_'):
+                    base = base[len('REQUIRES_'):] + '_REQUIRED'
                 name = base if base.startswith('IS_') else 'IS_' + base
+                if name.endswith('_AMOUNT'):  # IS_UNLIMITED_AMOUNT -> IS_AMOUNT_UNLIMITED: _AMOUNT columns are money
+                    name = 'IS_AMOUNT_' + name[3:-len('_AMOUNT')]
                 cstype, kind = 'bool', 'flag'
                 if dflt.strip("'") == 'Y':
                     init = 'true'
@@ -312,15 +343,17 @@ def main():
         cfg = [f'    public void Configure(EntityTypeBuilder<{cls}> builder)', '    {',
                f'        builder.ToTable("{tbl}");']
         pkp = next((p for p in props if p['pk']), None)
-        if pkp:
-            cfg.append(f'        builder.HasKey(x => x.{pkp["prop"]});')
-        seen_idx = set()
-
         def idx_expr(colnames):
             ps = [bylist[c]['prop'] for c in colnames if c in bylist]
             if len(ps) != len(colnames) or not ps:
                 return None
             return f'x => x.{ps[0]}' if len(ps) == 1 else 'x => new { ' + ', '.join('x.' + p for p in ps) + ' }'
+        if pkp:
+            cfg.append(f'        builder.HasKey(x => x.{pkp["prop"]});')
+        elif pk and ',' in pk:
+            cfg.append(f'        builder.HasKey({idx_expr(pk.split(","))});')
+        seen_idx = set()
+
 
         for c in sorted(tcons, key=lambda c: c['CONSTRAINT_NAME']):
             if c['CONSTRAINT_TYPE'] == 'U':
@@ -343,6 +376,8 @@ def main():
                 cfg.append(f'        builder.Property(x => x.{p["prop"]}).HasMaxLength({p["extra"]});')
             elif p['kind'] == 'decimal':
                 cfg.append(f'        builder.Property(x => x.{p["prop"]}).HasPrecision({p["extra"][0]}, {p["extra"][1]});')
+            if upper_snake(p['prop']) != p['col']:
+                cfg.append(f'        builder.Property(x => x.{p["prop"]}).HasColumnName("{p["col"]}");')
             if p['pk'] and p['cstype'] in ('long', 'int'):
                 cfg.append(f'        builder.Property(x => x.{p["prop"]}).UseIdentityByDefaultColumn();')
         cfg.append('')
@@ -354,9 +389,9 @@ def main():
             if col not in bylist or rt not in all_tables:
                 cfg.append(f'        // {c["CONSTRAINT_NAME"]}: {col} -> {rt} (table not exported)')
                 continue
-            rmod = module_of.get(rt.split('_')[0], None)
+            rmod = module_of.get(table_name(rt).split('_')[0], None)
             if rt not in tables and rmod is None:
-                cfg.append(f'        // {col} -> {rt}: added when the {rt.split("_")[0]} tables are ported.')
+                cfg.append(f'        // {col} -> {rt}: added when the {table_name(rt).split("_")[0]} tables are ported.')
                 continue
             if rt not in tables:
                 usings.add('Capitra.Domain.Modules.' + rmod)

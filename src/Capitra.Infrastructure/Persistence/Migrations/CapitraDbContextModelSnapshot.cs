@@ -86,10 +86,22 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpChequeStatus", b =>
                 {
-                    b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                    b.Property<string>("ChequeStatusCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("CHEQUE_STATUS_CODE");
+
+                    b.Property<string>("ChequeStatusAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHEQUE_STATUS_AR");
+
+                    b.Property<string>("ChequeStatusEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHEQUE_STATUS_EN");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -101,30 +113,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -140,7 +131,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("ChequeStatusCode")
                         .HasName("PK_ADM_LKP_CHEQUE_STATUSES");
 
                     b.ToTable("ADM_LKP_CHEQUE_STATUSES", (string)null);
@@ -210,10 +201,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpCurrency", b =>
                 {
-                    b.Property<string>("Code")
+                    b.Property<string>("CurrencyCode")
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)")
-                        .HasColumnName("CODE");
+                        .HasColumnName("CURRENCY_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -225,34 +216,25 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
+                    b.Property<string>("CurrencyNameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CURRENCY_NAME_AR");
+
+                    b.Property<string>("CurrencyNameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CURRENCY_NAME_EN");
+
                     b.Property<int>("DecimalPlaces")
                         .HasColumnType("integer")
                         .HasColumnName("DECIMAL_PLACES");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -268,7 +250,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("CurrencyCode")
                         .HasName("PK_ADM_LKP_CURRENCIES");
 
                     b.ToTable("ADM_LKP_CURRENCIES", (string)null);
@@ -276,10 +258,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDecisionType", b =>
                 {
-                    b.Property<string>("Code")
+                    b.Property<string>("DecisionCode")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                        .HasColumnName("DECISION_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -291,30 +273,21 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
+                    b.Property<string>("DecisionNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("DECISION_NAME_AR");
 
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
+                    b.Property<string>("DecisionNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("DECISION_NAME_EN");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -330,7 +303,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("DecisionCode")
                         .HasName("PK_ADM_LKP_DECISION_TYPES");
 
                     b.ToTable("ADM_LKP_DECISION_TYPES", (string)null);
@@ -338,10 +311,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentGroup", b =>
                 {
-                    b.Property<string>("Code")
+                    b.Property<string>("GroupCode")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                        .HasColumnName("GROUP_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -353,30 +326,25 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
+                    b.Property<int?>("DisplaySeq")
                         .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
+                        .HasColumnName("DISPLAY_SEQ");
+
+                    b.Property<string>("GroupNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("GROUP_NAME_AR");
+
+                    b.Property<string>("GroupNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("GROUP_NAME_EN");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -392,7 +360,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("GroupCode")
                         .HasName("PK_ADM_LKP_DOCUMENT_GROUPS");
 
                     b.ToTable("ADM_LKP_DOCUMENT_GROUPS", (string)null);
@@ -400,10 +368,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentType", b =>
                 {
-                    b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                    b.Property<long>("DocumentTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_TYPE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DocumentTypeId"));
 
                     b.Property<string>("AllowedExtensions")
                         .HasMaxLength(200)
@@ -425,19 +395,32 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("DESCRIPTION");
 
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
-
                     b.Property<string>("DocumentCategory")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("DOCUMENT_CATEGORY");
 
-                    b.Property<string>("DocumentGroupCode")
+                    b.Property<string>("DocumentTypeCode")
+                        .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("DOCUMENT_GROUP_CODE");
+                        .HasColumnName("DOCUMENT_TYPE_CODE");
+
+                    b.Property<string>("DocumentTypeName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DOCUMENT_TYPE_NAME");
+
+                    b.Property<string>("DocumentTypeNameAr")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DOCUMENT_TYPE_NAME_AR");
+
+                    b.Property<string>("GroupCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("GROUP_CODE");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
@@ -455,22 +438,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("MAX_FILE_SIZE_MB");
 
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_EN");
-
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
+
+                    b.Property<int?>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("SORT_ORDER");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -481,21 +456,22 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("DocumentTypeId")
                         .HasName("PK_ADM_LKP_DOCUMENT_TYPES");
 
-                    b.HasIndex("DocumentGroupCode")
-                        .HasDatabaseName("IX_ADM_LKP_DOCUMENT_TYPES_DOCUMENT_GROUP_CODE");
+                    b.HasIndex("DocumentTypeCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_LKP_DOCUMENT_TYPES_DOCUMENT_TYPE_CODE");
 
                     b.ToTable("ADM_LKP_DOCUMENT_TYPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpGuaranteeType", b =>
                 {
-                    b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                    b.Property<string>("GuaranteeTypeCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("GUARANTEE_TYPE_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -507,14 +483,21 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
+                    b.Property<int?>("DisplaySeq")
                         .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
+                        .HasColumnName("DISPLAY_SEQ");
+
+                    b.Property<string>("GuaranteeNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("GUARANTEE_NAME_AR");
+
+                    b.Property<string>("GuaranteeNameEn")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("GUARANTEE_NAME_EN");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
@@ -524,18 +507,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("IS_MANDATORY");
 
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("NAME_EN");
-
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
@@ -550,7 +521,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("GuaranteeTypeCode")
                         .HasName("PK_ADM_LKP_GUARANTEE_TYPES");
 
                     b.ToTable("ADM_LKP_GUARANTEE_TYPES", (string)null);
@@ -558,10 +529,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpInsuranceType", b =>
                 {
-                    b.Property<string>("Code")
+                    b.Property<string>("InsuranceTypeCode")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                        .HasColumnName("INSURANCE_TYPE_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -573,30 +544,21 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
+                    b.Property<string>("InsuranceNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("INSURANCE_NAME_AR");
 
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
+                    b.Property<string>("InsuranceNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("INSURANCE_NAME_EN");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -612,7 +574,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("InsuranceTypeCode")
                         .HasName("PK_ADM_LKP_INSURANCE_TYPES");
 
                     b.ToTable("ADM_LKP_INSURANCE_TYPES", (string)null);
@@ -698,10 +660,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpPaymentStatus", b =>
                 {
-                    b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                    b.Property<string>("PaymentStatusCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PAYMENT_STATUS_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -713,30 +675,21 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
 
-                    b.Property<string>("NameAr")
+                    b.Property<string>("PaymentStatusAr")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_AR");
+                        .HasColumnName("PAYMENT_STATUS_AR");
 
-                    b.Property<string>("NameEn")
+                    b.Property<string>("PaymentStatusEn")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_EN");
+                        .HasColumnName("PAYMENT_STATUS_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -752,7 +705,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("PaymentStatusCode")
                         .HasName("PK_ADM_LKP_PAYMENT_STATUSES");
 
                     b.ToTable("ADM_LKP_PAYMENT_STATUSES", (string)null);
@@ -760,10 +713,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpRiskLevel", b =>
                 {
-                    b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                    b.Property<string>("RiskLevelCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("RISK_LEVEL_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -775,35 +728,30 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
 
-                    b.Property<string>("NameAr")
+                    b.Property<string>("RiskLevelNameAr")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_AR");
+                        .HasColumnName("RISK_LEVEL_NAME_AR");
 
-                    b.Property<string>("NameEn")
+                    b.Property<string>("RiskLevelNameEn")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_EN");
+                        .HasColumnName("RISK_LEVEL_NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
+
+                    b.Property<int?>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("SORT_ORDER");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -814,7 +762,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("RiskLevelCode")
                         .HasName("PK_ADM_LKP_RISK_LEVELS");
 
                     b.ToTable("ADM_LKP_RISK_LEVELS", (string)null);
@@ -17730,12 +17678,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountPayment", b =>
                 {
-                    b.Property<long>("AccountPaymentId")
+                    b.Property<long>("PaymentId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("ACCOUNT_PAYMENT_ID");
+                        .HasColumnName("PAYMENT_ID");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AccountPaymentId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PaymentId"));
 
                     b.Property<string>("BankName")
                         .HasMaxLength(300)
@@ -17781,8 +17729,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("PaymentStatusCode")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("PAYMENT_STATUS_CODE");
 
                     b.Property<long>("PortfolioAccountId")
@@ -17803,7 +17751,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("AccountPaymentId")
+                    b.HasKey("PaymentId")
                         .HasName("PK_MTG_ACCOUNT_PAYMENTS");
 
                     b.HasIndex("PaymentStatusCode")
@@ -17815,20 +17763,87 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_ACCOUNT_PAYMENTS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAmlResult", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountSnapshot", b =>
                 {
-                    b.Property<long>("AmlResultId")
+                    b.Property<long>("SnapshotId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("AML_RESULT_ID");
+                        .HasColumnName("SNAPSHOT_ID");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AmlResultId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SnapshotId"));
 
-                    b.Property<string>("AmlResultCode")
+                    b.Property<decimal>("ArrearsAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ARREARS_AMOUNT");
+
+                    b.Property<DateOnly>("AsOfDate")
+                        .HasColumnType("date")
+                        .HasColumnName("AS_OF_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("AML_RESULT_CODE");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly?>("NextDueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("NEXT_DUE_DATE");
+
+                    b.Property<decimal>("OutstandingValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUTSTANDING_VALUE");
+
+                    b.Property<string>("PaymentStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PAYMENT_STATUS");
+
+                    b.Property<long>("PortfolioAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ACCOUNT_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("SnapshotId")
+                        .HasName("PK_MTG_ACCOUNT_SNAPSHOTS");
+
+                    b.HasIndex("PortfolioAccountId")
+                        .HasDatabaseName("IX_MTG_ACCOUNT_SNAPSHOTS_PORTFOLIO_ACCOUNT_ID");
+
+                    b.HasIndex("AsOfDate", "PortfolioAccountId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_ACCOUNT_SNAPSHOTS_AS_OF_DATE_PORTFOLIO_ACCOUNT_ID");
+
+                    b.ToTable("MTG_ACCOUNT_SNAPSHOTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAmlResult", b =>
+                {
+                    b.Property<long>("AmlId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("AML_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AmlId"));
 
                     b.Property<string>("AmlTypeCode")
                         .IsRequired()
@@ -17860,13 +17875,18 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("REFERENCE_NO");
 
+                    b.Property<string>("ResultCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("RESULT_CODE");
+
                     b.Property<string>("ResultDetails")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
                         .HasColumnName("RESULT_DETAILS");
 
                     b.Property<string>("RiskLevelCode")
-                        .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
                         .HasColumnName("RISK_LEVEL_CODE");
@@ -17884,11 +17904,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("SUBJECT_ID");
 
-                    b.Property<string>("SubjectTypeCode")
+                    b.Property<string>("SubjectType")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("SUBJECT_TYPE_CODE");
+                        .HasColumnName("SUBJECT_TYPE");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -17899,11 +17919,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("AmlResultId")
+                    b.HasKey("AmlId")
                         .HasName("PK_MTG_AML_RESULTS");
 
-                    b.HasIndex("PortfolioId", "SubjectTypeCode", "SubjectId")
-                        .HasDatabaseName("IX_MTG_AML_RESULTS_PORTFOLIO_ID_SUBJECT_TYPE_CODE_SUBJECT_ID");
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_AML_RESULTS_PORTFOLIO_ID");
+
+                    b.HasIndex("PortfolioId", "SubjectType", "SubjectId")
+                        .HasDatabaseName("IX_MTG_AML_RESULTS_PORTFOLIO_ID_SUBJECT_TYPE_SUBJECT_ID");
 
                     b.ToTable("MTG_AML_RESULTS", (string)null);
                 });
@@ -17973,8 +17996,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("PHONE_NO");
 
                     b.Property<string>("RiskLevelCode")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("RISK_LEVEL_CODE");
 
                     b.Property<int>("RowVersion")
@@ -18011,12 +18034,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDeveloperSignatory", b =>
                 {
-                    b.Property<long>("DeveloperSignatoryId")
+                    b.Property<long>("SignatoryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("DEVELOPER_SIGNATORY_ID");
+                        .HasColumnName("SIGNATORY_ID");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DeveloperSignatoryId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SignatoryId"));
 
                     b.Property<string>("AuthorizationReference")
                         .HasMaxLength(300)
@@ -18046,10 +18069,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("JOB_TITLE");
 
-                    b.Property<string>("NationalIdNo")
+                    b.Property<string>("NationalId")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
-                        .HasColumnName("NATIONAL_ID_NO");
+                        .HasColumnName("NATIONAL_ID");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -18079,7 +18102,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("VALID_TO_DATE");
 
-                    b.HasKey("DeveloperSignatoryId")
+                    b.HasKey("SignatoryId")
                         .HasName("PK_MTG_DEVELOPER_SIGNATORIES");
 
                     b.HasIndex("DeveloperId")
@@ -18088,14 +18111,345 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_DEVELOPER_SIGNATORIES", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInquiryResult", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDueDiligence", b =>
                 {
-                    b.Property<long>("InquiryResultId")
+                    b.Property<long>("DdId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("INQUIRY_RESULT_ID");
+                        .HasColumnName("DD_ID");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InquiryResultId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DdId"));
+
+                    b.Property<string>("AssignedTo")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("ASSIGNED_TO");
+
+                    b.Property<string>("CheckTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CHECK_TYPE_CODE");
+
+                    b.Property<DateOnly?>("CompletionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("COMPLETION_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Findings")
+                        .HasColumnType("text")
+                        .HasColumnName("FINDINGS");
+
+                    b.Property<bool>("IsException")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_EXCEPTION");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<string>("Recommendation")
+                        .HasColumnType("text")
+                        .HasColumnName("RECOMMENDATION");
+
+                    b.Property<string>("ResultCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RESULT_CODE");
+
+                    b.Property<string>("RiskLevelCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("RISK_LEVEL_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("START_DATE");
+
+                    b.Property<long?>("SubjectId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBJECT_ID");
+
+                    b.Property<string>("SubjectType")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SUBJECT_TYPE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DdId")
+                        .HasName("PK_MTG_DUE_DILIGENCES");
+
+                    b.HasIndex("CheckTypeCode")
+                        .HasDatabaseName("IX_MTG_DUE_DILIGENCES_CHECK_TYPE_CODE");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_DUE_DILIGENCES_PORTFOLIO_ID");
+
+                    b.HasIndex("RiskLevelCode")
+                        .HasDatabaseName("IX_MTG_DUE_DILIGENCES_RISK_LEVEL_CODE");
+
+                    b.ToTable("MTG_DUE_DILIGENCES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgFinancialStudy", b =>
+                {
+                    b.Property<long>("FinStudyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("FIN_STUDY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("FinStudyId"));
+
+                    b.Property<decimal>("AdminExpenseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ADMIN_EXPENSE_AMOUNT");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<DateOnly?>("ApprovedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("APPROVED_DATE");
+
+                    b.Property<decimal?>("ChequeCoveragePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("CHEQUE_COVERAGE_PCT");
+
+                    b.Property<decimal>("ChequeTotalValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHEQUE_TOTAL_VALUE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal>("DepositAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DEPOSIT_AMOUNT");
+
+                    b.Property<decimal?>("DepositPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("DEPOSIT_PCT");
+
+                    b.Property<decimal>("ExpectedReturnAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("EXPECTED_RETURN_AMOUNT");
+
+                    b.Property<decimal?>("ExpectedReturnRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("EXPECTED_RETURN_RATE");
+
+                    b.Property<string>("FinancialComments")
+                        .HasColumnType("text")
+                        .HasColumnName("FINANCIAL_COMMENTS");
+
+                    b.Property<decimal>("NetReturnAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("NET_RETURN_AMOUNT");
+
+                    b.Property<decimal>("OutstandingValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUTSTANDING_VALUE");
+
+                    b.Property<decimal>("PortfolioFaceValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PORTFOLIO_FACE_VALUE");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<string>("PreparedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("PREPARED_BY");
+
+                    b.Property<DateOnly?>("PreparedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PREPARED_DATE");
+
+                    b.Property<decimal>("ProposedPurchaseValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PROPOSED_PURCHASE_VALUE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int?>("TermMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("TERM_MONTHS");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("FinStudyId")
+                        .HasName("PK_MTG_FINANCIAL_STUDIES");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_FINANCIAL_STUDIES_PORTFOLIO_ID");
+
+                    b.ToTable("MTG_FINANCIAL_STUDIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgGuarantee", b =>
+                {
+                    b.Property<long>("GuaranteeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("GUARANTEE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("GuaranteeId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long?>("DocumentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    b.Property<DateOnly?>("EffectiveDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_DATE");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EXPIRY_DATE");
+
+                    b.Property<decimal?>("GuaranteeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("GUARANTEE_AMOUNT");
+
+                    b.Property<decimal?>("GuaranteePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("GUARANTEE_PCT");
+
+                    b.Property<string>("GuaranteeTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("GUARANTEE_TYPE_CODE");
+
+                    b.Property<long?>("GuarantorId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("GUARANTOR_ID");
+
+                    b.Property<string>("GuarantorType")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("GUARANTOR_TYPE");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_VERIFIED");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("VERIFIED_AT");
+
+                    b.Property<string>("VerifiedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("VERIFIED_BY");
+
+                    b.HasKey("GuaranteeId")
+                        .HasName("PK_MTG_GUARANTEES");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("IX_MTG_GUARANTEES_DOCUMENT_ID");
+
+                    b.HasIndex("GuaranteeTypeCode")
+                        .HasDatabaseName("IX_MTG_GUARANTEES_GUARANTEE_TYPE_CODE");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_GUARANTEES_PORTFOLIO_ID");
+
+                    b.ToTable("MTG_GUARANTEES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInquiryResult", b =>
+                {
+                    b.Property<long>("InquiryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INQUIRY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InquiryId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18113,8 +18467,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("InquiryTypeCode")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("INQUIRY_TYPE_CODE");
 
                     b.Property<long>("PortfolioId")
@@ -18126,19 +18480,18 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("REFERENCE_NO");
 
-                    b.Property<string>("ResultDetails")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
-                        .HasColumnName("RESULT_DETAILS");
-
-                    b.Property<string>("ResultText")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("RESULT_TEXT");
-
-                    b.Property<string>("RiskLevelCode")
+                    b.Property<string>("ResultCode")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
+                        .HasColumnName("RESULT_CODE");
+
+                    b.Property<string>("ResultDetails")
+                        .HasColumnType("text")
+                        .HasColumnName("RESULT_DETAILS");
+
+                    b.Property<string>("RiskLevelCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("RISK_LEVEL_CODE");
 
                     b.Property<int>("RowVersion")
@@ -18146,15 +18499,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
 
-                    b.Property<long>("SubjectId")
+                    b.Property<long?>("SubjectId")
                         .HasColumnType("bigint")
                         .HasColumnName("SUBJECT_ID");
 
-                    b.Property<string>("SubjectTypeCode")
+                    b.Property<string>("SubjectType")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("SUBJECT_TYPE_CODE");
+                        .HasColumnName("SUBJECT_TYPE");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18165,16 +18518,115 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("InquiryResultId")
+                    b.HasKey("InquiryId")
                         .HasName("PK_MTG_INQUIRY_RESULTS");
 
                     b.HasIndex("InquiryTypeCode")
                         .HasDatabaseName("IX_MTG_INQUIRY_RESULTS_INQUIRY_TYPE_CODE");
 
-                    b.HasIndex("PortfolioId", "SubjectTypeCode", "SubjectId")
-                        .HasDatabaseName("IX_MTG_INQUIRY_RESULTS_PORTFOLIO_ID_SUBJECT_TYPE_CODE");
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_INQUIRY_RESULTS_PORTFOLIO_ID");
+
+                    b.HasIndex("RiskLevelCode")
+                        .HasDatabaseName("IX_MTG_INQUIRY_RESULTS_RISK_LEVEL_CODE");
 
                     b.ToTable("MTG_INQUIRY_RESULTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInsurance", b =>
+                {
+                    b.Property<long>("InsuranceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INSURANCE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InsuranceId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long?>("DocumentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    b.Property<string>("InsuranceCompany")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("INSURANCE_COMPANY");
+
+                    b.Property<string>("InsuranceTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INSURANCE_TYPE_CODE");
+
+                    b.Property<bool>("IsAssignedToCompany")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ASSIGNED_TO_COMPANY");
+
+                    b.Property<string>("PolicyNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("POLICY_NO");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal?>("SumInsured")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SUM_INSURED");
+
+                    b.Property<long?>("UnitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("UNIT_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly?>("ValidFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VALID_FROM_DATE");
+
+                    b.Property<DateOnly?>("ValidToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VALID_TO_DATE");
+
+                    b.HasKey("InsuranceId")
+                        .HasName("PK_MTG_INSURANCES");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("IX_MTG_INSURANCES_DOCUMENT_ID");
+
+                    b.HasIndex("InsuranceTypeCode")
+                        .HasDatabaseName("IX_MTG_INSURANCES_INSURANCE_TYPE_CODE");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_INSURANCES_PORTFOLIO_ID");
+
+                    b.HasIndex("UnitId")
+                        .HasDatabaseName("IX_MTG_INSURANCES_UNIT_ID");
+
+                    b.ToTable("MTG_INSURANCES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInvestor", b =>
@@ -18191,10 +18643,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("ADDRESS_TEXT");
 
-                    b.Property<DateOnly?>("BirthDate")
-                        .HasColumnType("date")
-                        .HasColumnName("BIRTH_DATE");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CREATED_AT");
@@ -18205,10 +18653,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<decimal?>("DeclaredIncomeAmount")
+                    b.Property<DateOnly?>("DateOfBirthDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DATE_OF_BIRTH_DATE");
+
+                    b.Property<decimal?>("DeclaredIncome")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("DECLARED_INCOME_AMOUNT");
+                        .HasColumnName("DECLARED_INCOME");
 
                     b.Property<string>("EmailAddress")
                         .HasMaxLength(320)
@@ -18241,10 +18693,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
 
-                    b.Property<string>("NationalIdNo")
+                    b.Property<string>("NationalId")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
-                        .HasColumnName("NATIONAL_ID_NO");
+                        .HasColumnName("NATIONAL_ID");
 
                     b.Property<string>("PhoneNo")
                         .HasMaxLength(100)
@@ -18328,13 +18780,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("IS_TITLE_DEED_VERIFIED");
 
                     b.Property<string>("LegalFindings")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
+                        .HasColumnType("text")
                         .HasColumnName("LEGAL_FINDINGS");
 
                     b.Property<string>("LegalRecommendation")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
+                        .HasColumnType("text")
                         .HasColumnName("LEGAL_RECOMMENDATION");
 
                     b.Property<long>("PortfolioId")
@@ -18368,18 +18818,17 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasName("PK_MTG_LEGAL_REVIEWS");
 
                     b.HasIndex("PortfolioId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_MTG_LEGAL_REVIEWS_PORTFOLIO_ID");
+                        .HasDatabaseName("IX_MTG_LEGAL_REVIEWS_PORTFOLIO_ID");
 
                     b.ToTable("MTG_LEGAL_REVIEWS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpApprovalStep", b =>
                 {
-                    b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                    b.Property<string>("StepCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STEP_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18391,35 +18840,30 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SequenceNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEQUENCE_NO");
+
+                    b.Property<string>("StepNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STEP_NAME_AR");
+
+                    b.Property<string>("StepNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STEP_NAME_EN");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18430,7 +18874,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("StepCode")
                         .HasName("PK_MTG_LKP_APPROVAL_STEPS");
 
                     b.ToTable("MTG_LKP_APPROVAL_STEPS", (string)null);
@@ -18438,10 +18882,22 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpDdCheckType", b =>
                 {
-                    b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                    b.Property<string>("CheckTypeCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CHECK_TYPE_CODE");
+
+                    b.Property<string>("CheckNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("CHECK_NAME_AR");
+
+                    b.Property<string>("CheckNameEn")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("CHECK_NAME_EN");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18453,14 +18909,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
+                    b.Property<int?>("DisplaySeq")
                         .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
+                        .HasColumnName("DISPLAY_SEQ");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
@@ -18470,18 +18921,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("IS_MANDATORY");
 
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("NAME_EN");
-
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
@@ -18496,7 +18935,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("CheckTypeCode")
                         .HasName("PK_MTG_LKP_DD_CHECK_TYPES");
 
                     b.ToTable("MTG_LKP_DD_CHECK_TYPES", (string)null);
@@ -18504,10 +18943,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpInquiryType", b =>
                 {
-                    b.Property<string>("Code")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                    b.Property<string>("InquiryTypeCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("INQUIRY_TYPE_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18519,30 +18958,25 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
+                    b.Property<int?>("DisplaySeq")
                         .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
+                        .HasColumnName("DISPLAY_SEQ");
+
+                    b.Property<string>("InquiryNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("INQUIRY_NAME_AR");
+
+                    b.Property<string>("InquiryNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("INQUIRY_NAME_EN");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -18558,18 +18992,18 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("InquiryTypeCode")
                         .HasName("PK_MTG_LKP_INQUIRY_TYPES");
 
                     b.ToTable("MTG_LKP_INQUIRY_TYPES", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioStatus", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioPaymentMethod", b =>
                 {
-                    b.Property<string>("Code")
+                    b.Property<string>("PaymentMethodCode")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                        .HasColumnName("PAYMENT_METHOD_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18581,30 +19015,25 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
+                    b.Property<int?>("DisplaySeq")
                         .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
+                        .HasColumnName("DISPLAY_SEQ");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
 
-                    b.Property<string>("NameAr")
+                    b.Property<string>("PaymentMethodNameAr")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_AR");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("PAYMENT_METHOD_NAME_AR");
 
-                    b.Property<string>("NameEn")
+                    b.Property<string>("PaymentMethodNameEn")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_EN");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("PAYMENT_METHOD_NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -18620,207 +19049,75 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("PaymentMethodCode")
+                        .HasName("PK_MTG_LKP_PORTFOLIO_PAYMENT_METHODS");
+
+                    b.ToTable("MTG_LKP_PORTFOLIO_PAYMENT_METHODS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioStatus", b =>
+                {
+                    b.Property<string>("StatusCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int?>("DisplaySeq")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_SEQ");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STATUS_NAME_AR");
+
+                    b.Property<string>("StatusNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STATUS_NAME_EN");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("StatusCode")
                         .HasName("PK_MTG_LKP_PORTFOLIO_STATUSES");
 
                     b.ToTable("MTG_LKP_PORTFOLIO_STATUSES", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Code = "DRAFT",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 1,
-                            IsActive = true,
-                            NameAr = "مسودة",
-                            NameEn = "Draft",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "DATA_LOADING_COMPLETED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            NameAr = "اكتمل تحميل البيانات",
-                            NameEn = "Data Loading Completed",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "AML_ACCEPTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            NameAr = "تم قبول مراجعة مكافحة غسل الأموال",
-                            NameEn = "AML Accepted",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "AML_REJECTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            NameAr = "تم رفض مراجعة مكافحة غسل الأموال",
-                            NameEn = "AML Rejected",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "INQUIRY_ACCEPTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 5,
-                            IsActive = true,
-                            NameAr = "تم قبول الاستعلامات",
-                            NameEn = "Inquiry Accepted",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "INQUIRY_REJECTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 6,
-                            IsActive = true,
-                            NameAr = "تم رفض الاستعلامات",
-                            NameEn = "Inquiry Rejected",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "LEGAL_REVIEW_ACCEPTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 7,
-                            IsActive = true,
-                            NameAr = "تم قبول المراجعة القانونية",
-                            NameEn = "Legal Review Accepted",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "LEGAL_REVIEW_REJECTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 8,
-                            IsActive = true,
-                            NameAr = "تم رفض المراجعة القانونية",
-                            NameEn = "Legal Review Rejected",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "VALUATION_COMPLETED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 9,
-                            IsActive = true,
-                            NameAr = "اكتمل التقييم",
-                            NameEn = "Valuation Completed",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "COVERAGE_REVIEW_ACCEPTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 10,
-                            IsActive = true,
-                            NameAr = "تم قبول مراجعة التغطية",
-                            NameEn = "Coverage Review Accepted",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "COVERAGE_REVIEW_REJECTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 11,
-                            IsActive = true,
-                            NameAr = "تم رفض مراجعة التغطية",
-                            NameEn = "Coverage Review Rejected",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "CHEQUE_COVERAGE_ACCEPTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 12,
-                            IsActive = true,
-                            NameAr = "تم قبول تغطية الشيكات",
-                            NameEn = "Cheque Coverage Accepted",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "CHEQUE_COVERAGE_REJECTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 13,
-                            IsActive = true,
-                            NameAr = "تم رفض تغطية الشيكات",
-                            NameEn = "Cheque Coverage Rejected",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "FINANCIAL_REVIEW_ACCEPTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 14,
-                            IsActive = true,
-                            NameAr = "تم قبول المراجعة المالية",
-                            NameEn = "Financial Review Accepted",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "FINANCIAL_REVIEW_REJECTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 15,
-                            IsActive = true,
-                            NameAr = "تم رفض المراجعة المالية",
-                            NameEn = "Financial Review Rejected",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "BOARD_REVIEW_ACCEPTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 16,
-                            IsActive = true,
-                            NameAr = "تمت موافقة مجلس الإدارة",
-                            NameEn = "Board Review Accepted",
-                            RowVersion = 1
-                        },
-                        new
-                        {
-                            Code = "BOARD_REVIEW_REJECTED",
-                            CreatedAt = new DateTime(2026, 10, 23, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "SYSTEM",
-                            DisplayOrder = 17,
-                            IsActive = true,
-                            NameAr = "تم رفض مجلس الإدارة",
-                            NameEn = "Board Review Rejected",
-                            RowVersion = 1
-                        });
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpUnitType", b =>
                 {
-                    b.Property<string>("Code")
+                    b.Property<string>("UnitTypeCode")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                        .HasColumnName("UNIT_TYPE_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18832,35 +19129,26 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("UnitTypeNameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UNIT_TYPE_NAME_AR");
+
+                    b.Property<string>("UnitTypeNameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UNIT_TYPE_NAME_EN");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18871,7 +19159,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.HasKey("UnitTypeCode")
                         .HasName("PK_MTG_LKP_UNIT_TYPES");
 
                     b.ToTable("MTG_LKP_UNIT_TYPES", (string)null);
@@ -18879,10 +19167,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpValuationType", b =>
                 {
-                    b.Property<string>("Code")
+                    b.Property<string>("ValuationTypeCode")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("CODE");
+                        .HasColumnName("VALUATION_TYPE_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -18894,30 +19182,13 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DESCRIPTION");
-
-                    b.Property<int>("DisplayOrder")
+                    b.Property<int?>("DisplaySeq")
                         .HasColumnType("integer")
-                        .HasColumnName("DISPLAY_ORDER");
+                        .HasColumnName("DISPLAY_SEQ");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_AR");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("NAME_EN");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -18933,7 +19204,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("Code")
+                    b.Property<string>("ValuationNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("VALUATION_NAME_AR");
+
+                    b.Property<string>("ValuationNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("VALUATION_NAME_EN");
+
+                    b.HasKey("ValuationTypeCode")
                         .HasName("PK_MTG_LKP_VALUATION_TYPES");
 
                     b.ToTable("MTG_LKP_VALUATION_TYPES", (string)null);
@@ -19046,12 +19329,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgProjectUnit", b =>
                 {
-                    b.Property<long>("ProjectUnitId")
+                    b.Property<long>("UnitId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("PROJECT_UNIT_ID");
+                        .HasColumnName("UNIT_ID");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProjectUnitId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("UnitId"));
 
                     b.Property<decimal?>("AreaSqm")
                         .HasPrecision(18, 2)
@@ -19063,10 +19346,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("BUILDING_NO");
 
-                    b.Property<decimal?>("ContractAmount")
+                    b.Property<decimal?>("ContractValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("CONTRACT_AMOUNT");
+                        .HasColumnName("CONTRACT_VALUE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -19077,6 +19360,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("CurrentMarketValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CURRENT_MARKET_VALUE");
 
                     b.Property<string>("FloorNo")
                         .HasMaxLength(50)
@@ -19091,11 +19379,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("LICENSE_STATUS");
-
-                    b.Property<decimal?>("MarketValueAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("MARKET_VALUE_AMOUNT");
 
                     b.Property<long>("ProjectId")
                         .HasColumnType("bigint")
@@ -19131,8 +19414,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("ProjectUnitId")
+                    b.HasKey("UnitId")
                         .HasName("PK_MTG_PROJECT_UNITS");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("IX_MTG_PROJECT_UNITS_PROJECT_ID");
 
                     b.HasIndex("UnitTypeCode")
                         .HasDatabaseName("IX_MTG_PROJECT_UNITS_UNIT_TYPE_CODE");
@@ -19158,32 +19444,31 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("ADMIN_EXPENSE_AMOUNT");
 
-                    b.Property<decimal?>("AdminExpensePct")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("ADMIN_EXPENSE_PCT");
+                    b.Property<decimal?>("AdminExpensePercent")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)")
+                        .HasColumnName("ADMIN_EXPENSE_PERCENT");
 
-                    b.Property<DateOnly?>("ApprovedDate")
-                        .HasColumnType("date")
-                        .HasColumnName("APPROVED_DATE");
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("APPROVED_AT");
 
-                    b.Property<string>("BoardDecisionCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("BOARD_DECISION_CODE");
+                    b.Property<string>("BoardDecision")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BOARD_DECISION");
 
                     b.Property<DateOnly?>("BoardDecisionDate")
                         .HasColumnType("date")
                         .HasColumnName("BOARD_DECISION_DATE");
 
                     b.Property<string>("BoardDecisionNo")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("BOARD_DECISION_NO");
 
                     b.Property<string>("Comments")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
+                        .HasColumnType("text")
                         .HasColumnName("COMMENTS");
 
                     b.Property<decimal?>("CoveragePct")
@@ -19207,6 +19492,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(3)")
                         .HasColumnName("CURRENCY_CODE");
 
+                    b.Property<string>("CurrentApprovalStep")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CURRENT_APPROVAL_STEP");
+
                     b.Property<long>("DeveloperId")
                         .HasColumnType("bigint")
                         .HasColumnName("DEVELOPER_ID");
@@ -19216,30 +19506,34 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("EXPECTED_RETURN_AMOUNT");
 
-                    b.Property<decimal>("FaceValueAmount")
+                    b.Property<decimal>("FaceValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("FACE_VALUE_AMOUNT");
+                        .HasColumnName("FACE_VALUE");
 
-                    b.Property<decimal?>("LateFeeRate")
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<decimal>("LateFeeRate")
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("LATE_FEE_RATE");
 
-                    b.Property<decimal?>("LegalFeePerUnitAmount")
+                    b.Property<decimal?>("LegalFeePerUnit")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("LEGAL_FEE_PER_UNIT_AMOUNT");
+                        .HasColumnName("LEGAL_FEE_PER_UNIT");
 
-                    b.Property<decimal?>("MarginPct")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("MARGIN_PCT");
+                    b.Property<decimal?>("MarginPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("MARGIN_PERCENTAGE");
 
-                    b.Property<decimal>("OutstandingAmount")
+                    b.Property<decimal>("OutstandingValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("OUTSTANDING_AMOUNT");
+                        .HasColumnName("OUTSTANDING_VALUE");
 
                     b.Property<string>("PortfolioNo")
                         .IsRequired()
@@ -19257,57 +19551,57 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("PROJECT_ID");
 
-                    b.Property<decimal>("ProposedPurchaseAmount")
+                    b.Property<decimal>("ProposedPurchaseValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("PROPOSED_PURCHASE_AMOUNT");
+                        .HasColumnName("PROPOSED_PURCHASE_VALUE");
 
-                    b.Property<decimal?>("PvRate")
+                    b.Property<decimal>("PvRate")
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("PV_RATE");
 
                     b.Property<string>("RejectionReason")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
                         .HasColumnName("REJECTION_REASON");
 
                     b.Property<DateOnly>("RequestDate")
                         .HasColumnType("date")
                         .HasColumnName("REQUEST_DATE");
 
-                    b.Property<decimal?>("ReservedAmountPct")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("RESERVED_AMOUNT_PCT");
+                    b.Property<decimal>("ReservedAmountPercent")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("RESERVED_AMOUNT_PERCENT");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
 
-                    b.Property<int?>("SelectedAccountCount")
+                    b.Property<int>("SelectedAccountCount")
                         .HasColumnType("integer")
                         .HasColumnName("SELECTED_ACCOUNT_COUNT");
 
-                    b.Property<decimal?>("SelectedFaceValueAmount")
+                    b.Property<decimal>("SelectedFaceValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("SELECTED_FACE_VALUE_AMOUNT");
+                        .HasColumnName("SELECTED_FACE_VALUE");
 
-                    b.Property<decimal?>("SelectedOutstandingAmount")
+                    b.Property<decimal>("SelectedOutstandingValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("SELECTED_OUTSTANDING_AMOUNT");
+                        .HasColumnName("SELECTED_OUTSTANDING_VALUE");
 
-                    b.Property<decimal?>("SelectedPaidAmount")
+                    b.Property<decimal>("SelectedPaidValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("SELECTED_PAID_AMOUNT");
+                        .HasColumnName("SELECTED_PAID_VALUE");
 
-                    b.Property<DateOnly?>("SubmittedDate")
-                        .HasColumnType("date")
-                        .HasColumnName("SUBMITTED_DATE");
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SUBMITTED_AT");
 
                     b.Property<int?>("TermMonths")
                         .HasColumnType("integer")
@@ -19322,16 +19616,30 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.Property<decimal?>("ValuationFeePerUnitAmount")
+                    b.Property<decimal?>("ValuationFeePerUnit")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("VALUATION_FEE_PER_UNIT_AMOUNT");
+                        .HasColumnName("VALUATION_FEE_PER_UNIT");
+
+                    b.Property<long?>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.Property<long?>("WorkflowTaskId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_TASK_ID");
 
                     b.HasKey("PortfolioId")
                         .HasName("PK_MTG_PURCHASED_PORTFOLIOS");
 
+                    b.HasIndex("BoardDecision")
+                        .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_BOARD_DECISION");
+
                     b.HasIndex("CurrencyCode")
                         .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_CURRENCY_CODE");
+
+                    b.HasIndex("CurrentApprovalStep")
+                        .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_CURRENT_APPROVAL_STEP");
 
                     b.HasIndex("DeveloperId")
                         .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_DEVELOPER_ID");
@@ -19345,6 +19653,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProjectId")
                         .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_PROJECT_ID");
+
+                    b.HasIndex("WorkflowInstanceId")
+                        .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_WORKFLOW_INSTANCE_ID");
+
+                    b.HasIndex("WorkflowTaskId")
+                        .HasDatabaseName("IX_MTG_PURCHASED_PORTFOLIOS_WORKFLOW_TASK_ID");
 
                     b.ToTable("MTG_PURCHASED_PORTFOLIOS", (string)null);
                 });
@@ -19372,14 +19686,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("BOOKING_DATE");
 
-                    b.Property<decimal>("ContractAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("CONTRACT_AMOUNT");
-
                     b.Property<DateOnly?>("ContractDate")
                         .HasColumnType("date")
                         .HasColumnName("CONTRACT_DATE");
+
+                    b.Property<decimal>("ContractValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CONTRACT_VALUE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -19414,23 +19728,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("LAST_PAYMENT_DATE");
 
-                    b.Property<decimal>("OutstandingAmount")
+                    b.Property<decimal>("OutstandingValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("OUTSTANDING_AMOUNT");
+                        .HasColumnName("OUTSTANDING_VALUE");
 
-                    b.Property<decimal>("PaidAmount")
+                    b.Property<decimal>("PaidValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("PAID_AMOUNT");
+                        .HasColumnName("PAID_VALUE");
 
                     b.Property<long>("PortfolioId")
                         .HasColumnType("bigint")
                         .HasColumnName("PORTFOLIO_ID");
-
-                    b.Property<long>("ProjectUnitId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("PROJECT_UNIT_ID");
 
                     b.Property<int>("RegularPaymentMonths")
                         .HasColumnType("integer")
@@ -19445,6 +19755,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("SELLER_CONTRACT_NO");
+
+                    b.Property<long>("UnitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("UNIT_ID");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -19461,14 +19775,112 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasIndex("InvestorId")
                         .HasDatabaseName("IX_MTG_PP_ACCOUNTS_INVESTOR_ID");
 
-                    b.HasIndex("ProjectUnitId")
-                        .HasDatabaseName("IX_MTG_PP_ACCOUNTS_PROJECT_UNIT_ID");
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_PP_ACCOUNTS_PORTFOLIO_ID");
+
+                    b.HasIndex("UnitId")
+                        .HasDatabaseName("IX_MTG_PP_ACCOUNTS_UNIT_ID");
 
                     b.HasIndex("PortfolioId", "SellerContractNo")
+                        .HasDatabaseName("IX_MTG_PP_ACCOUNTS_PORTFOLIO_ID_SELLER_CONTRACT_NO");
+
+                    b.HasIndex("PortfolioId", "InvestorId", "UnitId")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MTG_PP_ACCOUNTS_PORTFOLIO_ID_SELLER_CONTRACT_NO");
+                        .HasDatabaseName("UQ_MTG_PP_ACCOUNTS_PORTFOLIO_ID_INVESTOR_ID_UNIT_ID");
 
                     b.ToTable("MTG_PURCHASED_PORTFOLIO_ACCOUNTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioApproval", b =>
+                {
+                    b.Property<long>("ApprovalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPROVAL_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ApprovalId"));
+
+                    b.Property<DateOnly?>("AssignedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ASSIGNED_DATE");
+
+                    b.Property<string>("AssignedTo")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("ASSIGNED_TO");
+
+                    b.Property<string>("Comments")
+                        .HasColumnType("text")
+                        .HasColumnName("COMMENTS");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DecisionCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DECISION_CODE");
+
+                    b.Property<DateOnly?>("DecisionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DECISION_DATE");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<string>("ReturnToStepCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("RETURN_TO_STEP_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SequenceNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEQUENCE_NO");
+
+                    b.Property<string>("StepCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STEP_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ApprovalId")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_APPROVALS");
+
+                    b.HasIndex("DecisionCode")
+                        .HasDatabaseName("IX_MTG_PP_APPROVALS_DECISION_CODE");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_PP_APPROVALS_PORTFOLIO_ID");
+
+                    b.HasIndex("ReturnToStepCode")
+                        .HasDatabaseName("IX_MTG_PP_APPROVALS_RETURN_TO_STEP_CODE");
+
+                    b.HasIndex("StepCode")
+                        .HasDatabaseName("IX_MTG_PP_APPROVALS_STEP_CODE");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_APPROVALS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioCheque", b =>
@@ -19502,8 +19914,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ChequeStatusCode")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("CHEQUE_STATUS_CODE");
 
                     b.Property<DateOnly?>("ClearingDate")
@@ -19520,7 +19932,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<DateOnly>("DueDate")
+                    b.Property<DateOnly?>("DueDate")
                         .HasColumnType("date")
                         .HasColumnName("DUE_DATE");
 
@@ -19528,7 +19940,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ENDORSED_TO_COMPANY");
 
-                    b.Property<long>("PortfolioAccountId")
+                    b.Property<long?>("PortfolioAccountId")
                         .HasColumnType("bigint")
                         .HasColumnName("PORTFOLIO_ACCOUNT_ID");
 
@@ -19570,51 +19982,414 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_PURCHASED_PORTFOLIO_CHEQUES", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioFinancialReview", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDisbursement", b =>
                 {
-                    b.Property<long>("FinancialReviewId")
+                    b.Property<long>("DisbursementId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("FINANCIAL_REVIEW_ID");
+                        .HasColumnName("DISBURSEMENT_ID");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("FinancialReviewId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DisbursementId"));
 
-                    b.Property<decimal>("AdminBaseAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("ADMIN_BASE_AMOUNT");
-
-                    b.Property<string>("AdminBaseCode")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("ADMIN_BASE_CODE");
-
-                    b.Property<decimal>("AdminCalcAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("ADMIN_CALC_AMOUNT");
-
-                    b.Property<decimal>("AdminExpensePct")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("ADMIN_EXPENSE_PCT");
-
-                    b.Property<decimal>("AdminFinalAmount")
+                    b.Property<decimal?>("AdminFinalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("ADMIN_FINAL_AMOUNT");
 
-                    b.Property<int>("ChequeCount")
+                    b.Property<decimal?>("AdminFrAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ADMIN_FR_AMOUNT");
+
+                    b.Property<string>("AdminTreatment")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ADMIN_TREATMENT");
+
+                    b.Property<long?>("BankAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BANK_ACCOUNT_ID");
+
+                    b.Property<string>("BankGlAccount")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BANK_GL_ACCOUNT");
+
+                    b.Property<long?>("BankId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BANK_ID");
+
+                    b.Property<decimal?>("BoardPriceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("BOARD_PRICE_AMOUNT");
+
+                    b.Property<int?>("ChequeCount")
                         .HasColumnType("integer")
                         .HasColumnName("CHEQUE_COUNT");
 
-                    b.Property<decimal>("ChequesFaceAmount")
+                    b.Property<int?>("ClientsCreated")
+                        .HasColumnType("integer")
+                        .HasColumnName("CLIENTS_CREATED");
+
+                    b.Property<int?>("ClientsMatched")
+                        .HasColumnType("integer")
+                        .HasColumnName("CLIENTS_MATCHED");
+
+                    b.Property<string>("Comments")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("COMMENTS");
+
+                    b.Property<int?>("ContractCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("CONTRACT_COUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<DateOnly>("DisbursementDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DISBURSEMENT_DATE");
+
+                    b.Property<decimal?>("FaceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FACE_AMOUNT");
+
+                    b.Property<decimal?>("FeesAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FEES_AMOUNT");
+
+                    b.Property<decimal?>("FeesDeferredAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FEES_DEFERRED_AMOUNT");
+
+                    b.Property<decimal?>("FeesImmediateAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FEES_IMMEDIATE_AMOUNT");
+
+                    b.Property<decimal?>("FundingRecoveryAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FUNDING_RECOVERY_AMOUNT");
+
+                    b.Property<string>("GlBatchNo")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("GL_BATCH_NO");
+
+                    b.Property<string>("GlResponse")
+                        .HasColumnType("text")
+                        .HasColumnName("GL_RESPONSE");
+
+                    b.Property<string>("GlStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("GL_STATUS");
+
+                    b.Property<decimal?>("LegalFinalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LEGAL_FINAL_AMOUNT");
+
+                    b.Property<decimal?>("LegalFrAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LEGAL_FR_AMOUNT");
+
+                    b.Property<string>("LegalTreatment")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("LEGAL_TREATMENT");
+
+                    b.Property<decimal?>("MarginAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARGIN_AMOUNT");
+
+                    b.Property<decimal?>("MarginDeferredAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARGIN_DEFERRED_AMOUNT");
+
+                    b.Property<decimal?>("MarginImmediateAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARGIN_IMMEDIATE_AMOUNT");
+
+                    b.Property<string>("MarginTreatment")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("MARGIN_TREATMENT");
+
+                    b.Property<decimal?>("PayableAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PAYABLE_AMOUNT");
+
+                    b.Property<string>("PaymentRef")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("PAYMENT_REF");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<decimal?>("PvAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PV_AMOUNT");
+
+                    b.Property<DateOnly?>("PvBaseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PV_BASE_DATE");
+
+                    b.Property<string>("PvMethod")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PV_METHOD");
+
+                    b.Property<decimal?>("PvRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PV_RATE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<string>("TranSetId")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("TRAN_SET_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<decimal?>("ValuationFinalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("VALUATION_FINAL_AMOUNT");
+
+                    b.Property<decimal?>("ValuationFrAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("VALUATION_FR_AMOUNT");
+
+                    b.Property<string>("ValuationTreatment")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("VALUATION_TREATMENT");
+
+                    b.Property<long?>("WorkflowTaskId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_TASK_ID");
+
+                    b.HasKey("DisbursementId")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_DISBURSEMENTS");
+
+                    b.HasIndex("PortfolioId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PP_DISBURSEMENTS_PORTFOLIO_ID");
+
+                    b.HasIndex("TranSetId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PP_DISBURSEMENTS_TRAN_SET_ID");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_DISBURSEMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDocument", b =>
+                {
+                    b.Property<long>("DocumentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DocumentId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DocumentNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DOCUMENT_NO");
+
+                    b.Property<string>("DocumentStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DOCUMENT_STATUS");
+
+                    b.Property<string>("DocumentTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("DOCUMENT_TYPE_CODE");
+
+                    b.Property<long?>("EntityId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ENTITY_ID");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ENTITY_TYPE");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EXPIRY_DATE");
+
+                    b.Property<byte[]>("FileBlob")
+                        .HasColumnType("bytea")
+                        .HasColumnName("FILE_BLOB");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("FILE_NAME");
+
+                    b.Property<string>("FileUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("FILE_URL");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_VERIFIED");
+
+                    b.Property<DateOnly?>("IssueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ISSUE_DATE");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("MIME_TYPE");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("VERIFIED_AT");
+
+                    b.Property<string>("VerifiedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("VERIFIED_BY");
+
+                    b.HasKey("DocumentId")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_DOCUMENTS");
+
+                    b.HasIndex("DocumentTypeCode")
+                        .HasDatabaseName("IX_MTG_PP_DOCUMENTS_DOCUMENT_TYPE_CODE");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_PP_DOCUMENTS_PORTFOLIO_ID");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_DOCUMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioFinancialReview", b =>
+                {
+                    b.Property<long>("ReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("REVIEW_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ReviewId"));
+
+                    b.Property<string>("AdminBase")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ADMIN_BASE");
+
+                    b.Property<decimal?>("AdminBaseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ADMIN_BASE_AMOUNT");
+
+                    b.Property<decimal?>("AdminCalcAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ADMIN_CALC_AMOUNT");
+
+                    b.Property<decimal?>("AdminExpensePercent")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)")
+                        .HasColumnName("ADMIN_EXPENSE_PERCENT");
+
+                    b.Property<decimal?>("AdminFinalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ADMIN_FINAL_AMOUNT");
+
+                    b.Property<int?>("ChequeCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("CHEQUE_COUNT");
+
+                    b.Property<decimal?>("ChequesFaceAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("CHEQUES_FACE_AMOUNT");
 
-                    b.Property<decimal>("ChequesPvAmount")
+                    b.Property<decimal?>("ChequesPvAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("CHEQUES_PV_AMOUNT");
@@ -19629,7 +20404,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<decimal>("ExpectedReturnAmount")
+                    b.Property<decimal?>("ExpectedReturnAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("EXPECTED_RETURN_AMOUNT");
@@ -19646,62 +20421,62 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("IS_VALUATION_INCLUDED");
 
-                    b.Property<decimal>("LegalCalcAmount")
+                    b.Property<decimal?>("LegalCalcAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("LEGAL_CALC_AMOUNT");
 
-                    b.Property<decimal>("LegalFeePerUnitAmount")
+                    b.Property<decimal?>("LegalFeePerUnit")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("LEGAL_FEE_PER_UNIT_AMOUNT");
+                        .HasColumnName("LEGAL_FEE_PER_UNIT");
 
-                    b.Property<decimal>("LegalFinalAmount")
+                    b.Property<decimal?>("LegalFinalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("LEGAL_FINAL_AMOUNT");
 
-                    b.Property<decimal>("MarginAmount")
+                    b.Property<decimal?>("MarginAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("MARGIN_AMOUNT");
 
-                    b.Property<decimal>("MarginBaseAmount")
+                    b.Property<string>("MarginBase")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("MARGIN_BASE");
+
+                    b.Property<decimal?>("MarginBaseAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("MARGIN_BASE_AMOUNT");
 
-                    b.Property<string>("MarginBaseCode")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("MARGIN_BASE_CODE");
-
-                    b.Property<decimal>("MarginPct")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("MARGIN_PCT");
+                    b.Property<decimal?>("MarginPercentage")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)")
+                        .HasColumnName("MARGIN_PERCENTAGE");
 
                     b.Property<long>("PortfolioId")
                         .HasColumnType("bigint")
                         .HasColumnName("PORTFOLIO_ID");
 
-                    b.Property<decimal>("ProposedPurchaseAmount")
+                    b.Property<decimal?>("ProposedPurchaseValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("PROPOSED_PURCHASE_AMOUNT");
+                        .HasColumnName("PROPOSED_PURCHASE_VALUE");
 
-                    b.Property<DateOnly>("PvBaseDate")
+                    b.Property<DateOnly?>("PvBaseDate")
                         .HasColumnType("date")
                         .HasColumnName("PV_BASE_DATE");
 
-                    b.Property<string>("PvMethodCode")
+                    b.Property<string>("PvMethod")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("PV_METHOD_CODE");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PV_METHOD");
 
-                    b.Property<decimal>("PvRate")
+                    b.Property<decimal?>("PvRate")
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("PV_RATE");
@@ -19711,14 +20486,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
 
-                    b.Property<decimal>("TotalChargesAmount")
+                    b.Property<decimal?>("TotalChargesAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("TOTAL_CHARGES_AMOUNT");
 
-                    b.Property<int>("UnitCount")
+                    b.Property<int?>("UnitsCount")
                         .HasColumnType("integer")
-                        .HasColumnName("UNIT_COUNT");
+                        .HasColumnName("UNITS_COUNT");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -19729,22 +20504,22 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.Property<decimal>("ValuationCalcAmount")
+                    b.Property<decimal?>("ValuationCalcAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("VALUATION_CALC_AMOUNT");
 
-                    b.Property<decimal>("ValuationFeePerUnitAmount")
+                    b.Property<decimal?>("ValuationFeePerUnit")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("VALUATION_FEE_PER_UNIT_AMOUNT");
+                        .HasColumnName("VALUATION_FEE_PER_UNIT");
 
-                    b.Property<decimal>("ValuationFinalAmount")
+                    b.Property<decimal?>("ValuationFinalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("VALUATION_FINAL_AMOUNT");
 
-                    b.HasKey("FinancialReviewId")
+                    b.HasKey("ReviewId")
                         .HasName("PK_MTG_PURCHASED_PORTFOLIO_FINANCIAL_REVIEWS");
 
                     b.HasIndex("PortfolioId")
@@ -19756,12 +20531,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioImport", b =>
                 {
-                    b.Property<long>("PortfolioImportId")
+                    b.Property<long>("StagingId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("PORTFOLIO_IMPORT_ID");
+                        .HasColumnName("STAGING_ID");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PortfolioImportId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("StagingId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -19773,25 +20548,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<int>("ErrorRowCount")
+                    b.Property<int>("ErrorCount")
                         .HasColumnType("integer")
-                        .HasColumnName("ERROR_ROW_COUNT");
+                        .HasColumnName("ERROR_COUNT");
 
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("FILE_NAME");
-
-                    b.Property<string>("ImportStatusCode")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("IMPORT_STATUS_CODE");
-
-                    b.Property<int>("ImportedRowCount")
-                        .HasColumnType("integer")
-                        .HasColumnName("IMPORTED_ROW_COUNT");
 
                     b.Property<long>("PortfolioId")
                         .HasColumnType("bigint")
@@ -19802,9 +20567,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
 
-                    b.Property<int>("TotalRowCount")
-                        .HasColumnType("integer")
-                        .HasColumnName("TOTAL_ROW_COUNT");
+                    b.Property<decimal>("TotalRows")
+                        .HasPrecision(28, 2)
+                        .HasColumnType("numeric(28,2)")
+                        .HasColumnName("TOTAL_ROWS");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -19815,36 +20581,661 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.Property<int>("ValidRowCount")
+                    b.Property<int>("ValidCount")
                         .HasColumnType("integer")
-                        .HasColumnName("VALID_ROW_COUNT");
+                        .HasColumnName("VALID_COUNT");
 
-                    b.Property<byte[]>("WorkbookContent")
-                        .HasColumnType("bytea")
-                        .HasColumnName("WORKBOOK_CONTENT");
+                    b.Property<string>("ValidationJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("VALIDATION_JSON");
 
-                    b.HasKey("PortfolioImportId")
+                    b.Property<string>("ValidationStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("VALIDATION_STATUS");
+
+                    b.Property<long>("WfInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WF_INSTANCE_ID");
+
+                    b.HasKey("StagingId")
                         .HasName("PK_MTG_PURCHASED_PORTFOLIO_IMPORTS");
 
-                    b.HasIndex("PortfolioId")
+                    b.HasIndex("PortfolioId", "WfInstanceId")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MTG_PP_IMPORTS_PORTFOLIO_ID");
+                        .HasDatabaseName("UQ_MTG_PP_IMPORTS_PORTFOLIO_ID_WF_INSTANCE_ID");
 
                     b.ToTable("MTG_PURCHASED_PORTFOLIO_IMPORTS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioStatusHistory", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioIncomeSchedule", b =>
                 {
-                    b.Property<long>("PortfolioStatusHistoryId")
+                    b.Property<long>("IncomeLineId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("PORTFOLIO_STATUS_HISTORY_ID");
+                        .HasColumnName("INCOME_LINE_ID");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PortfolioStatusHistoryId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("IncomeLineId"));
+
+                    b.Property<int?>("ChequeCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("CHEQUE_COUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DUE_DATE");
+
+                    b.Property<decimal?>("FeesAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FEES_AMOUNT");
+
+                    b.Property<decimal?>("FundingRecoveryAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FUNDING_RECOVERY_AMOUNT");
+
+                    b.Property<decimal?>("MarginAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARGIN_AMOUNT");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<string>("PostedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("POSTED_BY");
+
+                    b.Property<DateTime?>("PostedOnAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("POSTED_ON_AT");
+
+                    b.Property<string>("PostingStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("POSTING_STATUS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal?>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_AMOUNT");
+
+                    b.Property<string>("TranSetId")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("TRAN_SET_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("IncomeLineId")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_INCOME_SCHEDULES");
+
+                    b.HasIndex("DisbursementId", "DueDate")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PP_INCOME_SCHEDULES_DISBURSEMENT_ID_DUE_DATE");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_INCOME_SCHEDULES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioMemo", b =>
+                {
+                    b.Property<long>("MemoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("MEMO_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MemoId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DeveloperSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("DEVELOPER_SUMMARY");
+
+                    b.Property<string>("ExecutiveSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("EXECUTIVE_SUMMARY");
+
+                    b.Property<string>("FinancialSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("FINANCIAL_SUMMARY");
+
+                    b.Property<string>("GuaranteeSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("GUARANTEE_SUMMARY");
+
+                    b.Property<string>("InvestorSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("INVESTOR_SUMMARY");
+
+                    b.Property<string>("LegalSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("LEGAL_SUMMARY");
+
+                    b.Property<DateOnly>("MemoDate")
+                        .HasColumnType("date")
+                        .HasColumnName("MEMO_DATE");
+
+                    b.Property<string>("MemoStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("MEMO_STATUS");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<string>("PreparedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("PREPARED_BY");
+
+                    b.Property<DateOnly?>("PreparedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PREPARED_DATE");
+
+                    b.Property<string>("ProjectSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("PROJECT_SUMMARY");
+
+                    b.Property<string>("Recommendation")
+                        .HasColumnType("text")
+                        .HasColumnName("RECOMMENDATION");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("ValuationSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("VALUATION_SUMMARY");
+
+                    b.Property<int>("VersionNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("VERSION_NO");
+
+                    b.HasKey("MemoId")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_MEMOS");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_PP_MEMOS_PORTFOLIO_ID");
+
+                    b.HasIndex("PortfolioId", "VersionNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PP_MEMOS_PORTFOLIO_ID_VERSION_NO");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_MEMOS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioRepaymentSchedule", b =>
+                {
+                    b.Property<long>("ScheduleLineId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SCHEDULE_LINE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ScheduleLineId"));
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("BANK_NAME");
+
+                    b.Property<decimal?>("ChequeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHEQUE_AMOUNT");
+
+                    b.Property<string>("ChequeNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHEQUE_NO");
+
+                    b.Property<long?>("ClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<decimal?>("ClosingBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CLOSING_BALANCE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int?>("DaysFromDisbursement")
+                        .HasColumnType("integer")
+                        .HasColumnName("DAYS_FROM_DISBURSEMENT");
+
+                    b.Property<long>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DUE_DATE");
+
+                    b.Property<decimal?>("EirRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("EIR_RATE");
+
+                    b.Property<decimal?>("FeeRelease")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FEE_RELEASE");
+
+                    b.Property<decimal?>("InterestAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_AMOUNT");
+
+                    b.Property<long?>("InvestorId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("INVESTOR_ID");
+
+                    b.Property<bool>("IsClientCreated")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_CLIENT_CREATED");
+
+                    b.Property<int?>("LineNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("LINE_NO");
+
+                    b.Property<decimal?>("MarginRelease")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MARGIN_RELEASE");
+
+                    b.Property<decimal?>("OpeningBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OPENING_BALANCE");
+
+                    b.Property<long>("PortfolioAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ACCOUNT_ID");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<decimal?>("PrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PRINCIPAL_AMOUNT");
+
+                    b.Property<decimal?>("PvAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PV_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long?>("SourceChequeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SOURCE_CHEQUE_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long?>("WalletChequeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WALLET_CHEQUE_ID");
+
+                    b.HasKey("ScheduleLineId")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_REPAYMENT_SCHEDULES");
+
+                    b.HasIndex("DisbursementId", "SourceChequeId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PP_REPAYMENT_SCHEDULES_DISBURSEMENT_ID_SOURCE_CHEQUE_ID");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_REPAYMENT_SCHEDULES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioSettlement", b =>
+                {
+                    b.Property<long>("SettlementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SETTLEMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SettlementId"));
+
+                    b.Property<DateOnly?>("AccountingDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ACCOUNTING_DATE");
+
+                    b.Property<string>("AccountingStatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ACCOUNTING_STATUS_CODE");
+
+                    b.Property<decimal>("AcquisitionCostAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ACQUISITION_COST_AMOUNT");
+
+                    b.Property<DateOnly?>("AcquisitionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ACQUISITION_DATE");
+
+                    b.Property<decimal>("ApprovedPurchaseValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("APPROVED_PURCHASE_VALUE");
+
+                    b.Property<string>("BankAccountNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BANK_ACCOUNT_NO");
+
+                    b.Property<string>("BankGlAccountCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BANK_GL_ACCOUNT_CODE");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("BANK_NAME");
+
+                    b.Property<DateOnly?>("ChequeDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CHEQUE_DATE");
+
+                    b.Property<string>("ChequeNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHEQUE_NO");
+
+                    b.Property<DateOnly?>("ContractExecutionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CONTRACT_EXECUTION_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<DateOnly?>("CutOffDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CUT_OFF_DATE");
+
+                    b.Property<string>("GlBatchReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("GL_BATCH_REFERENCE");
+
+                    b.Property<string>("GlJournalReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("GL_JOURNAL_REFERENCE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<decimal?>("PaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PAYMENT_AMOUNT");
+
+                    b.Property<string>("PaymentMethodCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PAYMENT_METHOD_CODE");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SellerPaymentReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("SELLER_PAYMENT_REFERENCE");
+
+                    b.Property<string>("SettledBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("SETTLED_BY");
+
+                    b.Property<DateTime?>("SettledOnAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SETTLED_ON_AT");
+
+                    b.Property<DateOnly?>("SettlementDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SETTLEMENT_DATE");
+
+                    b.Property<string>("SettlementStatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("SETTLEMENT_STATUS_CODE");
+
+                    b.Property<string>("TransferReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("TRANSFER_REFERENCE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("SettlementId")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_SETTLEMENTS");
+
+                    b.HasIndex("CurrencyCode")
+                        .HasDatabaseName("IX_MTG_PP_SETTLEMENTS_CURRENCY_CODE");
+
+                    b.HasIndex("PaymentMethodCode")
+                        .HasDatabaseName("IX_MTG_PP_SETTLEMENTS_PAYMENT_METHOD_CODE");
+
+                    b.HasIndex("PortfolioId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PP_SETTLEMENTS_PORTFOLIO_ID");
+
+                    b.HasIndex("SettlementStatusCode", "AccountingStatusCode")
+                        .HasDatabaseName("IX_MTG_PP_SETTLEMENTS_SETTLEMENT_STATUS_CODE");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_SETTLEMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioSnapshot", b =>
+                {
+                    b.Property<long>("SnapshotId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SNAPSHOT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SnapshotId"));
+
+                    b.Property<DateOnly>("AsOfDate")
+                        .HasColumnType("date")
+                        .HasColumnName("AS_OF_DATE");
+
+                    b.Property<decimal?>("ChequeCoverage")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)")
+                        .HasColumnName("CHEQUE_COVERAGE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrentStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CURRENT_STATUS");
+
+                    b.Property<decimal?>("DocumentCompletionPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("DOCUMENT_COMPLETION_PCT");
+
+                    b.Property<int>("OpenExceptionCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("OPEN_EXCEPTION_COUNT");
+
+                    b.Property<decimal>("OutstandingValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OUTSTANDING_VALUE");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<decimal>("PurchaseValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PURCHASE_VALUE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("SnapshotId")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_SNAPSHOTS");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_PP_SNAPSHOTS_PORTFOLIO_ID");
+
+                    b.HasIndex("AsOfDate", "PortfolioId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PP_SNAPSHOTS_AS_OF_DATE_PORTFOLIO_ID");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_SNAPSHOTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioStatusHist", b =>
+                {
+                    b.Property<long>("StatusHistId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("STATUS_HIST_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("StatusHistId"));
+
+                    b.Property<DateTime>("ChangeAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CHANGE_AT");
+
+                    b.Property<string>("ChangedBy")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("CHANGED_BY");
 
                     b.Property<string>("Comments")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
                         .HasColumnName("COMMENTS");
 
                     b.Property<DateTime>("CreatedAt")
@@ -19857,10 +21248,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
-                    b.Property<string>("FromStatusCode")
+                    b.Property<string>("FromStatus")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("FROM_STATUS_CODE");
+                        .HasColumnName("FROM_STATUS");
 
                     b.Property<long>("PortfolioId")
                         .HasColumnType("bigint")
@@ -19871,11 +21262,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
 
-                    b.Property<string>("ToStatusCode")
+                    b.Property<string>("ToStatus")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
-                        .HasColumnName("TO_STATUS_CODE");
+                        .HasColumnName("TO_STATUS");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -19886,13 +21277,153 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.HasKey("PortfolioStatusHistoryId")
+                    b.HasKey("StatusHistId")
                         .HasName("PK_MTG_PURCHASED_PORTFOLIO_STATUS_HIST");
+
+                    b.HasIndex("FromStatus")
+                        .HasDatabaseName("IX_MTG_PP_STATUS_HIST_FROM_STATUS");
 
                     b.HasIndex("PortfolioId")
                         .HasDatabaseName("IX_MTG_PP_STATUS_HIST_PORTFOLIO_ID");
 
+                    b.HasIndex("ToStatus")
+                        .HasDatabaseName("IX_MTG_PP_STATUS_HIST_TO_STATUS");
+
                     b.ToTable("MTG_PURCHASED_PORTFOLIO_STATUS_HIST", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioTranSetCounter", b =>
+                {
+                    b.Property<string>("PortfolioNo")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PORTFOLIO_NO");
+
+                    b.Property<int>("YearNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("YEAR_NO");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("LastNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("LAST_NO");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("PortfolioNo", "YearNo")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_TRAN_SET_COUNTERS");
+
+                    b.HasIndex("PortfolioNo", "YearNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PP_TRAN_SET_COUNTERS_PORTFOLIO_NO_YEAR_NO");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_TRAN_SET_COUNTERS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgSecurityDeposit", b =>
+                {
+                    b.Property<long>("DepositId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEPOSIT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DepositId"));
+
+                    b.Property<string>("AccountReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("ACCOUNT_REFERENCE");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("BANK_NAME");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal>("DepositAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DEPOSIT_AMOUNT");
+
+                    b.Property<decimal?>("DepositPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("DEPOSIT_PCT");
+
+                    b.Property<long?>("DocumentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    b.Property<bool>("IsBlocked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_BLOCKED");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<DateOnly?>("ReleaseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RELEASE_DATE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("START_DATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DepositId")
+                        .HasName("PK_MTG_SECURITY_DEPOSITS");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("IX_MTG_SECURITY_DEPOSITS_DOCUMENT_ID");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_SECURITY_DEPOSITS_PORTFOLIO_ID");
+
+                    b.ToTable("MTG_SECURITY_DEPOSITS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgValuation", b =>
@@ -19924,14 +21455,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("CREATED_BY");
 
                     b.Property<string>("FacilitiesStatus")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("FACILITIES_STATUS");
 
-                    b.Property<decimal>("MarketValueAmount")
+                    b.Property<decimal?>("MarketValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("MARKET_VALUE_AMOUNT");
+                        .HasColumnName("MARKET_VALUE");
 
                     b.Property<long>("PortfolioId")
                         .HasColumnType("bigint")
@@ -19946,19 +21477,23 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("PROJECT_ID");
 
-                    b.Property<long?>("ProjectUnitId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("PROJECT_UNIT_ID");
-
-                    b.Property<decimal?>("RecommendedValueAmount")
+                    b.Property<decimal?>("RecommendedValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("RECOMMENDED_VALUE_AMOUNT");
+                        .HasColumnName("RECOMMENDED_VALUE");
+
+                    b.Property<long?>("ReportDocumentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPORT_DOCUMENT_ID");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
+
+                    b.Property<long?>("UnitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("UNIT_ID");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -19969,7 +21504,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.Property<DateOnly>("ValuationDate")
+                    b.Property<DateOnly?>("ValuationDate")
                         .HasColumnType("date")
                         .HasColumnName("VALUATION_DATE");
 
@@ -19980,9 +21515,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("VALUATION_TYPE_CODE");
 
                     b.Property<string>("ValuerName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
                         .HasColumnName("VALUER_NAME");
 
                     b.Property<string>("ValuerRegistrationNo")
@@ -19999,8 +21533,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasIndex("ProjectId")
                         .HasDatabaseName("IX_MTG_VALUATIONS_PROJECT_ID");
 
-                    b.HasIndex("ProjectUnitId")
-                        .HasDatabaseName("IX_MTG_VALUATIONS_PROJECT_UNIT_ID");
+                    b.HasIndex("ReportDocumentId")
+                        .HasDatabaseName("IX_MTG_VALUATIONS_REPORT_DOCUMENT_ID");
+
+                    b.HasIndex("UnitId")
+                        .HasDatabaseName("IX_MTG_VALUATIONS_UNIT_ID");
 
                     b.HasIndex("ValuationTypeCode")
                         .HasDatabaseName("IX_MTG_VALUATIONS_VALUATION_TYPE_CODE");
@@ -20501,15 +22038,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasName("PK_SEC_USER_TOKENS");
 
                     b.ToTable("SEC_USER_TOKENS", (string)null);
-                });
-
-            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentType", b =>
-                {
-                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpDocumentGroup", null)
-                        .WithMany()
-                        .HasForeignKey("DocumentGroupCode")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_ADM_LKP_DOCUMENT_TYPES_ADM_LKP_DOCUMENT_GROUPS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpLegalEntity", b =>
@@ -23498,12 +25026,22 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_MTG_ACCOUNT_PAYMENTS_MTG_PURCHASED_PORTFOLIO_ACCOUNTS");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountSnapshot", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioAccount", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_ACCOUNT_SNAPSHOTS_MTG_PURCHASED_PORTFOLIO_ACCOUNTS");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAmlResult", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
                         .WithMany()
                         .HasForeignKey("PortfolioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_AML_RESULTS_MTG_PURCHASED_PORTFOLIOS");
                 });
@@ -23527,6 +25065,62 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_MTG_DEVELOPER_SIGNATORIES_MTG_DEVELOPERS");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgDueDiligence", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpDdCheckType", null)
+                        .WithMany()
+                        .HasForeignKey("CheckTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_DUE_DILIGENCES_MTG_LKP_DD_CHECK_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_DUE_DILIGENCES_MTG_PURCHASED_PORTFOLIOS");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpRiskLevel", null)
+                        .WithMany()
+                        .HasForeignKey("RiskLevelCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_DUE_DILIGENCES_ADM_LKP_RISK_LEVELS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgFinancialStudy", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_FINANCIAL_STUDIES_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgGuarantee", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDocument", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_GUARANTEES_MTG_PURCHASED_PORTFOLIO_DOCUMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpGuaranteeType", null)
+                        .WithMany()
+                        .HasForeignKey("GuaranteeTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_GUARANTEES_ADM_LKP_GUARANTEE_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_GUARANTEES_MTG_PURCHASED_PORTFOLIOS");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInquiryResult", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpInquiryType", null)
@@ -23542,6 +25136,41 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_INQUIRY_RESULTS_MTG_PURCHASED_PORTFOLIOS");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpRiskLevel", null)
+                        .WithMany()
+                        .HasForeignKey("RiskLevelCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_INQUIRY_RESULTS_ADM_LKP_RISK_LEVELS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgInsurance", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDocument", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_INSURANCES_MTG_PURCHASED_PORTFOLIO_DOCUMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpInsuranceType", null)
+                        .WithMany()
+                        .HasForeignKey("InsuranceTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_INSURANCES_ADM_LKP_INSURANCE_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_INSURANCES_MTG_PURCHASED_PORTFOLIOS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgProjectUnit", null)
+                        .WithMany()
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_INSURANCES_MTG_PROJECT_UNITS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLegalReview", b =>
@@ -23582,12 +25211,24 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", b =>
                 {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpDecisionType", null)
+                        .WithMany()
+                        .HasForeignKey("BoardDecision")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_PURCHASED_PORTFOLIOS_ADM_LKP_DECISION_TYPES");
+
                     b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpCurrency", null)
                         .WithMany()
                         .HasForeignKey("CurrencyCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_PURCHASED_PORTFOLIOS_ADM_LKP_CURRENCIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpApprovalStep", null)
+                        .WithMany()
+                        .HasForeignKey("CurrentApprovalStep")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_PURCHASED_PORTFOLIOS_MTG_LKP_APPROVAL_STEPS");
 
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgDeveloper", null)
                         .WithMany()
@@ -23629,10 +25270,39 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgProjectUnit", null)
                         .WithMany()
-                        .HasForeignKey("ProjectUnitId")
+                        .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_PP_ACCOUNTS_MTG_PROJECT_UNITS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioApproval", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpDecisionType", null)
+                        .WithMany()
+                        .HasForeignKey("DecisionCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_PP_APPROVALS_ADM_LKP_DECISION_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_APPROVALS_MTG_PURCHASED_PORTFOLIOS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpApprovalStep", null)
+                        .WithMany()
+                        .HasForeignKey("ReturnToStepCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_PP_APPROVALS_MTG_LKP_APPROVAL_STEPS_RETURN_TO_STEP_CODE");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpApprovalStep", null)
+                        .WithMany()
+                        .HasForeignKey("StepCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_APPROVALS_MTG_LKP_APPROVAL_STEPS_STEP_CODE");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioCheque", b =>
@@ -23648,7 +25318,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("PortfolioAccountId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("FK_MTG_PP_CHEQUES_MTG_PURCHASED_PORTFOLIO_ACCOUNTS");
 
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
@@ -23657,6 +25326,24 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_PP_CHEQUES_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDocument", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpDocumentType", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentTypeCode")
+                        .HasPrincipalKey("DocumentTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_DOCUMENTS_ADM_LKP_DOCUMENT_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_DOCUMENTS_MTG_PURCHASED_PORTFOLIOS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioFinancialReview", b =>
@@ -23674,19 +25361,91 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
                         .WithMany()
                         .HasForeignKey("PortfolioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_PP_IMPORTS_MTG_PURCHASED_PORTFOLIOS");
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioStatusHistory", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioMemo", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
                         .WithMany()
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_MEMOS_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioSettlement", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpCurrency", null)
+                        .WithMany()
+                        .HasForeignKey("CurrencyCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_SETTLEMENTS_ADM_LKP_CURRENCIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioPaymentMethod", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentMethodCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_PP_SETTLEMENTS_MTG_LKP_PORTFOLIO_PAYMENT_METHODS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_SETTLEMENTS_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioSnapshot", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_SNAPSHOTS_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioStatusHist", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioStatus", null)
+                        .WithMany()
+                        .HasForeignKey("FromStatus")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_PP_STATUS_HIST_MTG_LKP_PORTFOLIO_STATUSES_FROM_STATUS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("FK_MTG_PP_STATUS_HIST_MTG_PURCHASED_PORTFOLIOS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgLkpPortfolioStatus", null)
+                        .WithMany()
+                        .HasForeignKey("ToStatus")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_STATUS_HIST_MTG_LKP_PORTFOLIO_STATUSES_TO_STATUS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgSecurityDeposit", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDocument", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_SECURITY_DEPOSITS_MTG_PURCHASED_PORTFOLIO_DOCUMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolio", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_SECURITY_DEPOSITS_MTG_PURCHASED_PORTFOLIOS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgValuation", b =>
@@ -23705,9 +25464,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_MTG_VALUATIONS_MTG_PROJECTS");
 
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDocument", null)
+                        .WithMany()
+                        .HasForeignKey("ReportDocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MTG_VALUATIONS_MTG_PURCHASED_PORTFOLIO_DOCUMENTS");
+
                     b.HasOne("Capitra.Domain.Modules.Mtg.MtgProjectUnit", null)
                         .WithMany()
-                        .HasForeignKey("ProjectUnitId")
+                        .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_MTG_VALUATIONS_MTG_PROJECT_UNITS");
 

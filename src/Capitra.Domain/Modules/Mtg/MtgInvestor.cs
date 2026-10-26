@@ -2,7 +2,9 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Mtg;
 
-/// <summary>MTG_INVESTORS: end investor (unit buyer) whose accounts are purchased (APEX App 105 pages 109/110).</summary>
+/// <summary>
+/// MTG_INVESTORS: copy of FINOVA FNV_INVESTOR (APEX), all columns kept.
+/// </summary>
 public class MtgInvestor : AuditableEntity
 {
     public long InvestorId { get; set; }
@@ -13,9 +15,9 @@ public class MtgInvestor : AuditableEntity
 
     public string? FullNameEn { get; set; }
 
-    public string? NationalIdNo { get; set; }
+    public string? NationalId { get; set; }
 
-    public DateOnly? BirthDate { get; set; }
+    public DateOnly? DateOfBirthDate { get; set; }
 
     public string? PhoneNo { get; set; }
 
@@ -25,7 +27,7 @@ public class MtgInvestor : AuditableEntity
 
     public string? EmployerName { get; set; }
 
-    public decimal? DeclaredIncomeAmount { get; set; }
+    public decimal? DeclaredIncome { get; set; }
 
     public bool IsActive { get; set; } = true;
 }

@@ -3,32 +3,25 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mtg;
 
 /// <summary>
-/// MTG_PURCHASED_PORTFOLIO_IMPORTS: the seller workbook of a portfolio and the result of its last validation
-/// (APEX MTG_PORTFOLIO_EXCEL_STAGING, App 105 page 208). One row per portfolio.
+/// MTG_PURCHASED_PORTFOLIO_IMPORTS: copy of FINOVA MTG_PORTFOLIO_EXCEL_STAGING (APEX), all columns kept.
 /// </summary>
 public class MtgPurchasedPortfolioImport : AuditableEntity
 {
-    public const string ValidatedStatus = "VALIDATED";
-    public const string ErrorStatus = "ERROR";
-    public const string ImportedStatus = "IMPORTED";
-
-    public long PortfolioImportId { get; set; }
+    public long StagingId { get; set; }
 
     public long PortfolioId { get; set; }
 
+    public long WfInstanceId { get; set; }
+
     public string FileName { get; set; } = string.Empty;
 
-    /// <summary>VALIDATED, ERROR or IMPORTED.</summary>
-    public string ImportStatusCode { get; set; } = ErrorStatus;
+    public string ValidationStatus { get; set; } = string.Empty;
 
-    public int TotalRowCount { get; set; }
+    public string ValidationJson { get; set; } = string.Empty;
 
-    public int ValidRowCount { get; set; }
+    public decimal TotalRows { get; set; }
 
-    public int ErrorRowCount { get; set; }
+    public int ValidCount { get; set; }
 
-    public int ImportedRowCount { get; set; }
-
-    /// <summary>The workbook as last validated, so Import can load it without the user choosing the file again.</summary>
-    public byte[]? WorkbookContent { get; set; }
+    public int ErrorCount { get; set; }
 }

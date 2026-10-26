@@ -2,9 +2,18 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Adm;
 
-/// <summary>ADM_LKP_CURRENCIES: currencies (APEX App 105 pages 37/38).</summary>
-public class AdmLkpCurrency : LookupEntity
+/// <summary>
+/// ADM_LKP_CURRENCIES: copy of FINOVA REF_CURRENCY (APEX), all columns kept.
+/// </summary>
+public class AdmLkpCurrency : AuditableEntity
 {
-    /// <summary>Number of decimal places used when showing amounts in this currency.</summary>
+    public string CurrencyCode { get; set; } = string.Empty;
+
+    public string CurrencyNameEn { get; set; } = string.Empty;
+
+    public string CurrencyNameAr { get; set; } = string.Empty;
+
     public int DecimalPlaces { get; set; } = 2;
+
+    public bool IsActive { get; set; } = true;
 }

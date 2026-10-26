@@ -35,7 +35,7 @@ public sealed class AuditInterceptorTests
 
         await using (var context = CreateContext(database, user, clock))
         {
-            context.Add(new AdmLkpCurrency { Code = "EGP", NameAr = "جنيه", NameEn = "Egyptian Pound", CreatedBy = "spoofed", RowVersion = 99 });
+            context.Add(new AdmLkpCurrency { CurrencyCode = "EGP", CurrencyNameAr = "جنيه", CurrencyNameEn = "Egyptian Pound", CreatedBy = "spoofed", RowVersion = 99 });
             await context.SaveChangesAsync();
         }
 
@@ -51,7 +51,7 @@ public sealed class AuditInterceptorTests
             Assert.Null(currency.UpdatedBy);
             Assert.Equal(1, currency.RowVersion);
 
-            currency.NameEn = "Egyptian pound";
+            currency.CurrencyNameEn = "Egyptian pound";
             currency.CreatedBy = "tampered";
             await context.SaveChangesAsync();
         }
@@ -70,7 +70,7 @@ public sealed class AuditInterceptorTests
     public async Task Uses_SYSTEM_when_nobody_is_signed_in()
     {
         await using var context = CreateContext(Guid.NewGuid().ToString(), new FakeUser { UserName = null }, new FakeClock());
-        context.Add(new AdmLkpRiskLevel { Code = "LOW", NameAr = "منخفض", NameEn = "Low" });
+        context.Add(new AdmLkpRiskLevel { RiskLevelCode = "LOW", RiskLevelNameAr = "منخفض", RiskLevelNameEn = "Low" });
         await context.SaveChangesAsync();
 
         Assert.Equal(AuditInterceptor.SystemUser, (await context.Set<AdmLkpRiskLevel>().SingleAsync()).CreatedBy);

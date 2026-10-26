@@ -1,0 +1,2764 @@
+{
+ "FNV_ACCOUNT_PAYMENT": {
+  "table": "MTG_ACCOUNT_PAYMENTS",
+  "class": "MtgAccountPayment",
+  "columns": {
+   "PAYMENT_ID": {
+    "column": "PAYMENT_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ACCOUNT_ID": {
+    "column": "PORTFOLIO_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "DUE_DATE": {
+    "column": "DUE_DATE",
+    "kind": "date"
+   },
+   "DUE_AMOUNT": {
+    "column": "DUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "PAYMENT_DATE": {
+    "column": "PAYMENT_DATE",
+    "kind": "date"
+   },
+   "PAID_AMOUNT": {
+    "column": "PAID_AMOUNT",
+    "kind": "decimal"
+   },
+   "PAYMENT_STATUS_CODE": {
+    "column": "PAYMENT_STATUS_CODE",
+    "kind": "string"
+   },
+   "DAYS_LATE": {
+    "column": "DAYS_LATE",
+    "kind": "int"
+   },
+   "CHEQUE_NO": {
+    "column": "CHEQUE_NO",
+    "kind": "string"
+   },
+   "BANK_NAME": {
+    "column": "BANK_NAME",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "PAYMENT_ID"
+ },
+ "FNV_ACCOUNT_SNAPSHOT": {
+  "table": "MTG_ACCOUNT_SNAPSHOTS",
+  "class": "MtgAccountSnapshot",
+  "columns": {
+   "SNAPSHOT_ID": {
+    "column": "SNAPSHOT_ID",
+    "kind": "int"
+   },
+   "AS_OF_DATE": {
+    "column": "AS_OF_DATE",
+    "kind": "date"
+   },
+   "PORTFOLIO_ACCOUNT_ID": {
+    "column": "PORTFOLIO_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "OUTSTANDING_VALUE": {
+    "column": "OUTSTANDING_VALUE",
+    "kind": "decimal"
+   },
+   "ARREARS_AMOUNT": {
+    "column": "ARREARS_AMOUNT",
+    "kind": "decimal"
+   },
+   "NEXT_DUE_DATE": {
+    "column": "NEXT_DUE_DATE",
+    "kind": "date"
+   },
+   "PAYMENT_STATUS": {
+    "column": "PAYMENT_STATUS",
+    "kind": "string"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "SNAPSHOT_ID"
+ },
+ "FNV_AML_RESULTS": {
+  "table": "MTG_AML_RESULTS",
+  "class": "MtgAmlResult",
+  "columns": {
+   "AML_ID": {
+    "column": "AML_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "SUBJECT_TYPE": {
+    "column": "SUBJECT_TYPE",
+    "kind": "string"
+   },
+   "SUBJECT_ID": {
+    "column": "SUBJECT_ID",
+    "kind": "int"
+   },
+   "AML_TYPE_CODE": {
+    "column": "AML_TYPE_CODE",
+    "kind": "string"
+   },
+   "SCREENING_DATE": {
+    "column": "SCREENING_DATE",
+    "kind": "date"
+   },
+   "REFERENCE_NO": {
+    "column": "REFERENCE_NO",
+    "kind": "string"
+   },
+   "RESULT_CODE": {
+    "column": "RESULT_CODE",
+    "kind": "string"
+   },
+   "RISK_LEVEL_CODE": {
+    "column": "RISK_LEVEL_CODE",
+    "kind": "string"
+   },
+   "MATCH_SCORE_PCT": {
+    "column": "MATCH_SCORE_PCT",
+    "kind": "decimal"
+   },
+   "RESULT_DETAILS": {
+    "column": "RESULT_DETAILS",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATION_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_UPDATE_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "AML_ID"
+ },
+ "FNV_DUE_DILIGENCE": {
+  "table": "MTG_DUE_DILIGENCES",
+  "class": "MtgDueDiligence",
+  "columns": {
+   "DD_ID": {
+    "column": "DD_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "CHECK_TYPE_CODE": {
+    "column": "CHECK_TYPE_CODE",
+    "kind": "string"
+   },
+   "SUBJECT_TYPE": {
+    "column": "SUBJECT_TYPE",
+    "kind": "string"
+   },
+   "SUBJECT_ID": {
+    "column": "SUBJECT_ID",
+    "kind": "int"
+   },
+   "ASSIGNED_TO": {
+    "column": "ASSIGNED_TO",
+    "kind": "string"
+   },
+   "START_DATE": {
+    "column": "START_DATE",
+    "kind": "date"
+   },
+   "COMPLETION_DATE": {
+    "column": "COMPLETION_DATE",
+    "kind": "date"
+   },
+   "RESULT_CODE": {
+    "column": "RESULT_CODE",
+    "kind": "string"
+   },
+   "RISK_LEVEL_CODE": {
+    "column": "RISK_LEVEL_CODE",
+    "kind": "string"
+   },
+   "EXCEPTION_FLAG": {
+    "column": "IS_EXCEPTION",
+    "kind": "flag"
+   },
+   "FINDINGS": {
+    "column": "FINDINGS",
+    "kind": "text"
+   },
+   "RECOMMENDATION": {
+    "column": "RECOMMENDATION",
+    "kind": "text"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "DD_ID"
+ },
+ "FNV_FINANCIAL_STUDY": {
+  "table": "MTG_FINANCIAL_STUDIES",
+  "class": "MtgFinancialStudy",
+  "columns": {
+   "FIN_STUDY_ID": {
+    "column": "FIN_STUDY_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_FACE_VALUE": {
+    "column": "PORTFOLIO_FACE_VALUE",
+    "kind": "decimal"
+   },
+   "OUTSTANDING_VALUE": {
+    "column": "OUTSTANDING_VALUE",
+    "kind": "decimal"
+   },
+   "PROPOSED_PURCHASE_VALUE": {
+    "column": "PROPOSED_PURCHASE_VALUE",
+    "kind": "decimal"
+   },
+   "TERM_MONTHS": {
+    "column": "TERM_MONTHS",
+    "kind": "int"
+   },
+   "EXPECTED_RETURN_AMOUNT": {
+    "column": "EXPECTED_RETURN_AMOUNT",
+    "kind": "decimal"
+   },
+   "EXPECTED_RETURN_RATE": {
+    "column": "EXPECTED_RETURN_RATE",
+    "kind": "decimal"
+   },
+   "ADMIN_EXPENSE_AMOUNT": {
+    "column": "ADMIN_EXPENSE_AMOUNT",
+    "kind": "decimal"
+   },
+   "NET_RETURN_AMOUNT": {
+    "column": "NET_RETURN_AMOUNT",
+    "kind": "decimal"
+   },
+   "CHEQUE_TOTAL_VALUE": {
+    "column": "CHEQUE_TOTAL_VALUE",
+    "kind": "decimal"
+   },
+   "CHEQUE_COVERAGE_PCT": {
+    "column": "CHEQUE_COVERAGE_PCT",
+    "kind": "decimal"
+   },
+   "DEPOSIT_AMOUNT": {
+    "column": "DEPOSIT_AMOUNT",
+    "kind": "decimal"
+   },
+   "DEPOSIT_PCT": {
+    "column": "DEPOSIT_PCT",
+    "kind": "decimal"
+   },
+   "FINANCIAL_COMMENTS": {
+    "column": "FINANCIAL_COMMENTS",
+    "kind": "text"
+   },
+   "PREPARED_BY": {
+    "column": "PREPARED_BY",
+    "kind": "string"
+   },
+   "PREPARED_DATE": {
+    "column": "PREPARED_DATE",
+    "kind": "date"
+   },
+   "APPROVED_BY": {
+    "column": "APPROVED_BY",
+    "kind": "string"
+   },
+   "APPROVED_DATE": {
+    "column": "APPROVED_DATE",
+    "kind": "date"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "FIN_STUDY_ID"
+ },
+ "FNV_GUARANTEE": {
+  "table": "MTG_GUARANTEES",
+  "class": "MtgGuarantee",
+  "columns": {
+   "GUARANTEE_ID": {
+    "column": "GUARANTEE_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "GUARANTEE_TYPE_CODE": {
+    "column": "GUARANTEE_TYPE_CODE",
+    "kind": "string"
+   },
+   "GUARANTOR_TYPE": {
+    "column": "GUARANTOR_TYPE",
+    "kind": "string"
+   },
+   "GUARANTOR_ID": {
+    "column": "GUARANTOR_ID",
+    "kind": "int"
+   },
+   "GUARANTEE_AMOUNT": {
+    "column": "GUARANTEE_AMOUNT",
+    "kind": "decimal"
+   },
+   "GUARANTEE_PCT": {
+    "column": "GUARANTEE_PCT",
+    "kind": "decimal"
+   },
+   "EFFECTIVE_DATE": {
+    "column": "EFFECTIVE_DATE",
+    "kind": "date"
+   },
+   "EXPIRY_DATE": {
+    "column": "EXPIRY_DATE",
+    "kind": "date"
+   },
+   "DOCUMENT_ID": {
+    "column": "DOCUMENT_ID",
+    "kind": "int"
+   },
+   "VERIFIED_FLAG": {
+    "column": "IS_VERIFIED",
+    "kind": "flag"
+   },
+   "VERIFIED_BY": {
+    "column": "VERIFIED_BY",
+    "kind": "string"
+   },
+   "VERIFIED_DATE": {
+    "column": "VERIFIED_AT",
+    "kind": "datetime"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "GUARANTEE_ID"
+ },
+ "FNV_INQUIRY_RESULT": {
+  "table": "MTG_INQUIRY_RESULTS",
+  "class": "MtgInquiryResult",
+  "columns": {
+   "INQUIRY_ID": {
+    "column": "INQUIRY_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "SUBJECT_TYPE": {
+    "column": "SUBJECT_TYPE",
+    "kind": "string"
+   },
+   "SUBJECT_ID": {
+    "column": "SUBJECT_ID",
+    "kind": "int"
+   },
+   "INQUIRY_TYPE_CODE": {
+    "column": "INQUIRY_TYPE_CODE",
+    "kind": "string"
+   },
+   "INQUIRY_DATE": {
+    "column": "INQUIRY_DATE",
+    "kind": "date"
+   },
+   "REFERENCE_NO": {
+    "column": "REFERENCE_NO",
+    "kind": "string"
+   },
+   "RESULT_CODE": {
+    "column": "RESULT_CODE",
+    "kind": "string"
+   },
+   "RISK_LEVEL_CODE": {
+    "column": "RISK_LEVEL_CODE",
+    "kind": "string"
+   },
+   "RESULT_DETAILS": {
+    "column": "RESULT_DETAILS",
+    "kind": "text"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "INQUIRY_ID"
+ },
+ "FNV_INSURANCE": {
+  "table": "MTG_INSURANCES",
+  "class": "MtgInsurance",
+  "columns": {
+   "INSURANCE_ID": {
+    "column": "INSURANCE_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "UNIT_ID": {
+    "column": "UNIT_ID",
+    "kind": "int"
+   },
+   "INSURANCE_TYPE_CODE": {
+    "column": "INSURANCE_TYPE_CODE",
+    "kind": "string"
+   },
+   "INSURANCE_COMPANY": {
+    "column": "INSURANCE_COMPANY",
+    "kind": "string"
+   },
+   "POLICY_NO": {
+    "column": "POLICY_NO",
+    "kind": "string"
+   },
+   "SUM_INSURED": {
+    "column": "SUM_INSURED",
+    "kind": "decimal"
+   },
+   "VALID_FROM": {
+    "column": "VALID_FROM_DATE",
+    "kind": "date"
+   },
+   "VALID_TO": {
+    "column": "VALID_TO_DATE",
+    "kind": "date"
+   },
+   "ASSIGNED_TO_COMPANY_FLAG": {
+    "column": "IS_ASSIGNED_TO_COMPANY",
+    "kind": "flag"
+   },
+   "DOCUMENT_ID": {
+    "column": "DOCUMENT_ID",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "INSURANCE_ID"
+ },
+ "FNV_INVESTOR": {
+  "table": "MTG_INVESTORS",
+  "class": "MtgInvestor",
+  "columns": {
+   "INVESTOR_ID": {
+    "column": "INVESTOR_ID",
+    "kind": "int"
+   },
+   "INVESTOR_CODE": {
+    "column": "INVESTOR_CODE",
+    "kind": "string"
+   },
+   "FULL_NAME_AR": {
+    "column": "FULL_NAME_AR",
+    "kind": "string"
+   },
+   "FULL_NAME_EN": {
+    "column": "FULL_NAME_EN",
+    "kind": "string"
+   },
+   "NATIONAL_ID": {
+    "column": "NATIONAL_ID",
+    "kind": "string"
+   },
+   "DATE_OF_BIRTH": {
+    "column": "DATE_OF_BIRTH_DATE",
+    "kind": "date"
+   },
+   "PHONE_NO": {
+    "column": "PHONE_NO",
+    "kind": "string"
+   },
+   "EMAIL_ADDRESS": {
+    "column": "EMAIL_ADDRESS",
+    "kind": "string"
+   },
+   "ADDRESS_TEXT": {
+    "column": "ADDRESS_TEXT",
+    "kind": "string"
+   },
+   "EMPLOYER_NAME": {
+    "column": "EMPLOYER_NAME",
+    "kind": "string"
+   },
+   "DECLARED_INCOME": {
+    "column": "DECLARED_INCOME",
+    "kind": "decimal"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "INVESTOR_ID"
+ },
+ "FNV_LEGAL_REVIEW": {
+  "table": "MTG_LEGAL_REVIEWS",
+  "class": "MtgLegalReview",
+  "columns": {
+   "LEGAL_REVIEW_ID": {
+    "column": "LEGAL_REVIEW_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "OWNERSHIP_VERIFIED_FLAG": {
+    "column": "IS_OWNERSHIP_VERIFIED",
+    "kind": "flag"
+   },
+   "BUILDING_LICENSE_VERIFIED_FLAG": {
+    "column": "IS_BUILDING_LICENSE_VERIFIED",
+    "kind": "flag"
+   },
+   "REGISTRATION_POSSIBLE_FLAG": {
+    "column": "IS_REGISTRATION_POSSIBLE",
+    "kind": "flag"
+   },
+   "MORTGAGE_POSSIBLE_FLAG": {
+    "column": "IS_MORTGAGE_POSSIBLE",
+    "kind": "flag"
+   },
+   "ENCUMBRANCE_FREE_FLAG": {
+    "column": "IS_ENCUMBRANCE_FREE",
+    "kind": "flag"
+   },
+   "TITLE_DEED_VERIFIED_FLAG": {
+    "column": "IS_TITLE_DEED_VERIFIED",
+    "kind": "flag"
+   },
+   "LEGAL_FINDINGS": {
+    "column": "LEGAL_FINDINGS",
+    "kind": "text"
+   },
+   "LEGAL_RECOMMENDATION": {
+    "column": "LEGAL_RECOMMENDATION",
+    "kind": "text"
+   },
+   "REVIEWED_BY": {
+    "column": "REVIEWED_BY",
+    "kind": "string"
+   },
+   "REVIEW_DATE": {
+    "column": "REVIEW_DATE",
+    "kind": "date"
+   },
+   "APPROVED_BY": {
+    "column": "APPROVED_BY",
+    "kind": "string"
+   },
+   "APPROVED_DATE": {
+    "column": "APPROVED_DATE",
+    "kind": "date"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "LEGAL_REVIEW_ID"
+ },
+ "FNV_PORTFOLIO_FINANCIAL_REVIEW": {
+  "table": "MTG_PURCHASED_PORTFOLIO_FINANCIAL_REVIEWS",
+  "class": "MtgPurchasedPortfolioFinancialReview",
+  "columns": {
+   "REVIEW_ID": {
+    "column": "REVIEW_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "PV_METHOD": {
+    "column": "PV_METHOD",
+    "kind": "string"
+   },
+   "PV_RATE": {
+    "column": "PV_RATE",
+    "kind": "decimal"
+   },
+   "PV_BASE_DATE": {
+    "column": "PV_BASE_DATE",
+    "kind": "date"
+   },
+   "CHEQUE_COUNT": {
+    "column": "CHEQUE_COUNT",
+    "kind": "int"
+   },
+   "CHEQUES_FACE_AMOUNT": {
+    "column": "CHEQUES_FACE_AMOUNT",
+    "kind": "decimal"
+   },
+   "CHEQUES_PV_AMOUNT": {
+    "column": "CHEQUES_PV_AMOUNT",
+    "kind": "decimal"
+   },
+   "MARGIN_BASE": {
+    "column": "MARGIN_BASE",
+    "kind": "string"
+   },
+   "MARGIN_PERCENTAGE": {
+    "column": "MARGIN_PERCENTAGE",
+    "kind": "decimal"
+   },
+   "MARGIN_BASE_AMOUNT": {
+    "column": "MARGIN_BASE_AMOUNT",
+    "kind": "decimal"
+   },
+   "MARGIN_AMOUNT": {
+    "column": "MARGIN_AMOUNT",
+    "kind": "decimal"
+   },
+   "ADMIN_BASE": {
+    "column": "ADMIN_BASE",
+    "kind": "string"
+   },
+   "ADMIN_EXPENSE_PERCENT": {
+    "column": "ADMIN_EXPENSE_PERCENT",
+    "kind": "decimal"
+   },
+   "ADMIN_BASE_AMOUNT": {
+    "column": "ADMIN_BASE_AMOUNT",
+    "kind": "decimal"
+   },
+   "ADMIN_CALC_AMOUNT": {
+    "column": "ADMIN_CALC_AMOUNT",
+    "kind": "decimal"
+   },
+   "ADMIN_FINAL_AMOUNT": {
+    "column": "ADMIN_FINAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "ADMIN_INCLUDED_FLAG": {
+    "column": "IS_ADMIN_INCLUDED",
+    "kind": "flag"
+   },
+   "UNITS_COUNT": {
+    "column": "UNITS_COUNT",
+    "kind": "int"
+   },
+   "LEGAL_FEE_PER_UNIT": {
+    "column": "LEGAL_FEE_PER_UNIT",
+    "kind": "decimal"
+   },
+   "LEGAL_CALC_AMOUNT": {
+    "column": "LEGAL_CALC_AMOUNT",
+    "kind": "decimal"
+   },
+   "LEGAL_FINAL_AMOUNT": {
+    "column": "LEGAL_FINAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "LEGAL_INCLUDED_FLAG": {
+    "column": "IS_LEGAL_INCLUDED",
+    "kind": "flag"
+   },
+   "VALUATION_FEE_PER_UNIT": {
+    "column": "VALUATION_FEE_PER_UNIT",
+    "kind": "decimal"
+   },
+   "VALUATION_CALC_AMOUNT": {
+    "column": "VALUATION_CALC_AMOUNT",
+    "kind": "decimal"
+   },
+   "VALUATION_FINAL_AMOUNT": {
+    "column": "VALUATION_FINAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "VALUATION_INCLUDED_FLAG": {
+    "column": "IS_VALUATION_INCLUDED",
+    "kind": "flag"
+   },
+   "TOTAL_CHARGES_AMOUNT": {
+    "column": "TOTAL_CHARGES_AMOUNT",
+    "kind": "decimal"
+   },
+   "PROPOSED_PURCHASE_VALUE": {
+    "column": "PROPOSED_PURCHASE_VALUE",
+    "kind": "decimal"
+   },
+   "EXPECTED_RETURN_AMOUNT": {
+    "column": "EXPECTED_RETURN_AMOUNT",
+    "kind": "decimal"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "REVIEW_ID"
+ },
+ "FNV_PP_DISBURSEMENT": {
+  "table": "MTG_PURCHASED_PORTFOLIO_DISBURSEMENTS",
+  "class": "MtgPurchasedPortfolioDisbursement",
+  "columns": {
+   "DISBURSEMENT_ID": {
+    "column": "DISBURSEMENT_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "TRAN_SET_ID": {
+    "column": "TRAN_SET_ID",
+    "kind": "string"
+   },
+   "DISBURSEMENT_DATE": {
+    "column": "DISBURSEMENT_DATE",
+    "kind": "date"
+   },
+   "BANK_ID": {
+    "column": "BANK_ID",
+    "kind": "int"
+   },
+   "BANK_ACCOUNT_ID": {
+    "column": "BANK_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "BANK_GL_ACCOUNT": {
+    "column": "BANK_GL_ACCOUNT",
+    "kind": "string"
+   },
+   "PAYMENT_REF": {
+    "column": "PAYMENT_REF",
+    "kind": "string"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "PV_METHOD": {
+    "column": "PV_METHOD",
+    "kind": "string"
+   },
+   "PV_RATE": {
+    "column": "PV_RATE",
+    "kind": "decimal"
+   },
+   "PV_BASE_DATE": {
+    "column": "PV_BASE_DATE",
+    "kind": "date"
+   },
+   "CHEQUE_COUNT": {
+    "column": "CHEQUE_COUNT",
+    "kind": "int"
+   },
+   "CONTRACT_COUNT": {
+    "column": "CONTRACT_COUNT",
+    "kind": "int"
+   },
+   "FACE_AMOUNT": {
+    "column": "FACE_AMOUNT",
+    "kind": "decimal"
+   },
+   "PV_AMOUNT": {
+    "column": "PV_AMOUNT",
+    "kind": "decimal"
+   },
+   "FUNDING_RECOVERY_AMOUNT": {
+    "column": "FUNDING_RECOVERY_AMOUNT",
+    "kind": "decimal"
+   },
+   "MARGIN_AMOUNT": {
+    "column": "MARGIN_AMOUNT",
+    "kind": "decimal"
+   },
+   "ADMIN_FR_AMOUNT": {
+    "column": "ADMIN_FR_AMOUNT",
+    "kind": "decimal"
+   },
+   "ADMIN_FINAL_AMOUNT": {
+    "column": "ADMIN_FINAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "LEGAL_FR_AMOUNT": {
+    "column": "LEGAL_FR_AMOUNT",
+    "kind": "decimal"
+   },
+   "LEGAL_FINAL_AMOUNT": {
+    "column": "LEGAL_FINAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "VALUATION_FR_AMOUNT": {
+    "column": "VALUATION_FR_AMOUNT",
+    "kind": "decimal"
+   },
+   "VALUATION_FINAL_AMOUNT": {
+    "column": "VALUATION_FINAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "FEES_AMOUNT": {
+    "column": "FEES_AMOUNT",
+    "kind": "decimal"
+   },
+   "BOARD_PRICE_AMOUNT": {
+    "column": "BOARD_PRICE_AMOUNT",
+    "kind": "decimal"
+   },
+   "PAYABLE_AMOUNT": {
+    "column": "PAYABLE_AMOUNT",
+    "kind": "decimal"
+   },
+   "CLIENTS_CREATED": {
+    "column": "CLIENTS_CREATED",
+    "kind": "int"
+   },
+   "CLIENTS_MATCHED": {
+    "column": "CLIENTS_MATCHED",
+    "kind": "int"
+   },
+   "GL_BATCH_NO": {
+    "column": "GL_BATCH_NO",
+    "kind": "string"
+   },
+   "GL_STATUS": {
+    "column": "GL_STATUS",
+    "kind": "string"
+   },
+   "GL_RESPONSE": {
+    "column": "GL_RESPONSE",
+    "kind": "text"
+   },
+   "WORKFLOW_TASK_ID": {
+    "column": "WORKFLOW_TASK_ID",
+    "kind": "int"
+   },
+   "COMMENTS": {
+    "column": "COMMENTS",
+    "kind": "string"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "MARGIN_TREATMENT": {
+    "column": "MARGIN_TREATMENT",
+    "kind": "string"
+   },
+   "ADMIN_TREATMENT": {
+    "column": "ADMIN_TREATMENT",
+    "kind": "string"
+   },
+   "LEGAL_TREATMENT": {
+    "column": "LEGAL_TREATMENT",
+    "kind": "string"
+   },
+   "VALUATION_TREATMENT": {
+    "column": "VALUATION_TREATMENT",
+    "kind": "string"
+   },
+   "MARGIN_DEFERRED_AMOUNT": {
+    "column": "MARGIN_DEFERRED_AMOUNT",
+    "kind": "decimal"
+   },
+   "MARGIN_IMMEDIATE_AMOUNT": {
+    "column": "MARGIN_IMMEDIATE_AMOUNT",
+    "kind": "decimal"
+   },
+   "FEES_DEFERRED_AMOUNT": {
+    "column": "FEES_DEFERRED_AMOUNT",
+    "kind": "decimal"
+   },
+   "FEES_IMMEDIATE_AMOUNT": {
+    "column": "FEES_IMMEDIATE_AMOUNT",
+    "kind": "decimal"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "DISBURSEMENT_ID"
+ },
+ "FNV_PP_INCOME_SCHEDULE": {
+  "table": "MTG_PURCHASED_PORTFOLIO_INCOME_SCHEDULES",
+  "class": "MtgPurchasedPortfolioIncomeSchedule",
+  "columns": {
+   "INCOME_LINE_ID": {
+    "column": "INCOME_LINE_ID",
+    "kind": "int"
+   },
+   "DISBURSEMENT_ID": {
+    "column": "DISBURSEMENT_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "DUE_DATE": {
+    "column": "DUE_DATE",
+    "kind": "date"
+   },
+   "CHEQUE_COUNT": {
+    "column": "CHEQUE_COUNT",
+    "kind": "int"
+   },
+   "FUNDING_RECOVERY_AMOUNT": {
+    "column": "FUNDING_RECOVERY_AMOUNT",
+    "kind": "decimal"
+   },
+   "MARGIN_AMOUNT": {
+    "column": "MARGIN_AMOUNT",
+    "kind": "decimal"
+   },
+   "FEES_AMOUNT": {
+    "column": "FEES_AMOUNT",
+    "kind": "decimal"
+   },
+   "TOTAL_AMOUNT": {
+    "column": "TOTAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "POSTING_STATUS": {
+    "column": "POSTING_STATUS",
+    "kind": "string"
+   },
+   "TRAN_SET_ID": {
+    "column": "TRAN_SET_ID",
+    "kind": "string"
+   },
+   "POSTED_ON": {
+    "column": "POSTED_ON_AT",
+    "kind": "datetime"
+   },
+   "POSTED_BY": {
+    "column": "POSTED_BY",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "INCOME_LINE_ID"
+ },
+ "FNV_PP_REPAYMENT_SCHEDULE": {
+  "table": "MTG_PURCHASED_PORTFOLIO_REPAYMENT_SCHEDULES",
+  "class": "MtgPurchasedPortfolioRepaymentSchedule",
+  "columns": {
+   "SCHEDULE_LINE_ID": {
+    "column": "SCHEDULE_LINE_ID",
+    "kind": "int"
+   },
+   "DISBURSEMENT_ID": {
+    "column": "DISBURSEMENT_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ACCOUNT_ID": {
+    "column": "PORTFOLIO_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "INVESTOR_ID": {
+    "column": "INVESTOR_ID",
+    "kind": "int"
+   },
+   "CLIENT_ID": {
+    "column": "CLIENT_ID",
+    "kind": "int"
+   },
+   "CLIENT_CREATED_FLAG": {
+    "column": "IS_CLIENT_CREATED",
+    "kind": "flag"
+   },
+   "SOURCE_CHEQUE_ID": {
+    "column": "SOURCE_CHEQUE_ID",
+    "kind": "int"
+   },
+   "WALLET_CHEQUE_ID": {
+    "column": "WALLET_CHEQUE_ID",
+    "kind": "int"
+   },
+   "LINE_NO": {
+    "column": "LINE_NO",
+    "kind": "int"
+   },
+   "CHEQUE_NO": {
+    "column": "CHEQUE_NO",
+    "kind": "string"
+   },
+   "BANK_NAME": {
+    "column": "BANK_NAME",
+    "kind": "string"
+   },
+   "DUE_DATE": {
+    "column": "DUE_DATE",
+    "kind": "date"
+   },
+   "CHEQUE_AMOUNT": {
+    "column": "CHEQUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "PV_AMOUNT": {
+    "column": "PV_AMOUNT",
+    "kind": "decimal"
+   },
+   "DAYS_FROM_DISBURSEMENT": {
+    "column": "DAYS_FROM_DISBURSEMENT",
+    "kind": "int"
+   },
+   "OPENING_BALANCE": {
+    "column": "OPENING_BALANCE",
+    "kind": "decimal"
+   },
+   "PRINCIPAL_AMOUNT": {
+    "column": "PRINCIPAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "INTEREST_AMOUNT": {
+    "column": "INTEREST_AMOUNT",
+    "kind": "decimal"
+   },
+   "CLOSING_BALANCE": {
+    "column": "CLOSING_BALANCE",
+    "kind": "decimal"
+   },
+   "MARGIN_RELEASE": {
+    "column": "MARGIN_RELEASE",
+    "kind": "decimal"
+   },
+   "FEE_RELEASE": {
+    "column": "FEE_RELEASE",
+    "kind": "decimal"
+   },
+   "EIR_RATE": {
+    "column": "EIR_RATE",
+    "kind": "decimal"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "SCHEDULE_LINE_ID"
+ },
+ "FNV_PP_TRAN_SET_COUNTER": {
+  "table": "MTG_PURCHASED_PORTFOLIO_TRAN_SET_COUNTERS",
+  "class": "MtgPurchasedPortfolioTranSetCounter",
+  "columns": {
+   "PORTFOLIO_NO": {
+    "column": "PORTFOLIO_NO",
+    "kind": "string"
+   },
+   "YEAR_NO": {
+    "column": "YEAR_NO",
+    "kind": "int"
+   },
+   "LAST_NO": {
+    "column": "LAST_NO",
+    "kind": "int"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": null
+ },
+ "FNV_PROJECT": {
+  "table": "MTG_PROJECTS",
+  "class": "MtgProject",
+  "columns": {
+   "PROJECT_ID": {
+    "column": "PROJECT_ID",
+    "kind": "int"
+   },
+   "DEVELOPER_ID": {
+    "column": "DEVELOPER_ID",
+    "kind": "int"
+   },
+   "PROJECT_CODE": {
+    "column": "PROJECT_CODE",
+    "kind": "string"
+   },
+   "PROJECT_NAME_AR": {
+    "column": "PROJECT_NAME_AR",
+    "kind": "string"
+   },
+   "PROJECT_NAME_EN": {
+    "column": "PROJECT_NAME_EN",
+    "kind": "string"
+   },
+   "LOCATION_TEXT": {
+    "column": "LOCATION_TEXT",
+    "kind": "string"
+   },
+   "LAND_AREA": {
+    "column": "LAND_AREA",
+    "kind": "decimal"
+   },
+   "TITLE_DEED_NO": {
+    "column": "TITLE_DEED_NO",
+    "kind": "string"
+   },
+   "BUILDING_LICENSE_NO": {
+    "column": "BUILDING_LICENSE_NO",
+    "kind": "string"
+   },
+   "BUILDING_LICENSE_DATE": {
+    "column": "BUILDING_LICENSE_DATE",
+    "kind": "date"
+   },
+   "PROJECT_COMPLETION_PCT": {
+    "column": "PROJECT_COMPLETION_PCT",
+    "kind": "decimal"
+   },
+   "PROJECT_STATUS": {
+    "column": "PROJECT_STATUS",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "PROJECT_ID"
+ },
+ "FNV_PROJECT_UNIT": {
+  "table": "MTG_PROJECT_UNITS",
+  "class": "MtgProjectUnit",
+  "columns": {
+   "UNIT_ID": {
+    "column": "UNIT_ID",
+    "kind": "int"
+   },
+   "PROJECT_ID": {
+    "column": "PROJECT_ID",
+    "kind": "int"
+   },
+   "UNIT_CODE": {
+    "column": "UNIT_CODE",
+    "kind": "string"
+   },
+   "UNIT_TYPE_CODE": {
+    "column": "UNIT_TYPE_CODE",
+    "kind": "string"
+   },
+   "BUILDING_NO": {
+    "column": "BUILDING_NO",
+    "kind": "string"
+   },
+   "FLOOR_NO": {
+    "column": "FLOOR_NO",
+    "kind": "string"
+   },
+   "UNIT_NO": {
+    "column": "UNIT_NO",
+    "kind": "string"
+   },
+   "AREA_SQM": {
+    "column": "AREA_SQM",
+    "kind": "decimal"
+   },
+   "CONTRACT_VALUE": {
+    "column": "CONTRACT_VALUE",
+    "kind": "decimal"
+   },
+   "CURRENT_MARKET_VALUE": {
+    "column": "CURRENT_MARKET_VALUE",
+    "kind": "decimal"
+   },
+   "LICENSE_STATUS": {
+    "column": "LICENSE_STATUS",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "UNIT_ID"
+ },
+ "FNV_PURCHASED_PORTFOLIO_CHEQUE": {
+  "table": "MTG_PURCHASED_PORTFOLIO_CHEQUES",
+  "class": "MtgPurchasedPortfolioCheque",
+  "columns": {
+   "CHEQUE_ID": {
+    "column": "CHEQUE_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ACCOUNT_ID": {
+    "column": "PORTFOLIO_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "CHEQUE_NO": {
+    "column": "CHEQUE_NO",
+    "kind": "string"
+   },
+   "BANK_NAME": {
+    "column": "BANK_NAME",
+    "kind": "string"
+   },
+   "CHEQUE_DATE": {
+    "column": "CHEQUE_DATE",
+    "kind": "date"
+   },
+   "DUE_DATE": {
+    "column": "DUE_DATE",
+    "kind": "date"
+   },
+   "CHEQUE_AMOUNT": {
+    "column": "CHEQUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "ENDORSED_TO_COMPANY_FLAG": {
+    "column": "IS_ENDORSED_TO_COMPANY",
+    "kind": "flag"
+   },
+   "CHEQUE_STATUS_CODE": {
+    "column": "CHEQUE_STATUS_CODE",
+    "kind": "string"
+   },
+   "CLEARING_DATE": {
+    "column": "CLEARING_DATE",
+    "kind": "date"
+   },
+   "RETURN_REASON": {
+    "column": "RETURN_REASON",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "CHEQUE_ID"
+ },
+ "FNV_PURSHASED_PORTFOLIO": {
+  "table": "MTG_PURCHASED_PORTFOLIOS",
+  "class": "MtgPurchasedPortfolio",
+  "columns": {
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_NO": {
+    "column": "PORTFOLIO_NO",
+    "kind": "string"
+   },
+   "DEVELOPER_ID": {
+    "column": "DEVELOPER_ID",
+    "kind": "int"
+   },
+   "PROJECT_ID": {
+    "column": "PROJECT_ID",
+    "kind": "int"
+   },
+   "REQUEST_DATE": {
+    "column": "REQUEST_DATE",
+    "kind": "date"
+   },
+   "PORTFOLIO_STATUS_CODE": {
+    "column": "PORTFOLIO_STATUS_CODE",
+    "kind": "string"
+   },
+   "FACE_VALUE": {
+    "column": "FACE_VALUE",
+    "kind": "decimal"
+   },
+   "OUTSTANDING_VALUE": {
+    "column": "OUTSTANDING_VALUE",
+    "kind": "decimal"
+   },
+   "PROPOSED_PURCHASE_VALUE": {
+    "column": "PROPOSED_PURCHASE_VALUE",
+    "kind": "decimal"
+   },
+   "EXPECTED_RETURN_AMOUNT": {
+    "column": "EXPECTED_RETURN_AMOUNT",
+    "kind": "decimal"
+   },
+   "TERM_MONTHS": {
+    "column": "TERM_MONTHS",
+    "kind": "int"
+   },
+   "ADMIN_EXPENSE_AMOUNT": {
+    "column": "ADMIN_EXPENSE_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "CURRENT_APPROVAL_STEP": {
+    "column": "CURRENT_APPROVAL_STEP",
+    "kind": "string"
+   },
+   "SUBMITTED_DATE": {
+    "column": "SUBMITTED_AT",
+    "kind": "datetime"
+   },
+   "APPROVED_DATE": {
+    "column": "APPROVED_AT",
+    "kind": "datetime"
+   },
+   "BOARD_DECISION_NO": {
+    "column": "BOARD_DECISION_NO",
+    "kind": "string"
+   },
+   "BOARD_DECISION_DATE": {
+    "column": "BOARD_DECISION_DATE",
+    "kind": "date"
+   },
+   "BOARD_DECISION": {
+    "column": "BOARD_DECISION",
+    "kind": "string"
+   },
+   "COMMENTS": {
+    "column": "COMMENTS",
+    "kind": "text"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "WORKFLOW_INSTANCE_ID": {
+    "column": "WORKFLOW_INSTANCE_ID",
+    "kind": "int"
+   },
+   "WORKFLOW_TASK_ID": {
+    "column": "WORKFLOW_TASK_ID",
+    "kind": "int"
+   },
+   "REJECTION_REASON": {
+    "column": "REJECTION_REASON",
+    "kind": "string"
+   },
+   "SELECTED_ACCOUNT_COUNT": {
+    "column": "SELECTED_ACCOUNT_COUNT",
+    "kind": "int"
+   },
+   "SELECTED_FACE_VALUE": {
+    "column": "SELECTED_FACE_VALUE",
+    "kind": "decimal"
+   },
+   "SELECTED_OUTSTANDING_VALUE": {
+    "column": "SELECTED_OUTSTANDING_VALUE",
+    "kind": "decimal"
+   },
+   "SELECTED_PAID_VALUE": {
+    "column": "SELECTED_PAID_VALUE",
+    "kind": "decimal"
+   },
+   "LATE_FEE_RATE": {
+    "column": "LATE_FEE_RATE",
+    "kind": "decimal"
+   },
+   "PV_RATE": {
+    "column": "PV_RATE",
+    "kind": "decimal"
+   },
+   "RESERVED_AMOUNT_PERCENT": {
+    "column": "RESERVED_AMOUNT_PERCENT",
+    "kind": "decimal"
+   },
+   "COVERAGE_PCT": {
+    "column": "COVERAGE_PCT",
+    "kind": "decimal"
+   },
+   "MARGIN_PERCENTAGE": {
+    "column": "MARGIN_PERCENTAGE",
+    "kind": "decimal"
+   },
+   "ADMIN_EXPENSE_PERCENT": {
+    "column": "ADMIN_EXPENSE_PERCENT",
+    "kind": "decimal"
+   },
+   "LEGAL_FEE_PER_UNIT": {
+    "column": "LEGAL_FEE_PER_UNIT",
+    "kind": "decimal"
+   },
+   "VALUATION_FEE_PER_UNIT": {
+    "column": "VALUATION_FEE_PER_UNIT",
+    "kind": "decimal"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "PORTFOLIO_ID"
+ },
+ "FNV_PURSHASED_PORTFOLIO_ACCOUNT": {
+  "table": "MTG_PURCHASED_PORTFOLIO_ACCOUNTS",
+  "class": "MtgPurchasedPortfolioAccount",
+  "columns": {
+   "PORTFOLIO_ACCOUNT_ID": {
+    "column": "PORTFOLIO_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "INVESTOR_ID": {
+    "column": "INVESTOR_ID",
+    "kind": "int"
+   },
+   "UNIT_ID": {
+    "column": "UNIT_ID",
+    "kind": "int"
+   },
+   "BOOKING_DATE": {
+    "column": "BOOKING_DATE",
+    "kind": "date"
+   },
+   "CONTRACT_DATE": {
+    "column": "CONTRACT_DATE",
+    "kind": "date"
+   },
+   "CONTRACT_VALUE": {
+    "column": "CONTRACT_VALUE",
+    "kind": "decimal"
+   },
+   "PAID_VALUE": {
+    "column": "PAID_VALUE",
+    "kind": "decimal"
+   },
+   "OUTSTANDING_VALUE": {
+    "column": "OUTSTANDING_VALUE",
+    "kind": "decimal"
+   },
+   "INSTALLMENT_AMOUNT": {
+    "column": "INSTALLMENT_AMOUNT",
+    "kind": "decimal"
+   },
+   "INSTALLMENT_FREQUENCY": {
+    "column": "INSTALLMENT_FREQUENCY",
+    "kind": "string"
+   },
+   "LAST_PAYMENT_DATE": {
+    "column": "LAST_PAYMENT_DATE",
+    "kind": "date"
+   },
+   "REGULAR_PAYMENT_MONTHS": {
+    "column": "REGULAR_PAYMENT_MONTHS",
+    "kind": "int"
+   },
+   "ARREARS_AMOUNT": {
+    "column": "ARREARS_AMOUNT",
+    "kind": "decimal"
+   },
+   "ACCOUNT_STATUS": {
+    "column": "ACCOUNT_STATUS",
+    "kind": "string"
+   },
+   "SELLER_CONTRACT_NO": {
+    "column": "SELLER_CONTRACT_NO",
+    "kind": "string"
+   },
+   "DEAL_DECISION_CODE": {
+    "column": "DEAL_DECISION_CODE",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "PORTFOLIO_ACCOUNT_ID"
+ },
+ "FNV_PURSHASED_PORTFOLIO_APPROVAL": {
+  "table": "MTG_PURCHASED_PORTFOLIO_APPROVALS",
+  "class": "MtgPurchasedPortfolioApproval",
+  "columns": {
+   "APPROVAL_ID": {
+    "column": "APPROVAL_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "STEP_CODE": {
+    "column": "STEP_CODE",
+    "kind": "string"
+   },
+   "SEQUENCE_NO": {
+    "column": "SEQUENCE_NO",
+    "kind": "int"
+   },
+   "ASSIGNED_TO": {
+    "column": "ASSIGNED_TO",
+    "kind": "string"
+   },
+   "ASSIGNED_DATE": {
+    "column": "ASSIGNED_DATE",
+    "kind": "date"
+   },
+   "DECISION_CODE": {
+    "column": "DECISION_CODE",
+    "kind": "string"
+   },
+   "DECISION_DATE": {
+    "column": "DECISION_DATE",
+    "kind": "date"
+   },
+   "COMMENTS": {
+    "column": "COMMENTS",
+    "kind": "text"
+   },
+   "RETURN_TO_STEP_CODE": {
+    "column": "RETURN_TO_STEP_CODE",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "APPROVAL_ID"
+ },
+ "FNV_PURSHASED_PORTFOLIO_DOCUMENT": {
+  "table": "MTG_PURCHASED_PORTFOLIO_DOCUMENTS",
+  "class": "MtgPurchasedPortfolioDocument",
+  "columns": {
+   "DOCUMENT_ID": {
+    "column": "DOCUMENT_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "ENTITY_TYPE": {
+    "column": "ENTITY_TYPE",
+    "kind": "string"
+   },
+   "ENTITY_ID": {
+    "column": "ENTITY_ID",
+    "kind": "int"
+   },
+   "DOCUMENT_TYPE_CODE": {
+    "column": "DOCUMENT_TYPE_CODE",
+    "kind": "string"
+   },
+   "DOCUMENT_NO": {
+    "column": "DOCUMENT_NO",
+    "kind": "string"
+   },
+   "ISSUE_DATE": {
+    "column": "ISSUE_DATE",
+    "kind": "date"
+   },
+   "EXPIRY_DATE": {
+    "column": "EXPIRY_DATE",
+    "kind": "date"
+   },
+   "FILE_NAME": {
+    "column": "FILE_NAME",
+    "kind": "string"
+   },
+   "MIME_TYPE": {
+    "column": "MIME_TYPE",
+    "kind": "string"
+   },
+   "FILE_BLOB": {
+    "column": "FILE_BLOB",
+    "kind": "blob"
+   },
+   "FILE_URL": {
+    "column": "FILE_URL",
+    "kind": "string"
+   },
+   "VERIFIED_FLAG": {
+    "column": "IS_VERIFIED",
+    "kind": "flag"
+   },
+   "VERIFIED_BY": {
+    "column": "VERIFIED_BY",
+    "kind": "string"
+   },
+   "VERIFIED_DATE": {
+    "column": "VERIFIED_AT",
+    "kind": "datetime"
+   },
+   "DOCUMENT_STATUS": {
+    "column": "DOCUMENT_STATUS",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "DOCUMENT_ID"
+ },
+ "FNV_PURSHASED_PORTFOLIO_MEMO": {
+  "table": "MTG_PURCHASED_PORTFOLIO_MEMOS",
+  "class": "MtgPurchasedPortfolioMemo",
+  "columns": {
+   "MEMO_ID": {
+    "column": "MEMO_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "VERSION_NO": {
+    "column": "VERSION_NO",
+    "kind": "int"
+   },
+   "MEMO_DATE": {
+    "column": "MEMO_DATE",
+    "kind": "date"
+   },
+   "EXECUTIVE_SUMMARY": {
+    "column": "EXECUTIVE_SUMMARY",
+    "kind": "text"
+   },
+   "DEVELOPER_SUMMARY": {
+    "column": "DEVELOPER_SUMMARY",
+    "kind": "text"
+   },
+   "PROJECT_SUMMARY": {
+    "column": "PROJECT_SUMMARY",
+    "kind": "text"
+   },
+   "INVESTOR_SUMMARY": {
+    "column": "INVESTOR_SUMMARY",
+    "kind": "text"
+   },
+   "FINANCIAL_SUMMARY": {
+    "column": "FINANCIAL_SUMMARY",
+    "kind": "text"
+   },
+   "LEGAL_SUMMARY": {
+    "column": "LEGAL_SUMMARY",
+    "kind": "text"
+   },
+   "VALUATION_SUMMARY": {
+    "column": "VALUATION_SUMMARY",
+    "kind": "text"
+   },
+   "GUARANTEE_SUMMARY": {
+    "column": "GUARANTEE_SUMMARY",
+    "kind": "text"
+   },
+   "RECOMMENDATION": {
+    "column": "RECOMMENDATION",
+    "kind": "text"
+   },
+   "MEMO_STATUS": {
+    "column": "MEMO_STATUS",
+    "kind": "string"
+   },
+   "PREPARED_BY": {
+    "column": "PREPARED_BY",
+    "kind": "string"
+   },
+   "PREPARED_DATE": {
+    "column": "PREPARED_DATE",
+    "kind": "date"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "MEMO_ID"
+ },
+ "FNV_PURSHASED_PORTFOLIO_SETTLEMENT": {
+  "table": "MTG_PURCHASED_PORTFOLIO_SETTLEMENTS",
+  "class": "MtgPurchasedPortfolioSettlement",
+  "columns": {
+   "SETTLEMENT_ID": {
+    "column": "SETTLEMENT_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "CONTRACT_EXECUTION_DATE": {
+    "column": "CONTRACT_EXECUTION_DATE",
+    "kind": "date"
+   },
+   "CUT_OFF_DATE": {
+    "column": "CUT_OFF_DATE",
+    "kind": "date"
+   },
+   "ACQUISITION_DATE": {
+    "column": "ACQUISITION_DATE",
+    "kind": "date"
+   },
+   "SETTLEMENT_DATE": {
+    "column": "SETTLEMENT_DATE",
+    "kind": "date"
+   },
+   "ACCOUNTING_DATE": {
+    "column": "ACCOUNTING_DATE",
+    "kind": "date"
+   },
+   "APPROVED_PURCHASE_VALUE": {
+    "column": "APPROVED_PURCHASE_VALUE",
+    "kind": "decimal"
+   },
+   "PAYMENT_AMOUNT": {
+    "column": "PAYMENT_AMOUNT",
+    "kind": "decimal"
+   },
+   "ACQUISITION_COST_AMOUNT": {
+    "column": "ACQUISITION_COST_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "PAYMENT_METHOD_CODE": {
+    "column": "PAYMENT_METHOD_CODE",
+    "kind": "string"
+   },
+   "BANK_GL_ACCOUNT_CODE": {
+    "column": "BANK_GL_ACCOUNT_CODE",
+    "kind": "string"
+   },
+   "BANK_NAME": {
+    "column": "BANK_NAME",
+    "kind": "string"
+   },
+   "BANK_ACCOUNT_NO": {
+    "column": "BANK_ACCOUNT_NO",
+    "kind": "string"
+   },
+   "TRANSFER_REFERENCE": {
+    "column": "TRANSFER_REFERENCE",
+    "kind": "string"
+   },
+   "CHEQUE_NO": {
+    "column": "CHEQUE_NO",
+    "kind": "string"
+   },
+   "CHEQUE_DATE": {
+    "column": "CHEQUE_DATE",
+    "kind": "date"
+   },
+   "SELLER_PAYMENT_REFERENCE": {
+    "column": "SELLER_PAYMENT_REFERENCE",
+    "kind": "string"
+   },
+   "SETTLEMENT_STATUS_CODE": {
+    "column": "SETTLEMENT_STATUS_CODE",
+    "kind": "string"
+   },
+   "ACCOUNTING_STATUS_CODE": {
+    "column": "ACCOUNTING_STATUS_CODE",
+    "kind": "string"
+   },
+   "GL_BATCH_REFERENCE": {
+    "column": "GL_BATCH_REFERENCE",
+    "kind": "string"
+   },
+   "GL_JOURNAL_REFERENCE": {
+    "column": "GL_JOURNAL_REFERENCE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "SETTLED_BY": {
+    "column": "SETTLED_BY",
+    "kind": "string"
+   },
+   "SETTLED_ON": {
+    "column": "SETTLED_ON_AT",
+    "kind": "datetime"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "SETTLEMENT_ID"
+ },
+ "FNV_PURSHASED_PORTFOLIO_SNAPSHOT": {
+  "table": "MTG_PURCHASED_PORTFOLIO_SNAPSHOTS",
+  "class": "MtgPurchasedPortfolioSnapshot",
+  "columns": {
+   "SNAPSHOT_ID": {
+    "column": "SNAPSHOT_ID",
+    "kind": "int"
+   },
+   "AS_OF_DATE": {
+    "column": "AS_OF_DATE",
+    "kind": "date"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "OUTSTANDING_VALUE": {
+    "column": "OUTSTANDING_VALUE",
+    "kind": "decimal"
+   },
+   "PURCHASE_VALUE": {
+    "column": "PURCHASE_VALUE",
+    "kind": "decimal"
+   },
+   "CHEQUE_COVERAGE": {
+    "column": "CHEQUE_COVERAGE",
+    "kind": "decimal"
+   },
+   "DOCUMENT_COMPLETION_PCT": {
+    "column": "DOCUMENT_COMPLETION_PCT",
+    "kind": "decimal"
+   },
+   "OPEN_EXCEPTION_COUNT": {
+    "column": "OPEN_EXCEPTION_COUNT",
+    "kind": "int"
+   },
+   "CURRENT_STATUS": {
+    "column": "CURRENT_STATUS",
+    "kind": "string"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "SNAPSHOT_ID"
+ },
+ "FNV_PURSHASED_PORTFOLIO_STATUS_HIST": {
+  "table": "MTG_PURCHASED_PORTFOLIO_STATUS_HIST",
+  "class": "MtgPurchasedPortfolioStatusHist",
+  "columns": {
+   "STATUS_HIST_ID": {
+    "column": "STATUS_HIST_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "FROM_STATUS": {
+    "column": "FROM_STATUS",
+    "kind": "string"
+   },
+   "TO_STATUS": {
+    "column": "TO_STATUS",
+    "kind": "string"
+   },
+   "CHANGE_DATE": {
+    "column": "CHANGE_AT",
+    "kind": "datetime"
+   },
+   "CHANGED_BY": {
+    "column": "CHANGED_BY",
+    "kind": "string"
+   },
+   "COMMENTS": {
+    "column": "COMMENTS",
+    "kind": "string"
+   }
+  },
+  "pk": "STATUS_HIST_ID"
+ },
+ "FNV_REALESTATE_DEVELOPER": {
+  "table": "MTG_DEVELOPERS",
+  "class": "MtgDeveloper",
+  "columns": {
+   "DEVELOPER_ID": {
+    "column": "DEVELOPER_ID",
+    "kind": "int"
+   },
+   "DEVELOPER_CODE": {
+    "column": "DEVELOPER_CODE",
+    "kind": "string"
+   },
+   "LEGAL_NAME_AR": {
+    "column": "LEGAL_NAME_AR",
+    "kind": "string"
+   },
+   "LEGAL_NAME_EN": {
+    "column": "LEGAL_NAME_EN",
+    "kind": "string"
+   },
+   "COMMERCIAL_REG_NO": {
+    "column": "COMMERCIAL_REG_NO",
+    "kind": "string"
+   },
+   "TAX_REG_NO": {
+    "column": "TAX_REG_NO",
+    "kind": "string"
+   },
+   "INCORPORATION_DATE": {
+    "column": "INCORPORATION_DATE",
+    "kind": "date"
+   },
+   "ADDRESS_TEXT": {
+    "column": "ADDRESS_TEXT",
+    "kind": "string"
+   },
+   "PHONE_NO": {
+    "column": "PHONE_NO",
+    "kind": "string"
+   },
+   "EMAIL_ADDRESS": {
+    "column": "EMAIL_ADDRESS",
+    "kind": "string"
+   },
+   "RISK_LEVEL_CODE": {
+    "column": "RISK_LEVEL_CODE",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "DEVELOPER_ID"
+ },
+ "FNV_REALESTATE_DEVELOPER_SIGNATORY": {
+  "table": "MTG_DEVELOPER_SIGNATORIES",
+  "class": "MtgDeveloperSignatory",
+  "columns": {
+   "SIGNATORY_ID": {
+    "column": "SIGNATORY_ID",
+    "kind": "int"
+   },
+   "DEVELOPER_ID": {
+    "column": "DEVELOPER_ID",
+    "kind": "int"
+   },
+   "SIGNATORY_NAME": {
+    "column": "SIGNATORY_NAME",
+    "kind": "string"
+   },
+   "NATIONAL_ID": {
+    "column": "NATIONAL_ID",
+    "kind": "string"
+   },
+   "JOB_TITLE": {
+    "column": "JOB_TITLE",
+    "kind": "string"
+   },
+   "AUTHORIZATION_REFERENCE": {
+    "column": "AUTHORIZATION_REFERENCE",
+    "kind": "string"
+   },
+   "VALID_FROM": {
+    "column": "VALID_FROM_DATE",
+    "kind": "date"
+   },
+   "VALID_TO": {
+    "column": "VALID_TO_DATE",
+    "kind": "date"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "SIGNATORY_ID"
+ },
+ "FNV_SECURITY_DEPOSIT": {
+  "table": "MTG_SECURITY_DEPOSITS",
+  "class": "MtgSecurityDeposit",
+  "columns": {
+   "DEPOSIT_ID": {
+    "column": "DEPOSIT_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "BANK_NAME": {
+    "column": "BANK_NAME",
+    "kind": "string"
+   },
+   "ACCOUNT_REFERENCE": {
+    "column": "ACCOUNT_REFERENCE",
+    "kind": "string"
+   },
+   "DEPOSIT_AMOUNT": {
+    "column": "DEPOSIT_AMOUNT",
+    "kind": "decimal"
+   },
+   "DEPOSIT_PCT": {
+    "column": "DEPOSIT_PCT",
+    "kind": "decimal"
+   },
+   "BLOCKED_FLAG": {
+    "column": "IS_BLOCKED",
+    "kind": "flag"
+   },
+   "START_DATE": {
+    "column": "START_DATE",
+    "kind": "date"
+   },
+   "RELEASE_DATE": {
+    "column": "RELEASE_DATE",
+    "kind": "date"
+   },
+   "DOCUMENT_ID": {
+    "column": "DOCUMENT_ID",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "DEPOSIT_ID"
+ },
+ "FNV_VALUATION": {
+  "table": "MTG_VALUATIONS",
+  "class": "MtgValuation",
+  "columns": {
+   "VALUATION_ID": {
+    "column": "VALUATION_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "PROJECT_ID": {
+    "column": "PROJECT_ID",
+    "kind": "int"
+   },
+   "UNIT_ID": {
+    "column": "UNIT_ID",
+    "kind": "int"
+   },
+   "VALUATION_TYPE_CODE": {
+    "column": "VALUATION_TYPE_CODE",
+    "kind": "string"
+   },
+   "VALUER_NAME": {
+    "column": "VALUER_NAME",
+    "kind": "string"
+   },
+   "VALUER_REGISTRATION_NO": {
+    "column": "VALUER_REGISTRATION_NO",
+    "kind": "string"
+   },
+   "VALUATION_DATE": {
+    "column": "VALUATION_DATE",
+    "kind": "date"
+   },
+   "MARKET_VALUE": {
+    "column": "MARKET_VALUE",
+    "kind": "decimal"
+   },
+   "RECOMMENDED_VALUE": {
+    "column": "RECOMMENDED_VALUE",
+    "kind": "decimal"
+   },
+   "PROJECT_COMPLETION_PCT": {
+    "column": "PROJECT_COMPLETION_PCT",
+    "kind": "decimal"
+   },
+   "FACILITIES_STATUS": {
+    "column": "FACILITIES_STATUS",
+    "kind": "string"
+   },
+   "REPORT_DOCUMENT_ID": {
+    "column": "REPORT_DOCUMENT_ID",
+    "kind": "int"
+   },
+   "APPROVED_BY": {
+    "column": "APPROVED_BY",
+    "kind": "string"
+   },
+   "APPROVED_DATE": {
+    "column": "APPROVED_DATE",
+    "kind": "date"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_ON": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_ON": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION_NO": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "VALUATION_ID"
+ },
+ "MTG_PORTFOLIO_EXCEL_STAGING": {
+  "table": "MTG_PURCHASED_PORTFOLIO_IMPORTS",
+  "class": "MtgPurchasedPortfolioImport",
+  "columns": {
+   "STAGING_ID": {
+    "column": "STAGING_ID",
+    "kind": "int"
+   },
+   "PORTFOLIO_ID": {
+    "column": "PORTFOLIO_ID",
+    "kind": "int"
+   },
+   "WF_INSTANCE_ID": {
+    "column": "WF_INSTANCE_ID",
+    "kind": "int"
+   },
+   "FILE_NAME": {
+    "column": "FILE_NAME",
+    "kind": "string"
+   },
+   "VALIDATION_STATUS": {
+    "column": "VALIDATION_STATUS",
+    "kind": "string"
+   },
+   "VALIDATION_JSON": {
+    "column": "VALIDATION_JSON",
+    "kind": "text"
+   },
+   "TOTAL_ROWS": {
+    "column": "TOTAL_ROWS",
+    "kind": "decimal"
+   },
+   "VALID_COUNT": {
+    "column": "VALID_COUNT",
+    "kind": "int"
+   },
+   "ERROR_COUNT": {
+    "column": "ERROR_COUNT",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATION_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_UPDATE_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "STAGING_ID"
+ },
+ "REF_APPROVAL_STEP": {
+  "table": "MTG_LKP_APPROVAL_STEPS",
+  "class": "MtgLkpApprovalStep",
+  "columns": {
+   "STEP_CODE": {
+    "column": "STEP_CODE",
+    "kind": "string"
+   },
+   "STEP_NAME_AR": {
+    "column": "STEP_NAME_AR",
+    "kind": "string"
+   },
+   "STEP_NAME_EN": {
+    "column": "STEP_NAME_EN",
+    "kind": "string"
+   },
+   "SEQUENCE_NO": {
+    "column": "SEQUENCE_NO",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "STEP_CODE"
+ },
+ "REF_DD_CHECK_TYPE": {
+  "table": "MTG_LKP_DD_CHECK_TYPES",
+  "class": "MtgLkpDdCheckType",
+  "columns": {
+   "CHECK_TYPE_CODE": {
+    "column": "CHECK_TYPE_CODE",
+    "kind": "string"
+   },
+   "CHECK_NAME_AR": {
+    "column": "CHECK_NAME_AR",
+    "kind": "string"
+   },
+   "CHECK_NAME_EN": {
+    "column": "CHECK_NAME_EN",
+    "kind": "string"
+   },
+   "MANDATORY_FLAG": {
+    "column": "IS_MANDATORY",
+    "kind": "flag"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CHECK_TYPE_CODE"
+ },
+ "REF_INQUIRY_TYPE": {
+  "table": "MTG_LKP_INQUIRY_TYPES",
+  "class": "MtgLkpInquiryType",
+  "columns": {
+   "INQUIRY_TYPE_CODE": {
+    "column": "INQUIRY_TYPE_CODE",
+    "kind": "string"
+   },
+   "INQUIRY_NAME_AR": {
+    "column": "INQUIRY_NAME_AR",
+    "kind": "string"
+   },
+   "INQUIRY_NAME_EN": {
+    "column": "INQUIRY_NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "INQUIRY_TYPE_CODE"
+ },
+ "REF_PORTFOLIO_PAYMENT_METHOD": {
+  "table": "MTG_LKP_PORTFOLIO_PAYMENT_METHODS",
+  "class": "MtgLkpPortfolioPaymentMethod",
+  "columns": {
+   "PAYMENT_METHOD_CODE": {
+    "column": "PAYMENT_METHOD_CODE",
+    "kind": "string"
+   },
+   "PAYMENT_METHOD_NAME_AR": {
+    "column": "PAYMENT_METHOD_NAME_AR",
+    "kind": "string"
+   },
+   "PAYMENT_METHOD_NAME_EN": {
+    "column": "PAYMENT_METHOD_NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "PAYMENT_METHOD_CODE"
+ },
+ "REF_PORTFOLIO_STATUS": {
+  "table": "MTG_LKP_PORTFOLIO_STATUSES",
+  "class": "MtgLkpPortfolioStatus",
+  "columns": {
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "STATUS_NAME_AR": {
+    "column": "STATUS_NAME_AR",
+    "kind": "string"
+   },
+   "STATUS_NAME_EN": {
+    "column": "STATUS_NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "STATUS_CODE"
+ },
+ "REF_UNIT_TYPE": {
+  "table": "MTG_LKP_UNIT_TYPES",
+  "class": "MtgLkpUnitType",
+  "columns": {
+   "UNIT_TYPE_CODE": {
+    "column": "UNIT_TYPE_CODE",
+    "kind": "string"
+   },
+   "UNIT_TYPE_NAME_AR": {
+    "column": "UNIT_TYPE_NAME_AR",
+    "kind": "string"
+   },
+   "UNIT_TYPE_NAME_EN": {
+    "column": "UNIT_TYPE_NAME_EN",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "UNIT_TYPE_CODE"
+ },
+ "REF_VALUATION_TYPE": {
+  "table": "MTG_LKP_VALUATION_TYPES",
+  "class": "MtgLkpValuationType",
+  "columns": {
+   "VALUATION_TYPE_CODE": {
+    "column": "VALUATION_TYPE_CODE",
+    "kind": "string"
+   },
+   "VALUATION_NAME_AR": {
+    "column": "VALUATION_NAME_AR",
+    "kind": "string"
+   },
+   "VALUATION_NAME_EN": {
+    "column": "VALUATION_NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "VALUATION_TYPE_CODE"
+ }
+}

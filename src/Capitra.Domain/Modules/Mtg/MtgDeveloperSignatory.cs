@@ -2,16 +2,18 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Mtg;
 
-/// <summary>MTG_DEVELOPER_SIGNATORIES: person authorised to sign for a developer (APEX App 105 pages 103/104).</summary>
+/// <summary>
+/// MTG_DEVELOPER_SIGNATORIES: copy of FINOVA FNV_REALESTATE_DEVELOPER_SIGNATORY (APEX), all columns kept.
+/// </summary>
 public class MtgDeveloperSignatory : AuditableEntity
 {
-    public long DeveloperSignatoryId { get; set; }
+    public long SignatoryId { get; set; }
 
     public long DeveloperId { get; set; }
 
     public string SignatoryName { get; set; } = string.Empty;
 
-    public string? NationalIdNo { get; set; }
+    public string? NationalId { get; set; }
 
     public string? JobTitle { get; set; }
 

@@ -2,7 +2,9 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Mtg;
 
-/// <summary>MTG_PROJECTS: a developer's real estate project (APEX App 105 pages 105/106).</summary>
+/// <summary>
+/// MTG_PROJECTS: copy of FINOVA FNV_PROJECT (APEX), all columns kept.
+/// </summary>
 public class MtgProject : AuditableEntity
 {
     public long ProjectId { get; set; }
@@ -25,10 +27,8 @@ public class MtgProject : AuditableEntity
 
     public DateOnly? BuildingLicenseDate { get; set; }
 
-    /// <summary>Completion percentage, 0 to 100.</summary>
     public decimal? ProjectCompletionPct { get; set; }
 
-    /// <summary>Free text, as in APEX.</summary>
     public string? ProjectStatus { get; set; }
 
     public bool IsActive { get; set; } = true;

@@ -1,0 +1,281 @@
+{
+ "REF_CHEQUE_STATUS": {
+  "table": "ADM_LKP_CHEQUE_STATUSES",
+  "class": "AdmLkpChequeStatus",
+  "columns": {
+   "CHEQUE_STATUS_CODE": {
+    "column": "CHEQUE_STATUS_CODE",
+    "kind": "string"
+   },
+   "CHEQUE_STATUS_AR": {
+    "column": "CHEQUE_STATUS_AR",
+    "kind": "string"
+   },
+   "CHEQUE_STATUS_EN": {
+    "column": "CHEQUE_STATUS_EN",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CHEQUE_STATUS_CODE"
+ },
+ "REF_CURRENCY": {
+  "table": "ADM_LKP_CURRENCIES",
+  "class": "AdmLkpCurrency",
+  "columns": {
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "CURRENCY_NAME_EN": {
+    "column": "CURRENCY_NAME_EN",
+    "kind": "string"
+   },
+   "CURRENCY_NAME_AR": {
+    "column": "CURRENCY_NAME_AR",
+    "kind": "string"
+   },
+   "DECIMAL_PLACES": {
+    "column": "DECIMAL_PLACES",
+    "kind": "int"
+   },
+   "ACTIVE_YN": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CURRENCY_CODE"
+ },
+ "REF_DECISION_TYPE": {
+  "table": "ADM_LKP_DECISION_TYPES",
+  "class": "AdmLkpDecisionType",
+  "columns": {
+   "DECISION_CODE": {
+    "column": "DECISION_CODE",
+    "kind": "string"
+   },
+   "DECISION_NAME_AR": {
+    "column": "DECISION_NAME_AR",
+    "kind": "string"
+   },
+   "DECISION_NAME_EN": {
+    "column": "DECISION_NAME_EN",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "DECISION_CODE"
+ },
+ "REF_DOCUMENT_GROUP": {
+  "table": "ADM_LKP_DOCUMENT_GROUPS",
+  "class": "AdmLkpDocumentGroup",
+  "columns": {
+   "GROUP_CODE": {
+    "column": "GROUP_CODE",
+    "kind": "string"
+   },
+   "GROUP_NAME_AR": {
+    "column": "GROUP_NAME_AR",
+    "kind": "string"
+   },
+   "GROUP_NAME_EN": {
+    "column": "GROUP_NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "GROUP_CODE"
+ },
+ "REF_DOCUMENT_TYPE": {
+  "table": "ADM_LKP_DOCUMENT_TYPES",
+  "class": "AdmLkpDocumentType",
+  "columns": {
+   "DOCUMENT_TYPE_ID": {
+    "column": "DOCUMENT_TYPE_ID",
+    "kind": "int"
+   },
+   "DOCUMENT_TYPE_CODE": {
+    "column": "DOCUMENT_TYPE_CODE",
+    "kind": "string"
+   },
+   "DOCUMENT_TYPE_NAME": {
+    "column": "DOCUMENT_TYPE_NAME",
+    "kind": "string"
+   },
+   "DOCUMENT_TYPE_NAME_AR": {
+    "column": "DOCUMENT_TYPE_NAME_AR",
+    "kind": "string"
+   },
+   "DESCRIPTION": {
+    "column": "DESCRIPTION",
+    "kind": "string"
+   },
+   "MAX_FILE_SIZE_MB": {
+    "column": "MAX_FILE_SIZE_MB",
+    "kind": "int"
+   },
+   "ALLOWED_EXTENSIONS": {
+    "column": "ALLOWED_EXTENSIONS",
+    "kind": "string"
+   },
+   "IS_MANDATORY": {
+    "column": "IS_MANDATORY",
+    "kind": "flag"
+   },
+   "SORT_ORDER": {
+    "column": "SORT_ORDER",
+    "kind": "int"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "REQUIRES_EXPIRY": {
+    "column": "IS_EXPIRY_REQUIRED",
+    "kind": "flag"
+   },
+   "GROUP_CODE": {
+    "column": "GROUP_CODE",
+    "kind": "string"
+   },
+   "DOCUMENT_CATEGORY": {
+    "column": "DOCUMENT_CATEGORY",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_MODIFIED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_MODIFIED_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "DOCUMENT_TYPE_ID"
+ },
+ "REF_GUARANTEE_TYPE": {
+  "table": "ADM_LKP_GUARANTEE_TYPES",
+  "class": "AdmLkpGuaranteeType",
+  "columns": {
+   "GUARANTEE_TYPE_CODE": {
+    "column": "GUARANTEE_TYPE_CODE",
+    "kind": "string"
+   },
+   "GUARANTEE_NAME_AR": {
+    "column": "GUARANTEE_NAME_AR",
+    "kind": "string"
+   },
+   "GUARANTEE_NAME_EN": {
+    "column": "GUARANTEE_NAME_EN",
+    "kind": "string"
+   },
+   "MANDATORY_FLAG": {
+    "column": "IS_MANDATORY",
+    "kind": "flag"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "GUARANTEE_TYPE_CODE"
+ },
+ "REF_INSURANCE_TYPE": {
+  "table": "ADM_LKP_INSURANCE_TYPES",
+  "class": "AdmLkpInsuranceType",
+  "columns": {
+   "INSURANCE_TYPE_CODE": {
+    "column": "INSURANCE_TYPE_CODE",
+    "kind": "string"
+   },
+   "INSURANCE_NAME_AR": {
+    "column": "INSURANCE_NAME_AR",
+    "kind": "string"
+   },
+   "INSURANCE_NAME_EN": {
+    "column": "INSURANCE_NAME_EN",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "INSURANCE_TYPE_CODE"
+ },
+ "REF_PAYMENT_STATUS": {
+  "table": "ADM_LKP_PAYMENT_STATUSES",
+  "class": "AdmLkpPaymentStatus",
+  "columns": {
+   "PAYMENT_STATUS_CODE": {
+    "column": "PAYMENT_STATUS_CODE",
+    "kind": "string"
+   },
+   "PAYMENT_STATUS_AR": {
+    "column": "PAYMENT_STATUS_AR",
+    "kind": "string"
+   },
+   "PAYMENT_STATUS_EN": {
+    "column": "PAYMENT_STATUS_EN",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "PAYMENT_STATUS_CODE"
+ },
+ "REF_RISK_LEVEL": {
+  "table": "ADM_LKP_RISK_LEVELS",
+  "class": "AdmLkpRiskLevel",
+  "columns": {
+   "RISK_LEVEL_CODE": {
+    "column": "RISK_LEVEL_CODE",
+    "kind": "string"
+   },
+   "RISK_LEVEL_NAME_AR": {
+    "column": "RISK_LEVEL_NAME_AR",
+    "kind": "string"
+   },
+   "RISK_LEVEL_NAME_EN": {
+    "column": "RISK_LEVEL_NAME_EN",
+    "kind": "string"
+   },
+   "SORT_ORDER": {
+    "column": "SORT_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "RISK_LEVEL_CODE"
+ }
+}
