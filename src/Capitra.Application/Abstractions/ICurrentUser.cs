@@ -8,4 +8,7 @@ public interface ICurrentUser
     string? UserName { get; }
 
     bool IsAuthenticated { get; }
+
+    /// <summary>The names of the user's roles, from the token.</summary>
+    IReadOnlyCollection<string> Roles { get; }
 }

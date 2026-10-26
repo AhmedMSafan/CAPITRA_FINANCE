@@ -34,10 +34,10 @@ const modules: BusinessModule[] = [
     code: 'WORKFLOW',
     title: 'Workflow',
     description: 'Approval inbox, step assignment, committees and SLA tracking for every business process.',
-    route: '/workflow',
+    route: '/workflow/inbox',
     tone: 'factoring',
     icon: 'pi pi-sitemap',
-    enabled: false
+    enabled: true
   },
   {
     code: 'ACCOUNTING',
@@ -60,7 +60,7 @@ const modules: BusinessModule[] = [
   {
     code: 'ADMIN',
     title: 'Administration',
-    description: 'Global reference data shared by every application: currencies, countries, statuses and document types.',
+    description: 'Users, roles, workflow definitions and the global reference data shared by every application.',
     route: '/admin',
     tone: 'admin',
     icon: 'pi pi-cog',

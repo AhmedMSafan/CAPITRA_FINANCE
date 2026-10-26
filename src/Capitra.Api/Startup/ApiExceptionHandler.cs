@@ -17,6 +17,7 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problemDetails, I
                 Status = StatusCodes.Status400BadRequest,
             },
             NotFoundException => new ProblemDetails { Status = StatusCodes.Status404NotFound, Title = "Not found", Detail = exception.Message },
+            BusinessRuleException => new ProblemDetails { Status = StatusCodes.Status400BadRequest, Title = "Not allowed", Detail = exception.Message },
             ConflictException => new ProblemDetails { Status = StatusCodes.Status409Conflict, Title = "Conflict", Detail = exception.Message },
             _ => new ProblemDetails { Status = StatusCodes.Status500InternalServerError, Title = "An unexpected error occurred." },
         };

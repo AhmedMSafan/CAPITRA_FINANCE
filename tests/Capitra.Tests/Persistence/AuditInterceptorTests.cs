@@ -13,6 +13,7 @@ public sealed class AuditInterceptorTests
         public string? UserId { get; set; } = "u1";
         public string? UserName { get; set; } = "creator";
         public bool IsAuthenticated => UserName is not null;
+        public IReadOnlyCollection<string> Roles => [];
     }
 
     private sealed class FakeClock : IClock

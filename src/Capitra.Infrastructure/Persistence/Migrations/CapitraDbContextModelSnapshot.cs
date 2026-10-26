@@ -21545,6 +21545,619 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_VALUATIONS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInboxItem", b =>
+                {
+                    b.Property<long>("InboxItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INBOX_ITEM_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InboxItemId"));
+
+                    b.Property<string>("AllowedActions")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ALLOWED_ACTIONS");
+
+                    b.Property<string>("AssignedRole")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("ASSIGNED_ROLE");
+
+                    b.Property<string>("AssignedTo")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("ASSIGNED_TO");
+
+                    b.Property<string>("AssignmentType")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ASSIGNMENT_TYPE");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CLAIMED_AT");
+
+                    b.Property<string>("ClaimedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CLAIMED_BY");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("COMPLETED_AT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("InboxStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INBOX_STATUS");
+
+                    b.Property<string>("Outcome")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("OUTCOME");
+
+                    b.Property<string>("Route")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ROUTE");
+
+                    b.Property<string>("RouteParameters")
+                        .HasColumnType("text")
+                        .HasColumnName("ROUTE_PARAMETERS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long>("StepInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("STEP_INSTANCE_ID");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("SUBJECT");
+
+                    b.Property<long>("TaskId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("TASK_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("InboxItemId")
+                        .HasName("PK_WFE_INBOX");
+
+                    b.HasIndex("StepInstanceId")
+                        .HasDatabaseName("IX_WFE_INBOX_STEP_INSTANCE_ID");
+
+                    b.HasIndex("TaskId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_WFE_INBOX_TASK_ID");
+
+                    b.HasIndex("WorkflowInstanceId")
+                        .HasDatabaseName("IX_WFE_INBOX_WORKFLOW_INSTANCE_ID");
+
+                    b.HasIndex("InboxStatus", "AssignedRole")
+                        .HasDatabaseName("IX_WFE_INBOX_INBOX_STATUS_ASSIGNED_ROLE");
+
+                    b.HasIndex("InboxStatus", "AssignedTo")
+                        .HasDatabaseName("IX_WFE_INBOX_INBOX_STATUS_ASSIGNED_TO");
+
+                    b.ToTable("WFE_INBOX", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInstanceHist", b =>
+                {
+                    b.Property<long>("InstanceHistId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INSTANCE_HIST_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InstanceHistId"));
+
+                    b.Property<string>("ActionCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ACTION_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("DETAILS");
+
+                    b.Property<string>("ElementId")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("ELEMENT_ID");
+
+                    b.Property<DateTime>("EventAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("EVENT_AT");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("EVENT_TYPE");
+
+                    b.Property<string>("PerformedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("PERFORMED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("InstanceHistId")
+                        .HasName("PK_WFE_INSTANCE_HIST");
+
+                    b.HasIndex("WorkflowInstanceId")
+                        .HasDatabaseName("IX_WFE_INSTANCE_HIST_WORKFLOW_INSTANCE_ID");
+
+                    b.ToTable("WFE_INSTANCE_HIST", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInstanceVariable", b =>
+                {
+                    b.Property<long>("InstanceVariableId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INSTANCE_VARIABLE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InstanceVariableId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("VariableName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("VARIABLE_NAME");
+
+                    b.Property<string>("VariableType")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("VARIABLE_TYPE");
+
+                    b.Property<string>("VariableValue")
+                        .HasColumnType("text")
+                        .HasColumnName("VARIABLE_VALUE");
+
+                    b.Property<long>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("InstanceVariableId")
+                        .HasName("PK_WFE_INSTANCE_VARIABLES");
+
+                    b.HasIndex("WorkflowInstanceId", "VariableName")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_WFE_INSTANCE_VARIABLES_WORKFLOW_INSTANCE_ID_VARIABLE_NAME");
+
+                    b.ToTable("WFE_INSTANCE_VARIABLES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeStepInstance", b =>
+                {
+                    b.Property<long>("StepInstanceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("STEP_INSTANCE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("StepInstanceId"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("COMPLETED_AT");
+
+                    b.Property<string>("CompletedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("COMPLETED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("ElementId")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("ELEMENT_ID");
+
+                    b.Property<string>("ElementType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("ELEMENT_TYPE");
+
+                    b.Property<DateTime>("EnteredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ENTERED_AT");
+
+                    b.Property<string>("Outcome")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("OUTCOME");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StepCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("STEP_CODE");
+
+                    b.Property<string>("StepName")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("STEP_NAME");
+
+                    b.Property<string>("StepStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("STEP_STATUS");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("StepInstanceId")
+                        .HasName("PK_WFE_STEP_INSTANCES");
+
+                    b.HasIndex("WorkflowInstanceId", "ElementId")
+                        .HasDatabaseName("IX_WFE_STEP_INSTANCES_WORKFLOW_INSTANCE_ID_ELEMENT_ID");
+
+                    b.ToTable("WFE_STEP_INSTANCES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeTask", b =>
+                {
+                    b.Property<long>("TaskId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("TASK_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("TaskId"));
+
+                    b.Property<string>("AllowedActions")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ALLOWED_ACTIONS");
+
+                    b.Property<string>("Assignee")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("ASSIGNEE");
+
+                    b.Property<string>("AssignmentType")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ASSIGNMENT_TYPE");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CLAIMED_AT");
+
+                    b.Property<string>("ClaimedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CLAIMED_BY");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("COMPLETED_AT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Route")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ROUTE");
+
+                    b.Property<string>("RouteParameters")
+                        .HasColumnType("text")
+                        .HasColumnName("ROUTE_PARAMETERS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long>("StepInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("STEP_INSTANCE_ID");
+
+                    b.Property<string>("TaskStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("TASK_STATUS");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("TaskId")
+                        .HasName("PK_WFE_TASKS");
+
+                    b.HasIndex("StepInstanceId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_WFE_TASKS_STEP_INSTANCE_ID");
+
+                    b.HasIndex("TaskStatus")
+                        .HasDatabaseName("IX_WFE_TASKS_TASK_STATUS");
+
+                    b.ToTable("WFE_TASKS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeWorkflowDefinition", b =>
+                {
+                    b.Property<long>("WorkflowDefinitionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_DEFINITION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("WorkflowDefinitionId"));
+
+                    b.Property<string>("BpmnXml")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("BPMN_XML");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DefinitionStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DEFINITION_STATUS");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("VersionNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("VERSION_NO");
+
+                    b.Property<string>("WorkflowCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("WORKFLOW_CODE");
+
+                    b.Property<string>("WorkflowName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("WORKFLOW_NAME");
+
+                    b.HasKey("WorkflowDefinitionId")
+                        .HasName("PK_WFE_WORKFLOW_DEFINITIONS");
+
+                    b.HasIndex("WorkflowCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_WFE_WORKFLOW_DEFINITIONS_WORKFLOW_CODE");
+
+                    b.ToTable("WFE_WORKFLOW_DEFINITIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeWorkflowInstance", b =>
+                {
+                    b.Property<long>("WorkflowInstanceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("WorkflowInstanceId"));
+
+                    b.Property<string>("BusinessReference")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("BUSINESS_REFERENCE");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("COMPLETED_AT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrentElementId")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("CURRENT_ELEMENT_ID");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("ERROR_MESSAGE");
+
+                    b.Property<string>("InstanceStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INSTANCE_STATUS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("STARTED_AT");
+
+                    b.Property<string>("StartedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("STARTED_BY");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long>("WorkflowDefinitionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_DEFINITION_ID");
+
+                    b.HasKey("WorkflowInstanceId")
+                        .HasName("PK_WFE_WORKFLOW_INSTANCES");
+
+                    b.HasIndex("BusinessReference")
+                        .HasDatabaseName("IX_WFE_WORKFLOW_INSTANCES_BUSINESS_REFERENCE");
+
+                    b.HasIndex("WorkflowDefinitionId")
+                        .HasDatabaseName("IX_WFE_WORKFLOW_INSTANCES_WORKFLOW_DEFINITION_ID");
+
+                    b.ToTable("WFE_WORKFLOW_INSTANCES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRole", b =>
                 {
                     b.Property<string>("Id")
@@ -25484,6 +26097,94 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_MTG_VALUATIONS_MTG_LKP_VALUATION_TYPES");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInboxItem", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeStepInstance", "StepInstance")
+                        .WithMany()
+                        .HasForeignKey("StepInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_INBOX_WFE_STEP_INSTANCES");
+
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeTask", "Task")
+                        .WithOne("InboxItem")
+                        .HasForeignKey("Capitra.Domain.Modules.Wfe.WfeInboxItem", "TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_INBOX_WFE_TASKS");
+
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeWorkflowInstance", "Instance")
+                        .WithMany()
+                        .HasForeignKey("WorkflowInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_INBOX_WFE_WORKFLOW_INSTANCES");
+
+                    b.Navigation("Instance");
+
+                    b.Navigation("StepInstance");
+
+                    b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInstanceHist", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeWorkflowInstance", null)
+                        .WithMany()
+                        .HasForeignKey("WorkflowInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_INSTANCE_HIST_WFE_WORKFLOW_INSTANCES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInstanceVariable", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeWorkflowInstance", "Instance")
+                        .WithMany("Variables")
+                        .HasForeignKey("WorkflowInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_INSTANCE_VARIABLES_WFE_WORKFLOW_INSTANCES");
+
+                    b.Navigation("Instance");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeStepInstance", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeWorkflowInstance", "Instance")
+                        .WithMany("Steps")
+                        .HasForeignKey("WorkflowInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_STEP_INSTANCES_WFE_WORKFLOW_INSTANCES");
+
+                    b.Navigation("Instance");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeTask", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeStepInstance", "StepInstance")
+                        .WithOne("Task")
+                        .HasForeignKey("Capitra.Domain.Modules.Wfe.WfeTask", "StepInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_TASKS_WFE_STEP_INSTANCES");
+
+                    b.Navigation("StepInstance");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeWorkflowInstance", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeWorkflowDefinition", "Definition")
+                        .WithMany()
+                        .HasForeignKey("WorkflowDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_WORKFLOW_INSTANCES_WFE_WORKFLOW_DEFINITIONS");
+
+                    b.Navigation("Definition");
+                });
+
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRoleClaim", b =>
                 {
                     b.HasOne("Capitra.Infrastructure.Identity.SecRole", null)
@@ -25591,6 +26292,23 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_SEC_USER_TOKENS_SEC_USERS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeStepInstance", b =>
+                {
+                    b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeTask", b =>
+                {
+                    b.Navigation("InboxItem");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeWorkflowInstance", b =>
+                {
+                    b.Navigation("Steps");
+
+                    b.Navigation("Variables");
                 });
 #pragma warning restore 612, 618
         }

@@ -230,6 +230,45 @@ const router = createRouter({
           component: () => import('@/modules/adm/pages/LookupPage.vue'),
           props: true,
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Reference Data' }
+        },
+        // Workflow engine (C# BPMN, from FINOVA_FINANCEING): it replaces the APEX workflow engine (App 118).
+        {
+          path: 'workflowengine',
+          name: 'workflow-engine',
+          component: () => import('@/modules/wfe/pages/WorkflowDefinitionsPage.vue'),
+          meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Workflow Definitions' }
+        },
+        {
+          path: 'workflowengine/designer/:id',
+          name: 'workflow-engine-designer',
+          component: () => import('@/modules/wfe/pages/WorkflowDesignerPage.vue'),
+          props: true,
+          meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Workflow Designer' }
+        },
+        {
+          path: 'admin/users',
+          name: 'admin-users',
+          component: () => import('@/modules/sec/pages/UserManagementPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'User Management' }
+        },
+        {
+          path: 'admin/roles',
+          name: 'admin-roles',
+          component: () => import('@/modules/sec/pages/RoleManagementPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Role Management' }
+        },
+        {
+          path: 'workflow/inbox',
+          name: 'workflow-inbox',
+          component: () => import('@/modules/wfe/pages/WorkflowInboxPage.vue'),
+          meta: { moduleName: 'WORKFLOW', functionName: 'My Workflow Inbox' }
+        },
+        {
+          path: 'workflow/tasks/:inboxId',
+          name: 'workflow-task',
+          component: () => import('@/modules/wfe/pages/WorkflowTaskPage.vue'),
+          props: true,
+          meta: { moduleName: 'WORKFLOW', functionName: 'Workflow Task' }
         }
       ]
     },

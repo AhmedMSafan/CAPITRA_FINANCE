@@ -13,4 +13,7 @@ public sealed class CurrentUser(IHttpContextAccessor accessor) : ICurrentUser
     public string? UserId => IsAuthenticated ? Principal!.FindFirstValue(CapitraClaimTypes.UserId) : null;
 
     public string? UserName => IsAuthenticated ? Principal!.FindFirstValue(CapitraClaimTypes.UserName) : null;
+
+    public IReadOnlyCollection<string> Roles =>
+        IsAuthenticated ? Principal!.FindAll(CapitraClaimTypes.Role).Select(c => c.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) : [];
 }

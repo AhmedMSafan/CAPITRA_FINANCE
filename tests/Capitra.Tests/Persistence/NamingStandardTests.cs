@@ -20,8 +20,8 @@ public sealed partial class NamingStandardTests
 
     private static readonly string[] BareColumnNames = ["ID", "NAME", "TYPE", "STATUS", "DATE", "VALUE", "CODE_ID", "DESC"];
 
-    /// <summary>History tables end in HIST or HISTORY and are not pluralised; every other table name ends in a plural word.</summary>
-    private static readonly string[] CollectiveLastWords = ["HIST", "HISTORY"];
+    /// <summary>History tables end in HIST or HISTORY and are not pluralised, nor is WFE_INBOX (agreed exception); every other table name ends in a plural word.</summary>
+    private static readonly string[] CollectiveLastWords = ["HIST", "HISTORY", "INBOX"];
 
     /// <summary>Singular words that end in S, so a table ending in one of them is not plural.</summary>
     private static readonly string[] SingularWordsEndingInS = ["STATUS", "ADDRESS", "CLASS", "BASIS"];

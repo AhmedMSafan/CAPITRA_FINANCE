@@ -17,6 +17,21 @@ public static class Permissions
         public const string LookupEdit = "ADM.LOOKUP.EDIT";
     }
 
+    public static class Sec
+    {
+        /// <summary>Create and change users, reset their passwords, create roles and grant roles their permissions.</summary>
+        public const string UserAdmin = "SEC.USER.ADMIN";
+    }
+
+    public static class Wfe
+    {
+        /// <summary>Read workflow definitions in the BPMN designer.</summary>
+        public const string DefinitionView = "WFE.DEFINITION.VIEW";
+
+        /// <summary>Create, change, release and delete workflow definitions.</summary>
+        public const string DefinitionEdit = "WFE.DEFINITION.EDIT";
+    }
+
     public static class Gl
     {
         /// <summary>Read account structures, segments, the chart of accounts, calendars and periods.</summary>
@@ -82,4 +97,13 @@ public static class Permissions
         /// <summary>Workflow step "Portfolio Board Review" (page 215): record the board decision, accept or reject.</summary>
         public const string StepBoardReview = "MTG.STEP.BOARD_REVIEW";
     }
+
+    /// <summary>Every permission code above, for the role screen.</summary>
+    public static IReadOnlyList<string> Catalog { get; } =
+        typeof(Permissions).GetNestedTypes()
+            .SelectMany(t => t.GetFields())
+            .Where(f => f.IsLiteral && f.FieldType == typeof(string))
+            .Select(f => (string)f.GetRawConstantValue()!)
+            .Order(StringComparer.Ordinal)
+            .ToList();
 }
