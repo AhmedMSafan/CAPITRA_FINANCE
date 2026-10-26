@@ -1008,6 +1008,46 @@ public static class MtgApexPageSql
         order by "CHANGE_AT" desc
         """;
 
+    public const string P209_HEADER = """
+        select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", p."DEVELOPER_ID", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", coalesce(prj."PROJECT_NAME_EN", prj."PROJECT_NAME_AR") "PROJECT", (select s."STATUS_NAME_EN"
+        from "MTG_LKP_PORTFOLIO_STATUSES" s
+        where s."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE") "STATUS_NAME"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        join "MTG_PROJECTS" prj on prj."PROJECT_ID" = p."PROJECT_ID"
+        where p."PORTFOLIO_ID" = @P209_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P209_DEV_STATUS = """
+        select (select "RESULT_CODE"
+        from "MTG_AML_RESULTS"
+        where "PORTFOLIO_ID" = @P209_PORTFOLIO_ID::bigint and "SUBJECT_TYPE" = 'DEVELOPER' and "SUBJECT_ID" = @DEVELOPER_ID::bigint
+        order by "AML_ID" desc fetch first 1 rows only) "RESULT_CODE"
+        """;
+
+    public const string P209_ROWS = """
+        select a."PORTFOLIO_ACCOUNT_ID", a."INVESTOR_ID", inv."INVESTOR_CODE", inv."FULL_NAME_EN", inv."FULL_NAME_AR", a."SELLER_CONTRACT_NO", u."UNIT_CODE", coalesce(a."CONTRACT_VALUE", 0) "CV", coalesce(a."PAID_VALUE", 0) "PV", coalesce(a."OUTSTANDING_VALUE", 0) "OV", a."DEAL_DECISION_CODE", coalesce((select ar."RESULT_CODE"
+        from "MTG_AML_RESULTS" ar
+        where ar."PORTFOLIO_ID" = a."PORTFOLIO_ID" and ar."SUBJECT_TYPE" = 'INVESTOR' and ar."SUBJECT_ID" = a."INVESTOR_ID"
+        order by ar."AML_ID" desc fetch first 1 rows only), 'NOT_SCREENED') "AML_STATUS"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        join "MTG_INVESTORS" inv on inv."INVESTOR_ID" = a."INVESTOR_ID"
+        left join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID"
+        where a."PORTFOLIO_ID" = @P209_PORTFOLIO_ID::bigint
+        order by inv."INVESTOR_CODE", a."PORTFOLIO_ACCOUNT_ID"
+        """;
+
+    public const string P209_LOG = """
+        select x."SUBJECT_TYPE", x."SUBJECT_ID", x."AML_TYPE_CODE", x."RESULT_CODE", x."RISK_LEVEL_CODE", x."MATCH_SCORE_PCT", x."SCREENING_DATE", x."REFERENCE_NO", substr(x."RESULT_DETAILS", 1, 300) "DETAILS", case when x."SUBJECT_TYPE" = 'DEVELOPER' then (select coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR")
+        from "MTG_DEVELOPERS" d
+        where d."DEVELOPER_ID" = x."SUBJECT_ID") else (select coalesce(i."FULL_NAME_EN", i."FULL_NAME_AR")
+        from "MTG_INVESTORS" i
+        where i."INVESTOR_ID" = x."SUBJECT_ID") end "SUBJECT_NAME"
+        from "MTG_AML_RESULTS" x
+        where x."PORTFOLIO_ID" = @P209_PORTFOLIO_ID::bigint
+        order by x."AML_ID" desc
+        """;
+
     public const string P603_LOAD = """
         with "FNV_V_CHEQUE_COVERAGE" AS (
         select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"

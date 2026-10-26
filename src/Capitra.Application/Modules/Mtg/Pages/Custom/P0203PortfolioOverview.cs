@@ -159,7 +159,12 @@ public sealed class P0203PortfolioOverview(IApexSqlReader reader) : IApexProcess
 internal static class P0203Html
 {
     /// <summary>num(p) / to_char(p,'TM9').</summary>
-    public static string Num(decimal? n) => (n ?? 0).ToString("0.############", CultureInfo.InvariantCulture);
+    public static string Num(decimal? n)
+    {
+        // Oracle writes no zero before the point: .5, -.25
+        var s = (n ?? 0).ToString("0.############", CultureInfo.InvariantCulture);
+        return s.StartsWith("0.", StringComparison.Ordinal) ? s[1..] : s.StartsWith("-0.", StringComparison.Ordinal) ? "-" + s[2..] : s;
+    }
 
     /// <summary>round(n[, d]) as Oracle rounds: half away from zero.</summary>
     public static decimal Round(decimal n, int d = 0) => Math.Round(n, d, MidpointRounding.AwayFromZero);

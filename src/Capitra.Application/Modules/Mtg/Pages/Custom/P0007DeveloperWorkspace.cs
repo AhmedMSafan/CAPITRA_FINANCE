@@ -180,12 +180,7 @@ public sealed class P0007DeveloperWorkspace(IApexSqlReader reader) : IApexProces
         return new { ok = true, html = h.ToString() };
     }
 
-    // a number as Oracle turns it into text: no trailing zeros, no leading zero before the point
-    private static string Num(decimal? n)
-    {
-        var s = P0203Html.Num(n);
-        return s.StartsWith("0.", StringComparison.Ordinal) ? s[1..] : s.StartsWith("-0.", StringComparison.Ordinal) ? "-" + s[2..] : s;
-    }
+    private static string Num(decimal? n) => P0203Html.Num(n);
 
     // round(x/o*100,1)
     private static string Pct(decimal x, decimal o) => Num(P0203Html.Round(x / o * 100, 1));
