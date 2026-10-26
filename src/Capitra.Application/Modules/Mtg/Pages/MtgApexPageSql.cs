@@ -1177,6 +1177,49 @@ public static class MtgApexPageSql
         order by a."PORTFOLIO_ACCOUNT_ID"
         """;
 
+    public const string P401_HEADER = """
+        select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", coalesce(prj."PROJECT_NAME_EN", prj."PROJECT_NAME_AR") "PROJECT", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", coalesce(p."CURRENCY_CODE", 'EGP') "CUR", (select s."STATUS_NAME_EN"
+        from "MTG_LKP_PORTFOLIO_STATUSES" s
+        where s."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE") "STATUS_NAME"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        join "MTG_PROJECTS" prj on prj."PROJECT_ID" = p."PROJECT_ID"
+        where p."PORTFOLIO_ID" = @P401_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P401_TYPES = """
+        select "VALUATION_TYPE_CODE" "C", coalesce("VALUATION_NAME_EN", "VALUATION_TYPE_CODE") "N"
+        from "MTG_LKP_VALUATION_TYPES"
+        where coalesce("IS_ACTIVE", true)
+        order by "DISPLAY_SEQ" nulls last, "VALUATION_TYPE_CODE"
+        """;
+
+    public const string P401_UNITS = """
+        select u."UNIT_ID", concat(u."UNIT_CODE", ' - ', coalesce(ut."UNIT_TYPE_NAME_EN", '-')) "D"
+        from "MTG_PROJECT_UNITS" u
+        join "MTG_PURCHASED_PORTFOLIOS" p on p."PROJECT_ID" = u."PROJECT_ID"
+        left join "MTG_LKP_UNIT_TYPES" ut on ut."UNIT_TYPE_CODE" = u."UNIT_TYPE_CODE"
+        where p."PORTFOLIO_ID" = @P401_PORTFOLIO_ID::bigint and u."IS_ACTIVE"
+        order by u."UNIT_CODE"
+        """;
+
+    public const string P401_DOCS = """
+        select d."DOCUMENT_ID", concat(coalesce(d."DOCUMENT_NO", d."FILE_NAME"), ' - ', coalesce(rt."DOCUMENT_TYPE_NAME", '-')) "D"
+        from "MTG_PURCHASED_PORTFOLIO_DOCUMENTS" d
+        join "ADM_LKP_DOCUMENT_TYPES" rt on rt."DOCUMENT_TYPE_CODE" = d."DOCUMENT_TYPE_CODE"
+        where d."PORTFOLIO_ID" = @P401_PORTFOLIO_ID::bigint and d."DOCUMENT_TYPE_CODE" = 'VALUATION_REPORT'
+        order by d."DOCUMENT_ID" desc
+        """;
+
+    public const string P401_VALUATIONS = """
+        select v."VALUATION_ID", coalesce(rt."VALUATION_NAME_EN", v."VALUATION_TYPE_CODE") "VTYPE", v."VALUER_NAME", v."VALUER_REGISTRATION_NO", v."VALUATION_DATE", v."MARKET_VALUE", v."RECOMMENDED_VALUE", v."PROJECT_COMPLETION_PCT", v."REPORT_DOCUMENT_ID", v."APPROVED_BY", v."APPROVED_DATE", u."UNIT_CODE"
+        from "MTG_VALUATIONS" v
+        left join "MTG_LKP_VALUATION_TYPES" rt on rt."VALUATION_TYPE_CODE" = v."VALUATION_TYPE_CODE"
+        left join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = v."UNIT_ID"
+        where v."PORTFOLIO_ID" = @P401_PORTFOLIO_ID::bigint
+        order by v."VALUATION_DATE" desc nulls last, v."VALUATION_ID" desc
+        """;
+
     public const string P603_LOAD = """
         with "FNV_V_CHEQUE_COVERAGE" AS (
         select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"

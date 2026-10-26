@@ -461,3 +461,17 @@ textarea.t-Form-field {
 [hidden] {
   display: none !important;
 }
+
+/* the workflow pages' drawer, scrim, dialog and toasts (z 400 to 600) sit above the Capitra header (z 3000), in the same order */
+.wb-scrim { z-index: 3001 !important; }
+.wb-drawer { z-index: 3002 !important; }
+.wb-mask { z-index: 3003 !important; }
+.wb-toasts { z-index: 3004 !important; }
+
+/* the theme's inputs fill their field (APEX UT: width 100%), so two fields side by side fit the drawer */
+.wb-f input,
+.wb-f select,
+.wb-f textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
