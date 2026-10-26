@@ -1,0 +1,301 @@
+{
+ "FCT_CLIENTS": {
+  "table": "CRM_CLIENTS",
+  "class": "CrmClient",
+  "columns": {
+   "CLIENT_ID": {
+    "column": "CLIENT_ID",
+    "kind": "int"
+   },
+   "CLIENT_NUMBER": {
+    "column": "CLIENT_NUMBER",
+    "kind": "string"
+   },
+   "CLIENT_REF_CODE": {
+    "column": "CLIENT_REF_CODE",
+    "kind": "string"
+   },
+   "CLIENT_NAME": {
+    "column": "CLIENT_NAME",
+    "kind": "string"
+   },
+   "CLIENT_NAME_AR": {
+    "column": "CLIENT_NAME_AR",
+    "kind": "string"
+   },
+   "SHORT_NAME": {
+    "column": "SHORT_NAME",
+    "kind": "string"
+   },
+   "SHORT_NAME_AR": {
+    "column": "SHORT_NAME_AR",
+    "kind": "string"
+   },
+   "TRADE_NAME": {
+    "column": "TRADE_NAME",
+    "kind": "string"
+   },
+   "TRADE_NAME_AR": {
+    "column": "TRADE_NAME_AR",
+    "kind": "string"
+   },
+   "CLIENT_TYPE": {
+    "column": "CLIENT_TYPE",
+    "kind": "string"
+   },
+   "LEGAL_STRUCTURE": {
+    "column": "LEGAL_STRUCTURE",
+    "kind": "string"
+   },
+   "LEGAL_STRUCTURE_AR": {
+    "column": "LEGAL_STRUCTURE_AR",
+    "kind": "string"
+   },
+   "REGISTRATION_NUMBER": {
+    "column": "REGISTRATION_NUMBER",
+    "kind": "string"
+   },
+   "TAX_NUMBER": {
+    "column": "TAX_NUMBER",
+    "kind": "string"
+   },
+   "VAT_NUMBER": {
+    "column": "VAT_NUMBER",
+    "kind": "string"
+   },
+   "NATIONAL_ID": {
+    "column": "NATIONAL_ID",
+    "kind": "string"
+   },
+   "UNIFIED_NUMBER": {
+    "column": "UNIFIED_NUMBER",
+    "kind": "string"
+   },
+   "DATE_OF_INCORPORATION": {
+    "column": "DATE_OF_INCORPORATION_DATE",
+    "kind": "date"
+   },
+   "DATE_OF_REGISTRATION": {
+    "column": "DATE_OF_REGISTRATION_DATE",
+    "kind": "date"
+   },
+   "LICENSE_NUMBER": {
+    "column": "LICENSE_NUMBER",
+    "kind": "string"
+   },
+   "LICENSE_EXPIRY_DATE": {
+    "column": "LICENSE_EXPIRY_DATE",
+    "kind": "date"
+   },
+   "COUNTRY_ID": {
+    "column": "COUNTRY_ID",
+    "kind": "int"
+   },
+   "REGION_ID": {
+    "column": "REGION_ID",
+    "kind": "int"
+   },
+   "CITY_ID": {
+    "column": "CITY_ID",
+    "kind": "int"
+   },
+   "INDUSTRY_ID": {
+    "column": "INDUSTRY_ID",
+    "kind": "int"
+   },
+   "SECTOR_ID": {
+    "column": "SECTOR_ID",
+    "kind": "int"
+   },
+   "BASE_CURRENCY_ID": {
+    "column": "BASE_CURRENCY_ID",
+    "kind": "int"
+   },
+   "STATUS_ID": {
+    "column": "STATUS_ID",
+    "kind": "int"
+   },
+   "CLIENT_CATEGORY": {
+    "column": "CLIENT_CATEGORY",
+    "kind": "string"
+   },
+   "CLIENT_SEGMENT": {
+    "column": "CLIENT_SEGMENT",
+    "kind": "string"
+   },
+   "RISK_GRADE": {
+    "column": "RISK_GRADE",
+    "kind": "string"
+   },
+   "ANNUAL_TURNOVER": {
+    "column": "ANNUAL_TURNOVER",
+    "kind": "decimal"
+   },
+   "NUMBER_OF_EMPLOYEES": {
+    "column": "NUMBER_OF_EMPLOYEES",
+    "kind": "int"
+   },
+   "CAPITAL_AMOUNT": {
+    "column": "CAPITAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "WEBSITE": {
+    "column": "WEBSITE",
+    "kind": "string"
+   },
+   "EMAIL": {
+    "column": "EMAIL",
+    "kind": "string"
+   },
+   "PHONE_NUMBER": {
+    "column": "PHONE_NUMBER",
+    "kind": "string"
+   },
+   "MOBILE_NUMBER": {
+    "column": "MOBILE_NUMBER",
+    "kind": "string"
+   },
+   "FAX_NUMBER": {
+    "column": "FAX_NUMBER",
+    "kind": "string"
+   },
+   "RELATIONSHIP_MANAGER": {
+    "column": "RELATIONSHIP_MANAGER",
+    "kind": "string"
+   },
+   "RM_EMPLOYEE_ID": {
+    "column": "RM_EMPLOYEE_ID",
+    "kind": "int"
+   },
+   "ONBOARDING_DATE": {
+    "column": "ONBOARDING_DATE",
+    "kind": "date"
+   },
+   "FIRST_FACILITY_DATE": {
+    "column": "FIRST_FACILITY_DATE",
+    "kind": "date"
+   },
+   "LAST_REVIEW_DATE": {
+    "column": "LAST_REVIEW_DATE",
+    "kind": "date"
+   },
+   "NEXT_REVIEW_DATE": {
+    "column": "NEXT_REVIEW_DATE",
+    "kind": "date"
+   },
+   "KYC_STATUS": {
+    "column": "KYC_STATUS",
+    "kind": "string"
+   },
+   "KYC_EXPIRY_DATE": {
+    "column": "KYC_EXPIRY_DATE",
+    "kind": "date"
+   },
+   "AML_STATUS": {
+    "column": "AML_STATUS",
+    "kind": "string"
+   },
+   "AML_CHECK_DATE": {
+    "column": "AML_CHECK_DATE",
+    "kind": "date"
+   },
+   "IS_BLACKLISTED": {
+    "column": "IS_BLACKLISTED",
+    "kind": "flag"
+   },
+   "BLACKLIST_REASON": {
+    "column": "BLACKLIST_REASON",
+    "kind": "string"
+   },
+   "BLACKLIST_REASON_AR": {
+    "column": "BLACKLIST_REASON_AR",
+    "kind": "string"
+   },
+   "IS_RELATED_PARTY": {
+    "column": "IS_RELATED_PARTY",
+    "kind": "flag"
+   },
+   "PARENT_CLIENT_ID": {
+    "column": "PARENT_CLIENT_ID",
+    "kind": "int"
+   },
+   "GROUP_CODE": {
+    "column": "GROUP_CODE",
+    "kind": "string"
+   },
+   "GROUP_NAME": {
+    "column": "GROUP_NAME",
+    "kind": "string"
+   },
+   "GROUP_NAME_AR": {
+    "column": "GROUP_NAME_AR",
+    "kind": "string"
+   },
+   "LOGO_URL": {
+    "column": "LOGO_URL",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "text"
+   },
+   "NOTES_AR": {
+    "column": "NOTES_AR",
+    "kind": "text"
+   },
+   "ATTRIBUTE1": {
+    "column": "ATTRIBUTE1",
+    "kind": "string"
+   },
+   "ATTRIBUTE2": {
+    "column": "ATTRIBUTE2",
+    "kind": "string"
+   },
+   "ATTRIBUTE3": {
+    "column": "ATTRIBUTE3",
+    "kind": "string"
+   },
+   "ATTRIBUTE4": {
+    "column": "ATTRIBUTE4",
+    "kind": "string"
+   },
+   "ATTRIBUTE5": {
+    "column": "ATTRIBUTE5",
+    "kind": "string"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "SUPPLIER_BANK_ID": {
+    "column": "SUPPLIER_BANK_ID",
+    "kind": "int"
+   },
+   "SUPPLIER_BANK_ACCOUNT": {
+    "column": "SUPPLIER_BANK_ACCOUNT",
+    "kind": "string"
+   },
+   "IS_SUPPLIER": {
+    "column": "IS_SUPPLIER",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATION_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_UPDATE_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "CLIENT_ID"
+ }
+}

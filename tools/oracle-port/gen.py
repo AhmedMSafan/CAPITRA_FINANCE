@@ -25,12 +25,12 @@ from decimal import Decimal, InvalidOperation
 csv.field_size_limit(1 << 30)
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 AUDIT = {'CREATED_BY', 'CREATED_DT', 'UPDATED_BY', 'UPDATED_DT', 'CREATED_AT', 'UPDATED_AT',
-         'CREATION_DATE', 'LAST_UPDATE_DATE', 'LAST_UPDATED_BY', 'CREATED_ON', 'UPDATED_ON', 'ROW_VERSION_NO',
+         'CREATION_DATE', 'LAST_UPDATE_DATE', 'LAST_UPDATED_BY', 'CREATED_ON', 'UPDATED_ON', 'ROW_VERSION_NO', 'ROW_VERSION',
          'CREATED_DATE', 'UPDATED_DATE', 'LAST_MODIFIED_BY', 'LAST_MODIFIED_DATE'}
 AUDIT_MAP = {'CREATED_BY': 'CreatedBy', 'CREATED_DT': 'CreatedAt', 'CREATED_AT': 'CreatedAt',
              'CREATION_DATE': 'CreatedAt', 'UPDATED_BY': 'UpdatedBy', 'LAST_UPDATED_BY': 'UpdatedBy',
              'UPDATED_DT': 'UpdatedAt', 'UPDATED_AT': 'UpdatedAt', 'LAST_UPDATE_DATE': 'UpdatedAt',
-             'CREATED_ON': 'CreatedAt', 'UPDATED_ON': 'UpdatedAt', 'ROW_VERSION_NO': 'RowVersion',
+             'CREATED_ON': 'CreatedAt', 'UPDATED_ON': 'UpdatedAt', 'ROW_VERSION_NO': 'RowVersion', 'ROW_VERSION': 'RowVersion',
              'CREATED_DATE': 'CreatedAt', 'UPDATED_DATE': 'UpdatedAt', 'LAST_MODIFIED_BY': 'UpdatedBy', 'LAST_MODIFIED_DATE': 'UpdatedAt'}
 # Oracle table -> [Capitra table, class] where the default rules below do not give the agreed name.
 NAMES = {k: v for k, v in json.load(open(os.path.join(os.path.dirname(__file__), 'names.json'))).items() if not k.startswith('_')}
@@ -410,6 +410,9 @@ def main():
             rmod = module_of.get(table_name(rt).split('_')[0], None)
             if rt not in tables and rmod is None:
                 cfg.append(f'        // {col} -> {rt}: added when the {table_name(rt).split("_")[0]} tables are ported.')
+                continue
+            if rt not in tables and not os.path.exists(os.path.join(REPO, 'src', 'Capitra.Domain', 'Modules', rmod, class_name(rt) + '.cs')):
+                cfg.append(f'        // {col} -> {table_name(rt)}: added when that table is ported.')
                 continue
             if rt not in tables:
                 usings.add('Capitra.Domain.Modules.' + rmod)

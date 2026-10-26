@@ -1,0 +1,473 @@
+{
+ "FCT_DISBURSEMENTS": {
+  "table": "FCT_DISBURSEMENTS",
+  "class": "FctDisbursement",
+  "columns": {
+   "DISBURSEMENT_ID": {
+    "column": "DISBURSEMENT_ID",
+    "kind": "int"
+   },
+   "DISBURSEMENT_NUMBER": {
+    "column": "DISBURSEMENT_NUMBER",
+    "kind": "string"
+   },
+   "DISBURSEMENT_REF": {
+    "column": "DISBURSEMENT_REF",
+    "kind": "string"
+   },
+   "DISBURSEMENT_DATE": {
+    "column": "DISBURSEMENT_DATE",
+    "kind": "date"
+   },
+   "FUNDING_REQUEST_ID": {
+    "column": "FUNDING_REQUEST_ID",
+    "kind": "int"
+   },
+   "CLIENT_ID": {
+    "column": "CLIENT_ID",
+    "kind": "int"
+   },
+   "AGREEMENT_ID": {
+    "column": "AGREEMENT_ID",
+    "kind": "int"
+   },
+   "DISBURSEMENT_TYPE": {
+    "column": "DISBURSEMENT_TYPE",
+    "kind": "string"
+   },
+   "DISBURSEMENT_TYPE_AR": {
+    "column": "DISBURSEMENT_TYPE_AR",
+    "kind": "string"
+   },
+   "CURRENCY_ID": {
+    "column": "CURRENCY_ID",
+    "kind": "int"
+   },
+   "GROSS_AMOUNT": {
+    "column": "GROSS_AMOUNT",
+    "kind": "decimal"
+   },
+   "FEE_DEDUCTED": {
+    "column": "FEE_DEDUCTED",
+    "kind": "decimal"
+   },
+   "INTEREST_DEDUCTED": {
+    "column": "INTEREST_DEDUCTED",
+    "kind": "decimal"
+   },
+   "TAX_DEDUCTED": {
+    "column": "TAX_DEDUCTED",
+    "kind": "decimal"
+   },
+   "OTHER_DEDUCTIONS": {
+    "column": "OTHER_DEDUCTIONS",
+    "kind": "decimal"
+   },
+   "NET_AMOUNT": {
+    "column": "NET_AMOUNT",
+    "kind": "decimal"
+   },
+   "BASE_CURRENCY_ID": {
+    "column": "BASE_CURRENCY_ID",
+    "kind": "int"
+   },
+   "EXCHANGE_RATE": {
+    "column": "EXCHANGE_RATE",
+    "kind": "decimal"
+   },
+   "BASE_NET_AMOUNT": {
+    "column": "BASE_NET_AMOUNT",
+    "kind": "decimal"
+   },
+   "PAYMENT_METHOD": {
+    "column": "PAYMENT_METHOD",
+    "kind": "string"
+   },
+   "PAYMENT_METHOD_AR": {
+    "column": "PAYMENT_METHOD_AR",
+    "kind": "string"
+   },
+   "PAYMENT_CHANNEL": {
+    "column": "PAYMENT_CHANNEL",
+    "kind": "string"
+   },
+   "PAYMENT_CHANNEL_AR": {
+    "column": "PAYMENT_CHANNEL_AR",
+    "kind": "string"
+   },
+   "BANK_ACCOUNT_ID": {
+    "column": "BANK_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "BENEFICIARY_NAME": {
+    "column": "BENEFICIARY_NAME",
+    "kind": "string"
+   },
+   "BENEFICIARY_BANK": {
+    "column": "BENEFICIARY_BANK",
+    "kind": "string"
+   },
+   "BENEFICIARY_IBAN": {
+    "column": "BENEFICIARY_IBAN",
+    "kind": "string"
+   },
+   "BENEFICIARY_SWIFT": {
+    "column": "BENEFICIARY_SWIFT",
+    "kind": "string"
+   },
+   "BENEFICIARY_ACCOUNT": {
+    "column": "BENEFICIARY_ACCOUNT",
+    "kind": "string"
+   },
+   "REMITTING_BANK": {
+    "column": "REMITTING_BANK",
+    "kind": "string"
+   },
+   "REMITTING_ACCOUNT": {
+    "column": "REMITTING_ACCOUNT",
+    "kind": "string"
+   },
+   "REMITTING_SWIFT": {
+    "column": "REMITTING_SWIFT",
+    "kind": "string"
+   },
+   "VALUE_DATE": {
+    "column": "VALUE_DATE",
+    "kind": "date"
+   },
+   "EXECUTION_DATE": {
+    "column": "EXECUTION_DATE",
+    "kind": "date"
+   },
+   "EXECUTION_TIME": {
+    "column": "EXECUTION_TIME_AT",
+    "kind": "datetime"
+   },
+   "PAYMENT_REFERENCE": {
+    "column": "PAYMENT_REFERENCE",
+    "kind": "string"
+   },
+   "BANK_REFERENCE": {
+    "column": "BANK_REFERENCE",
+    "kind": "string"
+   },
+   "SWIFT_REFERENCE": {
+    "column": "SWIFT_REFERENCE",
+    "kind": "string"
+   },
+   "TRANSACTION_ID": {
+    "column": "TRANSACTION_ID",
+    "kind": "string"
+   },
+   "IS_CONFIRMED": {
+    "column": "IS_CONFIRMED",
+    "kind": "flag"
+   },
+   "CONFIRMATION_DATE": {
+    "column": "CONFIRMATION_DATE",
+    "kind": "date"
+   },
+   "CONFIRMATION_REF": {
+    "column": "CONFIRMATION_REF",
+    "kind": "string"
+   },
+   "CONFIRMED_BY": {
+    "column": "CONFIRMED_BY",
+    "kind": "string"
+   },
+   "IS_RECONCILED": {
+    "column": "IS_RECONCILED",
+    "kind": "flag"
+   },
+   "RECONCILIATION_DATE": {
+    "column": "RECONCILIATION_DATE",
+    "kind": "date"
+   },
+   "RECONCILIATION_REF": {
+    "column": "RECONCILIATION_REF",
+    "kind": "string"
+   },
+   "RECONCILED_BY": {
+    "column": "RECONCILED_BY",
+    "kind": "string"
+   },
+   "IS_REVERSED": {
+    "column": "IS_REVERSED",
+    "kind": "flag"
+   },
+   "REVERSAL_DATE": {
+    "column": "REVERSAL_DATE",
+    "kind": "date"
+   },
+   "REVERSAL_REASON": {
+    "column": "REVERSAL_REASON",
+    "kind": "string"
+   },
+   "REVERSAL_REASON_AR": {
+    "column": "REVERSAL_REASON_AR",
+    "kind": "string"
+   },
+   "REVERSED_BY": {
+    "column": "REVERSED_BY",
+    "kind": "string"
+   },
+   "REVERSAL_REF": {
+    "column": "REVERSAL_REF",
+    "kind": "string"
+   },
+   "ORIGINAL_DISBURSEMENT_ID": {
+    "column": "ORIGINAL_DISBURSEMENT_ID",
+    "kind": "int"
+   },
+   "GL_POSTED": {
+    "column": "IS_GL_POSTED",
+    "kind": "flag"
+   },
+   "GL_POSTING_DATE": {
+    "column": "GL_POSTING_DATE",
+    "kind": "date"
+   },
+   "GL_JOURNAL_REF": {
+    "column": "GL_JOURNAL_REF",
+    "kind": "string"
+   },
+   "PROCESSED_BY": {
+    "column": "PROCESSED_BY",
+    "kind": "string"
+   },
+   "AUTHORIZED_BY": {
+    "column": "AUTHORIZED_BY",
+    "kind": "string"
+   },
+   "AUTHORIZATION_DATE": {
+    "column": "AUTHORIZATION_AT",
+    "kind": "datetime"
+   },
+   "SECOND_AUTHORIZED_BY": {
+    "column": "SECOND_AUTHORIZED_BY",
+    "kind": "string"
+   },
+   "SECOND_AUTH_DATE": {
+    "column": "SECOND_AUTH_AT",
+    "kind": "datetime"
+   },
+   "STATUS_ID": {
+    "column": "STATUS_ID",
+    "kind": "int"
+   },
+   "PAYMENT_STATUS": {
+    "column": "PAYMENT_STATUS",
+    "kind": "string"
+   },
+   "PAYMENT_STATUS_AR": {
+    "column": "PAYMENT_STATUS_AR",
+    "kind": "string"
+   },
+   "FAILURE_REASON": {
+    "column": "FAILURE_REASON",
+    "kind": "string"
+   },
+   "FAILURE_REASON_AR": {
+    "column": "FAILURE_REASON_AR",
+    "kind": "string"
+   },
+   "RETRY_COUNT": {
+    "column": "RETRY_COUNT",
+    "kind": "int"
+   },
+   "LAST_RETRY_DATE": {
+    "column": "LAST_RETRY_AT",
+    "kind": "datetime"
+   },
+   "REMARKS": {
+    "column": "REMARKS",
+    "kind": "text"
+   },
+   "REMARKS_AR": {
+    "column": "REMARKS_AR",
+    "kind": "text"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "LIMIT_ID": {
+    "column": "LIMIT_ID",
+    "kind": "int"
+   },
+   "REPAYMENT_START_DATE": {
+    "column": "REPAYMENT_START_DATE",
+    "kind": "date"
+   },
+   "TENOR_MONTH": {
+    "column": "TENOR_MONTH",
+    "kind": "int"
+   },
+   "INDEX_RATE": {
+    "column": "INDEX_RATE",
+    "kind": "decimal"
+   },
+   "SPREAD_RATE": {
+    "column": "SPREAD_RATE",
+    "kind": "decimal"
+   },
+   "BASE_DAY_COUNT": {
+    "column": "BASE_DAY_COUNT",
+    "kind": "string"
+   },
+   "PRINCIPAL_REPAYMENT_SCHEDULE_TYPE": {
+    "column": "PRINCIPAL_REPAYMENT_SCHEDULE_TYPE",
+    "kind": "string"
+   },
+   "PRINCIPAL_REPAYMENT_METHOD": {
+    "column": "PRINCIPAL_REPAYMENT_METHOD",
+    "kind": "string"
+   },
+   "PRINCIPAL_DISTRIBUTION_METHOD": {
+    "column": "PRINCIPAL_DISTRIBUTION_METHOD",
+    "kind": "string"
+   },
+   "INTEREST_REPAYMENT_METHOD": {
+    "column": "INTEREST_REPAYMENT_METHOD",
+    "kind": "string"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "ADVANCE_RATE_PCT": {
+    "column": "ADVANCE_RATE_PCT",
+    "kind": "decimal"
+   },
+   "PRODUCT_ID": {
+    "column": "PRODUCT_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "APPROVED_INVOICE_AMOUNT": {
+    "column": "APPROVED_INVOICE_AMOUNT",
+    "kind": "decimal"
+   },
+   "APPROVED_ADVANCE_AMOUNT": {
+    "column": "APPROVED_ADVANCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "PROCESSING_DATE": {
+    "column": "PROCESSING_AT",
+    "kind": "datetime"
+   },
+   "SOURCE_FUND_TYPE": {
+    "column": "SOURCE_FUND_TYPE",
+    "kind": "string"
+   },
+   "FACILITY_ID": {
+    "column": "FACILITY_ID",
+    "kind": "int"
+   },
+   "IS_PROCESSED": {
+    "column": "IS_PROCESSED",
+    "kind": "flag"
+   },
+   "SOURCE_BANK_ACCOUNT_ID": {
+    "column": "SOURCE_BANK_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "FUNDING_MAPPING_ID": {
+    "column": "FUNDING_MAPPING_ID",
+    "kind": "int"
+   },
+   "TRANCHE_ID": {
+    "column": "TRANCHE_ID",
+    "kind": "int"
+   },
+   "SUBLIMIT_ID": {
+    "column": "SUBLIMIT_ID",
+    "kind": "int"
+   },
+   "FACILITY_POLICY_CHECK_ID": {
+    "column": "FACILITY_POLICY_CHECK_ID",
+    "kind": "int"
+   },
+   "FACILITY_RESERVATION_STATUS": {
+    "column": "FACILITY_RESERVATION_STATUS",
+    "kind": "string"
+   },
+   "FACILITY_RESERVED_AMOUNT": {
+    "column": "FACILITY_RESERVED_AMOUNT",
+    "kind": "decimal"
+   },
+   "FACILITY_RESERVATION_KEY": {
+    "column": "FACILITY_RESERVATION_KEY",
+    "kind": "string"
+   },
+   "FACILITY_RESERVED_AT": {
+    "column": "FACILITY_RESERVED_AT",
+    "kind": "datetime"
+   },
+   "TREASURY_DRAWDOWN_ID": {
+    "column": "TREASURY_DRAWDOWN_ID",
+    "kind": "int"
+   },
+   "POLICY_BUSINESS_LINE_MEMBER_ID": {
+    "column": "POLICY_BUSINESS_LINE_MEMBER_ID",
+    "kind": "int"
+   },
+   "POLICY_PRODUCT_MEMBER_ID": {
+    "column": "POLICY_PRODUCT_MEMBER_ID",
+    "kind": "int"
+   },
+   "POLICY_ACTIVITY_MEMBER_ID": {
+    "column": "POLICY_ACTIVITY_MEMBER_ID",
+    "kind": "int"
+   },
+   "POLICY_ASSET_MEMBER_ID": {
+    "column": "POLICY_ASSET_MEMBER_ID",
+    "kind": "int"
+   },
+   "POLICY_CLIENT_SEGMENT_MEMBER_ID": {
+    "column": "POLICY_CLIENT_SEGMENT_MEMBER_ID",
+    "kind": "int"
+   },
+   "FACILITY_RATE_ID": {
+    "column": "FACILITY_RATE_ID",
+    "kind": "int"
+   },
+   "FACILITY_INTEREST_RATE_PCT": {
+    "column": "FACILITY_INTEREST_RATE_PCT",
+    "kind": "decimal"
+   },
+   "BANK_SCHEDULE_STATUS": {
+    "column": "BANK_SCHEDULE_STATUS",
+    "kind": "string"
+   },
+   "BANK_SCHEDULE_INSTALLMENT_COUNT": {
+    "column": "BANK_SCHEDULE_INSTALLMENT_COUNT",
+    "kind": "int"
+   },
+   "BANK_SCHEDULE_TOTAL_AMOUNT": {
+    "column": "BANK_SCHEDULE_TOTAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATION_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_UPDATE_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "DISBURSEMENT_ID"
+ }
+}
