@@ -48,6 +48,9 @@ public static class ApexPages
     /// </summary>
     public static string Url(int app, int page, string? items, string? values, string? request = null)
     {
+        // page 921 (Task Details of the APEX inbox) is the Capitra task page; P921_TASK_ID carries the inbox item's id
+        if (app == 105 && page == 921 && string.Equals(items, "P921_TASK_ID", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(values))
+            return "/workflow/tasks/" + Uri.EscapeDataString(values);
         var query = new List<string>();
         if (!string.IsNullOrEmpty(request))
             query.Add("request=" + Uri.EscapeDataString(request));

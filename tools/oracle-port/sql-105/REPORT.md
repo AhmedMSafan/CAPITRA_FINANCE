@@ -1,6 +1,6 @@
 # App 105: SQL translated to PostgreSQL
 
-137 of 138 run.
+142 of 143 run.
 
 - OK     P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY
 - OK     P206_PAYMENT_HISTORY
@@ -120,6 +120,11 @@
 - OK     P1_FACE
 - OK     P1_READY
 - OK     P1_APPROVAL
+- OK     P2_CASES
+- OK     P2_EXPIRING
+- OK     P2_PIPE_TOTAL
+- OK     P2_PIPE
+- OK     P2_LATEST
 - OK     P201_TOTALS
 - OK     P201_STATUSES
 - OK     P201_CASES
