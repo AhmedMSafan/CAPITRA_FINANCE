@@ -65,7 +65,8 @@ public sealed partial class GlPostingApi(
     private static bool Handled(Exception ex) => ex is ApexProcessException or ConflictException or FormatException or OverflowException;
 
     // ------------------------------------------------------------------------------------------------ reference data
-    private sealed record Ledger(long LedgerId, string LedgerCode, string Currency, string CoaCode, string Delimiter, string AllowManual);
+    private sealed record Ledger(long LedgerId, string LedgerCode, string Currency, string CoaCode, string Delimiter, string AllowManual,
+        string ManualAppr = "Y", string AllowSub = "Y", bool AutoPostSub = false);
 
     private async Task<Ledger> GetLedgerAsync(string? ledgerCode, long? ledgerId, CancellationToken ct)
     {
@@ -78,7 +79,11 @@ public sealed partial class GlPostingApi(
                              || (ledgerId == null && code != null && l.LedgerCode == code)
                              || (ledgerId == null && code == null && l.IsPrimaryLedger)
                        orderby l.LedgerId
-                       select new { l.LedgerId, l.LedgerCode, l.LedgerCurrencyCode, c.CoaCode, c.DelimiterChar, AllowManual = o.AllowManualJournals })
+                       select new
+                       {
+                           l.LedgerId, l.LedgerCode, l.LedgerCurrencyCode, c.CoaCode, c.DelimiterChar, AllowManual = o.AllowManualJournals,
+                           ManualAppr = o.RequireManualJournalAppr, AllowSub = o.AllowSubledgerJournals, AutoPostSub = (bool?)o.IsAutoPostSubledger,
+                       })
             .FirstOrDefaultAsync(ct);
         if (r is null)
         {
@@ -87,7 +92,8 @@ public sealed partial class GlPostingApi(
                 : "No primary ledger is defined.");
         }
 
-        return new Ledger(r.LedgerId, r.LedgerCode, r.LedgerCurrencyCode, r.CoaCode, r.DelimiterChar ?? "-", r.AllowManual?.Trim() ?? "Y");
+        return new Ledger(r.LedgerId, r.LedgerCode, r.LedgerCurrencyCode, r.CoaCode, r.DelimiterChar ?? "-", r.AllowManual?.Trim() ?? "Y",
+            r.ManualAppr?.Trim() ?? "Y", r.AllowSub?.Trim() ?? "Y", r.AutoPostSub ?? false);
     }
 
     private async Task<GlJournalSource> GetSourceAsync(string code, CancellationToken ct)

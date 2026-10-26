@@ -67,13 +67,13 @@ public sealed class CrmClientConfiguration : IEntityTypeConfiguration<CrmClient>
         builder.Property(x => x.SupplierBankAccount).HasMaxLength(100);
 
         // CITY_ID -> LKP_CITIES: added when the LKP tables are ported.
-        // COUNTRY_ID -> LKP_COUNTRIES: added when the LKP tables are ported.
-        // BASE_CURRENCY_ID -> LKP_CURRENCIES: added when the LKP tables are ported.
+        builder.HasOne<CrmLkpCountry>().WithMany().HasForeignKey(x => x.CountryId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<CrmLkpCurrency>().WithMany().HasForeignKey(x => x.BaseCurrencyId).OnDelete(DeleteBehavior.Restrict);
         // INDUSTRY_ID -> LKP_INDUSTRIES: added when the LKP tables are ported.
         builder.HasOne<CrmClient>().WithMany().HasForeignKey(x => x.ParentClientId).OnDelete(DeleteBehavior.Restrict);
         // REGION_ID -> LKP_REGIONS: added when the LKP tables are ported.
         // SECTOR_ID -> LKP_ECONOMIC_SECTORS: added when the LKP tables are ported.
-        // STATUS_ID -> LKP_STATUS_CODES: added when the LKP tables are ported.
+        builder.HasOne<CrmLkpStatusCode>().WithMany().HasForeignKey(x => x.StatusId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }

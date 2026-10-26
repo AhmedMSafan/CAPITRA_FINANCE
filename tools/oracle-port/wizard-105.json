@@ -3,7 +3,7 @@
   "maps": [
     "map-mtg.json",
     "map-adm.json"
-  ],
+  , "map-trs.json"],
   "cs": "src/Capitra.Application/Modules/Mtg/Pages/MtgApexRegions.cs",
   "ts": "web/src/modules/mtg/apex/wizard/wizardPages.ts",
   "class": "MtgApexRegions",

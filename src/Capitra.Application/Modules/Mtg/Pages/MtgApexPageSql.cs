@@ -1458,6 +1458,33 @@ public static class MtgApexPageSql
         order by c."DUE_DATE", c."CHEQUE_ID"
         """;
 
+    public const string P217_HEADER = """
+        select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", trim(p."CURRENCY_CODE") "CURRENCY_CODE"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        where p."PORTFOLIO_ID" = @P217_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P217_STATUS_NAME = """
+        select "STATUS_NAME_EN"
+        from "MTG_LKP_PORTFOLIO_STATUSES"
+        where "STATUS_CODE" = @STATUS::text
+        """;
+
+    public const string P217_DONE = """
+        select count(*) "N"
+        from "MTG_PURCHASED_PORTFOLIO_DISBURSEMENTS"
+        where "PORTFOLIO_ID" = @P217_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P217_BANKS = """
+        select a."ACCOUNT_ID", a."BANK_ID", b."BANK_NAME_EN", a."ACCOUNT_NO", a."ACCOUNT_REF", a."ACCOUNT_TYPE_CODE", a."PURPOSE_EN"
+        from "TRS_BANK_ACCOUNTS" a
+        join "TRS_BANKS" b on b."BANK_ID" = a."BANK_ID"
+        where a."IS_ACTIVE" and b."IS_ACTIVE" and trim(a."CURRENCY_CODE") = @CUR::text
+        order by b."BANK_NAME_EN", a."ACCOUNT_NO"
+        """;
+
     public const string P401_HEADER = """
         select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", coalesce(prj."PROJECT_NAME_EN", prj."PROJECT_NAME_AR") "PROJECT", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", coalesce(p."CURRENCY_CODE", 'EGP') "CUR", (select s."STATUS_NAME_EN"
         from "MTG_LKP_PORTFOLIO_STATUSES" s

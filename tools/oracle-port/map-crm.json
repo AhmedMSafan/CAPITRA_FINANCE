@@ -297,5 +297,258 @@
    }
   },
   "pk": "CLIENT_ID"
+ },
+ "LKP_COUNTRIES": {
+  "table": "CRM_LKP_COUNTRIES",
+  "class": "CrmLkpCountry",
+  "columns": {
+   "COUNTRY_ID": {
+    "column": "COUNTRY_ID",
+    "kind": "int"
+   },
+   "COUNTRY_CODE": {
+    "column": "COUNTRY_CODE",
+    "kind": "string"
+   },
+   "COUNTRY_CODE_A3": {
+    "column": "COUNTRY_CODE_A3",
+    "kind": "string"
+   },
+   "COUNTRY_NAME": {
+    "column": "COUNTRY_NAME",
+    "kind": "string"
+   },
+   "COUNTRY_NAME_AR": {
+    "column": "COUNTRY_NAME_AR",
+    "kind": "string"
+   },
+   "NATIONALITY": {
+    "column": "NATIONALITY",
+    "kind": "string"
+   },
+   "NATIONALITY_AR": {
+    "column": "NATIONALITY_AR",
+    "kind": "string"
+   },
+   "PHONE_CODE": {
+    "column": "PHONE_CODE",
+    "kind": "string"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "CONTINENT": {
+    "column": "CONTINENT",
+    "kind": "string"
+   },
+   "CONTINENT_AR": {
+    "column": "CONTINENT_AR",
+    "kind": "string"
+   },
+   "IS_DOMESTIC": {
+    "column": "IS_DOMESTIC",
+    "kind": "flag"
+   },
+   "RISK_RATING": {
+    "column": "RISK_RATING",
+    "kind": "string"
+   },
+   "IS_SANCTIONED": {
+    "column": "IS_SANCTIONED",
+    "kind": "flag"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATION_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_UPDATE_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "COUNTRY_ID"
+ },
+ "LKP_CURRENCIES": {
+  "table": "CRM_LKP_CURRENCIES",
+  "class": "CrmLkpCurrency",
+  "columns": {
+   "CURRENCY_ID": {
+    "column": "CURRENCY_ID",
+    "kind": "int"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "CURRENCY_NAME": {
+    "column": "CURRENCY_NAME",
+    "kind": "string"
+   },
+   "CURRENCY_NAME_AR": {
+    "column": "CURRENCY_NAME_AR",
+    "kind": "string"
+   },
+   "CURRENCY_SYMBOL": {
+    "column": "CURRENCY_SYMBOL",
+    "kind": "string"
+   },
+   "NUMERIC_CODE": {
+    "column": "NUMERIC_CODE",
+    "kind": "string"
+   },
+   "MINOR_UNIT": {
+    "column": "MINOR_UNIT",
+    "kind": "int"
+   },
+   "COUNTRY_ID": {
+    "column": "COUNTRY_ID",
+    "kind": "int"
+   },
+   "IS_BASE_CURRENCY": {
+    "column": "IS_BASE_CURRENCY",
+    "kind": "flag"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATION_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_UPDATE_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "CURRENCY_ID"
+ },
+ "LKP_STATUS_CODES": {
+  "table": "CRM_LKP_STATUS_CODES",
+  "class": "CrmLkpStatusCode",
+  "columns": {
+   "STATUS_ID": {
+    "column": "STATUS_ID",
+    "kind": "int"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "STATUS_NAME": {
+    "column": "STATUS_NAME",
+    "kind": "string"
+   },
+   "STATUS_NAME_AR": {
+    "column": "STATUS_NAME_AR",
+    "kind": "string"
+   },
+   "STATUS_GROUP": {
+    "column": "STATUS_GROUP",
+    "kind": "string"
+   },
+   "STATUS_GROUP_AR": {
+    "column": "STATUS_GROUP_AR",
+    "kind": "string"
+   },
+   "MODULE_CODE": {
+    "column": "MODULE_CODE",
+    "kind": "string"
+   },
+   "ENTITY_TYPE": {
+    "column": "ENTITY_TYPE",
+    "kind": "string"
+   },
+   "COLOR_CODE": {
+    "column": "COLOR_CODE",
+    "kind": "string"
+   },
+   "ICON_CLASS": {
+    "column": "ICON_CLASS",
+    "kind": "string"
+   },
+   "IS_INITIAL": {
+    "column": "IS_INITIAL",
+    "kind": "flag"
+   },
+   "IS_FINAL": {
+    "column": "IS_FINAL",
+    "kind": "flag"
+   },
+   "IS_NEGATIVE": {
+    "column": "IS_NEGATIVE",
+    "kind": "flag"
+   },
+   "ALLOWS_EDIT": {
+    "column": "IS_ALLOWS_EDIT",
+    "kind": "flag"
+   },
+   "ALLOWS_DELETE": {
+    "column": "IS_ALLOWS_DELETE",
+    "kind": "flag"
+   },
+   "DESCRIPTION": {
+    "column": "DESCRIPTION",
+    "kind": "string"
+   },
+   "DESCRIPTION_AR": {
+    "column": "DESCRIPTION_AR",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATION_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_UPDATE_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "STATUS_ID"
  }
 }

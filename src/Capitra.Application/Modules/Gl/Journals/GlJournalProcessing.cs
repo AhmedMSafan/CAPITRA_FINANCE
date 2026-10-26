@@ -110,8 +110,12 @@ public sealed class GlJournalProcessing(ICapitraDbContext db, ICurrentUser curre
         return batch.BatchId;
     }
 
+    /// <summary>The source document of a journal another module sends (p_source_module ... p_source_transaction_date).</summary>
+    public sealed record SourceDocument(string? Module, string? DocumentType, string? DocumentId, string? DocumentNo, DateOnly? TransactionDate);
+
     public async Task<long> CreateJournalAsync(long batchId, string journalName, DateOnly? journalDate, DateOnly? accountingDate, string currencyCode,
-        decimal? conversionRate, string? description, string? referenceNo, bool systemGenerated, CancellationToken ct)
+        decimal? conversionRate, string? description, string? referenceNo, bool systemGenerated, CancellationToken ct,
+        DateOnly? conversionDate = null, SourceDocument? source = null)
     {
         var batch = await db.Set<GlJournalBatch>().SingleAsync(b => b.BatchId == batchId, ct);
         var sourceCode = await db.Set<GlJournalSource>().Where(s => s.SourceId == batch.SourceId).Select(s => s.SourceCode).SingleAsync(ct);
@@ -139,6 +143,12 @@ public sealed class GlJournalProcessing(ICapitraDbContext db, ICurrentUser curre
             IsSystemGenerated = systemGenerated,
             Description = description,
             ReferenceNo = referenceNo,
+            ConversionDate = conversionDate,
+            SourceModule = N(source?.Module),
+            SourceDocumentType = N(source?.DocumentType),
+            SourceDocumentId = source?.DocumentId,
+            SourceDocumentNo = source?.DocumentNo,
+            SourceTransactionDate = source?.TransactionDate,
         };
         db.Add(header);
         await db.SaveChangesAsync(ct);

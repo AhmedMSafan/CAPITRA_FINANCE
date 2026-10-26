@@ -55,6 +55,12 @@ for m in re.finditer(r"htp\.p\((.*?)\);\s*$", src, re.S | re.M):
             pieces.append(part[1:-1].replace("''", "'"))
         else:
             key = re.sub(r'\s+', ' ', part)
+            tm = re.fullmatch(r"t\('((?:[^']|'')*)',\s*'((?:[^']|'')*)'\)", key)
+            if tm and key not in mapping:
+                # t('English', 'Arabic'): the bilingual span helper (ApexHtml.T)
+                lit = lambda s: '"' + s.replace("''", "'").replace('\\', '\\\\').replace('"', '\\"') + '"'
+                pieces.append('{{T(' + lit(tm.group(1)) + ', ' + lit(tm.group(2)) + ')}}')
+                continue
             if key not in mapping:
                 sys.exit(f'unmapped expression: {key}')
             pieces.append('{{' + mapping[key] + '}}')

@@ -2989,6 +2989,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasKey("ClientId")
                         .HasName("PK_CRM_CLIENTS");
 
+                    b.HasIndex("BaseCurrencyId")
+                        .HasDatabaseName("IX_CRM_CLIENTS_BASE_CURRENCY_ID");
+
                     b.HasIndex("CityId")
                         .HasDatabaseName("IX_CRM_CLIENTS_CITY_ID");
 
@@ -3024,6 +3027,360 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_CRM_CLIENTS_KYC_STATUS_KYC_EXPIRY_DATE");
 
                     b.ToTable("CRM_CLIENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmLkpCountry", b =>
+                {
+                    b.Property<long>("CountryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("COUNTRY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CountryId"));
+
+                    b.Property<string>("Continent")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CONTINENT");
+
+                    b.Property<string>("ContinentAr")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CONTINENT_AR");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("COUNTRY_CODE");
+
+                    b.Property<string>("CountryCodeA3")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("COUNTRY_CODE_A3");
+
+                    b.Property<string>("CountryName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("COUNTRY_NAME");
+
+                    b.Property<string>("CountryNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("COUNTRY_NAME_AR");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsDomestic")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_DOMESTIC");
+
+                    b.Property<bool>("IsSanctioned")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_SANCTIONED");
+
+                    b.Property<string>("Nationality")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NATIONALITY");
+
+                    b.Property<string>("NationalityAr")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NATIONALITY_AR");
+
+                    b.Property<string>("PhoneCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("PHONE_CODE");
+
+                    b.Property<string>("RiskRating")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("RISK_RATING");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("CountryId")
+                        .HasName("PK_CRM_LKP_COUNTRIES");
+
+                    b.HasIndex("CountryCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CRM_LKP_COUNTRIES_COUNTRY_CODE");
+
+                    b.HasIndex("CountryCodeA3")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CRM_LKP_COUNTRIES_COUNTRY_CODE_A3");
+
+                    b.ToTable("CRM_LKP_COUNTRIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmLkpCurrency", b =>
+                {
+                    b.Property<long>("CurrencyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CURRENCY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CurrencyId"));
+
+                    b.Property<long?>("CountryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("COUNTRY_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<string>("CurrencyName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CURRENCY_NAME");
+
+                    b.Property<string>("CurrencyNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CURRENCY_NAME_AR");
+
+                    b.Property<string>("CurrencySymbol")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("CURRENCY_SYMBOL");
+
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsBaseCurrency")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_BASE_CURRENCY");
+
+                    b.Property<int>("MinorUnit")
+                        .HasColumnType("integer")
+                        .HasColumnName("MINOR_UNIT");
+
+                    b.Property<string>("NumericCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("NUMERIC_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("CurrencyId")
+                        .HasName("PK_CRM_LKP_CURRENCIES");
+
+                    b.HasIndex("CountryId")
+                        .HasDatabaseName("IX_CRM_LKP_CURRENCIES_COUNTRY_ID");
+
+                    b.HasIndex("CurrencyCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CRM_LKP_CURRENCIES_CURRENCY_CODE");
+
+                    b.ToTable("CRM_LKP_CURRENCIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmLkpStatusCode", b =>
+                {
+                    b.Property<long>("StatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("STATUS_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("StatusId"));
+
+                    b.Property<string>("ColorCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("COLOR_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<string>("DescriptionAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION_AR");
+
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ENTITY_TYPE");
+
+                    b.Property<string>("IconClass")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ICON_CLASS");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsAllowsDelete")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ALLOWS_DELETE");
+
+                    b.Property<bool>("IsAllowsEdit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ALLOWS_EDIT");
+
+                    b.Property<bool>("IsFinal")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_FINAL");
+
+                    b.Property<bool>("IsInitial")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_INITIAL");
+
+                    b.Property<bool>("IsNegative")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_NEGATIVE");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("MODULE_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<string>("StatusGroup")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STATUS_GROUP");
+
+                    b.Property<string>("StatusGroupAr")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STATUS_GROUP_AR");
+
+                    b.Property<string>("StatusName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STATUS_NAME");
+
+                    b.Property<string>("StatusNameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STATUS_NAME_AR");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("StatusId")
+                        .HasName("PK_CRM_LKP_STATUS_CODES");
+
+                    b.HasIndex("EntityType")
+                        .HasDatabaseName("IX_CRM_LKP_STATUS_CODES_ENTITY_TYPE");
+
+                    b.HasIndex("ModuleCode")
+                        .HasDatabaseName("IX_CRM_LKP_STATUS_CODES_MODULE_CODE");
+
+                    b.HasIndex("StatusCode", "ModuleCode", "EntityType")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CRM_LKP_STATUS_CODES_STATUS_CODE_MODULE_CODE_ENTITY_TYPE");
+
+                    b.ToTable("CRM_LKP_STATUS_CODES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursement", b =>
@@ -32554,11 +32911,41 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmClient", b =>
                 {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmLkpCurrency", null)
+                        .WithMany()
+                        .HasForeignKey("BaseCurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CLIENTS_CRM_LKP_CURRENCIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmLkpCountry", null)
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CLIENTS_CRM_LKP_COUNTRIES");
+
                     b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
                         .WithMany()
                         .HasForeignKey("ParentClientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_CRM_CLIENTS_CRM_CLIENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmLkpStatusCode", null)
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CLIENTS_CRM_LKP_STATUS_CODES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmLkpCurrency", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmLkpCountry", null)
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_CRM_LKP_CURRENCIES_CRM_LKP_COUNTRIES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursement", b =>
