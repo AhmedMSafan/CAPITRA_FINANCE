@@ -110,6 +110,21 @@ def main():
     for path in map_path.split(','):
         cmap.update(json.load(open(path, encoding='utf-8')))
 
+    # reports on views (select * from VIEW): the view's columns in order, from the data export's _COLUMNS.csv
+    views = {}
+    colcsv = os.path.join(os.path.dirname(os.path.normpath(app_dir)), 'data', '_COLUMNS.csv')
+    viewcols = {}
+    if os.path.exists(colcsv):
+        import csv
+        for row in csv.DictReader(open(colcsv, encoding='utf-8')):
+            viewcols.setdefault(row['TABLE_NAME'], []).append((int(row['COLUMN_ID']), row['COLUMN_NAME']))
+    for p in pages:
+        d = os.path.join(app_dir, 'p%04d' % p)
+        for name in os.listdir(os.path.join(d, 'regions')):
+            m = re.search(r'select \*\s+from (\w+)', read(os.path.join(d, 'regions', name)), re.I)
+            if m and m.group(1).upper() in viewcols:
+                views[p] = [c for _, c in sorted(viewcols[m.group(1).upper()])]
+
     # which page holds the form of each table (the IR's edit link and the Create button go there)
     form_page = {}
     info = {}
@@ -129,6 +144,13 @@ def main():
         i = info[p]
         page = {'page': p, 'title': i['title'], 'modal': i['modal'], 'regions': []}
         for r in sorted(i['regions'], key=lambda r: r['seq']):
+            if r['type'] == 'NATIVE_IR' and r['table'] is None and p in views:
+                # a report on a view: its process is written by hand (IR_<key>), the columns come in the view's order
+                cols = i['columns']
+                order = [c for c in views[p] if c in cols]
+                page['regions'].append({'key': key(r['title']), 'title': r['title'], 'kind': 'ir', 'table': None, 'pk': order[0],
+                                        'columns': [{'name': c, 'heading': cols[c]['heading'], 'type': cols[c]['type']} for c in order]})
+                continue
             if r['type'] not in ('NATIVE_IR', 'NATIVE_FORM') or r['table'] not in cmap:
                 if r['type'] in ('NATIVE_IR', 'NATIVE_FORM'):
                     print('skipped (no table map):', p, r['title'], r['table'], file=sys.stderr)

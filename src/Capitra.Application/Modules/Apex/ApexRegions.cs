@@ -155,16 +155,6 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
         return Convert.ChangeType(decimal.Parse(v, NumberStyles.Number, CultureInfo.InvariantCulture), t, CultureInfo.InvariantCulture);
     }
 
-    /// <summary>A value as the report shows it: flags Y/N, dates dd-Mon-yyyy, timestamps in Cairo time.</summary>
-    private static object? Show(object? value) => value switch
-    {
-        null => null,
-        bool b => b ? "Y" : "N",
-        DateOnly d => d.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture),
-        DateTime t => Gl.GlTime.Stamp(t, "dd-MMM-yyyy HH:mm"),
-        _ => value,
-    };
-
     /// <summary>A value as a form item holds it: flags Y/N, dates yyyy-MM-dd, numbers in invariant format.</summary>
     private static string? Edit(object? value) => value switch
     {
@@ -183,9 +173,6 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
     {
         using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(request.X01) ? "{}" : request.X01);
         var o = doc.RootElement;
-        string? Str(string key) => o.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
-        int Int(string key, int fallback) => o.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt32() : fallback;
-
         var query = db.Set<T>().AsNoTracking();
         if (region.ParentColumn is not null)
         {
@@ -195,52 +182,8 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
 
         var props = region.Table.Columns.Select(c => (c.Name, Prop: Prop<T>(c.Property))).ToList();
         var pk = Prop<T>(Column(region.Table.Pk).Property);
-        var rows = (await query.ToListAsync(ct)).Select(e => (Pk: pk.GetValue(e), Values: props.ToDictionary(p => p.Name, p => p.Prop.GetValue(e)))).ToList();
-
-        // the report search: every column, or the one chosen with the magnifier
-        var search = Str("search")?.Trim();
-        var column = Str("column");
-        if (!string.IsNullOrEmpty(search))
-        {
-            bool Hit(object? v) => Show(v)?.ToString()?.Contains(search, StringComparison.OrdinalIgnoreCase) == true;
-            rows = rows.Where(r => string.IsNullOrEmpty(column) ? r.Values.Values.Any(Hit) : r.Values.TryGetValue(column, out var v) && Hit(v)).ToList();
-        }
-
-        var sort = Str("sort");
-        if (sort is not null && props.Any(p => p.Name == sort))
-        {
-            var desc = Str("dir") == "desc";
-            rows = (desc ? rows.OrderByDescending(r => r.Values[sort], ValueComparer.Instance) : rows.OrderBy(r => r.Values[sort], ValueComparer.Instance)).ToList();
-        }
-        else
-        {
-            rows = rows.OrderBy(r => r.Pk, ValueComparer.Instance).ToList();
-        }
-
-        var first = Math.Max(1, Int("first", 1));
-        var count = Math.Clamp(Int("rows", 15), 1, 1000);
-        return new
-        {
-            ok = true,
-            total = rows.Count,
-            rows = rows.Skip(first - 1).Take(count).Select(r => r.Values.ToDictionary(v => v.Key, v => Show(v.Value))).ToList(),
-        };
-    }
-
-    /// <summary>Nulls last, then numbers, dates and text in their natural order (as the database sorted).</summary>
-    private sealed class ValueComparer : IComparer<object?>
-    {
-        public static readonly ValueComparer Instance = new();
-
-        public int Compare(object? x, object? y) => (x, y) switch
-        {
-            (null, null) => 0,
-            (null, _) => 1,
-            (_, null) => -1,
-            (string a, string b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase),
-            (IComparable a, _) when x.GetType() == y.GetType() => a.CompareTo(y),
-            _ => string.Compare(x.ToString(), y.ToString(), StringComparison.OrdinalIgnoreCase),
-        };
+        var rows = (await query.ToListAsync(ct)).Select(e => new ApexReport.Row(pk.GetValue(e), props.ToDictionary(p => p.Name, p => p.Prop.GetValue(e)))).ToList();
+        return ApexReport.Page(rows, o);
     }
 
     // ------------------------------------------------------------------------------------------------ form
@@ -303,5 +246,78 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
 
         await db.SaveChangesAsync(ct);
         return new { ok = true, id = Edit(pkProp.GetValue(row)), message = "Action Processed." };
+    }
+}
+
+/// <summary>What an interactive report does with its rows: search, sort and one page of them.</summary>
+public static class ApexReport
+{
+    /// <summary>One report row: its primary key (the default order) and its values by column.</summary>
+    public sealed record Row(object? Pk, Dictionary<string, object?> Values);
+
+    /// <summary>A value as the report shows it: flags Y/N, dates dd-Mon-yyyy, timestamps in Cairo time.</summary>
+    public static object? Show(object? value) => value switch
+    {
+        null => null,
+        bool b => b ? "Y" : "N",
+        DateOnly d => d.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture),
+        DateTime t => Gl.GlTime.Stamp(t, "dd-MMM-yyyy HH:mm"),
+        _ => value,
+    };
+
+    /// <summary>
+    /// The report request {search, column, sort, dir, first, rows} applied to the rows:
+    /// returns {ok, total, rows} with the values as the report shows them.
+    /// </summary>
+    public static object Page(List<Row> rows, JsonElement o)
+    {
+        string? Str(string key) => o.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+        int Int(string key, int fallback) => o.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt32() : fallback;
+
+        // the report search: every column, or the one chosen with the magnifier
+        var search = Str("search")?.Trim();
+        var column = Str("column");
+        if (!string.IsNullOrEmpty(search))
+        {
+            bool Hit(object? v) => Show(v)?.ToString()?.Contains(search, StringComparison.OrdinalIgnoreCase) == true;
+            rows = rows.Where(r => string.IsNullOrEmpty(column) ? r.Values.Values.Any(Hit) : r.Values.TryGetValue(column, out var v) && Hit(v)).ToList();
+        }
+
+        var sort = Str("sort");
+        if (sort is not null && rows.Count > 0 && rows[0].Values.ContainsKey(sort))
+        {
+            rows = (Str("dir") == "desc"
+                ? rows.OrderByDescending(r => r.Values[sort], ValueComparer.Instance)
+                : rows.OrderBy(r => r.Values[sort], ValueComparer.Instance)).ToList();
+        }
+        else
+        {
+            rows = rows.OrderBy(r => r.Pk, ValueComparer.Instance).ToList();
+        }
+
+        var first = Math.Max(1, Int("first", 1));
+        var count = Math.Clamp(Int("rows", 15), 1, 1000);
+        return new
+        {
+            ok = true,
+            total = rows.Count,
+            rows = rows.Skip(first - 1).Take(count).Select(r => r.Values.ToDictionary(v => v.Key, v => Show(v.Value))).ToList(),
+        };
+    }
+
+    /// <summary>Nulls last, then numbers, dates and text in their natural order (as the database sorted).</summary>
+    private sealed class ValueComparer : IComparer<object?>
+    {
+        public static readonly ValueComparer Instance = new();
+
+        public int Compare(object? x, object? y) => (x, y) switch
+        {
+            (null, null) => 0,
+            (null, _) => 1,
+            (_, null) => -1,
+            (string a, string b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase),
+            (IComparable a, _) when x.GetType() == y.GetType() => a.CompareTo(y),
+            _ => string.Compare(x.ToString(), y.ToString(), StringComparison.OrdinalIgnoreCase),
+        };
     }
 }

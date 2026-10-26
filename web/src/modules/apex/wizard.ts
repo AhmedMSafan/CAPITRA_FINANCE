@@ -20,7 +20,8 @@ export type WizardRegion = {
   key: string
   title: string
   kind: 'ir' | 'form'
-  table: string
+  /** null for a report on a view, whose process is written by hand. */
+  table: string | null
   pk: string
   parentItem?: string
   columns?: WizardColumn[]

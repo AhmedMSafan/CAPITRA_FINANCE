@@ -188,7 +188,8 @@ const router = createRouter({
         {
           path: 'gl/account-balances',
           name: 'gl-account-balances',
-          component: () => import('@/modules/gl/pages/AccountBalancesPage.vue'),
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 20 },
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Account Balances' }
         },
         {

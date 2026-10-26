@@ -306,6 +306,182 @@ export const wizardPages: WizardPage[] = [
     ]
   },
   {
+    "page": 20,
+    "title": "Accounts Balance",
+    "modal": false,
+    "regions": [
+      {
+        "key": "ACCOUNTS_BALANCE",
+        "title": "Accounts Balance",
+        "kind": "ir",
+        "table": null,
+        "pk": "BALANCE_ID",
+        "columns": [
+          {
+            "name": "BALANCE_ID",
+            "heading": "Balance Id",
+            "type": "NUMBER"
+          },
+          {
+            "name": "LEDGER_ID",
+            "heading": "Ledger Id",
+            "type": "NUMBER"
+          },
+          {
+            "name": "LEDGER_CODE",
+            "heading": "Ledger Code",
+            "type": "STRING"
+          },
+          {
+            "name": "LEDGER_NAME_EN",
+            "heading": "Ledger Name En",
+            "type": "STRING"
+          },
+          {
+            "name": "LEDGER_PERIOD_ID",
+            "heading": "Ledger Period Id",
+            "type": "NUMBER"
+          },
+          {
+            "name": "PERIOD_CODE",
+            "heading": "Period Code",
+            "type": "STRING"
+          },
+          {
+            "name": "ACCOUNT_COMBINATION_ID",
+            "heading": "Account Combination Id",
+            "type": "NUMBER"
+          },
+          {
+            "name": "CONCATENATED_ACCOUNT",
+            "heading": "Concatenated Account",
+            "type": "STRING"
+          },
+          {
+            "name": "DISPLAY_ACCOUNT",
+            "heading": "Display Account",
+            "type": "STRING"
+          },
+          {
+            "name": "ACCOUNT_ID",
+            "heading": "Account Id",
+            "type": "NUMBER"
+          },
+          {
+            "name": "ACCOUNT_CODE",
+            "heading": "Account Code",
+            "type": "STRING"
+          },
+          {
+            "name": "ACCOUNT_NAME_EN",
+            "heading": "Account Name En",
+            "type": "STRING"
+          },
+          {
+            "name": "ACCOUNT_NAME_AR",
+            "heading": "Account Name Ar",
+            "type": "STRING"
+          },
+          {
+            "name": "ACCOUNT_TYPE",
+            "heading": "Account Type",
+            "type": "STRING"
+          },
+          {
+            "name": "FINANCIAL_STATEMENT_CLASS",
+            "heading": "Financial Statement Class",
+            "type": "STRING"
+          },
+          {
+            "name": "CURRENCY_CODE",
+            "heading": "Currency Code",
+            "type": "STRING"
+          },
+          {
+            "name": "OPENING_DR",
+            "heading": "Opening Dr",
+            "type": "NUMBER"
+          },
+          {
+            "name": "OPENING_CR",
+            "heading": "Opening Cr",
+            "type": "NUMBER"
+          },
+          {
+            "name": "OPENING_NET_DR_CR",
+            "heading": "Opening Net Dr Cr",
+            "type": "NUMBER"
+          },
+          {
+            "name": "PERIOD_DR",
+            "heading": "Period Dr",
+            "type": "NUMBER"
+          },
+          {
+            "name": "PERIOD_CR",
+            "heading": "Period Cr",
+            "type": "NUMBER"
+          },
+          {
+            "name": "PERIOD_NET_DR_CR",
+            "heading": "Period Net Dr Cr",
+            "type": "NUMBER"
+          },
+          {
+            "name": "CLOSING_DR",
+            "heading": "Closing Dr",
+            "type": "NUMBER"
+          },
+          {
+            "name": "CLOSING_CR",
+            "heading": "Closing Cr",
+            "type": "NUMBER"
+          },
+          {
+            "name": "CLOSING_NET_DR_CR",
+            "heading": "Closing Net Dr Cr",
+            "type": "NUMBER"
+          },
+          {
+            "name": "LAST_POSTED_HEADER_ID",
+            "heading": "Last Posted Header Id",
+            "type": "NUMBER"
+          },
+          {
+            "name": "LAST_POSTED_JOURNAL_NO",
+            "heading": "Last Posted Journal No",
+            "type": "STRING"
+          },
+          {
+            "name": "LAST_POSTED_AT",
+            "heading": "Last Posted At",
+            "type": "DATE"
+          },
+          {
+            "name": "CREATED_BY",
+            "heading": "Created By",
+            "type": "STRING"
+          },
+          {
+            "name": "CREATED_AT",
+            "heading": "Created At",
+            "type": "DATE"
+          },
+          {
+            "name": "UPDATED_BY",
+            "heading": "Updated By",
+            "type": "STRING"
+          },
+          {
+            "name": "UPDATED_AT",
+            "heading": "Updated At",
+            "type": "DATE"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "page": 600,
     "title": "Accounting Event Catalogue",
     "modal": false,
