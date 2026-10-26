@@ -58,8 +58,14 @@ public static class DependencyInjection
 
         // Copied APEX pages: every on-demand process found in this assembly, looked up by app, page and name.
         foreach (var type in typeof(DependencyInjection).Assembly.GetTypes()
-                     .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IApexProcess).IsAssignableFrom(t)))
+                     .Where(t => t is { IsClass: true, IsAbstract: false, IsPublic: true } && typeof(IApexProcess).IsAssignableFrom(t)))
             services.AddScoped(typeof(IApexProcess), type);
+
+        // Wizard-built reports and forms of the copied pages.
+        foreach (var region in Modules.Gl.Pages.GlApexRegions.All)
+            services.AddSingleton(region);
+        foreach (var lov in Modules.Gl.Pages.GlApexRegions.Lovs)
+            services.AddSingleton(lov);
         services.AddScoped<ApexProcessRegistry>();
 
         return services;

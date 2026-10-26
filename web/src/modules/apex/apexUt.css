@@ -1,0 +1,425 @@
+/* Universal Theme (Vita) as the copied wizard pages use it: regions, interactive reports, forms, buttons and dialogs,
+   with the app's finova_theme.css region header (covb.webp, white title, rounded top). */
+.ut-page {
+  --ut-hot: #056ac8;
+  --ut-border: #e6e6e6;
+  --ut-text: #262626;
+  --ut-muted: #707070;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px;
+  color: var(--ut-text);
+  font: 14px/1.43 'DM Sans', 'Segoe UI', Arial, sans-serif;
+}
+.ut-page h1.t-Page-title {
+  margin: 4px 0 16px;
+  font-size: 20px;
+  font-weight: 500;
+}
+.t-Region {
+  margin-bottom: 16px;
+  border: 1px solid var(--ut-border);
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+}
+.t-Region-header {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 16px;
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+  background: url('./assets/covb.webp') center / cover no-repeat;
+  color: #fff;
+}
+.t-Region-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+}
+.t-Region-body {
+  padding: 16px;
+}
+.t-Button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #f8f8f8;
+  color: #383838;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+}
+.t-Button:hover {
+  background: #fff;
+}
+.t-Button--hot {
+  border-color: var(--ut-hot);
+  background: var(--ut-hot);
+  color: #fff;
+}
+.t-Button--hot:hover {
+  background: #0a7ae0;
+}
+.t-Button--danger {
+  color: #c9302c;
+}
+.t-Button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* interactive report */
+.a-IRR-toolbar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--ut-border);
+  border-radius: 4px 4px 0 0;
+  background: #fafafa;
+}
+.a-IRR-search {
+  position: relative;
+  display: flex;
+  flex: 0 1 320px;
+  min-width: 180px;
+}
+.a-IRR-colSel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 8px;
+  border: 1px solid #d0d0d0;
+  border-right: 0;
+  border-radius: 4px 0 0 4px;
+  background: #fff;
+  color: #505050;
+  cursor: pointer;
+}
+.a-IRR-search-field {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 0 4px 4px 0;
+  font: inherit;
+  font-size: 13px;
+}
+.a-IRR-actions {
+  position: relative;
+}
+.a-IRR-create {
+  margin-left: auto;
+}
+.a-Menu {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  z-index: 50;
+  min-width: 200px;
+  max-height: 320px;
+  margin: 0;
+  padding: 4px 0;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+  font-size: 13px;
+}
+.a-Menu li {
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.a-Menu li:hover,
+.a-Menu li.on {
+  background: #eaf2fb;
+}
+.a-Menu--sub {
+  top: 0;
+  left: 100%;
+  min-width: 90px;
+}
+.a-IRR-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--ut-border);
+  border-top: 0;
+  font-size: 13px;
+}
+.a-IRR-filter {
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: #eaf2fb;
+}
+.a-IRR-remove {
+  border: 0;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+.a-IRR-tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--ut-border);
+  border-top: 0;
+}
+.a-IRR-tableWrap.busy {
+  opacity: 0.6;
+}
+.a-IRR-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.a-IRR-header {
+  position: relative;
+  padding: 0;
+  border-bottom: 1px solid var(--ut-border);
+  border-left: 1px solid #f0f0f0;
+  background: #fafafa;
+  text-align: left;
+  white-space: nowrap;
+}
+.a-IRR-headerLink {
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: #404040;
+  text-align: inherit;
+  cursor: pointer;
+}
+.a-IRR-header--linkCol {
+  width: 32px;
+}
+.a-IRR-sortIcon {
+  margin-left: 4px;
+  font-size: 9px;
+  color: var(--ut-muted);
+}
+.a-IRR-sortWidget {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 40;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+.a-IRR-sortWidget button {
+  width: 30px;
+  height: 26px;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+.a-IRR-table td {
+  padding: 8px;
+  border-bottom: 1px solid #f0f0f0;
+  border-left: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+.a-IRR-table tbody tr:hover td {
+  background: #f7fafd;
+}
+.a-IRR-linkCol a {
+  color: var(--ut-hot);
+}
+.u-tR {
+  text-align: right !important;
+}
+.a-IRR-noDataMsg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+  color: var(--ut-muted);
+}
+.a-IRR-error {
+  padding: 16px;
+  color: #c9302c;
+}
+.a-IRR-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  font-size: 13px;
+}
+.a-IRR-pageBtn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+.a-IRR-pageBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.u-VisuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* form: floating labels */
+.t-Form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px 16px;
+}
+.t-Form-fieldContainer {
+  position: relative;
+}
+.t-Form-fieldContainer--stretch {
+  grid-column: 1 / -1;
+}
+.t-Form-label {
+  position: absolute;
+  top: 6px;
+  left: 9px;
+  z-index: 1;
+  font-size: 11px;
+  color: var(--ut-muted);
+  pointer-events: none;
+}
+.t-Form-label .is-required {
+  color: #c9302c;
+}
+.t-Form-field {
+  width: 100%;
+  min-height: 48px;
+  padding: 20px 8px 4px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ut-text);
+  font: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+textarea.t-Form-field {
+  min-height: 84px;
+  resize: vertical;
+}
+.t-Form-field:focus {
+  border-color: var(--ut-hot);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ut-hot);
+}
+.t-Form-field[readonly] {
+  background: #f6f6f6;
+  color: var(--ut-muted);
+}
+.t-Form-field.is-error {
+  border-color: #c9302c;
+}
+.t-Form-error {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #c9302c;
+}
+.t-Form-field--number {
+  text-align: right;
+}
+.t-ButtonRegion {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--ut-border);
+  border-radius: 7px;
+  background: #fff;
+  margin-bottom: 16px;
+}
+.t-ButtonRegion-col {
+  display: flex;
+  gap: 8px;
+}
+
+/* dialog */
+.ui-dialog-back {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 40%);
+}
+.ui-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(960px, 100%);
+  max-height: calc(100vh - 32px);
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 25%);
+}
+.ui-dialog-titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ut-border);
+}
+.ui-dialog-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+.ui-dialog-close {
+  border: 0;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: #555;
+}
+.ui-dialog-content {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+.ui-dialog .t-ButtonRegion {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--ut-border);
+  border-radius: 0 0 7px 7px;
+}
+.ui-dialog .t-Region {
+  border: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.ui-dialog .t-Region-body {
+  padding: 0;
+}

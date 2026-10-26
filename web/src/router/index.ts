@@ -192,6 +192,111 @@ const router = createRouter({
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Account Balances' }
         },
         {
+          path: 'gl/account-details',
+          name: 'gl-p3',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 3 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Account Details' }
+        },
+        {
+          path: 'gl/event-sources',
+          name: 'gl-p600',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 600 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Event Catalogue' }
+        },
+        {
+          path: 'gl/event-source',
+          name: 'gl-p601',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 601 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Event Details' }
+        },
+        {
+          path: 'gl/accounting-events',
+          name: 'gl-p605',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 605 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Events' }
+        },
+        {
+          path: 'gl/accounting-event',
+          name: 'gl-p606',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 606 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Event Details' }
+        },
+        {
+          path: 'gl/source-values',
+          name: 'gl-p610',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 610 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Source value Definitions' }
+        },
+        {
+          path: 'gl/source-value',
+          name: 'gl-p611',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 611 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Source value Details' }
+        },
+        {
+          path: 'gl/rule-sets',
+          name: 'gl-p615',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 615 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Rule Sets' }
+        },
+        {
+          path: 'gl/rule-set',
+          name: 'gl-p616',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 616 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Rule Details' }
+        },
+        {
+          path: 'gl/rule-lines',
+          name: 'gl-p617',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 617 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Rule Lines' }
+        },
+        {
+          path: 'gl/generated-entries',
+          name: 'gl-p620',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 620 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Auto Generated GL Entries' }
+        },
+        {
+          path: 'gl/generated-entry',
+          name: 'gl-p621',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 621 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Generated GL Entries Details' }
+        },
+        {
+          path: 'gl/generated-entry-lines',
+          name: 'gl-p622',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 622 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Auto Generated GL Entry Lines' }
+        },
+        {
+          path: 'gl/generated-entry-line',
+          name: 'gl-p623',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 623 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'GL Entry Line Details' }
+        },
+        {
+          path: 'gl/rule-line',
+          name: 'gl-p718',
+          component: () => import('@/modules/gl/apex/wizard/GlWizardPage.vue'),
+          props: { page: 718 },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Rule Line Details' }
+        },
+        {
           path: 'gl/reference-data',
           name: 'gl-reference-data',
           component: () => import('@/modules/adm/pages/ReferenceDataPage.vue'),
