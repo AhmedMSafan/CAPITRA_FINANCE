@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Capitra.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CapitraDbContext))]
-    [Migration("20261026212948_CrmTrsFctTables")]
+    [Migration("20261026213256_CrmTrsFctTables")]
     partial class CrmTrsFctTables
     {
         /// <inheritdoc />
@@ -1228,10 +1228,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("BASE_CURRENCY_ID");
 
-                    b.Property<string>("BaseDayCount")
+                    b.Property<string>("BaseDayCountBasis")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
-                        .HasColumnName("BASE_DAY_COUNT");
+                        .HasColumnName("BASE_DAY_COUNT_BASIS");
 
                     b.Property<decimal?>("BaseNetAmount")
                         .HasPrecision(18, 2)

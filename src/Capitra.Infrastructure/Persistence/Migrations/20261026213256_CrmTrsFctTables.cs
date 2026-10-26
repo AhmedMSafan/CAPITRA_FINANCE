@@ -272,7 +272,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     TENOR_MONTH = table.Column<int>(type: "integer", nullable: true),
                     INDEX_RATE = table.Column<decimal>(type: "numeric(9,6)", precision: 9, scale: 6, nullable: true),
                     SPREAD_RATE = table.Column<decimal>(type: "numeric(9,6)", precision: 9, scale: 6, nullable: true),
-                    BASE_DAY_COUNT = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    BASE_DAY_COUNT_BASIS = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     PRINCIPAL_REPAYMENT_SCHEDULE_TYPE = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     PRINCIPAL_REPAYMENT_METHOD = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     PRINCIPAL_DISTRIBUTION_METHOD = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),

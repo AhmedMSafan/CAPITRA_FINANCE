@@ -161,7 +161,7 @@ public class FctDisbursement : AuditableEntity
 
     public decimal? SpreadRate { get; set; }
 
-    public string? BaseDayCount { get; set; }
+    public string? BaseDayCountBasis { get; set; }
 
     public string? PrincipalRepaymentScheduleType { get; set; }
 

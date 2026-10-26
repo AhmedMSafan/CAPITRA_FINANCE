@@ -312,7 +312,7 @@
     "kind": "decimal"
    },
    "BASE_DAY_COUNT": {
-    "column": "BASE_DAY_COUNT",
+    "column": "BASE_DAY_COUNT_BASIS",
     "kind": "string"
    },
    "PRINCIPAL_REPAYMENT_SCHEDULE_TYPE": {

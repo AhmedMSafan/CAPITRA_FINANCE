@@ -238,6 +238,8 @@ def main():
             name = on.replace('FNV', 'CAP')
             if name in BARE:  # MFF_DELINQUENCIES.STATUS -> DELINQUENCY_STATUS
                 name = '_'.join(tbl.split('_')[1:-1] + [singular(tbl.split('_')[-1]), name])
+            if name.endswith('_COUNT') and dt in ('CHAR', 'VARCHAR2'):  # BASE_DAY_COUNT 'ACTUAL/360' -> BASE_DAY_COUNT_BASIS: _COUNT columns are integers
+                name += '_BASIS'
             comment = None
             init = None
             dflt = (c['DATA_DEFAULT_VC'] or '').strip().strip('\n').strip()

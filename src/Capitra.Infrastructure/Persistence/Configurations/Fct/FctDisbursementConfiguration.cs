@@ -85,7 +85,7 @@ public sealed class FctDisbursementConfiguration : IEntityTypeConfiguration<FctD
         builder.Property(x => x.FailureReasonAr).HasMaxLength(2000);
         builder.Property(x => x.IndexRate).HasPrecision(9, 6);
         builder.Property(x => x.SpreadRate).HasPrecision(9, 6);
-        builder.Property(x => x.BaseDayCount).HasMaxLength(20);
+        builder.Property(x => x.BaseDayCountBasis).HasMaxLength(20);
         builder.Property(x => x.PrincipalRepaymentScheduleType).HasMaxLength(20);
         builder.Property(x => x.PrincipalRepaymentMethod).HasMaxLength(20);
         builder.Property(x => x.PrincipalDistributionMethod).HasMaxLength(20);

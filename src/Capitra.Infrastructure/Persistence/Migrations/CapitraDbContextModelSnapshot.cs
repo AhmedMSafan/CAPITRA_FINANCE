@@ -1225,10 +1225,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("BASE_CURRENCY_ID");
 
-                    b.Property<string>("BaseDayCount")
+                    b.Property<string>("BaseDayCountBasis")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
-                        .HasColumnName("BASE_DAY_COUNT");
+                        .HasColumnName("BASE_DAY_COUNT_BASIS");
 
                     b.Property<decimal?>("BaseNetAmount")
                         .HasPrecision(18, 2)
