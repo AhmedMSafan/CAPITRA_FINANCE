@@ -1,6 +1,7 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Modules.Apex;
+using Capitra.Application.Modules.Mff.Pages;
 using Capitra.Application.Modules.Mtg.Pages.Custom;
 
 namespace Capitra.Application.Modules.Mff.Pages.Custom;
@@ -55,6 +56,14 @@ internal static class MffForm
 
     public static string Req(string? value, string table, string column) =>
         value ?? throw new ApexProcessException("ORA-01400: cannot insert NULL into (\"" + table + "\".\"" + column + "\")");
+
+    /// <summary>A "Load ..." button that runs the same block as the page's Before Header load: the items it sets, none when no row.</summary>
+    public static async Task<Dictionary<string, string?>?> LoadAsync(IApexSqlReader reader, int page, ApexRequest request, CancellationToken ct)
+    {
+        var load = MffApexSql.Loads.First(x => x.Page == page);
+        var rows = await reader.QueryAsync(load.Sql, request.Items ?? [], ct);
+        return rows.Count == 0 ? null : rows[0].ToDictionary(c => c.Key, c => ApexSqlLovValues.Text(c.Value));
+    }
 
     public static string Id(long id) => id.ToString(CultureInfo.InvariantCulture);
 }
