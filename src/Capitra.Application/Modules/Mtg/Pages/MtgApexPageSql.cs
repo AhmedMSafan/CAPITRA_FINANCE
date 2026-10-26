@@ -1468,6 +1468,114 @@ public static class MtgApexPageSql
         where w."PORTFOLIO_ID" = @P603_PORTFOLIO_ID::numeric
         """;
 
+    public const string P711_KPIS = """
+        with "FNV_V_MIS_DEVELOPER_EXPOSURE" AS (
+        select d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", count(distinct pf."PORTFOLIO_ID") "PORTFOLIO_COUNT", count(distinct pf."PROJECT_ID") "PROJECT_COUNT", count(distinct pa."INVESTOR_ID") "INVESTOR_COUNT", sum(pf."FACE_VALUE") "FACE_VALUE", sum(pf."PROPOSED_PURCHASE_VALUE") "PURCHASE_VALUE", sum(pf."OUTSTANDING_VALUE") "OUTSTANDING_EXPOSURE"
+        from "MTG_DEVELOPERS" d
+        left join "MTG_PURCHASED_PORTFOLIOS" pf on pf."DEVELOPER_ID" = d."DEVELOPER_ID"
+        left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa on pa."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN"
+        )
+        select count(*) "K1", sum("PORTFOLIO_COUNT") "K2", sum("INVESTOR_COUNT") "K3", sum("FACE_VALUE") "K4", sum("OUTSTANDING_EXPOSURE") "K5" from (select "DEVELOPER_ID", "DEVELOPER_CODE", coalesce("LEGAL_NAME_EN", '-') "DEVELOPER", "PORTFOLIO_COUNT", "PROJECT_COUNT", "INVESTOR_COUNT", "FACE_VALUE", "PURCHASE_VALUE", "OUTSTANDING_EXPOSURE"
+        from "FNV_V_MIS_DEVELOPER_EXPOSURE") "Q"
+        """;
+
+    public const string P711_TOP = """
+        with "FNV_V_MIS_DEVELOPER_EXPOSURE" AS (
+        select d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN", count(distinct pf."PORTFOLIO_ID") "PORTFOLIO_COUNT", count(distinct pf."PROJECT_ID") "PROJECT_COUNT", count(distinct pa."INVESTOR_ID") "INVESTOR_COUNT", sum(pf."FACE_VALUE") "FACE_VALUE", sum(pf."PROPOSED_PURCHASE_VALUE") "PURCHASE_VALUE", sum(pf."OUTSTANDING_VALUE") "OUTSTANDING_EXPOSURE"
+        from "MTG_DEVELOPERS" d
+        left join "MTG_PURCHASED_PORTFOLIOS" pf on pf."DEVELOPER_ID" = d."DEVELOPER_ID"
+        left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa on pa."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN"
+        )
+        select "LBL", "VAL", max("VAL") over () "MX", sum("VAL") over () "TOT" from (select "DEVELOPER" "LBL", sum("OUTSTANDING_EXPOSURE") "VAL" from (select "DEVELOPER_ID", "DEVELOPER_CODE", coalesce("LEGAL_NAME_EN", '-') "DEVELOPER", "PORTFOLIO_COUNT", "PROJECT_COUNT", "INVESTOR_COUNT", "FACE_VALUE", "PURCHASE_VALUE", "OUTSTANDING_EXPOSURE"
+        from "FNV_V_MIS_DEVELOPER_EXPOSURE") "Q"
+        group by "DEVELOPER")
+        order by "VAL" desc nulls last fetch first 5 rows only
+        """;
+
+    public const string P730_KPIS = """
+        select count(*) "K1", sum("FACE_VALUE") "K2", sum("PROPOSED_PURCHASE_VALUE") "K3", 100 * (sum("FACE_VALUE") - sum("PROPOSED_PURCHASE_VALUE")) / (nullif(sum("FACE_VALUE"), 0))::numeric "K4", sum("ACCOUNT_COUNT") "K5" from (select p."PORTFOLIO_ID", p."PORTFOLIO_NO", d."DEVELOPER_CODE", d."LEGAL_NAME_EN" "DEVELOPER_NAME_EN", d."LEGAL_NAME_AR" "DEVELOPER_NAME_AR", pr."PROJECT_CODE", pr."PROJECT_NAME_EN", pr."PROJECT_NAME_AR", p."REQUEST_DATE", p."PORTFOLIO_STATUS_CODE", ps."STATUS_NAME_EN", ps."STATUS_NAME_AR", p."CURRENCY_CODE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", (p."FACE_VALUE" - p."PROPOSED_PURCHASE_VALUE") "PURCHASE_DISCOUNT_AMOUNT", round(100 * (p."FACE_VALUE" - p."PROPOSED_PURCHASE_VALUE") / (nullif(p."FACE_VALUE", 0))::numeric, 2) "PURCHASE_DISCOUNT_PCT", p."EXPECTED_RETURN_AMOUNT", p."TERM_MONTHS", p."CURRENT_APPROVAL_STEP", p."SUBMITTED_AT" AS "SUBMITTED_DATE", p."APPROVED_AT" AS "APPROVED_DATE", count(distinct a."PORTFOLIO_ACCOUNT_ID") "ACCOUNT_COUNT", s."SETTLEMENT_STATUS_CODE", s."ACCOUNTING_STATUS_CODE", s."SETTLEMENT_DATE"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        join "MTG_PROJECTS" pr on pr."PROJECT_ID" = p."PROJECT_ID"
+        left join "MTG_LKP_PORTFOLIO_STATUSES" ps on ps."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE"
+        left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "MTG_PURCHASED_PORTFOLIO_SETTLEMENTS" s on s."PORTFOLIO_ID" = p."PORTFOLIO_ID" where (@P730_DEVELOPER_ID::bigint is null or p."DEVELOPER_ID" = @P730_DEVELOPER_ID::bigint) and (@P730_PROJECT_ID::bigint is null or p."PROJECT_ID" = @P730_PROJECT_ID::bigint) and (@P730_STATUS_CODE::text is null or p."PORTFOLIO_STATUS_CODE" = @P730_STATUS_CODE::text) and (@P730_DATE_FROM::text is null or p."REQUEST_DATE" >= cast(@P730_DATE_FROM::text as date)) and (@P730_DATE_TO::text is null or p."REQUEST_DATE" < cast(@P730_DATE_TO::text as date) + 1) and (@P730_CURRENCY_CODE::text is null or p."CURRENCY_CODE" = @P730_CURRENCY_CODE::text)
+        group by p."PORTFOLIO_ID", p."PORTFOLIO_NO", d."DEVELOPER_CODE", d."LEGAL_NAME_EN", d."LEGAL_NAME_AR", pr."PROJECT_CODE", pr."PROJECT_NAME_EN", pr."PROJECT_NAME_AR", p."REQUEST_DATE", p."PORTFOLIO_STATUS_CODE", ps."STATUS_NAME_EN", ps."STATUS_NAME_AR", p."CURRENCY_CODE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", p."EXPECTED_RETURN_AMOUNT", p."TERM_MONTHS", p."CURRENT_APPROVAL_STEP", p."SUBMITTED_AT", p."APPROVED_AT", s."SETTLEMENT_STATUS_CODE", s."ACCOUNTING_STATUS_CODE", s."SETTLEMENT_DATE") "Q"
+        """;
+
+    public const string P730_TOP = """
+        select "LBL", "VAL", max("VAL") over () "MX", sum("VAL") over () "TOT" from (select coalesce("STATUS_NAME_EN", "PORTFOLIO_STATUS_CODE") "LBL", count(*) "VAL" from (select p."PORTFOLIO_ID", p."PORTFOLIO_NO", d."DEVELOPER_CODE", d."LEGAL_NAME_EN" "DEVELOPER_NAME_EN", d."LEGAL_NAME_AR" "DEVELOPER_NAME_AR", pr."PROJECT_CODE", pr."PROJECT_NAME_EN", pr."PROJECT_NAME_AR", p."REQUEST_DATE", p."PORTFOLIO_STATUS_CODE", ps."STATUS_NAME_EN", ps."STATUS_NAME_AR", p."CURRENCY_CODE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", (p."FACE_VALUE" - p."PROPOSED_PURCHASE_VALUE") "PURCHASE_DISCOUNT_AMOUNT", round(100 * (p."FACE_VALUE" - p."PROPOSED_PURCHASE_VALUE") / (nullif(p."FACE_VALUE", 0))::numeric, 2) "PURCHASE_DISCOUNT_PCT", p."EXPECTED_RETURN_AMOUNT", p."TERM_MONTHS", p."CURRENT_APPROVAL_STEP", p."SUBMITTED_AT" AS "SUBMITTED_DATE", p."APPROVED_AT" AS "APPROVED_DATE", count(distinct a."PORTFOLIO_ACCOUNT_ID") "ACCOUNT_COUNT", s."SETTLEMENT_STATUS_CODE", s."ACCOUNTING_STATUS_CODE", s."SETTLEMENT_DATE"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        join "MTG_PROJECTS" pr on pr."PROJECT_ID" = p."PROJECT_ID"
+        left join "MTG_LKP_PORTFOLIO_STATUSES" ps on ps."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE"
+        left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "MTG_PURCHASED_PORTFOLIO_SETTLEMENTS" s on s."PORTFOLIO_ID" = p."PORTFOLIO_ID" where (@P730_DEVELOPER_ID::bigint is null or p."DEVELOPER_ID" = @P730_DEVELOPER_ID::bigint) and (@P730_PROJECT_ID::bigint is null or p."PROJECT_ID" = @P730_PROJECT_ID::bigint) and (@P730_STATUS_CODE::text is null or p."PORTFOLIO_STATUS_CODE" = @P730_STATUS_CODE::text) and (@P730_DATE_FROM::text is null or p."REQUEST_DATE" >= cast(@P730_DATE_FROM::text as date)) and (@P730_DATE_TO::text is null or p."REQUEST_DATE" < cast(@P730_DATE_TO::text as date) + 1) and (@P730_CURRENCY_CODE::text is null or p."CURRENCY_CODE" = @P730_CURRENCY_CODE::text)
+        group by p."PORTFOLIO_ID", p."PORTFOLIO_NO", d."DEVELOPER_CODE", d."LEGAL_NAME_EN", d."LEGAL_NAME_AR", pr."PROJECT_CODE", pr."PROJECT_NAME_EN", pr."PROJECT_NAME_AR", p."REQUEST_DATE", p."PORTFOLIO_STATUS_CODE", ps."STATUS_NAME_EN", ps."STATUS_NAME_AR", p."CURRENCY_CODE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", p."EXPECTED_RETURN_AMOUNT", p."TERM_MONTHS", p."CURRENT_APPROVAL_STEP", p."SUBMITTED_AT", p."APPROVED_AT", s."SETTLEMENT_STATUS_CODE", s."ACCOUNTING_STATUS_CODE", s."SETTLEMENT_DATE") "Q"
+        group by coalesce("STATUS_NAME_EN", "PORTFOLIO_STATUS_CODE"))
+        order by "VAL" desc nulls last fetch first 5 rows only
+        """;
+
+    public const string P731_KPIS = """
+        select count(*) "K1", sum("CONTRACT_VALUE") "K2", 100 * sum("PAID_VALUE") / (nullif(sum("CONTRACT_VALUE"), 0))::numeric "K3", sum("OUTSTANDING_VALUE") "K4", count(case when "ARREARS_AMOUNT" > 0 then 1 end) "K5", sum("ARREARS_AMOUNT") "K6" from (select a."PORTFOLIO_ACCOUNT_ID", p."PORTFOLIO_NO", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", u."UNIT_CODE", u."UNIT_TYPE_CODE", u."BUILDING_NO", u."FLOOR_NO", u."UNIT_NO", a."BOOKING_DATE", a."CONTRACT_DATE", a."CONTRACT_VALUE", a."PAID_VALUE", a."OUTSTANDING_VALUE", round(100 * a."PAID_VALUE" / (nullif(a."CONTRACT_VALUE", 0))::numeric, 2) "PAID_PCT", round(100 * a."OUTSTANDING_VALUE" / (nullif(a."CONTRACT_VALUE", 0))::numeric, 2) "OUTSTANDING_PCT", a."INSTALLMENT_AMOUNT", a."INSTALLMENT_FREQUENCY", a."LAST_PAYMENT_DATE", a."REGULAR_PAYMENT_MONTHS", a."ARREARS_AMOUNT", a."ACCOUNT_STATUS"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = a."PORTFOLIO_ID"
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = a."INVESTOR_ID"
+        join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID" where (@P731_PORTFOLIO_ID::bigint is null or a."PORTFOLIO_ID" = @P731_PORTFOLIO_ID::bigint) and (@P731_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P731_INVESTOR_CODE::text), '%')) and (@P731_UNIT_CODE::text is null or upper(u."UNIT_CODE") like concat('%', upper(@P731_UNIT_CODE::text), '%')) and (@P731_ACCOUNT_STATUS::text is null or a."ACCOUNT_STATUS" = @P731_ACCOUNT_STATUS::text) and (coalesce(@P731_ARREARS_ONLY::text, 'N') = 'N' or a."ARREARS_AMOUNT" > 0)) "Q"
+        """;
+
+    public const string P731_TOP = """
+        select "LBL", "VAL", max("VAL") over () "MX", sum("VAL") over () "TOT" from (select "PORTFOLIO_NO" "LBL", sum("OUTSTANDING_VALUE") "VAL" from (select a."PORTFOLIO_ACCOUNT_ID", p."PORTFOLIO_NO", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", u."UNIT_CODE", u."UNIT_TYPE_CODE", u."BUILDING_NO", u."FLOOR_NO", u."UNIT_NO", a."BOOKING_DATE", a."CONTRACT_DATE", a."CONTRACT_VALUE", a."PAID_VALUE", a."OUTSTANDING_VALUE", round(100 * a."PAID_VALUE" / (nullif(a."CONTRACT_VALUE", 0))::numeric, 2) "PAID_PCT", round(100 * a."OUTSTANDING_VALUE" / (nullif(a."CONTRACT_VALUE", 0))::numeric, 2) "OUTSTANDING_PCT", a."INSTALLMENT_AMOUNT", a."INSTALLMENT_FREQUENCY", a."LAST_PAYMENT_DATE", a."REGULAR_PAYMENT_MONTHS", a."ARREARS_AMOUNT", a."ACCOUNT_STATUS"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = a."PORTFOLIO_ID"
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = a."INVESTOR_ID"
+        join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID" where (@P731_PORTFOLIO_ID::bigint is null or a."PORTFOLIO_ID" = @P731_PORTFOLIO_ID::bigint) and (@P731_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P731_INVESTOR_CODE::text), '%')) and (@P731_UNIT_CODE::text is null or upper(u."UNIT_CODE") like concat('%', upper(@P731_UNIT_CODE::text), '%')) and (@P731_ACCOUNT_STATUS::text is null or a."ACCOUNT_STATUS" = @P731_ACCOUNT_STATUS::text) and (coalesce(@P731_ARREARS_ONLY::text, 'N') = 'N' or a."ARREARS_AMOUNT" > 0)) "Q"
+        group by "PORTFOLIO_NO")
+        order by "VAL" desc nulls last fetch first 5 rows only
+        """;
+
+    public const string P732_KPIS = """
+        select count(*) "K1", sum("TOTAL_OUTSTANDING_VALUE") "K2", max("CONCENTRATION_PCT") "K3", sum("TOTAL_ARREARS_AMOUNT") "K4", count(case when "TOTAL_ARREARS_AMOUNT" > 0 then 1 end) "K5" from (select i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."DECLARED_INCOME", count(distinct a."PORTFOLIO_ID") "PORTFOLIO_COUNT", count(a."PORTFOLIO_ACCOUNT_ID") "CONTRACT_COUNT", count(distinct a."UNIT_ID") "UNIT_COUNT", sum(a."CONTRACT_VALUE") "TOTAL_CONTRACT_VALUE", sum(a."PAID_VALUE") "TOTAL_PAID_VALUE", sum(a."OUTSTANDING_VALUE") "TOTAL_OUTSTANDING_VALUE", sum(a."ARREARS_AMOUNT") "TOTAL_ARREARS_AMOUNT", round(100 * sum(a."OUTSTANDING_VALUE") / (nullif(sum(sum(a."OUTSTANDING_VALUE")) over (), 0))::numeric, 2) "CONCENTRATION_PCT"
+        from "MTG_INVESTORS" i
+        join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."INVESTOR_ID" = i."INVESTOR_ID"
+        join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = a."PORTFOLIO_ID" where (@P732_DEVELOPER_ID::bigint is null or p."DEVELOPER_ID" = @P732_DEVELOPER_ID::bigint) and (@P732_PROJECT_ID::bigint is null or p."PROJECT_ID" = @P732_PROJECT_ID::bigint) and (@P732_PORTFOLIO_ID::bigint is null or p."PORTFOLIO_ID" = @P732_PORTFOLIO_ID::bigint) and (@P732_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P732_INVESTOR_CODE::text), '%')) and (@P732_ACTIVE_FLAG::text is null or i."IS_ACTIVE" = (@P732_ACTIVE_FLAG::text = 'Y'))
+        group by i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."DECLARED_INCOME") "Q"
+        """;
+
+    public const string P732_TOP = """
+        select "LBL", "VAL", max("VAL") over () "MX", sum("VAL") over () "TOT" from (select coalesce("FULL_NAME_EN", "INVESTOR_CODE") "LBL", sum("TOTAL_OUTSTANDING_VALUE") "VAL" from (select i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."DECLARED_INCOME", count(distinct a."PORTFOLIO_ID") "PORTFOLIO_COUNT", count(a."PORTFOLIO_ACCOUNT_ID") "CONTRACT_COUNT", count(distinct a."UNIT_ID") "UNIT_COUNT", sum(a."CONTRACT_VALUE") "TOTAL_CONTRACT_VALUE", sum(a."PAID_VALUE") "TOTAL_PAID_VALUE", sum(a."OUTSTANDING_VALUE") "TOTAL_OUTSTANDING_VALUE", sum(a."ARREARS_AMOUNT") "TOTAL_ARREARS_AMOUNT", round(100 * sum(a."OUTSTANDING_VALUE") / (nullif(sum(sum(a."OUTSTANDING_VALUE")) over (), 0))::numeric, 2) "CONCENTRATION_PCT"
+        from "MTG_INVESTORS" i
+        join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."INVESTOR_ID" = i."INVESTOR_ID"
+        join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = a."PORTFOLIO_ID" where (@P732_DEVELOPER_ID::bigint is null or p."DEVELOPER_ID" = @P732_DEVELOPER_ID::bigint) and (@P732_PROJECT_ID::bigint is null or p."PROJECT_ID" = @P732_PROJECT_ID::bigint) and (@P732_PORTFOLIO_ID::bigint is null or p."PORTFOLIO_ID" = @P732_PORTFOLIO_ID::bigint) and (@P732_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P732_INVESTOR_CODE::text), '%')) and (@P732_ACTIVE_FLAG::text is null or i."IS_ACTIVE" = (@P732_ACTIVE_FLAG::text = 'Y'))
+        group by i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."DECLARED_INCOME") "Q"
+        group by coalesce("FULL_NAME_EN", "INVESTOR_CODE"))
+        order by "VAL" desc nulls last fetch first 5 rows only
+        """;
+
+    public const string P748_KPIS = """
+        select count(*) "K1", count(distinct "PORTFOLIO_NO") "K2", avg("DAYS_IN_STATUS") "K3", count(case when upper("TO_STATUS") like '%REJECT%' then 1 end) "K4", count(distinct "CHANGED_BY") "K5" from (with h as (select sh.*, lead(sh."CHANGE_AT") over (partition by sh."PORTFOLIO_ID"
+        order by sh."CHANGE_AT", sh."STATUS_HIST_ID") "NEXT_CHANGE_DATE"
+        from "MTG_PURCHASED_PORTFOLIO_STATUS_HIST" sh) select h."STATUS_HIST_ID", p."PORTFOLIO_NO", h."FROM_STATUS", fs."STATUS_NAME_EN" "FROM_STATUS_NAME_EN", fs."STATUS_NAME_AR" "FROM_STATUS_NAME_AR", h."TO_STATUS", ts."STATUS_NAME_EN" "TO_STATUS_NAME_EN", ts."STATUS_NAME_AR" "TO_STATUS_NAME_AR", h."CHANGE_AT" AS "CHANGE_DATE", h."NEXT_CHANGE_DATE", round(cast(coalesce(h."NEXT_CHANGE_DATE", now()) as date) - cast(h."CHANGE_AT" as date), 2) "DAYS_IN_STATUS", h."CHANGED_BY", h."COMMENTS"
+        from h
+        join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = h."PORTFOLIO_ID"
+        left join "MTG_LKP_PORTFOLIO_STATUSES" fs on fs."STATUS_CODE" = h."FROM_STATUS"
+        left join "MTG_LKP_PORTFOLIO_STATUSES" ts on ts."STATUS_CODE" = h."TO_STATUS" where (@P748_PORTFOLIO_ID::bigint is null or h."PORTFOLIO_ID" = @P748_PORTFOLIO_ID::bigint) and (@P748_FROM_STATUS::text is null or h."FROM_STATUS" = @P748_FROM_STATUS::text) and (@P748_TO_STATUS::text is null or h."TO_STATUS" = @P748_TO_STATUS::text) and (@P748_DATE_FROM::text is null or h."CHANGE_AT" >= cast(to_date(@P748_DATE_FROM::text, 'DD-MM-YYYY') as timestamp)) and (@P748_DATE_TO::text is null or h."CHANGE_AT" < cast(to_date(@P748_DATE_TO::text, 'DD-MM-YYYY') + 1 as timestamp)) and (@P748_CHANGED_BY::text is null or upper(h."CHANGED_BY") like concat('%', upper(@P748_CHANGED_BY::text), '%'))) "Q"
+        """;
+
+    public const string P748_TOP = """
+        select "LBL", "VAL", max("VAL") over () "MX", sum("VAL") over () "TOT" from (select coalesce("TO_STATUS_NAME_EN", "TO_STATUS") "LBL", count(*) "VAL" from (with h as (select sh.*, lead(sh."CHANGE_AT") over (partition by sh."PORTFOLIO_ID"
+        order by sh."CHANGE_AT", sh."STATUS_HIST_ID") "NEXT_CHANGE_DATE"
+        from "MTG_PURCHASED_PORTFOLIO_STATUS_HIST" sh) select h."STATUS_HIST_ID", p."PORTFOLIO_NO", h."FROM_STATUS", fs."STATUS_NAME_EN" "FROM_STATUS_NAME_EN", fs."STATUS_NAME_AR" "FROM_STATUS_NAME_AR", h."TO_STATUS", ts."STATUS_NAME_EN" "TO_STATUS_NAME_EN", ts."STATUS_NAME_AR" "TO_STATUS_NAME_AR", h."CHANGE_AT" AS "CHANGE_DATE", h."NEXT_CHANGE_DATE", round(cast(coalesce(h."NEXT_CHANGE_DATE", now()) as date) - cast(h."CHANGE_AT" as date), 2) "DAYS_IN_STATUS", h."CHANGED_BY", h."COMMENTS"
+        from h
+        join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = h."PORTFOLIO_ID"
+        left join "MTG_LKP_PORTFOLIO_STATUSES" fs on fs."STATUS_CODE" = h."FROM_STATUS"
+        left join "MTG_LKP_PORTFOLIO_STATUSES" ts on ts."STATUS_CODE" = h."TO_STATUS" where (@P748_PORTFOLIO_ID::bigint is null or h."PORTFOLIO_ID" = @P748_PORTFOLIO_ID::bigint) and (@P748_FROM_STATUS::text is null or h."FROM_STATUS" = @P748_FROM_STATUS::text) and (@P748_TO_STATUS::text is null or h."TO_STATUS" = @P748_TO_STATUS::text) and (@P748_DATE_FROM::text is null or h."CHANGE_AT" >= cast(to_date(@P748_DATE_FROM::text, 'DD-MM-YYYY') as timestamp)) and (@P748_DATE_TO::text is null or h."CHANGE_AT" < cast(to_date(@P748_DATE_TO::text, 'DD-MM-YYYY') + 1 as timestamp)) and (@P748_CHANGED_BY::text is null or upper(h."CHANGED_BY") like concat('%', upper(@P748_CHANGED_BY::text), '%'))) "Q"
+        group by coalesce("TO_STATUS_NAME_EN", "TO_STATUS"))
+        order by "VAL" desc nulls last fetch first 5 rows only
+        """;
+
     public const string VALIDATION_DOCUMENT_READY = """
         with "FNV_V_DOCUMENT_COMPLETENESS" AS (
         with req as (select count(*) "REQUIRED_COUNT"
