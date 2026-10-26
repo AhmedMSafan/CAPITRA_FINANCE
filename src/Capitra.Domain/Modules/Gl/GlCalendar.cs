@@ -2,7 +2,9 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Gl;
 
-/// <summary>GL_CALENDARS: an accounting calendar, the set of fiscal years and periods ledgers post into (APEX App 120 page 30).</summary>
+/// <summary>
+/// GL_CALENDARS: copy of FINOVA GL_CALENDARS (APEX), all columns kept.
+/// </summary>
 public class GlCalendar : AuditableEntity
 {
     public long CalendarId { get; set; }
@@ -13,12 +15,13 @@ public class GlCalendar : AuditableEntity
 
     public string? CalendarNameAr { get; set; }
 
-    public string CalendarType { get; set; } = GlCodes.Monthly;
+    /// <summary>One of: MONTHLY, QUARTERLY, CUSTOM.</summary>
+    public string CalendarType { get; set; } = "MONTHLY";
 
-    public string PeriodFrequency { get; set; } = GlCodes.Monthly;
+    /// <summary>One of: MONTHLY, QUARTERLY, YEARLY, CUSTOM.</summary>
+    public string PeriodFrequency { get; set; } = "MONTHLY";
 
-    /// <summary>A generated year gets a 13th adjustment period by default.</summary>
-    public bool IsAdjustmentPeriodUsed { get; set; } = true;
+    public bool IsAdjustmentPeriod { get; set; } = true;
 
     public bool IsActive { get; set; } = true;
 }

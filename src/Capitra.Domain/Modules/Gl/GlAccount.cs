@@ -3,8 +3,7 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Gl;
 
 /// <summary>
-/// GL_ACCOUNTS: a natural account in the chart of accounts tree (APEX App 120 pages 2/3).
-/// Its code is always a value of the structure's account segment; the two are saved together.
+/// GL_ACCOUNTS: copy of FINOVA GL_ACCOUNTS (APEX), all columns kept.
 /// </summary>
 public class GlAccount : AuditableEntity
 {
@@ -12,7 +11,6 @@ public class GlAccount : AuditableEntity
 
     public long CoaId { get; set; }
 
-    /// <summary>Cannot change once saved: it is the value of the account segment.</summary>
     public string AccountCode { get; set; } = string.Empty;
 
     public string AccountNameEn { get; set; } = string.Empty;
@@ -23,22 +21,20 @@ public class GlAccount : AuditableEntity
 
     public long? ParentAccountId { get; set; }
 
-    /// <summary>The matching GL_COA_SEGMENT_VALUES row of the account segment.</summary>
     public long? AccountSegmentValueId { get; set; }
 
-    /// <summary>One of <see cref="GlCodes.AccountTypes"/>.</summary>
+    /// <summary>One of: ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE, CONTRA_ASSET, CONTRA_REVENUE, MEMO.</summary>
     public string AccountType { get; set; } = string.Empty;
 
-    /// <summary>DR or CR.</summary>
+    /// <summary>One of: DR, CR.</summary>
     public string NormalBalance { get; set; } = string.Empty;
 
-    /// <summary>BALANCE_SHEET or INCOME_STATEMENT.</summary>
+    /// <summary>One of: BALANCE_SHEET, INCOME_STATEMENT, CASH_FLOW, EQUITY, OFF_BALANCE.</summary>
     public string FinancialStatementClass { get; set; } = string.Empty;
 
-    /// <summary>One of <see cref="GlCodes.CashFlowClasses"/>.</summary>
-    public string CashFlowClass { get; set; } = GlCodes.CashFlowNone;
+    /// <summary>One of: OPERATING, INVESTING, FINANCING, CASH_EQUIVALENT, NONE.</summary>
+    public string CashFlowClass { get; set; } = "NONE";
 
-    /// <summary>A summary (parent) account never allows posting.</summary>
     public bool IsSummary { get; set; }
 
     public bool IsPostingAllowed { get; set; } = true;
@@ -59,7 +55,6 @@ public class GlAccount : AuditableEntity
 
     public bool IsCurrencyRevaluation { get; set; }
 
-    /// <summary>Only one account of a structure can be the retained earnings account.</summary>
     public bool IsRetainedEarnings { get; set; }
 
     public bool IsActive { get; set; } = true;
@@ -68,5 +63,7 @@ public class GlAccount : AuditableEntity
 
     public DateOnly? EffectiveEndDate { get; set; }
 
-    public int SortOrder { get; set; } = 10;
+    public long SortOrder { get; set; } = 10;
+
+    public string? ExternalGlAccountMap { get; set; }
 }

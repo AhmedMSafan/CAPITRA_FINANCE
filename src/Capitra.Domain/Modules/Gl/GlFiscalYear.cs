@@ -2,7 +2,9 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Gl;
 
-/// <summary>GL_FISCAL_YEARS: one fiscal year of a calendar. Its status is a label; posting is controlled per ledger period.</summary>
+/// <summary>
+/// GL_FISCAL_YEARS: copy of FINOVA GL_FISCAL_YEARS (APEX), all columns kept.
+/// </summary>
 public class GlFiscalYear : AuditableEntity
 {
     public long FiscalYearId { get; set; }
@@ -17,6 +19,6 @@ public class GlFiscalYear : AuditableEntity
 
     public DateOnly EndDate { get; set; }
 
-    /// <summary>DRAFT, OPEN, CLOSED or PERMANENTLY_CLOSED.</summary>
-    public string YearStatus { get; set; } = GlCodes.YearOpen;
+    /// <summary>One of: DRAFT, OPEN, CLOSED, PERMANENTLY_CLOSED.</summary>
+    public string YearStatus { get; set; } = "DRAFT";
 }

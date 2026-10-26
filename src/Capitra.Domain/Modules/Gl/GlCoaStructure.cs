@@ -3,8 +3,7 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Gl;
 
 /// <summary>
-/// GL_COA_STRUCTURES: an account structure, the layout of every account combination (APEX App 120 page 40).
-/// Each role (account, balancing, branch ...) holds the number of the segment that plays it.
+/// GL_COA_STRUCTURES: copy of FINOVA GL_COA_STRUCTURES (APEX), all columns kept.
 /// </summary>
 public class GlCoaStructure : AuditableEntity
 {
@@ -18,15 +17,13 @@ public class GlCoaStructure : AuditableEntity
 
     public string? Description { get; set; }
 
-    /// <summary>Put between segment values in a combination, e.g. 01-HQ-110101.</summary>
     public string DelimiterChar { get; set; } = "-";
 
-    /// <summary>1 to 10.</summary>
     public int SegmentCount { get; set; }
 
-    public int AccountSegmentNum { get; set; }
-
     public int? BalancingSegmentNum { get; set; }
+
+    public int AccountSegmentNum { get; set; }
 
     public int? BranchSegmentNum { get; set; }
 
@@ -36,7 +33,7 @@ public class GlCoaStructure : AuditableEntity
 
     public int? IntercompanySegmentNum { get; set; }
 
-    public bool IsDynamicCombinationAllowed { get; set; }
+    public bool IsDynamicCombinationsAllowed { get; set; } = true;
 
     public bool IsCombinationApprovalRequired { get; set; }
 

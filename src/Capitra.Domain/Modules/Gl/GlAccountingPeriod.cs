@@ -2,7 +2,9 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Gl;
 
-/// <summary>GL_ACCOUNTING_PERIODS: a period of a fiscal year, e.g. JAN-2026, or the adjustment period ADJ-2026.</summary>
+/// <summary>
+/// GL_ACCOUNTING_PERIODS: copy of FINOVA GL_ACCOUNTING_PERIODS (APEX), all columns kept.
+/// </summary>
 public class GlAccountingPeriod : AuditableEntity
 {
     public long PeriodId { get; set; }
@@ -25,9 +27,16 @@ public class GlAccountingPeriod : AuditableEntity
 
     public int? QuarterNo { get; set; }
 
-    /// <summary>An adjustment period may overlap the regular periods; it accepts adjustment journals only.</summary>
     public bool IsAdjustmentPeriod { get; set; }
 
-    /// <summary>Copied to a ledger period when it is first created; each ledger keeps its own status afterwards.</summary>
-    public string DefaultPeriodStatus { get; set; } = GlCodes.PeriodNeverOpened;
+    /// <summary>One of: NEVER_OPENED, FUTURE_ENTRY, OPEN, CLOSED, PERMANENTLY_CLOSED.</summary>
+    public string PeriodStatus { get; set; } = "NEVER_OPENED";
+
+    public string? OpenedBy { get; set; }
+
+    public DateTime? OpenedAt { get; set; }
+
+    public string? ClosedBy { get; set; }
+
+    public DateTime? ClosedAt { get; set; }
 }

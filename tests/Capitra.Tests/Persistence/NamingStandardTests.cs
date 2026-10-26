@@ -14,7 +14,7 @@ namespace Capitra.Tests.Persistence;
 public sealed partial class NamingStandardTests
 {
     private static readonly string[] ModulePrefixes =
-        ["ADM_", "MTG_", "FCT_", "GL_", "WFE_", "CHW_", "COL_", "CRM_", "TRS_", "TLS_", "SEC_", "RPT_", "SYS_"];
+        ["ADM_", "MTG_", "FCT_", "FIN_", "GL_", "WFE_", "CHW_", "COL_", "CRM_", "TRS_", "TLS_", "SEC_", "RPT_", "SYS_"];
 
     private static readonly string[] AuditColumns = ["CREATED_BY", "CREATED_AT", "UPDATED_BY", "UPDATED_AT", "ROW_VERSION"];
 
@@ -96,11 +96,11 @@ public sealed partial class NamingStandardTests
                 if (column.EndsWith("_DATE", StringComparison.Ordinal) && type != typeof(DateOnly))
                     errors.Add($"{where}: _DATE columns are DateOnly");
 
-                if (column.EndsWith("_AMOUNT", StringComparison.Ordinal) && (type != typeof(decimal) || property.GetPrecision() != 18 || property.GetScale() != 2))
-                    errors.Add($"{where}: _AMOUNT columns are numeric(18,2)");
+                if (column.EndsWith("_AMOUNT", StringComparison.Ordinal) && (type != typeof(decimal) || property.GetPrecision() < 18 || property.GetScale() < 2))
+                    errors.Add($"{where}: _AMOUNT columns are numeric(18,2) or wider (copied APEX columns)");
                 if ((column.EndsWith("_PCT", StringComparison.Ordinal) || column.EndsWith("_RATE", StringComparison.Ordinal))
-                    && (type != typeof(decimal) || property.GetPrecision() != 9 || property.GetScale() != 6))
-                    errors.Add($"{where}: _PCT and _RATE columns are numeric(9,6)");
+                    && (type != typeof(decimal) || property.GetPrecision() < 9 || property.GetScale() < 6))
+                    errors.Add($"{where}: _PCT and _RATE columns are numeric(9,6) or wider (copied APEX columns)");
                 if (type == typeof(decimal) && property.GetPrecision() is null)
                     errors.Add($"{where}: decimal columns need a suffix (_AMOUNT, _PCT, _RATE) or an explicit precision");
                 if (column.EndsWith("_COUNT", StringComparison.Ordinal) && type != typeof(int) && type != typeof(long))

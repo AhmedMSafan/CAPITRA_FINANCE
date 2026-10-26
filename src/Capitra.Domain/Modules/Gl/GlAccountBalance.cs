@@ -3,8 +3,7 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Gl;
 
 /// <summary>
-/// GL_ACCOUNT_BALANCES: posted debits and credits of one combination in one ledger period. The opening balance is the
-/// sum of the earlier periods, worked out when it is read, so posting into an earlier open period never leaves it stale.
+/// GL_ACCOUNT_BALANCES: copy of FINOVA GL_ACCOUNT_BALANCES (APEX), all columns kept.
 /// </summary>
 public class GlAccountBalance : AuditableEntity
 {
@@ -18,9 +17,17 @@ public class GlAccountBalance : AuditableEntity
 
     public string CurrencyCode { get; set; } = string.Empty;
 
+    public decimal OpeningDr { get; set; }
+
+    public decimal OpeningCr { get; set; }
+
     public decimal PeriodDr { get; set; }
 
     public decimal PeriodCr { get; set; }
+
+    public decimal ClosingDr { get; set; }
+
+    public decimal ClosingCr { get; set; }
 
     public long? LastPostedHeaderId { get; set; }
 

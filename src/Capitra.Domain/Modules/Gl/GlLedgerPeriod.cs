@@ -2,7 +2,9 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Gl;
 
-/// <summary>GL_LEDGER_PERIODS: the status of one accounting period in one ledger, and what it lets post.</summary>
+/// <summary>
+/// GL_LEDGER_PERIODS: copy of FINOVA GL_LEDGER_PERIODS (APEX), all columns kept.
+/// </summary>
 public class GlLedgerPeriod : AuditableEntity
 {
     public long LedgerPeriodId { get; set; }
@@ -11,11 +13,11 @@ public class GlLedgerPeriod : AuditableEntity
 
     public long PeriodId { get; set; }
 
-    /// <summary>NEVER_OPENED, FUTURE_ENTRY, OPEN, CLOSED or PERMANENTLY_CLOSED.</summary>
-    public string PeriodStatus { get; set; } = GlCodes.PeriodNeverOpened;
+    /// <summary>One of: NEVER_OPENED, FUTURE_ENTRY, OPEN, CLOSED, PERMANENTLY_CLOSED.</summary>
+    public string PeriodStatus { get; set; } = "NEVER_OPENED";
 
-    /// <summary>NONE, NORMAL, ADJUSTMENT_ONLY or FUTURE_ONLY.</summary>
-    public string PostingMode { get; set; } = GlCodes.PostingNone;
+    /// <summary>One of: NONE, FUTURE_ONLY, NORMAL, ADJUSTMENT_ONLY.</summary>
+    public string PostingMode { get; set; } = "NONE";
 
     public bool IsManualJournalAllowed { get; set; }
 

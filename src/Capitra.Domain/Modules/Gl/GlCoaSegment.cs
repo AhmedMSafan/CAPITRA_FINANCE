@@ -2,14 +2,15 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Gl;
 
-/// <summary>GL_COA_SEGMENTS: one segment of an account structure: company, branch, account ... (APEX App 120 page 40).</summary>
+/// <summary>
+/// GL_COA_SEGMENTS: copy of FINOVA GL_COA_SEGMENTS (APEX), all columns kept.
+/// </summary>
 public class GlCoaSegment : AuditableEntity
 {
     public long CoaSegmentId { get; set; }
 
     public long CoaId { get; set; }
 
-    /// <summary>Position in the combination, from 1. Cannot change once saved.</summary>
     public int SegmentNum { get; set; }
 
     public string SegmentCode { get; set; } = string.Empty;
@@ -18,16 +19,15 @@ public class GlCoaSegment : AuditableEntity
 
     public string? SegmentNameAr { get; set; }
 
-    /// <summary>One of <see cref="GlCodes.SegmentTypes"/>.</summary>
+    /// <summary>One of: COMPANY, BRANCH, COST_CENTER, ACCOUNT, BUSINESS_LINE, INTERCOMPANY, PROJECT, CUSTOMER, CONTRACT, FUTURE, CUSTOM.</summary>
     public string SegmentType { get; set; } = string.Empty;
 
     public int MinLength { get; set; } = 1;
 
-    /// <summary>Up to 30.</summary>
     public int MaxLength { get; set; } = 30;
 
-    /// <summary>One of <see cref="GlCodes.ValueFormats"/>.</summary>
-    public string ValueFormat { get; set; } = GlCodes.FormatAlphanumeric;
+    /// <summary>One of: ALPHANUMERIC, NUMERIC, CHARACTER.</summary>
+    public string ValueFormat { get; set; } = "ALPHANUMERIC";
 
     public string? PadChar { get; set; }
 
@@ -35,7 +35,7 @@ public class GlCoaSegment : AuditableEntity
 
     public bool IsRequired { get; set; } = true;
 
-    public bool IsSummaryValueAllowed { get; set; }
+    public bool IsSummaryValuesAllowed { get; set; } = true;
 
     public bool IsEnabled { get; set; } = true;
 
@@ -43,9 +43,8 @@ public class GlCoaSegment : AuditableEntity
 
     public string? Description { get; set; }
 
-    /// <summary>Value filled in on every new journal line. The account segment never has one.</summary>
     public string? DefaultValueCode { get; set; }
 
-    /// <summary>SUGGEST (the user may change it) or FIXED (always used, field hidden in journal entry).</summary>
-    public string DefaultMode { get; set; } = GlCodes.DefaultModeSuggest;
+    /// <summary>One of: SUGGEST, FIXED.</summary>
+    public string DefaultMode { get; set; } = "SUGGEST";
 }

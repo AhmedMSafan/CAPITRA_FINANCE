@@ -3,14 +3,13 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Gl;
 
 /// <summary>
-/// GL_LEDGERS: a set of books of a legal entity, with its currency, calendar and account structure.
-/// The control accounts hold natural account codes of the ledger's account structure.
+/// GL_LEDGERS: copy of FINOVA GL_LEDGERS (APEX), all columns kept.
 /// </summary>
 public class GlLedger : AuditableEntity
 {
     public long LedgerId { get; set; }
 
-    public string LegalEntityCode { get; set; } = string.Empty;
+    public long LegalEntityId { get; set; }
 
     public string LedgerCode { get; set; } = string.Empty;
 
@@ -18,20 +17,17 @@ public class GlLedger : AuditableEntity
 
     public string? LedgerNameAr { get; set; }
 
-    /// <summary>PRIMARY or SECONDARY.</summary>
-    public string LedgerType { get; set; } = GlCodes.LedgerPrimary;
+    /// <summary>One of: PRIMARY, SECONDARY, REPORTING, CONSOLIDATION.</summary>
+    public string LedgerType { get; set; } = "PRIMARY";
 
     public string LedgerCurrencyCode { get; set; } = string.Empty;
 
     public long CalendarId { get; set; }
 
-    public long? CoaId { get; set; }
+    public bool IsPrimaryLedger { get; set; } = true;
 
-    /// <summary>One primary ledger per legal entity.</summary>
-    public bool IsPrimary { get; set; }
-
-    /// <summary>ACTIVE or INACTIVE.</summary>
-    public string LedgerStatus { get; set; } = GlCodes.LedgerActive;
+    /// <summary>One of: DRAFT, ACTIVE, SUSPENDED, CLOSED.</summary>
+    public string LedgerStatus { get; set; } = "DRAFT";
 
     public string? RetainedEarningsAcctCode { get; set; }
 
@@ -50,4 +46,6 @@ public class GlLedger : AuditableEntity
     public DateOnly? EndDate { get; set; }
 
     public string? Notes { get; set; }
+
+    public long? CoaId { get; set; }
 }

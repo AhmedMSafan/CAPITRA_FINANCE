@@ -1,0 +1,334 @@
+{
+ "FIN_BRANCHES": {
+  "table": "FIN_BRANCHES",
+  "class": "FinBranch",
+  "columns": {
+   "BRANCH_ID": {
+    "column": "BRANCH_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "BRANCH_CODE": {
+    "column": "BRANCH_CODE",
+    "kind": "string"
+   },
+   "BRANCH_NAME_EN": {
+    "column": "BRANCH_NAME_EN",
+    "kind": "string"
+   },
+   "BRANCH_NAME_AR": {
+    "column": "BRANCH_NAME_AR",
+    "kind": "string"
+   },
+   "PARENT_BRANCH_ID": {
+    "column": "PARENT_BRANCH_ID",
+    "kind": "int"
+   },
+   "BRANCH_TYPE": {
+    "column": "BRANCH_TYPE",
+    "kind": "string"
+   },
+   "COUNTRY_CODE": {
+    "column": "COUNTRY_CODE",
+    "kind": "string"
+   },
+   "CITY_NAME": {
+    "column": "CITY_NAME",
+    "kind": "string"
+   },
+   "ADDRESS_EN": {
+    "column": "ADDRESS_EN",
+    "kind": "string"
+   },
+   "ADDRESS_AR": {
+    "column": "ADDRESS_AR",
+    "kind": "string"
+   },
+   "PHONE_NO": {
+    "column": "PHONE_NO",
+    "kind": "string"
+   },
+   "EMAIL_ADDRESS": {
+    "column": "EMAIL_ADDRESS",
+    "kind": "string"
+   },
+   "START_DATE": {
+    "column": "START_DATE",
+    "kind": "date"
+   },
+   "END_DATE": {
+    "column": "END_DATE",
+    "kind": "date"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "BRANCH_ID"
+ },
+ "FIN_COST_CENTERS": {
+  "table": "FIN_COST_CENTERS",
+  "class": "FinCostCenter",
+  "columns": {
+   "COST_CENTER_ID": {
+    "column": "COST_CENTER_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "BRANCH_ID": {
+    "column": "BRANCH_ID",
+    "kind": "int"
+   },
+   "COST_CENTER_CODE": {
+    "column": "COST_CENTER_CODE",
+    "kind": "string"
+   },
+   "COST_CENTER_NAME_EN": {
+    "column": "COST_CENTER_NAME_EN",
+    "kind": "string"
+   },
+   "COST_CENTER_NAME_AR": {
+    "column": "COST_CENTER_NAME_AR",
+    "kind": "string"
+   },
+   "PARENT_COST_CENTER_ID": {
+    "column": "PARENT_COST_CENTER_ID",
+    "kind": "int"
+   },
+   "COST_CENTER_TYPE": {
+    "column": "COST_CENTER_TYPE",
+    "kind": "string"
+   },
+   "MANAGER_USER_NAME": {
+    "column": "MANAGER_USER_NAME",
+    "kind": "string"
+   },
+   "START_DATE": {
+    "column": "START_DATE",
+    "kind": "date"
+   },
+   "END_DATE": {
+    "column": "END_DATE",
+    "kind": "date"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "COST_CENTER_ID"
+ },
+ "FIN_CURRENCIES": {
+  "table": "FIN_CURRENCIES",
+  "class": "FinCurrency",
+  "columns": {
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "CURRENCY_NAME_EN": {
+    "column": "CURRENCY_NAME_EN",
+    "kind": "string"
+   },
+   "CURRENCY_NAME_AR": {
+    "column": "CURRENCY_NAME_AR",
+    "kind": "string"
+   },
+   "SYMBOL": {
+    "column": "SYMBOL",
+    "kind": "string"
+   },
+   "PRECISION_DIGITS": {
+    "column": "PRECISION_DIGITS",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CURRENCY_ID": {
+    "column": "CURRENCY_ID",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "CURRENCY_CODE"
+ },
+ "FIN_LEGAL_ENTITIES": {
+  "table": "FIN_LEGAL_ENTITIES",
+  "class": "FinLegalEntity",
+  "columns": {
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_CODE": {
+    "column": "LEGAL_ENTITY_CODE",
+    "kind": "string"
+   },
+   "LEGAL_ENTITY_NAME_EN": {
+    "column": "LEGAL_ENTITY_NAME_EN",
+    "kind": "string"
+   },
+   "LEGAL_ENTITY_NAME_AR": {
+    "column": "LEGAL_ENTITY_NAME_AR",
+    "kind": "string"
+   },
+   "SHORT_NAME": {
+    "column": "SHORT_NAME",
+    "kind": "string"
+   },
+   "COUNTRY_CODE": {
+    "column": "COUNTRY_CODE",
+    "kind": "string"
+   },
+   "BASE_CURRENCY_CODE": {
+    "column": "BASE_CURRENCY_CODE",
+    "kind": "string"
+   },
+   "TAX_REGISTRATION_NO": {
+    "column": "TAX_REGISTRATION_NO",
+    "kind": "string"
+   },
+   "COMMERCIAL_REGISTER_NO": {
+    "column": "COMMERCIAL_REGISTER_NO",
+    "kind": "string"
+   },
+   "REGULATOR_CODE": {
+    "column": "REGULATOR_CODE",
+    "kind": "string"
+   },
+   "LEGAL_ADDRESS_EN": {
+    "column": "LEGAL_ADDRESS_EN",
+    "kind": "string"
+   },
+   "LEGAL_ADDRESS_AR": {
+    "column": "LEGAL_ADDRESS_AR",
+    "kind": "string"
+   },
+   "PHONE_NO": {
+    "column": "PHONE_NO",
+    "kind": "string"
+   },
+   "EMAIL_ADDRESS": {
+    "column": "EMAIL_ADDRESS",
+    "kind": "string"
+   },
+   "WEBSITE_URL": {
+    "column": "WEBSITE_URL",
+    "kind": "string"
+   },
+   "START_DATE": {
+    "column": "START_DATE",
+    "kind": "date"
+   },
+   "END_DATE": {
+    "column": "END_DATE",
+    "kind": "date"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "PRIMARY_FLAG": {
+    "column": "IS_PRIMARY",
+    "kind": "flag"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "PARENT_LEGAL_ENTITY_ID": {
+    "column": "PARENT_LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_TYPE": {
+    "column": "LEGAL_ENTITY_TYPE",
+    "kind": "string"
+   },
+   "CONSOLIDATION_FLAG": {
+    "column": "IS_CONSOLIDATION",
+    "kind": "flag"
+   },
+   "OWNERSHIP_PERCENT": {
+    "column": "OWNERSHIP_PERCENT",
+    "kind": "decimal"
+   },
+   "CONSOLIDATION_METHOD": {
+    "column": "CONSOLIDATION_METHOD",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "LEGAL_ENTITY_ID"
+ }
+}

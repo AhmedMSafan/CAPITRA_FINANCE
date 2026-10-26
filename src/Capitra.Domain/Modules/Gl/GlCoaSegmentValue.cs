@@ -2,7 +2,9 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Gl;
 
-/// <summary>GL_COA_SEGMENT_VALUES: a value a segment accepts, in a parent/child hierarchy (APEX App 120 page 40).</summary>
+/// <summary>
+/// GL_COA_SEGMENT_VALUES: copy of FINOVA GL_COA_SEGMENT_VALUES (APEX), all columns kept.
+/// </summary>
 public class GlCoaSegmentValue : AuditableEntity
 {
     public long SegmentValueId { get; set; }
@@ -19,7 +21,6 @@ public class GlCoaSegmentValue : AuditableEntity
 
     public long? ParentValueId { get; set; }
 
-    /// <summary>A summary (parent) value never allows posting.</summary>
     public bool IsSummary { get; set; }
 
     public bool IsPostingAllowed { get; set; } = true;
@@ -30,11 +31,13 @@ public class GlCoaSegmentValue : AuditableEntity
 
     public DateOnly? EffectiveEndDate { get; set; }
 
-    public int SortOrder { get; set; } = 10;
+    public long SortOrder { get; set; } = 10;
 
-    /// <summary>ADM_LKP_LEGAL_ENTITIES code.</summary>
-    public string? ReferenceLegalEntityCode { get; set; }
+    public long? ReferenceLegalEntityId { get; set; }
 
-    /// <summary>ADM_LKP_BUSINESS_LINES code.</summary>
+    public long? ReferenceBranchId { get; set; }
+
+    public long? ReferenceCostCenterId { get; set; }
+
     public string? ReferenceBusinessLineCode { get; set; }
 }

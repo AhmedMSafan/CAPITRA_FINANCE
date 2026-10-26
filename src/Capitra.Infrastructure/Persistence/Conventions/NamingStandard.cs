@@ -53,9 +53,10 @@ public static class NamingStandard
                 if (samePrincipal)
                     name += "_" + string.Join("_", foreignKey.Properties.Select(p => p.GetColumnName()));
 
-                foreignKey.SetConstraintName(name);
+                foreignKey.SetConstraintName(Fit(name));
             }
 
+            var indexNames = new HashSet<string>(StringComparer.Ordinal);
             foreach (var index in entity.GetIndexes())
             {
                 // Trailing columns are left out of the name when it would pass PostgreSQL's 63 characters.
@@ -63,10 +64,32 @@ public static class NamingStandard
                 string name;
                 while ((name = $"{(index.IsUnique ? "UQ" : "IX")}_{owner}_{string.Join("_", columns)}").Length > 63 && columns.Count > 1)
                     columns.RemoveAt(columns.Count - 1);
-                index.SetDatabaseName(name);
+
+                // Two indexes cut down to the same leading columns get a short hash of the full column list.
+                if (!indexNames.Add(name))
+                {
+                    var full = string.Join("_", index.Properties.Select(p => p.GetColumnName()));
+                    name = Fit($"{name}_{Hash(full)}", force: true);
+                    indexNames.Add(name);
+                }
+
+                index.SetDatabaseName(Fit(name));
             }
         }
     }
+
+    /// <summary>Names over PostgreSQL's 63 characters are cut to 54 and end in a short hash, so they stay unique.</summary>
+    private static string Fit(string name, bool force = false)
+    {
+        if (name.Length <= 63 && !force)
+            return name;
+
+        var hash = Hash(name);
+        return name.Length <= 63 ? name : $"{name[..54]}_{hash}";
+    }
+
+    private static string Hash(string value) =>
+        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value)))[..8];
 
     /// <summary>MTG_PURCHASED_PORTFOLIO_ACCOUNTS → MTG_PP_ACCOUNTS (approved abbreviation PP, keys and indexes only).</summary>
     private static string KeyPrefix(string table) =>

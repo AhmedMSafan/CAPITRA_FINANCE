@@ -2,7 +2,9 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Gl;
 
-/// <summary>GL_JOURNAL_SOURCES: where journals come from: MANUAL (journal entry page) or a sub-ledger module.</summary>
+/// <summary>
+/// GL_JOURNAL_SOURCES: copy of FINOVA GL_JOURNAL_SOURCES (APEX), all columns kept.
+/// </summary>
 public class GlJournalSource : AuditableEntity
 {
     public long SourceId { get; set; }
@@ -13,15 +15,22 @@ public class GlJournalSource : AuditableEntity
 
     public string? SourceNameAr { get; set; }
 
-    /// <summary>Created by the system; cannot be removed.</summary>
+    /// <summary>One of: GL, LEASING, FACTORING, MORTGAGE, TREASURY, CASH, FA, SYSTEM, MIGRATION, OTHER.</summary>
+    public string SourceGroupCode { get; set; } = "GL";
+
     public bool IsSystemSource { get; set; }
 
     public bool IsManualAllowed { get; set; }
 
-    /// <summary>Journals of the source are approved by a second user before they post.</summary>
+    public bool IsImportAllowed { get; set; } = true;
+
     public bool IsApprovalRequired { get; set; } = true;
 
+    public bool IsAutoPostAllowed { get; set; }
+
     public bool IsReversalAllowed { get; set; } = true;
+
+    public bool IsDuplicateCheck { get; set; } = true;
 
     public bool IsActive { get; set; } = true;
 

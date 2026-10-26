@@ -2,7 +2,9 @@ using Capitra.Domain.Common;
 
 namespace Capitra.Domain.Modules.Gl;
 
-/// <summary>GL_ACCOUNT_COMBINATION_SEGMENTS: the value of one segment in a combination, for search by segment.</summary>
+/// <summary>
+/// GL_ACCOUNT_COMBINATION_SEGMENTS: copy of FINOVA GL_ACCOUNT_COMBINATION_SEGMENTS (APEX), all columns kept.
+/// </summary>
 public class GlAccountCombinationSegment : AuditableEntity
 {
     public long CombinationSegmentId { get; set; }
