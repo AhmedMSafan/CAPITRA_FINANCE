@@ -58,7 +58,8 @@ public sealed class P0022ApplicantDetails(ICapitraDbContext db, ICurrentUser use
                     NewStatusCode = "DOCUMENTS_PENDING",
                     ChangedAt = clock.UtcNow,
                     ChangedBy = user.UserName ?? string.Empty,
-                    RoleCode = "ORIGINATION",
+                    // the PL/SQL wrote 'ORIGINATION', which is not in MFF_LKP_USER_ROLES (the save failed on its foreign key): INTAKE
+                    RoleCode = "INTAKE",
                     RemarksAr = "استكمال البيانات الأساسية للطلب",
                 });
             }
