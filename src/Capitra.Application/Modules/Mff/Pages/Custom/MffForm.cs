@@ -24,7 +24,7 @@ internal static class MffForm
         {
             await tx.RollbackAsync(ct);
             db.DiscardChanges();
-            return new { ok = false, message = e.InnerException?.Message ?? e.Message };
+            return new { ok = false, message = (e.GetBaseException() is { } b && b != e ? b : e).Message };
         }
     }
 

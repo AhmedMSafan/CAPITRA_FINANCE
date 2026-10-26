@@ -1,6 +1,6 @@
 # App 110: SQL translated to PostgreSQL
 
-123 of 123 run.
+122 of 122 run.
 
 - OK     P141_FUND_MONTHLY_REPORT_REPORT
 - OK     P142_PORTFOLIO_SUMMARY_REPORT
@@ -110,7 +110,6 @@
 - OK     LOAD_P30
 - OK     LOAD_P40
 - OK     LOAD_P50
-- OK     LOAD_P53
 - OK     LOAD_P81
 - OK     LOAD_P82
 - OK     LOAD_P83

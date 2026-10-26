@@ -99,7 +99,8 @@ public sealed class MffControlPackage(ICapitraDbContext db, IApexSqlReader reade
         await workflow.ChangeStatusAsync(applicationId, to, roleCode?.ToUpperInvariant(), null, remarks, changedBy ?? user.UserName, ct);
     }
 
-    private async Task<IReadOnlyDictionary<string, object?>?> ReadinessAsync(long applicationId, CancellationToken ct)
+    /// <summary>The application's row of MFF_VW_APPLICATION_READINESS, null when it is not found.</summary>
+    public async Task<IReadOnlyDictionary<string, object?>?> ReadinessAsync(long applicationId, CancellationToken ct)
     {
         var rows = await reader.QueryAsync(MffApexPageSql.CONTROL_READINESS,
             new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase) { ["APPLICATION_ID"] = applicationId.ToString(System.Globalization.CultureInfo.InvariantCulture) }, ct);

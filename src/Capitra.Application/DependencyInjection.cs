@@ -67,6 +67,8 @@ public static class DependencyInjection
         services.AddScoped<Modules.Mff.Packages.MffWorkflowPackage>();
         services.AddScoped<Modules.Mff.Packages.MffControlPackage>();
         services.AddScoped<Modules.Mff.Packages.MffAmortPackage>();
+        services.AddScoped<Modules.Mff.Packages.MffCalcPackage>();
+        services.AddScoped<Modules.Mff.Packages.MffServicingPackage>();
         services.AddScoped<Modules.Mff.Packages.MffAuditPackage>();
         services.AddScoped<Modules.Mff.Packages.MffImportPackage>();
 

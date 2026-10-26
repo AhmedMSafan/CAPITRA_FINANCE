@@ -40,4 +40,44 @@ public sealed class MffWorkflowPackage(ICapitraDbContext db, ICurrentUser user, 
         });
         await db.SaveChangesAsync(ct);
     }
+
+    // NEW (not in Oracle): MFF_WORKFLOW_PKG.assign_work and complete_assignment are called by page 29 but the package in
+    // the FINOVA database does not have them. Designed in C# from the page and MFF_WORK_ASSIGNMENTS.
+
+    /// <summary>NEW assign_work: opens an assignment for the user and makes them the application's current owner; returns its id.</summary>
+    public async Task<long> AssignWorkAsync(long applicationId, string assignmentType, string assignedTo, string? assignedBy,
+        DateOnly? dueDate, string? notes, CancellationToken ct)
+    {
+        var a = await db.Set<MffApplication>().FirstOrDefaultAsync(x => x.ApplicationId == applicationId, ct)
+            ?? throw new ApexProcessException("ORA-20002: طلب التمويل غير موجود.");
+        var w = new MffWorkAssignment
+        {
+            ApplicationId = applicationId,
+            AssignmentType = assignmentType,
+            AssignedTo = assignedTo,
+            AssignedBy = assignedBy ?? user.UserName,
+            AssignedAt = clock.UtcNow,
+            DueDate = dueDate,
+            AssignmentStatus = "OPEN",
+            Notes = notes,
+        };
+        db.Add(w);
+        a.CurrentOwnerUser = assignedTo;
+        await db.SaveChangesAsync(ct);
+        return w.AssignmentId;
+    }
+
+    /// <summary>NEW complete_assignment: closes an open assignment (who closed it is its UPDATED_BY); the notes are added to the assignment's notes.</summary>
+    public async Task CompleteAssignmentAsync(long assignmentId, string? notes, CancellationToken ct)
+    {
+        var w = await db.Set<MffWorkAssignment>().FirstOrDefaultAsync(x => x.AssignmentId == assignmentId, ct)
+            ?? throw new ApexProcessException("ORA-20048: Assignment not found.");
+        if (w.AssignmentStatus == "COMPLETED")
+            throw new ApexProcessException("ORA-20049: Assignment is already completed.");
+        w.AssignmentStatus = "COMPLETED";
+        w.CompletedAt = clock.UtcNow;
+        if (!string.IsNullOrWhiteSpace(notes))
+            w.Notes = string.IsNullOrEmpty(w.Notes) ? notes : w.Notes + "\n" + notes;
+        await db.SaveChangesAsync(ct);
+    }
 }
