@@ -475,3 +475,8 @@ textarea.t-Form-field {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* Icon fonts keep their font in Arabic: the app CSS sets the Arabic font on every element of :lang(ar) with !important,
+   which the theme's icon font outranks in APEX. */
+.fa:lang(ar) { font-family: FontAwesome !important; }
+.pi:lang(ar) { font-family: primeicons !important; }
