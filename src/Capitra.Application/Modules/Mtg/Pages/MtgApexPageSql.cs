@@ -585,6 +585,89 @@ public static class MtgApexPageSql
         where p."PORTFOLIO_ID" = @P202_PORTFOLIO_ID::bigint
         """;
 
+    public const string P203_PORTFOLIO = """
+        select p."PORTFOLIO_ID", p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", p."DEVELOPER_ID", p."PROJECT_ID", p."CURRENCY_CODE", p."REQUEST_DATE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", p."EXPECTED_RETURN_AMOUNT", p."SELECTED_ACCOUNT_COUNT", p."SELECTED_FACE_VALUE", p."SELECTED_OUTSTANDING_VALUE", p."SELECTED_PAID_VALUE", p."LATE_FEE_RATE", p."PV_RATE", p."RESERVED_AMOUNT_PERCENT", p."TERM_MONTHS", p."COVERAGE_PCT", p."MARGIN_PERCENTAGE", p."ADMIN_EXPENSE_PERCENT", p."LEGAL_FEE_PER_UNIT", p."VALUATION_FEE_PER_UNIT", p."BOARD_DECISION", p."SUBMITTED_AT" "SUBMITTED_DATE", p."APPROVED_AT" "APPROVED_DATE", p."BOARD_DECISION_NO", p."BOARD_DECISION_DATE", p."REJECTION_REASON", p."COMMENTS", p."WORKFLOW_INSTANCE_ID", (select s."STATUS_NAME_EN"
+        from "MTG_LKP_PORTFOLIO_STATUSES" s
+        where s."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE") "STATUS_NAME", (select d."LEGAL_NAME_EN"
+        from "MTG_DEVELOPERS" d
+        where d."DEVELOPER_ID" = p."DEVELOPER_ID") "DEV", (select j."PROJECT_NAME_EN"
+        from "MTG_PROJECTS" j
+        where j."PROJECT_ID" = p."PROJECT_ID") "PROJ"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        where p."PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P203_ACCOUNTS = """
+        select count(*) "ACC_N", coalesce(sum("CONTRACT_VALUE"), 0) "CV", coalesce(sum("PAID_VALUE"), 0) "PV", coalesce(sum("OUTSTANDING_VALUE"), 0) "OV", count(case when coalesce("DEAL_DECISION_CODE", 'SELECTED') <> 'EXCLUDED' then 1 end) "IN_N", coalesce(sum(case when coalesce("DEAL_DECISION_CODE", 'SELECTED') <> 'EXCLUDED' then "CONTRACT_VALUE" end), 0) "IN_CV", coalesce(sum(case when coalesce("DEAL_DECISION_CODE", 'SELECTED') <> 'EXCLUDED' then "OUTSTANDING_VALUE" end), 0) "IN_OV", coalesce(sum(case when coalesce("DEAL_DECISION_CODE", 'SELECTED') <> 'EXCLUDED' then "PAID_VALUE" end), 0) "IN_PV", count(case when "DEAL_DECISION_CODE" = 'EXCLUDED' then 1 end) "EX_N", count(distinct "INVESTOR_ID") "INV_N", count(distinct "UNIT_ID") "UNIT_N", sum("ARREARS_AMOUNT") "ARR"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS"
+        where "PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P203_TASKS = """
+        select "tq"."TASK_ID", "tq"."TASK_STATUS", "si"."STEP_CODE", "si"."STEP_NAME", "tq"."CREATED_AT"
+        from "WFE_TASKS" tq
+        join "WFE_STEP_INSTANCES" si on "si"."STEP_INSTANCE_ID" = "tq"."STEP_INSTANCE_ID"
+        where "si"."WORKFLOW_INSTANCE_ID" = (select "WORKFLOW_INSTANCE_ID"
+        from "MTG_PURCHASED_PORTFOLIOS"
+        where "PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint)
+        order by "tq"."TASK_ID"
+        """;
+
+    public const string P203_INVESTORS = """
+        select i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", count(*) "CT", coalesce(sum(a."CONTRACT_VALUE"), 0) "CV", coalesce(sum(a."OUTSTANDING_VALUE"), 0) "OV", coalesce(sum(a."PAID_VALUE"), 0) "PVV", case when count(case when a."DEAL_DECISION_CODE" = 'EXCLUDED' then 1 end) = 0 then 'SELECTED' when count(case when a."DEAL_DECISION_CODE" = 'EXCLUDED' then 1 end) = count(*) then 'EXCLUDED' else 'MIXED' end "DEC", coalesce((select ar."RESULT_CODE"
+        from "MTG_AML_RESULTS" ar
+        where ar."PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint and ar."SUBJECT_TYPE" = 'INVESTOR' and ar."SUBJECT_ID" = i."INVESTOR_ID"
+        order by ar."AML_ID" desc fetch first 1 rows only), 'NOT_SCREENED') "AML"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = a."INVESTOR_ID"
+        where a."PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint
+        group by i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID"
+        order by coalesce(sum(a."OUTSTANDING_VALUE"), 0) desc, i."INVESTOR_CODE"
+        """;
+
+    public const string P203_ACCOUNT_LIST = """
+        select i."INVESTOR_CODE", coalesce(i."FULL_NAME_EN", '-') "INVESTOR_NAME", u."UNIT_CODE", pa."CONTRACT_DATE", pa."CONTRACT_VALUE", pa."PAID_VALUE", pa."OUTSTANDING_VALUE", pa."INSTALLMENT_AMOUNT", pa."REGULAR_PAYMENT_MONTHS", pa."ARREARS_AMOUNT", pa."ACCOUNT_STATUS"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = pa."INVESTOR_ID"
+        join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = pa."UNIT_ID"
+        where pa."PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint
+        order by i."INVESTOR_CODE", u."UNIT_CODE"
+        """;
+
+    public const string P203_PROJECT = """
+        select j.*
+        from "MTG_PROJECTS" j
+        where j."PROJECT_ID" = (select "PROJECT_ID"
+        from "MTG_PURCHASED_PORTFOLIOS"
+        where "PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint)
+        """;
+
+    public const string P203_PROJECT_EXTRA = """
+        select d."LEGAL_NAME_EN" "DEV", d."DEVELOPER_CODE" "DEV_CODE", j."PROJECT_NAME_EN" "PROJ", j."PROJECT_NAME_AR" "PROJ_AR", (select count(*)
+        from "MTG_PROJECT_UNITS" u
+        where u."PROJECT_ID" = p."PROJECT_ID") "PROJ_UNITS"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        left join "MTG_PROJECTS" j on j."PROJECT_ID" = p."PROJECT_ID"
+        where p."PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P203_UNITS = """
+        select u."UNIT_CODE", u."UNIT_TYPE_CODE", coalesce(i."FULL_NAME_EN", i."FULL_NAME_AR") "INV", a."SELLER_CONTRACT_NO", coalesce(a."CONTRACT_VALUE", 0) "CV", coalesce(a."DEAL_DECISION_CODE", 'SELECTED') "DEC"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID"
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = a."INVESTOR_ID"
+        where a."PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint
+        order by u."UNIT_CODE"
+        """;
+
+    public const string P203_STATUS_HIST = """
+        select "FROM_STATUS", "TO_STATUS", "CHANGE_AT" AS "CHANGE_DATE", "CHANGED_BY", "COMMENTS"
+        from "MTG_PURCHASED_PORTFOLIO_STATUS_HIST"
+        where "PORTFOLIO_ID" = @P203_PORTFOLIO_ID::bigint
+        order by "CHANGE_AT" desc
+        """;
+
     public const string P603_LOAD = """
         with "FNV_V_CHEQUE_COVERAGE" AS (
         select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"

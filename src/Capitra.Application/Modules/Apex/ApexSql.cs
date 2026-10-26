@@ -168,6 +168,16 @@ public static class ApexValue
     public static string? Text(this IReadOnlyDictionary<string, object?> row, string column) =>
         Text(row.TryGetValue(column, out var v) ? v : null);
 
+    /// <summary>A date and time column (timestamp), for masks with hours: DD Mon YYYY HH24:MI.</summary>
+    public static DateTime? Stamp(this IReadOnlyDictionary<string, object?> row, string column) =>
+        (row.TryGetValue(column, out var v) ? v : null) switch
+        {
+            DateTime t => t,
+            DateTimeOffset o => o.UtcDateTime,
+            DateOnly d => d.ToDateTime(TimeOnly.MinValue),
+            _ => null,
+        };
+
     public static DateOnly? Date(this IReadOnlyDictionary<string, object?> row, string column) =>
         (row.TryGetValue(column, out var v) ? v : null) switch
         {
