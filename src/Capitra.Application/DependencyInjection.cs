@@ -61,6 +61,7 @@ public static class DependencyInjection
         services.AddScoped<Modules.Mtg.Packages.MtgValidationPackage>();
         services.AddScoped<Modules.Mtg.Packages.MtgWorkflowSteps>();
         services.AddScoped<Modules.Mtg.Packages.MtgApprovalPackage>();
+        services.AddScoped<Modules.Mtg.Packages.MtgSettlementPackage>();
 
         return services;
     }
