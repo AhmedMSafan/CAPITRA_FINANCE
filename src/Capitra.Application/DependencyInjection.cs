@@ -53,6 +53,10 @@ public static class DependencyInjection
             services.AddScoped(typeof(IApexFormHooks), type);
         services.AddScoped<ApexProcessRegistry>();
 
+        // The PL/SQL packages App 105 calls, ported.
+        services.AddScoped<Modules.Mtg.Packages.MtgFinancePackage>();
+        services.AddScoped<Modules.Mtg.Packages.MtgPurchasedPortfolioPackage>();
+
         return services;
     }
 }

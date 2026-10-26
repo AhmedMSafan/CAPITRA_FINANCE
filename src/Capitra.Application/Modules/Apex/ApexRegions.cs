@@ -223,6 +223,9 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
     {
         var action = request.X01?.ToUpperInvariant() ?? string.Empty;
         var pkProp = Prop<T>(Column(region.Table.Pk).Property);
+
+        // Process form and the page's processes after it are one transaction, as in APEX
+        await using var tx = hooks is null ? null : await db.BeginTransactionAsync(ct);
         if (action == "DELETE")
         {
             var gone = await FindAsync<T>(request.X02, true, ct) ?? throw new ApexProcessException("Current version of data in database has changed since user initiated update process.");
@@ -233,6 +236,7 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
             {
                 await hooks.AfterDmlAsync(action, request.X02, before, ct);
                 await db.SaveChangesAsync(ct);
+                await tx!.CommitAsync(ct);
             }
 
             return new { ok = true, message = "Action Processed." };
@@ -273,6 +277,7 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
                 saved[k] = v;                                   // items that are no column (e.g. an upload)
             await hooks.AfterDmlAsync(action, id, saved, ct);
             await db.SaveChangesAsync(ct);
+            await tx!.CommitAsync(ct);
         }
 
         return new { ok = true, id, message = "Action Processed." };
