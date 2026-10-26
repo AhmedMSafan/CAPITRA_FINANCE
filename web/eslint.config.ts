@@ -15,7 +15,8 @@ export default defineConfigWithVueTs(
     files: ['**/*.{vue,ts,mts,tsx}'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  // Page scripts copied unchanged from the APEX exports are not linted.
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**', 'src/modules/*/apex/**/*.js']),
 
   ...pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,

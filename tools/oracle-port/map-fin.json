@@ -86,6 +86,65 @@
   },
   "pk": "BRANCH_ID"
  },
+ "FIN_BUSINESS_LINES": {
+  "table": "FIN_BUSINESS_LINES",
+  "class": "FinBusinessLine",
+  "columns": {
+   "BUSINESS_LINE_ID": {
+    "column": "BUSINESS_LINE_ID",
+    "kind": "int"
+   },
+   "BUSINESS_LINE_CODE": {
+    "column": "BUSINESS_LINE_CODE",
+    "kind": "string"
+   },
+   "BUSINESS_LINE_NAME": {
+    "column": "BUSINESS_LINE_NAME",
+    "kind": "string"
+   },
+   "BUSINESS_LINE_NAME_AR": {
+    "column": "BUSINESS_LINE_NAME_AR",
+    "kind": "string"
+   },
+   "MODULE_CODE": {
+    "column": "MODULE_CODE",
+    "kind": "string"
+   },
+   "DESCRIPTION": {
+    "column": "DESCRIPTION",
+    "kind": "string"
+   },
+   "DESCRIPTION_AR": {
+    "column": "DESCRIPTION_AR",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "SORT_ORDER": {
+    "column": "SORT_ORDER",
+    "kind": "int"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "BUSINESS_LINE_ID"
+ },
  "FIN_COST_CENTERS": {
   "table": "FIN_COST_CENTERS",
   "class": "FinCostCenter",

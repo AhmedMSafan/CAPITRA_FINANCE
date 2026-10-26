@@ -69,6 +69,31 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FIN_BUSINESS_LINES",
+                columns: table => new
+                {
+                    BUSINESS_LINE_ID = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BUSINESS_LINE_CODE = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    BUSINESS_LINE_NAME = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    BUSINESS_LINE_NAME_AR = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
+                    MODULE_CODE = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    DESCRIPTION = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    DESCRIPTION_AR = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    IS_ACTIVE = table.Column<bool>(type: "boolean", nullable: false),
+                    SORT_ORDER = table.Column<int>(type: "integer", nullable: false),
+                    CREATED_BY = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CREATED_AT = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UPDATED_BY = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    UPDATED_AT = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ROW_VERSION = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FIN_BUSINESS_LINES", x => x.BUSINESS_LINE_ID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "FIN_CURRENCIES",
                 columns: table => new
                 {
@@ -6854,6 +6879,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "UQ_FIN_BUSINESS_LINES_BUSINESS_LINE_CODE",
+                table: "FIN_BUSINESS_LINES",
+                column: "BUSINESS_LINE_CODE",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FIN_COST_CENTERS_BRANCH_ID",
                 table: "FIN_COST_CENTERS",
                 column: "BRANCH_ID");
@@ -9682,6 +9713,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "ADM_LKP_LEGAL_ENTITIES");
+
+            migrationBuilder.DropTable(
+                name: "FIN_BUSINESS_LINES");
 
             migrationBuilder.DropTable(
                 name: "GL_ACCOUNT_BALANCES");

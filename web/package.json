@@ -16,7 +16,9 @@
   },
   "dependencies": {
     "@primeuix/themes": "^3.0.0",
+    "@types/jquery": "3.5.32",
     "bpmn-js": "^18.28.0",
+    "jquery": "3.7.1",
     "pinia": "^4.0.2",
     "primeicons": "^8.0.0",
     "primevue": "^4.5.5",

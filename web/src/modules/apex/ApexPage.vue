@@ -1,0 +1,130 @@
+<script setup lang="ts">
+// Hosts one page copied from an APEX application: its region HTML, its page CSS and its page
+// scripts run as they were written, against the apex runtime in apexRuntime.ts.
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { createApex, releasePageHandlers, runPageScript } from './apexRuntime'
+
+const props = defineProps<{
+  app: number
+  page: number
+  html: string
+  css: string
+  scripts: string[]
+  items?: Record<string, string>
+}>()
+
+const host = ref<HTMLElement | null>(null)
+let style: HTMLStyleElement | null = null
+
+onMounted(() => {
+  style = document.createElement('style')
+  style.dataset.apexPage = `${props.app}-${props.page}`
+  style.textContent = props.css
+  document.head.appendChild(style)
+
+  if (host.value) host.value.innerHTML = props.html
+  const apex = createApex(props.app, props.page, { ...props.items })
+  for (const script of props.scripts) runPageScript(script, apex)
+})
+
+onBeforeUnmount(() => {
+  releasePageHandlers()
+  style?.remove()
+})
+</script>
+
+<template>
+  <div ref="host" class="t-Body-contentInner apx-page"></div>
+</template>
+
+<style>
+/* Universal Theme page message and confirm dialog, as APEX shows them. */
+.apx-alerts {
+  position: fixed;
+  top: 76px;
+  right: 16px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(420px, calc(100vw - 32px));
+}
+.apx-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 14px 14px 16px;
+  border-radius: 4px;
+  background: #fff;
+  color: #262626;
+  font: 14px/1.45 'Segoe UI', Arial, sans-serif;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
+}
+.apx-alert--success {
+  border-left: 4px solid #3c763d;
+}
+.apx-alert--danger {
+  border-left: 4px solid #c9302c;
+}
+.apx-alert-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+}
+.apx-alert--success .apx-alert-ico {
+  background: #3c763d;
+}
+.apx-alert--danger .apx-alert-ico {
+  background: #c9302c;
+}
+.apx-alert-body {
+  flex: 1;
+  padding-top: 2px;
+}
+.apx-alert-x {
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+}
+.apx-confirm-back {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 40%);
+}
+.apx-confirm {
+  width: min(440px, calc(100vw - 32px));
+  padding: 20px;
+  border-radius: 4px;
+  background: #fff;
+  font: 14px/1.5 'Segoe UI', Arial, sans-serif;
+}
+.apx-confirm-f {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+.apx-btn {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+.apx-btn--hot {
+  border-color: #056ac8;
+  background: #056ac8;
+  color: #fff;
+}
+</style>

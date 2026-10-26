@@ -1,3 +1,5 @@
+using Capitra.Application.Modules.Apex;
+using Capitra.Application.Modules.Gl.Setup;
 using Capitra.Application.Modules.Adm.Lookups;
 using Capitra.Application.Modules.Mtg.MasterData;
 using Capitra.Application.Modules.Mtg.Portfolios;
@@ -45,6 +47,14 @@ public static class DependencyInjection
         services.AddScoped<IMtgPurchaseAgreementService, MtgPurchaseAgreementService>();
 
         // General ledger (APEX App 120).
+        services.AddScoped<GlCoaSetup>();
+
+        // Copied APEX pages: every on-demand process found in this assembly, looked up by app, page and name.
+        foreach (var type in typeof(DependencyInjection).Assembly.GetTypes()
+                     .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IApexProcess).IsAssignableFrom(t)))
+            services.AddScoped(typeof(IApexProcess), type);
+        services.AddScoped<ApexProcessRegistry>();
+
         return services;
     }
 }

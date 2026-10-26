@@ -943,6 +943,90 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("FIN_BRANCHES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Fin.FinBusinessLine", b =>
+                {
+                    b.Property<long>("BusinessLineId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("BUSINESS_LINE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("BusinessLineId"));
+
+                    b.Property<string>("BusinessLineCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BUSINESS_LINE_CODE");
+
+                    b.Property<string>("BusinessLineName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("BUSINESS_LINE_NAME");
+
+                    b.Property<string>("BusinessLineNameAr")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("BUSINESS_LINE_NAME_AR");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<string>("DescriptionAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("DESCRIPTION_AR");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("MODULE_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("SORT_ORDER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("BusinessLineId")
+                        .HasName("PK_FIN_BUSINESS_LINES");
+
+                    b.HasIndex("BusinessLineCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_FIN_BUSINESS_LINES_BUSINESS_LINE_CODE");
+
+                    b.ToTable("FIN_BUSINESS_LINES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Fin.FinCostCenter", b =>
                 {
                     b.Property<long>("CostCenterId")

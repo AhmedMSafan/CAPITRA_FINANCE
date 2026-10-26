@@ -146,7 +146,7 @@ const router = createRouter({
         {
           path: 'gl/account-structure',
           name: 'gl-account-structure',
-          component: () => import('@/modules/gl/pages/AccountStructurePage.vue'),
+          component: () => import('@/modules/gl/apex/P0040AccountStructure.vue'),
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Account Structure & Segments' }
         },
         {
