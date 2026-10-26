@@ -41,12 +41,18 @@ public sealed class GlAccountStructureService(ICapitraDbContext db, IClock clock
             .Where(x => x.IsActive).OrderBy(x => x.DisplayOrder).ThenBy(x => x.Code)
             .Select(x => new CodeNameDto(x.Code, x.NameEn)).ToListAsync(cancellationToken);
 
-        // Ledgers and account combinations come with the journals step; until then a structure has none.
+        var ledgers = selected is null
+            ? []
+            : await db.Set<GlLedger>().AsNoTracking()
+                .Where(x => x.CoaId == selected.CoaId).OrderBy(x => x.LedgerCode)
+                .Select(x => x.LedgerCode).ToListAsync(cancellationToken);
+
+        // Account combinations come with the journals step; until then a structure has none.
         return new AccountStructurePageDto(
             selected?.CoaId,
             structures.Select(ToDto).ToList(),
             segments,
-            [],
+            ledgers,
             0,
             legalEntities,
             businessLines,

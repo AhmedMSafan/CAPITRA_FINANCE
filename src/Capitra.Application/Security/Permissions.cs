@@ -22,8 +22,11 @@ public static class Permissions
         /// <summary>Read account structures, segments, the chart of accounts, calendars and periods.</summary>
         public const string SetupView = "GL.SETUP.VIEW";
 
-        /// <summary>Change account structures, segments, segment values and accounts.</summary>
+        /// <summary>Change account structures, segments, segment values, accounts, ledgers, calendars and periods.</summary>
         public const string SetupEdit = "GL.SETUP.EDIT";
+
+        /// <summary>Open, close, reopen and permanently close a ledger's periods.</summary>
+        public const string PeriodControl = "GL.PERIOD.CONTROL";
     }
 
     public static class Mtg

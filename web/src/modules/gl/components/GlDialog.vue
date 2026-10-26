@@ -8,6 +8,8 @@ defineProps<{
   saveLabel?: string
   readonly?: boolean
   wide?: boolean
+  /** A dialog that only shows information and its own buttons: Close, no Save. */
+  noSave?: boolean
 }>()
 
 const emit = defineEmits<{ close: []; save: [] }>()
@@ -34,8 +36,8 @@ const emit = defineEmits<{ close: []; save: [] }>()
       <footer class="cp-modal__footer">
         <slot name="footer-start"></slot>
         <span class="cp-spacer"></span>
-        <button type="button" class="cp-btn" :disabled="saving" @click="emit('close')">{{ readonly ? 'Close' : 'Cancel' }}</button>
-        <button v-if="!readonly" type="button" class="cp-btn cp-btn--primary" :disabled="saving" @click="emit('save')">
+        <button type="button" class="cp-btn" :disabled="saving" @click="emit('close')">{{ readonly || noSave ? 'Close' : 'Cancel' }}</button>
+        <button v-if="!readonly && !noSave" type="button" class="cp-btn cp-btn--primary" :disabled="saving" @click="emit('save')">
           <i :class="saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"></i>
           <span>{{ saving ? 'Saving...' : saveLabel ?? 'Save' }}</span>
         </button>

@@ -156,6 +156,18 @@ const router = createRouter({
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Chart of Accounts' }
         },
         {
+          path: 'gl/accounting-periods',
+          name: 'gl-accounting-periods',
+          component: () => import('@/modules/gl/pages/AccountingPeriodsPage.vue'),
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Periods' }
+        },
+        {
+          path: 'gl/ledgers',
+          name: 'gl-ledgers',
+          component: () => import('@/modules/gl/pages/LedgersPage.vue'),
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Ledgers' }
+        },
+        {
           path: 'gl/reference-data',
           name: 'gl-reference-data',
           component: () => import('@/modules/adm/pages/ReferenceDataPage.vue'),

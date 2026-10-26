@@ -33,6 +33,38 @@ public static class GlCodes
 
     public static readonly string[] CashFlowClasses = [CashFlowNone, "OPERATING", "INVESTING", "FINANCING", "CASH_EQUIVALENT"];
 
+    public const string Monthly = "MONTHLY";
+
+    public static readonly string[] CalendarTypes = [Monthly];
+
+    public static readonly string[] PeriodFrequencies = [Monthly];
+
+    public const string YearOpen = "OPEN";
+
+    public static readonly string[] YearStatuses = ["DRAFT", YearOpen, "CLOSED", "PERMANENTLY_CLOSED"];
+
+    public const string PeriodNeverOpened = "NEVER_OPENED";
+    public const string PeriodFutureEntry = "FUTURE_ENTRY";
+    public const string PeriodOpen = "OPEN";
+    public const string PeriodClosed = "CLOSED";
+    public const string PeriodPermanentlyClosed = "PERMANENTLY_CLOSED";
+
+    /// <summary>Statuses an accounting period can give its new ledger periods.</summary>
+    public static readonly string[] DefaultPeriodStatuses = [PeriodNeverOpened, PeriodFutureEntry, PeriodOpen, PeriodClosed];
+
+    public const string PostingNone = "NONE";
+    public const string PostingNormal = "NORMAL";
+    public const string PostingAdjustmentOnly = "ADJUSTMENT_ONLY";
+    public const string PostingFutureOnly = "FUTURE_ONLY";
+
+    public const string LedgerPrimary = "PRIMARY";
+
+    public static readonly string[] LedgerTypes = [LedgerPrimary, "SECONDARY"];
+
+    public const string LedgerActive = "ACTIVE";
+
+    public static readonly string[] LedgerStatuses = [LedgerActive, "INACTIVE"];
+
     /// <summary>Normal balance and statement an account type usually has, offered when a new account is created.</summary>
     public static (string NormalBalance, string StatementClass) DefaultsFor(string accountType) => accountType switch
     {
