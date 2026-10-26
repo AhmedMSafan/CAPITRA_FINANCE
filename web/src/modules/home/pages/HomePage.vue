@@ -46,7 +46,7 @@ const modules: BusinessModule[] = [
     route: '/gl',
     tone: 'crm',
     icon: 'pi pi-book',
-    enabled: false
+    enabled: true
   },
   {
     code: 'CHEQUES',

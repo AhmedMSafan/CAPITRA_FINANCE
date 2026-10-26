@@ -1,4 +1,6 @@
 using Capitra.Application.Modules.Adm.Lookups;
+using Capitra.Application.Modules.Gl.AccountStructure;
+using Capitra.Application.Modules.Gl.ChartOfAccounts;
 using Capitra.Application.Modules.Mtg.MasterData;
 using Capitra.Application.Modules.Mtg.Portfolios;
 using Capitra.Application.Modules.Mtg.PortfolioSteps.AmlReview;
@@ -43,6 +45,10 @@ public static class DependencyInjection
         services.AddScoped<IMtgFinancialReviewService, MtgFinancialReviewService>();
         services.AddScoped<IMtgBoardReviewService, MtgBoardReviewService>();
         services.AddScoped<IMtgPurchaseAgreementService, MtgPurchaseAgreementService>();
+
+        // General ledger (APEX App 120).
+        services.AddScoped<IGlAccountStructureService, GlAccountStructureService>();
+        services.AddScoped<IGlChartOfAccountsService, GlChartOfAccountsService>();
         return services;
     }
 }

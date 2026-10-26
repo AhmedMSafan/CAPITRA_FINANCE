@@ -22,6 +22,68 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpBusinessLine", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_BUSINESS_LINES");
+
+                    b.ToTable("ADM_LKP_BUSINESS_LINES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpChequeStatus", b =>
                 {
                     b.Property<string>("Code")
@@ -556,6 +618,84 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("ADM_LKP_INSURANCE_TYPES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpLegalEntity", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<string>("BaseCurrencyCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("BASE_CURRENCY_CODE");
+
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("COUNTRY_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_LEGAL_ENTITIES");
+
+                    b.HasIndex("BaseCurrencyCode")
+                        .HasDatabaseName("IX_ADM_LKP_LEGAL_ENTITIES_BASE_CURRENCY_CODE");
+
+                    b.HasIndex("CountryCode")
+                        .HasDatabaseName("IX_ADM_LKP_LEGAL_ENTITIES_COUNTRY_CODE");
+
+                    b.ToTable("ADM_LKP_LEGAL_ENTITIES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpPaymentStatus", b =>
                 {
                     b.Property<string>("Code")
@@ -678,6 +818,541 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasName("PK_ADM_LKP_RISK_LEVELS");
 
                     b.ToTable("ADM_LKP_RISK_LEVELS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccount", b =>
+                {
+                    b.Property<long>("AccountId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AccountId"));
+
+                    b.Property<string>("AccountCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ACCOUNT_CODE");
+
+                    b.Property<string>("AccountNameAr")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("ACCOUNT_NAME_AR");
+
+                    b.Property<string>("AccountNameEn")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("ACCOUNT_NAME_EN");
+
+                    b.Property<long?>("AccountSegmentValueId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNT_SEGMENT_VALUE_ID");
+
+                    b.Property<string>("AccountType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ACCOUNT_TYPE");
+
+                    b.Property<string>("CashFlowClass")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CASH_FLOW_CLASS");
+
+                    b.Property<long>("CoaId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("COA_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<DateOnly?>("EffectiveEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_END_DATE");
+
+                    b.Property<DateOnly>("EffectiveStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_START_DATE");
+
+                    b.Property<string>("FinancialStatementClass")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("FINANCIAL_STATEMENT_CLASS");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsBranchRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_BRANCH_REQUIRED");
+
+                    b.Property<bool>("IsBusinessLineRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_BUSINESS_LINE_REQUIRED");
+
+                    b.Property<bool>("IsControlAccount")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_CONTROL_ACCOUNT");
+
+                    b.Property<bool>("IsCostCenterRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_COST_CENTER_REQUIRED");
+
+                    b.Property<bool>("IsCurrencyRevaluation")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_CURRENCY_REVALUATION");
+
+                    b.Property<bool>("IsManualJournalAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_MANUAL_JOURNAL_ALLOWED");
+
+                    b.Property<bool>("IsPostingAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_POSTING_ALLOWED");
+
+                    b.Property<bool>("IsReconciliation")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_RECONCILIATION");
+
+                    b.Property<bool>("IsRetainedEarnings")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_RETAINED_EARNINGS");
+
+                    b.Property<bool>("IsSubledgerPostingAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_SUBLEDGER_POSTING_ALLOWED");
+
+                    b.Property<bool>("IsSummary")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_SUMMARY");
+
+                    b.Property<string>("NormalBalance")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("NORMAL_BALANCE");
+
+                    b.Property<long?>("ParentAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PARENT_ACCOUNT_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("SORT_ORDER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AccountId")
+                        .HasName("PK_GL_ACCOUNTS");
+
+                    b.HasIndex("AccountSegmentValueId")
+                        .HasDatabaseName("IX_GL_ACCOUNTS_ACCOUNT_SEGMENT_VALUE_ID");
+
+                    b.HasIndex("ParentAccountId")
+                        .HasDatabaseName("IX_GL_ACCOUNTS_PARENT_ACCOUNT_ID");
+
+                    b.HasIndex("CoaId", "AccountCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_ACCOUNTS_COA_ID_ACCOUNT_CODE");
+
+                    b.ToTable("GL_ACCOUNTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlCoaSegment", b =>
+                {
+                    b.Property<long>("CoaSegmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("COA_SEGMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CoaSegmentId"));
+
+                    b.Property<long>("CoaId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("COA_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DefaultMode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("DEFAULT_MODE");
+
+                    b.Property<string>("DefaultValueCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DEFAULT_VALUE_CODE");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplaySeq")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_SEQ");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ENABLED");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_REQUIRED");
+
+                    b.Property<bool>("IsSummaryValueAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_SUMMARY_VALUE_ALLOWED");
+
+                    b.Property<bool>("IsUppercase")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_UPPERCASE");
+
+                    b.Property<int>("MaxLength")
+                        .HasColumnType("integer")
+                        .HasColumnName("MAX_LENGTH");
+
+                    b.Property<int>("MinLength")
+                        .HasColumnType("integer")
+                        .HasColumnName("MIN_LENGTH");
+
+                    b.Property<string>("PadChar")
+                        .HasMaxLength(1)
+                        .HasColumnType("character varying(1)")
+                        .HasColumnName("PAD_CHAR");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SegmentCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SEGMENT_CODE");
+
+                    b.Property<string>("SegmentNameAr")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("SEGMENT_NAME_AR");
+
+                    b.Property<string>("SegmentNameEn")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("SEGMENT_NAME_EN");
+
+                    b.Property<int>("SegmentNum")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEGMENT_NUM");
+
+                    b.Property<string>("SegmentType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SEGMENT_TYPE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("ValueFormat")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("VALUE_FORMAT");
+
+                    b.HasKey("CoaSegmentId")
+                        .HasName("PK_GL_COA_SEGMENTS");
+
+                    b.HasIndex("CoaId", "SegmentCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_COA_SEGMENTS_COA_ID_SEGMENT_CODE");
+
+                    b.HasIndex("CoaId", "SegmentNum")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_COA_SEGMENTS_COA_ID_SEGMENT_NUM");
+
+                    b.ToTable("GL_COA_SEGMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlCoaSegmentValue", b =>
+                {
+                    b.Property<long>("SegmentValueId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SEGMENT_VALUE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SegmentValueId"));
+
+                    b.Property<long>("CoaSegmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("COA_SEGMENT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<DateOnly?>("EffectiveEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_END_DATE");
+
+                    b.Property<DateOnly>("EffectiveStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_START_DATE");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ENABLED");
+
+                    b.Property<bool>("IsPostingAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_POSTING_ALLOWED");
+
+                    b.Property<bool>("IsSummary")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_SUMMARY");
+
+                    b.Property<long?>("ParentValueId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PARENT_VALUE_ID");
+
+                    b.Property<string>("ReferenceBusinessLineCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("REFERENCE_BUSINESS_LINE_CODE");
+
+                    b.Property<string>("ReferenceLegalEntityCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("REFERENCE_LEGAL_ENTITY_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("SORT_ORDER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("ValueCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("VALUE_CODE");
+
+                    b.Property<string>("ValueNameAr")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("VALUE_NAME_AR");
+
+                    b.Property<string>("ValueNameEn")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("VALUE_NAME_EN");
+
+                    b.HasKey("SegmentValueId")
+                        .HasName("PK_GL_COA_SEGMENT_VALUES");
+
+                    b.HasIndex("ParentValueId")
+                        .HasDatabaseName("IX_GL_COA_SEGMENT_VALUES_PARENT_VALUE_ID");
+
+                    b.HasIndex("ReferenceBusinessLineCode")
+                        .HasDatabaseName("IX_GL_COA_SEGMENT_VALUES_REFERENCE_BUSINESS_LINE_CODE");
+
+                    b.HasIndex("ReferenceLegalEntityCode")
+                        .HasDatabaseName("IX_GL_COA_SEGMENT_VALUES_REFERENCE_LEGAL_ENTITY_CODE");
+
+                    b.HasIndex("CoaSegmentId", "ValueCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_COA_SEGMENT_VALUES_COA_SEGMENT_ID_VALUE_CODE");
+
+                    b.ToTable("GL_COA_SEGMENT_VALUES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlCoaStructure", b =>
+                {
+                    b.Property<long>("CoaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("COA_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CoaId"));
+
+                    b.Property<int>("AccountSegmentNum")
+                        .HasColumnType("integer")
+                        .HasColumnName("ACCOUNT_SEGMENT_NUM");
+
+                    b.Property<int?>("BalancingSegmentNum")
+                        .HasColumnType("integer")
+                        .HasColumnName("BALANCING_SEGMENT_NUM");
+
+                    b.Property<int?>("BranchSegmentNum")
+                        .HasColumnType("integer")
+                        .HasColumnName("BRANCH_SEGMENT_NUM");
+
+                    b.Property<int?>("BusinessLineSegmentNum")
+                        .HasColumnType("integer")
+                        .HasColumnName("BUSINESS_LINE_SEGMENT_NUM");
+
+                    b.Property<string>("CoaCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("COA_CODE");
+
+                    b.Property<string>("CoaNameAr")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("COA_NAME_AR");
+
+                    b.Property<string>("CoaNameEn")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("COA_NAME_EN");
+
+                    b.Property<int?>("CostCenterSegmentNum")
+                        .HasColumnType("integer")
+                        .HasColumnName("COST_CENTER_SEGMENT_NUM");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DelimiterChar")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("DELIMITER_CHAR");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<DateOnly?>("EffectiveEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_END_DATE");
+
+                    b.Property<DateOnly>("EffectiveStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_START_DATE");
+
+                    b.Property<int?>("IntercompanySegmentNum")
+                        .HasColumnType("integer")
+                        .HasColumnName("INTERCOMPANY_SEGMENT_NUM");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsCombinationApprovalRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_COMBINATION_APPROVAL_REQUIRED");
+
+                    b.Property<bool>("IsDynamicCombinationAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_DYNAMIC_COMBINATION_ALLOWED");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SegmentCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEGMENT_COUNT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("CoaId")
+                        .HasName("PK_GL_COA_STRUCTURES");
+
+                    b.HasIndex("CoaCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_COA_STRUCTURES_COA_CODE");
+
+                    b.ToTable("GL_COA_STRUCTURES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountPayment", b =>
@@ -3462,6 +4137,81 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("DocumentGroupCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_ADM_LKP_DOCUMENT_TYPES_ADM_LKP_DOCUMENT_GROUPS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpLegalEntity", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpCurrency", null)
+                        .WithMany()
+                        .HasForeignKey("BaseCurrencyCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ADM_LKP_LEGAL_ENTITIES_ADM_LKP_CURRENCIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpCountry", null)
+                        .WithMany()
+                        .HasForeignKey("CountryCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ADM_LKP_LEGAL_ENTITIES_ADM_LKP_COUNTRIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccount", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlCoaSegmentValue", null)
+                        .WithMany()
+                        .HasForeignKey("AccountSegmentValueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_GL_ACCOUNTS_GL_COA_SEGMENT_VALUES");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlCoaStructure", null)
+                        .WithMany()
+                        .HasForeignKey("CoaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_ACCOUNTS_GL_COA_STRUCTURES");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlAccount", null)
+                        .WithMany()
+                        .HasForeignKey("ParentAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_GL_ACCOUNTS_GL_ACCOUNTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlCoaSegment", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlCoaStructure", null)
+                        .WithMany()
+                        .HasForeignKey("CoaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_COA_SEGMENTS_GL_COA_STRUCTURES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlCoaSegmentValue", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlCoaSegment", null)
+                        .WithMany()
+                        .HasForeignKey("CoaSegmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_COA_SEGMENT_VALUES_GL_COA_SEGMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlCoaSegmentValue", null)
+                        .WithMany()
+                        .HasForeignKey("ParentValueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_GL_COA_SEGMENT_VALUES_GL_COA_SEGMENT_VALUES");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpBusinessLine", null)
+                        .WithMany()
+                        .HasForeignKey("ReferenceBusinessLineCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_GL_COA_SEGMENT_VALUES_ADM_LKP_BUSINESS_LINES");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpLegalEntity", null)
+                        .WithMany()
+                        .HasForeignKey("ReferenceLegalEntityCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_GL_COA_SEGMENT_VALUES_ADM_LKP_LEGAL_ENTITIES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountPayment", b =>

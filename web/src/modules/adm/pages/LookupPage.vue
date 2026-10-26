@@ -163,7 +163,7 @@ function toValues(row: LookupRow): FormValues {
     :can-edit="canEdit"
   >
     <template #actions>
-      <RouterLink :to="definition.module === 'MTG' ? '/mortgage/reference-data' : '/admin/reference-data'" class="back-link"><i class="pi pi-arrow-left"></i><span>Reference Data</span></RouterLink>
+      <RouterLink :to="definition.module === 'MTG' ? '/mortgage/reference-data' : definition.module === 'GL' ? '/gl/reference-data' : '/admin/reference-data'" class="back-link"><i class="pi pi-arrow-left"></i><span>Reference Data</span></RouterLink>
     </template>
   </CrudPage>
 </template>

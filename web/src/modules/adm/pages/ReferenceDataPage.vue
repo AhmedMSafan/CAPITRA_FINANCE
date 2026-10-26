@@ -23,10 +23,12 @@ const ICONS: Record<string, string> = {
   'cheque-status': 'pi pi-wallet',
   currency: 'pi pi-dollar',
   country: 'pi pi-globe',
-  'unit-type': 'pi pi-building'
+  'unit-type': 'pi pi-building',
+  'legal-entity': 'pi pi-building-columns',
+  'business-line': 'pi pi-briefcase'
 }
 
-const props = defineProps<{ module: 'ADM' | 'MTG' }>()
+const props = defineProps<{ module: 'ADM' | 'MTG' | 'GL' }>()
 
 const AREAS = {
   ADM: {
@@ -38,6 +40,11 @@ const AREAS = {
     base: '/mortgage/reference-data',
     description: 'Code lists used only by portfolio acquisition: portfolio statuses, inquiry, check and valuation types, approval steps and unit types.',
     back: { to: '/mortgage', label: 'Master Data' }
+  },
+  GL: {
+    base: '/gl/reference-data',
+    description: 'Organisation lists used by the general ledger: legal entities and business lines.',
+    back: { to: '/gl', label: 'General Ledger' }
   }
 } as const
 
@@ -53,7 +60,7 @@ getLookupDefinitions()
 const tiles = computed<HubTile[]>(() =>
   definitions.value.filter(d => d.module === props.module).map(d => ({
     title: d.title,
-    description: `${d.module === 'MTG' ? 'Portfolio acquisition' : 'Global'} code list.`,
+    description: `${d.module === 'MTG' ? 'Portfolio acquisition' : d.module === 'GL' ? 'General ledger' : 'Global'} code list.`,
     icon: ICONS[d.name] ?? 'pi pi-list',
     to: `${area.value.base}/${d.name}`,
     apexPages: d.apexPages

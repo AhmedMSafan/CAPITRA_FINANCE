@@ -17,6 +17,15 @@ public static class Permissions
         public const string LookupEdit = "ADM.LOOKUP.EDIT";
     }
 
+    public static class Gl
+    {
+        /// <summary>Read account structures, segments, the chart of accounts, calendars and periods.</summary>
+        public const string SetupView = "GL.SETUP.VIEW";
+
+        /// <summary>Change account structures, segments, segment values and accounts.</summary>
+        public const string SetupEdit = "GL.SETUP.EDIT";
+    }
+
     public static class Mtg
     {
         /// <summary>Read developers, signatories, projects, units and investors.</summary>

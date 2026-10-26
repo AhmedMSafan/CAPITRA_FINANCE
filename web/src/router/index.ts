@@ -136,6 +136,39 @@ const router = createRouter({
           props: true,
           meta: { moduleName: 'PORTFOLIO ACQUISITION', functionName: 'Reference Data' }
         },
+        // General ledger (APEX App 120).
+        {
+          path: 'gl',
+          name: 'gl-home',
+          component: () => import('@/modules/gl/pages/GlHomePage.vue'),
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'General Ledger' }
+        },
+        {
+          path: 'gl/account-structure',
+          name: 'gl-account-structure',
+          component: () => import('@/modules/gl/pages/AccountStructurePage.vue'),
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Account Structure & Segments' }
+        },
+        {
+          path: 'gl/chart-of-accounts',
+          name: 'gl-chart-of-accounts',
+          component: () => import('@/modules/gl/pages/ChartOfAccountsPage.vue'),
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Chart of Accounts' }
+        },
+        {
+          path: 'gl/reference-data',
+          name: 'gl-reference-data',
+          component: () => import('@/modules/adm/pages/ReferenceDataPage.vue'),
+          props: { module: 'GL' },
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Reference Data' }
+        },
+        {
+          path: 'gl/reference-data/:lookupName',
+          name: 'gl-lookup',
+          component: () => import('@/modules/adm/pages/LookupPage.vue'),
+          props: true,
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Reference Data' }
+        },
         // Administration: global settings shared by every application.
         {
           path: 'admin',

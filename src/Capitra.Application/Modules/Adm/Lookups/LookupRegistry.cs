@@ -82,5 +82,16 @@ public static class LookupRegistry
                 NameMaxLength = 100,
                 ShowDisplayOrder = false,
             },
+            // Organisation lists used by the general ledger (APEX App 120 set them up by script).
+            LookupDefinition.For<AdmLkpLegalEntity>("legal-entity", "GL", "Legal Entities", "") with
+            {
+                NameMaxLength = 240,
+                Fields =
+                [
+                    new("baseCurrencyCode", "Base Currency", LookupFieldType.Lookup, LookupName: "currency"),
+                    new("countryCode", "Country", LookupFieldType.Lookup, LookupName: "country"),
+                ],
+            },
+            LookupDefinition.For<AdmLkpBusinessLine>("business-line", "GL", "Business Lines", "") with { NameMaxLength = 240 },
         }.ToDictionary(x => x.LookupName, StringComparer.OrdinalIgnoreCase);
 }
