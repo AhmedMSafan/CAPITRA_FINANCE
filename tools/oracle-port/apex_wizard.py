@@ -45,6 +45,9 @@ def regions(page_dir):
             'id': rid.group(1) if rid else None,
             'seq': int(seq.group(1)) if seq else 0,
             'file': name,
+            'link': link_target(head.get('detail_link')),
+            'reportColumns': head['report_columns'].split(':') if head.get('report_columns', 'None') != 'None' and 'f?p=' not in head['report_columns'] else None,
+            'template': head.get('template', ''),
         })
     return out
 
@@ -62,7 +65,8 @@ def items(page_dir):
         out.append({'name': parts[0], 'type': parts[1], 'label': kv.get('prompt'), 'source': kv.get('source'),
                     'lov': kv.get('lov') if kv.get('lov') not in (None, 'None') else None,
                     'region': re.sub(r'\D', '', kv.get('region', '')), 'seq': int(kv.get('seq') or 0),
-                    'required': kv.get('required') == 'true'})
+                    'required': kv.get('required') == 'true', 'default': kv.get('default') if kv.get('default') not in (None, 'None') else None,
+                    'submit': kv.get('on_select') == 'SUBMIT', 'sameLine': kv.get('new_line') == 'N'})
     return out
 
 
@@ -75,10 +79,10 @@ def buttons(page_dir):
         parts = [p.strip() for p in line.split(' | ')]
         kv = dict(p.split('=', 1) for p in parts[1:] if '=' in p)
         url = kv.get('url')
-        target = re.match(r'f\?p=&APP_ID\.:(\d+):', url or '')
+        target = link_target(url)
         out.append({'name': parts[0], 'label': kv.get('label'), 'action': kv.get('action'),
                     'region': re.sub(r'\D', '', kv.get('region', '')), 'position': kv.get('position'),
-                    'page': int(target.group(1)) if target else None})
+                    'page': target['page'] if target else None, 'target': target})
     return out
 
 
@@ -89,8 +93,75 @@ def columns(page_dir):
         for line in read(path).splitlines():
             parts = [p.strip() for p in line.split(' | ')]
             kv = dict(p.split('=', 1) for p in parts[1:] if '=' in p)
-            out[parts[0]] = {'heading': kv.get('heading'), 'type': kv.get('type')}
+            out[parts[0]] = {'heading': kv.get('heading'), 'type': kv.get('type'), 'display': kv.get('display'),
+                             'order': int(kv['order']) if (kv.get('order') or 'None').isdigit() else 0,
+                             'link': link_target(kv.get('link')), 'format': kv.get('format') if kv.get('format') != 'None' else None}
     return out
+
+
+ALIASES = {}   # page alias (f?p=&APP_ID.:DASHBOARD:...) -> page number, from the README.txt of every page
+
+
+def page_number(ref):
+    return int(ref) if ref.isdigit() else ALIASES.get(ref.upper())
+
+
+def link_target(url):
+    """f?p=&APP_ID.:602:&APP_SESSION.::&DEBUG.:RP:P602_MEMO_ID,P602_PORTFOLIO_ID:#MEMO_ID#,&P601_PORTFOLIO_ID.
+    as {page, set: {P602_MEMO_ID: '#MEMO_ID#', ...}}: #COL# is the row's column, &ITEM. a page item."""
+    if re.fullmatch(r'\d+', url or ''):
+        # a page number alone: the browser resolves it against the friendly URL .../r/<app>/<page>, so it opens that page
+        return {'page': int(url), 'set': {}}
+    m = re.match(r'f\?p=&APP_ID\.:(\w+):', url or '')
+    page = page_number(m.group(1)) if m else None
+    if page is None:
+        return None
+    parts = url[len('f?p='):].split(':')
+    names = [n for n in (parts[6].split(',') if len(parts) > 6 else []) if n]
+    values = parts[7].split(',') if len(parts) > 7 else []
+    return {'page': page, 'set': {n: (values[k] if k < len(values) else '') for k, n in enumerate(names)}}
+
+
+LOV_TYPES = ('NATIVE_SELECT_LIST', 'NATIVE_POPUP_LOV', 'NATIVE_RADIOGROUP', 'NATIVE_CHECKBOX')
+FORM_POSITIONS = ('CLOSE', 'DELETE', 'NEXT', 'CREATE', 'CHANGE', 'PREVIOUS')
+
+
+def page_item(x):
+    item = {'name': x['name'], 'type': x['type'], 'label': x['label'], 'required': x['required']}
+    if x['lov'] and x['type'] in LOV_TYPES:
+        item['lov'] = True
+    for k in ('default', 'submit', 'sameLine'):
+        if x.get(k):
+            item[k] = x[k]
+    return item
+
+
+def column(name, c):
+    out = {'name': name, 'heading': c['heading'], 'type': c['type']}
+    if c.get('link'):
+        out['link'] = c['link']
+    if c.get('format'):
+        out['format'] = c['format']
+    return out
+
+
+def report_links(region, r, i, form_page):
+    """The row link (detail link, else the form page of the table) and the buttons right of the search bar."""
+    if 'hideHeader' in r['template'] or 'removeHeader' in r['template']:
+        region['hideHeader'] = True
+    if r['link']:
+        region['link'] = r['link']
+    elif form_page:
+        region['link'] = {'page': form_page, 'item': 'P%d_%s' % (form_page, region['pk'])}
+    bar = [b for b in i['buttons'] if b['region'] == r['id'] and b['position'] == 'RIGHT_OF_IR_SEARCH_BAR']
+    create = [b for b in bar if b['name'] == 'CREATE']
+    if create:
+        region['create'] = {'label': create[0]['label'], 'page': create[0]['page']}
+        if create[0]['target'] and create[0]['target']['set']:
+            region['create']['set'] = create[0]['target']['set']
+    if len(bar) > 1 or (bar and bar[0]['name'] != 'CREATE'):
+        region['toolbar'] = [{'name': b['name'], 'label': b['label'], 'page': b['page'],
+                              **({'set': b['target']['set']} if b['target'] and b['target']['set'] else {})} for b in bar]
 
 
 def readme(page_dir):
@@ -118,13 +189,19 @@ def main():
         map_path = ','.join(os.path.join(here, m) for m in cfg['maps'])
         root = os.path.normpath(os.path.join(here, '..', '..'))
         cs_out, ts_out = os.path.join(root, cfg['cs']), os.path.join(root, cfg['ts'])
-        pages = [p for r in cfg['pages'] for p in (range(r[0], r[1] + 1) if isinstance(r, list) else [r])]
+        pages = [p for r in cfg['pages'] + cfg.get('reports', []) for p in (range(r[0], r[1] + 1) if isinstance(r, list) else [r])]
+        pages = sorted(set(pages))
         pages = [p for p in pages if os.path.isdir(os.path.join(app_dir, 'p%04d' % p))]
     else:
         app_dir, map_path, cs_out, ts_out = sys.argv[1:5]
         pages = [int(p) for p in sys.argv[5:]]
         cfg = GL
     app = cfg['app']
+    for d in os.listdir(app_dir):
+        if re.fullmatch(r'p\d{4}', d):
+            m = re.search(r'^alias: (\S+)', read(os.path.join(app_dir, d, 'README.txt')), re.M)
+            if m and m.group(1) != 'None':
+                ALIASES[m.group(1).upper()] = int(d[1:])
 
     def perms(page, table):
         rule = next(r for r in cfg['permissions'] if r['from'] <= page <= r['to'])
@@ -167,6 +244,10 @@ def main():
     for p in pages:
         i = info[p]
         page = {'page': p, 'title': i['title'], 'modal': i['modal'], 'regions': []}
+        if os.path.exists(os.path.join(i['dir'], 'page.css')):
+            page['css'] = read(os.path.join(i['dir'], 'page.css')).strip()
+        if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sql-%d' % app, 'loads', 'P%d.sql' % p)):
+            page['load'] = True
         for r in sorted(i['regions'], key=lambda r: r['seq']):
             if r['type'] == 'NATIVE_IR' and r['table'] is None and p in views:
                 # a report on a view: its process is written by hand (IR_<key>), the columns come in the view's order
@@ -174,6 +255,35 @@ def main():
                 order = [c for c in views[p] if c in cols]
                 page['regions'].append({'key': key(r['title']), 'title': r['title'], 'kind': 'ir', 'table': None, 'pk': order[0],
                                         'columns': [{'name': c, 'heading': cols[c]['heading'], 'type': cols[c]['type']} for c in order]})
+                continue
+            if r['type'] == 'NATIVE_IR' and r['table'] is None:
+                # a report on a SQL query, translated by apex_sql.py (MtgApexSql: process IR_<key>)
+                cols = i['columns']
+                # no default report columns (or a link where they belong): every column that is not hidden, in display order
+                shown = r['reportColumns'] or sorted((c for c in cols if cols[c]['display'] != 'HIDDEN_ESCAPE_SC'), key=lambda c: cols[c]['order'])
+                region = {'key': key(r['title']), 'title': r['title'], 'kind': 'ir', 'table': None, 'pk': None,
+                          'columns': [column(c, cols[c]) for c in shown if c in cols]}
+                report_links(region, r, i, None)
+                page['regions'].append(region)
+                continue
+            if r['type'] in (None, 'None', 'NATIVE_STATIC', 'NATIVE_PLSQL') and not any(b['region'] == r['id'] and b['position'] in FORM_POSITIONS for b in i['buttons']):
+                # a region of page items (the filters of a report) or of HTML; PL/SQL dynamic content runs on the server (REGION_<key>)
+                its = sorted((x for x in i['items'] if x['region'] == r['id']), key=lambda x: x['seq'])
+                shown_items = [x for x in its if x['type'] != 'NATIVE_HIDDEN']
+                region = {'key': key(r['title']), 'title': r['title'], 'kind': 'plsql' if r['type'] == 'NATIVE_PLSQL' else 'items' if shown_items else 'html',
+                          'table': None, 'pk': None}
+                if region['kind'] == 'items':
+                    region['items'] = [page_item(x) for x in its]
+                    region['buttons'] = [{'name': b['name'], 'label': b['label'], 'action': b['action'], 'position': b['position'], 'page': b['page'],
+                                          **({'set': b['target']['set']} if b['target'] and b['target']['set'] else {})}
+                                         for b in i['buttons'] if b['region'] == r['id']]
+                elif region['kind'] == 'html':
+                    region['html'] = read(os.path.join(i['dir'], 'regions', r['file'])).partition('\n\n')[2].strip()
+                    if not region['html']:
+                        continue
+                if 'removeHeader' in r['template'] or 'hideHeader' in r['template']:
+                    region['hideHeader'] = True
+                page['regions'].append(region)
                 continue
             if r['type'] not in ('NATIVE_IR', 'NATIVE_FORM') or r['table'] not in cmap:
                 if r['type'] in ('NATIVE_IR', 'NATIVE_FORM'):
@@ -186,28 +296,29 @@ def main():
                       'table': r['table'], 'pk': t['pk']}
             parent = None
             if r['where']:
-                m = re.match(r'(\w+)\s*=\s*:?(P\d+_\w+)', r['where'])
-                parent = (m.group(1), m.group(2))
-                region['parentItem'] = parent[1]
+                m = re.match(r'(\w+)\s*=\s*:?(P\d+_\w+)\s*$', r['where'])
+                if m:
+                    parent = (m.group(1), m.group(2))
+                    region['parentItem'] = parent[1]
+                else:
+                    print('where not copied:', p, r['title'], r['where'], file=sys.stderr)
             if region['kind'] == 'ir':
                 cols = i['columns']
-                order = [c for c in t['columns'] if c in cols] + [c for c in cols if c not in t['columns']]
-                region['columns'] = [{'name': c, 'heading': cols[c]['heading'], 'type': cols[c]['type']} for c in order]
-                fp = form_page.get(r['table'])
-                if fp:
-                    region['link'] = {'page': fp, 'item': 'P%d_%s' % (fp, t['pk'])}
-                create = [b for b in i['buttons'] if b['region'] == r['id'] and b['position'] == 'RIGHT_OF_IR_SEARCH_BAR']
-                if create:
-                    region['create'] = {'label': create[0]['label'], 'page': create[0]['page']}
+                if r['reportColumns']:
+                    region['columns'] = [column(c, cols[c]) for c in r['reportColumns'] if c in cols]
+                else:
+                    order = [c for c in t['columns'] if c in cols] + [c for c in cols if c not in t['columns']]
+                    region['columns'] = [{'name': c, 'heading': cols[c]['heading'], 'type': cols[c]['type']} for c in order]
+                report_links(region, r, i, form_page.get(r['table']))
             else:
-                its = [x for x in i['items'] if x['region'] == r['id'] and x['source']]
-                region['items'] = [{'name': x['name'], 'column': x['source'], 'type': x['type'], 'label': x['label'],
-                                    'required': x['required'],
+                its = [x for x in i['items'] if x['region'] == r['id'] and (x['source'] or x['type'] == 'NATIVE_FILE')]
+                region['items'] = [{**page_item(x), 'column': x['source'] if x['source'] != 'None' else None,
                                     'kind': KIND.get(t['columns'].get(x['source'], {}).get('kind'), 'Text')}
                                    for x in sorted(its, key=lambda x: x['seq'])]
-                # select lists: LOV TABLE.DISPLAY_COLUMN returning the column of the same name, else the table's key
+                # select lists: LOV TABLE.DISPLAY_COLUMN returning the column of the same name, else the table's key;
+                # a shared or SQL list of values comes from apex_sql.py (page_item marks it)
                 for x in its:
-                    if x['type'] != 'NATIVE_SELECT_LIST' or not x['lov']:
+                    if x['type'] not in LOV_TYPES or not x['lov'] or '.' not in x['lov'] or ' ' in x['lov']:
                         continue
                     lt, dc = x['lov'].split('.')
                     if lt not in cmap:
@@ -265,6 +376,18 @@ def main():
     cs.append('}')
     with open(cs_out, 'w', encoding='utf-8') as f:
         f.write('\n'.join(cs) + '\n')
+
+    if cfg.get('index'):
+        # every page of the app (but the ones not copied): its title, whether it opens as a dialog, and whether it is a wizard page
+        index = []
+        for d in sorted(os.listdir(app_dir)):
+            if re.fullmatch(r'p\d{4}', d) and int(d[1:]) not in cfg.get('skip', []):
+                title, modal = readme(os.path.join(app_dir, d))
+                index.append({'page': int(d[1:]), 'title': title, 'modal': modal, 'wizard': int(d[1:]) in pages})
+        with open(os.path.join(root, cfg['index']), 'w', encoding='utf-8') as f:
+            f.write('// Generated by tools/oracle-port/apex_wizard.py from the APEX export of App %d. Do not edit by hand.\n' % app)
+            f.write('export type AppPage = { page: number; title: string; modal: boolean; wizard: boolean }\n\n')
+            f.write('export const appPages: AppPage[] = [\n' + ''.join("  { page: %d, title: %s, modal: %s, wizard: %s },\n" % (x['page'], "'" + x['title'].replace("'", "\\'") + "'", str(x['modal']).lower(), str(x['wizard']).lower()) for x in index) + ']\n')
 
     ts = ['// Generated by tools/oracle-port/apex_wizard.py from the APEX export of App %d. Do not edit by hand.' % app,
           "import type { WizardPage } from '@/modules/apex/wizard'",

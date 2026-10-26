@@ -1,38 +1,72 @@
 // Pages APEX built with its wizards: interactive reports and forms on one table.
 // Their definitions are generated from the APEX export (tools/oracle-port/apex_wizard.py).
 
-export type WizardColumn = { name: string; heading: string; type: 'STRING' | 'NUMBER' | 'DATE' | string }
+/** Page items a link sets: {P602_MEMO_ID: '#MEMO_ID#', P602_PORTFOLIO_ID: '&P601_PORTFOLIO_ID.'} (a row column or a page item). */
+export type WizardSet = Record<string, string>
+
+export type WizardTarget = { page: number | null; set?: WizardSet }
+
+export type WizardColumn = {
+  name: string
+  heading: string
+  type: 'STRING' | 'NUMBER' | 'DATE' | string
+  /** A column link (f?p=&APP_ID.:205:...:P205_PORTFOLIO_ACCOUNT_ID:#PORTFOLIO_ACCOUNT_ID#). */
+  link?: WizardTarget
+  /** The APEX format mask (990D00, DD-MON-YYYY). */
+  format?: string
+}
 
 export type WizardItem = {
   name: string
-  column: string
+  /** The column of the form's table; null for an item that is not a column (a file to upload). */
+  column?: string | null
   type: string
   label: string | null
   required: boolean
-  kind: 'Text' | 'Number' | 'Flag' | 'Date' | 'DateTime' | 'Audit' | string
+  kind?: 'Text' | 'Number' | 'Flag' | 'Date' | 'DateTime' | 'Audit' | string
   /** A select list whose values come from the page's LOVS process. */
   lov?: boolean
+  default?: string
+  /** Page Action on Selection: Submit Page. */
+  submit?: boolean
+  /** Start New Line: No. */
+  sameLine?: boolean
 }
 
-export type WizardButton = { name: string; label: string; action: string; position: string; page: number | null }
+export type WizardButton = { name: string; label: string; action?: string; position?: string; page: number | null; set?: WizardSet }
 
 export type WizardRegion = {
   key: string
   title: string
-  kind: 'ir' | 'form'
-  /** null for a report on a view, whose process is written by hand. */
+  /** ir and form: wizard regions; items: a region of page items (report filters); plsql: dynamic content (REGION_<key>); html: static content. */
+  kind: 'ir' | 'form' | 'items' | 'plsql' | 'html'
+  /** null for a report on a SQL query or a view. */
   table: string | null
-  pk: string
+  pk: string | null
   parentItem?: string
   columns?: WizardColumn[]
-  link?: { page: number; item: string }
-  create?: { label: string; page: number }
+  /** The row link: the form page and its key item, or the items the detail link sets. */
+  link?: { page: number; item?: string; set?: WizardSet }
+  create?: { label: string; page: number | null; set?: WizardSet }
+  /** Every button right of the search bar, when there are more than Create. */
+  toolbar?: WizardButton[]
   items?: WizardItem[]
   pkItem?: string
   buttons?: WizardButton[]
+  html?: string
+  hideHeader?: boolean
 }
 
-export type WizardPage = { page: number; title: string; modal: boolean; regions: WizardRegion[] }
+export type WizardPage = {
+  page: number
+  title: string
+  modal: boolean
+  regions: WizardRegion[]
+  /** The page's inline CSS. */
+  css?: string
+  /** A Before Header process sets page items (PAGE_LOAD). */
+  load?: boolean
+}
 
 /** Where each page of App 120 lives in the Capitra web app (the server's ApexPages map). */
 export const apexRoutes: Record<number, string> = {
@@ -66,6 +100,52 @@ export const apexRoutes: Record<number, string> = {
 
 /** f?p=120:PAGE:::::ITEM:VALUE as a Capitra URL. */
 export function pageUrl(page: number, item?: string, value?: unknown): string {
-  const base = apexRoutes[page] ?? `/apex/120/${page}`
-  return item && value != null && value !== '' ? `${base}?${item.toLowerCase()}=${encodeURIComponent(String(value))}` : base
+  return appPageUrl(120, page, item && value != null ? { [item]: String(value) } : {})
+}
+
+/** f?p=APP:PAGE:::::ITEMS:VALUES as a Capitra URL: App 120 at its named routes, App 105 at /mortgage/p<page>. */
+export function appPageUrl(app: number, page: number, items: Record<string, string> = {}): string {
+  const base = app === 120 ? (apexRoutes[page] ?? `/apex/120/${page}`) : page === 1 ? '/mortgage' : `/mortgage/p${page}`
+  const query = Object.entries(items)
+    .filter(([, v]) => v != null && v !== '')
+    .map(([k, v]) => `${k.toLowerCase()}=${encodeURIComponent(v)}`)
+    .join('&')
+  return query ? `${base}?${query}` : base
+}
+
+/** The values a link sets: #COLUMN# from the row, &ITEM. from the page items. */
+export function resolveSet(set: WizardSet | undefined, row: Record<string, unknown>, items: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const [name, value] of Object.entries(set ?? {}))
+    out[name] = value
+      .replace(/#(\w+)#/g, (_, c: string) => (row[c] == null ? '' : String(row[c])))
+      .replace(/&(\w+)\./g, (_, i: string) => items[i.toUpperCase()] ?? '')
+  return out
+}
+
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
+/** A value as APEX shows it with a format mask: 990D00, FML999G999G990D00, DD-MON-YYYY. */
+export function formatValue(value: unknown, type: string, mask?: string): string {
+  if (value == null || value === '') return '-'
+  if (typeof value === 'boolean') return value ? 'Y' : 'N'
+  if (mask && /D|G|9|0/.test(mask) && !/[YMD]{2}/i.test(mask) && typeof value === 'number') {
+    const decimals = mask.includes('D') ? mask.length - mask.indexOf('D') - 1 : 0
+    return value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals, useGrouping: mask.includes('G') })
+  }
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value) && mask) {
+    const [y, m, d] = value.slice(0, 10).split('-')
+    if (/DD-MON-YYYY/i.test(mask)) return `${d}-${MONTHS[Number(m) - 1]}-${y}`
+  }
+  if (type === 'NUMBER' && typeof value === 'number') return value.toLocaleString('en-US', { maximumFractionDigits: 10 })
+  return String(value)
+}
+
+const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
+
+/** Substitution strings in a region's HTML: &P407_CHEQUE_TOTAL. is the item's value, escaped as APEX does. */
+export function substitute(html: string, items: Record<string, string>): string {
+  return html.replace(/&([A-Z][A-Z0-9_]*)\./g, (whole, name: string) =>
+    name in items ? (items[name] ?? '').replace(/[&<>"']/g, (c) => ESCAPES[c]!) : /^P\d+_/.test(name) ? '' : whole
+  )
 }

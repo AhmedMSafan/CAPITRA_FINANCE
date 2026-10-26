@@ -128,12 +128,19 @@ def main():
             head, _, body = open(last_region).read().partition('\n\n')
             link = (value(block, 'p_detail_link') or '').replace('\\', '')
             open(last_region, 'w').write(head + f"\n-- detail_link: {link or None}\n\n" + body)
+        elif kind == 'create_worksheet_rpt' and last_region and value(block, 'p_is_default') == 'Y' and value(block, 'p_report_columns'):
+            # the columns the default report shows, in order (the rest are hidden in the Actions menu)
+            head, _, body = open(last_region).read().partition('\n\n')
+            if '-- report_columns:' not in head:
+                open(last_region, 'w').write(head + f"\n-- report_columns: {value(block, 'p_report_columns')}\n\n" + body)
         elif kind == 'create_page_item':
             with open(os.path.join(page, 'items.txt'), 'a') as f:
                 f.write(f"{value(block, 'p_name')} | {value(block, 'p_display_as')} | prompt={value(block, 'p_prompt')} | "
                         f"source={value(block, 'p_source')} | lov={one_line(value(block, 'p_lov') or value(block, 'p_named_lov'))} | "
                         f"region={value(block, 'p_item_plug_id')} | seq={value(block, 'p_item_sequence')} | "
-                        f"default={value(block, 'p_item_default')} | required={value(block, 'p_is_required')}\n")
+                        f"default={value(block, 'p_item_default')} | required={value(block, 'p_is_required')} | "
+                        f"on_select={'SUBMIT' if re.search(r"'page_action_on_selection', 'SUBMIT'", block) else None} | "
+                        f"new_line={value(block, 'p_begin_on_new_line')} | null={value(block, 'p_lov_display_null')}\n")
         elif kind == 'create_page_button':
             with open(os.path.join(page, 'buttons.txt'), 'a') as f:
                 f.write(f"{value(block, 'p_button_name')} | label={value(block, 'p_button_image_alt')} | "
@@ -162,7 +169,7 @@ def main():
                 f.write(f"{value(block, 'p_db_column_name')} | heading={value(block, 'p_column_label')} | "
                         f"type={value(block, 'p_column_type')} | display={value(block, 'p_display_text_as')} | "
                         f"link={(value(block, 'p_column_link') or '').replace(chr(92), '') or None} | "
-                        f"format={value(block, 'p_format_mask')}\n")
+                        f"format={value(block, 'p_format_mask')} | order={value(block, 'p_display_order')}\n")
     print('done', out)
 
 

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '@/shared/layout/AppLayout.vue'
 import { isAuthenticated } from '@/shared/auth/session'
+import { mtgRoutes } from '@/modules/mtg/routes'
 
 // Every page lives under AppLayout and needs a signed-in user, except the login page.
 // Module routes are added here as each module is built (src/modules/{module}).
@@ -23,6 +24,8 @@ const router = createRouter({
           component: () => import('@/modules/home/pages/HomePage.vue'),
           meta: { moduleName: 'HOME', functionName: 'My workspace' }
         },
+        // Mortgage (APEX App 105).
+        ...mtgRoutes,
         // General ledger (APEX App 120).
         {
           path: 'gl',

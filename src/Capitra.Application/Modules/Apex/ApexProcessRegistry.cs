@@ -4,7 +4,7 @@ namespace Capitra.Application.Modules.Apex;
 
 /// <summary>
 /// Finds the ported process for an APEX app, page and process name, including those of wizard-built regions,
-/// SQL reports and the LOVS process that fills a page's select lists.
+/// SQL reports, the Before Header loads and the LOVS process that fills a page's select lists.
 /// </summary>
 public sealed class ApexProcessRegistry(
     IEnumerable<IApexProcess> processes,
@@ -12,16 +12,18 @@ public sealed class ApexProcessRegistry(
     IEnumerable<ApexLov> lovs,
     IEnumerable<ApexSqlReport> sqlReports,
     IEnumerable<ApexSqlLov> sqlLovs,
+    IEnumerable<ApexSqlLoad> sqlLoads,
     IEnumerable<IApexFormHooks> hooks,
     ICapitraDbContext db,
     IApexSqlReader reader,
     ICurrentUser user)
 {
-    private readonly Dictionary<(int, int, string), IApexProcess> byKey = Build(processes, regions, lovs, sqlReports, sqlLovs, hooks, db, reader, user);
+    private readonly Dictionary<(int, int, string), IApexProcess> byKey = Build(processes, regions, lovs, sqlReports, sqlLovs, sqlLoads, hooks, db, reader, user);
 
     private static Dictionary<(int, int, string), IApexProcess> Build(
         IEnumerable<IApexProcess> processes, IEnumerable<ApexRegion> regions, IEnumerable<ApexLov> lovs, IEnumerable<ApexSqlReport> sqlReports,
-        IEnumerable<ApexSqlLov> sqlLovs, IEnumerable<IApexFormHooks> hooks, ICapitraDbContext db, IApexSqlReader reader, ICurrentUser user)
+        IEnumerable<ApexSqlLov> sqlLovs, IEnumerable<ApexSqlLoad> sqlLoads, IEnumerable<IApexFormHooks> hooks, ICapitraDbContext db,
+        IApexSqlReader reader, ICurrentUser user)
     {
         var hookOf = hooks.ToDictionary(h => (h.App, h.Page));
         var tableLovs = lovs.ToLookup(l => (l.App, l.Page));
@@ -31,6 +33,7 @@ public sealed class ApexProcessRegistry(
         return processes
             .Concat(regions.SelectMany(r => ApexRegionProcess.For(r, db, hookOf.GetValueOrDefault((r.App, r.Page)))))
             .Concat(sqlReports.Select(r => new ApexSqlReportProcess(r, reader, user)))
+            .Concat(sqlLoads.Select(l => new ApexSqlLoadProcess(l, reader, user)))
             .Concat(lovPages.Select(k => new ApexLovProcess(k.App, k.Page, tableLovs[k].ToList(), queryLovs[k].ToList(), db, sqlValues)))
             .ToDictionary(p => (p.App, p.Page, p.Name.ToUpperInvariant()));
     }

@@ -36,10 +36,21 @@ public static class DependencyInjection
             services.AddScoped(typeof(IApexProcess), type);
 
         // Wizard-built reports and forms of the copied pages.
-        foreach (var region in Modules.Gl.Pages.GlApexRegions.All)
+        foreach (var region in Modules.Gl.Pages.GlApexRegions.All.Concat(Modules.Mtg.Pages.MtgApexRegions.All))
             services.AddSingleton(region);
-        foreach (var lov in Modules.Gl.Pages.GlApexRegions.Lovs)
+        foreach (var lov in Modules.Gl.Pages.GlApexRegions.Lovs.Concat(Modules.Mtg.Pages.MtgApexRegions.Lovs))
             services.AddSingleton(lov);
+
+        // Reports on a SQL query and SQL select lists, translated from Oracle (MtgApexSql), and the page processes around the forms.
+        foreach (var report in Modules.Mtg.Pages.MtgApexSql.Reports)
+            services.AddSingleton(report);
+        foreach (var lov in Modules.Mtg.Pages.MtgApexSql.Lovs)
+            services.AddSingleton(lov);
+        foreach (var load in Modules.Mtg.Pages.MtgApexSql.Loads)
+            services.AddSingleton(load);
+        foreach (var type in typeof(DependencyInjection).Assembly.GetTypes()
+                     .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IApexFormHooks).IsAssignableFrom(t)))
+            services.AddScoped(typeof(IApexFormHooks), type);
         services.AddScoped<ApexProcessRegistry>();
 
         return services;

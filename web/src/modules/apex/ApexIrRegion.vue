@@ -3,10 +3,11 @@
 // a Create button right of the search bar, sortable column headings, an edit link per row and pagination.
 import { computed, onMounted, ref, watch } from 'vue'
 import { http } from '@/shared/api/http'
-import type { WizardRegion } from './wizard'
+import { formatValue, resolveSet, type WizardButton, type WizardRegion, type WizardTarget } from './wizard'
 
 const props = defineProps<{ app: number; page: number; region: WizardRegion; items: Record<string, string> }>()
-const emit = defineEmits<{ edit: [page: number, item: string, value: unknown]; create: [page: number] }>()
+// open: a link to a page with the items it sets (row link, column link, a button right of the search bar)
+const emit = defineEmits<{ open: [page: number | null, items: Record<string, string>] }>()
 
 type Row = Record<string, unknown>
 const rows = ref<Row[]>([])
@@ -78,11 +79,23 @@ function reset() {
   void load()
 }
 
-function show(value: unknown, type: string) {
-  if (value == null) return '-'
-  if (type === 'NUMBER' && typeof value === 'number') return value.toLocaleString('en-US', { maximumFractionDigits: 10 })
-  return String(value)
+function show(value: unknown, type: string, format?: string) {
+  return formatValue(value, type, format)
 }
+
+// the row link: the items the detail link sets, or the form page's key item
+function openRow(row: Row) {
+  const link = props.region.link!
+  emit('open', link.page, link.set ? resolveSet(link.set, row, props.items) : { [link.item!]: row[props.region.pk!] == null ? '' : String(row[props.region.pk!]) })
+}
+
+function openLink(target: WizardTarget, row: Row) {
+  emit('open', target.page, resolveSet(target.set, row, props.items))
+}
+
+const toolbar = computed<WizardButton[]>(() =>
+  props.region.toolbar ?? (props.region.create ? [{ name: 'CREATE', ...props.region.create }] : [])
+)
 
 async function download() {
   menu.value = null
@@ -100,14 +113,18 @@ async function download() {
 
 defineExpose({ refresh: load })
 onMounted(load)
-watch(() => props.items[props.region.parentItem ?? ''], load)
+// the page items the query binds (a filter applied, the parent row of a detail report)
+watch(() => JSON.stringify(props.items), () => {
+  first.value = 1
+  void load()
+})
 
 const last = computed(() => Math.min(total.value, first.value + rows.value.length - 1))
 </script>
 
 <template>
   <div class="t-Region t-Region--scrollBody">
-    <div class="t-Region-header"><h2 class="t-Region-title">{{ region.title }}</h2></div>
+    <div v-if="!region.hideHeader" class="t-Region-header"><h2 class="t-Region-title">{{ region.title }}</h2></div>
     <div class="t-Region-body">
       <div class="a-IRR">
         <div class="a-IRR-toolbar">
@@ -137,8 +154,15 @@ const last = computed(() => Math.min(total.value, first.value + rows.value.lengt
               </ul>
             </ul>
           </div>
-          <button v-if="region.create" type="button" class="t-Button t-Button--hot a-IRR-create" @click="emit('create', region.create!.page)">
-            {{ region.create.label }}
+          <button
+            v-for="b in toolbar"
+            :key="b.name"
+            type="button"
+            class="t-Button a-IRR-create"
+            :class="{ 't-Button--hot': b.name === 'CREATE' }"
+            @click="emit('open', b.page, resolveSet(b.set, {}, items))"
+          >
+            {{ b.label }}
           </button>
         </div>
 
@@ -168,11 +192,14 @@ const last = computed(() => Math.min(total.value, first.value + rows.value.lengt
             <tbody>
               <tr v-for="(r, i) in rows" :key="i">
                 <td v-if="region.link" class="a-IRR-linkCol">
-                  <a href="#" :title="'Edit'" @click.prevent="emit('edit', region.link!.page, region.link!.item, r[region.pk])">
+                  <a href="#" :title="'Edit'" @click.prevent="openRow(r)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
                   </a>
                 </td>
-                <td v-for="c in columns" :key="c.name" :class="{ 'u-tR': c.type === 'NUMBER' }">{{ show(r[c.name], c.type) }}</td>
+                <td v-for="c in columns" :key="c.name" :class="{ 'u-tR': c.type === 'NUMBER' }">
+                  <a v-if="c.link" href="#" @click.prevent="openLink(c.link, r)">{{ show(r[c.name], c.type, c.format) }}</a>
+                  <template v-else>{{ show(r[c.name], c.type, c.format) }}</template>
+                </td>
               </tr>
             </tbody>
           </table>

@@ -185,8 +185,24 @@ public static class MtgApexSql
         new(105, 749, "P749_SETTLEMENT_STATUS", Permissions.Mtg.PortfolioView, Q.LOV_P749_SETTLEMENT_STATUS),
     ];
 
+    public static readonly IReadOnlyList<ApexSqlLoad> Loads =
+    [
+        new(105, 407, Permissions.Mtg.PortfolioView, Q.LOAD_P407),
+    ];
+
     private static class Q
     {
+        public const string LOAD_P407 = """
+        with "FNV_V_CHEQUE_COVERAGE" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        left join "MTG_PURCHASED_PORTFOLIO_CHEQUES" c on c."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT"
+        )
+        select case when v."PORTFOLIO_ID" is null then '-' else to_char(v."REQUIRED_COVERAGE_AMOUNT", 'FM999G999G999G990D00') end "P407_REQUIRED_COVERAGE", case when v."PORTFOLIO_ID" is null then '0.00' else to_char(v."CHEQUE_TOTAL_AMOUNT", 'FM999G999G999G990D00') end "P407_CHEQUE_TOTAL", case when v."PORTFOLIO_ID" is null or v."CHEQUE_COVERAGE_PCT" is null then '-' else concat(to_char(v."CHEQUE_COVERAGE_PCT", 'FM999G990D00'), '%') end "P407_COVERAGE_PCT", case when v."PORTFOLIO_ID" is null then 'Not Available' when v."COVERAGE_OK_FLAG" = 'Y' then 'Covered' else 'Insufficient' end "P407_COVERAGE_STATUS" from (select 1 "X") "D"
+        left join "FNV_V_CHEQUE_COVERAGE" v on v."PORTFOLIO_ID" = @P407_PORTFOLIO_ID::numeric
+        """;
+
         public const string LOV_FNV_APPROVAL_STEP_ALL = """
         select "STEP_NAME_EN" "D", "STEP_CODE" "R"
         from "MTG_LKP_APPROVAL_STEPS"

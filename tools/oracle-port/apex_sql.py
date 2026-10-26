@@ -5,6 +5,7 @@ Translates the SQL of a copied APEX app's pages to PostgreSQL (ora2pg.py) and wr
   - the interactive reports whose source is a SQL query (ApexSqlReport, process IR_<key>)
   - the select lists of the pages (ApexSqlLov, process LOVS): shared lists of values (lovs-<app>.json),
     inline SQL and STATIC: lists
+  - the Before Header processes that select into page items (ApexSqlLoad, process PAGE_LOAD), from sql-<app>/loads
 
 Every query is run against the local database (binds as null) and listed as OK or FAILED with the error.
 A failing or untranslatable query gets a hand-written PostgreSQL version in sql-<app>/overrides/<name>.sql
@@ -117,6 +118,17 @@ def main():
                 continue
             lov_items.append((p, it['name'], name))
 
+    # Before Header processes that select into page items (sql-<app>/loads/P<page>.sql, the items as column aliases)
+    loads = []
+    load_dir = os.path.join(sql_dir, 'loads')
+    for f in sorted(os.listdir(load_dir)) if os.path.isdir(load_dir) else []:
+        p = int(re.match(r'P(\d+)\.sql$', f).group(1))
+        oracle = '\n'.join(l for l in open(os.path.join(load_dir, f), encoding='utf-8').read().splitlines() if not l.lstrip().startswith('--'))
+        name = 'LOAD_P%d' % p
+        sql, notes = translate(name, oracle)
+        results.append((name, sql, check(sql), notes))
+        loads.append((p, name))
+
     by_name = {n: s for n, s, _, _ in results}
     failed = [r for r in results if r[2]]
     with open(os.path.join(sql_dir, 'REPORT.md'), 'w', encoding='utf-8') as f:
@@ -144,6 +156,9 @@ def main():
     cs += ['    ];', '', '    public static readonly IReadOnlyList<ApexSqlLov> Lovs =', '    [']
     for p, item, n in lov_items:
         cs.append('        new(%d, %d, "%s", %s, Q.%s),' % (app, p, item, perm(p), n))
+    cs += ['    ];', '', '    public static readonly IReadOnlyList<ApexSqlLoad> Loads =', '    [']
+    for p, n in loads:
+        cs.append('        new(%d, %d, %s, Q.%s),' % (app, p, perm(p), n))
     cs += ['    ];', '', '    private static class Q', '    {']
     for n in sorted(by_name):
         cs.append('        public const string %s = %s;' % (n, raw(by_name[n])))

@@ -13,6 +13,9 @@ public sealed record ApexSqlReport(int App, int Page, string Key, string Permiss
 /// <summary>A select list of a copied page whose values come from a SQL list of values (first column shown, second returned).</summary>
 public sealed record ApexSqlLov(int App, int Page, string Item, string Permission, string Sql);
 
+/// <summary>A Before Header process that selects into page items: one row, each column named after its item.</summary>
+public sealed record ApexSqlLoad(int App, int Page, string Permission, string Sql);
+
 /// <summary>
 /// The page-specific processes APEX ran around a wizard form: "Set Defaults" before a new row is shown, and the
 /// processes after Process form (store an upload, recalculate the portfolio). One per page, found by app and page.
@@ -83,6 +86,28 @@ internal sealed class ApexSqlReportProcess(ApexSqlReport report, IApexSqlReader 
     }
 }
 
+/// <summary>PAGE_LOAD: x01 {ITEM: value} the page items; returns {items: {ITEM: value}} the items the process set.</summary>
+internal sealed class ApexSqlLoadProcess(ApexSqlLoad load, IApexSqlReader reader, ICurrentUser user) : IApexProcess
+{
+    public int App => load.App;
+
+    public int Page => load.Page;
+
+    public string Name => "PAGE_LOAD";
+
+    public string Permission => load.Permission;
+
+    public async Task<object> RunAsync(ApexRequest request, CancellationToken ct)
+    {
+        var items = ApexItems.Read(request.X01);
+        items["APP_USER"] = user.UserName;
+        var rows = await reader.QueryAsync(load.Sql, items, ct);
+        var row = rows.Count > 0 ? rows[0] : null;
+        var set = row?.ToDictionary(c => c.Key, c => ApexSqlLovValues.Text(c.Value)) ?? [];
+        return new { ok = true, items = set };
+    }
+}
+
 /// <summary>LOVS: the values of every select list of one page, as {ITEM: [[display, return], ...]}.</summary>
 internal sealed class ApexSqlLovValues(IApexSqlReader reader)
 {
@@ -95,7 +120,7 @@ internal sealed class ApexSqlLovValues(IApexSqlReader reader)
             .ToList();
     }
 
-    private static string? Text(object? value) => value switch
+    internal static string? Text(object? value) => value switch
     {
         null => null,
         bool b => b ? "Y" : "N",

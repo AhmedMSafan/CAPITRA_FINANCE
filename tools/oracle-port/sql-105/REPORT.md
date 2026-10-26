@@ -1,6 +1,6 @@
 # App 105: SQL translated to PostgreSQL
 
-98 of 98 run.
+99 of 99 run.
 
 - OK     P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY
 - OK     P206_PAYMENT_HISTORY
@@ -100,3 +100,4 @@
 - OK     LOV_P749_ACCOUNTING_STATUS (inline (first line only in items.txt))
 - OK     LOV_P749_PAYMENT_METHOD (inline (first line only in items.txt))
 - OK     LOV_P749_SETTLEMENT_STATUS (inline (first line only in items.txt))
+- OK     LOAD_P407

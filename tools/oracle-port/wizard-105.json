@@ -79,5 +79,14 @@
       730,
       749
     ]
+  ],
+  "index": "web/src/modules/mtg/apex/pages.ts",
+  "skip": [
+    0,
+    307,
+    409,
+    410,
+    609,
+    9999
   ]
 }
