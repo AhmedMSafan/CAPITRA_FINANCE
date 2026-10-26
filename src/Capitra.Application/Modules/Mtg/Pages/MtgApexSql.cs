@@ -727,7 +727,7 @@ public static class MtgApexSql
 
         public const string LOV_P611_REQUIREMENT_CODE = """
         select "REQUIREMENT_CODE" "D", "REQUIREMENT_CODE" "R"
-        from "REF_PORT_DOCUMENT_REQUIREMENT"
+        from "MTG_LKP_DOCUMENT_REQUIREMENTS"
         order by 1
         """;
 

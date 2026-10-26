@@ -2760,5 +2760,36 @@
    }
   },
   "pk": "VALUATION_TYPE_CODE"
+ },
+ "REF_PORT_DOCUMENT_REQUIREMENT": {
+  "table": "MTG_LKP_DOCUMENT_REQUIREMENTS",
+  "class": "MtgLkpDocumentRequirement",
+  "columns": {
+   "REQUIREMENT_CODE": {
+    "column": "REQUIREMENT_CODE",
+    "kind": "string"
+   },
+   "MANDATORY_FLAG": {
+    "column": "IS_MANDATORY",
+    "kind": "flag"
+   },
+   "ORIGINAL_REQUIRED_FLAG": {
+    "column": "IS_ORIGINAL_REQUIRED",
+    "kind": "flag"
+   },
+   "VERIFIED_REQUIRED_FLAG": {
+    "column": "IS_VERIFIED_REQUIRED",
+    "kind": "flag"
+   },
+   "MAX_AGE_DAYS": {
+    "column": "MAX_AGE_DAYS",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "REQUIREMENT_CODE"
  }
 }

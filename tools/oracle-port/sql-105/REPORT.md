@@ -1,6 +1,6 @@
 # App 105: SQL translated to PostgreSQL
 
-195 of 196 run.
+196 of 196 run.
 
 - OK     P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY
 - OK     P206_PAYMENT_HISTORY
@@ -79,8 +79,7 @@
 - OK     LOV_P611_ACTIVE_FLAG (static)
 - OK     LOV_P611_MANDATORY_FLAG (static)
 - OK     LOV_P611_ORIGINAL_REQUIRED_FLAG (static)
-- FAILED LOV_P611_REQUIREMENT_CODE (inline (first line only in items.txt))
-  `ERROR:  relation "REF_PORT_DOCUMENT_REQUIREMENT" does not exist`
+- OK     LOV_P611_REQUIREMENT_CODE (inline (first line only in items.txt))
 - OK     LOV_P611_VERIFIED_REQUIRED_FLAG (static)
 - OK     LOV_P730_CURRENCY_CODE (inline (first line only in items.txt))
 - OK     LOV_P730_DEVELOPER_ID (inline (first line only in items.txt))

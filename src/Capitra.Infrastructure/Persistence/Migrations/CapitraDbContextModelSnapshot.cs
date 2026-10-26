@@ -18941,6 +18941,63 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_LKP_DD_CHECK_TYPES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpDocumentRequirement", b =>
+                {
+                    b.Property<string>("RequirementCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("REQUIREMENT_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsMandatory")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_MANDATORY");
+
+                    b.Property<bool>("IsOriginalRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ORIGINAL_REQUIRED");
+
+                    b.Property<bool>("IsVerifiedRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_VERIFIED_REQUIRED");
+
+                    b.Property<int?>("MaxAgeDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("MAX_AGE_DAYS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("RequirementCode")
+                        .HasName("PK_MTG_LKP_DOCUMENT_REQUIREMENTS");
+
+                    b.ToTable("MTG_LKP_DOCUMENT_REQUIREMENTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgLkpInquiryType", b =>
                 {
                     b.Property<string>("InquiryTypeCode")
