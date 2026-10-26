@@ -1227,6 +1227,30 @@ public static class MtgApexPageSql
         order by a."PORTFOLIO_ACCOUNT_ID"
         """;
 
+    public const string P214_HEADER = """
+        select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", p."CURRENCY_CODE", p."PV_RATE", p."MARGIN_PERCENTAGE", p."ADMIN_EXPENSE_PERCENT", p."LEGAL_FEE_PER_UNIT", p."VALUATION_FEE_PER_UNIT", (select s."STATUS_NAME_EN"
+        from "MTG_LKP_PORTFOLIO_STATUSES" s
+        where s."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE") "STATUS_NAME"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        where p."PORTFOLIO_ID" = @P214_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P214_SELECTED = """
+        select coalesce(sum(a."OUTSTANDING_VALUE"), 0) "OV", coalesce(sum(a."CONTRACT_VALUE"), 0) "FACE", count(distinct a."UNIT_ID") "UNITS"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        where a."PORTFOLIO_ID" = @P214_PORTFOLIO_ID::bigint and coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED'
+        """;
+
+    public const string P214_CHEQUES = """
+        select c."CHEQUE_NO", c."DUE_DATE", c."CHEQUE_AMOUNT", coalesce(inv."FULL_NAME_EN", inv."FULL_NAME_AR") "INV"
+        from "MTG_PURCHASED_PORTFOLIO_CHEQUES" c
+        join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."PORTFOLIO_ACCOUNT_ID" = c."PORTFOLIO_ACCOUNT_ID"
+        join "MTG_INVESTORS" inv on inv."INVESTOR_ID" = a."INVESTOR_ID"
+        where c."PORTFOLIO_ID" = @P214_PORTFOLIO_ID::bigint and coalesce(a."DEAL_DECISION_CODE", 'SELECTED') = 'SELECTED'
+        order by c."DUE_DATE" nulls first, c."CHEQUE_ID"
+        """;
+
     public const string P401_HEADER = """
         select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", coalesce(prj."PROJECT_NAME_EN", prj."PROJECT_NAME_AR") "PROJECT", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", coalesce(p."CURRENCY_CODE", 'EGP') "CUR", (select s."STATUS_NAME_EN"
         from "MTG_LKP_PORTFOLIO_STATUSES" s

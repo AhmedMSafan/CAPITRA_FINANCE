@@ -45,6 +45,24 @@ internal static class MtgAjax
         }
     }
 
+    private static readonly TimeZoneInfo CairoZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+
+    /// <summary>sysdate / systimestamp: the database's clock is Cairo time.</summary>
+    public static DateTime CairoNow(IClock clock) => TimeZoneInfo.ConvertTimeFromUtc(clock.UtcNow, CairoZone);
+
+    /// <summary>A stored UTC time in Cairo time.</summary>
+    public static DateTime? Cairo(DateTime? utc) =>
+        utc is null ? null : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc.Value, DateTimeKind.Utc), CairoZone);
+
+    /// <summary>Oracle months_between(d1, d2): whole months when the days match or both are month ends, else the rest over 31 days.</summary>
+    public static decimal MonthsBetween(DateOnly d1, DateOnly d2)
+    {
+        var months = (d1.Year - d2.Year) * 12 + d1.Month - d2.Month;
+        var end1 = d1.Day == DateTime.DaysInMonth(d1.Year, d1.Month);
+        var end2 = d2.Day == DateTime.DaysInMonth(d2.Year, d2.Month);
+        return d1.Day == d2.Day || (end1 && end2) ? months : months + (d1.Day - d2.Day) / 31m;
+    }
+
     /// <summary>to_number(p): null when empty, ORA-01722 when it is not a number.</summary>
     public static decimal? Number(string? p) =>
         string.IsNullOrWhiteSpace(p) ? null
