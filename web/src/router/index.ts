@@ -140,7 +140,7 @@ const router = createRouter({
         {
           path: 'gl',
           name: 'gl-home',
-          component: () => import('@/modules/gl/pages/GlHomePage.vue'),
+          component: () => import('@/modules/gl/apex/P0001Home.vue'),
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'General Ledger' }
         },
         {
@@ -152,7 +152,7 @@ const router = createRouter({
         {
           path: 'gl/chart-of-accounts',
           name: 'gl-chart-of-accounts',
-          component: () => import('@/modules/gl/pages/ChartOfAccountsPage.vue'),
+          component: () => import('@/modules/gl/apex/P0002ChartOfAccounts.vue'),
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Chart of Accounts' }
         },
         {

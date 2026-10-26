@@ -169,6 +169,84 @@ public sealed class GlCoaSetup(ICapitraDbContext db, IClock clock)
         return row.SegmentValueId;
     }
 
+    public sealed record AccountInput(
+        string? CoaCode, string? AccountCode, string? AccountNameEn, string? AccountNameAr, string? Description,
+        string? ParentAccountCode, string? AccountSegmentValueCode, string? AccountType, string? NormalBalance,
+        string? FinancialStatementClass, string? CashFlowClass, string? SummaryFlag, string? PostingAllowedFlag,
+        string? ControlAccountFlag, string? ReconciliationFlag, string? RequireBranchFlag, string? RequireCostCenterFlag,
+        string? RequireBusinessLineFlag, string? ManualJournalAllowedFlag, string? SubledgerPostingAllowedFlag,
+        string? CurrencyRevaluationFlag, string? RetainedEarningsFlag, string? ActiveFlag, DateOnly? EffectiveStartDate,
+        DateOnly? EffectiveEndDate, long? SortOrder);
+
+    /// <summary>save_account: the account is linked to the value of the NATURAL segment with the same code.</summary>
+    public async Task<long> SaveAccountAsync(AccountInput p, CancellationToken ct)
+    {
+        var coaCode = NormalizeCode(p.CoaCode);
+        var coa = await db.Set<GlCoaStructure>().SingleOrDefaultAsync(x => x.CoaCode == coaCode, ct)
+            ?? throw new ApexProcessException("COA does not exist: " + p.CoaCode);
+        var code = NormalizeCode(p.AccountCode) ?? string.Empty;
+
+        long? parentId = null;
+        if (p.ParentAccountCode is not null)
+        {
+            var parentCode = NormalizeCode(p.ParentAccountCode);
+            parentId = await db.Set<GlAccount>().Where(a => a.CoaId == coa.CoaId && a.AccountCode == parentCode)
+                .Select(a => (long?)a.AccountId).SingleOrDefaultAsync(ct)
+                ?? throw new ApexProcessException("Parent natural account does not exist: " + p.ParentAccountCode);
+        }
+
+        var natural = NormalizeCode(p.AccountSegmentValueCode) ?? code;
+        var segmentValueId = await (from v in db.Set<GlCoaSegmentValue>()
+                                    join s in db.Set<GlCoaSegment>() on v.CoaSegmentId equals s.CoaSegmentId
+                                    where s.CoaId == coa.CoaId && s.SegmentCode == "NATURAL" && v.ValueCode == natural
+                                    select (long?)v.SegmentValueId).SingleOrDefaultAsync(ct);
+
+        var retained = Flag(p.RetainedEarningsFlag, false);
+        if (retained)
+        {
+            foreach (var other in await db.Set<GlAccount>()
+                         .Where(a => a.CoaId == coa.CoaId && a.AccountCode != code && a.IsRetainedEarnings).ToListAsync(ct))
+                other.IsRetainedEarnings = false;
+        }
+
+        var row = await db.Set<GlAccount>().SingleOrDefaultAsync(a => a.CoaId == coa.CoaId && a.AccountCode == code, ct);
+        var created = row is null;
+        if (row is null)
+        {
+            row = new GlAccount { CoaId = coa.CoaId, AccountCode = code };
+            db.Add(row);
+        }
+
+        row.AccountNameEn = p.AccountNameEn ?? string.Empty;
+        row.AccountNameAr = p.AccountNameAr;
+        row.Description = p.Description;
+        row.ParentAccountId = parentId;
+        row.AccountSegmentValueId = segmentValueId;
+        row.AccountType = NormalizeCode(p.AccountType) ?? string.Empty;
+        row.NormalBalance = NormalizeCode(p.NormalBalance) ?? string.Empty;
+        row.FinancialStatementClass = NormalizeCode(p.FinancialStatementClass) ?? string.Empty;
+        row.CashFlowClass = NormalizeCode(p.CashFlowClass ?? "NONE")!;
+        row.IsSummary = Flag(p.SummaryFlag, false);
+        row.IsPostingAllowed = Flag(p.PostingAllowedFlag, true);
+        row.IsControlAccount = Flag(p.ControlAccountFlag, false);
+        row.IsReconciliation = Flag(p.ReconciliationFlag, false);
+        row.IsBranchRequired = Flag(p.RequireBranchFlag, false);
+        row.IsCostCenterRequired = Flag(p.RequireCostCenterFlag, false);
+        row.IsBusinessLineRequired = Flag(p.RequireBusinessLineFlag, false);
+        row.IsManualJournalAllowed = Flag(p.ManualJournalAllowedFlag, true);
+        row.IsSubledgerPostingAllowed = Flag(p.SubledgerPostingAllowedFlag, true);
+        row.IsCurrencyRevaluation = Flag(p.CurrencyRevaluationFlag, false);
+        row.IsRetainedEarnings = retained;
+        row.IsActive = Flag(p.ActiveFlag, true);
+        row.EffectiveStartDate = p.EffectiveStartDate ?? Today;
+        row.EffectiveEndDate = p.EffectiveEndDate;
+        row.SortOrder = p.SortOrder ?? 10;
+
+        LogChange("GL_ACCOUNTS", p.CoaCode + ":" + code, created ? "CREATE" : "UPDATE", created ? "Natural account created." : "Natural account updated.");
+        await db.SaveChangesAsync(ct);
+        return row.AccountId;
+    }
+
     private async Task<long?> BranchIdAsync(string? leCode, string? branchCode, CancellationToken ct)
     {
         if (branchCode is null)

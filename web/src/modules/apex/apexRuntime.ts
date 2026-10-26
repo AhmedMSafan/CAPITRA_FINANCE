@@ -117,18 +117,48 @@ export function createApex(app: number, page: number, items: Record<string, stri
   }
 }
 
+// Listeners that page scripts add to document and window, removed again when the page closes.
+type Added = { target: EventTarget; type: string; listener: EventListenerOrEventListenerObject; options?: boolean | AddEventListenerOptions }
+const added: Added[] = []
+
+function tracked(run: () => void) {
+  const targets: EventTarget[] = [document, window]
+  const originals = targets.map((t) => t.addEventListener)
+  targets.forEach((target, i) => {
+    target.addEventListener = function (type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions) {
+      if (listener) added.push({ target, type, listener, options })
+      originals[i]!.call(target, type, listener, options)
+    }
+  })
+  try {
+    run()
+  } finally {
+    targets.forEach((target, i) => (target.addEventListener = originals[i]!))
+  }
+}
+
 /** Runs a copied page script with `apex`, `$`, `$v` and `$s` in scope, as APEX provides them. */
 export function runPageScript(source: string, apex: ReturnType<typeof createApex>) {
   const $v = (name: string) => apex.item(name).getValue()
   const $s = (name: string, value: unknown) => apex.item(name).setValue(value)
   // The scripts are part of this app (copied from the APEX export), not user input.
   const fn = new Function('apex', '$', 'jQuery', '$v', '$s', source)
-  fn(apex, apex.jQuery, apex.jQuery, $v, $s)
+  tracked(() => fn(apex, apex.jQuery, apex.jQuery, $v, $s))
+}
+
+/** Runs the <script> blocks of server-rendered region HTML (innerHTML does not run them). */
+export function runInlineScripts(container: HTMLElement, apex: ReturnType<typeof createApex>) {
+  container.querySelectorAll('script').forEach((el) => {
+    const source = el.textContent ?? ''
+    el.remove()
+    runPageScript(source, apex)
+  })
 }
 
 /** Removes the handlers a page script put on document and window, when the page closes. */
 export function releasePageHandlers() {
   jQuery(document).off()
   jQuery(window).off()
+  for (const a of added.splice(0)) a.target.removeEventListener(a.type, a.listener, a.options)
   document.getElementById('apexAlerts')?.remove()
 }

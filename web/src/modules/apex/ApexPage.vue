@@ -2,7 +2,9 @@
 // Hosts one page copied from an APEX application: its region HTML, its page CSS and its page
 // scripts run as they were written, against the apex runtime in apexRuntime.ts.
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { createApex, releasePageHandlers, runPageScript } from './apexRuntime'
+import { useRouter } from 'vue-router'
+import { http } from '@/shared/api/http'
+import { createApex, releasePageHandlers, runInlineScripts, runPageScript } from './apexRuntime'
 
 const props = defineProps<{
   app: number
@@ -14,16 +16,34 @@ const props = defineProps<{
 }>()
 
 const host = ref<HTMLElement | null>(null)
+const router = useRouter()
 let style: HTMLStyleElement | null = null
 
-onMounted(() => {
+// Links inside the copied HTML point at Capitra routes (the server maps APEX page numbers to them).
+function followLink(event: MouseEvent) {
+  const link = (event.target as HTMLElement).closest?.('a[href^="/"]') as HTMLAnchorElement | null
+  if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || link.target === '_blank') return
+  event.preventDefault()
+  void router.push(link.getAttribute('href')!)
+}
+
+onMounted(async () => {
   style = document.createElement('style')
   style.dataset.apexPage = `${props.app}-${props.page}`
   style.textContent = props.css
   document.head.appendChild(style)
 
-  if (host.value) host.value.innerHTML = props.html
+  const el = host.value!
+  el.innerHTML = props.html
+  el.addEventListener('click', followLink)
   const apex = createApex(props.app, props.page, { ...props.items })
+
+  // PL/SQL dynamic content regions: <div data-apex-region="PROCESS"> is filled with the HTML the ported process renders.
+  for (const slot of Array.from(el.querySelectorAll<HTMLElement>('[data-apex-region]'))) {
+    const result = await http.post<{ html: string }>(`/api/apex/${props.app}/${props.page}/${slot.dataset.apexRegion}`, {})
+    slot.outerHTML = result.html
+  }
+  runInlineScripts(el, apex)
   for (const script of props.scripts) runPageScript(script, apex)
 })
 
