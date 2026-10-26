@@ -27,6 +27,24 @@ internal static class MtgAjax
         }
     }
 
+    /// <summary>The same, for a process that writes its own apex_json object on success.</summary>
+    public static async Task<object> RunJsonAsync(ICapitraDbContext db, Func<Task<object>> body, CancellationToken ct)
+    {
+        await using var tx = await db.BeginTransactionAsync(ct);
+        try
+        {
+            var result = await body();
+            await tx.CommitAsync(ct);
+            return result;
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            await tx.RollbackAsync(ct);
+            db.DiscardChanges();
+            return new { success = false, message = e.Message };
+        }
+    }
+
     /// <summary>to_number(p): null when empty, ORA-01722 when it is not a number.</summary>
     public static decimal? Number(string? p) =>
         string.IsNullOrWhiteSpace(p) ? null

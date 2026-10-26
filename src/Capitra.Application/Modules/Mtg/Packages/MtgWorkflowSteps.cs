@@ -25,16 +25,27 @@ public sealed class MtgWorkflowSteps(ICapitraDbContext db, WfeRuntime runtime, W
     /// The open task of the portfolio at a step: the one the page was opened with when it is that step's, otherwise
     /// the newest (max(TASK_ID) keep (dense_rank first order by case when TASK_ID = :P_TASK_ID then 0 else 1 end, TASK_ID desc))).
     /// </summary>
-    public async Task<StepTask?> OpenTaskAsync(long portfolioId, string stepCode, long? preferred, CancellationToken ct)
+    public async Task<StepTask?> OpenTaskAsync(long portfolioId, string stepCode, long? preferred, CancellationToken ct, bool like = false)
     {
         var instanceId = await InstanceAsync(portfolioId, ct);
         if (instanceId is null)
             return null;
         var tasks = await OpenTasks(instanceId.Value)
-            .Where(t => t.StepInstance!.StepCode!.ToUpper() == stepCode)
+            .Where(t => like ? t.StepInstance!.StepCode!.ToUpper().Contains(stepCode) : t.StepInstance!.StepCode!.ToUpper() == stepCode)
             .Select(t => new StepTask(t.TaskId, t.TaskStatus))
             .ToListAsync(ct);
         return tasks.OrderBy(t => t.TaskId == preferred ? 0 : 1).ThenByDescending(t => t.TaskId).FirstOrDefault();
+    }
+
+    /// <summary>The newest open task of the portfolio whose target is the page (max(TASK_ID) from WFE_WF_INBOX_V where TARGET_PAGE_ID = :page).</summary>
+    public async Task<StepTask?> PageTaskAsync(long portfolioId, int page, CancellationToken ct)
+    {
+        var instanceId = await InstanceAsync(portfolioId, ct);
+        if (instanceId is null)
+            return null;
+        var route = "mtg-" + page.ToString(CultureInfo.InvariantCulture);
+        return await OpenTasks(instanceId.Value).Where(t => t.Route == route).OrderByDescending(t => t.TaskId)
+            .Select(t => new StepTask(t.TaskId, t.TaskStatus)).FirstOrDefaultAsync(ct);
     }
 
     /// <summary>The open tasks of the portfolio ("12 LOAD_DATA OPEN; ..."), for the message when the step's task is missing.</summary>
@@ -98,7 +109,9 @@ public sealed class MtgWorkflowSteps(ICapitraDbContext db, WfeRuntime runtime, W
     /// The PL/SQL region "Step Actions" of the review pages (209, 211 to 215): Accept and Reject of the decision bar
     /// follow the Allowed Actions; Accept becomes "Complete &amp; continue" on a step that completes.
     /// </summary>
-    public async Task<string> StepActionsAsync(int page, ApexRequest request, CancellationToken ct)
+    public async Task<string> StepActionsAsync(
+        int page, ApexRequest request, CancellationToken ct,
+        string accept = "wbAccept", string reject = "wbReject", string completeEn = "Complete & continue", string completeAr = "إكمال ومتابعة")
     {
         if (await ActionsAsync(page, request, ct) is not { } codes)
             return string.Empty;
@@ -114,14 +127,14 @@ public sealed class MtgWorkflowSteps(ICapitraDbContext db, WfeRuntime runtime, W
         }
 
         if (codes.Count == 0)
-            return "<style>#wbAccept,#wbReject{display:none!important}</style><script>(function(){var b=document.querySelector('.wb-dbar-in');if(!b)return;var s=document.createElement('span');s.className='wb-hint';s.style.color='var(--bad)';s.textContent='No workflow actions are available: this task is closed or not in your inbox.';b.appendChild(s);})();</script>\n";
-        var h = rej == "N" ? "<style>#wbReject{display:none!important}</style>\n" : string.Empty;
+            return "<style>#" + accept + ",#" + reject + "{display:none!important}</style><script>(function(){var b=document.querySelector('.wb-dbar-in');if(!b)return;var s=document.createElement('span');s.className='wb-hint';s.style.color='var(--bad)';s.textContent='No workflow actions are available: this task is closed or not in your inbox.';b.appendChild(s);})();</script>\n";
+        var h = rej == "N" ? "<style>#" + reject + "{display:none!important}</style>\n" : string.Empty;
         if (pos == "NONE")
-            h += "<style>#wbAccept{display:none!important}</style><script>(function(){var b=document.querySelector('.wb-dbar-in');if(!b)return;var s=document.createElement('span');s.className='wb-hint';s.style.color='var(--bad)';s.textContent='This step has no Approve or Complete action in the workflow setup.';b.appendChild(s);})();</script>\n";
+            h += "<style>#" + accept + "{display:none!important}</style><script>(function(){var b=document.querySelector('.wb-dbar-in');if(!b)return;var s=document.createElement('span');s.className='wb-hint';s.style.color='var(--bad)';s.textContent='This step has no Approve or Complete action in the workflow setup.';b.appendChild(s);})();</script>\n";
         else if (pos == "COMPLETE")
-            h += "<script>(function(){var b=document.getElementById('wbAccept');if(!b)return;var s=b.querySelector('[data-finova-en]');if(!s)return;"
-                + "s.setAttribute('data-finova-en','Complete & continue');s.setAttribute('data-finova-ar','إكمال ومتابعة');"
-                + "s.textContent=document.documentElement.dir==='rtl'?'إكمال ومتابعة':'Complete & continue';})();</script>\n";
+            h += "<script>(function(){var b=document.getElementById('" + accept + "');if(!b)return;var s=b.querySelector('[data-finova-en]');if(!s)return;"
+                + "s.setAttribute('data-finova-en','" + completeEn + "');s.setAttribute('data-finova-ar','" + completeAr + "');"
+                + "s.textContent=document.documentElement.dir==='rtl'?'" + completeAr + "':'" + completeEn + "';})();</script>\n";
         return h;
     }
 
