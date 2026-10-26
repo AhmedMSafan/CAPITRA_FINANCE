@@ -81,6 +81,10 @@ export function createApex(app: number, page: number, items: Record<string, stri
         if (data[key] !== undefined && data[key] !== null) body[key] = String(data[key])
       }
       if (data.p_clob_01 !== undefined) body.clob01 = data.p_clob_01
+      // any other property goes in p_json, which APEX parses for the process (apex_json.get_number('aAsset'))
+      const json: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(data)) if (!/^(x\d\d|p_clob_01|pageItems)$/.test(k) && v !== undefined) json[k] = v
+      if (Object.keys(json).length) body.json = json
       // the page's session state goes with every call, as APEX keeps it on the server
       body.items = { ...items }
       http.post<unknown>(`/api/apex/${app}/${page}/${encodeURIComponent(name)}`, body).then(
@@ -180,12 +184,21 @@ function tracked(run: () => void) {
   }
 }
 
+// the globals the page scripts declared, removed when the page closes
+const globals: string[] = []
+
 /** Runs a copied page script with `apex`, `$`, `$v`, `$s` and `history` in scope, as APEX provides them. */
 export function runPageScript(source: string, apex: ReturnType<typeof createApex>) {
   const $v = (name: string) => apex.item(name).getValue()
   const $s = (name: string, value: unknown) => apex.item(name).setValue(value)
+  // In APEX the script runs in the global scope: its top-level functions are globals that onclick="nextStep()" calls.
+  // They are hoisted, so they are made globals first (even when a later statement of the script throws).
+  const names = [...source.matchAll(/^function\s+([A-Za-z_$][\w$]*)\s*\(/gm)].map((m) => m[1]!)
+  globals.push(...names)
+  // (a function written at the start of a line may sit inside an IIFE: then it is not a global, and typeof says so)
+  const exported = names.map((n) => `if (typeof ${n} === 'function') window[${JSON.stringify(n)}] = ${n};`).join('')
   // The scripts are part of this app (copied from the APEX export), not user input.
-  const fn = new Function('apex', '$', 'jQuery', '$v', '$s', 'history', source)
+  const fn = new Function('apex', '$', 'jQuery', '$v', '$s', 'history', exported + source)
   tracked(() => fn(apex, apex.jQuery, apex.jQuery, $v, $s, apex.history))
 }
 
@@ -203,5 +216,6 @@ export function releasePageHandlers() {
   jQuery(document).off()
   jQuery(window).off()
   for (const a of added.splice(0)) a.target.removeEventListener(a.type, a.listener, a.options)
+  for (const n of globals.splice(0)) delete (window as unknown as Record<string, unknown>)[n]
   document.getElementById('apexAlerts')?.remove()
 }

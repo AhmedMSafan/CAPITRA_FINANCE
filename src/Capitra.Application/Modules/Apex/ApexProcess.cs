@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Capitra.Application.Modules.Apex;
 
 /// <summary>
@@ -27,6 +29,9 @@ public sealed class ApexRequest
     public string? X19 { get; init; }
     public string? X20 { get; init; }
     public string? Clob01 { get; init; }
+
+    /// <summary>The other properties of the call's data, which APEX sends in p_json and parses for apex_json.</summary>
+    public Dictionary<string, JsonElement>? Json { get; init; }
 
     /// <summary>The page's session state: its items (P209_PORTFOLIO_ID) and REQUEST, as the page had them when it called.</summary>
     public Dictionary<string, string?>? Items { get; init; }

@@ -19,7 +19,7 @@ import re
 import subprocess
 import sys
 
-from apex_wizard import key, items, readme, regions
+from apex_wizard import key, items, readme, regions, where_report
 from ora2pg import Translator
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -66,7 +66,7 @@ def main():
     # the FNV_V_* views, from their Oracle source (sql-<app>/views-oracle) unless written by hand in views/
     vtr = Translator(cfg['maps'], None, view_body=True)
     os.makedirs(os.path.join(sql_dir, 'views'), exist_ok=True)
-    for f in sorted(os.listdir(os.path.join(sql_dir, 'views-oracle'))):
+    for f in sorted(os.listdir(os.path.join(sql_dir, 'views-oracle'))) if os.path.isdir(os.path.join(sql_dir, 'views-oracle')) else []:
         out = os.path.join(sql_dir, 'views', f)
         hand = os.path.join(sql_dir, 'overrides', 'VIEW_' + f)
         sql = open(hand, encoding='utf-8').read() if os.path.exists(hand) else vtr.translate(open(os.path.join(sql_dir, 'views-oracle', f), encoding='utf-8').read())
@@ -83,9 +83,15 @@ def main():
             seen[k] = seen.get(k, 0) + 1
             if seen[k] > 1:
                 k += '_%d' % seen[k]
-            if r['type'] != 'NATIVE_IR' or r['table']:
+            if r['type'] != 'NATIVE_IR' or (r['table'] and not where_report(r)):
                 continue
-            body = open(os.path.join(d, 'regions', r['file']), encoding='utf-8').read().split('\n\n', 1)[1].strip()
+            if r['table']:
+                # the table's columns by their Oracle names, as the report on the table had them
+                cols = next(json.load(open(m, encoding='utf-8'))[r['table']]['columns'] for m in cfg['maps']
+                            if r['table'] in json.load(open(m, encoding='utf-8')))
+                body = 'select %s from %s where %s' % (', '.join(c.lower() for c in cols), r['table'].lower(), r['where'])
+            else:
+                body = open(os.path.join(d, 'regions', r['file']), encoding='utf-8').read().split('\n\n', 1)[1].strip()
             name = 'P%d_%s' % (p, k)
             sql, notes = translate(name, body)
             results.append((name, sql, check(sql), notes))

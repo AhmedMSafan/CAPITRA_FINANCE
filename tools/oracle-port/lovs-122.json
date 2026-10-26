@@ -1,0 +1,170 @@
+{
+  "CHEQUE ACTIONS": {
+    "type": "SQL",
+    "query": "SELECT CASE :APP_LANGUAGE\n           WHEN 'ar' THEN NVL(action_name_ar, action_name_en)\n           ELSE action_name_en\n       END AS d,\n       action_code AS r\nFROM FND_CHEQUE_ACTION_CATALOG\nWHERE active_flag = 'Y'\nORDER BY display_seq;",
+    "return": "R",
+    "display": "D"
+  },
+  "FCT_AGREEMENT_DEBTORS.PAYMENT_TERMS": {
+    "type": "TABLE",
+    "table": "FCT_AGREEMENT_DEBTORS",
+    "where": null,
+    "return": "AGRMT_DEBTOR_ID",
+    "display": "PAYMENT_TERMS",
+    "default_sort": "PAYMENT_TERMS",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_AGREEMENTS.AGREEMENT_NUMBER": {
+    "type": "TABLE",
+    "table": "FCT_AGREEMENTS",
+    "where": null,
+    "return": "AGREEMENT_ID",
+    "display": "AGREEMENT_NUMBER",
+    "default_sort": "AGREEMENT_NUMBER",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_CLIENTS.CLIENT_NUMBER": {
+    "type": "TABLE",
+    "table": "FCT_CLIENTS",
+    "where": null,
+    "return": "CLIENT_ID",
+    "display": "CLIENT_NUMBER",
+    "default_sort": "CLIENT_NUMBER",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_CLIENTS_NAME": {
+    "type": "TABLE",
+    "table": "FCT_CLIENTS",
+    "where": null,
+    "return": "CLIENT_ID",
+    "display": "CLIENT_NAME",
+    "default_sort": "CLIENT_NAME",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_CREDIT_LIMITS.LIMIT_NUMBER": {
+    "type": "TABLE",
+    "table": "FCT_CREDIT_LIMITS",
+    "where": null,
+    "return": "CREDIT_LIMIT_ID",
+    "display": "LIMIT_NUMBER",
+    "default_sort": "LIMIT_NUMBER",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_DEBTORS.DEBTOR_NUMBER": {
+    "type": "TABLE",
+    "table": "FCT_DEBTORS",
+    "where": null,
+    "return": "DEBTOR_ID",
+    "display": "DEBTOR_NUMBER",
+    "default_sort": "DEBTOR_NUMBER",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_INVOICE_BATCHES.BATCH_NUMBER": {
+    "type": "TABLE",
+    "table": "FCT_INVOICE_BATCHES",
+    "where": null,
+    "return": "BATCH_ID",
+    "display": "BATCH_NUMBER",
+    "default_sort": "BATCH_NUMBER",
+    "default_sort_direction": "ASC"
+  },
+  "FND_BANK_ACCOUNT.ACCOUNT_NO": {
+    "type": "TABLE",
+    "table": "FND_BANK_ACCOUNT",
+    "where": null,
+    "return": "BANK_ACCOUNT_ID",
+    "display": "ACCOUNT_NO",
+    "default_sort": "ACCOUNT_NO",
+    "default_sort_direction": "ASC"
+  },
+  "FND_DRAWDOWN.DRAWDOWN_REF": {
+    "type": "TABLE",
+    "table": "FND_DRAWDOWN",
+    "where": null,
+    "return": "DRAWDOWN_ID",
+    "display": "DRAWDOWN_REF",
+    "default_sort": "DRAWDOWN_REF",
+    "default_sort_direction": "ASC"
+  },
+  "FND_LEGAL_ENTITY.LEGAL_ENTITY_CODE": {
+    "type": "TABLE",
+    "table": "FND_LEGAL_ENTITY",
+    "where": null,
+    "return": "LEGAL_ENTITY_ID",
+    "display": "LEGAL_ENTITY_CODE",
+    "default_sort": "LEGAL_ENTITY_CODE",
+    "default_sort_direction": "ASC"
+  },
+  "FND_REPAYMENT_PAYMENT.PAYMENT_REF": {
+    "type": "TABLE",
+    "table": "FND_REPAYMENT_PAYMENT",
+    "where": null,
+    "return": "PAYMENT_ID",
+    "display": "PAYMENT_REF",
+    "default_sort": "PAYMENT_REF",
+    "default_sort_direction": "ASC"
+  },
+  "FND_REPAYMENT_SCHEDULE.DAY_COUNT_BASIS": {
+    "type": "TABLE",
+    "table": "FND_REPAYMENT_SCHEDULE",
+    "where": null,
+    "return": "SCHEDULE_ID",
+    "display": "DAY_COUNT_BASIS",
+    "default_sort": "DAY_COUNT_BASIS",
+    "default_sort_direction": "ASC"
+  },
+  "LKP_CHEQUE_LOCATION.LOCATION_NAME": {
+    "type": "TABLE",
+    "table": "LKP_CHEQUE_LOCATION",
+    "where": null,
+    "return": "LOCATION_CODE",
+    "display": "LOCATION_NAME",
+    "default_sort": "LOCATION_NAME",
+    "default_sort_direction": "ASC"
+  },
+  "LKP_CHEQUE_REJECTION_REASON.NAME_EN": {
+    "type": "TABLE",
+    "table": "LKP_CHEQUE_REJECTION_REASON",
+    "where": null,
+    "return": "REASON_CODE",
+    "display": "NAME_EN",
+    "default_sort": "NAME_EN",
+    "default_sort_direction": "ASC"
+  },
+  "LKP_CHEQUE_STATUS.NAME_EN": {
+    "type": "TABLE",
+    "table": "LKP_CHEQUE_STATUS",
+    "where": null,
+    "return": "STATUS_CODE",
+    "display": "NAME_EN",
+    "default_sort": "NAME_EN",
+    "default_sort_direction": "ASC"
+  },
+  "LKP_CURRENCIES.CURRENCY_CODE": {
+    "type": "TABLE",
+    "table": "LKP_CURRENCIES",
+    "where": null,
+    "return": "CURRENCY_ID",
+    "display": "CURRENCY_CODE",
+    "default_sort": "CURRENCY_CODE",
+    "default_sort_direction": "ASC"
+  },
+  "LKP_CURRENCY.NAME_EN": {
+    "type": "TABLE",
+    "table": "LKP_CURRENCY",
+    "where": null,
+    "return": "CURRENCY_CODE",
+    "display": "NAME_EN",
+    "default_sort": "NAME_EN",
+    "default_sort_direction": "ASC"
+  },
+  "LKP_STATUS_CODES.STATUS_CODE": {
+    "type": "TABLE",
+    "table": "LKP_STATUS_CODES",
+    "where": null,
+    "return": "STATUS_ID",
+    "display": "STATUS_CODE",
+    "default_sort": "STATUS_CODE",
+    "default_sort_direction": "ASC"
+  }
+}

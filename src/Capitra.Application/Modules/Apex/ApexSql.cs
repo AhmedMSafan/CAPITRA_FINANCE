@@ -82,7 +82,7 @@ internal sealed class ApexSqlReportProcess(ApexSqlReport report, IApexSqlReader 
         // the query's own order is the report's default order
         var index = 0;
         var list = rows.Select(r => new ApexReport.Row(index++, new Dictionary<string, object?>(r))).ToList();
-        return ApexReport.Page(list, o);
+        return ApexReport.Page(list, o, report.App);
     }
 }
 

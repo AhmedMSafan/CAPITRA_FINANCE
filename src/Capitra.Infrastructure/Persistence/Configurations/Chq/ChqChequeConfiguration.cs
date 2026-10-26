@@ -54,7 +54,7 @@ public sealed class ChqChequeConfiguration : IEntityTypeConfiguration<ChqCheque>
 
         builder.HasOne<ChqLkpLocation>().WithMany().HasForeignKey(x => x.CurrentLocationCode).OnDelete(DeleteBehavior.Restrict);
         // DRAWDOWN_ID -> FND_DRAWDOWN: added when the FND tables are ported.
-        builder.HasOne<ChqLkpStatus>().WithMany().HasForeignKey(x => x.StatusCode).OnDelete(DeleteBehavior.Restrict);
+        // SYS_C0055762: STATUS_CODE -> CHQ_LKP_STATUSES is not enforced: disabled in FINOVA; an uploaded cheque starts as NEW, which is no cheque status.
         // SCHEDULE_ID -> FND_REPAYMENT_SCHEDULE: added when the FND tables are ported.
         // DEPOSIT_BANK_ACCOUNT_ID -> FND_BANK_ACCOUNT: added when the FND tables are ported.
         // CURRENCY_CODE -> LKP_CURRENCY: added when the LKP tables are ported.

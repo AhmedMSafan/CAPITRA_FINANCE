@@ -41,6 +41,7 @@ public static class ApexPages
         Routes.TryGetValue((app, page), out var route) ? route
         : app == 105 ? (page == 1 ? "/mortgage" : page is 920 or 604 ? "/workflow/inbox" : $"/mortgage/p{page}")
         : app == 110 ? (page == 1 ? "/mortgage-finance" : $"/mortgage-finance/p{page}")
+        : app == 122 ? (page == 1 ? "/cheque-wallet" : $"/cheque-wallet/p{page}")
         : $"/apex/{app}/{page}";
 
     /// <summary>

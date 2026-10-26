@@ -1800,12 +1800,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasIndex("MovementGroupId")
                         .HasDatabaseName("IX_CHQ_EVENTS_MOVEMENT_GROUP_ID");
 
-                    b.HasIndex("NewStatusCode")
-                        .HasDatabaseName("IX_CHQ_EVENTS_NEW_STATUS_CODE");
-
-                    b.HasIndex("OldStatusCode")
-                        .HasDatabaseName("IX_CHQ_EVENTS_OLD_STATUS_CODE");
-
                     b.HasIndex("RejectionReasonCode")
                         .HasDatabaseName("IX_CHQ_EVENTS_REJECTION_REASON_CODE");
 
@@ -2566,10 +2560,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("PARTY_TAX_ID");
 
-                    b.Property<string>("RawChequeAmount")
+                    b.Property<string>("RawChequeAmountText")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("RAW_CHEQUE_AMOUNT");
+                        .HasColumnName("RAW_CHEQUE_AMOUNT_TEXT");
 
                     b.Property<string>("RawChequeNo")
                         .HasMaxLength(100)
@@ -2581,10 +2575,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("RAW_CLIENT_ID");
 
-                    b.Property<string>("RawDueDate")
+                    b.Property<string>("RawDueDateText")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("RAW_DUE_DATE");
+                        .HasColumnName("RAW_DUE_DATE_TEXT");
 
                     b.Property<string>("RawIssuerBankCode")
                         .HasMaxLength(100)
@@ -32531,13 +32525,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("RejectionReasonCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_CHQ_CHEQUES_CHQ_LKP_REJECTION_REASONS");
-
-                    b.HasOne("Capitra.Domain.Modules.Chq.ChqLkpStatus", null)
-                        .WithMany()
-                        .HasForeignKey("StatusCode")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_CHQ_CHEQUES_CHQ_LKP_STATUSES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Chq.ChqEvent", b =>
@@ -32547,18 +32534,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("DepositBatchId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_CHQ_EVENTS_CHQ_DEPOSIT_BATCHES");
-
-                    b.HasOne("Capitra.Domain.Modules.Chq.ChqLkpStatus", null)
-                        .WithMany()
-                        .HasForeignKey("NewStatusCode")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_CHQ_EVENTS_CHQ_LKP_STATUSES_NEW_STATUS_CODE");
-
-                    b.HasOne("Capitra.Domain.Modules.Chq.ChqLkpStatus", null)
-                        .WithMany()
-                        .HasForeignKey("OldStatusCode")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_CHQ_EVENTS_CHQ_LKP_STATUSES_OLD_STATUS_CODE");
 
                     b.HasOne("Capitra.Domain.Modules.Chq.ChqLkpRejectionReason", null)
                         .WithMany()

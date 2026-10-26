@@ -93,17 +93,29 @@ const regionScripts = new Map<string, () => void>()
 let scriptsRan = false
 function regionReady(key: string, run: () => void) {
   regionScripts.set(key, run)
-  if (regionScripts.size >= htmlRegions.value) runScripts()
+  if (regionScripts.size >= htmlRegions.value) void runScripts()
 }
-function runScripts() {
+async function runScripts() {
   if (scriptsRan || !apex.value) return
   scriptsRan = true
+  const api = apex.value
   for (const region of spec.value.regions) regionScripts.get(region.key)?.()
-  if (spec.value.js) runPageScript(spec.value.js, apex.value)
-  if (spec.value.onload) runPageScript(spec.value.onload, apex.value)
+  // the JavaScript file URLs load first, in their order, then the page's own code (as APEX wrote the page)
+  for (const url of spec.value.jsFiles ?? []) runPageScript(await pageFile(url), api)
+  if (spec.value.js) runPageScript(spec.value.js, api)
+  if (spec.value.onload) runPageScript(spec.value.onload, api)
+}
+const files = new Map<string, Promise<string>>()
+function pageFile(url: string): Promise<string> {
+  let text = files.get(url)
+  if (!text) {
+    text = fetch(url).then((r) => (r.ok ? r.text() : ''))
+    files.set(url, text)
+  }
+  return text
 }
 watch(loadDone, (d) => {
-  if (d && htmlRegions.value === 0) setTimeout(runScripts)
+  if (d && htmlRegions.value === 0) setTimeout(() => void runScripts())
 })
 
 // links in the regions' HTML are Capitra routes; a link to a modal page of the app opens it as a dialog
@@ -222,6 +234,8 @@ function closed(message?: string) {
   }
   if (message) success.value = message
   for (const r of reports.value) void r.refresh()
+  // Dialog Closed of the page's scripts (apex.navigation.dialog fires it on close)
+  apexApi?.jQuery(document.body).trigger('apexafterclosedialog')
 }
 
 // After Process form on a normal page APEX shows the page again: with the new row after Create, empty after Delete.
@@ -256,6 +270,7 @@ if (flash.message) {
 
 <template>
   <div ref="root" class="ut-page t-Body-contentInner" @click.capture="followDataHref" @keydown.capture="followDataHref" @click="followLink">
+    <link v-for="url in spec.cssFiles ?? []" :key="url" rel="stylesheet" :href="url" />
     <component :is="'style'" v-if="spec.css">{{ spec.css }}</component>
     <div v-if="error" class="apx-alerts">
       <div class="apx-alert apx-alert--danger" role="alert">

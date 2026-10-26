@@ -93,6 +93,9 @@ export type WizardPage = {
   regions: WizardRegion[]
   /** The page's inline CSS. */
   css?: string
+  /** The page's JavaScript and CSS file URLs (Static Application Files, under /apex/<app>/). */
+  jsFiles?: string[]
+  cssFiles?: string[]
   /** A Before Header process sets page items (PAGE_LOAD). */
   load?: boolean
   /** The page's JavaScript: Function and Global Variable Declaration, and Execute when Page Loads. */
@@ -139,7 +142,7 @@ export function pageUrl(page: number, item?: string, value?: unknown): string {
 
 /** f?p=APP:PAGE:::::ITEMS:VALUES as a Capitra URL: App 120 at its named routes, App 105 at /mortgage/p<page>, App 110 at /mortgage-finance/p<page>. */
 export function appPageUrl(app: number, page: number, items: Record<string, string> = {}): string {
-  const home = app === 110 ? '/mortgage-finance' : '/mortgage'
+  const home = app === 110 ? '/mortgage-finance' : app === 122 ? '/cheque-wallet' : '/mortgage'
   const base = app === 120 ? (apexRoutes[page] ?? `/apex/120/${page}`) : page === 1 ? home : `${home}/p${page}`
   const query = Object.entries(items)
     .filter(([, v]) => v != null && v !== '')

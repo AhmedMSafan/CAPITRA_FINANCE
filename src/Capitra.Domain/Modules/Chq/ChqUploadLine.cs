@@ -21,9 +21,9 @@ public class ChqUploadLine : AuditableEntity
 
     public string? RawChequeNo { get; set; }
 
-    public string? RawDueDate { get; set; }
+    public string? RawDueDateText { get; set; }
 
-    public string? RawChequeAmount { get; set; }
+    public string? RawChequeAmountText { get; set; }
 
     public string? RawIssuerBankCode { get; set; }
 

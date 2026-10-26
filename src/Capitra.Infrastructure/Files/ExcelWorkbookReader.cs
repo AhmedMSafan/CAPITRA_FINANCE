@@ -9,22 +9,35 @@ public sealed class ExcelWorkbookReader : IWorkbookReader
 {
     public IReadOnlyDictionary<string, IReadOnlyList<WorkbookRow>> Read(Stream content)
     {
-        XLWorkbook workbook;
-        try
-        {
-            workbook = new XLWorkbook(content);
-        }
-        catch (Exception ex) when (ex is not OutOfMemoryException)
-        {
-            throw new InvalidDataException("The file is not a valid Excel workbook (.xlsx).", ex);
-        }
-
-        using (workbook)
+        using (var workbook = Open(content))
         {
             var sheets = new Dictionary<string, IReadOnlyList<WorkbookRow>>(StringComparer.OrdinalIgnoreCase);
             foreach (var sheet in workbook.Worksheets)
                 sheets.TryAdd(sheet.Name.Trim().ToUpperInvariant(), ReadRows(sheet));
             return sheets;
+        }
+    }
+
+    public IReadOnlyList<WorkbookRow> ReadFirstSheet(Stream content, int columns)
+    {
+        using var workbook = Open(content);
+        var sheet = workbook.Worksheets.FirstOrDefault();
+        if (sheet is null)
+            return [];
+        return sheet.RowsUsed()
+            .Select(row => new WorkbookRow(row.RowNumber(), Enumerable.Range(1, columns).Select(c => TextOf(row.Cell(c))).ToArray()))
+            .ToList();
+    }
+
+    private static XLWorkbook Open(Stream content)
+    {
+        try
+        {
+            return new XLWorkbook(content);
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            throw new InvalidDataException("The file is not a valid Excel workbook (.xlsx).", ex);
         }
     }
 

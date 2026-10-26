@@ -14,4 +14,10 @@ public interface IWorkbookReader
     /// Rows with no value in any cell are left out. Throws <see cref="InvalidDataException"/> when the file is not a workbook.
     /// </summary>
     IReadOnlyDictionary<string, IReadOnlyList<WorkbookRow>> Read(Stream content);
+
+    /// <summary>
+    /// Every used row of the first worksheet, the header row too (APEX_DATA_PARSER.parse with p_skip_rows 0), with
+    /// <paramref name="columns"/> cells each. Throws <see cref="InvalidDataException"/> when the file is not a workbook.
+    /// </summary>
+    IReadOnlyList<WorkbookRow> ReadFirstSheet(Stream content, int columns);
 }

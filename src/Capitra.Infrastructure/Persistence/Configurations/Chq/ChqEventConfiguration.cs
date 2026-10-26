@@ -39,8 +39,8 @@ public sealed class ChqEventConfiguration : IEntityTypeConfiguration<ChqEvent>
         builder.Property(x => x.SourceSessionId).HasMaxLength(100);
 
         // CURRENCY_CODE -> LKP_CURRENCY: added when the LKP tables are ported.
-        builder.HasOne<ChqLkpStatus>().WithMany().HasForeignKey(x => x.OldStatusCode).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ChqLkpStatus>().WithMany().HasForeignKey(x => x.NewStatusCode).OnDelete(DeleteBehavior.Restrict);
+        // SYS_C0055039: OLD_STATUS_CODE -> CHQ_LKP_STATUSES is not enforced: disabled in FINOVA; the first event of an uploaded cheque is from NEW.
+        // SYS_C0055047: NEW_STATUS_CODE -> CHQ_LKP_STATUSES is not enforced: disabled in FINOVA, as the old status.
         // GL_DEBIT_ACCOUNT -> LKP_GL_ACCOUNT: added when the LKP tables are ported.
         builder.HasOne<ChqDepositBatch>().WithMany().HasForeignKey(x => x.DepositBatchId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ChqLkpRejectionReason>().WithMany().HasForeignKey(x => x.RejectionReasonCode).OnDelete(DeleteBehavior.Restrict);

@@ -36,17 +36,17 @@ public static class DependencyInjection
             services.AddScoped(typeof(IApexProcess), type);
 
         // Wizard-built reports and forms of the copied pages.
-        foreach (var region in Modules.Gl.Pages.GlApexRegions.All.Concat(Modules.Mtg.Pages.MtgApexRegions.All).Concat(Modules.Mff.Pages.MffApexRegions.All))
+        foreach (var region in Modules.Gl.Pages.GlApexRegions.All.Concat(Modules.Mtg.Pages.MtgApexRegions.All).Concat(Modules.Mff.Pages.MffApexRegions.All).Concat(Modules.Chq.Pages.ChqApexRegions.All))
             services.AddSingleton(region);
-        foreach (var lov in Modules.Gl.Pages.GlApexRegions.Lovs.Concat(Modules.Mtg.Pages.MtgApexRegions.Lovs).Concat(Modules.Mff.Pages.MffApexRegions.Lovs))
+        foreach (var lov in Modules.Gl.Pages.GlApexRegions.Lovs.Concat(Modules.Mtg.Pages.MtgApexRegions.Lovs).Concat(Modules.Mff.Pages.MffApexRegions.Lovs).Concat(Modules.Chq.Pages.ChqApexRegions.Lovs))
             services.AddSingleton(lov);
 
         // Reports on a SQL query and SQL select lists, translated from Oracle (MtgApexSql), and the page processes around the forms.
-        foreach (var report in Modules.Mtg.Pages.MtgApexSql.Reports.Concat(Modules.Mff.Pages.MffApexSql.Reports))
+        foreach (var report in Modules.Mtg.Pages.MtgApexSql.Reports.Concat(Modules.Mff.Pages.MffApexSql.Reports).Concat(Modules.Chq.Pages.ChqApexSql.Reports))
             services.AddSingleton(report);
-        foreach (var lov in Modules.Mtg.Pages.MtgApexSql.Lovs.Concat(Modules.Mff.Pages.MffApexSql.Lovs))
+        foreach (var lov in Modules.Mtg.Pages.MtgApexSql.Lovs.Concat(Modules.Mff.Pages.MffApexSql.Lovs).Concat(Modules.Chq.Pages.ChqApexSql.Lovs))
             services.AddSingleton(lov);
-        foreach (var load in Modules.Mtg.Pages.MtgApexSql.Loads.Concat(Modules.Mff.Pages.MffApexSql.Loads))
+        foreach (var load in Modules.Mtg.Pages.MtgApexSql.Loads.Concat(Modules.Mff.Pages.MffApexSql.Loads).Concat(Modules.Chq.Pages.ChqApexSql.Loads))
             services.AddSingleton(load);
         foreach (var type in typeof(DependencyInjection).Assembly.GetTypes()
                      .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IApexFormHooks).IsAssignableFrom(t)))
@@ -68,6 +68,9 @@ public static class DependencyInjection
         services.AddScoped<Modules.Mff.Packages.MffControlPackage>();
         services.AddScoped<Modules.Mff.Packages.MffAmortPackage>();
         services.AddScoped<Modules.Mff.Packages.MffCalcPackage>();
+        services.AddScoped<Modules.Chq.Packages.ChqEventPackage>();
+        services.AddScoped<Modules.Chq.Packages.ChqActionPackage>();
+        services.AddScoped<Modules.Chq.Packages.ChqUploadPackage>();
         services.AddScoped<Modules.Mff.Packages.MffServicingPackage>();
         services.AddScoped<Modules.Mff.Packages.MffAuditPackage>();
         services.AddScoped<Modules.Mff.Packages.MffImportPackage>();

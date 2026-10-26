@@ -148,6 +148,20 @@ def column(name, c):
     return out
 
 
+def where_report(r):
+    """A report on a table with a WHERE clause that is not a link to a parent item: it is copied as the SQL report
+    select * from the table where the clause (apex_sql.py translates it, process IR_<key>)."""
+    return (r['type'] == 'NATIVE_IR' and r['table'] is not None and r['where'] is not None
+            and not re.match(r'(\w+)\s*=\s*:?(P\d+_\w+)\s*$', r['where']))
+
+
+def constant_html(source):
+    """The text of a dynamic content region whose PL/SQL only returns one q'^...^' literal, else None."""
+    m = re.fullmatch(r"\s*declare\s+(\w+)\s+clob;\s*begin\s+\1\s*:=\s*q'\^(.*?)\^';\s*return\s+\1;\s*end;?\s*",
+                     re.sub(r'^\s*--.*$', '', source.partition('\n\n')[2], flags=re.M), re.S | re.I)
+    return m.group(2).strip() if m else None
+
+
 def html_links(html, cfg):
     """href="f?p=&APP_ID.:711:&APP_SESSION.::&DEBUG.:RP:ITEMS:VALUES" in static HTML as the Capitra route of that page."""
     base = cfg.get('route', '/apex/%d/p' % cfg['app'])
@@ -288,6 +302,13 @@ def main():
                 page[k] = read(os.path.join(i['dir'], f))
         if os.path.exists(os.path.join(i['dir'], 'page.css')):
             page['css'] = read(os.path.join(i['dir'], 'page.css')).strip()
+        # the page's JavaScript and CSS file URLs: Static Application Files (apex_files.py) under /apex/<app>/
+        for f, k in (('js-files.txt', 'jsFiles'), ('css-files.txt', 'cssFiles')):
+            if os.path.exists(os.path.join(i['dir'], f)):
+                urls = [u.strip().replace('#APP_FILES#', '/apex/%d/' % app).replace('#MIN#', '')
+                        for u in re.split(r'[\n]', read(os.path.join(i['dir'], f))) if u.strip()]
+                if urls:
+                    page[k] = urls
         # Before Header processes: the PAGE_LOAD process (sql-<app>/loads, or ported by hand) sets the page's items
         procs = os.path.join(i['dir'], 'processes')
         loads = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sql-%d' % app, 'loads')
@@ -320,7 +341,7 @@ def main():
                 page['regions'].append({'key': key(r['title']), 'title': r['title'], 'kind': 'ir', 'table': None, 'pk': order[0],
                                         'columns': [{'name': c, 'heading': cols[c]['heading'], 'type': cols[c]['type']} for c in order]})
                 continue
-            if r['type'] == 'NATIVE_IR' and r['table'] is None:
+            if r['type'] == 'NATIVE_IR' and (r['table'] is None or where_report(r)):
                 # a report on a SQL query, translated by apex_sql.py (MtgApexSql: process IR_<key>)
                 cols = i['columns']
                 # no default report columns (or a link where they belong): every column that is not hidden, in display order
@@ -333,16 +354,21 @@ def main():
             # a region whose buttons sit in form positions belongs to the wizard form, unless the page has no form
             # (a dialog of page items whose processes are hand-written): then it is a region of buttons
             has_form = any(x['type'] == 'NATIVE_FORM' for x in i['regions'])
-            if r['type'] in (None, 'None', 'NATIVE_STATIC', 'NATIVE_PLSQL') and (not has_form or not any(b['region'] == r['id'] and b['position'] in FORM_POSITIONS for b in i['buttons'])):
+            if r['type'] in (None, 'None', 'NATIVE_STATIC', 'NATIVE_PLSQL', 'NATIVE_DYNAMIC_CONTENT') and (not has_form or not any(b['region'] == r['id'] and b['position'] in FORM_POSITIONS for b in i['buttons'])):
                 # a region of page items (the filters of a report) or of HTML; PL/SQL dynamic content runs on the server (REGION_<key>)
                 its = sorted((x for x in i['items'] if x['region'] == r['id']), key=lambda x: x['seq'])
                 shown_items = [x for x in its if x['type'] != 'NATIVE_HIDDEN']
-                region = {'key': key(r['title']), 'title': r['title'], 'kind': 'plsql' if r['type'] == 'NATIVE_PLSQL' else 'items' if shown_items else 'html',
+                # a dynamic content region that returns one fixed text is that text, as static HTML
+                constant = constant_html(read(os.path.join(i['dir'], 'regions', r['file']))) if r['type'] == 'NATIVE_DYNAMIC_CONTENT' else None
+                dynamic = r['type'] == 'NATIVE_PLSQL' or (r['type'] == 'NATIVE_DYNAMIC_CONTENT' and constant is None)
+                region = {'key': key(r['title']), 'title': r['title'], 'kind': 'plsql' if dynamic else 'items' if shown_items else 'html',
                           'table': None, 'pk': None}
-                if region['kind'] == 'items':
+                if constant is not None:
+                    region['html'] = html_links(constant, cfg)
+                elif region['kind'] == 'items':
                     region['items'] = [page_item(x) for x in its]
                     region['buttons'] = region_buttons(i, r)
-                elif region['kind'] == 'html':
+                if region['kind'] == 'html' and constant is None:
                     region['html'] = html_links(read(os.path.join(i['dir'], 'regions', r['file'])).partition('\n\n')[2].strip(), cfg)
                     region['buttons'] = region_buttons(i, r)
                     if not region['buttons']:

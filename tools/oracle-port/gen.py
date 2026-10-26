@@ -75,6 +75,13 @@ def singular(word):
     return w
 
 
+# Foreign keys that were disabled in FINOVA (rows break them), so Capitra does not enforce them either.
+DISABLED_FKS = {
+    'SYS_C0055762': 'disabled in FINOVA; an uploaded cheque starts as NEW, which is no cheque status.',
+    'SYS_C0055039': 'disabled in FINOVA; the first event of an uploaded cheque is from NEW.',
+    'SYS_C0055047': 'disabled in FINOVA, as the old status.',
+}
+
 # Oracle prefix -> Capitra prefix for whole modules (REF_ lookups become <module>_LKP_)
 PREFIXES = {'FNV_': 'CAP_', 'REF_MFF_': 'MFF_LKP_', 'FND_CHEQUE_': 'CHQ_', 'LKP_CHEQUE_': 'CHQ_LKP_'}
 
@@ -296,6 +303,9 @@ def main():
                         name = re.sub(r'_DT$', '', name) + '_DATE'
             elif dt in ('VARCHAR2', 'CHAR', 'NVARCHAR2', 'NCHAR'):
                 cstype, kind = 'string', 'string'
+                # the text of a date or an amount as it was typed (an upload line): the suffix says it is text
+                if name.endswith(('_DATE', '_AMOUNT', '_AT')):
+                    name += '_TEXT'
                 if dflt.startswith("'") and dflt.endswith("'"):
                     init = '"' + dflt[1:-1].replace('"', '\\"') + '"'
             elif dt in ('CLOB', 'NCLOB', 'LONG'):
@@ -408,6 +418,9 @@ def main():
         for c in sorted(fks, key=lambda c: c['CONSTRAINT_NAME']):
             rt = c['R_TABLE_NAME']
             col = c['COLUMNS']
+            if c['CONSTRAINT_NAME'] in DISABLED_FKS:
+                cfg.append(f'        // {c["CONSTRAINT_NAME"]}: {col} -> {table_name(rt)} is not enforced: {DISABLED_FKS[c["CONSTRAINT_NAME"]]}')
+                continue
             if col not in bylist or rt not in all_tables:
                 cfg.append(f'        // {c["CONSTRAINT_NAME"]}: {col} -> {rt} (table not exported)')
                 continue

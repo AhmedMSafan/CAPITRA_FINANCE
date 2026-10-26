@@ -95,7 +95,6 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
 
     public string Permission => operation == "FORM_DML" ? region.EditPermission! : region.ViewPermission;
 
-    private static readonly TimeZoneInfo Cairo = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
 
     /// <summary>The processes of a region: a report and a form load always, the form DML only where the region may change data.</summary>
     public static IEnumerable<IApexProcess> For(ApexRegion region, ICapitraDbContext db, IApexFormHooks? hooks)
@@ -137,7 +136,7 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
         region.Table.Columns.FirstOrDefault(c => c.Name == name) ?? throw new ApexProcessException("Unknown column " + name);
 
     /// <summary>e => e.Property == value, so the parent filter runs in the database.</summary>
-    private static IQueryable<T> WhereEquals<T>(IQueryable<T> query, string property, string? value)
+    private IQueryable<T> WhereEquals<T>(IQueryable<T> query, string property, string? value)
     {
         var p = Prop<T>(property);
         var e = Expression.Parameter(typeof(T), "e");
@@ -145,7 +144,7 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
         return query.Where(Expression.Lambda<Func<T, bool>>(body, e));
     }
 
-    private static object? Parse(Type type, string? value)
+    private object? Parse(Type type, string? value)
     {
         var t = Nullable.GetUnderlyingType(type) ?? type;
         if (string.IsNullOrWhiteSpace(value))
@@ -158,17 +157,17 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
         if (t == typeof(DateOnly))
             return DateOnly.ParseExact(v[..Math.Min(10, v.Length)], "yyyy-MM-dd", CultureInfo.InvariantCulture);
         if (t == typeof(DateTime))
-            return TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(DateTime.Parse(v, CultureInfo.InvariantCulture), DateTimeKind.Unspecified), Cairo);
+            return ApexTime.ToStored(region.App, DateTime.Parse(v, CultureInfo.InvariantCulture));
         return Convert.ChangeType(decimal.Parse(v, NumberStyles.Number, CultureInfo.InvariantCulture), t, CultureInfo.InvariantCulture);
     }
 
     /// <summary>A value as a form item holds it: flags Y/N, dates yyyy-MM-dd, numbers in invariant format.</summary>
-    private static string? Edit(object? value) => value switch
+    private string? Edit(object? value) => value switch
     {
         null => null,
         bool b => b ? "Y" : "N",
         DateOnly d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-        DateTime t => Gl.GlTime.Stamp(t, "yyyy-MM-dd HH:mm"),
+        DateTime t => ApexTime.Stamp(region.App, t, "yyyy-MM-dd HH:mm"),
         IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
         _ => value.ToString(),
     };
@@ -190,7 +189,7 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
         var props = region.Table.Columns.Select(c => (c.Name, Prop: Prop<T>(c.Property))).ToList();
         var pk = Prop<T>(Column(region.Table.Pk).Property);
         var rows = (await query.ToListAsync(ct)).Select(e => new ApexReport.Row(pk.GetValue(e), props.ToDictionary(p => p.Name, p => p.Prop.GetValue(e)))).ToList();
-        return ApexReport.Page(rows, o);
+        return ApexReport.Page(rows, o, region.App);
     }
 
     // ------------------------------------------------------------------------------------------------ form
@@ -290,13 +289,13 @@ public static class ApexReport
     /// <summary>One report row: its primary key (the default order) and its values by column.</summary>
     public sealed record Row(object? Pk, Dictionary<string, object?> Values);
 
-    /// <summary>A value as the report shows it: flags Y/N, dates dd-Mon-yyyy, timestamps in Cairo time.</summary>
-    public static object? Show(object? value) => value switch
+    /// <summary>A value as the report shows it: flags Y/N, dates dd-Mon-yyyy, timestamps as the app shows them (ApexTime).</summary>
+    public static object? Show(object? value, int app = 0) => value switch
     {
         null => null,
         bool b => b ? "Y" : "N",
         DateOnly d => d.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture),
-        DateTime t => Gl.GlTime.Stamp(t, "dd-MMM-yyyy HH:mm"),
+        DateTime t => ApexTime.Stamp(app, t, "dd-MMM-yyyy HH:mm"),
         _ => value,
     };
 
@@ -304,7 +303,7 @@ public static class ApexReport
     /// The report request {search, column, sort, dir, first, rows} applied to the rows:
     /// returns {ok, total, rows} with the values as the report shows them.
     /// </summary>
-    public static object Page(List<Row> rows, JsonElement o)
+    public static object Page(List<Row> rows, JsonElement o, int app = 0)
     {
         string? Str(string key) => o.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
         int Int(string key, int fallback) => o.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt32() : fallback;
@@ -314,7 +313,7 @@ public static class ApexReport
         var column = Str("column");
         if (!string.IsNullOrEmpty(search))
         {
-            bool Hit(object? v) => Show(v)?.ToString()?.Contains(search, StringComparison.OrdinalIgnoreCase) == true;
+            bool Hit(object? v) => Show(v, app)?.ToString()?.Contains(search, StringComparison.OrdinalIgnoreCase) == true;
             rows = rows.Where(r => string.IsNullOrEmpty(column) ? r.Values.Values.Any(Hit) : r.Values.TryGetValue(column, out var v) && Hit(v)).ToList();
         }
 
@@ -336,7 +335,7 @@ public static class ApexReport
         {
             ok = true,
             total = rows.Count,
-            rows = rows.Skip(first - 1).Take(count).Select(r => r.Values.ToDictionary(v => v.Key, v => Show(v.Value))).ToList(),
+            rows = rows.Skip(first - 1).Take(count).Select(r => r.Values.ToDictionary(v => v.Key, v => Show(v.Value, app))).ToList(),
         };
     }
 

@@ -19,8 +19,8 @@ public sealed class ChqUploadLineConfiguration : IEntityTypeConfiguration<ChqUpl
         builder.Property(x => x.RawClientId).HasMaxLength(100);
         builder.Property(x => x.RawPartyTaxId).HasMaxLength(100);
         builder.Property(x => x.RawChequeNo).HasMaxLength(100);
-        builder.Property(x => x.RawDueDate).HasMaxLength(100);
-        builder.Property(x => x.RawChequeAmount).HasMaxLength(100);
+        builder.Property(x => x.RawDueDateText).HasMaxLength(100);
+        builder.Property(x => x.RawChequeAmountText).HasMaxLength(100);
         builder.Property(x => x.RawIssuerBankCode).HasMaxLength(100);
         builder.Property(x => x.ClientId).HasMaxLength(100);
         builder.Property(x => x.PartyTaxId).HasMaxLength(20);

@@ -1075,11 +1075,11 @@
     "kind": "string"
    },
    "RAW_DUE_DATE": {
-    "column": "RAW_DUE_DATE",
+    "column": "RAW_DUE_DATE_TEXT",
     "kind": "string"
    },
    "RAW_CHEQUE_AMOUNT": {
-    "column": "RAW_CHEQUE_AMOUNT",
+    "column": "RAW_CHEQUE_AMOUNT_TEXT",
     "kind": "string"
    },
    "RAW_ISSUER_BANK_CODE": {

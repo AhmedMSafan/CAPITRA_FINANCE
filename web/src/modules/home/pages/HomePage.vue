@@ -64,7 +64,7 @@ const modules: BusinessModule[] = [
     route: '/cheque-wallet',
     tone: 'leasing',
     icon: 'pi pi-wallet',
-    enabled: false
+    enabled: true
   },
   {
     code: 'ADMIN',
