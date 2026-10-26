@@ -456,3 +456,8 @@ textarea.t-Form-field {
 .ut-page .t-Region.apx-blank > .t-Region-body {
   padding: 0;
 }
+
+/* the theme hides [hidden] even where a class sets display (Show more developers on page 7) */
+[hidden] {
+  display: none !important;
+}
