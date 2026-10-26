@@ -65,6 +65,23 @@ public static class GlCodes
 
     public static readonly string[] LedgerStatuses = [LedgerActive, "INACTIVE"];
 
+    public const string SourceManual = "MANUAL";
+
+    public const string CategoryStandard = "STANDARD";
+
+    public const string JournalDraft = "DRAFT";
+    public const string JournalSubmitted = "SUBMITTED";
+    public const string JournalApproved = "APPROVED";
+    public const string JournalPosted = "POSTED";
+    public const string JournalRejected = "REJECTED";
+    public const string JournalCancelled = "CANCELLED";
+
+    /// <summary>A posted journal whose reversal has posted.</summary>
+    public const string JournalReversed = "REVERSED";
+
+    public static readonly string[] JournalStatuses =
+        [JournalDraft, JournalSubmitted, JournalApproved, JournalPosted, JournalRejected, JournalCancelled, JournalReversed];
+
     /// <summary>Normal balance and statement an account type usually has, offered when a new account is created.</summary>
     public static (string NormalBalance, string StatementClass) DefaultsFor(string accountType) => accountType switch
     {

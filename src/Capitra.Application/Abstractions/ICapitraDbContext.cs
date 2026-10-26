@@ -21,4 +21,7 @@ public interface ICapitraDbContext
 
     /// <summary>Starts a transaction so several saves succeed or fail together.</summary>
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Forgets every loaded and pending entity, after a failed save, so the next save starts clean.</summary>
+    void DiscardChanges();
 }

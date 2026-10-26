@@ -27,6 +27,18 @@ public static class Permissions
 
         /// <summary>Open, close, reopen and permanently close a ledger's periods.</summary>
         public const string PeriodControl = "GL.PERIOD.CONTROL";
+
+        /// <summary>Find journals and read the account ledger and balances.</summary>
+        public const string JournalView = "GL.JOURNAL.VIEW";
+
+        /// <summary>Enter, submit, cancel and reverse manual journals.</summary>
+        public const string JournalEdit = "GL.JOURNAL.EDIT";
+
+        /// <summary>Approve or reject a journal another user submitted.</summary>
+        public const string JournalApprove = "GL.JOURNAL.APPROVE";
+
+        /// <summary>Post approved journals to the account balances.</summary>
+        public const string JournalPost = "GL.JOURNAL.POST";
     }
 
     public static class Mtg

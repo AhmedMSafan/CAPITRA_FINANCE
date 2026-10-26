@@ -1,6 +1,7 @@
 using Capitra.Application.Modules.Adm.Lookups;
 using Capitra.Application.Modules.Gl.AccountStructure;
 using Capitra.Application.Modules.Gl.ChartOfAccounts;
+using Capitra.Application.Modules.Gl.Journals;
 using Capitra.Application.Modules.Gl.Ledgers;
 using Capitra.Application.Modules.Gl.Periods;
 using Capitra.Application.Modules.Mtg.MasterData;
@@ -53,6 +54,8 @@ public static class DependencyInjection
         services.AddScoped<IGlChartOfAccountsService, GlChartOfAccountsService>();
         services.AddScoped<IGlAccountingPeriodService, GlAccountingPeriodService>();
         services.AddScoped<IGlLedgerService, GlLedgerService>();
+        services.AddScoped<IGlJournalService, GlJournalService>();
+        services.AddScoped<IGlJournalQueryService, GlJournalQueryService>();
         return services;
     }
 }

@@ -987,6 +987,232 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("GL_ACCOUNTS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccountBalance", b =>
+                {
+                    b.Property<long>("BalanceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("BALANCE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("BalanceId"));
+
+                    b.Property<long>("AccountCombinationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNT_COMBINATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<DateTime?>("LastPostedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("LAST_POSTED_AT");
+
+                    b.Property<long?>("LastPostedHeaderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LAST_POSTED_HEADER_ID");
+
+                    b.Property<long>("LedgerId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEDGER_ID");
+
+                    b.Property<long>("LedgerPeriodId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEDGER_PERIOD_ID");
+
+                    b.Property<decimal>("PeriodCr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PERIOD_CR");
+
+                    b.Property<decimal>("PeriodDr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PERIOD_DR");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("BalanceId")
+                        .HasName("PK_GL_ACCOUNT_BALANCES");
+
+                    b.HasIndex("AccountCombinationId")
+                        .HasDatabaseName("IX_GL_ACCOUNT_BALANCES_ACCOUNT_COMBINATION_ID");
+
+                    b.HasIndex("LastPostedHeaderId")
+                        .HasDatabaseName("IX_GL_ACCOUNT_BALANCES_LAST_POSTED_HEADER_ID");
+
+                    b.HasIndex("LedgerPeriodId")
+                        .HasDatabaseName("IX_GL_ACCOUNT_BALANCES_LEDGER_PERIOD_ID");
+
+                    b.HasIndex("LedgerId", "LedgerPeriodId", "AccountCombinationId", "CurrencyCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_ACCOUNT_BALANCES_LEDGER_ID_LEDGER_PERIOD_ID");
+
+                    b.ToTable("GL_ACCOUNT_BALANCES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccountCombination", b =>
+                {
+                    b.Property<long>("AccountCombinationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNT_COMBINATION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AccountCombinationId"));
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNT_ID");
+
+                    b.Property<long>("CoaId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("COA_ID");
+
+                    b.Property<string>("ConcatenatedAccount")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("CONCATENATED_ACCOUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ENABLED");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AccountCombinationId")
+                        .HasName("PK_GL_ACCOUNT_COMBINATIONS");
+
+                    b.HasIndex("AccountId")
+                        .HasDatabaseName("IX_GL_ACCOUNT_COMBINATIONS_ACCOUNT_ID");
+
+                    b.HasIndex("CoaId", "ConcatenatedAccount")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_ACCOUNT_COMBINATIONS_COA_ID_CONCATENATED_ACCOUNT");
+
+                    b.ToTable("GL_ACCOUNT_COMBINATIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccountCombinationSegment", b =>
+                {
+                    b.Property<long>("CombinationSegmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("COMBINATION_SEGMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CombinationSegmentId"));
+
+                    b.Property<long>("AccountCombinationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNT_COMBINATION_ID");
+
+                    b.Property<long>("CoaSegmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("COA_SEGMENT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SegmentNum")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEGMENT_NUM");
+
+                    b.Property<string>("SegmentValueCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SEGMENT_VALUE_CODE");
+
+                    b.Property<long>("SegmentValueId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SEGMENT_VALUE_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("CombinationSegmentId")
+                        .HasName("PK_GL_ACCOUNT_COMBINATION_SEGMENTS");
+
+                    b.HasIndex("CoaSegmentId")
+                        .HasDatabaseName("IX_GL_ACCOUNT_COMBINATION_SEGMENTS_COA_SEGMENT_ID");
+
+                    b.HasIndex("SegmentValueId")
+                        .HasDatabaseName("IX_GL_ACCOUNT_COMBINATION_SEGMENTS_SEGMENT_VALUE_ID");
+
+                    b.HasIndex("AccountCombinationId", "SegmentNum")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_ACCOUNT_COMBINATION_SEGMENTS_ACCOUNT_COMBINATION_ID");
+
+                    b.HasIndex("SegmentNum", "SegmentValueCode")
+                        .HasDatabaseName("IX_GL_ACCOUNT_COMBINATION_SEGMENTS_SEGMENT_NUM");
+
+                    b.ToTable("GL_ACCOUNT_COMBINATION_SEGMENTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccountingPeriod", b =>
                 {
                     b.Property<long>("PeriodId")
@@ -1605,6 +1831,668 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("GL_FISCAL_YEARS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalBatch", b =>
+                {
+                    b.Property<long>("BatchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("BATCH_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("BatchId"));
+
+                    b.Property<DateOnly>("BatchDate")
+                        .HasColumnType("date")
+                        .HasColumnName("BATCH_DATE");
+
+                    b.Property<string>("BatchName")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("BATCH_NAME");
+
+                    b.Property<string>("BatchNo")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("BATCH_NO");
+
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CATEGORY_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<long>("LedgerId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEDGER_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceBatchRef")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("SOURCE_BATCH_REF");
+
+                    b.Property<long>("SourceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SOURCE_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("BatchId")
+                        .HasName("PK_GL_JOURNAL_BATCHES");
+
+                    b.HasIndex("BatchNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_JOURNAL_BATCHES_BATCH_NO");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("IX_GL_JOURNAL_BATCHES_CATEGORY_ID");
+
+                    b.HasIndex("LedgerId")
+                        .HasDatabaseName("IX_GL_JOURNAL_BATCHES_LEDGER_ID");
+
+                    b.HasIndex("SourceBatchRef")
+                        .HasDatabaseName("IX_GL_JOURNAL_BATCHES_SOURCE_BATCH_REF");
+
+                    b.HasIndex("SourceId")
+                        .HasDatabaseName("IX_GL_JOURNAL_BATCHES_SOURCE_ID");
+
+                    b.ToTable("GL_JOURNAL_BATCHES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalCategory", b =>
+                {
+                    b.Property<long>("CategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CATEGORY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CategoryId"));
+
+                    b.Property<string>("CategoryCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CATEGORY_CODE");
+
+                    b.Property<string>("CategoryNameAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CATEGORY_NAME_AR");
+
+                    b.Property<string>("CategoryNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CATEGORY_NAME_EN");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsManualAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_MANUAL_ALLOWED");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("CategoryId")
+                        .HasName("PK_GL_JOURNAL_CATEGORIES");
+
+                    b.HasIndex("CategoryCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_JOURNAL_CATEGORIES_CATEGORY_CODE");
+
+                    b.ToTable("GL_JOURNAL_CATEGORIES", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryId = 1L,
+                            CategoryCode = "STANDARD",
+                            CategoryNameAr = "قيد عادي",
+                            CategoryNameEn = "Standard",
+                            CreatedAt = new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            IsActive = true,
+                            IsManualAllowed = true,
+                            RowVersion = 1
+                        },
+                        new
+                        {
+                            CategoryId = 2L,
+                            CategoryCode = "ADJUSTMENT",
+                            CategoryNameAr = "قيد تسوية",
+                            CategoryNameEn = "Adjustment",
+                            CreatedAt = new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            IsActive = true,
+                            IsManualAllowed = true,
+                            RowVersion = 1
+                        });
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalHeader", b =>
+                {
+                    b.Property<long>("JournalHeaderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOURNAL_HEADER_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("JournalHeaderId"));
+
+                    b.Property<DateOnly>("AccountingDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ACCOUNTING_DATE");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("APPROVED_AT");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<long>("BatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BATCH_ID");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("CANCEL_REASON");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CANCELLED_AT");
+
+                    b.Property<string>("CancelledBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CANCELLED_BY");
+
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CATEGORY_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<bool>("IsReversal")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_REVERSAL");
+
+                    b.Property<DateOnly>("JournalDate")
+                        .HasColumnType("date")
+                        .HasColumnName("JOURNAL_DATE");
+
+                    b.Property<string>("JournalName")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("JOURNAL_NAME");
+
+                    b.Property<string>("JournalNo")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("JOURNAL_NO");
+
+                    b.Property<string>("JournalStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("JOURNAL_STATUS");
+
+                    b.Property<string>("LastPostError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("LAST_POST_ERROR");
+
+                    b.Property<long>("LedgerId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEDGER_ID");
+
+                    b.Property<long>("LedgerPeriodId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEDGER_PERIOD_ID");
+
+                    b.Property<DateTime?>("PostedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("POSTED_AT");
+
+                    b.Property<string>("PostedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("POSTED_BY");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("REFERENCE_NO");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REJECT_REASON");
+
+                    b.Property<long?>("ReversedHeaderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REVERSED_HEADER_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceDocumentNo")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("SOURCE_DOCUMENT_NO");
+
+                    b.Property<string>("SourceDocumentType")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("SOURCE_DOCUMENT_TYPE");
+
+                    b.Property<long>("SourceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SOURCE_ID");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SUBMITTED_AT");
+
+                    b.Property<string>("SubmittedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("SUBMITTED_BY");
+
+                    b.Property<decimal>("TotalCr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_CR");
+
+                    b.Property<decimal>("TotalDr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_DR");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("JournalHeaderId")
+                        .HasName("PK_GL_JOURNAL_HEADERS");
+
+                    b.HasIndex("BatchId")
+                        .HasDatabaseName("IX_GL_JOURNAL_HEADERS_BATCH_ID");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("IX_GL_JOURNAL_HEADERS_CATEGORY_ID");
+
+                    b.HasIndex("JournalNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_JOURNAL_HEADERS_JOURNAL_NO");
+
+                    b.HasIndex("JournalStatus")
+                        .HasDatabaseName("IX_GL_JOURNAL_HEADERS_JOURNAL_STATUS");
+
+                    b.HasIndex("LedgerPeriodId")
+                        .HasDatabaseName("IX_GL_JOURNAL_HEADERS_LEDGER_PERIOD_ID");
+
+                    b.HasIndex("ReversedHeaderId")
+                        .HasDatabaseName("IX_GL_JOURNAL_HEADERS_REVERSED_HEADER_ID");
+
+                    b.HasIndex("SourceId")
+                        .HasDatabaseName("IX_GL_JOURNAL_HEADERS_SOURCE_ID");
+
+                    b.HasIndex("LedgerId", "AccountingDate")
+                        .HasDatabaseName("IX_GL_JOURNAL_HEADERS_LEDGER_ID_ACCOUNTING_DATE");
+
+                    b.ToTable("GL_JOURNAL_HEADERS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalHeaderHistory", b =>
+                {
+                    b.Property<long>("JournalHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOURNAL_HISTORY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("JournalHistoryId"));
+
+                    b.Property<string>("ActionCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ACTION_CODE");
+
+                    b.Property<string>("ActionReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("ACTION_REASON");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("JournalHeaderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOURNAL_HEADER_ID");
+
+                    b.Property<string>("NewStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("NEW_STATUS");
+
+                    b.Property<string>("OldStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("OLD_STATUS");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("JournalHistoryId")
+                        .HasName("PK_GL_JOURNAL_HEADERS_HIST");
+
+                    b.HasIndex("JournalHeaderId")
+                        .HasDatabaseName("IX_GL_JOURNAL_HEADERS_HIST_JOURNAL_HEADER_ID");
+
+                    b.ToTable("GL_JOURNAL_HEADERS_HIST", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalLine", b =>
+                {
+                    b.Property<long>("JournalLineId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOURNAL_LINE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("JournalLineId"));
+
+                    b.Property<long>("AccountCombinationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNT_COMBINATION_ID");
+
+                    b.Property<decimal>("AccountedCr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ACCOUNTED_CR");
+
+                    b.Property<decimal>("AccountedDr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ACCOUNTED_DR");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<decimal>("EnteredCr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ENTERED_CR");
+
+                    b.Property<decimal>("EnteredDr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ENTERED_DR");
+
+                    b.Property<long>("JournalHeaderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOURNAL_HEADER_ID");
+
+                    b.Property<string>("LineDescription")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("LINE_DESCRIPTION");
+
+                    b.Property<int>("LineNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("LINE_NO");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("REFERENCE_NO");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("JournalLineId")
+                        .HasName("PK_GL_JOURNAL_LINES");
+
+                    b.HasIndex("AccountCombinationId")
+                        .HasDatabaseName("IX_GL_JOURNAL_LINES_ACCOUNT_COMBINATION_ID");
+
+                    b.HasIndex("JournalHeaderId", "LineNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_JOURNAL_LINES_JOURNAL_HEADER_ID_LINE_NO");
+
+                    b.ToTable("GL_JOURNAL_LINES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalSource", b =>
+                {
+                    b.Property<long>("SourceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SOURCE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SourceId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsApprovalRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_APPROVAL_REQUIRED");
+
+                    b.Property<bool>("IsManualAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_MANUAL_ALLOWED");
+
+                    b.Property<bool>("IsReversalAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_REVERSAL_ALLOWED");
+
+                    b.Property<bool>("IsSystemSource")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_SYSTEM_SOURCE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SOURCE_CODE");
+
+                    b.Property<string>("SourceNameAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("SOURCE_NAME_AR");
+
+                    b.Property<string>("SourceNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("SOURCE_NAME_EN");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("SourceId")
+                        .HasName("PK_GL_JOURNAL_SOURCES");
+
+                    b.HasIndex("SourceCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GL_JOURNAL_SOURCES_SOURCE_CODE");
+
+                    b.ToTable("GL_JOURNAL_SOURCES", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            SourceId = 1L,
+                            CreatedAt = new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "SYSTEM",
+                            Description = "Journals entered on the journal entry page.",
+                            IsActive = true,
+                            IsApprovalRequired = true,
+                            IsManualAllowed = true,
+                            IsReversalAllowed = true,
+                            IsSystemSource = true,
+                            RowVersion = 1,
+                            SourceCode = "MANUAL",
+                            SourceNameAr = "يدوي",
+                            SourceNameEn = "Manual"
+                        });
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlLedger", b =>
                 {
                     b.Property<long>("LedgerId")
@@ -1936,6 +2824,110 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_GL_LEDGER_PERIODS_HIST_LEDGER_PERIOD_ID");
 
                     b.ToTable("GL_LEDGER_PERIODS_HIST", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlPostingBalanceImpact", b =>
+                {
+                    b.Property<long>("BalanceImpactId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("BALANCE_IMPACT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("BalanceImpactId"));
+
+                    b.Property<long>("AccountCombinationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNT_COMBINATION_ID");
+
+                    b.Property<decimal>("AccountedCr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ACCOUNTED_CR");
+
+                    b.Property<decimal>("AccountedDr")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ACCOUNTED_DR");
+
+                    b.Property<DateOnly>("AccountingDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ACCOUNTING_DATE");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("BALANCE_AFTER");
+
+                    b.Property<decimal>("BalanceBefore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("BALANCE_BEFORE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<long>("JournalHeaderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOURNAL_HEADER_ID");
+
+                    b.Property<long>("JournalLineId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOURNAL_LINE_ID");
+
+                    b.Property<long>("LedgerId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEDGER_ID");
+
+                    b.Property<long>("LedgerPeriodId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEDGER_PERIOD_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("BalanceImpactId")
+                        .HasName("PK_GL_POSTING_BALANCE_IMPACTS");
+
+                    b.HasIndex("JournalHeaderId")
+                        .HasDatabaseName("IX_GL_POSTING_BALANCE_IMPACTS_JOURNAL_HEADER_ID");
+
+                    b.HasIndex("JournalLineId")
+                        .HasDatabaseName("IX_GL_POSTING_BALANCE_IMPACTS_JOURNAL_LINE_ID");
+
+                    b.HasIndex("LedgerId")
+                        .HasDatabaseName("IX_GL_POSTING_BALANCE_IMPACTS_LEDGER_ID");
+
+                    b.HasIndex("LedgerPeriodId")
+                        .HasDatabaseName("IX_GL_POSTING_BALANCE_IMPACTS_LEDGER_PERIOD_ID");
+
+                    b.HasIndex("AccountCombinationId", "AccountingDate")
+                        .HasDatabaseName("IX_GL_POSTING_BALANCE_IMPACTS_ACCOUNT_COMBINATION_ID");
+
+                    b.ToTable("GL_POSTING_BALANCE_IMPACTS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountPayment", b =>
@@ -4759,6 +5751,77 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_GL_ACCOUNTS_GL_ACCOUNTS");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccountBalance", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlAccountCombination", null)
+                        .WithMany()
+                        .HasForeignKey("AccountCombinationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_ACCOUNT_BALANCES_GL_ACCOUNT_COMBINATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalHeader", null)
+                        .WithMany()
+                        .HasForeignKey("LastPostedHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_GL_ACCOUNT_BALANCES_GL_JOURNAL_HEADERS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlLedger", null)
+                        .WithMany()
+                        .HasForeignKey("LedgerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_ACCOUNT_BALANCES_GL_LEDGERS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlLedgerPeriod", null)
+                        .WithMany()
+                        .HasForeignKey("LedgerPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_ACCOUNT_BALANCES_GL_LEDGER_PERIODS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccountCombination", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_ACCOUNT_COMBINATIONS_GL_ACCOUNTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlCoaStructure", null)
+                        .WithMany()
+                        .HasForeignKey("CoaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_ACCOUNT_COMBINATIONS_GL_COA_STRUCTURES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccountCombinationSegment", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlAccountCombination", null)
+                        .WithMany()
+                        .HasForeignKey("AccountCombinationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_ACCOUNT_COMBINATION_SEGMENTS_GL_ACCOUNT_COMBINATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlCoaSegment", null)
+                        .WithMany()
+                        .HasForeignKey("CoaSegmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_ACCOUNT_COMBINATION_SEGMENTS_GL_COA_SEGMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlCoaSegmentValue", null)
+                        .WithMany()
+                        .HasForeignKey("SegmentValueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_ACCOUNT_COMBINATION_SEGMENTS_GL_COA_SEGMENT_VALUES");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlAccountingPeriod", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Gl.GlCalendar", null)
@@ -4824,6 +5887,101 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_GL_FISCAL_YEARS_GL_CALENDARS");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalBatch", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_BATCHES_GL_JOURNAL_CATEGORIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlLedger", null)
+                        .WithMany()
+                        .HasForeignKey("LedgerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_BATCHES_GL_LEDGERS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalSource", null)
+                        .WithMany()
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_BATCHES_GL_JOURNAL_SOURCES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalHeader", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalBatch", null)
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_HEADERS_GL_JOURNAL_BATCHES");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_HEADERS_GL_JOURNAL_CATEGORIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlLedger", null)
+                        .WithMany()
+                        .HasForeignKey("LedgerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_HEADERS_GL_LEDGERS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlLedgerPeriod", null)
+                        .WithMany()
+                        .HasForeignKey("LedgerPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_HEADERS_GL_LEDGER_PERIODS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalHeader", null)
+                        .WithMany()
+                        .HasForeignKey("ReversedHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_GL_JOURNAL_HEADERS_GL_JOURNAL_HEADERS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalSource", null)
+                        .WithMany()
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_HEADERS_GL_JOURNAL_SOURCES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalHeaderHistory", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalHeader", null)
+                        .WithMany()
+                        .HasForeignKey("JournalHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_HEADERS_HIST_GL_JOURNAL_HEADERS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlJournalLine", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlAccountCombination", null)
+                        .WithMany()
+                        .HasForeignKey("AccountCombinationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_LINES_GL_ACCOUNT_COMBINATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalHeader", null)
+                        .WithMany()
+                        .HasForeignKey("JournalHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_JOURNAL_LINES_GL_JOURNAL_HEADERS");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlLedger", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Gl.GlCalendar", null)
@@ -4879,6 +6037,44 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_GL_LEDGER_PERIODS_HIST_GL_LEDGER_PERIODS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlPostingBalanceImpact", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlAccountCombination", null)
+                        .WithMany()
+                        .HasForeignKey("AccountCombinationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_POSTING_BALANCE_IMPACTS_GL_ACCOUNT_COMBINATIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalHeader", null)
+                        .WithMany()
+                        .HasForeignKey("JournalHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_POSTING_BALANCE_IMPACTS_GL_JOURNAL_HEADERS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalLine", null)
+                        .WithMany()
+                        .HasForeignKey("JournalLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_POSTING_BALANCE_IMPACTS_GL_JOURNAL_LINES");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlLedger", null)
+                        .WithMany()
+                        .HasForeignKey("LedgerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_POSTING_BALANCE_IMPACTS_GL_LEDGERS");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlLedgerPeriod", null)
+                        .WithMany()
+                        .HasForeignKey("LedgerPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GL_POSTING_BALANCE_IMPACTS_GL_LEDGER_PERIODS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgAccountPayment", b =>
