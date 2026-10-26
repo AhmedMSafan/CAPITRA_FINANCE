@@ -48,7 +48,7 @@ watch(() => JSON.stringify(props.items), loadLovs, { immediate: true })
 </script>
 
 <template>
-  <div class="t-Region" :class="[region.cls, { 't-Region--plain': region.hideHeader }]">
+  <div :id="region.staticId" class="t-Region" :class="[region.cls, { 't-Region--plain': region.hideHeader }]">
     <div v-if="!region.hideHeader" class="t-Region-header"><h2 class="t-Region-title">{{ region.title }}</h2></div>
     <div class="t-Region-body">
       <div class="t-Form">

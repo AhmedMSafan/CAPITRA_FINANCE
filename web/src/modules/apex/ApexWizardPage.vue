@@ -108,7 +108,23 @@ function followLink(event: MouseEvent) {
   const link = (event.target as HTMLElement).closest?.('a[href^="/"]') as HTMLAnchorElement | null
   if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || link.target === '_blank') return
   event.preventDefault()
-  const href = link.getAttribute('href')!
+  go(link.getAttribute('href')!)
+}
+
+// a row the region's script follows with window.location.href = its data-href (Investors on page 109): the same,
+// before the script's own handler; APEX's get_url of a modal page was a javascript: URL that opened the dialog
+function followDataHref(event: MouseEvent | KeyboardEvent) {
+  const target = event.target as HTMLElement
+  const row = target.closest?.('[data-href^="/"]')
+  if (!row || target.closest('a, button, input, select, textarea')) return
+  if (event instanceof KeyboardEvent && event.key !== 'Enter' && event.key !== ' ') return
+  if (event instanceof MouseEvent && (event.ctrlKey || event.metaKey || event.shiftKey)) return
+  event.preventDefault()
+  event.stopPropagation()
+  go(row.getAttribute('data-href')!)
+}
+
+function go(href: string) {
   const to = router.resolve(href)
   const page = props.pages.find((p) => p.modal && appPageUrl(props.app, p.page) === to.path)
   if (page) {
@@ -227,7 +243,7 @@ if (flash.message) {
 </script>
 
 <template>
-  <div ref="root" class="ut-page t-Body-contentInner" @click="followLink">
+  <div ref="root" class="ut-page t-Body-contentInner" @click.capture="followDataHref" @keydown.capture="followDataHref" @click="followLink">
     <component :is="'style'" v-if="spec.css">{{ spec.css }}</component>
     <div v-if="error" class="apx-alerts">
       <div class="apx-alert apx-alert--danger" role="alert">

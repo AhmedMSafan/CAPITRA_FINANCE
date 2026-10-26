@@ -78,6 +78,8 @@ export type WizardRegion = {
   hideHeader?: boolean
   /** The region's template options (t-Region--noPadding t-Region--scrollBody). */
   cls?: string
+  /** The region's Static ID: the page's CSS and scripts find the region by it. */
+  staticId?: string
 }
 
 export type WizardPage = {

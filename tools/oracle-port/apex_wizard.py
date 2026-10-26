@@ -270,6 +270,8 @@ def main():
             if r['type'] == 'NATIVE_FORM':
                 form_page[r['table']] = p
 
+    attrs_path = os.path.join(app_dir, 'region-attrs.json')
+    attrs = json.load(open(attrs_path, encoding='utf-8')) if os.path.exists(attrs_path) else {}
     tables = {}
     specs = []
     cs_regions = []
@@ -292,7 +294,9 @@ def main():
         if os.path.isdir(procs) and not any(r['type'] == 'NATIVE_FORM' for r in i['regions']) and any(
                 'point: AFTER_SUBMIT' in read(os.path.join(procs, f)) and 'Close Dialog' not in f.replace('-', ' ') for f in os.listdir(procs)):
             page['submit'] = True
+        marks = []
         for r in sorted(i['regions'], key=lambda r: r['seq']):
+            marks.append((len(page['regions']), r))
             if r['type'] == 'NATIVE_IR' and r['table'] is None and p in views:
                 # a report on a view: its process is written by hand (IR_<key>), the columns come in the view's order
                 cols = i['columns']
@@ -400,6 +404,15 @@ def main():
             seen[region['key']] = seen.get(region['key'], 0) + 1
             if seen[region['key']] > 1:
                 region['key'] += '_%d' % seen[region['key']]
+        # the region's Static ID and CSS Classes (region-attrs.json, from apex_region_attrs.py): page CSS and scripts find it by them
+        for n, (start, r) in enumerate(marks):
+            end = marks[n + 1][0] if n + 1 < len(marks) else len(page['regions'])
+            a = attrs.get(r['id'] or '', {})
+            for region in page['regions'][start:end]:
+                if a.get('staticId'):
+                    region['staticId'] = a['staticId']
+                if a.get('cls'):
+                    region['cls'] = (region.get('cls', '') + ' ' + a['cls']).strip()
         specs.append(page)
 
     # C#: the tables and regions

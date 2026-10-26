@@ -123,7 +123,7 @@ const last = computed(() => Math.min(total.value, first.value + rows.value.lengt
 </script>
 
 <template>
-  <div class="t-Region t-Region--scrollBody">
+  <div :id="region.staticId" class="t-Region t-Region--scrollBody" :class="region.cls">
     <div v-if="!region.hideHeader" class="t-Region-header"><h2 class="t-Region-title">{{ region.title }}</h2></div>
     <div class="t-Region-body">
       <div class="a-IRR">

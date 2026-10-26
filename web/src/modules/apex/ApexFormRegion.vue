@@ -120,7 +120,7 @@ watch(() => props.pk, load)
 </script>
 
 <template>
-  <div class="t-Region" :class="{ 't-Region--plain': plain }">
+  <div :id="region.staticId" class="t-Region" :class="[region.cls, { 't-Region--plain': plain }]">
     <div v-if="!plain" class="t-Region-header"><h2 class="t-Region-title">{{ region.title }}</h2></div>
     <div class="t-Region-body">
       <p v-if="message" class="a-IRR-error" role="alert">{{ message }}</p>

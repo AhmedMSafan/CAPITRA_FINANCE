@@ -626,6 +626,48 @@ public static class MtgApexPageSql
         order by coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR"), d."DEVELOPER_CODE"
         """;
 
+    public const string P109_HEAD = """
+        select count(*) "TOTAL", count(case when coalesce("IS_ACTIVE", true) then 1 end) "ACTIVE", count(case when not coalesce("IS_ACTIVE", true) then 1 end) "INACTIVE", count(case when "EMAIL_ADDRESS" is null then 1 end) "NO_EMAIL", count(case when "PHONE_NO" is null then 1 end) "NO_PHONE", count(case when "NATIONAL_ID" is null then 1 end) "NO_NID"
+        from "MTG_INVESTORS"
+        """;
+
+    public const string P109_EXPOSURE = """
+        select coalesce(sum("OUTSTANDING_VALUE"), 0) "OUTSTANDING", count(*) "CONTRACTS"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS"
+        """;
+
+    public const string P109_ARREARS = """
+        select count(*) "ARREARS_N", coalesce(sum("ARR"), 0) "ARREARS_AMT" from (select "INVESTOR_ID", sum("ARREARS_AMOUNT") "ARR"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS"
+        group by "INVESTOR_ID"
+        having sum("ARREARS_AMOUNT") > 0) "X"
+        """;
+
+    public const string P109_TOP10 = """
+        select coalesce(sum("O"), 0) "TOP10" from (select sum("OUTSTANDING_VALUE") "O"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS"
+        group by "INVESTOR_ID"
+        order by 1 desc nulls last fetch first 10 rows only) "X"
+        """;
+
+    public const string P109_ROWS = """
+        select i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."PHONE_NO", i."EMAIL_ADDRESS", i."EMPLOYER_NAME", coalesce(i."IS_ACTIVE", true) "ACTIVE_FLAG", coalesce("A"."PF", 0) "PF", coalesce("A"."CT", 0) "CT", coalesce("A"."CV", 0) "CV", coalesce("A"."PV", 0) "PV", coalesce("A"."OV", 0) "OV", coalesce("A"."AR", 0) "ARR"
+        from "MTG_INVESTORS" i
+        left join (select "INVESTOR_ID", count(distinct "PORTFOLIO_ID") "PF", count(*) "CT", sum("CONTRACT_VALUE") "CV", sum("PAID_VALUE") "PV", sum("OUTSTANDING_VALUE") "OV", sum("ARREARS_AMOUNT") "AR"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS"
+        group by "INVESTOR_ID") "A" on "A"."INVESTOR_ID" = i."INVESTOR_ID"
+        order by coalesce("A"."OV", 0) desc, i."INVESTOR_CODE"
+        """;
+
+    public const string P109_TOP5 = """
+        select i."INVESTOR_ID", coalesce(i."FULL_NAME_EN", i."FULL_NAME_AR") "NM", sum(a."OUTSTANDING_VALUE") "OV"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = a."INVESTOR_ID"
+        group by i."INVESTOR_ID", coalesce(i."FULL_NAME_EN", i."FULL_NAME_AR")
+        having sum(a."OUTSTANDING_VALUE") > 0
+        order by 3 desc fetch first 5 rows only
+        """;
+
     public const string P201_TOTALS = """
         with "FNV_V_CHEQUE_COVERAGE" AS (
         select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"

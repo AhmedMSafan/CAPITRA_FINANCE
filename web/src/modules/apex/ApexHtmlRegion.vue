@@ -52,7 +52,7 @@ watch(() => JSON.stringify(props.items), load, { immediate: true })
 </script>
 
 <template>
-  <div v-if="html || buttons.length" class="t-Region" :class="[region.cls, { 't-Region--plain': region.hideHeader }]">
+  <div v-if="html || buttons.length" :id="region.staticId" class="t-Region" :class="[region.cls, { 't-Region--plain': region.hideHeader }]">
     <div v-if="!region.hideHeader" class="t-Region-header"><h2 class="t-Region-title">{{ region.title }}</h2></div>
     <!-- eslint-disable-next-line vue/no-v-html -- the region's own HTML, built on the server from escaped values as APEX did -->
     <div ref="body" class="t-Region-body" v-html="html"></div>
