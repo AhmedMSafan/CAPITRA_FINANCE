@@ -6,7 +6,7 @@
       <div class="page-head-copy">
         <div class="page-eyebrow">
           <span class="eyebrow-dot"></span>
-          FINOVA Workflow Engine
+          Capitra Workflow Engine
         </div>
         <h1>Workflow Designer</h1>
         <p>Design workflow steps, routing, outcomes and execution metadata.</p>
