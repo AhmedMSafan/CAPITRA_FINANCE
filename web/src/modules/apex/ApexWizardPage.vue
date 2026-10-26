@@ -273,7 +273,7 @@ if (flash.message) {
     </div>
 
     <template v-for="region in loadDone ? spec.regions : []" :key="region.key">
-      <ApexIrRegion v-if="region.kind === 'ir'" ref="reports" :app="app" :page="page" :region="region" :items="items" @open="open" />
+      <ApexIrRegion v-if="region.kind === 'ir'" ref="reports" :app="app" :page="page" :region="region" :items="items" @open="open" @submit="submitPage" />
       <ApexItemsRegion
         v-else-if="region.kind === 'items'"
         :app="app"

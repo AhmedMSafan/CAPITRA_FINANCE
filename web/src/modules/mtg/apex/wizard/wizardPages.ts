@@ -8747,7 +8747,8 @@ export const wizardPages: WizardPage[] = [
           {
             "name": "CAPTURE",
             "label": "Capture Today",
-            "page": null
+            "page": null,
+            "action": "SUBMIT"
           }
         ],
         "staticId": "portfolio-snapshots",

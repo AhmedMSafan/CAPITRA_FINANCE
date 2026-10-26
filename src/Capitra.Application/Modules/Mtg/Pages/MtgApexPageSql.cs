@@ -1494,6 +1494,65 @@ public static class MtgApexPageSql
         order by "VAL" desc nulls last fetch first 5 rows only
         """;
 
+    public const string P721_PORTFOLIOS = """
+        with "FNV_V_CHEQUE_COVERAGE" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        left join "MTG_PURCHASED_PORTFOLIO_CHEQUES" c on c."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT"
+        ),
+        "FNV_V_PAYMENT_REGULARITY" AS (
+        select pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN", count(ap."PAYMENT_ID") as "PAYMENT_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'PAID' then 1 else 0 end) as "PAID_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'LATE' then 1 else 0 end) as "LATE_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" in ('PARTIAL', 'UNPAID') then 1 else 0 end) as "PROBLEM_COUNT", max(ap."DAYS_LATE") as "MAX_DAYS_LATE", sum(ap."DUE_AMOUNT") as "TOTAL_DUE", sum(ap."PAID_AMOUNT") as "TOTAL_PAID"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = pa."INVESTOR_ID"
+        left join "MTG_ACCOUNT_PAYMENTS" ap on ap."PORTFOLIO_ACCOUNT_ID" = pa."PORTFOLIO_ACCOUNT_ID"
+        group by pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN"
+        ),
+        "FNV_V_PORTFOLIO_EXCEPTIONS" AS (
+        select p."PORTFOLIO_ID", p."PORTFOLIO_NO", 'DUE_DILIGENCE' "EXCEPTION_TYPE", dd."CHECK_TYPE_CODE" "EXCEPTION_CODE", dd."FINDINGS" "EXCEPTION_DETAILS"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DUE_DILIGENCES" dd on dd."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        where dd."IS_EXCEPTION"
+        union all select p."PORTFOLIO_ID", p."PORTFOLIO_NO", 'PAYMENT_HISTORY', 'PAYMENT_IRREGULARITY', (concat('Payment problems found for investor ', pr."FULL_NAME_EN"))
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "FNV_V_PAYMENT_REGULARITY" pr on pr."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        where pr."PAYMENT_COUNT" < 12 or pr."PROBLEM_COUNT" > 0
+        union all select p."PORTFOLIO_ID", p."PORTFOLIO_NO", 'CHEQUE_COVERAGE', 'INSUFFICIENT_COVERAGE', ('Cheque coverage is below required amount')
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "FNV_V_CHEQUE_COVERAGE" cc on cc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        where cc."COVERAGE_OK_FLAG" = 'N'
+        ),
+        "FNV_V_DOCUMENT_COMPLETENESS" AS (
+        with req as (select count(*) "REQUIRED_COUNT"
+        from "ADM_LKP_DOCUMENT_TYPES"
+        where "IS_MANDATORY" and "IS_ACTIVE"), doc as (select "PORTFOLIO_ID", count(distinct "DOCUMENT_TYPE_CODE") "RECEIVED_REQUIRED_COUNT"
+        from "MTG_PURCHASED_PORTFOLIO_DOCUMENTS" d
+        where exists (select 1
+        from "ADM_LKP_DOCUMENT_TYPES" r
+        where r."DOCUMENT_TYPE_CODE" = d."DOCUMENT_TYPE_CODE" and r."IS_MANDATORY" and r."IS_ACTIVE")
+        group by "PORTFOLIO_ID") select p."PORTFOLIO_ID", p."PORTFOLIO_NO", r."REQUIRED_COUNT", coalesce(d."RECEIVED_REQUIRED_COUNT", 0) "RECEIVED_REQUIRED_COUNT", greatest(r."REQUIRED_COUNT" - coalesce(d."RECEIVED_REQUIRED_COUNT", 0), 0) "MISSING_REQUIRED_COUNT", case when r."REQUIRED_COUNT" = 0 then 100 else round(coalesce(d."RECEIVED_REQUIRED_COUNT", 0) / (r."REQUIRED_COUNT")::numeric * 100, 2) end "DOCUMENT_COMPLETION_PCT", case when coalesce(d."RECEIVED_REQUIRED_COUNT", 0) >= r."REQUIRED_COUNT" then 'Y' else 'N' end "DOCUMENT_READY_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        cross join req r
+        left join doc d on d."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        )
+        select p."PORTFOLIO_ID", coalesce(p."OUTSTANDING_VALUE", 0) "OUTSTANDING_VALUE", coalesce(p."PROPOSED_PURCHASE_VALUE", 0) "PURCHASE_VALUE", cc."CHEQUE_COVERAGE_PCT" "CHEQUE_COVERAGE", dc."DOCUMENT_COMPLETION_PCT", (select count(*)
+        from "FNV_V_PORTFOLIO_EXCEPTIONS" e
+        where e."PORTFOLIO_ID" = p."PORTFOLIO_ID") "OPEN_EXCEPTION_COUNT", p."PORTFOLIO_STATUS_CODE" "CURRENT_STATUS"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        left join "FNV_V_CHEQUE_COVERAGE" cc on cc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        left join "FNV_V_DOCUMENT_COMPLETENESS" dc on dc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        """;
+
+    public const string P721_ACCOUNTS = """
+        select a."PORTFOLIO_ACCOUNT_ID", coalesce(a."OUTSTANDING_VALUE", 0) "OUTSTANDING_VALUE", coalesce(a."ARREARS_AMOUNT", 0) "ARREARS_AMOUNT", (select min(x."DUE_DATE")
+        from "MTG_ACCOUNT_PAYMENTS" x
+        where x."PORTFOLIO_ACCOUNT_ID" = a."PORTFOLIO_ACCOUNT_ID" and x."DUE_DATE" >= to_date(@AS_OF_DATE::text, 'YYYY-MM-DD')) "NEXT_DUE_DATE", (select x."PAYMENT_STATUS_CODE"
+        from "MTG_ACCOUNT_PAYMENTS" x
+        where x."PORTFOLIO_ACCOUNT_ID" = a."PORTFOLIO_ACCOUNT_ID" and x."DUE_DATE" <= to_date(@AS_OF_DATE::text, 'YYYY-MM-DD')
+        order by x."DUE_DATE" desc, x."PAYMENT_ID" desc fetch first 1 rows only) "PAYMENT_STATUS"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        """;
+
     public const string P730_KPIS = """
         select count(*) "K1", sum("FACE_VALUE") "K2", sum("PROPOSED_PURCHASE_VALUE") "K3", 100 * (sum("FACE_VALUE") - sum("PROPOSED_PURCHASE_VALUE")) / (nullif(sum("FACE_VALUE"), 0))::numeric "K4", sum("ACCOUNT_COUNT") "K5" from (select p."PORTFOLIO_ID", p."PORTFOLIO_NO", d."DEVELOPER_CODE", d."LEGAL_NAME_EN" "DEVELOPER_NAME_EN", d."LEGAL_NAME_AR" "DEVELOPER_NAME_AR", pr."PROJECT_CODE", pr."PROJECT_NAME_EN", pr."PROJECT_NAME_AR", p."REQUEST_DATE", p."PORTFOLIO_STATUS_CODE", ps."STATUS_NAME_EN", ps."STATUS_NAME_AR", p."CURRENCY_CODE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", (p."FACE_VALUE" - p."PROPOSED_PURCHASE_VALUE") "PURCHASE_DISCOUNT_AMOUNT", round(100 * (p."FACE_VALUE" - p."PROPOSED_PURCHASE_VALUE") / (nullif(p."FACE_VALUE", 0))::numeric, 2) "PURCHASE_DISCOUNT_PCT", p."EXPECTED_RETURN_AMOUNT", p."TERM_MONTHS", p."CURRENT_APPROVAL_STEP", p."SUBMITTED_AT" AS "SUBMITTED_DATE", p."APPROVED_AT" AS "APPROVED_DATE", count(distinct a."PORTFOLIO_ACCOUNT_ID") "ACCOUNT_COUNT", s."SETTLEMENT_STATUS_CODE", s."ACCOUNTING_STATUS_CODE", s."SETTLEMENT_DATE"
         from "MTG_PURCHASED_PORTFOLIOS" p

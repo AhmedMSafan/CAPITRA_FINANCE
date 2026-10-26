@@ -191,6 +191,7 @@ def report_links(region, r, i, form_page):
             region['create']['set'] = create[0]['target']['set']
     if len(bar) > 1 or (bar and bar[0]['name'] != 'CREATE'):
         region['toolbar'] = [{'name': b['name'], 'label': b['label'], 'page': b['page'],
+                              **({'action': 'SUBMIT'} if b['action'] == 'SUBMIT' else {}),
                               **({'set': b['target']['set']} if b['target'] and b['target']['set'] else {})} for b in bar]
 
 

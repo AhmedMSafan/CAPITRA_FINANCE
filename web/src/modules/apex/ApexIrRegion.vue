@@ -7,7 +7,8 @@ import { formatValue, resolveSet, type WizardButton, type WizardRegion, type Wiz
 
 const props = defineProps<{ app: number; page: number; region: WizardRegion; items: Record<string, string> }>()
 // open: a link to a page with the items it sets (row link, column link, a button right of the search bar)
-const emit = defineEmits<{ open: [page: number | null, items: Record<string, string>] }>()
+// submit: a button right of the search bar that submits the page (REQUEST = its name)
+const emit = defineEmits<{ open: [page: number | null, items: Record<string, string>]; submit: [request: string] }>()
 
 type Row = Record<string, unknown>
 const rows = ref<Row[]>([])
@@ -160,7 +161,7 @@ const last = computed(() => Math.min(total.value, first.value + rows.value.lengt
             type="button"
             class="t-Button a-IRR-create"
             :class="{ 't-Button--hot': b.name === 'CREATE' }"
-            @click="emit('open', b.page, resolveSet(b.set, {}, items))"
+            @click="b.action === 'SUBMIT' ? emit('submit', b.name) : emit('open', b.page, resolveSet(b.set, {}, items))"
           >
             {{ b.label }}
           </button>

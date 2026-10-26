@@ -1,6 +1,6 @@
 # App 105: SQL translated to PostgreSQL
 
-206 of 206 run.
+208 of 208 run.
 
 - OK     P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY
 - OK     P206_PAYMENT_HISTORY
@@ -193,6 +193,8 @@
 - OK     P603_LOAD
 - OK     P711_KPIS
 - OK     P711_TOP
+- OK     P721_PORTFOLIOS
+- OK     P721_ACCOUNTS
 - OK     P730_KPIS
 - OK     P730_TOP
 - OK     P731_KPIS
