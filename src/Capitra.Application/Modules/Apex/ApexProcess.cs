@@ -27,6 +27,13 @@ public sealed class ApexRequest
     public string? X19 { get; init; }
     public string? X20 { get; init; }
     public string? Clob01 { get; init; }
+
+    /// <summary>The page's session state: its items (P209_PORTFOLIO_ID) and REQUEST, as the page had them when it called.</summary>
+    public Dictionary<string, string?>? Items { get; init; }
+
+    /// <summary>:ITEM, the value of a page item (null when empty, as in APEX).</summary>
+    public string? Item(string name) =>
+        Items is not null && Items.FirstOrDefault(i => string.Equals(i.Key, name, StringComparison.OrdinalIgnoreCase)).Value is { Length: > 0 } v ? v : null;
 }
 
 /// <summary>

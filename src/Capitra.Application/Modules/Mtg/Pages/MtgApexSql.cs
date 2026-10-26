@@ -187,11 +187,28 @@ public static class MtgApexSql
 
     public static readonly IReadOnlyList<ApexSqlLoad> Loads =
     [
+        new(105, 403, Permissions.Mtg.PortfolioView, Q.LOAD_P403),
+        new(105, 405, Permissions.Mtg.PortfolioView, Q.LOAD_P405),
         new(105, 407, Permissions.Mtg.PortfolioView, Q.LOAD_P407),
+        new(105, 710, Permissions.Mtg.PortfolioView, Q.LOAD_P710),
     ];
 
     private static class Q
     {
+        public const string LOAD_P403 = """
+        select l."LEGAL_REVIEW_ID" "P403_LEGAL_REVIEW_ID", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_OWNERSHIP_VERIFIED" then 'Yes' else 'No' end "P403_OWNERSHIP", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_BUILDING_LICENSE_VERIFIED" then 'Yes' else 'No' end "P403_BUILDING_LICENSE", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_REGISTRATION_POSSIBLE" then 'Yes' else 'No' end "P403_REGISTRATION", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_MORTGAGE_POSSIBLE" then 'Yes' else 'No' end "P403_MORTGAGE", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_ENCUMBRANCE_FREE" then 'Yes' else 'No' end "P403_ENCUMBRANCE", case when l."LEGAL_REVIEW_ID" is null then 'Not Reviewed' when l."IS_TITLE_DEED_VERIFIED" then 'Yes' else 'No' end "P403_TITLE_DEED", substr(l."LEGAL_FINDINGS", 1, 3500) "P403_FINDINGS", substr(l."LEGAL_RECOMMENDATION", 1, 3500) "P403_RECOMMENDATION", l."REVIEWED_BY" "P403_REVIEWED_BY", to_char(l."REVIEW_DATE", 'DD-MON-YYYY') "P403_REVIEW_DATE" from (select 1 "X") "D"
+        left join "MTG_LEGAL_REVIEWS" l on l."LEGAL_REVIEW_ID" = (select max("LEGAL_REVIEW_ID")
+        from "MTG_LEGAL_REVIEWS"
+        where "PORTFOLIO_ID" = @P403_PORTFOLIO_ID::bigint)
+        """;
+
+        public const string LOAD_P405 = """
+        select f."FIN_STUDY_ID" "P405_FIN_STUDY_ID", case when f."FIN_STUDY_ID" is null then 'Not Created' else 'Available' end "P405_STUDY_STATUS", case when f."FIN_STUDY_ID" is null then '-' else to_char(f."PORTFOLIO_FACE_VALUE", 'FM999G999G999G990D00') end "P405_FACE_VALUE", case when f."FIN_STUDY_ID" is null then '-' else to_char(f."OUTSTANDING_VALUE", 'FM999G999G999G990D00') end "P405_OUTSTANDING", case when f."FIN_STUDY_ID" is null then '-' else to_char(f."PROPOSED_PURCHASE_VALUE", 'FM999G999G999G990D00') end "P405_PURCHASE_VALUE", case when f."FIN_STUDY_ID" is null then '-' else to_char(f."EXPECTED_RETURN_AMOUNT", 'FM999G999G999G990D00') end "P405_EXPECTED_RETURN", case when f."FIN_STUDY_ID" is null then '-' else to_char(f."NET_RETURN_AMOUNT", 'FM999G999G999G990D00') end "P405_NET_RETURN", case when f."FIN_STUDY_ID" is null then '-' else to_char(f."CHEQUE_TOTAL_VALUE", 'FM999G999G999G990D00') end "P405_CHEQUE_TOTAL", case when f."FIN_STUDY_ID" is null or f."CHEQUE_COVERAGE_PCT" is null then '-' else concat(to_char(f."CHEQUE_COVERAGE_PCT", 'FM999G990D00'), '%') end "P405_COVERAGE_PCT", case when f."FIN_STUDY_ID" is null then '-' else to_char(f."DEPOSIT_AMOUNT", 'FM999G999G999G990D00') end "P405_DEPOSIT", substr(f."FINANCIAL_COMMENTS", 1, 3500) "P405_COMMENTS" from (select 1 "X") "D"
+        left join "MTG_FINANCIAL_STUDIES" f on f."FIN_STUDY_ID" = (select max("FIN_STUDY_ID")
+        from "MTG_FINANCIAL_STUDIES"
+        where "PORTFOLIO_ID" = @P405_PORTFOLIO_ID::bigint)
+        """;
+
         public const string LOAD_P407 = """
         with "FNV_V_CHEQUE_COVERAGE" AS (
         select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"
@@ -201,6 +218,43 @@ public static class MtgApexSql
         )
         select case when v."PORTFOLIO_ID" is null then '-' else to_char(v."REQUIRED_COVERAGE_AMOUNT", 'FM999G999G999G990D00') end "P407_REQUIRED_COVERAGE", case when v."PORTFOLIO_ID" is null then '0.00' else to_char(v."CHEQUE_TOTAL_AMOUNT", 'FM999G999G999G990D00') end "P407_CHEQUE_TOTAL", case when v."PORTFOLIO_ID" is null or v."CHEQUE_COVERAGE_PCT" is null then '-' else concat(to_char(v."CHEQUE_COVERAGE_PCT", 'FM999G990D00'), '%') end "P407_COVERAGE_PCT", case when v."PORTFOLIO_ID" is null then 'Not Available' when v."COVERAGE_OK_FLAG" = 'Y' then 'Covered' else 'Insufficient' end "P407_COVERAGE_STATUS" from (select 1 "X") "D"
         left join "FNV_V_CHEQUE_COVERAGE" v on v."PORTFOLIO_ID" = @P407_PORTFOLIO_ID::numeric
+        """;
+
+        public const string LOAD_P710 = """
+        with "FNV_V_CHEQUE_COVERAGE" AS (
+        select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"
+        from "MTG_PURCHASED_PORTFOLIOS" pf
+        left join "MTG_PURCHASED_PORTFOLIO_CHEQUES" c on c."PORTFOLIO_ID" = pf."PORTFOLIO_ID"
+        group by pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT"
+        ),
+        "FNV_V_PAYMENT_REGULARITY" AS (
+        select pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN", count(ap."PAYMENT_ID") as "PAYMENT_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'PAID' then 1 else 0 end) as "PAID_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'LATE' then 1 else 0 end) as "LATE_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" in ('PARTIAL', 'UNPAID') then 1 else 0 end) as "PROBLEM_COUNT", max(ap."DAYS_LATE") as "MAX_DAYS_LATE", sum(ap."DUE_AMOUNT") as "TOTAL_DUE", sum(ap."PAID_AMOUNT") as "TOTAL_PAID"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa
+        join "MTG_INVESTORS" i on i."INVESTOR_ID" = pa."INVESTOR_ID"
+        left join "MTG_ACCOUNT_PAYMENTS" ap on ap."PORTFOLIO_ACCOUNT_ID" = pa."PORTFOLIO_ACCOUNT_ID"
+        group by pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN"
+        ),
+        "FNV_V_PORTFOLIO_EXCEPTIONS" AS (
+        select p."PORTFOLIO_ID", p."PORTFOLIO_NO", 'DUE_DILIGENCE' "EXCEPTION_TYPE", dd."CHECK_TYPE_CODE" "EXCEPTION_CODE", dd."FINDINGS" "EXCEPTION_DETAILS"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DUE_DILIGENCES" dd on dd."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        where dd."IS_EXCEPTION"
+        union all select p."PORTFOLIO_ID", p."PORTFOLIO_NO", 'PAYMENT_HISTORY', 'PAYMENT_IRREGULARITY', (concat('Payment problems found for investor ', pr."FULL_NAME_EN"))
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "FNV_V_PAYMENT_REGULARITY" pr on pr."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        where pr."PAYMENT_COUNT" < 12 or pr."PROBLEM_COUNT" > 0
+        union all select p."PORTFOLIO_ID", p."PORTFOLIO_NO", 'CHEQUE_COVERAGE', 'INSUFFICIENT_COVERAGE', ('Cheque coverage is below required amount')
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "FNV_V_CHEQUE_COVERAGE" cc on cc."PORTFOLIO_ID" = p."PORTFOLIO_ID"
+        where cc."COVERAGE_OK_FLAG" = 'N'
+        ),
+        "FNV_V_MIS_PORTFOLIO_KPI" AS (
+        select count(*) "TOTAL_PORTFOLIOS", sum("FACE_VALUE") "TOTAL_FACE_VALUE", sum("PROPOSED_PURCHASE_VALUE") "TOTAL_PURCHASE_VALUE", sum("OUTSTANDING_VALUE") "TOTAL_OUTSTANDING_VALUE", sum("EXPECTED_RETURN_AMOUNT") "TOTAL_EXPECTED_RETURN", avg("PROPOSED_PURCHASE_VALUE") "AVG_PORTFOLIO_SIZE", sum(case when "PORTFOLIO_STATUS_CODE" = 'APPROVED' then 1 else 0 end) "APPROVED_COUNT", sum(case when "PORTFOLIO_STATUS_CODE" = 'REJECTED' then 1 else 0 end) "REJECTED_COUNT", sum(case when "PORTFOLIO_STATUS_CODE" not in ('APPROVED', 'REJECTED', 'CLOSED') then "PROPOSED_PURCHASE_VALUE" else 0 end) "PIPELINE_VALUE"
+        from "MTG_PURCHASED_PORTFOLIOS"
+        )
+        select to_char(k."TOTAL_PORTFOLIOS", 'FM999G999G990') "P710_TOTAL_PORTFOLIOS", to_char(k."TOTAL_PURCHASE_VALUE", 'FM999G999G999G990D00') "P710_PURCHASE_VALUE", to_char(k."TOTAL_OUTSTANDING_VALUE", 'FM999G999G999G990D00') "P710_OUTSTANDING", to_char(k."PIPELINE_VALUE", 'FM999G999G999G990D00') "P710_PIPELINE", to_char(k."APPROVED_COUNT", 'FM999G999G990') "P710_APPROVED_COUNT", (select to_char(count(*), 'FM999G999G990')
+        from "FNV_V_PORTFOLIO_EXCEPTIONS") "P710_OPEN_EXCEPTIONS"
+        from "FNV_V_MIS_PORTFOLIO_KPI" k
         """;
 
         public const string LOV_FNV_APPROVAL_STEP_ALL = """

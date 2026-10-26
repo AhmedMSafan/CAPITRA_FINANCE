@@ -37,7 +37,31 @@ public static class ApexPages
     };
 
     /// <summary>apex_page.get_url(p_page => page) for a page of the given app.</summary>
-    public static string Url(int app, int page) => Routes.TryGetValue((app, page), out var route) ? route : $"/apex/{app}/{page}";
+    public static string Url(int app, int page) =>
+        Routes.TryGetValue((app, page), out var route) ? route
+        : app == 105 ? (page == 1 ? "/mortgage" : page is 920 or 604 ? "/workflow/inbox" : $"/mortgage/p{page}")
+        : $"/apex/{app}/{page}";
+
+    /// <summary>
+    /// apex_page.get_url(p_page, p_request, p_items, p_values): the items (comma separated, as APEX takes them)
+    /// travel in the query in lower case, the request as ?request=.
+    /// </summary>
+    public static string Url(int app, int page, string? items, string? values, string? request = null)
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrEmpty(request))
+            query.Add("request=" + Uri.EscapeDataString(request));
+        var names = (items ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var vals = (values ?? string.Empty).Split(',');
+        for (var i = 0; i < names.Length; i++)
+        {
+            var v = i < vals.Length ? vals[i] : string.Empty;
+            if (v.Length > 0)
+                query.Add(names[i].ToLowerInvariant() + "=" + Uri.EscapeDataString(v));
+        }
+
+        return Url(app, page) + (query.Count > 0 ? "?" + string.Join('&', query) : string.Empty);
+    }
 
     /// <summary>apex_page.get_url(p_page => page, p_items => item, p_values => value): the item travels in the query, e.g. ?p50_id=12.</summary>
     public static string Url(int app, int page, string item, string value) =>

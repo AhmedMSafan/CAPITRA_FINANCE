@@ -7,6 +7,9 @@ public interface ICurrentUser
 
     string? UserName { get; }
 
+    /// <summary>The user's full name (AI_USER_FULL_NAME in the copied APEX pages).</summary>
+    string? FullName => null;
+
     bool IsAuthenticated { get; }
 
     /// <summary>The names of the user's roles, from the token.</summary>

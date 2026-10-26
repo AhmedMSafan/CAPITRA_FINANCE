@@ -56,6 +56,7 @@ public static class DependencyInjection
         // The PL/SQL packages App 105 calls, ported.
         services.AddScoped<Modules.Mtg.Packages.MtgFinancePackage>();
         services.AddScoped<Modules.Mtg.Packages.MtgPurchasedPortfolioPackage>();
+        services.AddScoped<Modules.Mtg.Packages.MtgValidationPackage>();
 
         return services;
     }

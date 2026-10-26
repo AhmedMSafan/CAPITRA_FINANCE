@@ -82,7 +82,8 @@ def buttons(page_dir):
         target = link_target(url)
         out.append({'name': parts[0], 'label': kv.get('label'), 'action': kv.get('action'),
                     'region': re.sub(r'\D', '', kv.get('region', '')), 'position': kv.get('position'),
-                    'page': target['page'] if target else None, 'target': target})
+                    'page': target['page'] if target else None, 'target': target,
+                    'cond': {'type': kv['cond_type'], 'item': kv.get('cond')} if kv.get('cond_type', 'None') != 'None' else None})
     return out
 
 
@@ -145,6 +146,33 @@ def column(name, c):
     return out
 
 
+def html_links(html, cfg):
+    """href="f?p=&APP_ID.:711:&APP_SESSION.::&DEBUG.:RP:ITEMS:VALUES" in static HTML as the Capitra route of that page."""
+    base = cfg.get('route', '/apex/%d/p' % cfg['app'])
+
+    def route(m):
+        t = link_target(m.group(1).replace('&amp;', '&'))
+        if not t:
+            return m.group(0)
+        path = (cfg.get('home', base + '1') if t['page'] == 1 else base + str(t['page']))
+        query = '&amp;'.join('%s=%s' % (k.lower(), v) for k, v in t['set'].items() if v)
+        return 'href="%s"' % (path + ('?' + query if query else ''))
+    return re.sub(r'href="(f\?p=[^"]*)"', route, html)
+
+
+def template_classes(r):
+    """The region's template options as classes (t-Region--noPadding, t-Region--scrollBody, margin-*)."""
+    opts = r['template'].partition('opts: ')[2]
+    return ' '.join(o for part in opts.split(':') for o in part.split() if o != '#DEFAULT#' and not o.startswith('js-'))
+
+
+def region_buttons(i, r):
+    return [{'name': b['name'], 'label': b['label'], 'action': b['action'], 'position': b['position'], 'page': b['page'],
+             **({'set': b['target']['set']} if b['target'] and b['target']['set'] else {}),
+             **({'cond': b['cond']} if b['cond'] else {})}
+            for b in i['buttons'] if b['region'] == r['id']]
+
+
 def report_links(region, r, i, form_page):
     """The row link (detail link, else the form page of the table) and the buttons right of the search bar."""
     if 'hideHeader' in r['template'] or 'removeHeader' in r['template']:
@@ -190,6 +218,9 @@ def main():
         root = os.path.normpath(os.path.join(here, '..', '..'))
         cs_out, ts_out = os.path.join(root, cfg['cs']), os.path.join(root, cfg['ts'])
         pages = [p for r in cfg['pages'] + cfg.get('reports', []) for p in (range(r[0], r[1] + 1) if isinstance(r, list) else [r])]
+        if cfg.get('custom') == 'all':
+            # every page but the ones not copied: the custom ones render their PL/SQL regions through REGION_<key>
+            pages += [int(d[1:]) for d in os.listdir(app_dir) if re.fullmatch(r'p\d{4}', d) and int(d[1:]) not in cfg.get('skip', [])]
         pages = sorted(set(pages))
         pages = [p for p in pages if os.path.isdir(os.path.join(app_dir, 'p%04d' % p))]
     else:
@@ -244,10 +275,21 @@ def main():
     for p in pages:
         i = info[p]
         page = {'page': p, 'title': i['title'], 'modal': i['modal'], 'regions': []}
+        for f, k in (('page.js', 'js'), ('page-onload.js', 'onload')):
+            if os.path.exists(os.path.join(i['dir'], f)):
+                page[k] = read(os.path.join(i['dir'], f))
         if os.path.exists(os.path.join(i['dir'], 'page.css')):
             page['css'] = read(os.path.join(i['dir'], 'page.css')).strip()
-        if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sql-%d' % app, 'loads', 'P%d.sql' % p)):
+        # Before Header processes: the PAGE_LOAD process (sql-<app>/loads, or ported by hand) sets the page's items
+        procs = os.path.join(i['dir'], 'processes')
+        if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sql-%d' % app, 'loads', 'P%d.sql' % p)) or (
+                os.path.isdir(procs) and not any(r['type'] == 'NATIVE_FORM' for r in i['regions'])
+                and any('point: BEFORE_HEADER' in read(os.path.join(procs, f)) for f in os.listdir(procs))):
             page['load'] = True
+        # After Submit processes of a page that is no wizard form: its SUBMIT process runs them (REQUEST is the button)
+        if os.path.isdir(procs) and not any(r['type'] == 'NATIVE_FORM' for r in i['regions']) and any(
+                'point: AFTER_SUBMIT' in read(os.path.join(procs, f)) and 'Close Dialog' not in f.replace('-', ' ') for f in os.listdir(procs)):
+            page['submit'] = True
         for r in sorted(i['regions'], key=lambda r: r['seq']):
             if r['type'] == 'NATIVE_IR' and r['table'] is None and p in views:
                 # a report on a view: its process is written by hand (IR_<key>), the columns come in the view's order
@@ -274,15 +316,19 @@ def main():
                           'table': None, 'pk': None}
                 if region['kind'] == 'items':
                     region['items'] = [page_item(x) for x in its]
-                    region['buttons'] = [{'name': b['name'], 'label': b['label'], 'action': b['action'], 'position': b['position'], 'page': b['page'],
-                                          **({'set': b['target']['set']} if b['target'] and b['target']['set'] else {})}
-                                         for b in i['buttons'] if b['region'] == r['id']]
+                    region['buttons'] = region_buttons(i, r)
                 elif region['kind'] == 'html':
-                    region['html'] = read(os.path.join(i['dir'], 'regions', r['file'])).partition('\n\n')[2].strip()
-                    if not region['html']:
+                    region['html'] = html_links(read(os.path.join(i['dir'], 'regions', r['file'])).partition('\n\n')[2].strip(), cfg)
+                    region['buttons'] = region_buttons(i, r)
+                    if not region['buttons']:
+                        del region['buttons']
+                    if not region['html'] and 'buttons' not in region:
                         continue
                 if 'removeHeader' in r['template'] or 'hideHeader' in r['template']:
                     region['hideHeader'] = True
+                cls = template_classes(r)
+                if cls:
+                    region['cls'] = cls
                 page['regions'].append(region)
                 continue
             if r['type'] not in ('NATIVE_IR', 'NATIVE_FORM') or r['table'] not in cmap:
@@ -341,6 +387,11 @@ def main():
                 app, p, k, pascal(r['table']), view,
                 ', ' + edit_perm if edit else ', null',
                 (', "%s", "%s"' % parent) if parent else ''))
+        seen = {}
+        for region in page['regions']:              # two regions with one title: the second key gets _2
+            seen[region['key']] = seen.get(region['key'], 0) + 1
+            if seen[region['key']] > 1:
+                region['key'] += '_%d' % seen[region['key']]
         specs.append(page)
 
     # C#: the tables and regions
@@ -392,7 +443,7 @@ def main():
     ts = ['// Generated by tools/oracle-port/apex_wizard.py from the APEX export of App %d. Do not edit by hand.' % app,
           "import type { WizardPage } from '@/modules/apex/wizard'",
           '',
-          'export const wizardPages: WizardPage[] = ' + json.dumps(specs, indent=2, ensure_ascii=False)]
+          'export const wizardPages: WizardPage[] = ' + json.dumps(specs, indent=2, ensure_ascii=False).replace('#APP_FILES#', '/apex/%d/' % app)]
     with open(ts_out, 'w', encoding='utf-8') as f:
         f.write('\n'.join(ts) + '\n')
 

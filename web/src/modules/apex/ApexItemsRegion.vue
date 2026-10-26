@@ -3,10 +3,10 @@
 // select list whose Page Action on Selection is Submit) keeps the values as the page's items and the reports run again.
 import { computed, reactive, ref, watch } from 'vue'
 import { http } from '@/shared/api/http'
-import { resolveSet, type WizardButton, type WizardItem, type WizardRegion } from './wizard'
+import { resolveSet, shown, type WizardButton, type WizardItem, type WizardRegion } from './wizard'
 
 const props = defineProps<{ app: number; page: number; region: WizardRegion; items: Record<string, string> }>()
-const emit = defineEmits<{ submit: [values: Record<string, string>]; open: [page: number | null, items: Record<string, string>] }>()
+const emit = defineEmits<{ submit: [values: Record<string, string>, request: string]; open: [page: number | null, items: Record<string, string>] }>()
 
 const values = reactive<Record<string, string>>({})
 const lovs = ref<Record<string, [string | null, string][]>>({})
@@ -19,16 +19,16 @@ async function load() {
     lovs.value = await http.post(`/api/apex/${props.app}/${props.page}/LOVS`, { x01: JSON.stringify(props.items) })
 }
 
-function submit() {
-  emit('submit', { ...values })
+function submit(request = '') {
+  emit('submit', { ...values }, request)
 }
 
 function changed(item: WizardItem) {
-  if (item.submit) submit()
+  if (item.submit) submit(item.name)
 }
 
 function press(button: WizardButton) {
-  if (button.action === 'SUBMIT') submit()
+  if (button.action === 'SUBMIT') submit(button.name)
   else emit('open', button.page, resolveSet(button.set, {}, props.items))
 }
 
@@ -51,9 +51,9 @@ watch(() => JSON.stringify(props.items), load, { immediate: true })
             <option value="Y">Yes</option>
           </select>
           <input v-else-if="item.type === 'NATIVE_DATE_PICKER_APEX'" :id="item.name" v-model="values[item.name]" type="date" class="t-Form-field" />
-          <input v-else :id="item.name" v-model="values[item.name]" type="text" class="t-Form-field" @keydown.enter.prevent="submit" />
+          <input v-else :id="item.name" v-model="values[item.name]" type="text" class="t-Form-field" @keydown.enter.prevent="submit()" />
         </div>
-        <div v-for="b in region.buttons ?? []" :key="b.name" class="t-Form-fieldContainer t-Form-fieldContainer--button">
+        <div v-for="b in (region.buttons ?? []).filter((x) => shown(x, items))" :key="b.name" class="t-Form-fieldContainer t-Form-fieldContainer--button">
           <button type="button" class="t-Button" :class="{ 't-Button--hot': b.action === 'SUBMIT' }" @click="press(b)">{{ b.label }}</button>
         </div>
       </div>

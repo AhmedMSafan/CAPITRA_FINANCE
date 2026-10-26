@@ -4,6 +4,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { http } from '@/shared/api/http'
+import 'font-awesome/css/font-awesome.min.css'
 import './apexAlerts.css'
 import { createApex, releasePageHandlers, routerUrl, runInlineScripts, runPageScript } from './apexRuntime'
 
@@ -57,7 +58,7 @@ function followLink(event: MouseEvent) {
 function queryItems(): Record<string, string> {
   const items: Record<string, string> = {}
   for (const [key, value] of Object.entries(route.query)) {
-    if (/^p\d+_/i.test(key) && typeof value === 'string') items[key.toUpperCase()] = value
+    if ((/^p?\d+_/i.test(key) || key === 'request') && typeof value === 'string') items[key.toUpperCase()] = value
   }
   return items
 }
@@ -74,12 +75,18 @@ async function mount() {
   const el = host.value!
   el.innerHTML = props.html
   el.addEventListener('click', followLink)
-  const apex = createApex(props.app, props.page, { ...queryItems(), ...props.items }, nav)
+  const items = { ...queryItems(), ...props.items }
+  const apex = createApex(props.app, props.page, items, nav)
 
-  // PL/SQL dynamic content regions: <div data-apex-region="PROCESS"> is filled with the HTML the ported process renders.
+  // PL/SQL dynamic content regions: <div data-apex-region="PROCESS"> is filled with the HTML the ported process renders
+  // for the page items (session state).
   for (const slot of Array.from(el.querySelectorAll<HTMLElement>('[data-apex-region]'))) {
-    const result = await http.post<{ html: string }>(`/api/apex/${props.app}/${props.page}/${slot.dataset.apexRegion}`, {})
-    slot.outerHTML = result.html
+    try {
+      const result = await http.post<{ html: string }>(`/api/apex/${props.app}/${props.page}/${slot.dataset.apexRegion}`, { items })
+      slot.outerHTML = result.html
+    } catch {
+      slot.remove()
+    }
   }
   runInlineScripts(el, apex)
   for (const script of props.scripts) runPageScript(script, apex)

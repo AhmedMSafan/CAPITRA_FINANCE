@@ -81,6 +81,8 @@ export function createApex(app: number, page: number, items: Record<string, stri
         if (data[key] !== undefined && data[key] !== null) body[key] = String(data[key])
       }
       if (data.p_clob_01 !== undefined) body.clob01 = data.p_clob_01
+      // the page's session state goes with every call, as APEX keeps it on the server
+      body.items = { ...items }
       http.post<unknown>(`/api/apex/${app}/${page}/${encodeURIComponent(name)}`, body).then(
         (result) => deferred.resolve(result),
         (err: unknown) => {

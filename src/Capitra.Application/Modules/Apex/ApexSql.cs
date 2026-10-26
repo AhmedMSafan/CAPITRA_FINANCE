@@ -128,3 +128,51 @@ internal sealed class ApexSqlLovValues(IApexSqlReader reader)
         _ => value.ToString(),
     };
 }
+
+/// <summary>select ... into: one value or one row of a ported page's query.</summary>
+public static class ApexSqlReaderExtensions
+{
+    private static readonly IReadOnlyDictionary<string, string?> NoItems = new Dictionary<string, string?>();
+
+    public static async Task<IReadOnlyDictionary<string, object?>?> RowAsync(
+        this IApexSqlReader reader, string sql, IReadOnlyDictionary<string, string?>? items, CancellationToken ct)
+    {
+        var rows = await reader.QueryAsync(sql, items ?? NoItems, ct);
+        return rows.Count == 0 ? null : rows[0];
+    }
+
+    public static async Task<object?> ValueAsync(this IApexSqlReader reader, string sql, IReadOnlyDictionary<string, string?>? items, CancellationToken ct) =>
+        (await reader.RowAsync(sql, items, ct))?.Values.FirstOrDefault();
+
+    public static async Task<decimal?> NumberAsync(this IApexSqlReader reader, string sql, IReadOnlyDictionary<string, string?>? items, CancellationToken ct) =>
+        ApexValue.Number(await reader.ValueAsync(sql, items, ct));
+}
+
+/// <summary>Values of a query row as the PL/SQL read them.</summary>
+public static class ApexValue
+{
+    public static decimal? Number(object? value) => value switch
+    {
+        null => null,
+        decimal d => d,
+        IConvertible c when value is not string and not bool and not DateTime => c.ToDecimal(CultureInfo.InvariantCulture),
+        string s when decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out var d) => d,
+        _ => null,
+    };
+
+    public static string? Text(object? value) => ApexSqlLovValues.Text(value);
+
+    public static decimal? Number(this IReadOnlyDictionary<string, object?> row, string column) =>
+        Number(row.TryGetValue(column, out var v) ? v : null);
+
+    public static string? Text(this IReadOnlyDictionary<string, object?> row, string column) =>
+        Text(row.TryGetValue(column, out var v) ? v : null);
+
+    public static DateOnly? Date(this IReadOnlyDictionary<string, object?> row, string column) =>
+        (row.TryGetValue(column, out var v) ? v : null) switch
+        {
+            DateOnly d => d,
+            DateTime t => DateOnly.FromDateTime(t),
+            _ => null,
+        };
+}

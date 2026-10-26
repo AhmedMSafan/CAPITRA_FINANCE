@@ -33,7 +33,27 @@ export type WizardItem = {
   sameLine?: boolean
 }
 
-export type WizardButton = { name: string; label: string; action?: string; position?: string; page: number | null; set?: WizardSet }
+/** A server-side condition of a button: Item is NULL / Item is NOT NULL. */
+export type WizardCondition = { type: 'ITEM_IS_NULL' | 'ITEM_IS_NOT_NULL' | string; item: string }
+
+export type WizardButton = {
+  name: string
+  label: string
+  action?: string
+  position?: string
+  page: number | null
+  set?: WizardSet
+  cond?: WizardCondition
+}
+
+/** Whether a button's condition holds for the page items. */
+export function shown(button: { cond?: WizardCondition }, items: Record<string, string>): boolean {
+  if (!button.cond) return true
+  const value = items[button.cond.item] ?? ''
+  if (button.cond.type === 'ITEM_IS_NULL') return value === ''
+  if (button.cond.type === 'ITEM_IS_NOT_NULL') return value !== ''
+  return true
+}
 
 export type WizardRegion = {
   key: string
@@ -55,6 +75,8 @@ export type WizardRegion = {
   buttons?: WizardButton[]
   html?: string
   hideHeader?: boolean
+  /** The region's template options (t-Region--noPadding t-Region--scrollBody). */
+  cls?: string
 }
 
 export type WizardPage = {
@@ -66,6 +88,11 @@ export type WizardPage = {
   css?: string
   /** A Before Header process sets page items (PAGE_LOAD). */
   load?: boolean
+  /** The page's JavaScript: Function and Global Variable Declaration, and Execute when Page Loads. */
+  js?: string
+  onload?: string
+  /** Its After Submit processes run in the server process SUBMIT (REQUEST is the button pressed). */
+  submit?: boolean
 }
 
 /** Where each page of App 120 lives in the Capitra web app (the server's ApexPages map). */
@@ -149,3 +176,6 @@ export function substitute(html: string, items: Record<string, string>): string 
     name in items ? (items[name] ?? '').replace(/[&<>"']/g, (c) => ESCAPES[c]!) : /^P\d+_/.test(name) ? '' : whole
   )
 }
+
+/** The success message of a page submit, shown by the page when it opens again. */
+export const flash = { message: '' }

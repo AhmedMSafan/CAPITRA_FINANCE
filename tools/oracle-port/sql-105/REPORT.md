@@ -1,6 +1,6 @@
 # App 105: SQL translated to PostgreSQL
 
-99 of 99 run.
+114 of 114 run.
 
 - OK     P46_PORTFOLIO_PROTECTION_COVERAGE_SUMMARY
 - OK     P206_PAYMENT_HISTORY
@@ -100,4 +100,19 @@
 - OK     LOV_P749_ACCOUNTING_STATUS (inline (first line only in items.txt))
 - OK     LOV_P749_PAYMENT_METHOD (inline (first line only in items.txt))
 - OK     LOV_P749_SETTLEMENT_STATUS (inline (first line only in items.txt))
+- OK     LOAD_P403
+- OK     LOAD_P405
 - OK     LOAD_P407
+- OK     LOAD_P710
+- OK     P1_CASES
+- OK     P1_FACE
+- OK     P1_READY
+- OK     P1_APPROVAL
+- OK     P603_LOAD
+- OK     VALIDATION_DOCUMENT_READY
+- OK     VALIDATION_PAYMENT_PROBLEMS
+- OK     VALIDATION_VALUATIONS
+- OK     VALIDATION_LEGAL_READY
+- OK     VALIDATION_COVERAGE_OK
+- OK     VALIDATION_GUARANTEE_READY
+- OK     VALIDATION_FINANCIAL_STUDIES

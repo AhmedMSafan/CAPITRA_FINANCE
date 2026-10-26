@@ -145,7 +145,8 @@ def main():
             with open(os.path.join(page, 'buttons.txt'), 'a') as f:
                 f.write(f"{value(block, 'p_button_name')} | label={value(block, 'p_button_image_alt')} | "
                         f"action={value(block, 'p_button_action')} | region={value(block, 'p_button_plug_id')} | "
-                        f"position={value(block, 'p_button_position')} | url={value(block, 'p_button_redirect_url')}\n")
+                        f"position={value(block, 'p_button_position')} | url={value(block, 'p_button_redirect_url')} | "
+                        f"cond_type={value(block, 'p_button_condition_type')} | cond={value(block, 'p_button_condition')}\n")
         elif kind == 'create_page_process':
             d = os.path.join(page, 'processes')
             os.makedirs(d, exist_ok=True)
