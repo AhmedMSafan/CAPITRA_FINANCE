@@ -299,7 +299,7 @@ def main():
                 'point: AFTER_SUBMIT' in read(os.path.join(procs, f)) and 'Close Dialog' not in f.replace('-', ' ') for f in os.listdir(procs)):
             page['submit'] = True
         marks = []
-        for r in sorted(i['regions'], key=lambda r: r['seq']):
+        for r in sorted(i['regions'], key=lambda r: (r['type'] != 'NATIVE_BREADCRUMB', r['seq'])):  # the Breadcrumb Bar is above the body
             marks.append((len(page['regions']), r))
             if r['type'] == 'NATIVE_BREADCRUMB':
                 # the page's entry and its parents, the root first; useBreadcrumbTitle shows the page's entry as the title

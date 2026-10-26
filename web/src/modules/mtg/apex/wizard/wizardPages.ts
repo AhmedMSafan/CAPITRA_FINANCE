@@ -2272,6 +2272,21 @@ export const wizardPages: WizardPage[] = [
       {
         "key": "PORTFOLIO_PROTECTION_COVERAGE_SUMMARY",
         "title": "Portfolio Protection Coverage Summary",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "744",
+            "page": 46
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
+        "key": "PORTFOLIO_PROTECTION_COVERAGE_SUMMARY_2",
+        "title": "Portfolio Protection Coverage Summary",
         "kind": "ir",
         "table": null,
         "pk": null,
@@ -2379,21 +2394,6 @@ export const wizardPages: WizardPage[] = [
         ],
         "hideHeader": true,
         "staticId": "744"
-      },
-      {
-        "key": "PORTFOLIO_PROTECTION_COVERAGE_SUMMARY_2",
-        "title": "Portfolio Protection Coverage Summary",
-        "kind": "breadcrumb",
-        "table": null,
-        "pk": null,
-        "crumbs": [
-          {
-            "label": "744",
-            "page": 46
-          }
-        ],
-        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
-        "staticId": "breadcrumb"
       }
     ]
   },
@@ -9667,6 +9667,21 @@ export const wizardPages: WizardPage[] = [
     "modal": false,
     "regions": [
       {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Arrears Aging by Account",
+            "page": 736
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
         "key": "ARREARS_AGING_BY_ACCOUNT",
         "title": "Arrears Aging by Account",
         "kind": "ir",
@@ -9726,21 +9741,6 @@ export const wizardPages: WizardPage[] = [
         ],
         "hideHeader": true,
         "staticId": "arrears-aging-by-account"
-      },
-      {
-        "key": "BREADCRUMB",
-        "title": "Breadcrumb",
-        "kind": "breadcrumb",
-        "table": null,
-        "pk": null,
-        "crumbs": [
-          {
-            "label": "Arrears Aging by Account",
-            "page": 736
-          }
-        ],
-        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
-        "staticId": "breadcrumb"
       },
       {
         "key": "FILTERS",
@@ -10976,6 +10976,21 @@ export const wizardPages: WizardPage[] = [
     "modal": false,
     "regions": [
       {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Approval Workflow Decision Audit Report",
+            "page": 747
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
         "key": "APPROVAL_WORKFLOW_DECISION_AUDIT_REPORT",
         "title": "Approval Workflow Decision Audit Report",
         "kind": "ir",
@@ -11015,21 +11030,6 @@ export const wizardPages: WizardPage[] = [
         ],
         "hideHeader": true,
         "staticId": "approval-workflow-decision-audit-report"
-      },
-      {
-        "key": "BREADCRUMB",
-        "title": "Breadcrumb",
-        "kind": "breadcrumb",
-        "table": null,
-        "pk": null,
-        "crumbs": [
-          {
-            "label": "Approval Workflow Decision Audit Report",
-            "page": 747
-          }
-        ],
-        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
-        "staticId": "breadcrumb"
       }
     ]
   },
@@ -11166,6 +11166,21 @@ export const wizardPages: WizardPage[] = [
     "title": "Acquisition Settlement & Accounting Readiness Register Report",
     "modal": false,
     "regions": [
+      {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Acquisition Settlement & Accounting Readiness Register Report",
+            "page": 749
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
       {
         "key": "ACQUISITION_SETTLEMENT_ACCOUNTING_READINESS_REGISTER_REPORT",
         "title": "Acquisition Settlement & Accounting Readiness Register Report",
@@ -11326,21 +11341,6 @@ export const wizardPages: WizardPage[] = [
         ],
         "hideHeader": true,
         "staticId": "acquisition-settlement-accounting-readiness-register-report"
-      },
-      {
-        "key": "BREADCRUMB",
-        "title": "Breadcrumb",
-        "kind": "breadcrumb",
-        "table": null,
-        "pk": null,
-        "crumbs": [
-          {
-            "label": "Acquisition Settlement & Accounting Readiness Register Report",
-            "page": 749
-          }
-        ],
-        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
-        "staticId": "breadcrumb"
       }
     ]
   }

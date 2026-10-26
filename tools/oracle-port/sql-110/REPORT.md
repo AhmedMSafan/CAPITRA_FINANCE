@@ -1,0 +1,95 @@
+# App 110: SQL translated to PostgreSQL
+
+91 of 91 run.
+
+- OK     P141_FUND_MONTHLY_REPORT_REPORT
+- OK     P142_PORTFOLIO_SUMMARY_REPORT
+- OK     P143_DELINQUENCY_MIS_REPORT
+- OK     P144_ORIGINATION_FUNNEL_REPORT
+- OK     P145_TURNAROUND_TIME_REPORT
+- OK     P146_SUBSIDY_MIS_REPORT
+- OK     P147_GEOGRAPHY_MIS_REPORT
+- OK     P150_FUND_BATCH_RECONCILIATION
+- OK     P151_FUND_STAGING_DATA_QUALITY_EXCEPTIONS
+- OK     P152_APPLICATION_PIPELINE_AGING_DETAIL
+- OK     P153_APPLICANT_INCOME_AND_AFFORDABILITY_CONTROL
+- OK     P154_REQUIRED_DOCUMENT_COMPLIANCE_AND_EXPIRY
+- OK     P155_CREDIT_INQUIRY_SLA_AND_EXCEPTION
+- OK     P156_CREDIT_STUDY_VERSUS_FINAL_DECISION_VARIANCE
+- OK     P157_PROPERTY_VALUATION_AND_LTV_RISK_REPORT
+- OK     P158_CALCULATOR_VERSUS_APPROVED_OFFERED_TERMS
+- OK     P159_SUBSIDY_APPROVAL_AND_ACCOUNT_UTILIZATION
+- OK     P160_FINANCE_OFFER_AND_CONTRACT_CONVERSION_REPORT
+- OK     P161_DISBURSEMENT_AND_LOAN_BOOKING_RECONCILIATION_REPORT
+- OK     P162_INSTALLMENT_DUE_AND_CASH_FLOW_FORECAST_REPORT
+- OK     P163_COLLECTIONS_ALLOCATION_AND_PAYMENT_PERFORMANCE_REPORT
+- OK     P164_DELINQUENCY_AGING_AND_CURE_REPORT
+- OK     P165_EARLY_SETTLEMENT_AND_SUBSIDY_REFUND_CONTROL_REPORT
+- OK     P166_LOAN_RESTRUCTURING_MONITORING_REPORT
+- OK     LOV_MFF_FINANCIERS
+- OK     LOV_MFF_FUND_ORGS
+- OK     LOV_MFF_PROGRAM_VERSIONS
+- OK     LOV_MFF_EMPLOYMENT_TYPE
+- OK     LOV_MFF_GENDER
+- OK     LOV_MFF_MARITAL_STATUS
+- OK     LOV_MFF_INCOME_TYPE
+- OK     LOV_MFF_YES_NO
+- OK     LOV_MFF_CITY
+- OK     LOV_MFF_GOVERNORATE
+- OK     LOV_MFF_PROJECTS
+- OK     LOV_MFF_PROPERTY_REG_STATUS
+- OK     LOV_MFF_DOCUMENT_TYPE
+- OK     LOV_MFF_CREDIT_BUREAU
+- OK     LOV_MFF_CREDIT_INQUIRY_RESULT
+- OK     LOV_MFF_DECISION_CODE
+- OK     LOV_MFF_APPLICATION
+- OK     LOV_MFF_OPEN_ASSIGNMENT
+- OK     LOV_MFF_USER_ROLE
+- OK     LOV_MFF_ALLOWED_TRANSITION
+- OK     LOV_MFF_APPLICATION_DOCUMENT
+- OK     LOV_MFF_CHECK_RESULT
+- OK     LOV_MFF_VERIFICATION_STATUS
+- OK     LOV_MFF_SUBSIDY_STATUS
+- OK     LOV_MFF_SUPPORT_TYPE
+- OK     LOV_MFF_OFFER_STATUS
+- OK     LOV_MFF_CONTRACT_STATUS
+- OK     LOV_MFF_ACTIVE_LOAN
+- OK     LOV_MFF_DELINQUENCY_STAGE
+- OK     LOV_MFF_CASE_STATUS
+- OK     LOV_MFF_SETTLEMENT_TYPE
+- OK     LOV_MFF_LEGAL_ACTION_TYPE
+- OK     LOV_MFF_EVENT_TYPE
+- OK     LOV_P150_BATCH_STATUS (inline (first line only in items.txt))
+- OK     LOV_P150_RECON_STATUS (static)
+- OK     LOV_P151_BATCH_ID (inline (first line only in items.txt))
+- OK     LOV_P151_GOVERNORATE (inline (first line only in items.txt))
+- OK     LOV_P151_HAS_ERROR (static)
+- OK     LOV_P151_VALIDATION_STATUS (inline (first line only in items.txt))
+- OK     LOV_P152_OWNER_USER (inline (first line only in items.txt))
+- OK     LOV_P152_STATUS_CODE (inline (first line only in items.txt))
+- OK     LOV_P153_STATUS_CODE (inline (first line only in items.txt))
+- OK     LOV_P154_COMPLIANCE_STATUS (static)
+- OK     LOV_P154_STATUS_CODE (inline (first line only in items.txt))
+- OK     LOV_P155_OPEN_ONLY (static)
+- OK     LOV_P155_RESULT_CODE (inline (first line only in items.txt))
+- OK     LOV_P156_ANALYST_USER (inline (first line only in items.txt))
+- OK     LOV_P156_VARIANCE_ONLY (static)
+- OK     LOV_P157_APPRAISAL_STATUS (inline (first line only in items.txt))
+- OK     LOV_P157_APPRAISER_ORG_ID (inline (first line only in items.txt))
+- OK     LOV_P158_RUN_TYPE (inline (first line only in items.txt))
+- OK     LOV_P158_VARIANCE_ONLY (static)
+- OK     LOV_P159_ACCOUNT_STATUS (inline (first line only in items.txt))
+- OK     LOV_P159_APPROVAL_STATUS (inline (first line only in items.txt))
+- OK     LOV_P160_CONVERSION_STATUS (static)
+- OK     LOV_P161_EXCEPTION_ONLY (static)
+- OK     LOV_P161_LOAN_STATUS (inline (first line only in items.txt))
+- OK     LOV_P162_LOAN_STATUS (inline (first line only in items.txt))
+- OK     LOV_P162_PAYMENT_STATUS (inline (first line only in items.txt))
+- OK     LOV_P163_PAYMENT_CHANNEL (inline (first line only in items.txt))
+- OK     LOV_P163_STATUS_CODE (inline (first line only in items.txt))
+- OK     LOV_P163_UNALLOCATED_ONLY (inline (first line only in items.txt))
+- OK     LOV_P164_STAGE_CODE (inline (first line only in items.txt))
+- OK     LOV_P164_STATUS (inline (first line only in items.txt))
+- OK     LOV_P165_STATUS (inline (first line only in items.txt))
+- OK     LOV_P166_PENDING_ONLY (static)
+- OK     LOV_P166_STATUS (inline (first line only in items.txt))

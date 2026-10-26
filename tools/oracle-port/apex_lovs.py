@@ -10,6 +10,7 @@ import sys
 
 def literal(text):
     """An APEX export value: 'text', wwv_flow_string.join(wwv_flow_t_varchar2('a','b')) or a number."""
+    text = re.sub(r"'\s*\|\|\s*'", '', text)      # 'abc'||'def': one string the export split at a length limit
     parts = re.findall(r"'((?:[^']|'')*)'", text)
     return '\n'.join(p.replace("''", "'") for p in parts)
 

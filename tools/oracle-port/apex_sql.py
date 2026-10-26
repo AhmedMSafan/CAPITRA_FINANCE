@@ -191,7 +191,7 @@ def main():
     for n, q in page_sql:
         ps.append('    public const string %s = %s;' % (n, raw(q)))
         ps.append('')
-    ps[-1:] = ['}']
+    ps[-1:] = ['}'] if page_sql else [ps[-1], '}']
     with open(os.path.join(ROOT, cfg['cs'].replace('Regions.cs', 'PageSql.cs')), 'w', encoding='utf-8') as f:
         f.write('\n'.join(ps) + '\n')
     print(f'{len(results) - len(failed)} of {len(results)} queries run; {len(failed)} failed (see {os.path.relpath(sql_dir, ROOT)}/REPORT.md)')

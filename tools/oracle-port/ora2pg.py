@@ -87,6 +87,7 @@ class Translator:
         # and the views it uses are added by the query that uses it
         self.view_body = view_body
         self.ctes = set()
+        self.derived = set()
         self.views_dir = views_dir
         self.warnings = []
 
@@ -169,6 +170,16 @@ class Translator:
                 star = [body[k - 2].text.upper() for k in range(2, len(body)) if body[k].text == '*' and body[k - 1].text == '.']
                 inner, _ = self.scan_aliases_plain(body)
                 aliases.setdefault(t.text.upper(), []).extend(x for a in star for x in inner.get(a, []))
+        # subqueries in FROM: ( select ... ) x  -- x stands for the tables of the subquery
+        self.derived = set()
+        for i, t in enumerate(toks):
+            if t.text == '(' and i > 0 and (toks[i - 1].low in ('from', 'join') or (toks[i - 1].text == ',' and self.in_from(toks, i))):
+                close = self.match_paren(toks, i)
+                n = toks[close + 1] if close + 1 < len(toks) else None
+                if n is not None and n.kind == 'id' and n.low not in KEYWORDS:
+                    inner, _ = self.scan_aliases_plain(toks[i + 1:close])
+                    self.derived.add(n.text.upper())
+                    aliases.setdefault(n.text.upper(), []).extend(x for ts in inner.values() for x in ts)
         prev = None
         for i, t in enumerate(toks):
             if t.kind == 'id' and prev is not None and (prev.low in ('from', 'join') or (prev.text == ',' and self.in_from(toks, i))):
@@ -263,7 +274,12 @@ class Translator:
                 out += [Tok('op', '(')] + self.rewrite_functions(toks[i + 2:close]) + [Tok('op', ')')]
                 i = close + 1
                 continue
-            if call and low in ('nvl2', 'decode', 'trunc', 'listagg', 'add_months', 'instr'):
+            if low == 'interval' and nxt is not None and nxt.kind == 'str' and i + 2 < len(toks) and toks[i + 2].low in ('day', 'month', 'year', 'hour', 'minute', 'second'):
+                # INTERVAL '1' DAY -> interval '1 day'
+                out += [t, Tok('str', "'%s %s'" % (nxt.text.strip("'"), toks[i + 2].low))]
+                i += 3
+                continue
+            if call and low in ('nvl2', 'decode', 'trunc', 'listagg', 'add_months', 'instr', 'to_date', 'to_char'):
                 close = self.match_paren(toks, i + 1)
                 args = [self.rewrite_functions(a) for a in self.split_args(toks[i + 2:close])]
                 end = close + 1
@@ -291,6 +307,11 @@ class Translator:
                     rep = tokenize(f"date_trunc('{unit}',") + args[0] + tokenize(')::date')
                 elif low == 'add_months' and len(args) == 2:
                     rep = tokenize('((') + args[0] + tokenize(') + make_interval(months =>') + args[1] + tokenize('))::date')
+                elif low == 'to_date' and (len(args) == 1 or (args[0] and args[0][0].kind in ('bind', 'subst'))):
+                    # a page item holds a date as yyyy-mm-dd (the date picker), whatever format mask the query names
+                    rep = [Tok('op', '(')] + args[0] + tokenize(')::date')
+                elif low == 'to_char' and len(args) == 1:
+                    rep = [Tok('op', '(')] + args[0] + tokenize(')::text')
                 elif low == 'instr' and len(args) == 2:
                     rep = tokenize('strpos(') + args[0] + [Tok('op', ',')] + args[1] + [Tok('op', ')')]
                 elif low == 'listagg':
@@ -460,11 +481,15 @@ class Translator:
             if prev is not None and (prev.low in ('from', 'join') or (prev.text == ',' and self.in_from(toks, i))):
                 res.append('"%s"' % self.table_name(name))
                 continue
+            if prev is not None and prev.text == ')' and name in self.derived:
+                res.append(t.text.lower())                          # a subquery's alias
+                continue
             if i >= 2 and prev.kind == 'id' and prev.low not in KEYWORDS and (
                     toks[i - 2].low in ('from', 'join') or (toks[i - 2].text == ',' and self.in_from(toks, i - 1))):
                 res.append(t.text.lower())                          # a table alias
                 continue
-            if prev is not None and (prev.kind in ('str', 'num', 'qid') or prev.text == ')' or (prev.kind == 'id' and prev.low not in KEYWORDS)) or (prev is not None and prev.low == 'as'):
+            cast_end = prev is not None and i >= 2 and toks[i - 2].text in ('::', ':')     # (...)::date ALIAS
+            if prev is not None and (prev.kind in ('str', 'num', 'qid') or prev.text == ')' or cast_end or (prev.kind == 'id' and prev.low not in KEYWORDS)) or (prev is not None and prev.low == 'as'):
                 res.append('"%s"' % name)                           # an output alias
                 continue
             c = self.column(all_tables, name)
@@ -500,10 +525,37 @@ class Translator:
                     depth -= toks[j].text == '('
                     if depth == 0:
                         fn = toks[j - 1].low if j > 0 else ''
+                        if fn in ('to_date', 'add_months', 'last_day') or (fn == 'cast' and toks[i - 1].low == 'date'):
+                            return 'date'
+                        # trunc(date), nvl(date, ...): a date when the first argument is one
+                        if fn in ('trunc', 'nvl', 'coalesce', 'greatest', 'least'):
+                            first = j + 1
+                            while first < i and toks[first].text == '(':
+                                first += 1
+                            if toks[first].low in ('sysdate', 'current_date', 'to_date', 'add_months', 'last_day') or (
+                                    toks[first].low == 'cast' and any(toks[k].low == 'date' and toks[k - 1].low == 'as' for k in range(first, i))):
+                                return 'date'
+                            end = first
+                            while end + 2 < i and toks[end + 1].text == '.':
+                                end += 2
+                            if toks[first].kind == 'id' and kind_at(end) == 'date':
+                                return 'date'
                         return 'decimal' if fn in ('sum', 'count', 'avg', 'round', 'abs', 'greatest', 'least', 'trunc', 'floor', 'ceil', 'nvl', 'coalesce') else None
                 return None
             if i < 0 or toks[i].kind != 'id':
                 return None
+            if i >= 1 and toks[i - 1].text in ('::', ':') and toks[i].low in ('date', 'timestamp', 'numeric', 'bigint', 'int', 'integer'):
+                if toks[i].low in ('date', 'timestamp') and i >= 2 and toks[i - 2].text == ')':
+                    depth, j = 0, i - 2
+                    while j >= 0:
+                        depth += toks[j].text == ')'
+                        depth -= toks[j].text == '('
+                        if depth == 0:
+                            break
+                        j -= 1
+                    if j > 0 and toks[j - 1].text == '-':
+                        return 'decimal'                    # date - (...)::date: a number of days
+                return 'date' if toks[i].low in ('date', 'timestamp') else 'decimal'     # (...)::date from a rewritten trunc()
             if i >= 2 and toks[i - 1].text == '.':
                 c = self.column(aliases.get(toks[i - 2].text.upper(), []), toks[i].text.upper())
             else:
@@ -531,7 +583,12 @@ class Translator:
                 continue
             name = (t.text[1:] if t.kind == 'bind' else t.text[1:-1]).upper()
             kind = None
-            if i >= 2 and toks[i - 1].text in ('=', '<>', '!=', '<', '>', '<=', '>=', 'between', 'and') or (i >= 2 and toks[i - 1].low in ('between', 'and')):
+            if i >= 1 and toks[i - 1].text in ('+', '-') and name not in types:
+                types[name] = 'integer'                     # date + :days
+                continue
+            if i >= 2 and toks[i - 1].text == '(' and toks[i - 2].low in ('nvl', 'coalesce') and i + 2 < len(toks) and toks[i + 1].text == ',' and toks[i + 2].kind == 'num':
+                kind = 'decimal'                            # nvl(:days, 2)
+            if kind is None and i >= 2 and toks[i - 1].text in ('=', '<>', '!=', '<', '>', '<=', '>=', 'between', 'and') or (i >= 2 and toks[i - 1].low in ('between', 'and')):
                 kind = kind_at(i - 2)
             if kind is None and i + 2 < len(toks) and toks[i + 1].text in ('=', '<>', '!=', '<', '>', '<=', '>='):
                 kind = kind_from(i + 2)

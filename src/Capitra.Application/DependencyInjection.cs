@@ -36,17 +36,17 @@ public static class DependencyInjection
             services.AddScoped(typeof(IApexProcess), type);
 
         // Wizard-built reports and forms of the copied pages.
-        foreach (var region in Modules.Gl.Pages.GlApexRegions.All.Concat(Modules.Mtg.Pages.MtgApexRegions.All))
+        foreach (var region in Modules.Gl.Pages.GlApexRegions.All.Concat(Modules.Mtg.Pages.MtgApexRegions.All).Concat(Modules.Mff.Pages.MffApexRegions.All))
             services.AddSingleton(region);
-        foreach (var lov in Modules.Gl.Pages.GlApexRegions.Lovs.Concat(Modules.Mtg.Pages.MtgApexRegions.Lovs))
+        foreach (var lov in Modules.Gl.Pages.GlApexRegions.Lovs.Concat(Modules.Mtg.Pages.MtgApexRegions.Lovs).Concat(Modules.Mff.Pages.MffApexRegions.Lovs))
             services.AddSingleton(lov);
 
         // Reports on a SQL query and SQL select lists, translated from Oracle (MtgApexSql), and the page processes around the forms.
-        foreach (var report in Modules.Mtg.Pages.MtgApexSql.Reports)
+        foreach (var report in Modules.Mtg.Pages.MtgApexSql.Reports.Concat(Modules.Mff.Pages.MffApexSql.Reports))
             services.AddSingleton(report);
-        foreach (var lov in Modules.Mtg.Pages.MtgApexSql.Lovs)
+        foreach (var lov in Modules.Mtg.Pages.MtgApexSql.Lovs.Concat(Modules.Mff.Pages.MffApexSql.Lovs))
             services.AddSingleton(lov);
-        foreach (var load in Modules.Mtg.Pages.MtgApexSql.Loads)
+        foreach (var load in Modules.Mtg.Pages.MtgApexSql.Loads.Concat(Modules.Mff.Pages.MffApexSql.Loads))
             services.AddSingleton(load);
         foreach (var type in typeof(DependencyInjection).Assembly.GetTypes()
                      .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IApexFormHooks).IsAssignableFrom(t)))

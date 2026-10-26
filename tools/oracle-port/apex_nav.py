@@ -16,10 +16,15 @@ text = open(src, encoding='utf-8').read()
 start = text.index("p_name=>'Navigation Menu'")
 end = text.find("wwv_flow_imp_shared.create_list(", start)
 chunk = text[start:end if end > 0 else len(text)]
-ATTR = re.compile(r"p_(\w+)=>(?:wwv_flow_imp\.id\((\d+)\)|'((?:[^']|'')*)'|(\d+))")
+ATTR = re.compile(r"p_(\w+)=>(?:wwv_flow_imp\.id\((\d+)\)|(?:unistr\()?'((?:[^']|'')*)'\)?|(\d+))")
+
+
+def unistr(s):
+    """unistr('\\0627...'): the \\XXXX escapes as characters."""
+    return re.sub(r"\\([0-9A-Fa-f]{4})", lambda m: chr(int(m.group(1), 16)), s)
 items = []
 for call in re.findall(r"wwv_flow_imp_shared\.create_list_item\((.*?)\n\);", chunk, re.S):
-    attr = {k: a or c or b.replace("''", "'") for k, a, b, c in ATTR.findall(call)}
+    attr = {k: a or c or unistr(b.replace("''", "'")) for k, a, b, c in ATTR.findall(call)}
     target = attr.get('list_item_link_target', '')
     tm = re.match(r"f\?p=&APP_ID\.:(\d+):&APP_SESSION\.::&DEBUG\.:([^:]*):", target)
     current = attr.get('list_item_current_for_pages')
@@ -59,7 +64,7 @@ print(len(items), 'items,', len(roots), 'top level')
 if len(sys.argv) > 4:
     crumbs = {}
     for call in re.findall(r"wwv_flow_imp_shared\.create_menu_option\((.*?)\n\);", text, re.S):
-        attr = {k: a or c or b.replace("''", "'") for k, a, b, c in ATTR.findall(call)}
+        attr = {k: a or c or unistr(b.replace("''", "'")) for k, a, b, c in ATTR.findall(call)}
         lm = re.match(r"f\?p=&APP_ID\.:(\d+):", attr.get('link', ''))
         crumbs[attr['id']] = {'label': html.unescape(attr['short_name']), 'page': int(attr['page_id']) if attr.get('page_id') else None,
                               'link': int(lm.group(1)) if lm else None, 'parent': attr.get('parent_id')}

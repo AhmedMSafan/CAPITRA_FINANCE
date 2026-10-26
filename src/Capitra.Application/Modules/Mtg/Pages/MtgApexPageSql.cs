@@ -754,23 +754,23 @@ public static class MtgApexPageSql
         select count(*) "ARREARS_N", coalesce(sum("ARR"), 0) "ARREARS_AMT" from (select "INVESTOR_ID", sum("ARREARS_AMOUNT") "ARR"
         from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS"
         group by "INVESTOR_ID"
-        having sum("ARREARS_AMOUNT") > 0) "X"
+        having sum("ARREARS_AMOUNT") > 0) x
         """;
 
     public const string P109_TOP10 = """
         select coalesce(sum("O"), 0) "TOP10" from (select sum("OUTSTANDING_VALUE") "O"
         from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS"
         group by "INVESTOR_ID"
-        order by 1 desc nulls last fetch first 10 rows only) "X"
+        order by 1 desc nulls last fetch first 10 rows only) x
         """;
 
     public const string P109_ROWS = """
-        select i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."PHONE_NO", i."EMAIL_ADDRESS", i."EMPLOYER_NAME", coalesce(i."IS_ACTIVE", true) "ACTIVE_FLAG", coalesce("A"."PF", 0) "PF", coalesce("A"."CT", 0) "CT", coalesce("A"."CV", 0) "CV", coalesce("A"."PV", 0) "PV", coalesce("A"."OV", 0) "OV", coalesce("A"."AR", 0) "ARR"
+        select i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."PHONE_NO", i."EMAIL_ADDRESS", i."EMPLOYER_NAME", coalesce(i."IS_ACTIVE", true) "ACTIVE_FLAG", coalesce(a."PF", 0) "PF", coalesce(a."CT", 0) "CT", coalesce(a."CV", 0) "CV", coalesce(a."PV", 0) "PV", coalesce(a."OV", 0) "OV", coalesce(a."AR", 0) "ARR"
         from "MTG_INVESTORS" i
         left join (select "INVESTOR_ID", count(distinct "PORTFOLIO_ID") "PF", count(*) "CT", sum("CONTRACT_VALUE") "CV", sum("PAID_VALUE") "PV", sum("OUTSTANDING_VALUE") "OV", sum("ARREARS_AMOUNT") "AR"
         from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS"
-        group by "INVESTOR_ID") "A" on "A"."INVESTOR_ID" = i."INVESTOR_ID"
-        order by coalesce("A"."OV", 0) desc, i."INVESTOR_CODE"
+        group by "INVESTOR_ID") a on a."INVESTOR_ID" = i."INVESTOR_ID"
+        order by coalesce(a."OV", 0) desc, i."INVESTOR_CODE"
         """;
 
     public const string P109_TOP5 = """
@@ -1591,7 +1591,7 @@ public static class MtgApexPageSql
         group by d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN"
         )
         select count(*) "K1", sum("PORTFOLIO_COUNT") "K2", sum("INVESTOR_COUNT") "K3", sum("FACE_VALUE") "K4", sum("OUTSTANDING_EXPOSURE") "K5" from (select "DEVELOPER_ID", "DEVELOPER_CODE", coalesce("LEGAL_NAME_EN", '-') "DEVELOPER", "PORTFOLIO_COUNT", "PROJECT_COUNT", "INVESTOR_COUNT", "FACE_VALUE", "PURCHASE_VALUE", "OUTSTANDING_EXPOSURE"
-        from "FNV_V_MIS_DEVELOPER_EXPOSURE") "Q"
+        from "FNV_V_MIS_DEVELOPER_EXPOSURE") q
         """;
 
     public const string P711_TOP = """
@@ -1603,7 +1603,7 @@ public static class MtgApexPageSql
         group by d."DEVELOPER_ID", d."DEVELOPER_CODE", d."LEGAL_NAME_AR", d."LEGAL_NAME_EN"
         )
         select "LBL", "VAL", max("VAL") over () "MX", sum("VAL") over () "TOT" from (select "DEVELOPER" "LBL", sum("OUTSTANDING_EXPOSURE") "VAL" from (select "DEVELOPER_ID", "DEVELOPER_CODE", coalesce("LEGAL_NAME_EN", '-') "DEVELOPER", "PORTFOLIO_COUNT", "PROJECT_COUNT", "INVESTOR_COUNT", "FACE_VALUE", "PURCHASE_VALUE", "OUTSTANDING_EXPOSURE"
-        from "FNV_V_MIS_DEVELOPER_EXPOSURE") "Q"
+        from "FNV_V_MIS_DEVELOPER_EXPOSURE") q
         group by "DEVELOPER")
         order by "VAL" desc nulls last fetch first 5 rows only
         """;
@@ -1660,9 +1660,9 @@ public static class MtgApexPageSql
     public const string P721_ACCOUNTS = """
         select a."PORTFOLIO_ACCOUNT_ID", coalesce(a."OUTSTANDING_VALUE", 0) "OUTSTANDING_VALUE", coalesce(a."ARREARS_AMOUNT", 0) "ARREARS_AMOUNT", (select min(x."DUE_DATE")
         from "MTG_ACCOUNT_PAYMENTS" x
-        where x."PORTFOLIO_ACCOUNT_ID" = a."PORTFOLIO_ACCOUNT_ID" and x."DUE_DATE" >= to_date(@AS_OF_DATE::text, 'YYYY-MM-DD')) "NEXT_DUE_DATE", (select x."PAYMENT_STATUS_CODE"
+        where x."PORTFOLIO_ACCOUNT_ID" = a."PORTFOLIO_ACCOUNT_ID" and x."DUE_DATE" >= (@AS_OF_DATE::text)::date) "NEXT_DUE_DATE", (select x."PAYMENT_STATUS_CODE"
         from "MTG_ACCOUNT_PAYMENTS" x
-        where x."PORTFOLIO_ACCOUNT_ID" = a."PORTFOLIO_ACCOUNT_ID" and x."DUE_DATE" <= to_date(@AS_OF_DATE::text, 'YYYY-MM-DD')
+        where x."PORTFOLIO_ACCOUNT_ID" = a."PORTFOLIO_ACCOUNT_ID" and x."DUE_DATE" <= (@AS_OF_DATE::text)::date
         order by x."DUE_DATE" desc, x."PAYMENT_ID" desc fetch first 1 rows only) "PAYMENT_STATUS"
         from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
         """;
@@ -1675,7 +1675,7 @@ public static class MtgApexPageSql
         left join "MTG_LKP_PORTFOLIO_STATUSES" ps on ps."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE"
         left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."PORTFOLIO_ID" = p."PORTFOLIO_ID"
         left join "MTG_PURCHASED_PORTFOLIO_SETTLEMENTS" s on s."PORTFOLIO_ID" = p."PORTFOLIO_ID" where (@P730_DEVELOPER_ID::bigint is null or p."DEVELOPER_ID" = @P730_DEVELOPER_ID::bigint) and (@P730_PROJECT_ID::bigint is null or p."PROJECT_ID" = @P730_PROJECT_ID::bigint) and (@P730_STATUS_CODE::text is null or p."PORTFOLIO_STATUS_CODE" = @P730_STATUS_CODE::text) and (@P730_DATE_FROM::text is null or p."REQUEST_DATE" >= cast(@P730_DATE_FROM::text as date)) and (@P730_DATE_TO::text is null or p."REQUEST_DATE" < cast(@P730_DATE_TO::text as date) + 1) and (@P730_CURRENCY_CODE::text is null or p."CURRENCY_CODE" = @P730_CURRENCY_CODE::text)
-        group by p."PORTFOLIO_ID", p."PORTFOLIO_NO", d."DEVELOPER_CODE", d."LEGAL_NAME_EN", d."LEGAL_NAME_AR", pr."PROJECT_CODE", pr."PROJECT_NAME_EN", pr."PROJECT_NAME_AR", p."REQUEST_DATE", p."PORTFOLIO_STATUS_CODE", ps."STATUS_NAME_EN", ps."STATUS_NAME_AR", p."CURRENCY_CODE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", p."EXPECTED_RETURN_AMOUNT", p."TERM_MONTHS", p."CURRENT_APPROVAL_STEP", p."SUBMITTED_AT", p."APPROVED_AT", s."SETTLEMENT_STATUS_CODE", s."ACCOUNTING_STATUS_CODE", s."SETTLEMENT_DATE") "Q"
+        group by p."PORTFOLIO_ID", p."PORTFOLIO_NO", d."DEVELOPER_CODE", d."LEGAL_NAME_EN", d."LEGAL_NAME_AR", pr."PROJECT_CODE", pr."PROJECT_NAME_EN", pr."PROJECT_NAME_AR", p."REQUEST_DATE", p."PORTFOLIO_STATUS_CODE", ps."STATUS_NAME_EN", ps."STATUS_NAME_AR", p."CURRENCY_CODE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", p."EXPECTED_RETURN_AMOUNT", p."TERM_MONTHS", p."CURRENT_APPROVAL_STEP", p."SUBMITTED_AT", p."APPROVED_AT", s."SETTLEMENT_STATUS_CODE", s."ACCOUNTING_STATUS_CODE", s."SETTLEMENT_DATE") q
         """;
 
     public const string P730_TOP = """
@@ -1686,7 +1686,7 @@ public static class MtgApexPageSql
         left join "MTG_LKP_PORTFOLIO_STATUSES" ps on ps."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE"
         left join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."PORTFOLIO_ID" = p."PORTFOLIO_ID"
         left join "MTG_PURCHASED_PORTFOLIO_SETTLEMENTS" s on s."PORTFOLIO_ID" = p."PORTFOLIO_ID" where (@P730_DEVELOPER_ID::bigint is null or p."DEVELOPER_ID" = @P730_DEVELOPER_ID::bigint) and (@P730_PROJECT_ID::bigint is null or p."PROJECT_ID" = @P730_PROJECT_ID::bigint) and (@P730_STATUS_CODE::text is null or p."PORTFOLIO_STATUS_CODE" = @P730_STATUS_CODE::text) and (@P730_DATE_FROM::text is null or p."REQUEST_DATE" >= cast(@P730_DATE_FROM::text as date)) and (@P730_DATE_TO::text is null or p."REQUEST_DATE" < cast(@P730_DATE_TO::text as date) + 1) and (@P730_CURRENCY_CODE::text is null or p."CURRENCY_CODE" = @P730_CURRENCY_CODE::text)
-        group by p."PORTFOLIO_ID", p."PORTFOLIO_NO", d."DEVELOPER_CODE", d."LEGAL_NAME_EN", d."LEGAL_NAME_AR", pr."PROJECT_CODE", pr."PROJECT_NAME_EN", pr."PROJECT_NAME_AR", p."REQUEST_DATE", p."PORTFOLIO_STATUS_CODE", ps."STATUS_NAME_EN", ps."STATUS_NAME_AR", p."CURRENCY_CODE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", p."EXPECTED_RETURN_AMOUNT", p."TERM_MONTHS", p."CURRENT_APPROVAL_STEP", p."SUBMITTED_AT", p."APPROVED_AT", s."SETTLEMENT_STATUS_CODE", s."ACCOUNTING_STATUS_CODE", s."SETTLEMENT_DATE") "Q"
+        group by p."PORTFOLIO_ID", p."PORTFOLIO_NO", d."DEVELOPER_CODE", d."LEGAL_NAME_EN", d."LEGAL_NAME_AR", pr."PROJECT_CODE", pr."PROJECT_NAME_EN", pr."PROJECT_NAME_AR", p."REQUEST_DATE", p."PORTFOLIO_STATUS_CODE", ps."STATUS_NAME_EN", ps."STATUS_NAME_AR", p."CURRENCY_CODE", p."FACE_VALUE", p."OUTSTANDING_VALUE", p."PROPOSED_PURCHASE_VALUE", p."EXPECTED_RETURN_AMOUNT", p."TERM_MONTHS", p."CURRENT_APPROVAL_STEP", p."SUBMITTED_AT", p."APPROVED_AT", s."SETTLEMENT_STATUS_CODE", s."ACCOUNTING_STATUS_CODE", s."SETTLEMENT_DATE") q
         group by coalesce("STATUS_NAME_EN", "PORTFOLIO_STATUS_CODE"))
         order by "VAL" desc nulls last fetch first 5 rows only
         """;
@@ -1696,7 +1696,7 @@ public static class MtgApexPageSql
         from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
         join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = a."PORTFOLIO_ID"
         join "MTG_INVESTORS" i on i."INVESTOR_ID" = a."INVESTOR_ID"
-        join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID" where (@P731_PORTFOLIO_ID::bigint is null or a."PORTFOLIO_ID" = @P731_PORTFOLIO_ID::bigint) and (@P731_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P731_INVESTOR_CODE::text), '%')) and (@P731_UNIT_CODE::text is null or upper(u."UNIT_CODE") like concat('%', upper(@P731_UNIT_CODE::text), '%')) and (@P731_ACCOUNT_STATUS::text is null or a."ACCOUNT_STATUS" = @P731_ACCOUNT_STATUS::text) and (coalesce(@P731_ARREARS_ONLY::text, 'N') = 'N' or a."ARREARS_AMOUNT" > 0)) "Q"
+        join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID" where (@P731_PORTFOLIO_ID::bigint is null or a."PORTFOLIO_ID" = @P731_PORTFOLIO_ID::bigint) and (@P731_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P731_INVESTOR_CODE::text), '%')) and (@P731_UNIT_CODE::text is null or upper(u."UNIT_CODE") like concat('%', upper(@P731_UNIT_CODE::text), '%')) and (@P731_ACCOUNT_STATUS::text is null or a."ACCOUNT_STATUS" = @P731_ACCOUNT_STATUS::text) and (coalesce(@P731_ARREARS_ONLY::text, 'N') = 'N' or a."ARREARS_AMOUNT" > 0)) q
         """;
 
     public const string P731_TOP = """
@@ -1704,7 +1704,7 @@ public static class MtgApexPageSql
         from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
         join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = a."PORTFOLIO_ID"
         join "MTG_INVESTORS" i on i."INVESTOR_ID" = a."INVESTOR_ID"
-        join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID" where (@P731_PORTFOLIO_ID::bigint is null or a."PORTFOLIO_ID" = @P731_PORTFOLIO_ID::bigint) and (@P731_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P731_INVESTOR_CODE::text), '%')) and (@P731_UNIT_CODE::text is null or upper(u."UNIT_CODE") like concat('%', upper(@P731_UNIT_CODE::text), '%')) and (@P731_ACCOUNT_STATUS::text is null or a."ACCOUNT_STATUS" = @P731_ACCOUNT_STATUS::text) and (coalesce(@P731_ARREARS_ONLY::text, 'N') = 'N' or a."ARREARS_AMOUNT" > 0)) "Q"
+        join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID" where (@P731_PORTFOLIO_ID::bigint is null or a."PORTFOLIO_ID" = @P731_PORTFOLIO_ID::bigint) and (@P731_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P731_INVESTOR_CODE::text), '%')) and (@P731_UNIT_CODE::text is null or upper(u."UNIT_CODE") like concat('%', upper(@P731_UNIT_CODE::text), '%')) and (@P731_ACCOUNT_STATUS::text is null or a."ACCOUNT_STATUS" = @P731_ACCOUNT_STATUS::text) and (coalesce(@P731_ARREARS_ONLY::text, 'N') = 'N' or a."ARREARS_AMOUNT" > 0)) q
         group by "PORTFOLIO_NO")
         order by "VAL" desc nulls last fetch first 5 rows only
         """;
@@ -1714,7 +1714,7 @@ public static class MtgApexPageSql
         from "MTG_INVESTORS" i
         join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."INVESTOR_ID" = i."INVESTOR_ID"
         join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = a."PORTFOLIO_ID" where (@P732_DEVELOPER_ID::bigint is null or p."DEVELOPER_ID" = @P732_DEVELOPER_ID::bigint) and (@P732_PROJECT_ID::bigint is null or p."PROJECT_ID" = @P732_PROJECT_ID::bigint) and (@P732_PORTFOLIO_ID::bigint is null or p."PORTFOLIO_ID" = @P732_PORTFOLIO_ID::bigint) and (@P732_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P732_INVESTOR_CODE::text), '%')) and (@P732_ACTIVE_FLAG::text is null or i."IS_ACTIVE" = (@P732_ACTIVE_FLAG::text = 'Y'))
-        group by i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."DECLARED_INCOME") "Q"
+        group by i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."DECLARED_INCOME") q
         """;
 
     public const string P732_TOP = """
@@ -1722,7 +1722,7 @@ public static class MtgApexPageSql
         from "MTG_INVESTORS" i
         join "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a on a."INVESTOR_ID" = i."INVESTOR_ID"
         join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = a."PORTFOLIO_ID" where (@P732_DEVELOPER_ID::bigint is null or p."DEVELOPER_ID" = @P732_DEVELOPER_ID::bigint) and (@P732_PROJECT_ID::bigint is null or p."PROJECT_ID" = @P732_PROJECT_ID::bigint) and (@P732_PORTFOLIO_ID::bigint is null or p."PORTFOLIO_ID" = @P732_PORTFOLIO_ID::bigint) and (@P732_INVESTOR_CODE::text is null or upper(i."INVESTOR_CODE") like concat('%', upper(@P732_INVESTOR_CODE::text), '%')) and (@P732_ACTIVE_FLAG::text is null or i."IS_ACTIVE" = (@P732_ACTIVE_FLAG::text = 'Y'))
-        group by i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."DECLARED_INCOME") "Q"
+        group by i."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_EN", i."FULL_NAME_AR", i."NATIONAL_ID", i."DECLARED_INCOME") q
         group by coalesce("FULL_NAME_EN", "INVESTOR_CODE"))
         order by "VAL" desc nulls last fetch first 5 rows only
         """;
@@ -1734,7 +1734,7 @@ public static class MtgApexPageSql
         from h
         join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = h."PORTFOLIO_ID"
         left join "MTG_LKP_PORTFOLIO_STATUSES" fs on fs."STATUS_CODE" = h."FROM_STATUS"
-        left join "MTG_LKP_PORTFOLIO_STATUSES" ts on ts."STATUS_CODE" = h."TO_STATUS" where (@P748_PORTFOLIO_ID::bigint is null or h."PORTFOLIO_ID" = @P748_PORTFOLIO_ID::bigint) and (@P748_FROM_STATUS::text is null or h."FROM_STATUS" = @P748_FROM_STATUS::text) and (@P748_TO_STATUS::text is null or h."TO_STATUS" = @P748_TO_STATUS::text) and (@P748_DATE_FROM::text is null or h."CHANGE_AT" >= cast(to_date(@P748_DATE_FROM::text, 'DD-MM-YYYY') as timestamp)) and (@P748_DATE_TO::text is null or h."CHANGE_AT" < cast(to_date(@P748_DATE_TO::text, 'DD-MM-YYYY') + 1 as timestamp)) and (@P748_CHANGED_BY::text is null or upper(h."CHANGED_BY") like concat('%', upper(@P748_CHANGED_BY::text), '%'))) "Q"
+        left join "MTG_LKP_PORTFOLIO_STATUSES" ts on ts."STATUS_CODE" = h."TO_STATUS" where (@P748_PORTFOLIO_ID::bigint is null or h."PORTFOLIO_ID" = @P748_PORTFOLIO_ID::bigint) and (@P748_FROM_STATUS::text is null or h."FROM_STATUS" = @P748_FROM_STATUS::text) and (@P748_TO_STATUS::text is null or h."TO_STATUS" = @P748_TO_STATUS::text) and (@P748_DATE_FROM::text is null or h."CHANGE_AT" >= cast((@P748_DATE_FROM::text)::date as timestamp)) and (@P748_DATE_TO::text is null or h."CHANGE_AT" < cast((@P748_DATE_TO::text)::date + 1 as timestamp)) and (@P748_CHANGED_BY::text is null or upper(h."CHANGED_BY") like concat('%', upper(@P748_CHANGED_BY::text), '%'))) q
         """;
 
     public const string P748_TOP = """
@@ -1744,7 +1744,7 @@ public static class MtgApexPageSql
         from h
         join "MTG_PURCHASED_PORTFOLIOS" p on p."PORTFOLIO_ID" = h."PORTFOLIO_ID"
         left join "MTG_LKP_PORTFOLIO_STATUSES" fs on fs."STATUS_CODE" = h."FROM_STATUS"
-        left join "MTG_LKP_PORTFOLIO_STATUSES" ts on ts."STATUS_CODE" = h."TO_STATUS" where (@P748_PORTFOLIO_ID::bigint is null or h."PORTFOLIO_ID" = @P748_PORTFOLIO_ID::bigint) and (@P748_FROM_STATUS::text is null or h."FROM_STATUS" = @P748_FROM_STATUS::text) and (@P748_TO_STATUS::text is null or h."TO_STATUS" = @P748_TO_STATUS::text) and (@P748_DATE_FROM::text is null or h."CHANGE_AT" >= cast(to_date(@P748_DATE_FROM::text, 'DD-MM-YYYY') as timestamp)) and (@P748_DATE_TO::text is null or h."CHANGE_AT" < cast(to_date(@P748_DATE_TO::text, 'DD-MM-YYYY') + 1 as timestamp)) and (@P748_CHANGED_BY::text is null or upper(h."CHANGED_BY") like concat('%', upper(@P748_CHANGED_BY::text), '%'))) "Q"
+        left join "MTG_LKP_PORTFOLIO_STATUSES" ts on ts."STATUS_CODE" = h."TO_STATUS" where (@P748_PORTFOLIO_ID::bigint is null or h."PORTFOLIO_ID" = @P748_PORTFOLIO_ID::bigint) and (@P748_FROM_STATUS::text is null or h."FROM_STATUS" = @P748_FROM_STATUS::text) and (@P748_TO_STATUS::text is null or h."TO_STATUS" = @P748_TO_STATUS::text) and (@P748_DATE_FROM::text is null or h."CHANGE_AT" >= cast((@P748_DATE_FROM::text)::date as timestamp)) and (@P748_DATE_TO::text is null or h."CHANGE_AT" < cast((@P748_DATE_TO::text)::date + 1 as timestamp)) and (@P748_CHANGED_BY::text is null or upper(h."CHANGED_BY") like concat('%', upper(@P748_CHANGED_BY::text), '%'))) q
         group by coalesce("TO_STATUS_NAME_EN", "TO_STATUS"))
         order by "VAL" desc nulls last fetch first 5 rows only
         """;

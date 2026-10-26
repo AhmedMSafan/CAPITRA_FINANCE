@@ -137,9 +137,10 @@ export function pageUrl(page: number, item?: string, value?: unknown): string {
   return appPageUrl(120, page, item && value != null ? { [item]: String(value) } : {})
 }
 
-/** f?p=APP:PAGE:::::ITEMS:VALUES as a Capitra URL: App 120 at its named routes, App 105 at /mortgage/p<page>. */
+/** f?p=APP:PAGE:::::ITEMS:VALUES as a Capitra URL: App 120 at its named routes, App 105 at /mortgage/p<page>, App 110 at /mortgage-finance/p<page>. */
 export function appPageUrl(app: number, page: number, items: Record<string, string> = {}): string {
-  const base = app === 120 ? (apexRoutes[page] ?? `/apex/120/${page}`) : page === 1 ? '/mortgage' : `/mortgage/p${page}`
+  const home = app === 110 ? '/mortgage-finance' : '/mortgage'
+  const base = app === 120 ? (apexRoutes[page] ?? `/apex/120/${page}`) : page === 1 ? home : `${home}/p${page}`
   const query = Object.entries(items)
     .filter(([, v]) => v != null && v !== '')
     .map(([k, v]) => `${k.toLowerCase()}=${encodeURIComponent(v)}`)

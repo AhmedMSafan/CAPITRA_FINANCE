@@ -56,6 +56,15 @@ public static class Permissions
         public const string JournalPost = "GL.JOURNAL.POST";
     }
 
+    public static class Mff
+    {
+        /// <summary>Read the mortgage finance applications, loans, collections and reports (App 110).</summary>
+        public const string View = "MFF.VIEW";
+
+        /// <summary>Create and change mortgage finance applications, loans and their servicing (App 110).</summary>
+        public const string Edit = "MFF.EDIT";
+    }
+
     public static class Mtg
     {
         /// <summary>Read developers, signatories, projects, units and investors.</summary>
