@@ -25,13 +25,18 @@ public sealed class MtgWorkflowSteps(ICapitraDbContext db, WfeRuntime runtime, W
     /// The open task of the portfolio at a step: the one the page was opened with when it is that step's, otherwise
     /// the newest (max(TASK_ID) keep (dense_rank first order by case when TASK_ID = :P_TASK_ID then 0 else 1 end, TASK_ID desc))).
     /// </summary>
-    public async Task<StepTask?> OpenTaskAsync(long portfolioId, string stepCode, long? preferred, CancellationToken ct, bool like = false)
+    /// <remarks>With like the step code contains stepCode and not exclude; with page a task targeting that page matches too.</remarks>
+    public async Task<StepTask?> OpenTaskAsync(long portfolioId, string stepCode, long? preferred, CancellationToken ct, bool like = false, string? exclude = null, int? page = null)
     {
         var instanceId = await InstanceAsync(portfolioId, ct);
         if (instanceId is null)
             return null;
+        var route = page is null ? null : "mtg-" + page.Value.ToString(CultureInfo.InvariantCulture);
         var tasks = await OpenTasks(instanceId.Value)
-            .Where(t => like ? t.StepInstance!.StepCode!.ToUpper().Contains(stepCode) : t.StepInstance!.StepCode!.ToUpper() == stepCode)
+            .Where(t => (like
+                    ? t.StepInstance!.StepCode!.ToUpper().Contains(stepCode) && (exclude == null || !t.StepInstance!.StepCode!.ToUpper().Contains(exclude))
+                    : t.StepInstance!.StepCode!.ToUpper() == stepCode)
+                || (route != null && t.Route == route))
             .Select(t => new StepTask(t.TaskId, t.TaskStatus))
             .ToListAsync(ct);
         return tasks.OrderBy(t => t.TaskId == preferred ? 0 : 1).ThenByDescending(t => t.TaskId).FirstOrDefault();

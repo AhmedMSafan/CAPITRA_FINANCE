@@ -1148,6 +1148,35 @@ public static class MtgApexPageSql
         order by inv."INVESTOR_CODE", a."PORTFOLIO_ACCOUNT_ID"
         """;
 
+    public const string P212_HEADER = """
+        select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", coalesce(prj."PROJECT_NAME_EN", prj."PROJECT_NAME_AR") "PROJECT", p."COVERAGE_PCT", p."CURRENCY_CODE", (select s."STATUS_NAME_EN"
+        from "MTG_LKP_PORTFOLIO_STATUSES" s
+        where s."STATUS_CODE" = p."PORTFOLIO_STATUS_CODE") "STATUS_NAME"
+        from "MTG_PURCHASED_PORTFOLIOS" p
+        join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
+        join "MTG_PROJECTS" prj on prj."PROJECT_ID" = p."PROJECT_ID"
+        where p."PORTFOLIO_ID" = @P212_PORTFOLIO_ID::bigint
+        """;
+
+    public const string P212_INVESTORS = """
+        select a."INVESTOR_ID", max(inv."INVESTOR_CODE") "INVESTOR_CODE", max(inv."FULL_NAME_EN") "FULL_NAME_EN", max(inv."FULL_NAME_AR") "FULL_NAME_AR", count(*) "N", sum(coalesce(a."CONTRACT_VALUE", 0)) "CV", sum(coalesce(a."PAID_VALUE", 0)) "PV", count(case when a."DEAL_DECISION_CODE" = 'EXCLUDED' then 1 end) "EXC", string_agg((concat(a."SELLER_CONTRACT_NO", ' ', u."UNIT_CODE"))::text, ' '
+        order by a."PORTFOLIO_ACCOUNT_ID") "KEYS"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        join "MTG_INVESTORS" inv on inv."INVESTOR_ID" = a."INVESTOR_ID"
+        left join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID"
+        where a."PORTFOLIO_ID" = @P212_PORTFOLIO_ID::bigint
+        group by a."INVESTOR_ID"
+        order by case when sum(coalesce(a."CONTRACT_VALUE", 0)) > 0 then sum(coalesce(a."PAID_VALUE", 0)) / (sum(coalesce(a."CONTRACT_VALUE", 0)))::numeric end nulls first, max(inv."INVESTOR_CODE")
+        """;
+
+    public const string P212_CONTRACTS = """
+        select a."SELLER_CONTRACT_NO", u."UNIT_CODE", coalesce(a."CONTRACT_VALUE", 0) "CV", coalesce(a."PAID_VALUE", 0) "PV", coalesce(a."DEAL_DECISION_CODE", 'SELECTED') "DEC"
+        from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" a
+        left join "MTG_PROJECT_UNITS" u on u."UNIT_ID" = a."UNIT_ID"
+        where a."PORTFOLIO_ID" = @P212_PORTFOLIO_ID::bigint and a."INVESTOR_ID" = @INVESTOR_ID::bigint
+        order by a."PORTFOLIO_ACCOUNT_ID"
+        """;
+
     public const string P603_LOAD = """
         with "FNV_V_CHEQUE_COVERAGE" AS (
         select pf."PORTFOLIO_ID", pf."PORTFOLIO_NO", pf."OUTSTANDING_VALUE", pf."EXPECTED_RETURN_AMOUNT", pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT" as "REQUIRED_COVERAGE_AMOUNT", coalesce(sum(c."CHEQUE_AMOUNT"), 0) as "CHEQUE_TOTAL_AMOUNT", case when (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") = 0 then null else round(coalesce(sum(c."CHEQUE_AMOUNT"), 0) / ((pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT"))::numeric * 100, 2) end as "CHEQUE_COVERAGE_PCT", case when coalesce(sum(c."CHEQUE_AMOUNT"), 0) >= (pf."OUTSTANDING_VALUE" + pf."EXPECTED_RETURN_AMOUNT") then 'Y' else 'N' end as "COVERAGE_OK_FLAG"
