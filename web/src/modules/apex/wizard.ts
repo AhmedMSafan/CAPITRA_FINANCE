@@ -61,8 +61,10 @@ export function shown(button: { cond?: WizardCondition }, items: Record<string, 
 export type WizardRegion = {
   key: string
   title: string
-  /** ir and form: wizard regions; items: a region of page items (report filters); plsql: dynamic content (REGION_<key>); html: static content. */
-  kind: 'ir' | 'form' | 'items' | 'plsql' | 'html'
+  /** ir and form: wizard regions; items: a region of page items (report filters); plsql: dynamic content (REGION_<key>); html: static content; breadcrumb: the Breadcrumb Bar. */
+  kind: 'ir' | 'form' | 'items' | 'plsql' | 'html' | 'breadcrumb'
+  /** breadcrumb: the page's entry and its parents, the root first (the link's page). */
+  crumbs?: { label: string; page: number | null }[]
   /** null for a report on a SQL query or a view. */
   table: string | null
   pk: string | null

@@ -273,6 +273,9 @@ def main():
 
     attrs_path = os.path.join(app_dir, 'region-attrs.json')
     attrs = json.load(open(attrs_path, encoding='utf-8')) if os.path.exists(attrs_path) else {}
+    # the Breadcrumb's entries (breadcrumb.json, from apex_nav.py)
+    crumbs_path = os.path.join(app_dir, 'breadcrumb.json')
+    crumbs = json.load(open(crumbs_path, encoding='utf-8')) if os.path.exists(crumbs_path) else {}
     tables = {}
     specs = []
     cs_regions = []
@@ -298,6 +301,17 @@ def main():
         marks = []
         for r in sorted(i['regions'], key=lambda r: r['seq']):
             marks.append((len(page['regions']), r))
+            if r['type'] == 'NATIVE_BREADCRUMB':
+                # the page's entry and its parents, the root first; useBreadcrumbTitle shows the page's entry as the title
+                entry = next((c for c in crumbs.values() if c['page'] == p), None)
+                chain = []
+                while entry:
+                    chain.insert(0, {'label': entry['label'], 'page': entry['link']})
+                    entry = crumbs.get(entry['parent']) if entry['parent'] else None
+                if chain:
+                    page['regions'].append({'key': key(r['title']), 'title': r['title'], 'kind': 'breadcrumb', 'table': None, 'pk': None,
+                                            'crumbs': chain, 'cls': ' '.join(o for o in r['template'].split(':') if o.startswith('t-BreadcrumbRegion--'))})
+                continue
             if r['type'] == 'NATIVE_IR' and r['table'] is None and p in views:
                 # a report on a view: its process is written by hand (IR_<key>), the columns come in the view's order
                 cols = i['columns']

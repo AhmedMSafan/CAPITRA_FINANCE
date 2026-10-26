@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """The Navigation Menu list of an APEX application export as a TypeScript tree (label, page, icon, current-for pages).
 
-usage: apex_nav.py <export.sql> <app> <out.ts>
+usage: apex_nav.py <export.sql> <app> <out.ts> [breadcrumb.json]
+With breadcrumb.json (the split export's folder, for apex_wizard.py): the Breadcrumb's entries by id.
 """
+import html
 import json
 import re
 import sys
@@ -53,3 +55,13 @@ with open(out, 'w', encoding='utf-8') as f:
     f.write("export type NavItem = { label: string; page: number | null; clear?: string; icon: string; current?: number[]; children?: NavItem[] }\n\n")
     f.write("export const navMenu: NavItem[] = " + json.dumps(roots, ensure_ascii=False, indent=2) + "\n")
 print(len(items), 'items,', len(roots), 'top level')
+
+if len(sys.argv) > 4:
+    crumbs = {}
+    for call in re.findall(r"wwv_flow_imp_shared\.create_menu_option\((.*?)\n\);", text, re.S):
+        attr = {k: a or c or b.replace("''", "'") for k, a, b, c in ATTR.findall(call)}
+        lm = re.match(r"f\?p=&APP_ID\.:(\d+):", attr.get('link', ''))
+        crumbs[attr['id']] = {'label': html.unescape(attr['short_name']), 'page': int(attr['page_id']) if attr.get('page_id') else None,
+                              'link': int(lm.group(1)) if lm else None, 'parent': attr.get('parent_id')}
+    json.dump(crumbs, open(sys.argv[4], 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(len(crumbs), 'breadcrumb entries')

@@ -2379,6 +2379,21 @@ export const wizardPages: WizardPage[] = [
         ],
         "hideHeader": true,
         "staticId": "744"
+      },
+      {
+        "key": "PORTFOLIO_PROTECTION_COVERAGE_SUMMARY_2",
+        "title": "Portfolio Protection Coverage Summary",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "744",
+            "page": 46
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
       }
     ]
   },
@@ -9297,6 +9312,21 @@ export const wizardPages: WizardPage[] = [
     "modal": false,
     "regions": [
       {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Unit & Collateral Register",
+            "page": 733
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
         "key": "FILTERS",
         "title": "Filters",
         "kind": "items",
@@ -9447,6 +9477,21 @@ export const wizardPages: WizardPage[] = [
     "title": "Payment Collection Detail",
     "modal": false,
     "regions": [
+      {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Payment Collection Detail",
+            "page": 735
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
       {
         "key": "FILTERS",
         "title": "Filters",
@@ -9683,6 +9728,21 @@ export const wizardPages: WizardPage[] = [
         "staticId": "arrears-aging-by-account"
       },
       {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Arrears Aging by Account",
+            "page": 736
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
         "key": "FILTERS",
         "title": "Filters",
         "kind": "items",
@@ -9736,6 +9796,21 @@ export const wizardPages: WizardPage[] = [
     "title": "Document Completeness & Expiry Detail",
     "modal": false,
     "regions": [
+      {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Document Completeness & Expiry Detail",
+            "page": 737
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
       {
         "key": "DOCUMENT_COMPLETENESS_EXPIRY_DETAIL",
         "title": "Document Completeness & Expiry Detail",
@@ -9906,6 +9981,21 @@ export const wizardPages: WizardPage[] = [
     "modal": false,
     "regions": [
       {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Due Diligence Exception Register",
+            "page": 738
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
         "key": "FILTERS",
         "title": "Filters",
         "kind": "items",
@@ -10067,6 +10157,21 @@ export const wizardPages: WizardPage[] = [
     "modal": false,
     "regions": [
       {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Inquiry Risk & Results Register",
+            "page": 739
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
         "key": "FILTERS",
         "title": "Filters",
         "kind": "items",
@@ -10213,6 +10318,21 @@ export const wizardPages: WizardPage[] = [
     "modal": false,
     "regions": [
       {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Legal Review Exceptions Report",
+            "page": 741
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
         "key": "LEGAL_REVIEW_EXCEPTIONS_REPORT",
         "title": "Legal Review Exceptions Report",
         "kind": "ir",
@@ -10336,6 +10456,21 @@ export const wizardPages: WizardPage[] = [
     "modal": false,
     "regions": [
       {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Financial Study Economics Report",
+            "page": 742
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
         "key": "FINANCIAL_STUDY_ECONOMICS_REPORT",
         "title": "Financial Study Economics Report",
         "kind": "ir",
@@ -10378,6 +10513,21 @@ export const wizardPages: WizardPage[] = [
     "title": "Cheque Maturity & Coverage Report",
     "modal": false,
     "regions": [
+      {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Cheque Maturity & Coverage Report",
+            "page": 743
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
       {
         "key": "CHEQUE_MATURITY_COVERAGE_REPORT",
         "title": "Cheque Maturity & Coverage Report",
@@ -10491,6 +10641,21 @@ export const wizardPages: WizardPage[] = [
     "title": "Portfolio Protection Coverage Summary",
     "modal": false,
     "regions": [
+      {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Portfolio Protection Coverage Summary",
+            "page": 744
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
       {
         "key": "PORTFOLIO_PROTECTION_COVERAGE_SUMMARY",
         "title": "Portfolio Protection Coverage Summary",
@@ -10610,6 +10775,21 @@ export const wizardPages: WizardPage[] = [
     "modal": false,
     "regions": [
       {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Memo Version & Recommendation Register",
+            "page": 745
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
+      {
         "key": "MEMO_VERSION_RECOMMENDATION_REGISTER",
         "title": "Memo Version & Recommendation Register",
         "kind": "ir",
@@ -10687,6 +10867,21 @@ export const wizardPages: WizardPage[] = [
     "title": "Submission Readiness Gap Analysis",
     "modal": false,
     "regions": [
+      {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Submission Readiness Gap Analysis",
+            "page": 746
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
+      },
       {
         "key": "SUBMISSION_READINESS_GAP_ANALYSIS",
         "title": "Submission Readiness Gap Analysis",
@@ -10820,6 +11015,21 @@ export const wizardPages: WizardPage[] = [
         ],
         "hideHeader": true,
         "staticId": "approval-workflow-decision-audit-report"
+      },
+      {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Approval Workflow Decision Audit Report",
+            "page": 747
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
       }
     ]
   },
@@ -11116,6 +11326,21 @@ export const wizardPages: WizardPage[] = [
         ],
         "hideHeader": true,
         "staticId": "acquisition-settlement-accounting-readiness-register-report"
+      },
+      {
+        "key": "BREADCRUMB",
+        "title": "Breadcrumb",
+        "kind": "breadcrumb",
+        "table": null,
+        "pk": null,
+        "crumbs": [
+          {
+            "label": "Acquisition Settlement & Accounting Readiness Register Report",
+            "page": 749
+          }
+        ],
+        "cls": "t-BreadcrumbRegion--useBreadcrumbTitle",
+        "staticId": "breadcrumb"
       }
     ]
   }

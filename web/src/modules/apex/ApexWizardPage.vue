@@ -273,7 +273,20 @@ if (flash.message) {
     </div>
 
     <template v-for="region in loadDone ? spec.regions : []" :key="region.key">
-      <ApexIrRegion v-if="region.kind === 'ir'" ref="reports" :app="app" :page="page" :region="region" :items="items" @open="open" @submit="submitPage" />
+      <!-- Breadcrumb (Breadcrumb Bar position): the page's entry and its parents -->
+      <div v-if="region.kind === 'breadcrumb'" class="t-BreadcrumbRegion" :class="region.cls">
+        <div class="t-BreadcrumbRegion-body">
+          <div class="t-BreadcrumbRegion-breadcrumb">
+            <ul class="t-Breadcrumb">
+              <li v-for="(c, n) in region.crumbs" :key="n" class="t-Breadcrumb-item" :class="{ 'is-active': n === region.crumbs!.length - 1 }">
+                <h1 v-if="n === region.crumbs!.length - 1" class="t-Breadcrumb-label">{{ c.label }}</h1>
+                <a v-else class="t-Breadcrumb-label" href="#" @click.prevent="open(c.page)">{{ c.label }}</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <ApexIrRegion v-else-if="region.kind === 'ir'" ref="reports" :app="app" :page="page" :region="region" :items="items" @open="open" @submit="submitPage" />
       <ApexItemsRegion
         v-else-if="region.kind === 'items'"
         :app="app"

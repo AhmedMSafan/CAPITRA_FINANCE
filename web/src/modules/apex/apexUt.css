@@ -480,3 +480,14 @@ textarea.t-Form-field {
    which the theme's icon font outranks in APEX. */
 .fa:lang(ar) { font-family: FontAwesome !important; }
 .pi:lang(ar) { font-family: primeicons !important; }
+
+/* Breadcrumb Bar (Breadcrumb region): with useBreadcrumbTitle the page's entry is the page title */
+.t-BreadcrumbRegion { padding: 12px 16px 4px; }
+.t-Breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; font-size: 12px; }
+.t-Breadcrumb-item + .t-Breadcrumb-item::before { content: '/'; margin-inline-end: 6px; opacity: 0.5; }
+.t-Breadcrumb-item a.t-Breadcrumb-label { color: inherit; text-decoration: none; }
+.t-Breadcrumb-item a.t-Breadcrumb-label:hover { text-decoration: underline; }
+.t-Breadcrumb-item.is-active .t-Breadcrumb-label { margin: 0; font-size: 12px; font-weight: 400; }
+.t-BreadcrumbRegion--useBreadcrumbTitle .t-Breadcrumb-item.is-active { flex-basis: 100%; }
+.t-BreadcrumbRegion--useBreadcrumbTitle .t-Breadcrumb-item.is-active::before { content: none; }
+.t-BreadcrumbRegion--useBreadcrumbTitle .t-Breadcrumb-item.is-active .t-Breadcrumb-label { font-size: 24px; font-weight: 600; line-height: 1.3; }
