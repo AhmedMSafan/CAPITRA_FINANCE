@@ -272,7 +272,8 @@ public sealed class GlCoaSetup(ICapitraDbContext db, IClock clock)
     }
 
     /// <summary>gl_core_audit_pkg.log_setup_change: one GL_SETUP_AUDITS row per saved setup record.</summary>
-    private void LogChange(string entityName, string entityKey, string actionCode, string summary) =>
+    /// <summary>gl_core_audit_pkg.log_setup_change: one GL_SETUP_AUDIT row.</summary>
+    public void LogChange(string entityName, string entityKey, string actionCode, string summary) =>
         db.Add(new GlSetupAudit
         {
             EntityName = entityName.Trim().ToUpperInvariant(),

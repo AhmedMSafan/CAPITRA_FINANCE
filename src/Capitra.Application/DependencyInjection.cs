@@ -1,3 +1,4 @@
+using Capitra.Application.Modules.Gl.Journals;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Gl.Setup;
 using Capitra.Application.Modules.Adm.Lookups;
@@ -50,6 +51,10 @@ public static class DependencyInjection
         services.AddScoped<GlCoaSetup>();
         services.AddScoped<GlPeriodSetup>();
         services.AddScoped<GlPeriodControl>();
+        services.AddScoped<GlCoaCombination>();
+        services.AddScoped<GlJournalProcessing>();
+        services.AddScoped<GlPostingEngine>();
+        services.AddScoped<GlPostingApi>();
 
         // Copied APEX pages: every on-demand process found in this assembly, looked up by app, page and name.
         foreach (var type in typeof(DependencyInjection).Assembly.GetTypes()

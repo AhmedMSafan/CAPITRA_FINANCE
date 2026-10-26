@@ -38,4 +38,8 @@ public static class ApexPages
 
     /// <summary>apex_page.get_url(p_page => page) for a page of the given app.</summary>
     public static string Url(int app, int page) => Routes.TryGetValue((app, page), out var route) ? route : $"/apex/{app}/{page}";
+
+    /// <summary>apex_page.get_url(p_page => page, p_items => item, p_values => value): the item travels in the query, e.g. ?p50_id=12.</summary>
+    public static string Url(int app, int page, string item, string value) =>
+        Url(app, page) + "?" + item.ToLowerInvariant() + "=" + Uri.EscapeDataString(value);
 }

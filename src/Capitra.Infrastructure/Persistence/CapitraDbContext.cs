@@ -39,6 +39,8 @@ public sealed class CapitraDbContext(DbContextOptions<CapitraDbContext> options)
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default) =>
         Database.BeginTransactionAsync(cancellationToken);
 
+    public IDbContextTransaction? CurrentTransaction => Database.CurrentTransaction;
+
     public void DiscardChanges() => ChangeTracker.Clear();
 
     protected override void OnModelCreating(ModelBuilder builder)

@@ -170,26 +170,19 @@ const router = createRouter({
         {
           path: 'gl/journals',
           name: 'gl-journals',
-          component: () => import('@/modules/gl/pages/JournalsPage.vue'),
+          component: () => import('@/modules/gl/apex/P0051Journals.vue'),
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Journals' }
         },
         {
-          path: 'gl/journals/new',
-          name: 'gl-journal-new',
-          component: () => import('@/modules/gl/pages/JournalEntryPage.vue'),
-          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Journal Entry' }
-        },
-        {
-          path: 'gl/journals/:id(\\d+)',
-          name: 'gl-journal',
-          component: () => import('@/modules/gl/pages/JournalEntryPage.vue'),
-          props: true,
+          path: 'gl/journal-entry',
+          name: 'gl-journal-entry',
+          component: () => import('@/modules/gl/apex/P0050JournalEntry.vue'),
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Journal Entry' }
         },
         {
           path: 'gl/account-ledger',
           name: 'gl-account-ledger',
-          component: () => import('@/modules/gl/pages/AccountLedgerPage.vue'),
+          component: () => import('@/modules/gl/apex/P0052AccountLedger.vue'),
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Account Ledger' }
         },
         {

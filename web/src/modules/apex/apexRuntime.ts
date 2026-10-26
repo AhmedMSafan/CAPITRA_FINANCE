@@ -54,8 +54,22 @@ function confirmDialog(message: string, callback: (ok: boolean) => void) {
   back.querySelector<HTMLButtonElement>('[data-ok="1"]')?.focus()
 }
 
+/** How a page moves to another URL: through the Vue router, so the app keeps its state. */
+export type ApexNavigator = {
+  /** Opens another page (apex.navigation.redirect, links). */
+  push(url: string): void
+  /** Changes the address of the current page without reloading it (history.replaceState). */
+  replace(url: string): void
+}
+
+/** The part of a URL the router takes: path, query and hash. */
+export function routerUrl(url: string): string {
+  const u = new URL(url, location.href)
+  return u.pathname + u.search + u.hash
+}
+
 /** Builds the `apex` object for one page of one app. `items` holds the page items (P50_ID ...). */
-export function createApex(app: number, page: number, items: Record<string, string>) {
+export function createApex(app: number, page: number, items: Record<string, string>, nav: ApexNavigator) {
   const $ = jQuery
 
   const server = {
@@ -107,11 +121,38 @@ export function createApex(app: number, page: number, items: Record<string, stri
     }
   })
 
+  const navigation = {
+    redirect(url: string) {
+      nav.push(routerUrl(url))
+    }
+  }
+
+  // history.replaceState / pushState as the page scripts call them, through the router.
+  const history = {
+    get length() {
+      return window.history.length
+    },
+    get state() {
+      return window.history.state as unknown
+    },
+    replaceState(_state: unknown, _title: string, url?: string | URL | null) {
+      if (url != null) nav.replace(routerUrl(String(url)))
+    },
+    pushState(_state: unknown, _title: string, url?: string | URL | null) {
+      if (url != null) nav.push(routerUrl(String(url)))
+    },
+    back: () => window.history.back(),
+    forward: () => window.history.forward(),
+    go: (delta?: number) => window.history.go(delta)
+  }
+
   return {
     jQuery: $,
     server,
     message,
     item,
+    navigation,
+    history,
     util: { escapeHTML },
     env: { APP_ID: String(app), APP_PAGE_ID: String(page) }
   }
@@ -137,13 +178,13 @@ function tracked(run: () => void) {
   }
 }
 
-/** Runs a copied page script with `apex`, `$`, `$v` and `$s` in scope, as APEX provides them. */
+/** Runs a copied page script with `apex`, `$`, `$v`, `$s` and `history` in scope, as APEX provides them. */
 export function runPageScript(source: string, apex: ReturnType<typeof createApex>) {
   const $v = (name: string) => apex.item(name).getValue()
   const $s = (name: string, value: unknown) => apex.item(name).setValue(value)
   // The scripts are part of this app (copied from the APEX export), not user input.
-  const fn = new Function('apex', '$', 'jQuery', '$v', '$s', source)
-  tracked(() => fn(apex, apex.jQuery, apex.jQuery, $v, $s))
+  const fn = new Function('apex', '$', 'jQuery', '$v', '$s', 'history', source)
+  tracked(() => fn(apex, apex.jQuery, apex.jQuery, $v, $s, apex.history))
 }
 
 /** Runs the <script> blocks of server-rendered region HTML (innerHTML does not run them). */
