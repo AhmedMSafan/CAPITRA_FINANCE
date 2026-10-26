@@ -1,0 +1,18 @@
+<div class="gp" id="fsApp">
+  <section class="gp-hero">
+    <div><span class="gp-eye"><i></i>General ledger</span><h1>Financial statements</h1>
+      <p>Trial balance, balance sheet, income statement and cash flow for any combination of account segments: a company, some branches, a cost centre, a business line, or all of them.</p></div>
+    <div class="gp-act"><button type="button" class="gp-btn" id="fsCsv">Export CSV</button><button type="button" class="gp-btn" id="fsPrint">Print</button></div>
+  </section>
+  <div class="gs-f fs-f" id="fsF"><div class="gp-empty">Loading...</div></div>
+  <div id="fsOut" hidden>
+    <div class="fs-head"><div><h2 id="fsTitle"></h2><div class="fs-scope" id="fsScope"></div></div>
+      <div class="gp-act fs-noprint"><button type="button" class="gp-btn gp-btn--sm" id="fsExpand">Expand all</button><button type="button" class="gp-btn gp-btn--sm" id="fsCollapse">Collapse</button></div></div>
+    <div class="fs-kpi" id="fsKpi"></div>
+    <div class="gp-alert" id="fsMore" style="display:none"><b>Too many rows.</b> Only the first 20,000 rows were read; narrow the filter.</div>
+    <div class="gp-panel"><div class="gp-tw"><table class="gp-t fs-t" id="fsTbl"><thead id="fsHead"></thead><tbody id="fsRows"></tbody></table></div></div>
+  </div>
+  <div class="fs-mb" id="fsDr" aria-hidden="true"><aside class="fs-dw" role="dialog" aria-modal="true" aria-labelledby="fsDrT">
+    <div class="fs-dh"><div><small>Account combinations</small><h3 id="fsDrT"></h3></div><button type="button" class="gp-x" data-close aria-label="Close">&times;</button></div>
+    <div class="fs-db" id="fsDrB"></div></aside></div>
+</div>

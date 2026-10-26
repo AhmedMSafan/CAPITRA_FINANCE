@@ -298,6 +298,18 @@ const router = createRouter({
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Rule Line Details' }
         },
         {
+          path: 'gl/financial-statements',
+          name: 'gl-financial-statements',
+          component: () => import('@/modules/gl/apex/P0056FinancialStatements.vue'),
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'Financial Statements' }
+        },
+        {
+          path: 'gl/help',
+          name: 'gl-help',
+          component: () => import('@/modules/gl/apex/P0090Help.vue'),
+          meta: { moduleName: 'GENERAL LEDGER', functionName: 'General Ledger Help' }
+        },
+        {
           path: 'gl/reference-data',
           name: 'gl-reference-data',
           component: () => import('@/modules/adm/pages/ReferenceDataPage.vue'),
