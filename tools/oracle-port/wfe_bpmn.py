@@ -95,7 +95,9 @@ def build(code, route_prefix):
     add(f'    <bpmn:startEvent id="StartEvent_1" name="Start">{io("StartEvent_1")}</bpmn:startEvent>')
     for s in tasks:
         page = s['TARGET_PAGE_ID']
-        params = json.dumps([{'name': 'portfolioId', 'value': 'ENTITY_ID'}]) if page else ''
+        # The screen's first item (e.g. P209_PORTFOLIO_ID) gets the business record, as TARGET_ITEM_VALUES_TEMPLATE #ENTITY_ID#.
+        item = (s['TARGET_ITEM_NAMES'] or '').split(',')[0].strip()
+        params = json.dumps([{'name': item, 'value': 'ENTITY_ID'}]) if page and item else ''
         attrs = {
             'finova:stepCode': s['STEP_CODE'],
             'finova:stepType': 'HumanTask',

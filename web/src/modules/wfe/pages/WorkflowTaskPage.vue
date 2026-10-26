@@ -531,10 +531,18 @@
       }
     }
 
+    // Parameters named as a page item (P209_PORTFOLIO_ID) travel in the query as copied APEX pages read them
+    // (?p209_portfolio_id=); any other parameter fills the route's own path parameter.
+    const items = Object.fromEntries(
+      Object.entries(params).filter(([name]) => /^P\d+_/i.test(name)).map(([name, value]) => [name.toLowerCase(), value])
+    )
+    const pathParams = Object.fromEntries(Object.entries(params).filter(([name]) => !/^P\d+_/i.test(name)))
+
     router.push({
       name: task.value.route,
-      params: Object.keys(params).length > 0 ? params : undefined,
+      params: Object.keys(pathParams).length > 0 ? pathParams : undefined,
       query: {
+        ...items,
         inboxId: String(task.value.inboxId)
       }
     })

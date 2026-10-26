@@ -1,0 +1,83 @@
+{
+  "app": 105,
+  "maps": [
+    "map-mtg.json",
+    "map-adm.json"
+  ],
+  "cs": "src/Capitra.Application/Modules/Mtg/Pages/MtgApexRegions.cs",
+  "ts": "web/src/modules/mtg/apex/wizard/wizardPages.ts",
+  "class": "MtgApexRegions",
+  "namespace": "Capitra.Application.Modules.Mtg.Pages",
+  "usings": [
+    "Capitra.Domain.Modules.Adm",
+    "Capitra.Domain.Modules.Mtg"
+  ],
+  "permissions": [
+    {
+      "from": 1,
+      "to": 199,
+      "view": "Permissions.Mtg.MasterDataView",
+      "edit": "Permissions.Mtg.MasterDataEdit"
+    },
+    {
+      "from": 200,
+      "to": 999,
+      "view": "Permissions.Mtg.PortfolioView",
+      "edit": "Permissions.Mtg.PortfolioEdit"
+    }
+  ],
+  "tableEdit": {
+    "ADM_": "Permissions.Adm.LookupEdit"
+  },
+  "pages": [
+    [
+      11,
+      40
+    ],
+    [
+      101,
+      110
+    ],
+    205,
+    207,
+    302,
+    304,
+    306,
+    402,
+    404,
+    406,
+    408,
+    502,
+    504,
+    506,
+    602
+  ],
+  "reports": [
+    46,
+    206,
+    301,
+    303,
+    305,
+    407,
+    501,
+    503,
+    505,
+    601,
+    606,
+    607,
+    [
+      701,
+      706
+    ],
+    [
+      711,
+      715
+    ],
+    721,
+    722,
+    [
+      730,
+      749
+    ]
+  ]
+}

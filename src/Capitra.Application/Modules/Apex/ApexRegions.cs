@@ -38,8 +38,12 @@ public sealed record ApexRegion(
 /// <summary>A select list of a copied page: LOV on TABLE.DISPLAY returning the Return column.</summary>
 public sealed record ApexLov(int App, int Page, string Item, ApexTable Table, string Display, string Return, string Permission);
 
-/// <summary>LOVS: the values of every select list of one page, as {ITEM: [[display, return], ...]} sorted by display.</summary>
-internal sealed class ApexLovProcess(int app, int page, IReadOnlyList<ApexLov> lovs, ICapitraDbContext db) : IApexProcess
+/// <summary>
+/// LOVS: the values of every select list of one page, as {ITEM: [[display, return], ...]}: table lists sorted by
+/// display, SQL lists in their query's order. x01 holds the page items a SQL list binds, as {ITEM: value}.
+/// </summary>
+internal sealed class ApexLovProcess(
+    int app, int page, IReadOnlyList<ApexLov> lovs, IReadOnlyList<ApexSqlLov> sqlLovs, ICapitraDbContext db, ApexSqlLovValues sqlValues) : IApexProcess
 {
     public int App => app;
 
@@ -47,7 +51,7 @@ internal sealed class ApexLovProcess(int app, int page, IReadOnlyList<ApexLov> l
 
     public string Name => "LOVS";
 
-    public string Permission => lovs[0].Permission;
+    public string Permission => lovs.Count > 0 ? lovs[0].Permission : sqlLovs[0].Permission;
 
     private static readonly MethodInfo Generic = typeof(ApexLovProcess).GetMethod(nameof(ValuesAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
@@ -56,6 +60,9 @@ internal sealed class ApexLovProcess(int app, int page, IReadOnlyList<ApexLov> l
         var res = new Dictionary<string, object>(StringComparer.Ordinal);
         foreach (var lov in lovs)
             res[lov.Item] = await (Task<List<object?[]>>)Generic.MakeGenericMethod(lov.Table.Entity).Invoke(this, [lov, ct])!;
+        var items = ApexItems.Read(request.X01);
+        foreach (var lov in sqlLovs)
+            res[lov.Item] = await sqlValues.ValuesAsync(lov, items, ct);
         return res;
     }
 
@@ -78,7 +85,7 @@ internal sealed class ApexLovProcess(int app, int page, IReadOnlyList<ApexLov> l
 /// The processes behind wizard-built regions, which APEX ran itself: IR_&lt;key&gt; (search, sort and page the report),
 /// FORM_LOAD_&lt;key&gt; (Initialize form) and FORM_DML_&lt;key&gt; (Process form: CREATE, SAVE or DELETE).
 /// </summary>
-internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICapitraDbContext db) : IApexProcess
+internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICapitraDbContext db, IApexFormHooks? hooks) : IApexProcess
 {
     public int App => region.App;
 
@@ -91,12 +98,12 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
     private static readonly TimeZoneInfo Cairo = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
 
     /// <summary>The processes of a region: a report and a form load always, the form DML only where the region may change data.</summary>
-    public static IEnumerable<IApexProcess> For(ApexRegion region, ICapitraDbContext db)
+    public static IEnumerable<IApexProcess> For(ApexRegion region, ICapitraDbContext db, IApexFormHooks? hooks)
     {
-        yield return new ApexRegionProcess(region, "IR", db);
-        yield return new ApexRegionProcess(region, "FORM_LOAD", db);
+        yield return new ApexRegionProcess(region, "IR", db, hooks);
+        yield return new ApexRegionProcess(region, "FORM_LOAD", db, hooks);
         if (region.EditPermission is not null)
-            yield return new ApexRegionProcess(region, "FORM_DML", db);
+            yield return new ApexRegionProcess(region, "FORM_DML", db, hooks);
     }
 
     private static readonly MethodInfo Generic = typeof(ApexRegionProcess).GetMethod(nameof(RunTypedAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
@@ -196,12 +203,17 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
         return await (tracking ? query : query.AsNoTracking()).FirstOrDefaultAsync(ct);
     }
 
-    /// <summary>Initialize form: x01 is the primary key; no key (or a deleted row) gives empty items.</summary>
+    /// <summary>
+    /// Initialize form: x01 is the primary key; no key (or a deleted row) gives empty items, filled by the page's
+    /// "Set Defaults" (x02: the page items, as {ITEM: value}).
+    /// </summary>
     private async Task<object> LoadAsync<T>(ApexRequest request, CancellationToken ct)
         where T : class
     {
         var row = await FindAsync<T>(request.X01, false, ct);
         var values = region.Table.Columns.ToDictionary(c => c.Name, c => row is null ? null : Edit(Prop<T>(c.Property).GetValue(row)));
+        if (row is null && hooks is not null)
+            await hooks.DefaultsAsync(values, ApexItems.Read(request.X02), ct);
         return new { ok = true, found = row is not null, values };
     }
 
@@ -209,13 +221,20 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
     private async Task<object> DmlAsync<T>(ApexRequest request, CancellationToken ct)
         where T : class, new()
     {
-        var action = request.X01?.ToUpperInvariant();
+        var action = request.X01?.ToUpperInvariant() ?? string.Empty;
         var pkProp = Prop<T>(Column(region.Table.Pk).Property);
         if (action == "DELETE")
         {
             var gone = await FindAsync<T>(request.X02, true, ct) ?? throw new ApexProcessException("Current version of data in database has changed since user initiated update process.");
+            var before = region.Table.Columns.ToDictionary(c => c.Name, c => Edit(Prop<T>(c.Property).GetValue(gone)), StringComparer.OrdinalIgnoreCase);
             db.Remove(gone);
             await db.SaveChangesAsync(ct);
+            if (hooks is not null)
+            {
+                await hooks.AfterDmlAsync(action, request.X02, before, ct);
+                await db.SaveChangesAsync(ct);
+            }
+
             return new { ok = true, message = "Action Processed." };
         }
 
@@ -234,18 +253,29 @@ internal sealed class ApexRegionProcess(ApexRegion region, string operation, ICa
             throw new ApexProcessException("Unknown request " + request.X01);
         }
 
-        using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(request.Clob01) ? "{}" : request.Clob01);
+        var sent = ApexItems.Read(request.Clob01);
+        if (hooks is not null)
+            await hooks.BeforeDmlAsync(action, sent, ct);
         foreach (var c in region.Table.Columns.Where(c => c.Kind != ApexColumnKind.Audit && c.Name != region.Table.Pk))
         {
-            if (!doc.RootElement.TryGetProperty(c.Name, out var v))
+            if (!sent.TryGetValue(c.Name, out var text))
                 continue;
             var p = Prop<T>(c.Property);
-            var text = v.ValueKind == JsonValueKind.Null ? null : v.ToString();
             p.SetValue(row, Parse(p.PropertyType, text));
         }
 
         await db.SaveChangesAsync(ct);
-        return new { ok = true, id = Edit(pkProp.GetValue(row)), message = "Action Processed." };
+        var id = Edit(pkProp.GetValue(row));
+        if (hooks is not null)
+        {
+            var saved = region.Table.Columns.ToDictionary(c => c.Name, c => Edit(Prop<T>(c.Property).GetValue(row)), StringComparer.OrdinalIgnoreCase);
+            foreach (var (k, v) in sent.Where(s => !saved.ContainsKey(s.Key)))
+                saved[k] = v;                                   // items that are no column (e.g. an upload)
+            await hooks.AfterDmlAsync(action, id, saved, ct);
+            await db.SaveChangesAsync(ct);
+        }
+
+        return new { ok = true, id, message = "Action Processed." };
     }
 }
 

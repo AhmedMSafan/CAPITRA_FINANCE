@@ -54,11 +54,20 @@ def value(block, key):
                 break
             i += cm.end()
         return '\n'.join(parts)
+    um = re.match(PIECE + r"((?:\s*\|\|\s*" + PIECE + r")*)", rest)
+    if um and um.group(1):
+        # unistr('...') possibly joined with || to more pieces
+        return ''.join(piece_text(pm) for pm in re.finditer(PIECE, um.group(0)))
     sm = re.match(STR + r"((?:\s*\|\|\s*" + STR + r")*)", rest)
     if sm:
         return unq(sm.group(1)) + ''.join(unq(x) for x in re.findall(r"\|\|\s*" + STR, sm.group(2)))
     nm = re.match(r"([^\n,)]+)", rest)
     return nm.group(1).strip() if nm else None
+
+
+def one_line(text):
+    """A value kept on one line of a .txt list (an inline LOV query spans lines)."""
+    return re.sub(r'\s*\n\s*', ' ', text) if text else text
 
 
 def safe(name):
@@ -70,6 +79,7 @@ def main():
     text = open(src, encoding='utf-8', errors='replace').read()
     calls = list(re.finditer(r"wwv_flow_imp(?:_page|_shared)?\.(create_\w+)\(", text))
     page = None
+    last_region = None
     counters = {}
     for idx, m in enumerate(calls):
         end = calls[idx + 1].start() if idx + 1 < len(calls) else len(text)
@@ -111,11 +121,17 @@ def main():
                     f"-- parent: {value(block, 'p_parent_plug_id')} id: {value(block, 'p_id')}\n"
                     f"-- query_type: {value(block, 'p_query_type')} table: {qry} where: {value(block, 'p_query_where')}\n"
                     f"-- condition: {value(block, 'p_plug_display_condition_type')} {value(block, 'p_plug_display_when_condition')}\n")
-            open(os.path.join(d, '%02d-%s.txt' % (n, safe(name))), 'w').write(head + '\n' + body)
+            last_region = os.path.join(d, '%02d-%s.txt' % (n, safe(name)))
+            open(last_region, 'w').write(head + '\n' + body)
+        elif kind == 'create_worksheet' and last_region:
+            # the interactive report's row link (the edit icon), e.g. f?p=&APP_ID.:12:...:P12_STATUS_CODE:\#STATUS_CODE#\
+            head, _, body = open(last_region).read().partition('\n\n')
+            link = (value(block, 'p_detail_link') or '').replace('\\', '')
+            open(last_region, 'w').write(head + f"\n-- detail_link: {link or None}\n\n" + body)
         elif kind == 'create_page_item':
             with open(os.path.join(page, 'items.txt'), 'a') as f:
                 f.write(f"{value(block, 'p_name')} | {value(block, 'p_display_as')} | prompt={value(block, 'p_prompt')} | "
-                        f"source={value(block, 'p_source')} | lov={value(block, 'p_lov') or value(block, 'p_named_lov')} | "
+                        f"source={value(block, 'p_source')} | lov={one_line(value(block, 'p_lov') or value(block, 'p_named_lov'))} | "
                         f"region={value(block, 'p_item_plug_id')} | seq={value(block, 'p_item_sequence')} | "
                         f"default={value(block, 'p_item_default')} | required={value(block, 'p_is_required')}\n")
         elif kind == 'create_page_button':
@@ -144,7 +160,9 @@ def main():
         elif kind == 'create_worksheet_column':
             with open(os.path.join(page, 'columns.txt'), 'a') as f:
                 f.write(f"{value(block, 'p_db_column_name')} | heading={value(block, 'p_column_label')} | "
-                        f"type={value(block, 'p_column_type')}\n")
+                        f"type={value(block, 'p_column_type')} | display={value(block, 'p_display_text_as')} | "
+                        f"link={(value(block, 'p_column_link') or '').replace(chr(92), '') or None} | "
+                        f"format={value(block, 'p_format_mask')}\n")
     print('done', out)
 
 

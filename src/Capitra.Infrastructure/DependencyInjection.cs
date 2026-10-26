@@ -3,6 +3,7 @@ using Capitra.Infrastructure.Files;
 using Capitra.Infrastructure.Identity;
 using Capitra.Infrastructure.Persistence;
 using Capitra.Infrastructure.Persistence.Interceptors;
+using Capitra.Infrastructure.Persistence.Reports;
 using Capitra.Infrastructure.Time;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ICapitraDbContext>(sp => sp.GetRequiredService<CapitraDbContext>());
+        services.AddScoped<IApexSqlReader, ApexSqlReader>();
 
         services
             .AddIdentityCore<SecUser>(options =>
