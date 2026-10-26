@@ -8,7 +8,7 @@ public sealed class MffApplicationPropertyConfiguration : IEntityTypeConfigurati
 {
     public void Configure(EntityTypeBuilder<MffApplicationProperty> builder)
     {
-        builder.ToTable("MFF_APPLICATION_PROPERTYS");
+        builder.ToTable("MFF_APPLICATION_PROPERTIES");
         builder.HasKey(x => x.AppPropertyId);
         builder.HasIndex(x => new { x.ApplicationId, x.PropertyId }).IsUnique();
         builder.HasIndex(x => x.ApplicationId);

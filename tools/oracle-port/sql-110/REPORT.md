@@ -1,6 +1,6 @@
 # App 110: SQL translated to PostgreSQL
 
-91 of 91 run.
+92 of 92 run.
 
 - OK     P141_FUND_MONTHLY_REPORT_REPORT
 - OK     P142_PORTFOLIO_SUMMARY_REPORT
@@ -93,3 +93,4 @@
 - OK     LOV_P165_STATUS (inline (first line only in items.txt))
 - OK     LOV_P166_PENDING_ONLY (static)
 - OK     LOV_P166_STATUS (inline (first line only in items.txt))
+- OK     CONTROL_READINESS

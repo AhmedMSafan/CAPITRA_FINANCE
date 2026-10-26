@@ -379,7 +379,7 @@
   "pk": "APPLICATION_PARTY_ID"
  },
  "MFF_APPLICATION_PROPERTY": {
-  "table": "MFF_APPLICATION_PROPERTYS",
+  "table": "MFF_APPLICATION_PROPERTIES",
   "class": "MffApplicationProperty",
   "columns": {
    "APP_PROPERTY_ID": {
@@ -3438,7 +3438,7 @@
   "pk": "CODE"
  },
  "REF_MFF_CITY": {
-  "table": "MFF_LKP_CITYS",
+  "table": "MFF_LKP_CITIES",
   "class": "MffLkpCity",
   "columns": {
    "CODE": {

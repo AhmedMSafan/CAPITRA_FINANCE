@@ -684,7 +684,7 @@ class Translator:
             if body is None:
                 self.warnings.append(f'view {name} has no PostgreSQL version in the views folder')
                 return
-            for dep in sorted(set(re.findall(r'"(FNV_V_[A-Z0-9_]+)"', body))):
+            for dep in sorted(set(re.findall(r'"((?:FNV_V|MFF_VW)_[A-Z0-9_]+)"', body))):
                 visit(dep)
             order.append((name, body))
 

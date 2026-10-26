@@ -3,7 +3,7 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mff;
 
 /// <summary>
-/// MFF_APPLICATION_PROPERTYS: copy of FINOVA MFF_APPLICATION_PROPERTY (APEX), all columns kept.
+/// MFF_APPLICATION_PROPERTIES: copy of FINOVA MFF_APPLICATION_PROPERTY (APEX), all columns kept.
 /// </summary>
 public class MffApplicationProperty : AuditableEntity
 {

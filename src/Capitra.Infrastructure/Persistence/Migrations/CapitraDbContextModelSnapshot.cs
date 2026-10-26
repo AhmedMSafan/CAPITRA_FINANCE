@@ -18281,19 +18281,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("AppPropertyId")
-                        .HasName("PK_MFF_APPLICATION_PROPERTYS");
+                        .HasName("PK_MFF_APPLICATION_PROPERTIES");
 
                     b.HasIndex("ApplicationId")
-                        .HasDatabaseName("IX_MFF_APPLICATION_PROPERTYS_APPLICATION_ID");
+                        .HasDatabaseName("IX_MFF_APPLICATION_PROPERTIES_APPLICATION_ID");
 
                     b.HasIndex("PropertyId")
-                        .HasDatabaseName("IX_MFF_APPLICATION_PROPERTYS_PROPERTY_ID");
+                        .HasDatabaseName("IX_MFF_APPLICATION_PROPERTIES_PROPERTY_ID");
 
                     b.HasIndex("ApplicationId", "PropertyId")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MFF_APPLICATION_PROPERTYS_APPLICATION_ID_PROPERTY_ID");
+                        .HasDatabaseName("UQ_MFF_APPLICATION_PROPERTIES_APPLICATION_ID_PROPERTY_ID");
 
-                    b.ToTable("MFF_APPLICATION_PROPERTYS", (string)null);
+                    b.ToTable("MFF_APPLICATION_PROPERTIES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationStatusHist", b =>
@@ -20869,12 +20869,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("Code")
-                        .HasName("PK_MFF_LKP_CITYS");
+                        .HasName("PK_MFF_LKP_CITIES");
 
                     b.HasIndex("GovernorateCode")
-                        .HasDatabaseName("IX_MFF_LKP_CITYS_GOVERNORATE_CODE");
+                        .HasDatabaseName("IX_MFF_LKP_CITIES_GOVERNORATE_CODE");
 
-                    b.ToTable("MFF_LKP_CITYS", (string)null);
+                    b.ToTable("MFF_LKP_CITIES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpDecisionCode", b =>
@@ -31840,14 +31840,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ApplicationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MFF_APPLICATION_PROPERTYS_MFF_APPLICATIONS");
+                        .HasConstraintName("FK_MFF_APPLICATION_PROPERTIES_MFF_APPLICATIONS");
 
                     b.HasOne("Capitra.Domain.Modules.Mff.MffProperty", null)
                         .WithMany()
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MFF_APPLICATION_PROPERTYS_MFF_PROPERTIES");
+                        .HasConstraintName("FK_MFF_APPLICATION_PROPERTIES_MFF_PROPERTIES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffApplicationStatusHist", b =>
@@ -32105,7 +32105,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CityCode")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_MFF_HOUSING_PROJECTS_MFF_LKP_CITYS");
+                        .HasConstraintName("FK_MFF_HOUSING_PROJECTS_MFF_LKP_CITIES");
 
                     b.HasOne("Capitra.Domain.Modules.Mff.MffLkpGovernorate", null)
                         .WithMany()
@@ -32247,7 +32247,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("GovernorateCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_MFF_LKP_CITYS_MFF_LKP_GOVERNORATES");
+                        .HasConstraintName("FK_MFF_LKP_CITIES_MFF_LKP_GOVERNORATES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffLkpStatusTransition", b =>
@@ -32464,7 +32464,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CityCode")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_MFF_PROPERTIES_MFF_LKP_CITYS");
+                        .HasConstraintName("FK_MFF_PROPERTIES_MFF_LKP_CITIES");
 
                     b.HasOne("Capitra.Domain.Modules.Mff.MffLkpGovernorate", null)
                         .WithMany()

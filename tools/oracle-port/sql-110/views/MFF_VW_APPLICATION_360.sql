@@ -9,7 +9,7 @@ join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
 join "MFF_ORGANIZATIONS" fund on fund."ORG_ID" = a."FUND_ORG_ID"
 join "MFF_PROGRAM_VERSIONS" pv on pv."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID"
 join "MFF_LKP_APPLICATION_STATUSES" s on s."CODE" = a."STATUS_CODE"
-left join "MFF_APPLICATION_PROPERTYS" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
+left join "MFF_APPLICATION_PROPERTIES" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
 left join "MFF_PROPERTIES" pr on pr."PROPERTY_ID" = ap."PROPERTY_ID"
 left join "MFF_HOUSING_PROJECTS" hp on hp."PROJECT_ID" = pr."PROJECT_ID"
 left join last_decision ld on "ld"."APPLICATION_ID" = a."APPLICATION_ID" and "ld"."RN" = 1

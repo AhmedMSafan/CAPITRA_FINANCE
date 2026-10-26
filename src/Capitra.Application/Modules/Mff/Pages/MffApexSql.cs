@@ -205,7 +205,7 @@ public static class MffApexSql
 
         public const string LOV_MFF_CITY = """
         select concat(coalesce("NAME_EN", "NAME_AR"), ' (', "CODE", ')') "D", "CODE" "R"
-        from "MFF_LKP_CITYS"
+        from "MFF_LKP_CITIES"
         where "IS_ACTIVE"
         order by "GOVERNORATE_CODE", "DISPLAY_ORDER", "NAME_AR"
         """;
@@ -440,7 +440,7 @@ public static class MffApexSql
         join "MFF_ORGANIZATIONS" fund on fund."ORG_ID" = a."FUND_ORG_ID"
         join "MFF_PROGRAM_VERSIONS" pv on pv."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID"
         join "MFF_LKP_APPLICATION_STATUSES" s on s."CODE" = a."STATUS_CODE"
-        left join "MFF_APPLICATION_PROPERTYS" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
+        left join "MFF_APPLICATION_PROPERTIES" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
         left join "MFF_PROPERTIES" pr on pr."PROPERTY_ID" = ap."PROPERTY_ID"
         left join "MFF_HOUSING_PROJECTS" hp on hp."PROJECT_ID" = pr."PROJECT_ID"
         left join last_decision ld on "ld"."APPLICATION_ID" = a."APPLICATION_ID" and "ld"."RN" = 1
@@ -465,7 +465,7 @@ public static class MffApexSql
         join "MFF_ORGANIZATIONS" fund on fund."ORG_ID" = a."FUND_ORG_ID"
         join "MFF_PROGRAM_VERSIONS" pv on pv."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID"
         join "MFF_LKP_APPLICATION_STATUSES" s on s."CODE" = a."STATUS_CODE"
-        left join "MFF_APPLICATION_PROPERTYS" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
+        left join "MFF_APPLICATION_PROPERTIES" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
         left join "MFF_PROPERTIES" pr on pr."PROPERTY_ID" = ap."PROPERTY_ID"
         left join "MFF_HOUSING_PROJECTS" hp on hp."PROJECT_ID" = pr."PROJECT_ID"
         left join last_decision ld on "ld"."APPLICATION_ID" = a."APPLICATION_ID" and "ld"."RN" = 1
@@ -490,7 +490,7 @@ public static class MffApexSql
         join "MFF_ORGANIZATIONS" fund on fund."ORG_ID" = a."FUND_ORG_ID"
         join "MFF_PROGRAM_VERSIONS" pv on pv."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID"
         join "MFF_LKP_APPLICATION_STATUSES" s on s."CODE" = a."STATUS_CODE"
-        left join "MFF_APPLICATION_PROPERTYS" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
+        left join "MFF_APPLICATION_PROPERTIES" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
         left join "MFF_PROPERTIES" pr on pr."PROPERTY_ID" = ap."PROPERTY_ID"
         left join "MFF_HOUSING_PROJECTS" hp on hp."PROJECT_ID" = pr."PROJECT_ID"
         left join last_decision ld on "ld"."APPLICATION_ID" = a."APPLICATION_ID" and "ld"."RN" = 1
@@ -757,10 +757,10 @@ public static class MffApexSql
         select pr."GOVERNORATE_CODE", g."NAME_AR" "GOVERNORATE_NAME_AR", pr."CITY_CODE", c."NAME_AR" "CITY_NAME_AR", a."FINANCIER_ID", o."ORG_NAME_AR" "FINANCIER_NAME_AR", count(distinct a."APPLICATION_ID") "APPLICATION_COUNT", sum(coalesce(a."APPROVED_FINANCE_AMOUNT", 0)) "APPROVED_FINANCE_AMOUNT", sum(coalesce(a."TOTAL_SUBSIDY_AMOUNT", 0)) "SUBSIDY_AMOUNT"
         from "MFF_APPLICATIONS" a
         join "MFF_ORGANIZATIONS" o on o."ORG_ID" = a."FINANCIER_ID"
-        join "MFF_APPLICATION_PROPERTYS" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
+        join "MFF_APPLICATION_PROPERTIES" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
         join "MFF_PROPERTIES" pr on pr."PROPERTY_ID" = ap."PROPERTY_ID"
         left join "MFF_LKP_GOVERNORATES" g on g."CODE" = pr."GOVERNORATE_CODE"
-        left join "MFF_LKP_CITYS" c on c."CODE" = pr."CITY_CODE"
+        left join "MFF_LKP_CITIES" c on c."CODE" = pr."CITY_CODE"
         group by pr."GOVERNORATE_CODE", g."NAME_AR", pr."CITY_CODE", c."NAME_AR", a."FINANCIER_ID", o."ORG_NAME_AR"
         )
         select "GOVERNORATE_NAME_AR", "CITY_NAME_AR", "FINANCIER_NAME_AR", "APPLICATION_COUNT", "APPROVED_FINANCE_AMOUNT", "SUBSIDY_AMOUNT"
@@ -800,7 +800,7 @@ public static class MffApexSql
         join "MFF_ORGANIZATIONS" fund on fund."ORG_ID" = a."FUND_ORG_ID"
         join "MFF_PROGRAM_VERSIONS" pv on pv."PROGRAM_VERSION_ID" = a."PROGRAM_VERSION_ID"
         join "MFF_LKP_APPLICATION_STATUSES" s on s."CODE" = a."STATUS_CODE"
-        left join "MFF_APPLICATION_PROPERTYS" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
+        left join "MFF_APPLICATION_PROPERTIES" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
         left join "MFF_PROPERTIES" pr on pr."PROPERTY_ID" = ap."PROPERTY_ID"
         left join "MFF_HOUSING_PROJECTS" hp on hp."PROJECT_ID" = pr."PROJECT_ID"
         left join last_decision ld on "ld"."APPLICATION_ID" = a."APPLICATION_ID" and "ld"."RN" = 1
@@ -882,7 +882,7 @@ public static class MffApexSql
         from "MFF_APPLICATIONS" a
         join "MFF_PERSONS" p on p."PERSON_ID" = a."PRIMARY_PERSON_ID"
         join "MFF_ORGANIZATIONS" f on f."ORG_ID" = a."FINANCIER_ID"
-        join "MFF_APPLICATION_PROPERTYS" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
+        join "MFF_APPLICATION_PROPERTIES" ap on ap."APPLICATION_ID" = a."APPLICATION_ID" and ap."IS_SELECTED"
         join "MFF_PROPERTIES" pr on pr."PROPERTY_ID" = ap."PROPERTY_ID"
         left join "MFF_HOUSING_PROJECTS" hp on hp."PROJECT_ID" = pr."PROJECT_ID"
         left join appraisal av on "av"."APPLICATION_ID" = a."APPLICATION_ID" and "av"."PROPERTY_ID" = pr."PROPERTY_ID"

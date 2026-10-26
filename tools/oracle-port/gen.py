@@ -93,7 +93,10 @@ def table_name(oracle):
     t = re.sub(r'_HISTORY$', '_HIST', t)
     last = t.split('_')[-1]
     if last not in ('HIST',) and not (last.endswith('S') and last not in ('STATUS', 'ADDRESS', 'CLASS', 'BASIS')):
-        t += 'ES' if last.endswith(('CH', 'SH', 'X', 'SS', 'STATUS')) else 'S'
+        if re.search(r'[^AEIOU]Y$', last):
+            t = t[:-1] + 'IES'      # PROPERTY -> PROPERTIES, CITY -> CITIES
+        else:
+            t += 'ES' if last.endswith(('CH', 'SH', 'X', 'SS', 'STATUS')) else 'S'
     return t
 
 

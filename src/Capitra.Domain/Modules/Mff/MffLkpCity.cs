@@ -3,7 +3,7 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Mff;
 
 /// <summary>
-/// MFF_LKP_CITYS: copy of FINOVA REF_MFF_CITY (APEX), all columns kept.
+/// MFF_LKP_CITIES: copy of FINOVA REF_MFF_CITY (APEX), all columns kept.
 /// </summary>
 public class MffLkpCity : AuditableEntity
 {

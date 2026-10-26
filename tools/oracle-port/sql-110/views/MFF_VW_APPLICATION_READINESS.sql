@@ -2,7 +2,7 @@ select a."APPLICATION_ID", a."APPLICATION_NO", a."STATUS_CODE", a."CURRENT_OWNER
 from "MFF_APPLICATION_PARTIES" ap
 join "MFF_INCOME_SOURCES" i on i."APPLICATION_PARTY_ID" = ap."APPLICATION_PARTY_ID"
 where ap."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(i."IS_VERIFIED", false)) then 'Y' else 'N' end "INCOME_READY", case when exists (select 1
-from "MFF_APPLICATION_PROPERTYS" x
+from "MFF_APPLICATION_PROPERTIES" x
 where x."APPLICATION_ID" = a."APPLICATION_ID" and x."IS_SELECTED") then 'Y' else 'N' end "PROPERTY_READY", (select count(*)
 from "MFF_APPLICATION_DOCUMENTS" d
 where d."APPLICATION_ID" = a."APPLICATION_ID") "DOCUMENT_COUNT", (select count(*)
@@ -35,7 +35,7 @@ where w."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(w."ASSIGNMENT_STATUS"
 from "MFF_APPLICATION_PARTIES" ap
 join "MFF_INCOME_SOURCES" i on i."APPLICATION_PARTY_ID" = ap."APPLICATION_PARTY_ID"
 where ap."APPLICATION_ID" = a."APPLICATION_ID" and coalesce(i."IS_VERIFIED", false)) then 1 else 0 end + case when exists (select 1
-from "MFF_APPLICATION_PROPERTYS" x
+from "MFF_APPLICATION_PROPERTIES" x
 where x."APPLICATION_ID" = a."APPLICATION_ID" and x."IS_SELECTED") then 1 else 0 end + case when exists (select 1
 from "MFF_APPLICATION_DOCUMENTS" d
 where d."APPLICATION_ID" = a."APPLICATION_ID") and not exists (select 1

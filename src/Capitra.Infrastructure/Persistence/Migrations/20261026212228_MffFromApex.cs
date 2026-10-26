@@ -451,7 +451,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MFF_LKP_CITYS",
+                name: "MFF_LKP_CITIES",
                 columns: table => new
                 {
                     CODE = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
@@ -468,9 +468,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MFF_LKP_CITYS", x => x.CODE);
+                    table.PrimaryKey("PK_MFF_LKP_CITIES", x => x.CODE);
                     table.ForeignKey(
-                        name: "FK_MFF_LKP_CITYS_MFF_LKP_GOVERNORATES",
+                        name: "FK_MFF_LKP_CITIES_MFF_LKP_GOVERNORATES",
                         column: x => x.GOVERNORATE_CODE,
                         principalTable: "MFF_LKP_GOVERNORATES",
                         principalColumn: "CODE",
@@ -632,9 +632,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         principalColumn: "ANNOUNCEMENT_ID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_MFF_HOUSING_PROJECTS_MFF_LKP_CITYS",
+                        name: "FK_MFF_HOUSING_PROJECTS_MFF_LKP_CITIES",
                         column: x => x.CITY_CODE,
-                        principalTable: "MFF_LKP_CITYS",
+                        principalTable: "MFF_LKP_CITIES",
                         principalColumn: "CODE",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -752,9 +752,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         principalColumn: "PROJECT_ID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_MFF_PROPERTIES_MFF_LKP_CITYS",
+                        name: "FK_MFF_PROPERTIES_MFF_LKP_CITIES",
                         column: x => x.CITY_CODE,
-                        principalTable: "MFF_LKP_CITYS",
+                        principalTable: "MFF_LKP_CITIES",
                         principalColumn: "CODE",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -1215,7 +1215,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MFF_APPLICATION_PROPERTYS",
+                name: "MFF_APPLICATION_PROPERTIES",
                 columns: table => new
                 {
                     APP_PROPERTY_ID = table.Column<long>(type: "bigint", nullable: false)
@@ -1233,9 +1233,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MFF_APPLICATION_PROPERTYS", x => x.APP_PROPERTY_ID);
+                    table.PrimaryKey("PK_MFF_APPLICATION_PROPERTIES", x => x.APP_PROPERTY_ID);
                     table.ForeignKey(
-                        name: "FK_MFF_APPLICATION_PROPERTYS_MFF_PROPERTIES",
+                        name: "FK_MFF_APPLICATION_PROPERTIES_MFF_PROPERTIES",
                         column: x => x.PROPERTY_ID,
                         principalTable: "MFF_PROPERTIES",
                         principalColumn: "PROPERTY_ID",
@@ -2460,18 +2460,18 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_MFF_APPLICATION_PROPERTYS_APPLICATION_ID",
-                table: "MFF_APPLICATION_PROPERTYS",
+                name: "IX_MFF_APPLICATION_PROPERTIES_APPLICATION_ID",
+                table: "MFF_APPLICATION_PROPERTIES",
                 column: "APPLICATION_ID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MFF_APPLICATION_PROPERTYS_PROPERTY_ID",
-                table: "MFF_APPLICATION_PROPERTYS",
+                name: "IX_MFF_APPLICATION_PROPERTIES_PROPERTY_ID",
+                table: "MFF_APPLICATION_PROPERTIES",
                 column: "PROPERTY_ID");
 
             migrationBuilder.CreateIndex(
-                name: "UQ_MFF_APPLICATION_PROPERTYS_APPLICATION_ID_PROPERTY_ID",
-                table: "MFF_APPLICATION_PROPERTYS",
+                name: "UQ_MFF_APPLICATION_PROPERTIES_APPLICATION_ID_PROPERTY_ID",
+                table: "MFF_APPLICATION_PROPERTIES",
                 columns: new[] { "APPLICATION_ID", "PROPERTY_ID" },
                 unique: true);
 
@@ -2821,8 +2821,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 column: "PROPERTY_ID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MFF_LKP_CITYS_GOVERNORATE_CODE",
-                table: "MFF_LKP_CITYS",
+                name: "IX_MFF_LKP_CITIES_GOVERNORATE_CODE",
+                table: "MFF_LKP_CITIES",
                 column: "GOVERNORATE_CODE");
 
             migrationBuilder.CreateIndex(
@@ -3145,8 +3145,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_MFF_APPLICATION_PROPERTYS_MFF_APPLICATIONS",
-                table: "MFF_APPLICATION_PROPERTYS",
+                name: "FK_MFF_APPLICATION_PROPERTIES_MFF_APPLICATIONS",
+                table: "MFF_APPLICATION_PROPERTIES",
                 column: "APPLICATION_ID",
                 principalTable: "MFF_APPLICATIONS",
                 principalColumn: "APPLICATION_ID",
@@ -3183,7 +3183,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 name: "MFF_APPEALS");
 
             migrationBuilder.DropTable(
-                name: "MFF_APPLICATION_PROPERTYS");
+                name: "MFF_APPLICATION_PROPERTIES");
 
             migrationBuilder.DropTable(
                 name: "MFF_APPLICATION_STATUS_HIST");
@@ -3336,7 +3336,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 name: "MFF_HOUSING_ANNOUNCEMENTS");
 
             migrationBuilder.DropTable(
-                name: "MFF_LKP_CITYS");
+                name: "MFF_LKP_CITIES");
 
             migrationBuilder.DropTable(
                 name: "MFF_LKP_GOVERNORATES");

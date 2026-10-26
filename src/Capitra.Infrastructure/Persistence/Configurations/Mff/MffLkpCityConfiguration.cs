@@ -8,7 +8,7 @@ public sealed class MffLkpCityConfiguration : IEntityTypeConfiguration<MffLkpCit
 {
     public void Configure(EntityTypeBuilder<MffLkpCity> builder)
     {
-        builder.ToTable("MFF_LKP_CITYS");
+        builder.ToTable("MFF_LKP_CITIES");
         builder.HasKey(x => x.Code);
         builder.HasIndex(x => x.GovernorateCode);
 
