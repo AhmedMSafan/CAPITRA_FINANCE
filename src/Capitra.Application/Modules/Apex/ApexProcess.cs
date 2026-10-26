@@ -1,7 +1,7 @@
 namespace Capitra.Application.Modules.Apex;
 
 /// <summary>
-/// The values an APEX page sends with apex.server.process: x01 to x10 and one CLOB (p_clob_01).
+/// The values an APEX page sends with apex.server.process: x01 to x20 and one CLOB (p_clob_01).
 /// The copied page scripts send exactly these, so each page's processes read them as the PL/SQL did.
 /// </summary>
 public sealed class ApexRequest
@@ -16,6 +16,16 @@ public sealed class ApexRequest
     public string? X08 { get; init; }
     public string? X09 { get; init; }
     public string? X10 { get; init; }
+    public string? X11 { get; init; }
+    public string? X12 { get; init; }
+    public string? X13 { get; init; }
+    public string? X14 { get; init; }
+    public string? X15 { get; init; }
+    public string? X16 { get; init; }
+    public string? X17 { get; init; }
+    public string? X18 { get; init; }
+    public string? X19 { get; init; }
+    public string? X20 { get; init; }
     public string? Clob01 { get; init; }
 }
 

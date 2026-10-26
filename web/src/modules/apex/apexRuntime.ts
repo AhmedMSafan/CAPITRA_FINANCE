@@ -62,7 +62,7 @@ export function createApex(app: number, page: number, items: Record<string, stri
     process(name: string, data: ProcessData = {}, options: ProcessOptions = {}) {
       const deferred = $.Deferred()
       const body: Record<string, unknown> = {}
-      for (let i = 1; i <= 10; i++) {
+      for (let i = 1; i <= 20; i++) {
         const key = `x${String(i).padStart(2, '0')}`
         if (data[key] !== undefined && data[key] !== null) body[key] = String(data[key])
       }

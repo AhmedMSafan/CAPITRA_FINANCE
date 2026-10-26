@@ -158,7 +158,7 @@ const router = createRouter({
         {
           path: 'gl/accounting-periods',
           name: 'gl-accounting-periods',
-          component: () => import('@/modules/gl/pages/AccountingPeriodsPage.vue'),
+          component: () => import('@/modules/gl/apex/P0030AccountingPeriods.vue'),
           meta: { moduleName: 'GENERAL LEDGER', functionName: 'Accounting Periods' }
         },
         {

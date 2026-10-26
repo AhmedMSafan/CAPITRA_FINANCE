@@ -48,6 +48,8 @@ public static class DependencyInjection
 
         // General ledger (APEX App 120).
         services.AddScoped<GlCoaSetup>();
+        services.AddScoped<GlPeriodSetup>();
+        services.AddScoped<GlPeriodControl>();
 
         // Copied APEX pages: every on-demand process found in this assembly, looked up by app, page and name.
         foreach (var type in typeof(DependencyInjection).Assembly.GetTypes()
