@@ -529,7 +529,14 @@
 
 
 <style scoped>
-  .wf-context-summary.wf-context-facts { border-top: 0; margin-top: 0; padding-top: 0; }
+  .wf-context-summary.wf-context-facts { border-top: 0; margin-top: 0; padding-top: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 14px; }
+  /* the facts in two lines of three, so a long customer name has room */
+  .wf-context-facts .wf-context-summary-item:nth-child(3n) { border-right: 0; }
+  .wf-context-facts .wf-context-summary-item:nth-child(3n+1) { padding-left: 6px; }
+  /* every value on one line, so both rows keep one height; a value too long for its column ends in … */
+  .wf-context-summary .wf-context-summary-item > div { min-width: 0; }
+  .wf-context-summary .wf-context-summary-item label,
+  .wf-context-summary .wf-context-summary-item strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .wf-context-card {
     margin-top: 18px;
@@ -650,7 +657,7 @@
 
   .wf-context-summary {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: .8fr 1fr 1fr 1.4fr 1.3fr .8fr;
     border-top: 1px solid #dce6ed;
     margin-top: 18px;
     padding-top: 18px
@@ -661,7 +668,7 @@
     grid-template-columns: 42px 1fr;
     align-items: center;
     gap: 11px;
-    padding: 5px 20px;
+    padding: 5px 16px;
     border-right: 1px solid #dce6ed;
     min-height: 62px
   }
