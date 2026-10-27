@@ -1,34 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-
-import AppHeader from './AppHeader.vue'
-import HomeHeader from './HomeHeader.vue'
-
-const route = useRoute()
-
-const moduleName = computed(() => {
-  return (route.meta.moduleName as string) || ''
-})
-
-const functionName = computed(() => {
-  return (route.meta.functionName as string) || ''
-})
+import AppShellHeader from './AppShellHeader.vue'
+import ServerStatus from './ServerStatus.vue'
 </script>
 
 <template>
   <div class="capitra-app-layout">
-    <HomeHeader
-      v-if="route.name === 'home'"
-      :moduleName="moduleName"
-      :functionName="functionName"
-    />
-    <AppHeader
-      v-else
-      :moduleName="moduleName"
-      :functionName="functionName"
-    />
-
+    <AppShellHeader />
+    <ServerStatus />
     <main class="capitra-app-content">
       <router-view />
     </main>

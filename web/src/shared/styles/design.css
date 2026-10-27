@@ -1,0 +1,40 @@
+/* Capitra design system (27 Oct 2026). Every screen takes its look from these tokens; the theme is chosen on <html>
+   (data-theme). Gold is no longer an interface colour: it stays only inside the logo. */
+
+:root {
+  --ds-font: "Segoe UI", -apple-system, BlinkMacSystemFont, Inter, Arial, sans-serif;
+  --ds-display: var(--ds-font);
+  --ds-gutter: 12px;
+  --ds-radius: 4px;
+
+  /* Salesforce Lightning layout with Capitra teal where Salesforce uses blue (agreed 27 Oct 2026). */
+  --ds-bg: #f3f3f3;
+  --ds-header-bg: #ffffff;
+  --ds-surface: #ffffff;
+  --ds-soft: #f3f3f3;
+  --ds-line: #dddbda;
+  --ds-line-soft: #ecebea;
+  --ds-ink: #181818;
+  --ds-text: #2e2e2e;
+  --ds-muted: #5c5c5c;
+  --ds-brand: #0b5e5a;
+  --ds-brand-dark: #08403d;
+  --ds-brand-ink: #0b5e5a;
+  --ds-on-brand: #ffffff;
+  --ds-link: #0b6b66;
+  --ds-accent: #0b5e5a;
+  --ds-accent-ink: #0b5e5a;
+  --ds-info: #5867e8;
+  --ds-info-soft: #eef0fd;
+  --ds-danger: #c23934;
+  --ds-danger-soft: #fdecea;
+  --ds-danger-line: #f2c4c4;
+  --ds-success: #2e844a;
+  --ds-success-soft: #e6f4ea;
+  --ds-progress: #5867e8;
+  --ds-progress-soft: #eef0fd;
+  --ds-shadow: 0 2px 8px rgba(0, 0, 0, .16);
+  --ds-card-shadow: 0 2px 2px rgba(0, 0, 0, .10);
+}
+
+html, body { background: var(--ds-bg); color: var(--ds-ink); font-family: var(--ds-font); }

@@ -4,7 +4,6 @@
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ApexWizardPage from '@/modules/apex/ApexWizardPage.vue'
-import MtgHeader from './MtgHeader.vue'
 import { useBilingual } from './finovaBilingual'
 import { wizardPages } from './wizard/wizardPages'
 
@@ -20,6 +19,5 @@ const appCss = ['/apex/105/finova-v14.css', '/apex/105/finova-v15.css']
 
 <template>
   <component :is="'link'" v-for="href in appCss" :key="href" rel="stylesheet" :href="href" />
-  <MtgHeader :page="page" />
   <ApexWizardPage :key="`${route.fullPath}#${opened}`" :app="105" :pages="wizardPages" :page="page" @reload="opened++" />
 </template>

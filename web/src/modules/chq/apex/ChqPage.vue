@@ -34,38 +34,6 @@ async function signOut() {
 <template>
   <component :is="'link'" v-for="href in appCss" :key="href" rel="stylesheet" :href="href" />
   <div class="chq-app t-PageBody t-PageBody--topNav">
-    <header class="t-Header chq-header">
-      <div class="t-Header-branding">
-        <a class="chq-logo" :href="home" @click="go($event, home)">
-          <div style="height: 58px; display: flex; align-items: center; background: #014b55; justify-content: flex-start; gap: 2px">
-            <img src="/apex/122/bar4.png" alt="FINOVA" style="height: 100%; width: auto; object-fit: contain; display: block" />
-            <span style="color: #ffffff; font-family: 'Cairo', sans-serif; font-size: 1rem; font-weight: 400; line-height: 1">Cheques Wallet</span>
-          </div>
-        </a>
-        <ul class="t-Header-navBar chq-navbar">
-          <li class="chq-user">
-            <button type="button" class="t-Button t-Button--navBar" :aria-expanded="userMenu" @click="userMenu = !userMenu">
-              <span class="fa fa-user" aria-hidden="true"></span><span class="t-Button-label">{{ user }}</span><span class="fa fa-angle-down" aria-hidden="true"></span>
-            </button>
-            <ul v-if="userMenu" class="chq-menu" @mouseleave="userMenu = false">
-              <li><button type="button" @click="signOut"><span class="fa fa-sign-out" aria-hidden="true"></span> Sign Out</button></li>
-            </ul>
-          </li>
-          <li>
-            <span class="t-Button t-Button--navBar chq-off" title="Digital Factoring Platform"><span class="fa fa-bolt" aria-hidden="true"></span><span class="t-Button-label">Digital Factoring Platform</span></span>
-          </li>
-          <li>
-            <a class="t-Button t-Button--navBar" :href="home" @click="go($event, home)"><span class="fa fa-home" aria-hidden="true"></span><span class="t-Button-label">Main Menu</span></a>
-          </li>
-          <li>
-            <a class="t-Button t-Button--navBar" href="/" @click="go($event, '/')"><span class="fa fa-th-large" aria-hidden="true"></span><span class="t-Button-label">FINOVA Home</span></a>
-          </li>
-        </ul>
-      </div>
-      <nav class="t-Header-nav chq-tabs" aria-label="Main Navigation">
-        <a class="chq-tab" :class="{ 'is-current': page === 1 }" :href="home" @click="go($event, home)"><span class="fa fa-home" aria-hidden="true"></span> Home</a>
-      </nav>
-    </header>
     <main class="t-Body-main chq-main">
       <ApexWizardPage :key="`${route.fullPath}#${opened}`" :app="122" :pages="wizardPages" :page="props.page" @reload="opened++" />
     </main>

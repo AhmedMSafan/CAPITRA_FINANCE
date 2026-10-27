@@ -61,44 +61,7 @@ const home = computed(() => appPageUrl(110, 1))
 <template>
   <component :is="'link'" v-for="href in appCss" :key="href" rel="stylesheet" :href="href" />
   <div class="mff-app t-PageBody t-PageBody--leftNav" :class="{ 'js-navExpanded': navOpen }">
-    <header class="t-Header mff-header">
-      <button type="button" class="mff-navbtn" :aria-expanded="navOpen" aria-label="Main Navigation" title="Main Navigation" @click="toggleNav">
-        <span class="fa fa-bars" aria-hidden="true"></span>
-      </button>
-      <a class="mff-logo" :href="home" @click.prevent="router.push(home)">
-        <div style="height: 58px; display: flex; align-items: center; background: #014b55; justify-content: flex-start; gap: 3px">
-          <img src="/apex/110/bar4.png" alt="FINOVA" style="height: 100%; width: auto; object-fit: contain; display: block" />
-          <span style="color: #ffffff; font-family: Inter, Arial, sans-serif; font-size: 1rem; font-weight: 500; line-height: 1">Mortgage Finance</span>
-        </div>
-      </a>
-      <ul class="mff-navbar">
-        <li><button type="button" :class="{ on: lang === 'EN' }" @click="language('EN')"><span class="fa fa-language" aria-hidden="true"></span> EN</button></li>
-        <li><button type="button" :class="{ on: lang === 'AR' }" @click="language('AR')"><span class="fa fa-language" aria-hidden="true"></span> AR</button></li>
-        <li class="mff-user"><span class="fa fa-user" aria-hidden="true"></span> {{ user }}</li>
-      </ul>
-    </header>
     <div class="mff-body">
-      <nav v-show="navOpen" class="t-Body-nav mff-nav" aria-label="Main Navigation">
-        <ul class="mff-tree">
-          <li v-for="n in navMenu" :key="n.label" :class="{ 'is-current': isCurrent(n), 'is-expanded': expanded.has(n.label) }">
-            <div class="mff-node">
-              <button v-if="n.children?.length" type="button" class="mff-tog" :aria-label="expanded.has(n.label) ? 'Collapse' : 'Expand'" @click="toggle(n)">
-                <span class="fa" :class="expanded.has(n.label) ? 'fa-caret-down' : 'fa-caret-right'" aria-hidden="true"></span>
-              </button>
-              <span v-else class="mff-tog"></span>
-              <a :href="href(n)" @click="go($event, n)"><span class="fa" :class="n.icon" aria-hidden="true"></span><span class="a-TreeView-label">{{ n.label }}</span></a>
-            </div>
-            <ul v-if="n.children?.length && expanded.has(n.label)">
-              <li v-for="c in n.children" :key="c.label" :class="{ 'is-current': isCurrent(c) }">
-                <div class="mff-node">
-                  <span class="mff-tog"></span>
-                  <a :href="href(c)" @click="go($event, c)"><span class="fa" :class="c.icon" aria-hidden="true"></span><span class="a-TreeView-label">{{ c.label }}</span></a>
-                </div>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </nav>
       <main class="t-Body-main mff-main">
         <ApexWizardPage :key="`${route.fullPath}#${opened}`" :app="110" :pages="wizardPages" :page="page" @reload="opened++" />
       </main>

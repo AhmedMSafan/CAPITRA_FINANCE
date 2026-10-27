@@ -1,0 +1,266 @@
+/* Salesforce Lightning look for the pages copied from APEX (27 Oct 2026). Those pages bring their own HTML and CSS
+   (dark hero bands, orange buttons, big rounded cards). These rules sit above them so every page reads the same:
+   white cards with 4px corners and a light border, dark ink text, Capitra teal for actions and links, no gold or orange.
+   Everything is scoped to the page area under the shared header. */
+
+.capitra-app-content {
+  --sf-card: 0 2px 2px rgba(0, 0, 0, .10);
+}
+/* The copied pages colour themselves through their own variables: orange and amber become Capitra teal,
+   and their corners and shadows become Salesforce's. */
+.capitra-app-content [class] {
+  --amber: var(--ds-brand) !important;
+  --amber-600: var(--ds-brand-dark) !important;
+  --amber-50: #e3f1ef !important;
+  --fnv-orange: var(--ds-brand) !important;
+  --fin-orange: var(--ds-brand) !important;
+  --fin-orange-2: var(--ds-brand) !important;
+  --fin-orange-700: var(--ds-brand-dark) !important;
+  --fin-orange-50: #e3f1ef !important;
+  --wx-orange: var(--ds-brand) !important;
+  --wx-orange-l: #e3f1ef !important;
+  --or: var(--ds-brand) !important;
+  --gc: var(--ds-brand) !important;
+  --r: 4px !important;
+  --shadow: 0 2px 2px rgba(0, 0, 0, .10) !important;
+}
+/* KPI rows no longer overlap the (now white) header */
+.capitra-app-content [class$="-kpis"],
+.capitra-app-content [class*="-kpis "] { margin-top: 12px !important; }
+
+/* ---------- hero bands become a Salesforce page header ---------- */
+.capitra-app-content [class$="-hero"],
+.capitra-app-content [class*="-hero "],
+.capitra-app-content .fxd-hero,
+.capitra-app-content .mff-page-hero,
+.capitra-app-content .mff-list-hero,
+.capitra-app-content .fx202-head,
+.capitra-app-content .fin-d-topbar {
+  background: #fff !important;
+  color: var(--ds-ink) !important;
+  border: 1px solid var(--ds-line) !important;
+  border-radius: 4px !important;
+  box-shadow: var(--sf-card) !important;
+  padding: 16px 18px !important;
+  margin: 12px 0 !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+.capitra-app-content [class$="-hero"]:not(.fa)::before,
+.capitra-app-content [class$="-hero"]:not(.fa)::after,
+.capitra-app-content [class*="-hero "]:not(.fa)::before,
+.capitra-app-content [class*="-hero "]:not(.fa)::after,
+.capitra-app-content .fx202-head::before,
+.capitra-app-content .fx202-head::after { display: none !important; }
+.capitra-app-content [class*="-hero"] h1,
+.capitra-app-content [class*="-hero"] h2,
+.capitra-app-content .fx202-head h1,
+.capitra-app-content .fxd-h1,
+.capitra-app-content .mff-list-title {
+  color: var(--ds-ink) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  margin: 2px 0 4px !important;
+}
+.capitra-app-content [class*="-hero"] p,
+.capitra-app-content [class*="-hero"] small,
+.capitra-app-content .fx202-head p,
+.capitra-app-content .fxd-lead { color: var(--ds-muted) !important; font-size: 13px !important; }
+.capitra-app-content [class*="-eyebrow"],
+.capitra-app-content [class*="-eye"],
+.capitra-app-content .fxd-date,
+.capitra-app-content .fnv-breadcrumb {
+  color: var(--ds-muted) !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-weight: 400 !important;
+}
+.capitra-app-content [class*="-eyebrow"]::before { display: none !important; }
+/* the white band some pages draw behind the overlapping KPI row */
+.capitra-app-content .fxd::before,
+.capitra-app-content .wx::before,
+.capitra-app-content .wh::before { display: none !important; }
+
+/* ---------- cards ---------- */
+.capitra-app-content [class$="-card"],
+.capitra-app-content [class*="-card "],
+.capitra-app-content [class$="-kpi"],
+.capitra-app-content [class*="-kpi "],
+.capitra-app-content [class$="-mod"],
+.capitra-app-content [class*="-mod "],
+.capitra-app-content .fxd-quick > a,
+.capitra-app-content .fnv-subcard,
+.capitra-app-content .t-Region:not(.t-Region--noUI):not(.apx-blank) {
+  background: #fff !important;
+  border: 1px solid var(--ds-line) !important;
+  border-radius: 4px !important;
+  box-shadow: var(--sf-card) !important;
+  backdrop-filter: none !important;
+}
+.capitra-app-content [class*="-card"]:not(.fa)::before,
+.capitra-app-content [class*="-card"]:not(.fa)::after,
+.capitra-app-content [class*="-kpi"]:not(.fa)::after,
+.capitra-app-content [class*="-mod"]:not(.fa)::before,
+.capitra-app-content [class*="-mod"]:not(.fa)::after { display: none !important; }
+.capitra-app-content [class*="-kpi"] [class*="-label"],
+.capitra-app-content [class*="-kpi"] [class$="-l"],
+.capitra-app-content .fin-kpi-label,
+.capitra-app-content .fxd-label {
+  color: var(--ds-muted) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+.capitra-app-content [class*="-kpi"] [class*="-value"],
+.capitra-app-content [class*="-kpi"] [class$="-v"],
+.capitra-app-content .fin-kpi-value {
+  color: var(--ds-ink) !important;
+  font-weight: 300 !important;
+}
+/* icon squares: Salesforce object icons, white glyph on a colour */
+.capitra-app-content [class$="-ico"],
+.capitra-app-content [class*="-ico "],
+.capitra-app-content [class$="-icon"],
+.capitra-app-content [class*="-icon "],
+.capitra-app-content .fx202-ic,
+.capitra-app-content .fnv-subicon {
+  background: var(--ds-brand) !important;
+  color: #fff !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+.capitra-app-content [class$="-ico"] *,
+.capitra-app-content [class*="-ico "] *,
+.capitra-app-content [class$="-icon"] *,
+.capitra-app-content [class*="-icon "] *,
+.capitra-app-content .fx202-ic *,
+.capitra-app-content .fnv-subicon * { color: #fff !important; }
+
+/* ---------- buttons ---------- */
+.capitra-app-content [class$="-btn"],
+.capitra-app-content [class*="-btn "],
+.capitra-app-content .t-Button:not(.t-Button--noUI):not(.t-Button--icon) {
+  background: #fff !important;
+  color: var(--ds-link) !important;
+  border: 1px solid #c9c9c9 !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  font-weight: 400 !important;
+  text-shadow: none !important;
+}
+.capitra-app-content [class$="-btn"]:hover,
+.capitra-app-content [class*="-btn "]:hover,
+.capitra-app-content .t-Button:hover { background: #f3f3f3 !important; }
+.capitra-app-content [class*="-btn--hot"],
+.capitra-app-content [class*="-btn--primary"],
+.capitra-app-content [class*="-btn--pri"],
+.capitra-app-content [class*="-btn--open"],
+.capitra-app-content .fin-d-newbtn,
+.capitra-app-content .t-Button.t-Button--hot:not(.t-Button--noUI),
+.capitra-app-content .a-IRR-create {
+  background: var(--ds-brand) !important;
+  border-color: var(--ds-brand) !important;
+  color: #fff !important;
+}
+.capitra-app-content [class*="-btn--hot"]:hover,
+.capitra-app-content [class*="-btn--primary"]:hover,
+.capitra-app-content .t-Button.t-Button--hot:hover { background: var(--ds-brand-dark) !important; }
+.capitra-app-content [class*="-btn--glass"],
+.capitra-app-content [class*="-btn--ghost"] {
+  background: #fff !important;
+  color: var(--ds-link) !important;
+  border-color: #c9c9c9 !important;
+}
+
+/* ---------- pills and tags ---------- */
+.capitra-app-content [class$="-pill"],
+.capitra-app-content [class*="-pill "],
+.capitra-app-content [class$="-chip"],
+.capitra-app-content [class*="-chip "],
+.capitra-app-content [class$="-tag"],
+.capitra-app-content [class*="-tag "] {
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+/* accent strips and orange underlines the APEX pages draw under cards */
+.capitra-app-content .d1, .capitra-app-content .d2, .capitra-app-content .d3, .capitra-app-content .d4 { box-shadow: none !important; }
+.capitra-app-content [class*="-kpi"] > i:last-child:empty,
+.capitra-app-content [class*="-bar"]:empty:not([class*="wc-bar"]):not([class*="ch-bar"]) { background: var(--ds-brand) !important; }
+
+/* ---------- links ---------- */
+.capitra-app-content a:not([class*="btn"]):not([class*="card"]):not([class*="kpi"]):not([class*="mod"]):not(.t-Button) { color: var(--ds-link); }
+
+/* ---------- APEX Universal Theme regions, forms and interactive reports ---------- */
+.capitra-app-content .t-Region-header {
+  background: #fff !important;
+  color: var(--ds-ink) !important;
+  border-bottom: 1px solid var(--ds-line-soft) !important;
+  border-radius: 4px 4px 0 0 !important;
+  padding: 10px 16px !important;
+}
+.capitra-app-content .t-Region-header::before,
+.capitra-app-content .t-Region-header::after { display: none !important; }
+.capitra-app-content .t-Region-title { color: var(--ds-ink) !important; font-size: 14px !important; font-weight: 700 !important; }
+.capitra-app-content .t-Form-label { color: var(--ds-muted) !important; font-size: 12px !important; font-weight: 400 !important; }
+.capitra-app-content .t-Form-field input:not([type=checkbox]):not([type=radio]),
+.capitra-app-content .t-Form-field select,
+.capitra-app-content .t-Form-field textarea {
+  border: 1px solid #c9c9c9 !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+.capitra-app-content .t-Form-field input:focus,
+.capitra-app-content .t-Form-field select:focus,
+.capitra-app-content .t-Form-field textarea:focus {
+  border-color: var(--ds-brand) !important;
+  box-shadow: 0 0 3px var(--ds-brand) !important;
+  outline: 0 !important;
+}
+.capitra-app-content .a-IRR-header,
+.capitra-app-content table th {
+  background: #fafaf9 !important;
+  color: var(--ds-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  border-color: var(--ds-line) !important;
+}
+.capitra-app-content .a-IRR-headerLink { color: var(--ds-muted) !important; }
+.capitra-app-content .a-IRR-table td { border-color: var(--ds-line-soft) !important; }
+.capitra-app-content .a-IRR-toolbar { background: #fff !important; border-color: var(--ds-line) !important; }
+
+/* text that was white on the dark hero turns ink; muted parts stay grey */
+.capitra-app-content [class*="-hero"] :is(div, span, b, strong, em, small, label, h3, h4, li, dt, dd, a:not([class*="btn"]):not([class*="cta"])) {
+  color: inherit;
+  text-shadow: none !important;
+}
+.capitra-app-content [class*="-hero"] [class*="-kpi"],
+.capitra-app-content [class*="-hero"] [class*="-stat"] { color: var(--ds-ink) !important; }
+.capitra-app-content [class*="-hero"] [class*="-kpi"] small,
+.capitra-app-content [class*="-hero"] [class*="-kpi"] span,
+.capitra-app-content [class*="-hero"] [class*="-stat"] span { color: var(--ds-muted) !important; }
+.capitra-app-content [class*="-hero"] [class*="-kpi"] b,
+.capitra-app-content [class*="-hero"] [class*="-kpi"] strong { color: var(--ds-ink) !important; font-weight: 300 !important; font-size: 22px !important; }
+
+/* sections that slid up under the old hero start below it now */
+.capitra-app-content [class$="-hero"] { height: auto !important; max-height: none !important; }
+.capitra-app-content [class$="-hero"] + *,
+.capitra-app-content [class$="-hero"] + [class*="-wrap"] > :first-child,
+.capitra-app-content [class*="-wrap"] > [class*="-pipe"]:first-child { margin-top: 12px !important; }
+.capitra-app-content [class*="-hero"] a:not([class*="btn"]) { color: var(--ds-link) !important; }
+
+.capitra-app-content .fx202-head h2 { color: var(--ds-ink) !important; font-size: 20px !important; font-weight: 700 !important; margin: 0 0 2px !important; }
+.capitra-app-content .fx202-head p,
+.capitra-app-content .fx202-steps span { color: var(--ds-muted) !important; }
+.capitra-app-content .fx202-steps .on,
+.capitra-app-content .fx202-steps .on span { color: var(--ds-ink) !important; font-weight: 600 !important; }
+.capitra-app-content .fx202-steps b { background: #ecebea !important; color: var(--ds-ink) !important; }
+.capitra-app-content .fx202-steps .on b { background: var(--ds-brand) !important; color: #fff !important; }
+.capitra-app-content .t-Region-body { border-radius: 0 0 4px 4px !important; }
