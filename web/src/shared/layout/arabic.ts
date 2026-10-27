@@ -107,7 +107,7 @@ export const AR: Record<string, string> = {
   Edit: 'تعديل', View: 'عرض', 'No records found.': 'لا توجد سجلات.', Role: 'الدور', Permissions: 'الصلاحيات',
   'All permissions': 'كل الصلاحيات', 'permission(s)': 'صلاحية', 'Add role': 'إضافة دور', 'Role name': 'اسم الدور', Create: 'إنشاء',
   'Save Changes': 'حفظ التغييرات', User: 'المستخدم', 'Employee no.': 'الرقم الوظيفي', Department: 'الإدارة',
-  'Reset password': 'إعادة تعيين كلمة المرور', 'Reference Data': 'البيانات المرجعية', Code: 'الرمز',
+  'Reset password': 'إعادة تعيين كلمة المرور', 'No permission': 'لا توجد صلاحية', 'Reference Data': 'البيانات المرجعية', Code: 'الرمز',
   'Name (EN)': 'الاسم (إنجليزي)', 'Name (AR)': 'الاسم (عربي)', 'Decimal Places': 'المنازل العشرية',
 }
 

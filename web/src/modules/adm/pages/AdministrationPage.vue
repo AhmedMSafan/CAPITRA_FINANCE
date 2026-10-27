@@ -25,11 +25,12 @@
         </div>
         <div class="fm-body"><h3>{{ tr(sec.title) }}</h3><p>{{ tr(sec.description) }}</p></div>
         <div class="ad-links">
-          <component :is="item.route ? 'router-link' : 'div'" v-for="item in sec.items" :key="item.title" :to="item.route" class="ad-link"
-                     :class="{ 'is-off': !item.route }" :aria-disabled="item.route ? undefined : 'true'">
+          <component :is="link(item) ? 'router-link' : 'div'" v-for="item in sec.items" :key="item.title" :to="link(item) ? item.route : undefined" class="ad-link"
+                     :class="{ 'is-off': !link(item) }" :aria-disabled="link(item) ? undefined : 'true'">
             <i :class="item.icon" class="ad-li"></i>
             <span class="ad-lc"><b>{{ tr(item.title) }}</b><small>{{ tr(item.description) }}</small></span>
-            <i v-if="item.route" class="pi pi-chevron-right ad-arr"></i>
+            <i v-if="link(item)" class="pi pi-chevron-right ad-arr"></i>
+            <span v-else-if="item.route" class="ad-soon ad-noperm"><i class="pi pi-lock"></i> {{ tr('No permission') }}</span>
             <span v-else class="ad-soon">{{ tr('Coming soon') }}</span>
           </component>
         </div>
@@ -42,6 +43,7 @@
 
 <script setup lang="ts">
 import { language, tr } from '@/shared/layout/language'
+import { hasPermission } from '@/shared/auth/session'
 import { onMounted, ref } from 'vue'
 import { getAdminUsers } from '@/modules/sec/services/adminUserService'
 import { getAdminRoles } from '@/modules/sec/services/adminRoleService'
@@ -54,7 +56,7 @@ const icon = (paths: string, size = 24) =>
 
 const ar = language.value === 'AR'
 
-type SetupItem = { title: string; description: string; icon: string; route?: string }
+type SetupItem = { title: string; description: string; icon: string; route?: string; perm?: string }
 type SetupSection = { title: string; description: string; icon: string; color: string; tint: string; items: SetupItem[]; viewAll?: string }
 
 // FINOVA_FINANCEING AdminHomePage: its sections and items in its order. An item opens this app's page when it has one;
@@ -80,9 +82,9 @@ const sections: SetupSection[] = [
   {
     title: 'Accounting Setup', description: 'Maintain GL, posting and accounting period configuration.', icon: 'pi pi-book', color: '#B4570E', tint: '#FFF1E6',
     items: [
-      { title: 'GL Account Setup', description: 'Maintain chart of accounts and account mappings.', icon: 'pi pi-book', route: '/gl/chart-of-accounts' },
-      { title: 'Accounting Periods', description: 'Define and manage accounting periods.', icon: 'pi pi-calendar', route: '/gl/accounting-periods' },
-      { title: 'Posting Configuration', description: 'Maintain posting rules and accounting settings.', icon: 'pi pi-cog', route: '/gl/rule-sets' }
+      { title: 'GL Account Setup', description: 'Maintain chart of accounts and account mappings.', icon: 'pi pi-book', route: '/gl/chart-of-accounts', perm: 'GL.SETUP.VIEW' },
+      { title: 'Accounting Periods', description: 'Define and manage accounting periods.', icon: 'pi pi-calendar', route: '/gl/accounting-periods', perm: 'GL.SETUP.VIEW' },
+      { title: 'Posting Configuration', description: 'Maintain posting rules and accounting settings.', icon: 'pi pi-cog', route: '/gl/rule-sets', perm: 'GL.SETUP.VIEW' }
     ]
   },
   {
@@ -112,13 +114,16 @@ const sections: SetupSection[] = [
   {
     title: 'System Setup', description: 'Manage system configuration and application parameters.', icon: 'pi pi-desktop', color: '#014B55', tint: '#E6F0F1',
     items: [
-      { title: 'User Management', description: 'Maintain system users and access configuration.', icon: 'pi pi-users', route: '/admin/users' },
-      { title: 'Role Management', description: 'Configure roles and application permissions.', icon: 'pi pi-shield', route: '/admin/roles' },
+      { title: 'User Management', description: 'Maintain system users and access configuration.', icon: 'pi pi-users', route: '/admin/users', perm: 'SEC.USER.ADMIN' },
+      { title: 'Role Management', description: 'Configure roles and application permissions.', icon: 'pi pi-shield', route: '/admin/roles', perm: 'SEC.USER.ADMIN' },
       { title: 'System Parameters', description: 'Maintain application parameters.', icon: 'pi pi-cog' }
     ]
   }
 ]
 const live = (sec: SetupSection) => sec.items.some((i) => i.route)
+// the item opens only for a user with its permission (the API checks it again); otherwise it says so
+const allowed = (item: SetupItem) => !item.perm || hasPermission(item.perm)
+const link = (item: SetupItem) => !!item.route && allowed(item)
 const today = new Date().toLocaleDateString(ar ? 'ar-EG-u-nu-latn' : undefined, { day: 'numeric', month: 'short' })
 const activeUsers = ref<number | null>(null)
 const roles = ref<number | null>(null)
@@ -144,5 +149,8 @@ onMounted(() => {
 .ad-link.is-off:hover { border-color: var(--fm-line); background: #FBFCFD; }
 .ad-link.is-off .ad-li, .ad-link.is-off .ad-lc { filter: grayscale(.55); opacity: .8; }
 .ad-soon { flex: 0 0 auto; font-size: 11.5px; font-weight: 700; color: #9A4F08; background: #FFF4E5; border-radius: 99px; padding: 3px 9px; white-space: nowrap; }
+/* a link the user has no permission for */
+.ad-noperm { color: #C8321F; background: #FDECEA; }
+.ad-noperm i { font-size: 10px; }
 html[dir=rtl] .ad-arr { transform: scaleX(-1); }
 </style>
