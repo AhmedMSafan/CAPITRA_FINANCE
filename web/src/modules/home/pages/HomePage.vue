@@ -1,789 +1,473 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter, type RouteLocationRaw } from 'vue-router'
 import { getUser } from '@/shared/auth/session'
-import { formatDate, formatWeekday } from '@/shared/format/datetime'
+import { formatDate, formatDateTime, todayInCairo } from '@/shared/format/datetime'
+import { workflowService } from '@/modules/wfe/services/workflowService'
+import type { WorkflowInboxTask } from '@/modules/wfe/models/workflow'
 
 type BusinessModule = {
   code: string
   title: string
   description: string
   route: string
-  tone: 'crm' | 'factoring' | 'leasing' | 'mortgage' | 'admin'
   icon: string
-  enabled: boolean
+  tone: 'slate' | 'gold'
+  // Inbox MODULE_CODE values that belong to this module.
+  inboxCodes: string[]
 }
 
-const searchText = ref('')
-const user = getUser()
+type Shortcut = { title: string; hint: string; icon: string; to: RouteLocationRaw; tone?: 'gold' }
 
+const router = useRouter()
+const user = getUser()
 const displayName = user?.fullName?.trim() || user?.userName?.trim() || 'CAPITRA User'
 const firstName = displayName.split(/\s+/)[0] ?? 'User'
 
-// The APEX applications being rebuilt. A module is enabled when its first screens ship.
+const longDate = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Africa/Cairo', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+}).format(new Date()).replace(',', ' ·')
+
+// The APEX applications being rebuilt.
 const modules: BusinessModule[] = [
   {
     code: 'MORTGAGE',
     title: 'Portfolio Acquisition',
-    description: 'Mortgage portfolio purchase: data load, AML, inquiry, legal, valuation, coverage, financial and board review, disbursement.',
+    description: 'Data load, AML, inquiry, legal, valuation, coverage, board review and disbursement.',
     route: '/mortgage',
-    tone: 'mortgage',
     icon: 'pi pi-home',
-    enabled: true
+    tone: 'slate',
+    inboxCodes: ['MORTGAGE', 'MTG']
   },
   {
-    code: 'MORTGAGE_FINANCE',
+    code: 'MORTGAGE FINANCE',
     title: 'Mortgage Finance',
-    description: 'Fund-supported mortgage finance: Fund file intake, credit, subsidy, offer, contract, disbursement, servicing and collections.',
+    description: 'Fund file intake, credit, subsidy, offer, contract, servicing and collections.',
     route: '/mortgage-finance',
-    tone: 'mortgage',
     icon: 'pi pi-building',
-    enabled: true
+    tone: 'slate',
+    inboxCodes: ['MORTGAGE_FINANCE', 'MFF']
   },
   {
     code: 'ACCOUNTING',
     title: 'Accounting',
-    description: 'Chart of accounts, accounting periods, posting rules and general ledger transactions.',
+    description: 'Chart of accounts, periods, posting rules and general ledger transactions.',
     route: '/gl',
-    tone: 'crm',
     icon: 'pi pi-book',
-    enabled: true
+    tone: 'slate',
+    inboxCodes: ['ACCOUNTING', 'GL']
   },
   {
     code: 'CHEQUES',
     title: 'Cheques Wallet',
     description: 'Cheque batches, cheque movements and collection status.',
     route: '/cheque-wallet',
-    tone: 'leasing',
     icon: 'pi pi-wallet',
-    enabled: true
-  },
+    tone: 'gold',
+    inboxCodes: ['CHEQUES', 'CHQ']
+  }
 ]
 
-const now = new Date()
-const todayCard = { day: formatWeekday(now), date: formatDate(now) }
+const createShortcuts: Shortcut[] = [
+  { title: 'Portfolio cases', hint: 'Open the mortgage portfolio cases', icon: 'pi pi-folder-open', to: { name: 'mtg-201' } },
+  { title: 'Mortgage Finance', hint: 'Fund intake and applications', icon: 'pi pi-file-plus', to: '/mortgage-finance' },
+  { title: 'Journal entry', hint: 'Enter a manual GL journal', icon: 'pi pi-pencil', to: '/gl/journal-entry' },
+  { title: 'Cheque batch upload', hint: 'Add a new cheque batch', icon: 'pi pi-wallet', to: { name: 'chq-120' }, tone: 'gold' }
+]
 
-const filteredModules = computed(() => {
-  const q = searchText.value.trim().toLowerCase()
-  if (!q) return modules
+const workShortcuts: Shortcut[] = [
+  { title: 'My inbox', hint: 'All tasks assigned to you', icon: 'pi pi-inbox', to: '/workflow/inbox' },
+  { title: 'Workflow engine', hint: 'Processes, steps and roles', icon: 'pi pi-sitemap', to: '/workflowengine', tone: 'gold' },
+  { title: 'Financial statements', hint: 'Trial balance and reports', icon: 'pi pi-chart-bar', to: '/gl/financial-statements' },
+  { title: 'Administration', hint: 'Users, roles and setup', icon: 'pi pi-cog', to: '/admin' }
+]
 
-  return modules.filter(m =>
-    m.code.toLowerCase().includes(q) ||
-    m.title.toLowerCase().includes(q) ||
-    m.description.toLowerCase().includes(q)
-  )
+const tasks = ref<WorkflowInboxTask[]>([])
+const loading = ref(true)
+const loadError = ref('')
+const filter = ref<'all' | 'overdue' | 'today' | 'new'>('all')
+const today = todayInCairo()
+
+const dueDay = (t: WorkflowInboxTask) => (t.dueDate ? t.dueDate.slice(0, 10) : '')
+const isOverdue = (t: WorkflowInboxTask) => !!dueDay(t) && dueDay(t) < today
+const isDueToday = (t: WorkflowInboxTask) => dueDay(t) === today
+const isNew = (t: WorkflowInboxTask) => (t.status || '').toUpperCase() === 'OPEN'
+
+const counts = computed(() => ({
+  all: tasks.value.length,
+  overdue: tasks.value.filter(isOverdue).length,
+  today: tasks.value.filter(isDueToday).length,
+  new: tasks.value.filter(isNew).length
+}))
+
+const shown = computed(() => {
+  const list = tasks.value.filter((t) =>
+    filter.value === 'overdue' ? isOverdue(t) :
+    filter.value === 'today' ? isDueToday(t) :
+    filter.value === 'new' ? isNew(t) : true)
+  return list.slice(0, 8)
+})
+
+function moduleOf(t: WorkflowInboxTask) {
+  const code = (t.moduleCode || '').toUpperCase()
+  return modules.find((m) => m.inboxCodes.includes(code))
+}
+
+function moduleStats(m: BusinessModule) {
+  const mine = tasks.value.filter((t) => moduleOf(t) === m)
+  return { tasks: mine.length, overdue: mine.filter(isOverdue).length }
+}
+
+function statusOf(t: WorkflowInboxTask): { label: string; cls: string } {
+  if (isOverdue(t)) return { label: 'Overdue', cls: 'late' }
+  if (isDueToday(t)) return { label: 'Due today', cls: 'soon' }
+  const s = (t.status || '').toUpperCase()
+  if (s === 'OPEN') return { label: 'New', cls: 'new' }
+  if (s === 'CLAIMED' || s === 'IN_PROGRESS') return { label: 'In progress', cls: 'prog' }
+  return { label: s.replace(/_/g, ' ').toLowerCase() || '—', cls: 'prog' }
+}
+
+function openTask(t: WorkflowInboxTask) {
+  router.push({ name: 'workflow-task', params: { inboxId: t.inboxId } })
+}
+
+onMounted(async () => {
+  try {
+    tasks.value = await workflowService.getMyInbox()
+  } catch {
+    loadError.value = 'Your inbox could not be loaded.'
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 
 <template>
-  <div class="capitra-home-page">
-    <aside class="home-sidebar">
-      <nav class="home-nav">
-        <RouterLink to="/" class="home-nav-item">
-          <i class="pi pi-home"></i><span>Home</span>
+  <div class="home">
+    <section class="welcome">
+      <div>
+        <small>{{ longDate }}</small>
+        <h1>Welcome back, {{ firstName }}</h1>
+        <p>Integrated Financing Solutions for a Smarter Tomorrow</p>
+      </div>
+      <div class="kpis">
+        <RouterLink to="/workflow/inbox" class="kpi"><strong>{{ counts.all }}</strong><span>My open tasks</span></RouterLink>
+        <button type="button" class="kpi" @click="filter = 'overdue'"><strong class="warn">{{ counts.overdue }}</strong><span>Overdue</span></button>
+        <button type="button" class="kpi" @click="filter = 'today'"><strong>{{ counts.today }}</strong><span>Due today</span></button>
+      </div>
+    </section>
+
+    <section class="mods">
+      <RouterLink v-for="m in modules" :key="m.code" :to="m.route" class="mod" :class="`mod--${m.tone}`">
+        <div class="mod__top">
+          <span class="mod__ic"><i :class="m.icon"></i></span>
+          <span class="mod__code">{{ m.code }}</span>
+        </div>
+        <h3>{{ m.title }}</h3>
+        <p>{{ m.description }}</p>
+        <div class="mod__meta">
+          <div><strong>{{ moduleStats(m).tasks }}</strong><span>My tasks</span></div>
+          <div><strong :class="{ warn: moduleStats(m).overdue }">{{ moduleStats(m).overdue }}</strong><span>Overdue</span></div>
+        </div>
+        <div class="mod__go">Open module <i class="pi pi-arrow-right"></i></div>
+      </RouterLink>
+    </section>
+
+    <section class="sec">
+      <div class="sec__head">
+        <div><h2>My inbox</h2><p>Tasks assigned to you or your roles</p></div>
+        <div class="tabs">
+          <button type="button" :class="{ on: filter === 'all' }" @click="filter = 'all'">All {{ counts.all }}</button>
+          <button type="button" :class="{ on: filter === 'overdue' }" @click="filter = 'overdue'">Overdue {{ counts.overdue }}</button>
+          <button type="button" :class="{ on: filter === 'today' }" @click="filter = 'today'">Due today {{ counts.today }}</button>
+          <button type="button" :class="{ on: filter === 'new' }" @click="filter = 'new'">New {{ counts.new }}</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <table>
+          <thead>
+            <tr><th>Task</th><th>Module</th><th>Received</th><th>Due</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr v-if="loading"><td colspan="6" class="empty">Loading your tasks…</td></tr>
+            <tr v-else-if="loadError"><td colspan="6" class="empty">{{ loadError }}</td></tr>
+            <tr v-else-if="!shown.length"><td colspan="6" class="empty">No tasks here. You are all caught up.</td></tr>
+            <tr v-for="t in shown" v-else :key="t.inboxId">
+              <td>
+                <div class="tk">
+                  <span class="tk__ic"><i :class="moduleOf(t)?.icon ?? 'pi pi-check-square'"></i></span>
+                  <div><b>{{ t.stepName || t.subject || 'Task' }}</b><small>{{ t.entityRef || t.workflowName || '' }}</small></div>
+                </div>
+              </td>
+              <td><span class="mtag">{{ moduleOf(t)?.title ?? (t.moduleCode || '—') }}</span></td>
+              <td>{{ formatDateTime(t.createdOn) }}</td>
+              <td>{{ t.dueDate ? formatDate(t.dueDate) : '—' }}</td>
+              <td><span class="st" :class="statusOf(t).cls">{{ statusOf(t).label }}</span></td>
+              <td class="r"><button type="button" class="open" @click="openTask(t)">Open <i class="pi pi-arrow-right"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="panel__foot">
+          <span>Showing {{ shown.length }} of {{ counts.all }} tasks</span>
+          <RouterLink to="/workflow/inbox">Open full inbox <i class="pi pi-arrow-right"></i></RouterLink>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec__head"><div><h2>Shortcuts</h2><p>Start the most common work in one click</p></div></div>
+      <div class="grp">Create and process</div>
+      <div class="qa">
+        <RouterLink v-for="s in createShortcuts" :key="s.title" :to="s.to" class="q" :class="{ 'q--gold': s.tone === 'gold' }">
+          <span class="q__ic"><i :class="s.icon"></i></span>
+          <div><b>{{ s.title }}</b><small>{{ s.hint }}</small></div>
         </RouterLink>
-
-        <template v-for="module in modules" :key="module.code">
-          <RouterLink v-if="module.enabled" :to="module.route" class="home-nav-item">
-            <i :class="module.icon"></i><span>{{ module.title }}</span>
-          </RouterLink>
-          <div v-else class="home-nav-item is-disabled">
-            <i :class="module.icon"></i><span>{{ module.title }}</span>
-          </div>
-        </template>
-      </nav>
-    </aside>
-
-    <main class="home-main">
-      <!-- PERSONAL WORKSPACE HEADER -->
-      <section class="workspace-header">
-        <div class="workspace-brand">
-          <strong class="workspace-capitra">CAPITRA</strong>
-          <span class="workspace-slogan">
-            Integrated Financing Solutions for a Smarter Tomorrow
-          </span>
-        </div>
-
-        <div class="workspace-user">
-          <span class="workspace-welcome">Welcome {{ firstName }}</span>
-          <span class="workspace-subtitle">Your CAPITRA workspace</span>
-        </div>
-
-        <label class="workspace-search">
-          <i class="pi pi-search"></i>
-          <input
-            v-model="searchText"
-            type="text"
-            placeholder="Search modules..."
-          />
-          <span class="shortcut-key">Ctrl + K</span>
-        </label>
-
-        <div class="workspace-smart-actions">
-          <div class="smart-item smart-item--today">
-            <span class="smart-icon">
-              <i class="pi pi-calendar"></i>
-            </span>
-            <span class="smart-copy">
-              <small>{{ todayCard.day }}</small>
-              <strong>{{ todayCard.date }}</strong>
-            </span>
-          </div>
-
-          <RouterLink to="/workflow/inbox" class="smart-item smart-item--inbox">
-            <span class="smart-icon">
-              <i class="pi pi-inbox"></i>
-            </span>
-            <span class="smart-copy">
-              <small>Workflow</small>
-              <strong>My Inbox</strong>
-            </span>
-            <i class="pi pi-angle-right smart-arrow"></i>
-          </RouterLink>
-        </div>
-      </section>
-
-      <!-- PRIMARY BUSINESS MODULES -->
-      <section class="business-section">
-        <div class="section-heading">
-          <span class="section-marker section-marker--orange"></span>
-          <div>
-            <h2>Business Modules</h2>
-            <p>Open a CAPITRA business area</p>
-          </div>
-        </div>
-
-        <div class="modules-grid">
-          <template v-for="module in filteredModules" :key="module.code">
-            <RouterLink
-              v-if="module.enabled"
-              :to="module.route"
-              class="business-card"
-              :class="`business-card--${module.tone}`"
-            >
-              <div class="business-card-head">
-                <div class="business-icon"><i :class="module.icon"></i></div>
-                <span class="module-code">{{ module.code }}</span>
-              </div>
-
-              <div class="business-card-body">
-                <h3>{{ module.title }}</h3>
-                <p>{{ module.description }}</p>
-              </div>
-
-              <div class="business-card-action">
-                <span>Open Module</span>
-                <i class="pi pi-arrow-right"></i>
-              </div>
-            </RouterLink>
-
-            <div
-              v-else
-              class="business-card is-disabled"
-              :class="`business-card--${module.tone}`"
-            >
-              <div class="business-card-head">
-                <div class="business-icon"><i :class="module.icon"></i></div>
-                <span class="module-code">{{ module.code }}</span>
-              </div>
-
-              <div class="business-card-body">
-                <h3>{{ module.title }}</h3>
-                <p>{{ module.description }}</p>
-              </div>
-
-              <div class="business-card-action">
-                <span>Coming Soon</span>
-                <i class="pi pi-lock"></i>
-              </div>
-            </div>
-          </template>
-        </div>
-      </section>
-    </main>
+      </div>
+      <div class="grp">Work and review</div>
+      <div class="qa">
+        <RouterLink v-for="s in workShortcuts" :key="s.title" :to="s.to" class="q" :class="{ 'q--gold': s.tone === 'gold' }">
+          <span class="q__ic"><i :class="s.icon"></i></span>
+          <div><b>{{ s.title }}</b><small>{{ s.hint }}</small></div>
+        </RouterLink>
+      </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.capitra-home-page,
-.capitra-home-page * {
-  box-sizing: border-box;
-}
-
-.capitra-home-page {
-  height: calc(100vh - 78px);
-  display: grid;
-  grid-template-columns: 218px minmax(0, 1fr);
-  overflow: hidden;
-  background: var(--cap-bg);
-  color: var(--cap-navy);
+.home {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 26px 24px 48px;
   font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #14232b;
 }
 
-/* SIDEBAR */
-.home-sidebar {
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 18px 14px;
-  background: #fff;
-  border-right: 1px solid var(--cap-border);
-  overflow-y: auto;
-}
+a { text-decoration: none; color: inherit; }
 
-.home-nav {
+.welcome {
+  position: relative;
+  overflow: hidden;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.home-nav-item,
-.support-btn {
-  height: 48px;
-  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 14px;
-  padding: 0 15px;
-  border: 0;
-  border-radius: 11px;
-  background: transparent;
-  color: var(--cap-navy);
-  text-decoration: none;
-  font: inherit;
-  font-size: 13.5px;
-  font-weight: 700;
+  gap: 24px;
+  padding: 30px 32px;
+  border-radius: 20px;
+  color: #fff;
+  background:
+    radial-gradient(600px 260px at 100% 0%, rgba(224, 176, 74, .22), transparent 60%),
+    linear-gradient(120deg, #16242f 0%, #243b4a 100%);
 }
 
-.home-nav-item i,
-.support-btn i {
-  width: 22px;
-  text-align: center;
-  font-size: 18px;
-}
+.welcome small { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #f3d58c; }
+.welcome h1 { margin: 8px 0 6px; font-size: 30px; font-weight: 800; }
+.welcome p { margin: 0; font-size: 14.5px; color: #c3ced6; }
 
-.home-nav-item:hover,
-.support-btn:hover {
-  background: var(--cap-bg);
-}
+.kpis { display: flex; gap: 12px; }
 
-.home-nav-item.router-link-exact-active {
-  background: linear-gradient(90deg, var(--cap-warning-bg), var(--cap-primary-tint));
-  box-shadow: inset 3px 0 0 var(--cap-accent);
-}
-
-.home-nav-item.router-link-exact-active i {
-  color: var(--cap-accent-dark);
-}
-
-.home-nav-item.is-disabled {
-  opacity: .55;
-}
-
-.support-btn {
-  margin-top: auto;
+.kpi {
+  min-width: 128px;
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .10);
+  color: #fff;
+  font-family: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
-/* MAIN */
-.home-main {
-  min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 12px 18px 22px;
-}
+.kpi:hover { background: rgba(255, 255, 255, .16); }
+.kpi strong { display: block; font-size: 26px; font-weight: 700; }
+.kpi strong.warn { color: #fcd34d; }
+.kpi span { font-size: 12px; color: #c3ced6; }
 
-/* MAIN CONTENT - SIMPLE FLAT HIERARCHY */
-.home-main {
-  min-width: 0;
-  padding: 20px 22px 28px;
-  background: var(--cap-bg);
-}
+.mods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin-top: 24px; }
 
-/* PERSONAL WORKSPACE HEADER */
-.workspace-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) auto;
-  grid-template-areas:
-    "brand user"
-    "search smart";
-  gap: 16px 28px;
-  align-items: center;
-  padding: 22px 24px;
-  border: 1px solid var(--cap-border-soft);
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 6px 16px rgba(20, 33, 58, .045);
-}
-
-.workspace-brand {
-  grid-area: brand;
-  min-width: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-}
-
-.workspace-capitra {
-  flex: 0 0 auto;
-  color: var(--cap-heading);
-  font-size: 34px;
-  line-height: 1;
-  font-weight: 900;
-  letter-spacing: .05em;
-}
-
-.workspace-slogan {
-  min-width: 0;
-  color: var(--cap-muted);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.workspace-user {
-  grid-area: user;
-  justify-self: end;
-  text-align: right;
-}
-
-.workspace-welcome {
-  display: block;
-  color: var(--cap-heading);
-  font-size: 14px;
-  font-weight: 850;
-}
-
-.workspace-subtitle {
-  display: block;
-  margin-top: 2px;
-  color: var(--cap-faint);
-  font-size: 9.5px;
-}
-
-.workspace-search {
-  grid-area: search;
-  width: min(520px, 100%);
-  min-width: 0;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 11px 0 14px;
-  border: 1px solid var(--cap-border);
-  border-radius: 11px;
-  background: var(--cap-bg);
-}
-
-.workspace-search > i {
-  color: var(--cap-primary);
-  font-size: 15px;
-}
-
-.workspace-search input {
-  min-width: 0;
-  flex: 1;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--cap-heading);
-  font: inherit;
-  font-size: 12.5px;
-}
-
-.shortcut-key {
-  padding: 4px 8px;
-  border: 1px solid var(--cap-border);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--cap-muted);
-  font-size: 9.5px;
-  font-weight: 700;
-}
-
-.workspace-smart-actions {
-  grid-area: smart;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(185px, 1fr));
-  gap: 12px;
-}
-
-.smart-item {
-  min-height: 58px;
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 18px;
-  align-items: center;
-  gap: 11px;
-  padding: 9px 12px;
-  border: 1px solid var(--cap-border);
-  border-radius: 10px;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgba(17, 60, 102, 0.05);
-  color: inherit;
-  text-decoration: none;
-}
-
-.smart-item--today {
-  grid-template-columns: 44px minmax(0, 1fr);
-  background: linear-gradient(180deg, var(--cap-primary-tint) 0%, var(--cap-primary-tint) 100%);
-}
-
-.smart-item--inbox {
-  background: linear-gradient(180deg, var(--cap-bg) 0%, var(--cap-primary-tint) 100%);
-}
-
-.smart-icon {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: var(--cap-primary-tint);
-  color: var(--cap-primary);
-  font-size: 19px;
-  box-shadow: inset 0 0 0 1px rgba(31, 95, 149, 0.08);
-}
-
-.smart-item--inbox .smart-icon {
-  background: #d9f2eb;
-  color: var(--cap-primary);
-  box-shadow: inset 0 0 0 1px rgba(10, 124, 111, 0.08);
-}
-
-.smart-copy {
-  min-width: 0;
-}
-
-.smart-copy small {
-  display: block;
-  color: var(--cap-faint);
-  font-size: 10px;
-  line-height: 1.2;
-}
-
-.smart-copy strong {
-  display: block;
-  margin-top: 2px;
-  color: var(--cap-ink);
-  font-size: 13px;
-  line-height: 1.2;
-}
-
-.smart-arrow {
-  justify-self: end;
-  color: var(--cap-muted);
-  font-size: 14px;
-}
-
-/* SECTION HEADINGS */
-.quick-access-section {
-  margin-top: 26px;
-}
-
-.business-section {
-  margin-top: 30px;
-}
-
-.section-heading {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 2px 9px;
-}
-
-.section-heading > div {
-  min-width: 0;
-}
-
-.section-heading h2 {
-  margin: 0;
-  color: var(--cap-ink);
-  font-size: 14px;
-  font-weight: 850;
-}
-
-.section-heading p {
-  margin: 2px 0 0;
-  color: var(--cap-muted);
-  font-size: 10px;
-}
-
-.section-marker {
-  width: 4px;
-  height: 18px;
-  border-radius: 999px;
-  background: var(--cap-primary);
-}
-
-.section-marker--orange {
-  background: var(--cap-accent);
-}
-
-/* QUICK ACCESS: thin navigation strip, not competing cards */
-.quick-access-bar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid var(--cap-border-soft);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(20, 33, 58, .035);
-}
-
-.quick-link {
-  min-width: 0;
-  min-height: 60px;
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 18px;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 14px;
-  color: inherit;
-  text-decoration: none;
-  border-right: 1px solid var(--cap-border-soft);
-  transition: background .14s ease;
-}
-
-.quick-link:last-child {
-  border-right: 0;
-}
-
-.quick-link:hover {
-  background: var(--cap-bg);
-}
-
-.quick-link-icon {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  font-size: 15px;
-}
-
-.quick-link-text {
-  min-width: 0;
-}
-
-.quick-link-text strong {
-  display: block;
-  overflow: hidden;
-  color: var(--cap-ink);
-  font-size: 11.5px;
-  font-weight: 800;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.quick-link-text small {
-  display: block;
-  margin-top: 1px;
-  overflow: hidden;
-  color: var(--cap-faint);
-  font-size: 9px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.quick-link-arrow {
-  justify-self: end;
-  color: var(--cap-faint);
-  font-size: 11px;
-}
-
-.quick-link--admin .quick-link-icon { color:var(--cap-success-strong); background:#e3f7eb; }
-.quick-link--tools .quick-link-icon { color:var(--cap-accent-dark); background:var(--cap-warning-bg); }
-.quick-link--platform .quick-link-icon { color:var(--cap-primary); background:var(--cap-primary-tint); }
-.quick-link--workflow .quick-link-icon { color:#6b55b7; background:#eee9fb; }
-
-/* BUSINESS MODULES: visually dominant primary cards */
-.modules-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.business-card {
-  min-height: 238px;
+.mod {
   display: flex;
   flex-direction: column;
-  padding: 18px;
-  border: 1px solid var(--cap-border);
+  padding: 22px;
+  border-top: 3px solid #e0b04a;
   border-radius: 14px;
   background: #fff;
-  color: inherit;
-  text-decoration: none;
-  box-shadow: 0 5px 15px rgba(20, 33, 58, .045);
-  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  box-shadow: 0 2px 4px rgba(11, 37, 48, .05), 0 18px 40px rgba(11, 37, 48, .08);
+  transition: transform .16s ease, box-shadow .16s ease;
 }
 
-.business-card:not(.is-disabled):hover {
-  transform: translateY(-3px);
-  border-color: var(--cap-border);
-  box-shadow: 0 10px 22px rgba(23,62,80,.08);
-}
+.mod:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(11, 37, 48, .06), 0 24px 48px rgba(11, 37, 48, .12); }
 
-.business-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+.mod__top { display: flex; justify-content: space-between; align-items: center; }
 
-.business-icon {
-  width: 44px;
-  height: 44px;
+.mod__ic {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
-  border-radius: 11px;
-}
-
-.business-icon i {
-  font-size: 20px !important;
-}
-
-.module-code {
-  font-size: 9.5px;
-  font-weight: 900;
-  letter-spacing: .045em;
-}
-
-.business-card-body {
-  flex: 1;
-  padding-top: 18px;
-}
-
-.business-card-body h3 {
-  margin: 0;
-  color: var(--cap-ink);
+  background: #f1f5f9;
+  color: #334155;
   font-size: 20px;
-  line-height: 1.15;
-  font-weight: 850;
 }
 
-.business-card-body p {
-  margin: 9px 0 0;
-  color: var(--cap-muted);
+.mod__ic i { font-size: 20px !important; }
+.tk__ic i { font-size: 14px !important; }
+.q__ic i { font-size: 18px !important; }
+.mod--gold .mod__ic { background: #fbf4e3; color: #a87a14; }
+.mod__code { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; color: #94a3b8; }
+.mod h3 { margin: 16px 0 0; font-size: 18px; font-weight: 700; color: #0b2530; }
+.mod p { flex: 1; margin: 8px 0 16px; font-size: 13px; line-height: 1.55; color: #64748b; }
+
+.mod__meta { display: grid; grid-template-columns: 1fr 1fr; padding: 14px 0; margin-bottom: 14px; border-top: 1px solid #e6ebef; }
+.mod__meta div + div { padding-left: 16px; border-left: 1px solid #e6ebef; }
+.mod__meta strong { display: block; font-size: 20px; font-weight: 700; color: #0b2530; }
+.mod__meta strong.warn { color: #b42318; }
+.mod__meta span { font-size: 11.5px; color: #64748b; }
+
+.mod__go { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; font-weight: 700; color: #0b2530; }
+
+.mod__go i {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  font-size: 12px;
+}
+
+.sec { margin-top: 38px; }
+.sec__head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; }
+.sec__head h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.sec__head p { margin: 4px 0 0; font-size: 13px; color: #64748b; }
+
+.tabs { display: flex; gap: 6px; }
+
+.tabs button {
+  padding: 7px 14px;
+  border: 1px solid #e6ebef;
+  border-radius: 9px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.tabs button.on { background: #0b2530; border-color: #0b2530; color: #fff; }
+
+.panel { overflow: hidden; border-radius: 16px; background: #fff; box-shadow: 0 1px 3px rgba(11, 37, 48, .06), 0 8px 24px rgba(11, 37, 48, .05); }
+
+table { width: 100%; border-collapse: collapse; }
+
+th {
+  padding: 14px 20px;
+  border-bottom: 1px solid #e6ebef;
+  background: #f8fafb;
+  text-align: left;
   font-size: 11.5px;
-  line-height: 1.55;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #94a3b8;
 }
 
-.business-card-action {
-  display: flex;
+td { padding: 14px 20px; border-bottom: 1px solid #eef2f4; font-size: 14px; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: #fbfcfd; }
+td.empty { padding: 28px 20px; text-align: center; color: #64748b; }
+td.r { text-align: right; }
+
+.tk { display: flex; align-items: center; gap: 12px; }
+
+.tk__ic {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 14px;
+}
+
+.tk b { display: block; font-size: 14px; }
+.tk small { font-size: 12px; color: #64748b; }
+
+.mtag { padding: 4px 10px; border-radius: 20px; background: #f1f5f9; color: #334155; font-size: 12px; font-weight: 600; white-space: nowrap; }
+
+.st { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.st.new { background: #e0f2fe; color: #0369a1; }
+.st.prog { background: #fbf4e3; color: #a87a14; }
+.st.late { background: #ffe4e6; color: #be123c; }
+.st.soon { background: #fef3c7; color: #b45309; }
+
+.open {
+  display: inline-flex;
+  gap: 6px;
   align-items: center;
-  justify-content: space-between;
-  padding-top: 15px;
-  border-top: 1px solid var(--cap-border-soft);
-  font-size: 11px;
-  font-weight: 800;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: #0b2530;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.business-card--crm {
-  border-top: 3px solid #12a85b;
-}
-.business-card--crm .business-icon {
-  color:#0b9b51;
-  background:#e3f7eb;
-}
-.business-card--crm .module-code,
-.business-card--crm .business-card-action {
-  color:#0b9b51;
+.open i { font-size: 11px; }
+.open:hover { background: #16323f; }
+
+.panel__foot { display: flex; justify-content: space-between; padding: 14px 20px; border-top: 1px solid #e6ebef; background: #f8fafb; font-size: 13px; color: #64748b; }
+.panel__foot a { font-weight: 700; color: #0b2530; }
+.panel__foot a i { font-size: 11px; }
+
+.grp { margin: 20px 0 10px; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; }
+
+.qa { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+
+.q {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 20px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(11, 37, 48, .06), 0 8px 24px rgba(11, 37, 48, .05);
 }
 
-.business-card--factoring {
-  border-top: 3px solid #ff790d;
-}
-.business-card--factoring .business-icon {
-  color:#f26f08;
-  background:var(--cap-warning-bg);
-}
-.business-card--factoring .module-code,
-.business-card--factoring .business-card-action {
-  color:#f26f08;
+.q:hover { border-color: #ecd9a8; }
+
+.q__ic {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 18px;
 }
 
-.business-card--leasing {
-  border-top: 3px solid #48a5ee;
-}
-.business-card--leasing .business-icon {
-  color:#378fd4;
-  background:var(--cap-primary-tint);
-}
-.business-card--leasing .module-code,
-.business-card--leasing .business-card-action {
-  color:#378fd4;
+.q--gold .q__ic { background: #fbf4e3; color: #a87a14; }
+.q b { display: block; margin-top: 2px; font-size: 15px; }
+.q small { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.45; color: #64748b; }
+
+@media (max-width: 1100px) {
+  .mods, .qa { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .welcome { flex-direction: column; align-items: flex-start; }
 }
 
-.business-card--admin {
-  border-top: 3px solid var(--cap-muted);
-}
-.business-card--admin .business-icon {
-  color:var(--cap-muted);
-  background:var(--cap-bg);
-}
-.business-card--admin .module-code,
-.business-card--admin .business-card-action {
-  color:var(--cap-muted);
-}
-
-.business-card--mortgage {
-  border-top: 3px solid var(--cap-primary);
-}
-.business-card--mortgage .business-icon {
-  color:var(--cap-primary);
-  background:var(--cap-primary-tint);
-}
-.business-card--mortgage .module-code,
-.business-card--mortgage .business-card-action {
-  color:var(--cap-primary);
-}
-
-.business-card.is-disabled {
-  opacity: .68;
-  cursor: default;
-}
-@media (max-width: 1240px) {
-  .capitra-home-page {
-    grid-template-columns: 185px minmax(0,1fr);
-  }
-
-  .modules-grid {
-    grid-template-columns: repeat(2, minmax(0,1fr));
-  }
-
-  .glance-grid {
-    grid-template-columns: repeat(2, minmax(0,1fr));
-  }
-
-  .quote-card {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 900px) {
-  .capitra-home-page {
-    height: auto;
-    min-height: 100vh;
-    grid-template-columns: 1fr;
-  }
-
-  .home-sidebar {
-    display: none;
-  }
-
-  .home-main {
-    overflow: visible;
-  }
-
-  .hero-copy {
-    width: 100%;
-    padding: 26px;
-  }
-
-  .hero-art {
-    opacity: .30;
-    inset: 0;
-  }
-
-  .quick-grid,
-  .modules-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 640px) {
+  .mods, .qa { grid-template-columns: 1fr; }
+  .sec__head { flex-direction: column; align-items: flex-start; gap: 10px; }
 }
 </style>

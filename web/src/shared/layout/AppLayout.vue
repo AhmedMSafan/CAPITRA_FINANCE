@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import AppHeader from './AppHeader.vue'
+import HomeHeader from './HomeHeader.vue'
 
 const route = useRoute()
 
@@ -17,7 +18,13 @@ const functionName = computed(() => {
 
 <template>
   <div class="capitra-app-layout">
+    <HomeHeader
+      v-if="route.name === 'home'"
+      :moduleName="moduleName"
+      :functionName="functionName"
+    />
     <AppHeader
+      v-else
       :moduleName="moduleName"
       :functionName="functionName"
     />
