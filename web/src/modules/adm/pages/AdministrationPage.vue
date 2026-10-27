@@ -18,15 +18,20 @@
     <!-- the setup areas of FINOVA_FINANCEING's AdminHomePage that have a page in this app -->
     <div class="fm-sec"><h2>{{ tr('Administration modules') }}</h2></div>
     <div class="fm-grid fm-grid--1">
-      <article v-for="sec in sections" :key="sec.title" class="fm-card fm-card--t2 ad-sec" :style="{ '--c': sec.color, '--cl': sec.tint }">
-        <div class="fm-top"><span class="fm-ico"><i :class="sec.icon"></i></span><span class="fm-pill fm-pill--live">{{ tr('Live') }}</span></div>
+      <article v-for="sec in sections" :key="sec.title" class="fm-card fm-card--t2 ad-sec" :class="{ 'is-off': !live(sec) }" :style="{ '--c': sec.color, '--cl': sec.tint }">
+        <div class="fm-top">
+          <span class="fm-ico"><i :class="sec.icon"></i></span>
+          <span class="fm-pill" :class="live(sec) ? 'fm-pill--live' : 'fm-pill--soon'">{{ tr(live(sec) ? 'Live' : 'Coming soon') }}</span>
+        </div>
         <div class="fm-body"><h3>{{ tr(sec.title) }}</h3><p>{{ tr(sec.description) }}</p></div>
         <div class="ad-links">
-          <router-link v-for="item in sec.items" :key="item.title" :to="item.route" class="ad-link">
+          <component :is="item.route ? 'router-link' : 'div'" v-for="item in sec.items" :key="item.title" :to="item.route" class="ad-link"
+                     :class="{ 'is-off': !item.route }" :aria-disabled="item.route ? undefined : 'true'">
             <i :class="item.icon" class="ad-li"></i>
             <span class="ad-lc"><b>{{ tr(item.title) }}</b><small>{{ tr(item.description) }}</small></span>
-            <i class="pi pi-chevron-right ad-arr"></i>
-          </router-link>
+            <i v-if="item.route" class="pi pi-chevron-right ad-arr"></i>
+            <span v-else class="ad-soon">{{ tr('Coming soon') }}</span>
+          </component>
         </div>
         <div v-if="sec.viewAll" class="fm-foot"><router-link :to="sec.viewAll" class="fm-go">{{ tr('View all lookups') }}<span v-html="icon(ARROW, 16)"></span></router-link></div>
       </article>
@@ -49,12 +54,29 @@ const icon = (paths: string, size = 24) =>
 
 const ar = language.value === 'AR'
 
-type SetupItem = { title: string; description: string; icon: string; route: string }
+type SetupItem = { title: string; description: string; icon: string; route?: string }
 type SetupSection = { title: string; description: string; icon: string; color: string; tint: string; items: SetupItem[]; viewAll?: string }
 
-// FINOVA_FINANCEING AdminHomePage: its sections and items, kept where this app has the page
-// (Product, Charge, Customer and Operations setup, Currencies and System Parameters have none yet)
+// FINOVA_FINANCEING AdminHomePage: its sections and items in its order. An item opens this app's page when it has one;
+// the rest are marked Coming soon.
 const sections: SetupSection[] = [
+  {
+    title: 'Product Setup', description: 'Configure products, events and product processing rules.', icon: 'pi pi-box', color: '#1D5BBF', tint: '#E8F1FF',
+    items: [
+      { title: 'Product Catalog', description: 'Maintain product catalog and product definitions.', icon: 'pi pi-box' },
+      { title: 'Product Event Rules', description: 'Define product events and processing rules.', icon: 'pi pi-sitemap' },
+      { title: 'Business Events', description: 'Maintain business events used by product event rules.', icon: 'pi pi-bolt' },
+      { title: 'Product Parameters', description: 'Maintain product-level configuration and defaults.', icon: 'pi pi-sliders-h' }
+    ]
+  },
+  {
+    title: 'Charge Setup', description: 'Maintain charge definitions, types and pricing configuration.', icon: 'pi pi-wallet', color: '#14734F', tint: '#E7F6EF',
+    items: [
+      { title: 'Charge Components', description: 'Maintain reusable charge components.', icon: 'pi pi-wallet' },
+      { title: 'Charge Component Types', description: 'Maintain charge component classifications.', icon: 'pi pi-tags' },
+      { title: 'Charge Parameters', description: 'Configure charge defaults and calculation settings.', icon: 'pi pi-percentage' }
+    ]
+  },
   {
     title: 'Accounting Setup', description: 'Maintain GL, posting and accounting period configuration.', icon: 'pi pi-book', color: '#B4570E', tint: '#FFF1E6',
     items: [
@@ -64,18 +86,39 @@ const sections: SetupSection[] = [
     ]
   },
   {
+    title: 'Customer Setup', description: 'Maintain customer classifications and configuration.', icon: 'pi pi-users', color: '#5B5BD6', tint: '#EEEEFC',
+    items: [
+      { title: 'Customer Types', description: 'Maintain customer types and classifications.', icon: 'pi pi-user' },
+      { title: 'Customer Segments', description: 'Manage customer segments and criteria.', icon: 'pi pi-users' },
+      { title: 'Customer Parameters', description: 'Configure customer-level defaults and rules.', icon: 'pi pi-sliders-h' }
+    ]
+  },
+  {
+    title: 'Operations Setup', description: 'Configure operational settings and workflow parameters.', icon: 'pi pi-cog', color: '#00636D', tint: '#E6F3F4',
+    items: [
+      { title: 'Locations', description: 'Maintain branches, locations and operational units.', icon: 'pi pi-map-marker' },
+      { title: 'Transaction Rules', description: 'Configure transaction processing rules.', icon: 'pi pi-arrow-right-arrow-left' },
+      { title: 'Operational Parameters', description: 'Maintain operational parameters and defaults.', icon: 'pi pi-sliders-h' }
+    ]
+  },
+  {
     title: 'Reference Data / Lookups', description: 'Maintain common reference data used throughout CAPITRA.', icon: 'pi pi-list', color: '#0E7490', tint: '#E0F2F7',
-    items: [{ title: 'Countries', description: 'Maintain country codes and country information.', icon: 'pi pi-globe', route: '/admin/reference-data/country' }],
+    items: [
+      { title: 'Currencies', description: 'Maintain supported currencies and currency information.', icon: 'pi pi-money-bill' },
+      { title: 'Countries', description: 'Maintain country codes and country information.', icon: 'pi pi-globe', route: '/admin/reference-data/country' }
+    ],
     viewAll: '/admin/reference-data'
   },
   {
     title: 'System Setup', description: 'Manage system configuration and application parameters.', icon: 'pi pi-desktop', color: '#014B55', tint: '#E6F0F1',
     items: [
       { title: 'User Management', description: 'Maintain system users and access configuration.', icon: 'pi pi-users', route: '/admin/users' },
-      { title: 'Role Management', description: 'Configure roles and application permissions.', icon: 'pi pi-shield', route: '/admin/roles' }
+      { title: 'Role Management', description: 'Configure roles and application permissions.', icon: 'pi pi-shield', route: '/admin/roles' },
+      { title: 'System Parameters', description: 'Maintain application parameters.', icon: 'pi pi-cog' }
     ]
   }
 ]
+const live = (sec: SetupSection) => sec.items.some((i) => i.route)
 const today = new Date().toLocaleDateString(ar ? 'ar-EG-u-nu-latn' : undefined, { day: 'numeric', month: 'short' })
 const activeUsers = ref<number | null>(null)
 const roles = ref<number | null>(null)
@@ -97,5 +140,9 @@ onMounted(() => {
 .ad-lc b { display: block; font-size: 14px; font-weight: 700; }
 .ad-lc small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--fm-muted); line-height: 1.4; }
 .ad-arr { color: var(--fm-muted); font-size: 12px; }
+.ad-link.is-off { background: #FBFCFD; cursor: default; }
+.ad-link.is-off:hover { border-color: var(--fm-line); background: #FBFCFD; }
+.ad-link.is-off .ad-li, .ad-link.is-off .ad-lc { filter: grayscale(.55); opacity: .8; }
+.ad-soon { flex: 0 0 auto; font-size: 11.5px; font-weight: 700; color: #9A4F08; background: #FFF4E5; border-radius: 99px; padding: 3px 9px; white-space: nowrap; }
 html[dir=rtl] .ad-arr { transform: scaleX(-1); }
 </style>
