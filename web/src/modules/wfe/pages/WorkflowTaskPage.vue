@@ -217,6 +217,7 @@
 
           <template v-else-if="task.status === 'IN_PROGRESS'">
             This task is in progress. Use Run Task whenever you need to return to the working screen.
+            <template v-if="task.route"> The task is completed from that screen, when its work is done.</template>
           </template>
 
           <template v-else>
@@ -225,7 +226,9 @@
         </div>
       </section>
 
-      <section v-if="task.status === 'IN_PROGRESS'"
+      <!-- a task with a business screen is completed there (the Excel import completes Load Excel, the review pages
+           accept or reject); the panel serves only tasks without a screen -->
+      <section v-if="task.status === 'IN_PROGRESS' && !task.route"
                class="wf-completion-panel">
         <label for="completionComment">
           Completion Comment
@@ -362,7 +365,8 @@
       .split(',')
       .map(action => action.trim().toUpperCase())
       .filter(Boolean)
-      .filter(action => action !== 'CLAIM')
+      // CLAIM and START are the Claim and Run Task buttons, not ways to complete the task
+      .filter(action => action !== 'CLAIM' && action !== 'START')
 
     // Preserve the existing behavior for older workflow tasks that do not
     // contain AllowedActions.

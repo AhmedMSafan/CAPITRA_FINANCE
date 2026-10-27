@@ -123,6 +123,9 @@ public sealed class WfeRuntime(
                 throw new BusinessRuleException("Task is already completed.");
 
             action = action.Trim().ToUpperInvariant();
+            // claiming and starting a task are not outcomes: they never complete it
+            if (action is "CLAIM" or "START")
+                throw new BusinessRuleException($"Action '{action}' does not complete a task.");
             var allowed = (task.AllowedActions ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (allowed.Length > 0 && !allowed.Contains(action, StringComparer.OrdinalIgnoreCase))
                 throw new BusinessRuleException($"Action '{action}' is not allowed for this task.");
