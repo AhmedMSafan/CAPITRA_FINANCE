@@ -2,6 +2,7 @@
 // The one header of every page, as the APEX launcher (App 100) draws it: one flat teal bar with the name and the Menu
 // button (every page of every module) on one side, and the EN / Arabic switch, the orange Inbox button with its count
 // and the signed-in user (employee no., department, roles, sign out) on the other.
+import capitraLogo from '@/assets/capitra-mark.svg'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import { getUser, type SessionUser } from '@/shared/auth/session'
@@ -91,7 +92,7 @@ onBeforeUnmount(() => {
 <template>
   <header class="t-Header shell" :dir="ar ? 'rtl' : 'ltr'">
     <div class="t-Header-branding">
-      <RouterLink :to="{ name: 'home' }" class="fx-brand">CAPITRA</RouterLink>
+      <RouterLink :to="{ name: 'home' }" class="fx-brand" aria-label="CAPITRA Home"><img :src="capitraLogo" alt="" class="fx-logo" />CAPITRA</RouterLink>
       <button type="button" class="fx-btn" aria-haspopup="true" :aria-expanded="menuOpen ? 'true' : 'false'" @click.stop="menuOpen = !menuOpen; userOpen = false">
         {{ t('Menu', 'القائمة') }}
       </button>
@@ -144,7 +145,8 @@ onBeforeUnmount(() => {
   height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 20px;
   background: linear-gradient(180deg, #013F48 0%, #014B55 100%);
 }
-.fx-brand { color: #fff; text-decoration: none; font: 700 16px/1 Inter, Arial, sans-serif; letter-spacing: .01em; }
+.fx-logo { width: 38px; height: 38px; border-radius: 10px; display: block; box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
+.fx-brand { display: inline-flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font: 700 16px/1 Inter, Arial, sans-serif; letter-spacing: .01em; }
 .fx-btn {
   height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .22); background: rgba(255, 255, 255, .06);
   color: #fff; font: 600 13.5px/1 Inter, Arial, sans-serif; cursor: pointer;
