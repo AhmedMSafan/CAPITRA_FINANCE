@@ -239,7 +239,7 @@ onMounted(async () => {
 .home {
   max-width: 1320px;
   margin: 0 auto;
-  padding: 26px 24px 48px;
+  padding: 0 24px 48px;
   font-family: Inter, "Segoe UI", Arial, sans-serif;
   color: #14232b;
 }
@@ -253,12 +253,12 @@ a { text-decoration: none; color: inherit; }
   justify-content: space-between;
   align-items: center;
   gap: 24px;
-  padding: 30px 32px;
-  border-radius: 20px;
+  padding: 28px 32px 32px;
+  border-radius: 0 0 20px 20px;
   color: #fff;
   background:
     radial-gradient(600px 260px at 100% 0%, rgba(224, 176, 74, .22), transparent 60%),
-    linear-gradient(120deg, #16242f 0%, #243b4a 100%);
+    linear-gradient(120deg, #16242f 0%, #1d3140 55%, #243b4a 100%);
 }
 
 .welcome small { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #f3d58c; }

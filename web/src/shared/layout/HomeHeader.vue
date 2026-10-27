@@ -112,17 +112,17 @@
 <template>
   <header class="cap-hdr">
     <div class="cap-hdr__bar">
-      <button type="button" class="cap-hdr__menu-btn" :class="{ 'is-open': menuOpen }"
-              aria-label="Menu" title="Menu (Ctrl+M)"
-              @click="menuOpen = !menuOpen; userOpen = false">
-        <i class="pi" :class="menuOpen ? 'pi-times' : 'pi-bars'"></i>
-        <span>Menu</span>
-      </button>
-
       <RouterLink :to="{ name: 'home' }" class="cap-hdr__brand" aria-label="CAPITRA Home">
         <img :src="capitraLogo" alt="" class="cap-hdr__logo" />
         <span class="cap-hdr__word">CAPITRA<em>FINANCE</em></span>
       </RouterLink>
+
+      <button type="button" class="cap-hdr__menu-btn" :class="{ 'is-open': menuOpen }"
+              aria-label="Menu" title="Menu"
+              @click="menuOpen = !menuOpen; userOpen = false">
+        <i class="pi" :class="menuOpen ? 'pi-times' : 'pi-bars'"></i>
+        <span>Menu</span>
+      </button>
 
       <div v-if="!isHome && props.moduleName" class="cap-hdr__where">
         <small>{{ props.moduleName }}</small>
@@ -133,22 +133,21 @@
         <i class="pi pi-search"></i>
         <input ref="searchInput" v-model="search" type="text" placeholder="Search pages…"
                @input="onSearchInput" @keydown.enter="openFirstMatch" />
-        <kbd>Ctrl K</kbd>
       </label>
 
       <span class="cap-hdr__grow"></span>
 
       <nav class="cap-hdr__tools" aria-label="Shortcuts">
-        <RouterLink :to="{ name: 'home' }" class="cap-hdr__tool" :class="{ 'is-on': isHome }" title="Home">
+        <RouterLink :to="{ name: 'home' }" class="cap-hdr__tool cap-hdr__tool--home" title="Home">
           <i class="pi pi-home"></i>
         </RouterLink>
-        <RouterLink to="/workflowengine" class="cap-hdr__tool" title="Workflow Engine">
+        <RouterLink to="/workflowengine" class="cap-hdr__tool cap-hdr__tool--wf" title="Workflow Engine">
           <i class="pi pi-sitemap"></i>
         </RouterLink>
-        <RouterLink to="/admin" class="cap-hdr__tool" title="Administration">
+        <RouterLink to="/admin" class="cap-hdr__tool cap-hdr__tool--admin" title="Administration">
           <i class="pi pi-cog"></i>
         </RouterLink>
-        <RouterLink to="/workflow/inbox" class="cap-hdr__tool" title="My Inbox">
+        <RouterLink to="/workflow/inbox" class="cap-hdr__tool cap-hdr__tool--inbox" title="My Inbox">
           <i class="pi pi-bell"></i>
           <span v-if="inboxCount" class="cap-hdr__badge">{{ inboxCount }}</span>
         </RouterLink>
@@ -161,11 +160,7 @@
           <span class="cap-hdr__ava">{{ initials }}</span>
           <span class="cap-hdr__who-text">
             <b>{{ displayName }}</b>
-            <small>
-              <i class="pi pi-id-card"></i>{{ employeeNo }}
-              <span class="cap-hdr__dot">·</span>
-              <i class="pi pi-building"></i>{{ department }}
-            </small>
+            <small>Employee: <em>{{ employeeNo }}</em><span class="cap-hdr__dot">|</span>Department: <em>{{ department }}</em></small>
           </span>
           <i class="pi cap-hdr__cv" :class="userOpen ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
         </button>
@@ -203,7 +198,7 @@
       <div v-if="!groups.length" class="cap-hdr__none">No page matches “{{ search }}”.</div>
       <div class="cap-hdr__mega-foot">
         <span>Type in the search box to find a page</span>
-        <span><kbd>Ctrl</kbd> <kbd>M</kbd> opens the menu</span>
+        
       </div>
     </div>
   </header>
@@ -577,6 +572,53 @@
     font-size: 12.5px;
     color: #64748b;
   }
+
+  /* Main page: the bar is the top of the dark welcome card (merged into one block). */
+  .cap-hdr { max-width: 1320px; margin: 18px auto 0; padding: 0 24px; }
+  .cap-hdr__bar {
+    z-index: 2;
+    height: 78px;
+    padding: 0 28px 0 24px;
+    gap: 16px;
+    color: #fff;
+    border-radius: 20px 20px 0 0;
+    background: linear-gradient(120deg, #16242f 0%, #1d3140 100%);
+    box-shadow: none;
+  }
+  .cap-hdr__bar::after { left: 28px; right: 28px; height: 1px; opacity: 1;
+    background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(224,176,74,.45) 50%, rgba(255,255,255,.04)); }
+  .cap-hdr__brand { color: #fff; margin-right: 4px; }
+  .cap-hdr__logo { width: 42px; height: 42px; box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
+  .cap-hdr__word { font-size: 17px; }
+  .cap-hdr__word em { color: #e0b04a; }
+  .cap-hdr__menu-btn { height: 42px; padding: 0 16px 0 14px; background: rgba(224,176,74,.14); color: #f3d58c; box-shadow: inset 0 0 0 1px rgba(224,176,74,.4); font-size: 14px; }
+  .cap-hdr__menu-btn i { font-size: 15px !important; }
+  .cap-hdr__menu-btn:hover, .cap-hdr__menu-btn.is-open { background: rgba(224,176,74,.24); }
+  .cap-hdr__search { height: 44px; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.14); }
+  .cap-hdr__search i { color: #e0b04a; font-size: 15px; }
+  .cap-hdr__search input { color: #fff; font-size: 14.5px; }
+  .cap-hdr__search input::placeholder { color: #a9b8c2; }
+  .cap-hdr__search:focus-within { background: rgba(255,255,255,.12); }
+  .cap-hdr__tools { gap: 10px; }
+  .cap-hdr__tool { width: 46px; height: 46px; border-radius: 12px; font-size: 19px; }
+  .cap-hdr__tool i { font-size: 21px !important; }
+  .cap-hdr__tool--home { background: rgba(45,212,191,.16); color: #5eead4; }
+  .cap-hdr__tool--wf { background: rgba(251,191,36,.16); color: #fcd34d; }
+  .cap-hdr__tool--admin { background: rgba(147,197,253,.16); color: #93c5fd; }
+  .cap-hdr__tool--inbox { background: rgba(253,164,175,.16); color: #fda4af; }
+  .cap-hdr__tool:hover { filter: brightness(1.25); background-color: rgba(255,255,255,.14); }
+  .cap-hdr__badge { box-shadow: 0 0 0 2px #1a2c38; }
+  .cap-hdr__sep { background: rgba(255,255,255,.14); }
+  .cap-hdr__who:hover { background: rgba(255,255,255,.07); }
+  .cap-hdr__ava { width: 42px; height: 42px; font-size: 14px; background: linear-gradient(135deg, #e0b04a, #b8862a); color: #16242f; box-shadow: none; }
+  .cap-hdr__who-text b { color: #fff; font-size: 14.5px; }
+  .cap-hdr__who-text small { color: #a9b8c2; font-size: 12.5px; gap: 4px; }
+  .cap-hdr__who-text small em { font-style: normal; color: #fff; font-weight: 600; }
+  .cap-hdr__dot { margin: 0 6px; opacity: .35; }
+  .cap-hdr__cv { color: #a9b8c2; font-size: 12px; }
+  .cap-hdr__mega { left: 24px; right: 24px; top: 86px; }
+  .cap-hdr__user-menu { top: 62px; }
+  .cap-hdr__shade { inset: 0; }
 
   @media (max-width: 1180px) {
     .cap-hdr__where { display: none; }
