@@ -1,5 +1,6 @@
 using Capitra.Api.Security;
 using Capitra.Application.Modules.Apex;
+using Capitra.Application.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +23,9 @@ public sealed class ApexController(ApexProcessRegistry registry, IAuthorizationS
             return NotFound();
 
         var allowed = await authorization.AuthorizeAsync(User, PermissionPolicyProvider.PolicyPrefix + handler.Permission);
+        // on a workflow step page, the step's permission does as well
+        if (!allowed.Succeeded && StepPermissions.For(app, page, handler.Permission) is { } step)
+            allowed = await authorization.AuthorizeAsync(User, PermissionPolicyProvider.PolicyPrefix + step);
         if (!allowed.Succeeded)
             return Forbid();
 
