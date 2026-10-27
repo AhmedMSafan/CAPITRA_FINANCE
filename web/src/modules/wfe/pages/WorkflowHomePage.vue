@@ -52,7 +52,6 @@
                   <small>{{ t.claimedBy ? tr('Claimed by') + ' ' + (t.claimedByName || t.claimedBy) : tr('Not claimed') }}</small>
                 </span>
                 <span class="wh-r">
-                  <span class="wo-pill" :class="'wo-pill--' + tsc(t.status)">{{ trStatus(t.status) }}</span>
                   <small class="wh-due" :class="'wh-due--' + (t.dueDate ? (new Date(t.dueDate).getTime() < now ? 'bad' : 'ok') : 'na')">{{ t.dueDate ? dt(t.dueDate) : tr('No due date') }}</small>
                 </span>
               </RouterLink>
@@ -222,11 +221,11 @@ function dur(h: number) {
   const m = Math.round(Math.abs(h) * 60)
   return m >= 1440 ? `${Math.trunc(m / 1440)}d ${Math.trunc((m % 1440) / 60)}h` : m >= 60 ? `${Math.trunc(m / 60)}h ${m % 60}m` : `${m}m`
 }
-const tsc = (s: string) => ({ OPEN: 'open', CLAIMED: 'claim', IN_PROGRESS: 'prog', COMPLETED: 'ok', REASSIGNED: 'ret' })[s.toUpperCase()] ?? 'na'
 const isc = (s: string) => ({ IN_PROGRESS: 'prog', COMPLETED: 'ok', REJECTED: 'bad', CANCELLED: 'na', RETURNED: 'ret', SUSPENDED: 'warn' })[s.toUpperCase()] ?? 'open'
 
 const user = getUser()
-const userLabel = nice(user?.userName || '')
+// the signed-in user's full name, the user name when it has none
+const userLabel = user?.fullName?.trim() || nice(user?.userName || '')
 const hour = new Date().getHours()
 const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 const now = Date.now()
@@ -335,3 +334,8 @@ onMounted(async () => {
   mode.value = mineCount.value > 0 ? 'mine' : 'all'
 })
 </script>
+
+<style scoped>
+/* a smaller greeting than the other homes: it carries the full name */
+.wh-hero h1 { font-size: clamp(20px, 1.9vw, 26px); }
+</style>
