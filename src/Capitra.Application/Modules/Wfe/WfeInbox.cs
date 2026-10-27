@@ -1,5 +1,6 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Domain.Modules.Mtg;
 using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,7 +44,8 @@ public sealed record WfeInboxItemDto(
     DateTime? DueDate,
     string? AssignedUserId,
     string? AssignedUserName,
-    string? AssignedGroup);
+    string? AssignedGroup,
+    string? ClientNumber = null);
 
 public sealed record CompleteInboxItemRequest(string? Action, string? Comment);
 
@@ -61,7 +63,7 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
             .Where(x => x.InboxStatus == WfeRuntime.Open || x.InboxStatus == WfeRuntime.Claimed || x.InboxStatus == WfeRuntime.InProgress)
             .OrderBy(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
-        return rows.Where(CanAccess).Select(Map).ToList();
+        return await WithEntityAsync(rows.Where(CanAccess).Select(Map).ToList(), cancellationToken);
     }
 
     /// <summary>Every open, claimed or in-progress task of every user, for the live operations of the Workflow Engine home.</summary>
@@ -71,7 +73,7 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
             .Where(x => x.InboxStatus == WfeRuntime.Open || x.InboxStatus == WfeRuntime.Claimed || x.InboxStatus == WfeRuntime.InProgress)
             .OrderBy(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
-        return rows.Select(Map).ToList();
+        return await WithEntityAsync(rows.Select(Map).ToList(), cancellationToken);
     }
 
     public async Task<WfeInboxItemDto> GetAsync(long inboxId, CancellationToken cancellationToken)
@@ -80,7 +82,7 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
             ?? throw new NotFoundException("Workflow inbox item not found.");
         if (!CanAccess(row))
             throw new BusinessRuleException("This task is not assigned to you.");
-        return Map(row);
+        return (await WithEntityAsync([Map(row)], cancellationToken))[0];
     }
 
     public async Task<WfeInboxItemDto> ClaimAsync(long inboxId, CancellationToken cancellationToken)
@@ -140,6 +142,32 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
             .Include(x => x.StepInstance)
             .Include(x => x.Instance!).ThenInclude(x => x.Definition)
             .Include(x => x.Instance!).ThenInclude(x => x.Variables);
+
+    /// <summary>
+    /// A purchased-portfolio task shows its portfolio's current figures: the developer as the customer
+    /// (name and code), the face value as the amount and the portfolio's currency, where the workflow variables have none.
+    /// </summary>
+    private async Task<List<WfeInboxItemDto>> WithEntityAsync(List<WfeInboxItemDto> items, CancellationToken cancellationToken)
+    {
+        var ids = items.Where(i => i.EntityType == "PURCHASED_PORTFOLIO" && i.EntityId != null).Select(i => i.EntityId!.Value).Distinct().ToList();
+        if (ids.Count == 0)
+            return items;
+        var portfolios = await db.Set<MtgPurchasedPortfolio>()
+            .Where(p => ids.Contains(p.PortfolioId))
+            .Join(db.Set<MtgDeveloper>(), p => p.DeveloperId, d => d.DeveloperId,
+                (p, d) => new { p.PortfolioId, p.FaceValue, p.CurrencyCode, d.DeveloperId, d.DeveloperCode, d.LegalNameEn, d.LegalNameAr })
+            .ToDictionaryAsync(x => x.PortfolioId, cancellationToken);
+        return items.Select(i => i.EntityType == "PURCHASED_PORTFOLIO" && i.EntityId is { } id && portfolios.TryGetValue(id, out var p)
+            ? i with
+            {
+                ClientId = i.ClientId ?? p.DeveloperId,
+                ClientName = i.ClientName ?? (string.IsNullOrWhiteSpace(p.LegalNameEn) ? p.LegalNameAr : p.LegalNameEn),
+                ClientNumber = i.ClientNumber ?? p.DeveloperCode,
+                Amount = i.Amount ?? (p.FaceValue > 0 ? p.FaceValue : null),
+                CurrencyCode = i.CurrencyCode ?? p.CurrencyCode,
+            }
+            : i).ToList();
+    }
 
     private WfeInboxItemDto Map(WfeInboxItem x)
     {

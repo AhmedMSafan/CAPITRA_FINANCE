@@ -22,10 +22,6 @@
 
       <section class="wf-task-hero">
         <div class="wf-task-hero-main">
-          <div class="wf-task-hero-icon">
-            <i class="pi pi-file-edit"></i>
-          </div>
-
           <div class="wf-task-hero-copy">
             <div class="wf-task-tags">
               <span class="wf-task-tag">
@@ -61,85 +57,55 @@
                   :disabled="actionLoading || !task.route"
                   @click="runTask">
             <i class="pi pi-play"></i>
-            Run Task
+            {{ task.status === 'IN_PROGRESS' ? 'Continue work' : 'Start work' }}
           </button>
 
-          <button v-if="task.status === 'CLAIMED' || task.status === 'IN_PROGRESS'"
-                  type="button"
-                  class="wf-action-button wf-action-open"
-                  :disabled="actionLoading || !task.route"
-                  @click="openBusinessScreen">
-            <i class="pi pi-external-link"></i>
-            {{ displayEntityButtonText }}
-          </button>
         </div>
       </section>
 
       <section class="wf-context-card">
-        <div class="wf-context-main">
-          <div class="wf-context-entity">
-            <div class="wf-context-entity-copy">
-              <div class="wf-context-badges">
-                <span class="wf-context-type">{{ entityLabel }}</span>
-                <span class="wf-context-id">#{{ task.entityId ?? '-' }}</span>
-              </div>
-              <h3>{{ task.entityRef || '-' }}</h3>
-              <div class="wf-context-app-ref">
-                <label>Application Reference</label>
-                <strong>{{ applicationReferenceText }}</strong>
-              </div>
+        <!-- the task's business facts, in the same row style as the summary below -->
+        <div class="wf-context-summary wf-context-facts">
+          <div class="wf-context-summary-item">
+            <span class="wf-context-summary-icon"><i class="pi pi-sitemap"></i></span>
+            <div>
+              <label>Workflow Name</label>
+              <strong>{{ workflowNameText }}</strong>
             </div>
           </div>
-
-          <div class="wf-context-info wf-context-info-middle">
-            <div class="wf-context-field">
-              <span class="wf-context-field-icon"><i class="pi pi-sitemap"></i></span>
-              <div>
-                <label>Workflow Name</label>
-                <strong>{{ workflowNameText }}</strong>
-              </div>
-            </div>
-
-            <div class="wf-context-field">
-              <span class="wf-context-field-icon"><i class="pi pi-building"></i></span>
-              <div>
-                <label>Customer Name</label>
-                <strong>{{ task.clientName || '-' }}</strong>
-              </div>
-            </div>
-
-            <div class="wf-context-field">
-              <span class="wf-context-field-icon"><i class="pi pi-user"></i></span>
-              <div>
-                <label>Customer Number</label>
-                <strong>{{ customerNumber }}</strong>
-              </div>
+          <div class="wf-context-summary-item">
+            <span class="wf-context-summary-icon"><i class="pi pi-building"></i></span>
+            <div>
+              <label>Customer Name</label>
+              <strong>{{ task.clientName || '-' }}</strong>
             </div>
           </div>
-
-          <div class="wf-context-info wf-context-info-right">
-            <div class="wf-context-field">
-              <span class="wf-context-field-icon"><i class="pi pi-tag"></i></span>
-              <div>
-                <label>Amount</label>
-                <strong>{{ amountText }}</strong>
-              </div>
+          <div class="wf-context-summary-item">
+            <span class="wf-context-summary-icon"><i class="pi pi-id-card"></i></span>
+            <div>
+              <label>Customer Number</label>
+              <strong>{{ customerNumber }}</strong>
             </div>
-
-            <div class="wf-context-field">
-              <span class="wf-context-field-icon"><i class="pi pi-wallet"></i></span>
-              <div>
-                <label>Currency</label>
-                <strong>{{ task.currencyCode || '-' }}</strong>
-              </div>
+          </div>
+          <div class="wf-context-summary-item">
+            <span class="wf-context-summary-icon"><i class="pi pi-tag"></i></span>
+            <div>
+              <label>Amount</label>
+              <strong>{{ amountText }}</strong>
             </div>
-
-            <div class="wf-context-field">
-              <span class="wf-context-field-icon"><i class="pi pi-file-edit"></i></span>
-              <div>
-                <label>Business Reference</label>
-                <strong>{{ businessReferenceText }}</strong>
-              </div>
+          </div>
+          <div class="wf-context-summary-item">
+            <span class="wf-context-summary-icon"><i class="pi pi-wallet"></i></span>
+            <div>
+              <label>Currency</label>
+              <strong>{{ task.currencyCode || '-' }}</strong>
+            </div>
+          </div>
+          <div class="wf-context-summary-item">
+            <span class="wf-context-summary-icon"><i class="pi pi-file-edit"></i></span>
+            <div>
+              <label>Business Reference</label>
+              <strong>{{ businessReferenceText }}</strong>
             </div>
           </div>
         </div>
@@ -162,7 +128,7 @@
           </div>
 
           <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-user-check"></i></span>
+            <span class="wf-context-summary-icon"><i class="pi pi-verified"></i></span>
             <div>
               <label>Claimed By</label>
               <strong>{{ task.claimedByName || task.claimedBy || '-' }}</strong>
@@ -208,15 +174,15 @@
 
         <div class="wf-business-screen-body">
           <template v-if="task.status === 'OPEN'">
-            Claim this task first. The Run Task button will then become available.
+            Claim this task first. The Start work button will then become available.
           </template>
 
           <template v-else-if="task.status === 'CLAIMED'">
-            Select Run Task to start processing. You can use Run Task again later to return to the working screen.
+            Select Start work to open the working screen. You can come back to it later with Continue work.
           </template>
 
           <template v-else-if="task.status === 'IN_PROGRESS'">
-            This task is in progress. Use Run Task whenever you need to return to the working screen.
+            This task is in progress. Use Continue work whenever you need to return to the working screen.
             <template v-if="task.route"> The task is completed from that screen, when its work is done.</template>
           </template>
 
@@ -278,14 +244,6 @@
     Number(route.params.inboxId)
   )
 
-  const entityLabel = computed(() =>
-    task.value?.entityType?.trim() || 'Entity'
-  )
-
-  const displayEntityButtonText = computed(() =>
-    `Display ${entityLabel.value}`
-  )
-
   const workflowNameText = computed(() =>
     (task.value?.workflowName || task.value?.workflowCode || '-').replaceAll('_', ' ')
   )
@@ -311,20 +269,6 @@
       task.value.entityRef ||
       extended.applicationReference ||
       extended.applicationRef ||
-      '-'
-  })
-
-  const applicationReferenceText = computed(() => {
-    if (!task.value) return '-'
-    const extended = task.value as WorkflowInboxTask & {
-      applicationReference?: string | null
-      applicationRef?: string | null
-      businessReference?: string | null
-    }
-    return extended.applicationReference ||
-      extended.applicationRef ||
-      extended.businessReference ||
-      task.value.entityRef ||
       '-'
   })
 
@@ -585,6 +529,8 @@
 
 
 <style scoped>
+  .wf-context-summary.wf-context-facts { border-top: 0; margin-top: 0; padding-top: 0; }
+
   .wf-context-card {
     margin-top: 18px;
     background: #fff;
@@ -704,7 +650,7 @@
 
   .wf-context-summary {
     display: grid;
-    grid-template-columns: .75fr 1.05fr 1.05fr .95fr 1fr .9fr;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     border-top: 1px solid #dce6ed;
     margin-top: 18px;
     padding-top: 18px
