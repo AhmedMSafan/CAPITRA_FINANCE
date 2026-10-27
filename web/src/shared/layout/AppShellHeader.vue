@@ -170,7 +170,7 @@ const canAdminUsers = hasPermission('SEC.USER.ADMIN')
   display: inline-flex; align-items: center; gap: 8px; text-decoration: none !important; box-shadow: none !important;
 }
 /* Home and Menu: white with teal text, beside the language switch with a wider gap */
-.fx-right > .fx-btn { background: #fff !important; border-color: #fff !important; color: #014B55 !important; }
+.fx-right > .fx-btn { height: 34px !important; padding: 0 12px !important; border-radius: 9px !important; background: #fff !important; border-color: #fff !important; color: #014B55 !important; }
 .fx-right > .fx-btn:hover, .fx-right > .fx-btn[aria-expanded=true] { background: #E6F3F4 !important; border-color: #E6F3F4 !important; }
 .fx-right > .fx-btn + .fxh-lang { margin-inline-start: 18px; }
 [dir=rtl] .fx-btn { font-family: Cairo, 'Segoe UI', Arial, sans-serif !important; }
