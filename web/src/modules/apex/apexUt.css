@@ -48,38 +48,46 @@
 .t-Region--noPadding > .t-Region-body {
   padding: 0;
 }
+/* the same buttons as the admin dialogs (finova-action-button): white secondary, teal primary */
 .t-Button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  border: 1px solid #d0d0d0;
-  border-radius: 4px;
-  background: #f8f8f8;
-  color: #383838;
+  justify-content: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid #cfd6df;
+  border-radius: 7px;
+  background: #fff;
+  color: #1f2a37;
   font: inherit;
   font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
   cursor: pointer;
-  box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+  transition: background .16s ease, border-color .16s ease;
+}
+.t-Button .pi {
+  font-size: 15px;
 }
 .t-Button:hover {
-  background: #fff;
+  background: #F6F9FA;
 }
 .t-Button--hot {
-  border-color: var(--ut-hot);
-  background: var(--ut-hot);
+  border-color: #00636D;
+  background: #00636D;
   color: #fff;
 }
 .t-Button--hot:hover {
-  background: #0a7ae0;
+  border-color: #014B55;
+  background: #014B55;
 }
 .t-Button--danger {
   color: #c9302c;
 }
 .t-Button:disabled {
-  opacity: 0.5;
-  cursor: default;
+  opacity: 0.62;
+  cursor: not-allowed;
 }
 
 /* interactive report */

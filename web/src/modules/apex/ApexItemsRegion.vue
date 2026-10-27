@@ -4,6 +4,7 @@
 // on Selection is Submit) sends the values of every region of the page; the page's own processes run with them.
 import { computed, inject, reactive, ref, watch } from 'vue'
 import { http } from '@/shared/api/http'
+import { buttonIcon } from './buttonIcon'
 import { pageValuesKey, resolveSet, shown, type WizardButton, type WizardItem, type WizardRegion } from './wizard'
 
 const props = defineProps<{ app: number; page: number; region: WizardRegion; items: Record<string, string> }>()
@@ -92,7 +93,7 @@ watch(() => JSON.stringify(props.items), loadLovs, { immediate: true })
           </div>
           <template v-if="n === rows.length - 1">
             <div v-for="b in buttons" :key="b.name" class="t-Form-fieldContainer t-Form-fieldContainer--button">
-              <button :id="b.staticId" type="button" class="t-Button" :class="{ 't-Button--hot': b.action === 'SUBMIT' }" @click="press(b)">{{ b.label }}</button>
+              <button :id="b.staticId" type="button" class="t-Button" :class="{ 't-Button--hot': b.action === 'SUBMIT' }" @click="press(b)"><i v-if="buttonIcon(b.name, b.action)" :class="buttonIcon(b.name, b.action)" aria-hidden="true"></i>{{ b.label }}</button>
             </div>
           </template>
         </div>

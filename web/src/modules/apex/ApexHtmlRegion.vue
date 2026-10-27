@@ -3,6 +3,7 @@
 // writes the same HTML the PL/SQL printed, for the page items.
 import { computed, nextTick, ref, watch } from 'vue'
 import { http } from '@/shared/api/http'
+import { buttonIcon } from './buttonIcon'
 import { runInlineScripts, type createApex } from './apexRuntime'
 import { resolveSet, shown, substitute, type WizardButton, type WizardRegion } from './wizard'
 
@@ -61,12 +62,12 @@ watch(() => JSON.stringify(props.items), load, { immediate: true })
     <div v-if="buttons.length" class="t-Region-buttons">
       <div class="t-Region-buttons-left">
         <button v-for="b in startButtons" :id="b.staticId" :key="b.name" type="button" class="t-Button" :class="buttonClass(b)" @click="press(b)">
-          {{ b.label }}
+          <i v-if="buttonIcon(b.name, b.action)" :class="buttonIcon(b.name, b.action)" aria-hidden="true"></i>{{ b.label }}
         </button>
       </div>
       <div class="t-Region-buttons-right">
         <button v-for="b in endButtons" :id="b.staticId" :key="b.name" type="button" class="t-Button" :class="buttonClass(b)" @click="press(b)">
-          {{ b.label }}
+          <i v-if="buttonIcon(b.name, b.action)" :class="buttonIcon(b.name, b.action)" aria-hidden="true"></i>{{ b.label }}
         </button>
       </div>
     </div>

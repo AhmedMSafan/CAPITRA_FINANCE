@@ -3,6 +3,7 @@
 // the Create / Apply Changes / Delete buttons run Process form (automatic row processing), Cancel leaves.
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { http } from '@/shared/api/http'
+import { buttonIcon } from './buttonIcon'
 import type { WizardButton, WizardItem, WizardRegion } from './wizard'
 
 const props = defineProps<{
@@ -171,11 +172,11 @@ watch(() => props.pk, load)
   <div class="t-ButtonRegion">
     <div class="t-ButtonRegion-col">
       <button v-for="b in left" :key="b.name" type="button" class="t-Button" :class="{ 't-Button--danger': b.name === 'DELETE' }" :disabled="busy" @click="submit(b)">
-        {{ b.label }}
+        <i v-if="buttonIcon(b.name)" :class="buttonIcon(b.name)" aria-hidden="true"></i>{{ b.label }}
       </button>
     </div>
     <div class="t-ButtonRegion-col">
-      <button v-for="b in right" :key="b.name" type="button" class="t-Button t-Button--hot" :disabled="busy" @click="submit(b)">{{ b.label }}</button>
+      <button v-for="b in right" :key="b.name" type="button" class="t-Button t-Button--hot" :disabled="busy" @click="submit(b)"><i v-if="buttonIcon(b.name)" :class="buttonIcon(b.name)" aria-hidden="true"></i>{{ b.label }}</button>
     </div>
   </div>
 </template>
