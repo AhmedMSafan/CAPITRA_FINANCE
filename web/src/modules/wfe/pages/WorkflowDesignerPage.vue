@@ -985,6 +985,9 @@ function bindSelection(){modeler.on('selection.changed',(ev:any)=>{
     return
   }
 
+  // a step or an arrow opens its properties over the canvas
+  rightPanelOpen.value=true
+
   if(e.type==='bpmn:SequenceFlow'){
     selectedId.value=e.id
     selectedType.value=e.type
@@ -1044,33 +1047,6 @@ type FinovaViewbox={
 
 const VIEWBOX_REGEX=/<!--\s*FINOVA_VIEWBOX:(\{.*?\})\s*-->/s
 
-function readSavedViewbox(xml:string):FinovaViewbox|null{
-  const match=xml.match(VIEWBOX_REGEX)
-  if(!match)return null
-
-  try{
-    const value=JSON.parse(match[1]??'')
-
-    if(
-      Number.isFinite(value?.x) &&
-      Number.isFinite(value?.y) &&
-      Number.isFinite(value?.width) &&
-      Number.isFinite(value?.height) &&
-      value.width>0 &&
-      value.height>0
-    ){
-      return{
-        x:Number(value.x),
-        y:Number(value.y),
-        width:Number(value.width),
-        height:Number(value.height)
-      }
-    }
-  }catch{}
-
-  return null
-}
-
 function removeSavedViewbox(xml:string){
   return xml.replace(VIEWBOX_REGEX,'')
 }
@@ -1114,34 +1090,6 @@ function writeSavedViewbox(xml:string,viewbox:FinovaViewbox|null){
   )
 }
 
-async function restoreViewbox(viewbox:FinovaViewbox){
-  const bpmnCanvas=modeler?.get('canvas')
-  if(!bpmnCanvas)return
-
-  await nextTick()
-
-  await new Promise<void>(resolve =>
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => resolve())
-    )
-  )
-
-  try{bpmnCanvas.resized()}catch{}
-
-  try{
-    bpmnCanvas.viewbox({
-      x:viewbox.x,
-      y:viewbox.y,
-      width:viewbox.width,
-      height:viewbox.height
-    })
-  }catch{
-    await fit()
-  }
-
-  syncZoomPercent()
-}
-
 async function refreshXmlPreview(){
   writeMetadataToBpmn()
   const r=await modeler.saveXML({format:true})
@@ -1162,8 +1110,6 @@ async function load(){
     xml=form.dgrmContent||starter
   }
 
-  const savedViewbox=readSavedViewbox(xml)
-
   await modeler.importXML(removeSavedViewbox(xml))
   loadMetadataFromXml()
 
@@ -1172,10 +1118,8 @@ async function load(){
   //
   // Previously saved workflow:
   // restore exactly the pan/zoom position the user saved.
-  if(savedViewbox)
-    await restoreViewbox(savedViewbox)
-  else
-    await fit()
+  // the diagram opens fitted to the full canvas (the saved position was taken with the old side panel open)
+  await fit()
 
   await refreshXmlPreview()
 }
@@ -2328,5 +2272,35 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
   .properties-panel {
     min-height: 540px;
   }
+}
+
+/* the canvas always takes the full width; Properties slides over its right edge */
+.designer-shell,
+.designer-shell.properties-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.designer-shell .properties-panel {
+  position: absolute;
+  top: 51px; /* below the canvas toolbar, which stays usable */
+  bottom: 0;
+  inset-inline-end: 0;
+  z-index: 20;
+  width: min(390px, 92%);
+  border-inline-start: 1px solid #d7e2e8;
+  box-shadow: -18px 0 40px -18px rgba(16, 51, 75, .35);
+  animation: props-in .2s ease-out;
+}
+
+/* no dark focus frame around the canvas after a click */
+.designer-shell :deep(.djs-container:focus),
+.designer-shell :deep(.djs-container:focus-visible),
+.designer-shell :deep(svg:focus) {
+  outline: none;
+}
+
+@keyframes props-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
 }
 </style>
