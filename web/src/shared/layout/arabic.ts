@@ -49,7 +49,16 @@ export const AR: Record<string, string> = {
   'Active users': 'المستخدمون النشطون', Roles: 'الأدوار', 'Administration modules': 'وحدات الإدارة',
   'Access Control': 'التحكم في الوصول', 'Users and Roles': 'المستخدمون والأدوار',
   'Create users, give them roles and choose the pages each role can open in every CAPITRA application.': 'أنشئ المستخدمين وامنحهم الأدوار واختر الصفحات التي يفتحها كل دور في كل تطبيقات كابيترا.',
-  'User accounts': 'حسابات المستخدمين', 'Role permissions': 'صلاحيات الأدوار', Users: 'المستخدمون',
+  'User accounts': 'حسابات المستخدمين',
+  'Accounting Setup': 'إعدادات المحاسبة', 'Maintain GL, posting and accounting period configuration.': 'إدارة دفتر الأستاذ والترحيل وإعدادات الفترات المحاسبية.',
+  'GL Account Setup': 'إعداد حسابات الأستاذ العام', 'Maintain chart of accounts and account mappings.': 'إدارة دليل الحسابات وربط الحسابات.',
+  'Accounting Periods': 'الفترات المحاسبية', 'Define and manage accounting periods.': 'تعريف الفترات المحاسبية وإدارتها.',
+  'Posting Configuration': 'إعدادات الترحيل', 'Maintain posting rules and accounting settings.': 'إدارة قواعد الترحيل والإعدادات المحاسبية.',
+  'Reference Data / Lookups': 'البيانات المرجعية / القوائم', 'Maintain common reference data used throughout CAPITRA.': 'إدارة البيانات المرجعية المستخدمة في كابيترا.',
+  Countries: 'الدول', 'Maintain country codes and country information.': 'إدارة رموز الدول وبياناتها.', 'View all lookups': 'عرض كل القوائم',
+  'System Setup': 'إعدادات النظام', 'Manage system configuration and application parameters.': 'إدارة إعدادات النظام ومعاملات التطبيق.',
+  'User Management': 'إدارة المستخدمين', 'Maintain system users and access configuration.': 'إدارة مستخدمي النظام وإعدادات الوصول.',
+  'Role Management': 'إدارة الأدوار', 'Configure roles and application permissions.': 'تهيئة الأدوار وصلاحيات التطبيق.', 'Role permissions': 'صلاحيات الأدوار', Users: 'المستخدمون',
 
   // App 118 page 1 "Workflow Engine home" (added)
   'CAPITRA Workflow Engine': 'محرك سير العمل في كابيترا',
