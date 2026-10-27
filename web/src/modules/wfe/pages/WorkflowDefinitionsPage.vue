@@ -1,6 +1,6 @@
 <template>
   <!-- App 118 page 904 "Workflow Definition Registry": the hero with its counts, a search bar and a gallery of workflow cards. -->
-  <div class="wx wr">
+  <div class="wx wr wx-page">
     <section class="wx-hero">
       <div class="wr-hero">
         <div>
@@ -204,30 +204,7 @@ onMounted(load)
 </script>
 
 <style scoped>
-.wr { max-width: 1400px; margin: 0 auto; padding: 20px 24px 32px; }
-.wr-hero { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; }
-.wr-cta { display: flex; flex-wrap: wrap; gap: 10px; }
-.wr-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
-.wr-kpi { padding: 13px 16px; border-radius: 14px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .12); }
-.wr-kpi b { display: block; font-size: 24px; font-weight: 800; letter-spacing: -.02em; color: #fff; line-height: 1.1; }
-.wr-kpi span { font-size: 12.5px; color: rgba(255, 255, 255, .66); }
-.wr-bar {
-  position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 18px 0 16px; padding: 10px;
-  border-radius: 14px; background: rgba(255, 255, 255, .92); backdrop-filter: blur(10px); border: 1px solid var(--wx-line);
-  box-shadow: 0 8px 24px -18px rgba(11, 37, 51, .35);
-}
-.wr-search { position: relative; flex: 1 1 260px; min-width: 200px; }
-.wr-search .pi { position: absolute; top: 50%; inset-inline-start: 13px; transform: translateY(-50%); color: var(--wx-muted); font-size: 14px; }
-.wr-search input {
-  width: 100%; height: 40px; border: 1px solid var(--wx-line); border-radius: 11px; background: var(--wx-soft); padding: 0 12px 0 38px;
-  font: 500 14px Inter, Arial, sans-serif; color: var(--wx-ink); outline: 0; transition: border-color .15s, box-shadow .15s, background .15s;
-}
-html[dir=rtl] .wr-search input { padding: 0 38px 0 12px; }
-.wr-search input:focus { border-color: var(--wx-teal); background: #fff; box-shadow: 0 0 0 4px rgba(0, 99, 109, .12); }
-.wr-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.wr-sel { height: 34px; border: 1px solid var(--wx-line); border-radius: 10px; background: #fff; padding: 0 10px; font: 600 13px Inter, Arial, sans-serif; color: var(--wx-ink2); cursor: pointer; }
-.wr-error { margin-bottom: 14px; padding: 12px 14px; border-radius: 12px; background: var(--wx-red-l); color: var(--wx-red); font-weight: 600; }
-.wr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.wr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 16px; }
 .wr-card {
   position: relative; display: flex; flex-direction: column; border-radius: 18px; background: #fff; border: 1px solid var(--wx-line); overflow: hidden;
   box-shadow: 0 1px 2px rgba(11, 37, 51, .04); transition: transform .18s, box-shadow .18s, border-color .18s; animation: wrIn .4s both;
@@ -285,6 +262,5 @@ html[dir=rtl] .wr-search input { padding: 0 38px 0 12px; }
 .wr-empty { display: none; padding: 40px 20px; text-align: center; border-radius: 16px; border: 1px dashed var(--wx-line); background: #fff; color: var(--wx-muted); }
 .wr-empty.on { display: block; }
 .wr-empty b { display: block; font-size: 16px; color: var(--wx-ink); margin-bottom: 4px; }
-@media (max-width: 900px) { .wr-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .wr-grid { grid-template-columns: 1fr; } .wr-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); } .wr { padding: 12px; } }
+@media (max-width: 640px) { .wr-grid { grid-template-columns: 1fr; } .wr-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
