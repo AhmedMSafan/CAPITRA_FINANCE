@@ -1172,7 +1172,7 @@ async function save(){
     saving.value=false
   }
 }
-onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefined,moddleExtensions:{finova:finovaWorkflowModdle}});bindSelection();await load();if(canvas.value)canvasObserver.observe(canvas.value)}catch(e){msg(e instanceof Error?e.message:'Designer initialization failed.',true)}});onBeforeUnmount(()=>{canvasObserver.disconnect();clearTimeout(refitTimer);modeler?.destroy()})
+onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefined,moddleExtensions:{finova:finovaWorkflowModdle},textRenderer:{defaultStyle:{fontFamily:'Inter, Arial, sans-serif',fontSize:15,fontWeight:600,lineHeight:1.2},externalStyle:{fontSize:13,lineHeight:1.2}}});bindSelection();await load();if(canvas.value)canvasObserver.observe(canvas.value)}catch(e){msg(e instanceof Error?e.message:'Designer initialization failed.',true)}});onBeforeUnmount(()=>{canvasObserver.disconnect();clearTimeout(refitTimer);modeler?.destroy()})
 </script>
 <style scoped>
 .designer-page,
@@ -2290,6 +2290,33 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
   border-inline-start: 1px solid #d7e2e8;
   box-shadow: -18px 0 40px -18px rgba(16, 51, 75, .35);
   animation: props-in .2s ease-out;
+}
+
+/* steps: a soft fill, teal when selected, a light tint on hover */
+.designer-shell :deep(.djs-element.djs-shape .djs-visual > rect) {
+  fill: #fff !important;
+  stroke: #9FB6C0 !important;
+  stroke-width: 1.6px !important;
+}
+
+.designer-shell :deep(.djs-element.djs-shape.hover .djs-visual > rect) {
+  fill: #F2F8F9 !important;
+  stroke: #2E9AA3 !important;
+}
+
+.designer-shell :deep(.djs-element.djs-shape.selected .djs-visual > rect) {
+  fill: #E6F3F4 !important;
+  stroke: #00636D !important;
+  stroke-width: 3px !important;
+}
+
+.designer-shell :deep(.djs-element.djs-shape.selected .djs-visual > text) {
+  fill: #014B55 !important;
+}
+
+.designer-shell :deep(.djs-element.selected .djs-outline),
+.designer-shell :deep(.djs-element.hover .djs-outline) {
+  visibility: hidden;
 }
 
 /* no dark focus frame around the canvas after a click */
