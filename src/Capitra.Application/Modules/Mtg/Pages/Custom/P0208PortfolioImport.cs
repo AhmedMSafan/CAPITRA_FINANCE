@@ -621,7 +621,7 @@ public sealed class P0208StepActions(MtgWorkflowSteps steps) : IApexProcess
         }
 
         var html = codes.Count == 0 || pos == "NONE"
-            ? "<style>#ldImport{display:none!important}</style><script>(function(){var x=document.getElementById('ldImport');var h=(x&&x.parentNode)||document.body;var s=document.createElement('span');s.className='wb-hint';s.style.cssText='color:var(--bad,#C43325);display:block;margin-top:8px';s.textContent='No Complete or Approve action is available for this task in the workflow setup (or the task is closed).';h.appendChild(s);})();</script>\n"
+            ? "<style>#ldImport{display:none!important}</style><script>(function(){var x=document.getElementById('ldImport');if(!x)return;var h=x.parentNode;var s=document.createElement('span');s.className='wb-hint';s.style.cssText='color:var(--bad,#C43325);display:block;margin-top:8px';s.textContent='No Complete or Approve action is available for this task in the workflow setup (or the task is closed).';h.appendChild(s);})();</script>\n"
             : pos == "APPROVE"
                 ? "<script>(function(){var b=document.getElementById('ldImport');if(!b)return;var s=b.querySelector('[data-finova-en]');if(!s)return;"
                     + "s.setAttribute('data-finova-en','Import & approve');s.setAttribute('data-finova-ar','استيراد واعتماد');"

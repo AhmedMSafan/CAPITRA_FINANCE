@@ -202,7 +202,7 @@ public sealed class P0401StepActions(MtgWorkflowSteps steps) : IApexProcess
         var pos = codes.Contains("COMPLETE") ? "COMPLETE" : codes.Contains("APPROVE") ? "APPROVE" : "NONE";
         var html = pos switch
         {
-            "NONE" => "<style>#wbComplete{display:none!important}</style><script>(function(){var x=document.getElementById('wbComplete');var h=(x&&x.parentNode)||document.body;var s=document.createElement('span');s.className='wb-hint';s.style.cssText='color:var(--bad,#C43325);display:block;margin-top:8px';s.textContent='No Complete or Approve action is available for this task in the workflow setup (or the task is closed).';h.appendChild(s);})();</script>\n",
+            "NONE" => "<style>#wbComplete{display:none!important}</style><script>(function(){var x=document.getElementById('wbComplete');if(!x)return;var h=x.parentNode;var s=document.createElement('span');s.className='wb-hint';s.style.cssText='color:var(--bad,#C43325);display:block;margin-top:8px';s.textContent='No Complete or Approve action is available for this task in the workflow setup (or the task is closed).';h.appendChild(s);})();</script>\n",
             "APPROVE" => "<script>(function(){var b=document.getElementById('wbComplete');if(!b)return;var s=b.querySelector('[data-finova-en]');if(!s)return;"
                 + "s.setAttribute('data-finova-en','Approve valuation step');s.setAttribute('data-finova-ar','اعتماد خطوة التقييم');"
                 + "s.textContent=document.documentElement.dir==='rtl'?'اعتماد خطوة التقييم':'Approve valuation step';})();</script>\n",
