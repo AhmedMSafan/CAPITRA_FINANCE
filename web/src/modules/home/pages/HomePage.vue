@@ -101,3 +101,8 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+/* the same smaller greeting as the Workflow Engine home: it carries the full name */
+.fm-hero h1 { font-size: clamp(20px, 1.9vw, 26px); }
+</style>
