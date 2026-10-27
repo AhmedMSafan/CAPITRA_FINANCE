@@ -4,13 +4,13 @@
   <div class="fx" id="fxInbox">
     <div class="fx-head">
       <div>
-        <h1>My Inbox</h1>
-        <p>Overdue tasks are listed first. Select unclaimed tasks to claim several at once.</p>
+        <h1>{{ tr('My Inbox') }}</h1>
+        <p>{{ tr('Overdue tasks are listed first. Select unclaimed tasks to claim several at once.') }}</p>
       </div>
       <div class="fx-actions">
-        <button type="button" class="fx-btn" @click="load"><span class="fa fa-refresh" aria-hidden="true"></span>Refresh</button>
+        <button type="button" class="fx-btn" @click="load"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Refresh') }}</button>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="!selected.length || busy" @click="claim(selected)">
-          <span class="fa fa-hand-grab-o" aria-hidden="true"></span>Claim selected (<span>{{ selected.length }}</span>)
+          <span class="fa fa-hand-grab-o" aria-hidden="true"></span>{{ tr('Claim selected') }} (<span>{{ selected.length }}</span>)
         </button>
       </div>
     </div>
@@ -20,12 +20,12 @@
     <div class="fx-toolbar">
       <div class="fx-seg" role="group" aria-label="Filter tasks">
         <button v-for="v in views" :key="v.key" type="button" :class="{ 'is-bad': v.key === 'overdue' }" :aria-pressed="view === v.key" @click="view = v.key">
-          {{ v.label }}<em>{{ v.count }}</em>
+          {{ tr(v.label) }}<em>{{ v.count }}</em>
         </button>
       </div>
-      <input v-model="search" class="fx-search" type="search" placeholder="Search task, portfolio or developer" aria-label="Search tasks">
+      <input v-model="search" class="fx-search" type="search" :placeholder="tr('Search task, portfolio or developer')" aria-label="Search tasks">
       <select v-model="workflow" class="fx-select" aria-label="Workflow">
-        <option value="">All workflows</option>
+        <option value="">{{ tr('All workflows') }}</option>
         <option v-for="w in workflows" :key="w.code" :value="w.code">{{ w.name }}</option>
       </select>
     </div>
@@ -36,7 +36,7 @@
           <thead>
             <tr>
               <th style="width:34px"><input type="checkbox" class="fx-check" aria-label="Select all unclaimed tasks" :checked="allChecked" @change="selectAll(($event.target as HTMLInputElement).checked)"></th>
-              <th>Task</th><th>Portfolio</th><th>Step</th><th class="fx-r">Value</th><th>SLA</th><th>Assignee</th><th></th>
+              <th>{{ tr('Task') }}</th><th>{{ ar ? 'المحفظة' : 'Portfolio' }}</th><th>{{ tr('Step') }}</th><th class="fx-r">{{ tr('Value') }}</th><th>{{ tr('SLA') }}</th><th>{{ tr('Assignee') }}</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -52,17 +52,17 @@
               <td><span class="fx-chip" :class="r.slaClass">{{ r.sla }}</span></td>
               <td>
                 {{ r.t.claimedByName || r.t.claimedBy || r.t.assignedRole || r.t.assignedUserName || r.t.assignedGroup }}
-                <span v-if="!r.t.claimedBy" class="fx-cell-sub">Unclaimed</span>
+                <span v-if="!r.t.claimedBy" class="fx-cell-sub">{{ tr('Unclaimed') }}</span>
               </td>
               <td class="fx-r">
-                <button v-if="r.claimable" type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="claim([r.t.inboxId])">Claim</button>
-                <RouterLink v-else class="fx-btn fx-btn--sm" :to="taskLink(r.t)">Open</RouterLink>
+                <button v-if="r.claimable" type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="claim([r.t.inboxId])">{{ tr('Claim') }}</button>
+                <RouterLink v-else class="fx-btn fx-btn--sm" :to="taskLink(r.t)">{{ tr('Open') }}</RouterLink>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div v-if="!shown.length" class="fx-empty"><span class="fa fa-inbox" aria-hidden="true"></span>No tasks match these filters.</div>
+      <div v-if="!shown.length" class="fx-empty"><span class="fa fa-inbox" aria-hidden="true"></span>{{ tr('No tasks match these filters.') }}</div>
     </div>
   </div>
 </template>
@@ -73,6 +73,9 @@ import '@/shared/styles/apex-fx-inbox.css'
 import { computed, onMounted, ref, watch } from 'vue'
 import type { WorkflowInboxTask } from '../models/workflow'
 import { workflowService } from '../services/workflowService'
+import { language, tr } from '@/shared/layout/language'
+
+const ar = language.value === 'AR'
 
 type View = 'all' | 'mine' | 'unclaimed' | 'overdue'
 
@@ -112,10 +115,10 @@ const rows = computed(() => {
     const open = (t.status || '').toUpperCase() === 'OPEN'
     const overdue = !!due && due.getTime() < now
     const rank = overdue ? 0 : due && due.getTime() - now <= WARNING_DAYS * DAY ? 1 : 2
-    let sla = 'No due date'
+    let sla = tr('No due date')
     let slaClass = ''
-    if (overdue) { sla = `Overdue ${Math.floor((now - due.getTime()) / DAY)}d`; slaClass = 'fx-chip--bad' }
-    else if (rank === 1) { sla = 'Due soon'; slaClass = 'fx-chip--warn' }
+    if (overdue) { sla = `${tr('Overdue')} ${Math.floor((now - due.getTime()) / DAY)}d`; slaClass = 'fx-chip--bad' }
+    else if (rank === 1) { sla = tr('Due soon'); slaClass = 'fx-chip--warn' }
     else if (due) sla = dueLabel(due)
     const actions = (t.allowedActions || 'CLAIM').toUpperCase()
     return {

@@ -4,46 +4,46 @@
   <div class="fm">
     <section class="fm-hero">
       <div class="fm-hero-l">
-        <span class="fm-eyebrow"><i></i>CAPITRA &middot; Digital Finance Platform</span>
-        <h1><span>{{ greeting }}</span>, <em>{{ displayName }}</em></h1>
-        <p>Choose an application to continue. You are signed in once for all CAPITRA applications.</p>
+        <span class="fm-eyebrow"><i></i>{{ tr('CAPITRA · Digital Finance Platform') }}</span>
+        <h1><span>{{ tr(greeting) }}</span>{{ tr(',') }} <em>{{ displayName }}</em></h1>
+        <p>{{ tr('Choose an application to continue. You are signed in once for all CAPITRA applications.') }}</p>
         <div class="fm-cta">
           <router-link class="fm-btn fm-btn--inbox" to="/workflow/inbox">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></svg>
-            <span>Open my inbox</span><em>{{ tasks === null ? 0 : tasks }}</em>
+            <span>{{ tr('Open my inbox') }}</span><em>{{ tasks === null ? 0 : tasks }}</em>
           </router-link>
         </div>
       </div>
       <div class="fm-kpis">
-        <div><b>{{ live }}</b><span>Live applications</span></div>
-        <router-link class="fm-kpi-link" to="/workflow/inbox"><b>{{ tasks === null ? '–' : tasks }}</b><span>Workflow tasks for you</span></router-link>
-        <div><b>{{ today }}</b><span>Today</span></div>
+        <div><b>{{ live }}</b><span>{{ tr('Live applications') }}</span></div>
+        <router-link class="fm-kpi-link" to="/workflow/inbox"><b>{{ tasks === null ? '–' : tasks }}</b><span>{{ tr('Workflow tasks for you') }}</span></router-link>
+        <div><b>{{ today }}</b><span>{{ tr('Today') }}</span></div>
       </div>
     </section>
 
-    <div class="fm-sec"><h2>Business applications</h2></div>
+    <div class="fm-sec"><h2>{{ tr('Business applications') }}</h2></div>
     <div class="fm-grid fm-grid--1">
       <component :is="app.to ? 'router-link' : 'div'" v-for="app in tier(1)" :key="app.name" :to="app.to" class="fm-card fm-card--t1"
                  :class="{ 'is-off': !app.to }" :aria-disabled="app.to ? undefined : 'true'" :style="{ '--c': app.color, '--cl': app.tint }">
-        <div class="fm-top"><span class="fm-ico" v-html="icon(app.icon)"></span><span class="fm-pill" :class="app.to ? 'fm-pill--live' : 'fm-pill--soon'">{{ app.to ? 'Live' : 'Coming soon' }}</span></div>
+        <div class="fm-top"><span class="fm-ico" v-html="icon(app.icon)"></span><span class="fm-pill" :class="app.to ? 'fm-pill--live' : 'fm-pill--soon'">{{ tr(app.to ? 'Live' : 'Coming soon') }}</span></div>
         <div class="fm-body">
-          <small>{{ app.short }}</small><h3>{{ app.name }}</h3><p>{{ app.descr }}</p>
-          <ul v-if="app.feats.length" class="fm-feats"><li v-for="f in app.feats" :key="f">{{ f }}</li></ul>
+          <small>{{ tr(app.short) }}</small><h3>{{ tr(app.name) }}</h3><p>{{ tr(app.descr) }}</p>
+          <ul v-if="app.feats.length" class="fm-feats"><li v-for="f in app.feats" :key="f">{{ tr(f) }}</li></ul>
         </div>
         <div class="fm-foot">
-          <span v-if="app.to" class="fm-go">Open {{ app.short }}<span v-html="icon(ARROW, 16)"></span></span>
-          <span v-else class="fm-muted">In preparation &middot; available soon</span>
+          <span v-if="app.to" class="fm-go">{{ tr('Open ' + app.short) }}<span v-html="icon(ARROW, 16)"></span></span>
+          <span v-else class="fm-muted">{{ tr('In preparation · available soon') }}</span>
         </div>
       </component>
     </div>
 
-    <div class="fm-sec"><h2>Shared services</h2></div>
+    <div class="fm-sec"><h2>{{ tr('Shared services') }}</h2></div>
     <div class="fm-grid fm-grid--2">
       <router-link v-for="app in tier(2)" :key="app.name" :to="app.to!" class="fm-card fm-card--t2" :style="{ '--c': app.color, '--cl': app.tint }">
-        <div class="fm-top"><span class="fm-ico" v-html="icon(app.icon)"></span><span class="fm-pill fm-pill--live">Live</span></div>
-        <div class="fm-body"><small>{{ app.short }}</small><h3>{{ app.name }}</h3><p>{{ app.descr }}</p></div>
-        <div v-if="app.inbox && tasks !== null" class="fm-note"><b>{{ tasks }}</b> task{{ tasks === 1 ? '' : 's' }} waiting in your inbox</div>
-        <div class="fm-foot"><span class="fm-go">Open {{ app.short }}<span v-html="icon(ARROW, 16)"></span></span></div>
+        <div class="fm-top"><span class="fm-ico" v-html="icon(app.icon)"></span><span class="fm-pill fm-pill--live">{{ tr('Live') }}</span></div>
+        <div class="fm-body"><small>{{ tr(app.short) }}</small><h3>{{ tr(app.name) }}</h3><p>{{ tr(app.descr) }}</p></div>
+        <div v-if="app.inbox && tasks !== null" class="fm-note"><b>{{ tasks }}</b> {{ tr(tasks === 1 ? 'task waiting in your inbox' : 'tasks waiting in your inbox') }}</div>
+        <div class="fm-foot"><span class="fm-go">{{ tr('Open ' + app.short) }}<span v-html="icon(ARROW, 16)"></span></span></div>
       </router-link>
     </div>
   </div>
@@ -52,6 +52,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { getUser } from '@/shared/auth/session'
+import { language, tr } from '@/shared/layout/language'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 
 type App = { tier: 1 | 2; name: string; short: string; descr: string; to: string | null; color: string; tint: string; icon: string; feats: string[]; inbox?: boolean }
@@ -60,7 +61,7 @@ const user = getUser()
 const displayName = user?.fullName?.trim() || user?.userName?.trim() || 'CAPITRA User'
 const hour = new Date().getHours()
 const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
-const today = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+const today = new Date().toLocaleDateString(language.value === 'AR' ? 'ar-EG-u-nu-latn' : undefined, { day: 'numeric', month: 'short' })
 
 const ARROW = '<path d="M5 12h14M13 5l7 7-7 7"/>'
 // the card icons of the APEX page (its svg() function)

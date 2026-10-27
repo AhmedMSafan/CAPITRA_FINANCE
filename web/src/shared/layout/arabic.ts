@@ -1,0 +1,83 @@
+// Arabic texts of the pages copied from APEX, keyed by their English text.
+// App 100 page 1 (Home) and the header: finova-home-lang.js. App 100 page 920 (My Inbox): the page's t('en','ar') pairs.
+// App 100 page 2 (Admin Setup) and App 118 page 1 (Workflow Engine home) have no Arabic in APEX; their texts below
+// were added for this app in the same wording style.
+export const AR: Record<string, string> = {
+  // App 100 page 1 and the header (finova-home-lang.js; FINOVA becomes CAPITRA / كابيترا)
+  'CAPITRA · Digital Finance Platform': 'كابيترا · منصة التمويل الرقمي',
+  ',': '،', Welcome: 'مرحبًا', 'Good morning': 'صباح الخير', 'Good afternoon': 'مساء الخير', 'Good evening': 'مساء الخير',
+  'Choose an application to continue. You are signed in once for all CAPITRA applications.': 'اختر تطبيقًا للمتابعة. تسجيل دخول واحد يكفي لجميع تطبيقات كابيترا.',
+  'Open my inbox': 'افتح صندوق مهامي',
+  'Live applications': 'تطبيقات متاحة', 'Workflow tasks for you': 'مهام سير العمل لك', Today: 'اليوم',
+  'Business applications': 'تطبيقات الأعمال', 'Shared services': 'الخدمات المشتركة',
+  'Coming soon': 'قريبًا', 'No access': 'لا توجد صلاحية', Live: 'متاح',
+  'Portfolio Acquisition': 'استحواذ المحافظ', Portfolio: 'المحافظ',
+  'Evaluate, screen and acquire real-estate financing portfolios through one controlled, fully audited workflow.': 'تقييم وفحص واستحواذ محافظ التمويل العقاري من خلال مسار عمل واحد خاضع للرقابة ومدقق بالكامل.',
+  'Due diligence & AML screening': 'الفحص النافي للجهالة ومكافحة غسل الأموال', 'Committee approval': 'اعتماد اللجنة', 'Acquisition tracking': 'متابعة الاستحواذ',
+  'Subsidized Mortgage Finance': 'التمويل العقاري المدعوم', Subsidized: 'المدعوم',
+  'Government-subsidised home finance: eligibility, subsidy calculation and disbursement under programme rules.': 'تمويل سكني مدعوم حكوميًا: الأهلية وحساب الدعم والصرف وفق قواعد البرنامج.',
+  'Eligibility checks': 'التحقق من الأهلية', 'Subsidy calculation': 'حساب الدعم', 'Programme reporting': 'تقارير البرنامج',
+  'Personal Mortgage': 'التمويل العقاري الشخصي', Mortgage: 'التمويل العقاري',
+  'Standard mortgage finance: calculation, offer, origination, credit, booking, servicing and collections.': 'التمويل العقاري القياسي: الحساب والعرض والإنشاء والائتمان والحجز والخدمة والتحصيل.',
+  'Calculator & customer offers': 'الحاسبة وعروض العملاء', 'Origination, credit & booking': 'الإنشاء والائتمان والحجز', 'Servicing & collections': 'الخدمة والتحصيل',
+  'General Ledger': 'دفتر الأستاذ العام', GL: 'الأستاذ العام',
+  'Segment-based chart of accounts, balanced journals and controlled period close.': 'دليل حسابات قائم على القطاعات وقيود متوازنة وإقفال منضبط للفترات.',
+  'Workflow Engine': 'محرك سير العمل', Workflow: 'سير العمل',
+  'Design approval workflows and follow every task, SLA and decision.': 'صمم مسارات الاعتماد وتابع كل مهمة ومستوى خدمة وقرار.',
+  'Cheques Wallet': 'محفظة الشيكات', Wallet: 'المحفظة',
+  'Client cheque batches from upload to custody, deposit and collection.': 'دفعات شيكات العملاء من الرفع إلى الحفظ والإيداع والتحصيل.',
+  'Admin Setup': 'إعدادات النظام', Admin: 'الإدارة',
+  'Users, roles, modules and platform-wide settings in one place.': 'المستخدمون والأدوار والوحدات وإعدادات المنصة في مكان واحد.',
+  'In preparation · available soon': 'قيد الإعداد · متاح قريبًا',
+  'Ask your administrator for access': 'اطلب الصلاحية من مسؤول النظام',
+  'task waiting in your inbox': 'مهمة بانتظارك في صندوق المهام', 'tasks waiting in your inbox': 'مهام بانتظارك في صندوق المهام',
+  Menu: 'القائمة', 'All pages': 'جميع الصفحات', Home: 'الرئيسية', 'All applications': 'جميع التطبيقات',
+  'My inbox': 'صندوق مهامي', Administration: 'الإدارة', 'Sign out': 'تسجيل الخروج', Inbox: 'صندوق المهام', 'Filter pages': 'تصفية الصفحات',
+
+  // App 100 page 920 "My Inbox" (the page's t() pairs)
+  'My Inbox': 'صندوق مهامي',
+  'Overdue tasks are listed first. Select unclaimed tasks to claim several at once.': 'تظهر المهام المتأخرة أولاً. حدد المهام غير المستلمة لاستلام عدة مهام دفعة واحدة.',
+  Refresh: 'تحديث', 'Claim selected': 'استلام المحدد', All: 'الكل', 'Claimed by me': 'مستلمة بواسطتي', Unclaimed: 'غير مستلمة', Overdue: 'متأخرة',
+  Task: 'المهمة', Step: 'الخطوة', Value: 'القيمة', SLA: 'مستوى الخدمة', Assignee: 'المسؤول', Claim: 'استلام', Open: 'فتح',
+  'Due soon': 'تستحق قريباً', 'No due date': 'بدون موعد', 'No tasks match these filters.': 'لا توجد مهام مطابقة.',
+  // added: the inbox texts outside the t() pairs
+  'Search task, portfolio or developer': 'ابحث بالمهمة أو المحفظة أو المطور', 'All workflows': 'كل مسارات العمل',
+
+  // App 100 page 2 "Admin Setup" (added)
+  'CAPITRA · Admin Setup': 'كابيترا · إعدادات النظام',
+  'Platform administration for all CAPITRA applications. Choose a module to continue.': 'إدارة المنصة لجميع تطبيقات كابيترا. اختر وحدة للمتابعة.',
+  'Active users': 'المستخدمون النشطون', Roles: 'الأدوار', 'Administration modules': 'وحدات الإدارة',
+  'Access Control': 'التحكم في الوصول', 'Users and Roles': 'المستخدمون والأدوار',
+  'Create users, give them roles and choose the pages each role can open in every CAPITRA application.': 'أنشئ المستخدمين وامنحهم الأدوار واختر الصفحات التي يفتحها كل دور في كل تطبيقات كابيترا.',
+  'User accounts': 'حسابات المستخدمين', 'Role permissions': 'صلاحيات الأدوار', Users: 'المستخدمون',
+
+  // App 118 page 1 "Workflow Engine home" (added)
+  'CAPITRA Workflow Engine': 'محرك سير العمل في كابيترا',
+  'Design, version and govern every approval workflow that runs CAPITRA, from the first step to the final decision.': 'صمم وأدر إصدارات كل مسار اعتماد يعمل في كابيترا وتحكم فيه، من الخطوة الأولى حتى القرار النهائي.',
+  'New workflow': 'مسار عمل جديد', 'Workflow registry': 'سجل مسارات العمل', 'Task inbox': 'صندوق المهام',
+  Workflows: 'مسارات العمل', active: 'نشط', 'Designed steps': 'الخطوات المصممة', Transitions: 'الانتقالات',
+  'Live operations': 'العمليات الجارية', 'Open tasks, the step they wait on and the role or user they are assigned to.': 'المهام المفتوحة والخطوة التي تنتظرها والدور أو المستخدم المسندة إليه.',
+  'View all': 'عرض الكل', 'Open tasks': 'المهام المفتوحة', 'Not claimed': 'غير مستلمة', 'Past due': 'متأخرة',
+  'My tasks': 'مهامي', 'All tasks': 'كل المهام', 'No tasks in this view.': 'لا توجد مهام في هذا العرض.',
+  'SLA of claimed tasks': 'مستوى الخدمة للمهام المستلمة', 'Target, time used and time left, calculated by the SLA engine.': 'المستهدف والوقت المستخدم والوقت المتبقي، كما يحسبها محرك مستوى الخدمة.',
+  Claimed: 'مستلمة', 'On track': 'في الموعد', Warning: 'تحذير', Breached: 'متجاوزة', 'No SLA': 'بدون مستوى خدمة',
+  'No claimed tasks right now.': 'لا توجد مهام مستلمة حاليًا.', left: 'متبقٍ', over: 'تجاوز', used: 'مستخدم',
+  'Running workflows': 'مسارات العمل الجارية', 'Defined steps in sequence, coloured by progress, with the current step highlighted.': 'الخطوات المعرفة بالترتيب، ملونة حسب التقدم، مع إبراز الخطوة الحالية.',
+  'No workflow instance is running right now.': 'لا يوجد مسار عمل قيد التشغيل حاليًا.', Started: 'بدأ', by: 'بواسطة',
+  Start: 'البداية', End: 'النهاية', 'Current step': 'الخطوة الحالية', Completed: 'مكتملة', Active: 'نشطة', Returned: 'معادة', Rejected: 'مرفوضة',
+  Pending: 'قيد الانتظار', 'Not reached': 'لم يتم الوصول', visits: 'زيارات', 'Claimed by': 'مستلمة بواسطة', 'Assigned to': 'مسندة إلى',
+  of: 'من', 'steps completed': 'خطوات مكتملة', 'running instance(s)': 'مسار جارٍ',
+  'This workflow definition has no designed steps.': 'لا يحتوي تعريف مسار العمل هذا على خطوات مصممة.',
+  'Design & build': 'التصميم والبناء', 'Browse every workflow definition, check its version and status, and open it in the visual designer.': 'تصفح كل تعريفات مسارات العمل وتحقق من إصدارها وحالتها وافتحها في المصمم المرئي.',
+  Definitions: 'التعريفات', Steps: 'الخطوات', 'Start a new workflow': 'ابدأ مسار عمل جديدًا',
+  'Open a blank canvas, drag steps and decisions from the palette, connect them and save.': 'افتح لوحة فارغة واسحب الخطوات والقرارات من لوحة العناصر واربطها ثم احفظ.',
+  Approval: 'اعتماد', Review: 'مراجعة', Decision: 'قرار', 'System check': 'فحص النظام', Service: 'خدمة',
+  'Visual designer · drag & drop': 'المصمم المرئي · سحب وإفلات', 'Recently changed workflows': 'مسارات العمل المعدلة مؤخرًا',
+  Inactive: 'غير نشط', 'No workflows yet. Start one with': 'لا توجد مسارات عمل بعد. ابدأ واحدًا باستخدام'
+}
+
+/** Task and workflow statuses (added), keyed by the status code. */
+export const AR_STATUS: Record<string, string> = {
+  OPEN: 'مفتوحة', CLAIMED: 'مستلمة', IN_PROGRESS: 'قيد التنفيذ', COMPLETED: 'مكتملة', REJECTED: 'مرفوضة', RETURNED: 'معادة',
+  CANCELLED: 'ملغاة', WAITING: 'بانتظار', RUNNING: 'قيد التشغيل', SUSPENDED: 'معلقة', ROLE: 'دور', USER: 'مستخدم', GROUP: 'مجموعة'
+}

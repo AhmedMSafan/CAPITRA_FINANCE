@@ -9,7 +9,7 @@ import { getUser, type SessionUser } from '@/shared/auth/session'
 import { logout as endSession, refreshCurrentUser } from '@/modules/sec/api/auth.api'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 import { appMenu, type MenuLink } from './appMenu'
-import { currentLang, switchLanguage } from './language'
+import { currentLang, switchLanguage, tr } from './language'
 
 const route = useRoute()
 const router = useRouter()
@@ -140,8 +140,8 @@ const initials = computed(() => displayName.value.split(/\s+/).filter(Boolean).s
       </div>
       <div class="fxh-mega-b">
         <div v-for="g in groups" :key="g.title" class="fxh-grp">
-          <div class="fxh-grp-t"><span class="fxh-gi" aria-hidden="true"><i :class="g.icon"></i></span>{{ g.title }}</div>
-          <a v-for="l in g.links" :key="l.label" class="fxh-l" :class="{ 'is-current': isHere(l) }" href="#" @click.prevent="go(l.to)">{{ l.label }}</a>
+          <div class="fxh-grp-t"><span class="fxh-gi" aria-hidden="true"><i :class="g.icon"></i></span>{{ tr(g.title) }}</div>
+          <a v-for="l in g.links" :key="l.label" class="fxh-l" :class="{ 'is-current': isHere(l) }" href="#" @click.prevent="go(l.to)">{{ tr(l.label) }}</a>
         </div>
       </div>
     </div>

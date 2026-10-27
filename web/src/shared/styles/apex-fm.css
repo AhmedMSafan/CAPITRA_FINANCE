@@ -74,3 +74,13 @@ html[dir=rtl] .fm-go svg{transform:scaleX(-1)}
 @media(prefers-reduced-motion:reduce){.fm *{transition:none!important;animation:none!important}}
 .fm-back{display:inline-flex;align-items:center;gap:6px;margin-top:22px;color:#014B55;font-weight:600;font-size:13.5px;text-decoration:none}
 .fm-back:hover{color:#E87722}
+/* Arabic: finova-home-lang.js (its injected stylesheet), and the same font for the other copied pages */
+html.fnv-ar .fm,html.fnv-ar .t-Header,html.fnv-ar .fxh-mega,html.fnv-ar .wx,html.fnv-ar .fx{font-family:Cairo,'Noto Sans Arabic','Segoe UI',Arial,sans-serif!important}
+html.fnv-ar .fm-eyebrow,html.fnv-ar .fm-sec h2,html.fnv-ar .fm-body small,html.fnv-ar .wx-eyebrow,html.fnv-ar .wx-sec h2,html.fnv-ar .fx-table th{letter-spacing:0!important;text-transform:none!important}
+html.fnv-ar .fm-sec h2,html.fnv-ar .wx-sec h2{font-size:14px}html.fnv-ar .fm-body small{font-size:12.5px}
+html.fnv-ar .fm-btn em{right:auto!important;left:-8px}
+html.fnv-ar .fm-feats li::before{border-inline-start:0;border-left:2px solid var(--c);transform:rotate(-45deg)!important}
+html.fnv-ar .fm-hero::after{right:auto;left:-120px}
+html.fnv-ar .fm-card--t1::after{right:auto;left:-80px}
+html.fnv-ar .wx-hero::after{right:auto;left:-120px}
+html.fnv-ar .fm-go svg,html.fnv-ar .wh-go svg{transform:scaleX(-1)}
