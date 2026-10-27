@@ -13,8 +13,8 @@ import { currentLang, switchLanguage } from './language'
 
 const route = useRoute()
 const router = useRouter()
-const ar = currentLang() === 'AR'
-const t = (en: string, arText: string) => (ar ? arText : en)
+const ar = computed(() => currentLang() === 'AR')
+const t = (en: string, arText: string) => (ar.value ? arText : en)
 
 const user = ref<SessionUser | null>(getUser())
 const displayName = computed(() => user.value?.fullName?.trim() || user.value?.userName?.trim() || 'CAPITRA User')
@@ -87,6 +87,15 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
   document.removeEventListener('click', onDocClick)
 })
+
+// the user menu icons of ums-header.js
+const ICON = {
+  home: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>',
+  list: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  grid: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  out: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>'
+}
+const initials = computed(() => displayName.value.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || '?')
 </script>
 
 <template>
@@ -108,16 +117,17 @@ onBeforeUnmount(() => {
         <div class="fxh-userwrap">
           <button type="button" class="fx-user" :aria-expanded="userOpen ? 'true' : 'false'" @click.stop="userOpen = !userOpen; menuOpen = false">{{ displayName }}</button>
           <div v-if="userOpen" class="fxh-menu" role="menu" @click.stop>
-            <div class="fxh-mh"><div><b>{{ displayName }}</b><small>{{ user?.userName }}</small></div></div>
+            <div class="fxh-mh"><span class="fxh-av" aria-hidden="true">{{ initials }}</span><div><b>{{ displayName }}</b><small>{{ (user?.userName || '').toLowerCase() }}</small></div></div>
             <div class="fxh-info">
               <span>{{ t('Employee no.', 'رقم الموظف') }}</span><b>{{ employeeNo }}</b>
               <span>{{ t('Department', 'الإدارة') }}</span><b>{{ department }}</b>
               <span>{{ t('Roles', 'الأدوار') }}</span><b>{{ roles.join(', ') || '-' }}</b>
             </div>
-            <a role="menuitem" @click="go({ name: 'home' })">{{ t('Home', 'الرئيسية') }}</a>
-            <a role="menuitem" @click="go('/admin')">{{ t('Administration', 'الإدارة') }}</a>
+            <a role="menuitem" @click="go({ name: 'home' })"><span v-html="ICON.home"></span><span>{{ t('Home', 'الرئيسية') }}</span></a>
+            <a role="menuitem" @click="go('/admin/users')"><span v-html="ICON.list"></span><span>{{ t('Users', 'المستخدمون') }}</span></a>
+            <a role="menuitem" @click="go('/admin/roles')"><span v-html="ICON.grid"></span><span>{{ t('Role permissions', 'صلاحيات الأدوار') }}</span></a>
             <hr />
-            <a role="menuitem" class="out" @click="logout">{{ t('Sign out', 'تسجيل الخروج') }}</a>
+            <a role="menuitem" class="out" @click="logout"><span v-html="ICON.out"></span><span>{{ t('Sign out', 'تسجيل الخروج') }}</span></a>
           </div>
         </div>
       </div>
@@ -174,21 +184,24 @@ onBeforeUnmount(() => {
 }
 .fx-user:hover, .fx-user[aria-expanded=true] { background: rgba(255, 255, 255, .14); }
 .fxh-userwrap { position: relative; }
-[dir=rtl] .fxh-user[aria-expanded=true] .fxh-menu {
-  position: absolute; inset-inline-end: 0; top: calc(100% + 10px); width: 290px; background: #fff; color: #0B2533; border-radius: 14px;
+/* the user menu: ums-header.css */
+.fxh-menu { position: absolute; inset-inline-end: 0; top: calc(100% + 10px); width: 290px; background: #fff; color: #0B2533; border-radius: 14px;
   box-shadow: 0 24px 60px rgba(3, 24, 30, .25); border: 1px solid #DFE8EC; overflow: hidden; z-index: 1000; animation: fxhIn .14s ease-out;
-}
+  font-family: Inter, 'Segoe UI', Arial, sans-serif; text-align: start; }
 @keyframes fxhIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.fxh-av { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font: 700 13px/1 Inter, Arial, sans-serif; background: linear-gradient(135deg, #F0932B, #E87722); color: #fff; flex: 0 0 auto; }
 .fxh-mh { display: flex; gap: 12px; align-items: center; padding: 16px; border-bottom: 1px solid #EDF2F4; background: linear-gradient(180deg, #F6FAFA, #fff); }
-.fxh-mh .fxh-mh b { display: block; font-size: 14.5px; color: #0B2533; }
+.fxh-mh .fxh-av { width: 42px; height: 42px; font-size: 15px; border-radius: 12px; }
+.fxh-mh b { display: block; font-size: 14.5px; color: #0B2533; }
 .fxh-mh small { display: block; color: #5F7B8A; font-size: 12.5px; word-break: break-all; }
 .fxh-info { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; padding: 12px 16px; border-bottom: 1px solid #EDF2F4; font-size: 12.5px; }
 .fxh-info span { color: #5F7B8A; }
-.fxh-info b { font-weight: 600; }
-.fxh-menu a { display: flex; align-items: center; gap: 12px; padding: 11px 16px; color: #0B2533; text-decoration: none; font-size: 14px; cursor: pointer; }
-.fxh-menu a:hover { background: #F2F7F8; }
+.fxh-info b { font-weight: 600; color: #0B2533; }
+.fxh-menu a { display: flex; align-items: center; gap: 12px; padding: 11px 16px; color: #0B2533 !important; text-decoration: none !important; font-size: 14px; cursor: pointer; }
+.fxh-menu a:hover, .fxh-menu a:focus { background: #F2F7F8; outline: 0; }
+.fxh-menu a :deep(svg) { color: #5F7B8A; flex: 0 0 auto; display: block; }
 .fxh-menu hr { border: 0; border-top: 1px solid #EDF2F4; margin: 4px 0; }
-.fxh-menu a.out { color: #C43325; }
+.fxh-menu a.out, .fxh-menu a.out :deep(svg) { color: #C43325 !important; }
 .fxh-mega {
   position: fixed; top: 66px; inset-inline-start: 16px; width: min(980px, calc(100vw - 32px)); max-height: calc(100vh - 90px); overflow: auto; z-index: 1001;
   background: #fff; color: #0B2533; border: 1px solid #DFE8EC; border-radius: 18px; box-shadow: 0 30px 70px rgba(3, 24, 30, .28); animation: fxhIn .16s ease-out;

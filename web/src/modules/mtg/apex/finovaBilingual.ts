@@ -182,7 +182,11 @@ let stopBilingual: (() => void) | null = null
 
 /** The switch runs while a page of the app is open: it starts with the first one and stops when another app opens. */
 export function useBilingual(router: Router) {
-  if (stopBilingual) return
+  // already running: a page drawn again (after a language switch) takes the language now
+  if (stopBilingual) {
+    applyLanguage(getLang())
+    return
+  }
   stopBilingual = startBilingual()
   const remove = router.afterEach((to) => {
     if (String(to.name ?? '').startsWith('mtg-')) return
