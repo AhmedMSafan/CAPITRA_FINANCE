@@ -168,6 +168,9 @@ export function createApex(app: number, page: number, items: Record<string, stri
 type Added = { target: EventTarget; type: string; listener: EventListenerOrEventListenerObject; options?: boolean | AddEventListenerOptions }
 const added: Added[] = []
 
+// Elements page scripts moved to <body>, removed when the page closes.
+const bodyNodes: Element[] = []
+
 function tracked(run: () => void) {
   const targets: EventTarget[] = [document, window]
   const originals = targets.map((t) => t.addEventListener)
@@ -199,7 +202,15 @@ export function runPageScript(source: string, apex: ReturnType<typeof createApex
   const exported = names.map((n) => `if (typeof ${n} === 'function') window[${JSON.stringify(n)}] = ${n};`).join('')
   // The scripts are part of this app (copied from the APEX export), not user input.
   const fn = new Function('apex', '$', 'jQuery', '$v', '$s', 'history', exported + source)
+  const before = new Set(Array.from(document.body.children))
   tracked(() => fn(apex, apex.jQuery, apex.jQuery, $v, $s, apex.history))
+  // Elements the script moved to <body> (as the APEX dialogs do) belong to the page: its CSS leaves with it.
+  for (const node of Array.from(document.body.children)) {
+    if (before.has(node) || node.tagName === 'SCRIPT') continue
+    // a region that renders again brings its dialog again: the earlier copy goes
+    for (const old of bodyNodes.filter((n) => n.id && n.id === node.id)) old.remove()
+    bodyNodes.push(node)
+  }
 }
 
 /** Runs the <script> blocks of server-rendered region HTML (innerHTML does not run them). */
@@ -218,4 +229,5 @@ export function releasePageHandlers() {
   for (const a of added.splice(0)) a.target.removeEventListener(a.type, a.listener, a.options)
   for (const n of globals.splice(0)) delete (window as unknown as Record<string, unknown>)[n]
   document.getElementById('apexAlerts')?.remove()
+  for (const n of bodyNodes.splice(0)) n.remove()
 }
