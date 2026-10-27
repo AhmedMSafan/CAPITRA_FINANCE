@@ -252,7 +252,12 @@ body {
 }
 
 .capitra-app-content {
-  padding:0;
+  padding: 16px 24px 24px;
+}
+/* Every page uses the full width of the screen, with the same side margins: the page containers copied from
+   APEX (and the native pages) are not held to a centred column. */
+.capitra-app-content :is(.ut-page.t-Body-contentInner, .wx.wh, .wx.wr, .home, .gp, .gh-body, .gh-foot, .setup-shell, .inbox-shell) {
+  max-width: none !important;
 }
 .capitra-function-name {
   margin-left: 12px;
