@@ -258,7 +258,7 @@ a { text-decoration: none; color: inherit; }
   color: #fff;
   background:
     radial-gradient(600px 260px at 100% 0%, rgba(224, 176, 74, .22), transparent 60%),
-    linear-gradient(120deg, #16242f 0%, #1d3140 55%, #243b4a 100%);
+    linear-gradient(120deg, #24394a 0%, #2c4557 55%, #355266 100%);
 }
 
 .welcome small { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #f3d58c; }
@@ -268,8 +268,11 @@ a { text-decoration: none; color: inherit; }
 .kpis { display: flex; gap: 12px; }
 
 .kpi {
-  min-width: 128px;
-  padding: 14px 18px;
+  min-width: 190px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 20px;
   border: 1px solid rgba(255, 255, 255, .16);
   border-radius: 14px;
   background: rgba(255, 255, 255, .10);
@@ -280,9 +283,9 @@ a { text-decoration: none; color: inherit; }
 }
 
 .kpi:hover { background: rgba(255, 255, 255, .16); }
-.kpi strong { display: block; font-size: 26px; font-weight: 700; }
+.kpi strong { display: block; font-size: 24px; font-weight: 700; line-height: 1.1; }
 .kpi strong.warn { color: #fcd34d; }
-.kpi span { font-size: 12px; color: #c3ced6; }
+.kpi span { font-size: 13.5px; color: #dbe4ea; }
 
 .mods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin-top: 24px; }
 

@@ -582,7 +582,7 @@
     gap: 16px;
     color: #fff;
     border-radius: 20px 20px 0 0;
-    background: linear-gradient(120deg, #16242f 0%, #1d3140 100%);
+    background: linear-gradient(120deg, #24394a 0%, #2c4557 100%);
     box-shadow: none;
   }
   .cap-hdr__bar::after { left: 28px; right: 28px; height: 1px; opacity: 1;
@@ -607,7 +607,7 @@
   .cap-hdr__tool--admin { background: rgba(147,197,253,.16); color: #93c5fd; }
   .cap-hdr__tool--inbox { background: rgba(253,164,175,.16); color: #fda4af; }
   .cap-hdr__tool:hover { filter: brightness(1.25); background-color: rgba(255,255,255,.14); }
-  .cap-hdr__badge { box-shadow: 0 0 0 2px #1a2c38; }
+  .cap-hdr__badge { box-shadow: 0 0 0 2px #2a4253; }
   .cap-hdr__sep { background: rgba(255,255,255,.14); }
   .cap-hdr__who:hover { background: rgba(255,255,255,.07); }
   .cap-hdr__ava { width: 42px; height: 42px; font-size: 14px; background: linear-gradient(135deg, #e0b04a, #b8862a); color: #16242f; box-shadow: none; }
