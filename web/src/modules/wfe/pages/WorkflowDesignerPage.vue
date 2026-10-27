@@ -700,10 +700,13 @@ async function fit(){
     return
   }
 
-  const minX=Math.min(...elements.map((e:any)=>e.x))
-  const minY=Math.min(...elements.map((e:any)=>e.y))
-  const maxX=Math.max(...elements.map((e:any)=>e.x+e.width))
-  const maxY=Math.max(...elements.map((e:any)=>e.y+e.height))
+  // the arrows count too: a route around the steps must stay in view
+  const points=registry.getAll().flatMap((e:any)=>Array.isArray(e?.waypoints)?e.waypoints:[])
+    .filter((p:any)=>Number.isFinite(p?.x)&&Number.isFinite(p?.y))
+  const minX=Math.min(...elements.map((e:any)=>e.x),...points.map((p:any)=>p.x))
+  const minY=Math.min(...elements.map((e:any)=>e.y),...points.map((p:any)=>p.y))
+  const maxX=Math.max(...elements.map((e:any)=>e.x+e.width),...points.map((p:any)=>p.x))
+  const maxY=Math.max(...elements.map((e:any)=>e.y+e.height),...points.map((p:any)=>p.y))
 
   const boundsWidth=Math.max(maxX-minX,1)
   const boundsHeight=Math.max(maxY-minY,1)
