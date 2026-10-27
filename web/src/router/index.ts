@@ -233,6 +233,12 @@ const router = createRouter({
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Reference Data' }
         },
         {
+          path: 'admin/reference-data/currencies',
+          name: 'adm-currencies',
+          component: () => import('@/modules/adm/pages/CurrencyPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Reference Data' }
+        },
+        {
           path: 'admin/reference-data/:lookupName',
           name: 'adm-lookup',
           component: () => import('@/modules/adm/pages/LookupPage.vue'),

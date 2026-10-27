@@ -450,18 +450,15 @@
    ========================================================= */
 
 .finova-action-update {
-  border: 1px solid #0b74c9;
-  background: linear-gradient( 180deg, #1686dc 0%, #0876d1 100% );
+  border: 1px solid #00636D;
+  background: #00636D;
   color: #ffffff;
-  box-shadow: 0 2px 5px rgba(8, 118, 209, 0.18);
 }
 
 
   .finova-action-update:hover:not(:disabled) {
-    background: linear-gradient( 180deg, #0f7ed2 0%, #066bbd 100% );
-    border-color: #066bbd;
-    box-shadow: 0 4px 10px rgba(8, 118, 209, 0.22);
-    transform: translateY(-1px);
+    background: #014B55;
+    border-color: #014B55;
   }
 
 
@@ -471,18 +468,15 @@
    ========================================================= */
 
 .finova-action-create {
-  border: 1px solid #73a95f;
-  background: linear-gradient( 180deg, #99cc82 0%, #83ba69 100% );
+  border: 1px solid #00636D;
+  background: #00636D;
   color: #ffffff;
-  box-shadow: 0 2px 5px rgba(85, 137, 61, 0.17);
 }
 
 
   .finova-action-create:hover:not(:disabled) {
-    background: linear-gradient( 180deg, #8fc578 0%, #75ad5d 100% );
-    border-color: #699e53;
-    box-shadow: 0 4px 10px rgba(85, 137, 61, 0.22);
-    transform: translateY(-1px);
+    background: #014B55;
+    border-color: #014B55;
   }
 
 

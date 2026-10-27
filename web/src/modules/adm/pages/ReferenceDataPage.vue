@@ -57,15 +57,19 @@ getLookupDefinitions()
   .then(d => (definitions.value = d))
   .catch(e => (error.value = e instanceof Error ? e.message : 'Unable to load the reference data lists.'))
 
-const tiles = computed<HubTile[]>(() =>
-  definitions.value.filter(d => d.module === props.module).map(d => ({
+// Currencies have their own page (ADM_LKP_CURRENCIES has its own columns, not the generic lookup ones).
+const CURRENCIES: HubTile = { title: 'Currencies', description: 'Global code list.', icon: ICONS.currency!, to: '/admin/reference-data/currencies', apexPages: '37/38' }
+
+const tiles = computed<HubTile[]>(() => [
+  ...(props.module === 'ADM' ? [CURRENCIES] : []),
+  ...definitions.value.filter(d => d.module === props.module).map(d => ({
     title: d.title,
     description: `${d.module === 'MTG' ? 'Portfolio acquisition' : d.module === 'GL' ? 'General ledger' : 'Global'} code list.`,
     icon: ICONS[d.name] ?? 'pi pi-list',
     to: `${area.value.base}/${d.name}`,
     apexPages: d.apexPages
   }))
-)
+])
 
 // Errors open the app-wide pop-up.
 useFeedback({ errors: [error] })

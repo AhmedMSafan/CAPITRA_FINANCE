@@ -104,7 +104,7 @@ const sections: SetupSection[] = [
   {
     title: 'Reference Data / Lookups', description: 'Maintain common reference data used throughout CAPITRA.', icon: 'pi pi-list', color: '#0E7490', tint: '#E0F2F7',
     items: [
-      { title: 'Currencies', description: 'Maintain supported currencies and currency information.', icon: 'pi pi-money-bill' },
+      { title: 'Currencies', description: 'Maintain supported currencies and currency information.', icon: 'pi pi-money-bill', route: '/admin/reference-data/currencies' },
       { title: 'Countries', description: 'Maintain country codes and country information.', icon: 'pi pi-globe', route: '/admin/reference-data/country' }
     ],
     viewAll: '/admin/reference-data'

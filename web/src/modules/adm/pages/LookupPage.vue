@@ -2,6 +2,7 @@
 // Every reference-data list and form (APEX App 105 pages 11-40), drawn from the lookup's definition.
 import { computed, ref, shallowRef, watch } from 'vue'
 import CrudPage from '@/shared/crud/CrudPage.vue'
+import { tr } from '@/shared/layout/language'
 import type { CrudApi, CrudColumn, CrudField, FieldOption, FormValues } from '@/shared/crud/types'
 import { hasPermission } from '@/shared/auth/session'
 import {
@@ -163,13 +164,11 @@ function toValues(row: LookupRow): FormValues {
     :can-edit="canEdit"
   >
     <template #actions>
-      <RouterLink :to="definition.module === 'MTG' ? '/mortgage/reference-data' : definition.module === 'GL' ? '/gl/reference-data' : '/admin/reference-data'" class="back-link"><i class="pi pi-arrow-left"></i><span>Reference Data</span></RouterLink>
+      <RouterLink :to="definition.module === 'MTG' ? '/mortgage/reference-data' : definition.module === 'GL' ? '/gl/reference-data' : '/admin/reference-data'" class="fx-btn fx-btn--ghost"><i class="pi pi-arrow-left"></i><span>{{ tr('Reference Data') }}</span></RouterLink>
     </template>
   </CrudPage>
 </template>
 
 <style scoped>
 .lookup-error { margin: 24px 30px; padding: 12px 16px; border: 1px solid var(--cap-danger-border); border-radius: 8px; background: var(--cap-danger-bg); color: var(--cap-danger); font-size: 13px; }
-.back-link { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--cap-ink-soft); font-size: 13px; text-decoration: none; }
-.back-link:hover { color: var(--cap-primary-dark); }
 </style>

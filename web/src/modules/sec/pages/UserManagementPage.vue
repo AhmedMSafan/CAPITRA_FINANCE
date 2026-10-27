@@ -6,11 +6,23 @@
   import type { AdminUser } from '../models/AdminUser'
   import { getAdminRoles } from '../services/adminRoleService'
   import { getAdminUsers } from '../services/adminUserService'
+  import { tr } from '@/shared/layout/language'
+  import '@/shared/styles/apex-fx-inbox.css'
   import '../styles/admin.css'
 
   const users = ref<AdminUser[]>([])
   const roles = ref<AdminRole[]>([])
   const searchText = ref('')
+  const statusFilter = ref<'' | 'Y' | 'N'>('')
+
+  const statusViews = computed(() => {
+    const active = users.value.filter(u => u.isActive).length
+    return [
+      { key: '' as const, label: 'All', count: users.value.length },
+      { key: 'Y' as const, label: 'Active', count: active },
+      { key: 'N' as const, label: 'Inactive', count: users.value.length - active }
+    ]
+  })
   const isLoading = ref(false)
   const errorMessage = ref('')
 
@@ -20,11 +32,12 @@
 
   const filteredUsers = computed(() => {
     const q = searchText.value.trim().toLowerCase()
+    const byStatus = users.value.filter(u => !statusFilter.value || u.isActive === (statusFilter.value === 'Y'))
 
     if (!q)
-      return users.value
+      return byStatus
 
-    return users.value.filter(user => {
+    return byStatus.filter(user => {
       const values = [
         user.userName,
         user.fullName,
@@ -85,149 +98,62 @@
 </script>
 
 <template>
-  <section class="finova-admin-page">
-
-    <!-- UPDATED HEADER ONLY -->
-    <div class="users-header-row">
-      <div class="users-header">
-        <div class="users-header-icon">
-          <i class="pi pi-users"></i>
-          <i class="pi pi-shield users-mini-icon"></i>
-        </div>
-
-        <div class="users-header-copy">
-          <h1>User Management</h1>
-          <p>Manage Capitra users, business roles, status and security access.</p>
-        </div>
+  <!-- The list in the layout of App 100 page 920 "My Inbox", as every admin list. -->
+  <section class="fx users-page">
+    <div class="fx-head">
+      <div>
+        <h1>{{ tr('User Management') }}</h1>
+        <p>{{ tr('Maintain system users and access configuration.') }}</p>
       </div>
-
-      <button type="button"
-              class="finova-action-button finova-action-create"
-              @click="openCreateUser">
-        <i class="pi pi-user-plus"></i>
-        <span>Add User</span>
-      </button>
-    </div>
-
-    <div class="users-header-space"></div>
-
-    <div class="finova-admin-toolbar">
-      <div class="finova-admin-search">
-        <i class="pi pi-search"></i>
-        <input v-model="searchText"
-               type="text"
-               placeholder="Search users..." />
-      </div>
-
-      <div class="finova-admin-toolbar__meta">
-        {{ filteredUsers.length }} user(s)
+      <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="loadPage"><i class="pi pi-refresh"></i>{{ tr('Refresh') }}</button>
+        <button type="button" class="fx-btn fx-btn--teal" @click="openCreateUser"><i class="pi pi-plus"></i>{{ tr('Add') }}</button>
       </div>
     </div>
 
-    <div v-if="errorMessage" class="finova-admin-inline-error">
-      <i class="pi pi-exclamation-circle"></i>
-      <span>{{ errorMessage }}</span>
+    <div v-if="errorMessage" class="users-msg">{{ errorMessage }}</div>
+
+    <div class="fx-toolbar">
+      <div class="fx-seg" role="group" :aria-label="tr('Status')">
+        <button v-for="v in statusViews" :key="v.key" type="button" :aria-pressed="statusFilter === v.key" @click="statusFilter = v.key">
+          {{ tr(v.label) }}<em>{{ v.count }}</em>
+        </button>
+      </div>
+      <input v-model="searchText" class="fx-search" type="search" :placeholder="tr('Search')" :aria-label="tr('Search')" />
     </div>
 
-    <div class="finova-admin-panel">
-      <div class="finova-admin-panel__title">
-        <div>
-          <i class="pi pi-users"></i>
-          <span>Capitra Users</span>
-        </div>
-      </div>
-
-      <div v-if="isLoading" class="finova-admin-loading">
-        <i class="pi pi-spin pi-spinner"></i>
-        <span>Loading users...</span>
-      </div>
-
-      <div v-else class="finova-admin-table-wrap">
-        <table class="finova-admin-table">
+    <div class="fx-card">
+      <div v-if="isLoading" class="fx-empty"><i class="pi pi-spin pi-spinner"></i> {{ tr('Loading...') }}</div>
+      <div v-else class="fx-table-wrap">
+        <table class="fx-table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Employee</th>
-              <th>Department / Title</th>
-              <th>Roles</th>
-              <th>Status</th>
-              <th class="finova-admin-table__actions">Actions</th>
+              <th>{{ tr('User') }}</th><th>{{ tr('Employee no.') }}</th><th>{{ tr('Department') }}</th><th>{{ tr('Roles') }}</th><th>{{ tr('Status') }}</th><th></th>
             </tr>
           </thead>
-
           <tbody>
             <tr v-for="user in filteredUsers" :key="user.id">
               <td>
-                <div class="finova-admin-user-cell">
-                  <div class="finova-admin-avatar">
-                    <i class="pi pi-user"></i>
-                  </div>
-                  <div>
-                    <strong>{{ user.fullName || user.userName }}</strong>
-                    <span>{{ user.userName }}</span>
-                    <small>{{ user.email || '—' }}</small>
-                  </div>
-                </div>
+                <a href="#" @click.prevent="openEditUser(user)">{{ user.userName }}</a>
+                <span class="fx-cell-sub">{{ user.fullName }}<template v-if="user.email"> &middot; {{ user.email }}</template></span>
               </td>
-
+              <td>{{ user.employeeNo || '-' }}</td>
+              <td>{{ user.department || '-' }}<span v-if="user.jobTitle" class="fx-cell-sub">{{ user.jobTitle }}</span></td>
               <td>
-                <strong>{{ user.employeeNo || '—' }}</strong>
-              </td>
-
-              <td>
-                <div class="finova-admin-two-line">
-                  <span>{{ user.department || '—' }}</span>
-                  <small>{{ user.jobTitle || '—' }}</small>
-                </div>
-              </td>
-
-              <td>
-                <div v-if="user.roles.length" class="finova-admin-chip-list">
-                  <span v-for="role in user.roles"
-                        :key="role"
-                        class="finova-admin-chip">
-                    {{ role }}
-                  </span>
-                </div>
-                <span v-else>—</span>
-              </td>
-
-              <td>
-                <span class="finova-admin-status"
-                      :class="user.isActive
-                    ? 'finova-admin-status--active'
-                    : 'finova-admin-status--inactive'">
-                  <i :class="user.isActive
-                      ? 'pi pi-check-circle'
-                      : 'pi pi-ban'"></i>
-                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                <span class="users-roles">
+                  <span v-for="role in user.roles" :key="role" class="fx-chip fx-chip--plain">{{ role }}</span>
+                  <template v-if="!user.roles.length">-</template>
                 </span>
               </td>
-
-              <td class="finova-admin-table__actions">
-                <button type="button"
-                        class="finova-admin-icon-button"
-                        title="Edit user"
-                        @click="openEditUser(user)">
-                  <i class="pi pi-pencil"></i>
-                </button>
-
-                <button type="button"
-                        class="finova-admin-icon-button"
-                        title="Reset password"
-                        @click="openPasswordReset(user)">
-                  <i class="pi pi-key"></i>
-                </button>
-              </td>
-            </tr>
-
-            <tr v-if="filteredUsers.length === 0">
-              <td colspan="6" class="finova-admin-empty">
-                No users found.
+              <td><span class="fx-chip" :class="{ 'fx-chip--ok': user.isActive }">{{ tr(user.isActive ? 'Active' : 'Inactive') }}</span></td>
+              <td class="fx-r">
+                <button type="button" class="fx-btn fx-btn--sm" @click="openEditUser(user)">{{ tr('Edit') }}</button>
+                <button type="button" class="fx-btn fx-btn--sm users-key" :title="tr('Reset password')" :aria-label="tr('Reset password')" @click="openPasswordReset(user)"><i class="pi pi-key"></i></button>
               </td>
             </tr>
           </tbody>
         </table>
+        <div v-if="filteredUsers.length === 0" class="fx-empty">{{ tr('No records found.') }}</div>
       </div>
     </div>
 
@@ -245,71 +171,10 @@
 </template>
 
 <style scoped>
-  /* ONLY THE HEADER STYLING ADDED/CHANGED */
-
-  .users-header-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-  }
-
-  .users-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-
-  .users-header-icon {
-    position: relative;
-    width: 54px;
-    height: 54px;
-    flex: 0 0 54px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 14px;
-    background: #fff0df;
-    color: #c47b2c;
-  }
-
-    .users-header-icon > .pi-users {
-      font-size: 22px;
-    }
-
-  .users-mini-icon {
-    position: absolute;
-    right: 8px;
-    bottom: 8px;
-    font-size: 11px;
-  }
-
-  .users-header-copy h1 {
-    margin: 0;
-    color: #244b3a;
-    font-size: 22px;
-    line-height: 1.05;
-    font-weight: 800;
-  }
-
-  .users-header-copy p {
-    margin: 5px 0 0;
-    color: #718579;
-    font-size: 14px;
-  }
-
-  .users-header-space {
-    height: 26px;
-  }
-
-  @media (max-width: 650px) {
-    .users-header-row {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .users-header-space {
-      height: 24px;
-    }
-  }
+  .users-page { font-family: Inter, "Segoe UI", Arial, sans-serif; }
+  html.fnv-ar .users-page { font-family: Cairo, "Segoe UI", Arial, sans-serif; }
+  .fx .fx-btn .pi { font-size: 12px; }
+  .users-msg { margin-block-end: 12px; padding: 10px 14px; border-radius: var(--fin-radius-sm); font-size: var(--fs-sm); font-weight: 600; background: var(--fin-bad-50); color: var(--fin-bad); }
+  .users-roles { display: flex; flex-wrap: wrap; gap: 4px; max-width: 520px; }
+  .users-key { margin-inline-start: 6px; }
 </style>

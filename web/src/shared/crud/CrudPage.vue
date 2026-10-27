@@ -6,6 +6,8 @@ import { showSuccess, showWarning } from '@/shared/feedback/feedback'
 import { useFeedback } from '@/shared/feedback/useFeedback'
 import { downloadCsv, formatCell, toCsv } from './format'
 import type { CrudApi, CrudColumn, CrudField, FormValues } from './types'
+import { tr } from '@/shared/layout/language'
+import '@/shared/styles/apex-fx-inbox.css'
 
 const props = withDefaults(
   defineProps<{
@@ -45,6 +47,17 @@ const dialogVisible = ref(false)
 const editingRow = shallowRef<T | null>(null)
 const confirmDelete = ref(false)
 const form = reactive<FormValues>({})
+
+const statusViews = computed(() => {
+  const active = rows.value.filter(r => r.isActive).length
+  return [
+    { key: '' as const, label: 'All', count: rows.value.length },
+    { key: 'Y' as const, label: 'Active', count: active },
+    { key: 'N' as const, label: 'Inactive', count: rows.value.length - active }
+  ]
+})
+
+const isNum = (c: CrudColumn<T>) => ['number', 'amount', 'pct'].includes(c.type ?? '')
 
 const filteredRows = computed(() => {
   const q = searchText.value.trim().toLowerCase()
@@ -209,92 +222,58 @@ useFeedback({ errors: [pageError, formError] })
 </script>
 
 <template>
-  <div class="crud-page" :class="{ 'crud-page--embedded': embedded }">
-    <div class="crud-card">
-      <div class="crud-toolbar">
-        <div class="crud-header">
-          <div class="crud-header-icon"><i :class="icon"></i></div>
-          <div>
-            <h2>{{ title }}</h2>
-            <p>{{ description }}</p>
-          </div>
-        </div>
-
-        <div class="crud-actions">
-          <slot name="actions"></slot>
-          <button type="button" class="secondary-button" title="Download as CSV" @click="exportCsv">
-            <i class="pi pi-download"></i><span>Export</span>
-          </button>
-          <button v-if="canEdit" type="button" class="add-button" @click="openCreate">
-            <i class="pi pi-plus"></i><span>Add</span>
-          </button>
-        </div>
+  <!-- The list in the layout of App 100 page 920 "My Inbox": header, filter toolbar, table card. -->
+  <div class="fx crud-page" :class="{ 'crud-page--embedded': embedded }">
+    <div class="fx-head">
+      <div>
+        <h1>{{ tr(title) }}</h1>
+        <p>{{ tr(description) }}</p>
       </div>
-
-
-      <div class="grid-filters">
-        <div class="grid-search">
-          <i class="pi pi-search"></i>
-          <input v-model="searchText" type="text" placeholder="Search..." />
-        </div>
-        <slot name="filters"></slot>
-        <select v-if="hasActive" v-model="statusFilter" class="grid-select">
-          <option value="">All Statuses</option>
-          <option value="Y">Active</option>
-          <option value="N">Inactive</option>
-        </select>
-        <div class="grid-meta">{{ filteredRows.length }} record(s)</div>
+      <div class="fx-actions">
+        <slot name="actions"></slot>
+        <button type="button" class="fx-btn" @click="load"><i class="pi pi-refresh"></i>{{ tr('Refresh') }}</button>
+        <button type="button" class="fx-btn" :title="tr('Download as CSV')" @click="exportCsv"><i class="pi pi-download"></i>{{ tr('Export') }}</button>
+        <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="openCreate"><i class="pi pi-plus"></i>{{ tr('Add') }}</button>
       </div>
+    </div>
 
-      <div class="grid-panel">
-        <div class="grid-panel__title">
-          <i :class="icon"></i><span>{{ title }}</span>
-        </div>
-
-        <div v-if="loading" class="grid-loading">
-          <i class="pi pi-spin pi-spinner"></i><span>Loading...</span>
-        </div>
-
-        <div v-else class="grid-table-wrap">
-          <table class="grid-table">
-            <thead>
-              <tr>
-                <th v-for="c in columns" :key="c.field" :class="{ num: ['number', 'amount', 'pct'].includes(c.type ?? '') }">
-                  {{ c.label }}
-                </th>
-                <th v-if="hasActive">Status</th>
-                <th class="actions-col">{{ canEdit ? 'Edit' : 'View' }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in filteredRows" :key="rowKey(row)">
-                <td
-                  v-for="c in columns"
-                  :key="c.field"
-                  :dir="c.rtl ? 'rtl' : undefined"
-                  :class="{ 'code-cell': c.type === 'code', num: ['number', 'amount', 'pct'].includes(c.type ?? '') }"
-                >
-                  {{ formatCell(row[c.field], c.type) }}
-                </td>
-                <td v-if="hasActive">
-                  <span class="status-pill" :class="row.isActive ? 'status-pill--active' : 'status-pill--inactive'">
-                    {{ row.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-                <td class="actions-col">
-                  <button type="button" class="edit-button" :title="canEdit ? 'Edit' : 'View'" @click="openEdit(row)">
-                    <i :class="canEdit ? 'pi pi-pencil' : 'pi pi-eye'"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr v-if="filteredRows.length === 0">
-                <td :colspan="columns.length + (hasActive ? 2 : 1)" class="empty-row">No records found.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    <div class="fx-toolbar">
+      <div v-if="hasActive" class="fx-seg" role="group" :aria-label="tr('Status')">
+        <button v-for="v in statusViews" :key="v.key" type="button" :aria-pressed="statusFilter === v.key" @click="statusFilter = v.key">
+          {{ tr(v.label) }}<em>{{ v.count }}</em>
+        </button>
       </div>
-      <p v-if="apexPages" class="apex-ref">Replaces APEX App {{ apexApp }} pages {{ apexPages }}</p>
+      <input v-model="searchText" class="fx-search" type="search" :placeholder="tr('Search')" :aria-label="tr('Search')" />
+      <slot name="filters"></slot>
+    </div>
+
+    <div class="fx-card">
+      <div v-if="loading" class="fx-empty"><i class="pi pi-spin pi-spinner"></i> {{ tr('Loading...') }}</div>
+      <div v-else class="fx-table-wrap">
+        <table class="fx-table">
+          <thead>
+            <tr>
+              <th v-for="c in columns" :key="c.field" :class="{ 'fx-r': isNum(c) }">{{ tr(c.label) }}</th>
+              <th v-if="hasActive">{{ tr('Status') }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in filteredRows" :key="rowKey(row)">
+              <td v-for="c in columns" :key="c.field" :class="{ 'code-cell': c.type === 'code', 'fx-r': isNum(c), 'rtl-cell': c.rtl }">
+                {{ formatCell(row[c.field], c.type) }}
+              </td>
+              <td v-if="hasActive">
+                <span class="fx-chip" :class="{ 'fx-chip--ok': row.isActive }">{{ tr(row.isActive ? 'Active' : 'Inactive') }}</span>
+              </td>
+              <td class="fx-r">
+                <button type="button" class="fx-btn fx-btn--sm" @click="openEdit(row)">{{ tr(canEdit ? 'Edit' : 'View') }}</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-if="filteredRows.length === 0" class="fx-empty">{{ tr('No records found.') }}</div>
+      </div>
     </div>
 
     <div v-if="dialogVisible" class="modal-overlay" @click.self="closeDialog">
@@ -383,7 +362,7 @@ useFeedback({ errors: [pageError, formError] })
           <button type="button" class="cancel-button" :disabled="saving" @click="closeDialog">
             {{ canEdit ? 'Cancel' : 'Close' }}
           </button>
-          <button v-if="canEdit" type="button" class="save-button" :class="{ 'save-button--create': !editingRow }" :disabled="saving" @click="save">
+          <button v-if="canEdit" type="button" class="save-button" :disabled="saving" @click="save">
             <i :class="saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"></i>
             <span>{{ saving ? 'Saving...' : editingRow ? 'Save Changes' : 'Create' }}</span>
           </button>
@@ -394,46 +373,12 @@ useFeedback({ errors: [pageError, formError] })
 </template>
 
 <style scoped>
-.crud-page { padding: 24px 30px 36px; font-family: Inter, "Segoe UI", Arial, sans-serif; }
-.crud-page--embedded { padding: 0; }
-.crud-card { background: #fff; border: 1px solid var(--cap-border-soft); border-radius: 16px; padding: 20px 28px 22px; box-shadow: 0 8px 24px rgba(13, 42, 46, .06); }
-.crud-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 18px; }
-.crud-header { display: flex; align-items: center; gap: 15px; }
-.crud-header-icon { width: 54px; height: 54px; flex: 0 0 54px; display: grid; place-items: center; border-radius: 14px; background: var(--cap-warning-bg); color: var(--cap-warning); font-size: 22px; }
-.crud-header h2 { margin: 0; color: var(--cap-heading); font-size: 20px; font-weight: 600; }
-.crud-header p { margin: 5px 0 0; color: var(--cap-muted); font-size: 13px; }
-.crud-actions { display: flex; gap: 8px; align-items: center; }
-.add-button, .secondary-button { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 15px; border-radius: 7px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
-.add-button { border: 0; background: var(--cap-create); color: #fff; font-weight: 600; }
-.add-button:hover { background: var(--cap-create-hover); }
-.secondary-button { border: 1px solid var(--cap-border); background: #fff; color: var(--cap-ink-soft); }
-.secondary-button:hover { background: var(--cap-bg); }
-.error-message { margin-bottom: 16px; padding: 10px 14px; border: 1px solid var(--cap-danger-border); border-radius: 8px; background: var(--cap-danger-bg); color: var(--cap-danger); font-size: 12px; }
-.grid-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 14px; }
-.grid-search { flex: 1 1 280px; height: 42px; display: flex; align-items: center; gap: 9px; padding: 0 13px; border: 1px solid var(--cap-border); border-radius: 8px; background: #fff; }
-.grid-search i { color: var(--cap-muted); font-size: 12px; }
-.grid-search input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--cap-ink); font: inherit; font-size: 12px; }
-.grid-select, :slotted(.grid-select) { height: 42px; min-width: 180px; padding: 0 12px; border: 1px solid var(--cap-border); border-radius: 8px; background: #fff; color: var(--cap-ink); font: inherit; font-size: 12px; }
-.grid-meta { color: var(--cap-muted); font-size: 11px; white-space: nowrap; }
-.grid-panel { overflow: hidden; border: 1px solid var(--cap-border-soft); border-radius: 12px; background: #fff; }
-.grid-panel__title { min-height: 42px; display: flex; align-items: center; gap: 9px; padding: 0 16px; border-bottom: 2px solid var(--cap-orange-border); background: var(--cap-orange-tint); color: var(--cap-orange-dark); font-size: 13px; font-weight: 500; }
-.grid-table-wrap { width: 100%; overflow-x: auto; }
-.grid-table { width: 100%; border-collapse: collapse; }
-.grid-table th, .grid-table td { padding: 11px 14px; border-bottom: 1px solid var(--cap-border-soft); text-align: left; vertical-align: middle; color: var(--cap-ink-soft); font-size: 12px; white-space: nowrap; }
-.grid-table th { background: var(--cap-bg); color: var(--cap-ink); font-weight: 500; }
-.grid-table th.num, .grid-table td.num { text-align: right; }
-.grid-table tbody tr:last-child td { border-bottom: 0; }
-.grid-table tbody tr:hover { background: var(--cap-bg); }
-.code-cell { color: var(--cap-heading) !important; font-weight: 600; }
-.actions-col { width: 70px; text-align: center !important; }
-.status-pill { min-width: 62px; display: inline-flex; justify-content: center; padding: 4px 9px; border-radius: 6px; font-size: 10px; font-weight: 500; }
-.status-pill--active { background: var(--cap-success-bg); border: 1px solid var(--cap-success-border); color: var(--cap-success); }
-.status-pill--inactive { background: var(--cap-danger-bg); border: 1px solid var(--cap-danger-border); color: var(--cap-danger); }
-.edit-button { width: 36px; height: 32px; display: inline-grid; place-items: center; border: 1px solid var(--cap-primary-tint-2); border-radius: 7px; background: var(--cap-primary-tint); color: var(--cap-primary); cursor: pointer; }
-.edit-button:hover { background: var(--cap-primary-tint-2); }
-.empty-row { height: 100px; text-align: center !important; color: var(--cap-muted) !important; }
-.grid-loading { min-height: 120px; display: flex; align-items: center; justify-content: center; gap: 9px; color: var(--cap-muted); font-size: 12px; }
-.apex-ref { margin: 10px 2px 0; color: var(--cap-faint); font-size: 10px; }
+.crud-page { font-family: Inter, "Segoe UI", Arial, sans-serif; }
+html.fnv-ar .crud-page { font-family: Cairo, "Segoe UI", Arial, sans-serif; }
+.fx .fx-btn .pi { font-size: 12px; }
+.code-cell { font-weight: 700; color: var(--fin-ink); }
+.rtl-cell { unicode-bidi: plaintext; text-align: left; }
+html.fnv-ar .rtl-cell { text-align: right; }
 .modal-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(6, 16, 31, .46); }
 .edit-modal { width: min(760px, calc(100vw - 36px)); max-height: calc(100vh - 36px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--cap-border-soft); border-radius: 16px; background: #fff; box-shadow: 0 24px 70px rgba(0, 0, 0, .24); }
 .edit-modal__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 17px 20px 14px; border-bottom: 1px solid var(--cap-border-soft); }
@@ -459,17 +404,12 @@ useFeedback({ errors: [pageError, formError] })
 .spacer { flex: 1; }
 .cancel-button, .save-button, .delete-button { height: 40px; display: inline-flex; align-items: center; gap: 7px; padding: 0 15px; border-radius: 7px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
 .cancel-button { border: 1px solid var(--cap-border); background: #fff; color: var(--cap-muted); }
-.save-button { border: 1px solid var(--cap-primary); background: var(--cap-primary); color: #fff; }
-.save-button--create { border-color: var(--cap-create); background: var(--cap-create); }
-.save-button--create:hover { background: var(--cap-create-hover) !important; }
-.save-button:hover { background: var(--cap-primary-hover); }
+.save-button { border: 1px solid var(--fin-teal-600); background: var(--fin-teal-600); color: #fff; }
+.save-button:hover { background: var(--fin-teal-800); }
 .delete-button { border: 1px solid var(--cap-danger-border); background: var(--cap-danger-bg); color: var(--cap-danger); }
 .delete-button:hover { background: var(--cap-danger-bg); }
 button:disabled { opacity: .55; cursor: default; }
 @media (max-width: 760px) {
-  .crud-page { padding: 16px; }
-  .crud-card { padding: 18px; }
-  .crud-toolbar { flex-direction: column; align-items: stretch; }
   .form-grid { grid-template-columns: 1fr; }
 }
 </style>

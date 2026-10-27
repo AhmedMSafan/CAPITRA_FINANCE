@@ -12,6 +12,7 @@ public static class DependencyInjection
     public static IServiceCollection AddCapitraApplication(this IServiceCollection services)
     {
         services.AddScoped<IAdmLookupService, AdmLookupService>();
+        services.AddScoped<Modules.Adm.Currencies.AdmCurrencyService>();
 
 
 

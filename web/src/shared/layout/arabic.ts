@@ -101,7 +101,14 @@ export const AR: Record<string, string> = {
   'Open a blank canvas, drag steps and decisions from the palette, connect them and save.': 'افتح لوحة فارغة واسحب الخطوات والقرارات من لوحة العناصر واربطها ثم احفظ.',
   Approval: 'اعتماد', Review: 'مراجعة', Decision: 'قرار', 'System check': 'فحص النظام', Service: 'خدمة',
   'Visual designer · drag & drop': 'المصمم المرئي · سحب وإفلات', 'Recently changed workflows': 'مسارات العمل المعدلة مؤخرًا',
-  Inactive: 'غير نشط', 'No workflows yet. Start one with': 'لا توجد مسارات عمل بعد. ابدأ واحدًا باستخدام'
+  Inactive: 'غير نشط', 'No workflows yet. Start one with': 'لا توجد مسارات عمل بعد. ابدأ واحدًا باستخدام',
+  // Admin lists (added): Countries, Currencies and every lookup, Roles, Users
+  Export: 'تصدير', Add: 'إضافة', 'Download as CSV': 'تنزيل كملف CSV', Status: 'الحالة', Search: 'بحث', 'Loading...': 'جارٍ التحميل...',
+  Edit: 'تعديل', View: 'عرض', 'No records found.': 'لا توجد سجلات.', Role: 'الدور', Permissions: 'الصلاحيات',
+  'All permissions': 'كل الصلاحيات', 'permission(s)': 'صلاحية', 'Add role': 'إضافة دور', 'Role name': 'اسم الدور', Create: 'إنشاء',
+  'Save Changes': 'حفظ التغييرات', User: 'المستخدم', 'Employee no.': 'الرقم الوظيفي', Department: 'الإدارة',
+  'Reset password': 'إعادة تعيين كلمة المرور', 'Reference Data': 'البيانات المرجعية', Code: 'الرمز',
+  'Name (EN)': 'الاسم (إنجليزي)', 'Name (AR)': 'الاسم (عربي)', 'Decimal Places': 'المنازل العشرية',
 }
 
 /** Task and workflow statuses (added), keyed by the status code. */
