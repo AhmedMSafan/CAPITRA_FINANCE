@@ -86,6 +86,12 @@ async function saveUser() {
 
   errorMessage.value = ''
 
+  // the characters ASP.NET Identity allows in a user name (its default AllowedUserNameCharacters)
+  if (form.userName.trim() && !/^[A-Za-z0-9._@+-]+$/.test(form.userName.trim())) {
+    errorMessage.value = 'Username: use letters, digits and . _ - @ + only, with no spaces (for example ahmed.sales). Put the person\'s name in Full Name.'
+    return
+  }
+
   if (!form.userName.trim()) {
     errorMessage.value = 'Username is required.'
     return
@@ -172,8 +178,10 @@ async function saveUser() {
               <input
                 v-model="form.userName"
                 type="text"
+                placeholder="ahmed.sales"
                 :disabled="isEditMode"
               />
+              <small v-if="!isEditMode" class="user-hint">Letters, digits and . _ - @ + only, no spaces.</small>
             </label>
 
             <label v-if="!isEditMode" class="finova-admin-field">
@@ -269,3 +277,8 @@ async function saveUser() {
     </div>
   </Teleport>
 </template>
+
+<style scoped>
+.user-hint { color: #64808F; font-size: 11.5px; }
+</style>
+
