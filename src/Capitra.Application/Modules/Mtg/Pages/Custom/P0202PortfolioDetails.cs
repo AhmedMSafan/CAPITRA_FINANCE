@@ -47,7 +47,7 @@ public sealed class P0202DialogHeader(IApexSqlReader reader) : IApexProcess
             + "<p>" + (id is null
                 ? T("Register the portfolio you are buying. You will upload its accounts next.", "سجّل المحفظة التي تشتريها، ثم ارفع حساباتها في الخطوة التالية.")
                 : T("Update the portfolio details. Developer and project are locked once accounts exist.", "حدّث بيانات المحفظة. لا يمكن تغيير المطور أو المشروع بعد وجود حسابات.")) + "</p>"
-            + (id is null ? "<div class=\"fx202-steps\"><span class=\"on\"><b>1</b>" + T("Portfolio details", "بيانات المحفظة") + "</span><span><b>2</b>" + T("Upload accounts", "رفع الحسابات") + "</span><span><b>3</b>" + T("Review &amp; submit", "المراجعة والإرسال") + "</span></div>" : string.Empty)
+            + (id is null ? "<div class=\"fx202-steps\"><span class=\"on\"><b>1</b>" + T("Portfolio details", "بيانات المحفظة") + "</span><span><b>2</b>" + T("Upload accounts", "رفع الحسابات") + "</span><span><b>3</b>" + T("Review & submit", "المراجعة والإرسال") + "</span></div>" : string.Empty)
             + "</div>" + (status is not null ? "<span class=\"fx202-chip\">" + E(status) + "</span>" : string.Empty) + "</div>");
         h.AppendLine();
         return new { ok = true, html = h.ToString() };

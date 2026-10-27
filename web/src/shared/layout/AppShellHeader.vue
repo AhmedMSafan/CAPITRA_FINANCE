@@ -104,6 +104,7 @@ const canAdminUsers = hasPermission('SEC.USER.ADMIN')
   <header class="t-Header shell" :dir="ar ? 'rtl' : 'ltr'">
     <div class="t-Header-branding">
       <RouterLink :to="{ name: 'home' }" class="fx-brand" aria-label="CAPITRA Home"><img :src="capitraLogo" alt="" class="fx-logo" />CAPITRA</RouterLink>
+      <RouterLink :to="{ name: 'home' }" class="fx-btn fx-home"><span v-html="ICON.home"></span>{{ t('Home', 'الرئيسية') }}</RouterLink>
       <button type="button" class="fx-btn" aria-haspopup="true" :aria-expanded="menuOpen ? 'true' : 'false'" @click.stop="menuOpen = !menuOpen; userOpen = false">
         {{ t('Menu', 'القائمة') }}
       </button>
@@ -161,12 +162,16 @@ const canAdminUsers = hasPermission('SEC.USER.ADMIN')
 }
 .fx-logo { width: 38px; height: 38px; border-radius: 10px; display: block; box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
 .fx-brand { display: inline-flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font: 700 16px/1 Inter, Arial, sans-serif; letter-spacing: .01em; }
+/* !important: some copied APEX pages style a global .fx-btn of their own, which must not reach the header */
 .fx-btn {
-  height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .22); background: rgba(255, 255, 255, .06);
-  color: #fff; font: 600 13.5px/1 Inter, Arial, sans-serif; cursor: pointer;
+  height: 40px !important; min-height: 0 !important; padding: 0 14px !important; border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, .22) !important; background: rgba(255, 255, 255, .06) !important;
+  color: #fff !important; font: 600 13.5px/1 Inter, Arial, sans-serif !important; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px; text-decoration: none !important; box-shadow: none !important;
 }
-[dir=rtl] .fx-btn { font-family: Cairo, 'Segoe UI', Arial, sans-serif; }
-.fx-btn:hover, .fx-btn[aria-expanded=true] { background: rgba(255, 255, 255, .14); }
+.fx-home { background: rgba(255, 255, 255, .14) !important; }
+[dir=rtl] .fx-btn { font-family: Cairo, 'Segoe UI', Arial, sans-serif !important; }
+.fx-btn:hover, .fx-btn[aria-expanded=true] { background: rgba(255, 255, 255, .2) !important; }
 .fx-right { margin-inline-start: auto; display: flex; align-items: center; gap: 12px; }
 .fxh-lang { display: flex; padding: 3px; border-radius: 10px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); }
 .fxh-lang button { appearance: none; border: 0; background: transparent; cursor: pointer; padding: 6px 11px; border-radius: 7px; font: 600 13px/1 Inter, Arial, sans-serif; color: rgba(255, 255, 255, .72); }

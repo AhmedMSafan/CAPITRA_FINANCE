@@ -308,13 +308,16 @@
 .t-Form-fieldContainer--stretch {
   grid-column: 1 / -1;
 }
+/* fields in this app's style (teal focus, soft border), in place of the theme's grey box and blue frame */
 .t-Form-label {
   position: absolute;
-  top: 6px;
-  left: 9px;
+  top: 8px;
+  inset-inline-start: 13px;
   z-index: 1;
-  font-size: 11px;
-  color: var(--ut-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: #5F7787;
   pointer-events: none;
 }
 .t-Form-label .is-required {
@@ -322,28 +325,35 @@
 }
 .t-Form-field {
   width: 100%;
-  min-height: 48px;
-  padding: 20px 8px 4px;
-  border: 1px solid #d0d0d0;
-  border-radius: 4px;
+  min-height: 54px;
+  padding: 24px 12px 7px;
+  border: 1px solid #DCE7EA;
+  border-radius: 10px;
   background: #fff;
-  color: var(--ut-text);
+  color: #12324A;
   font: inherit;
   font-size: 14px;
   box-sizing: border-box;
+  transition: border-color .15s, box-shadow .15s;
+}
+.t-Form-field:hover {
+  border-color: #B9CBD1;
 }
 textarea.t-Form-field {
   min-height: 84px;
   resize: vertical;
 }
 .t-Form-field:focus {
-  border-color: var(--ut-hot);
+  border-color: #00636D;
   outline: none;
-  box-shadow: 0 0 0 1px var(--ut-hot);
+  box-shadow: 0 0 0 3px rgba(0, 99, 109, .12);
+}
+.t-Form-fieldContainer:focus-within .t-Form-label {
+  color: #00636D;
 }
 .t-Form-field[readonly] {
-  background: #f6f6f6;
-  color: var(--ut-muted);
+  background: #F6F9FA;
+  color: #5F7787;
 }
 .t-Form-field.is-error {
   border-color: #c9302c;

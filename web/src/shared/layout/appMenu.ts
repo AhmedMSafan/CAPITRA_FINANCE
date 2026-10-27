@@ -23,7 +23,9 @@ export const appMenu: MenuGroup[] = [
   {
     title: 'Portfolio Acquisition',
     icon: 'pi pi-briefcase',
-    links: fromNav(mtgMenu, 'mtg', ['Home', 'My Inbox', 'Developer Workspace', 'Reference Data'], 8)
+    // the portfolio cases page (201) is the Purchased Portfolio Workspace: it opens first, in place of the dashboard
+    links: fromNav(mtgMenu, 'mtg', ['Home', 'Portfolio Dashboard', 'My Inbox', 'Developer Workspace', 'Reference Data'], 8)
+      .map((l) => (l.label === 'Portfolio Cases' ? { ...l, label: 'Portfolio Workspace' } : l))
   },
   {
     title: 'Mortgage Finance',
