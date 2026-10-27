@@ -3696,6 +3696,7 @@ export const wizardPages: WizardPage[] = [
       {
         "key": "BUTTONS",
         "title": "Buttons",
+        "hideHeader": true,
         "kind": "html",
         "table": null,
         "pk": null,
@@ -7529,6 +7530,7 @@ export const wizardPages: WizardPage[] = [
       {
         "key": "BUTTONS",
         "title": "Buttons",
+        "hideHeader": true,
         "kind": "html",
         "table": null,
         "pk": null,

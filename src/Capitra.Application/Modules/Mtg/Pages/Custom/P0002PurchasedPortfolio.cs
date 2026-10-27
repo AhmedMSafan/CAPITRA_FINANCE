@@ -53,10 +53,9 @@ public sealed class P0002PurchasedPortfolio(IApexSqlReader reader, WfeInbox inbo
 
         var name = user.FullName ?? CultureInfo.InvariantCulture.TextInfo.ToTitleCase((user.UserName ?? string.Empty).ToLowerInvariant());
         var h = new StringBuilder();
-        // balanced colours (asked for this page): teal for actions only; good states, icons and links in neutral tones
-        h.AppendLine("<style>.fx-p2 .fx-link .fa{background:#EEF2F4;color:#4F6676}.fx-p2 .fx-link:hover{border-color:#B9CBD1;background:#F8FBFB}"
-            + ".fx-p2 .fx-empty .fa{color:#9AAAB4}.fx-p2 .fx-head a:not(.fx-btn){color:#12324A;font-weight:600;text-decoration:none}"
-            + ".fx-p2 .fx-head a:not(.fx-btn):hover{color:#00636D}.fx-p2 .fx-kpi .fx-muted{font-size:13px}</style>");
+        // balanced colours (asked for this page): the two brand colours, teal and orange, in turn; a neutral pill when there is nothing
+        h.AppendLine("<style>.fx-p2 .fx-links .fx-link:nth-child(4n+2) .fa,.fx-p2 .fx-links .fx-link:nth-child(4n+3) .fa{background:var(--fin-orange-50);color:var(--fin-orange-700)}"
+            + ".fx-p2 .fx-head a:not(.fx-btn){color:var(--fin-teal-600);font-weight:600;text-decoration:none}.fx-p2 .fx-head a:not(.fx-btn):hover{text-decoration:underline}</style>");
         h.AppendLine("<div class=\"fx fx-p2\">");
         h.AppendLine("<div class=\"fx-head\"><div><div class=\"fx-crumb\">" + T("Purchased Portfolio", "المحافظ المشتراة") + "</div>"
             + "<h1>" + T("Welcome back", "مرحباً بعودتك") + ", " + E(name) + "</h1>"
@@ -66,13 +65,13 @@ public sealed class P0002PurchasedPortfolio(IApexSqlReader reader, WfeInbox inbo
 
         h.AppendLine("<div class=\"fx-kpis\">");
         h.AppendLine("<a class=\"fx-card fx-kpi\" href=\"" + Url(920) + "\"><span class=\"fx-kpi-label\">" + T("Tasks waiting for me", "مهام بانتظاري") + "</span><span class=\"fx-kpi-value\">" + N(tasks) + "</span>"
-            + (overdue > 0 ? "<span class=\"fx-chip fx-chip--bad\">" + N(overdue) + " " + T("overdue", "متأخرة") + "</span>" : "<span class=\"fx-muted\">" + T("nothing overdue", "لا يوجد تأخير") + "</span>") + "</a>");
+            + (overdue > 0 ? "<span class=\"fx-chip fx-chip--bad\">" + N(overdue) + " " + T("overdue", "متأخرة") + "</span>" : "<span class=\"fx-chip fx-chip--teal\">" + T("nothing overdue", "لا يوجد تأخير") + "</span>") + "</a>");
         h.AppendLine("<a class=\"fx-card fx-kpi\" href=\"" + Url(201) + "\"><span class=\"fx-kpi-label\">" + T("Cases in pipeline", "ملفات قيد المعالجة") + "</span><span class=\"fx-kpi-value\">" + N(cases) + "</span>"
             + "<span class=\"fx-muted fx-num\">" + Money2(face) + " " + T("face value", "القيمة الاسمية") + "</span></a>");
         h.AppendLine("<a class=\"fx-card fx-kpi\" href=\"" + Url(706) + "\"><span class=\"fx-kpi-label\">" + T("Ready to submit", "جاهزة للإرسال") + "</span><span class=\"fx-kpi-value\">" + N(ready) + "</span>"
-            + "<span class=\"fx-muted\">" + T("all modules complete", "اكتملت جميع الوحدات") + "</span></a>");
+            + "<span class=\"fx-chip fx-chip--brand\">" + T("all modules complete", "اكتملت جميع الوحدات") + "</span></a>");
         h.AppendLine("<a class=\"fx-card fx-kpi\" href=\"" + Url(703) + "\"><span class=\"fx-kpi-label\">" + T("Documents expiring in 30 days", "مستندات تنتهي خلال 30 يوماً") + "</span><span class=\"fx-kpi-value\">" + N(expiring) + "</span>"
-            + (expiring > 0 ? "<span class=\"fx-chip fx-chip--warn\">" + N(expCases) + " " + T("cases affected", "ملفات متأثرة") + "</span>" : "<span class=\"fx-muted\">" + T("none", "لا يوجد") + "</span>") + "</a>");
+            + (expiring > 0 ? "<span class=\"fx-chip fx-chip--warn\">" + N(expCases) + " " + T("cases affected", "ملفات متأثرة") + "</span>" : "<span class=\"fx-chip\">" + T("none", "لا يوجد") + "</span>") + "</a>");
         h.AppendLine("</div>");
 
         h.AppendLine("<div class=\"fx-grid-split\">");
