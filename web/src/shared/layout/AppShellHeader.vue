@@ -104,11 +104,11 @@ const canAdminUsers = hasPermission('SEC.USER.ADMIN')
   <header class="t-Header shell" :dir="ar ? 'rtl' : 'ltr'">
     <div class="t-Header-branding">
       <RouterLink :to="{ name: 'home' }" class="fx-brand" aria-label="CAPITRA Home"><img :src="capitraLogo" alt="" class="fx-logo" />CAPITRA</RouterLink>
-      <RouterLink :to="{ name: 'home' }" class="fx-btn fx-home"><span v-html="ICON.home"></span>{{ t('Home', 'الرئيسية') }}</RouterLink>
-      <button type="button" class="fx-btn" aria-haspopup="true" :aria-expanded="menuOpen ? 'true' : 'false'" @click.stop="menuOpen = !menuOpen; userOpen = false">
-        {{ t('Menu', 'القائمة') }}
-      </button>
       <div class="fx-right">
+        <RouterLink :to="{ name: 'home' }" class="fx-btn fx-home"><span v-html="ICON.home"></span>{{ t('Home', 'الرئيسية') }}</RouterLink>
+        <button type="button" class="fx-btn" aria-haspopup="true" :aria-expanded="menuOpen ? 'true' : 'false'" @click.stop="menuOpen = !menuOpen; userOpen = false">
+          {{ t('Menu', 'القائمة') }}
+        </button>
         <div class="fxh-lang" role="group" aria-label="Language">
           <button type="button" :class="{ on: !ar }" @click="ar && switchLanguage('EN')">EN</button>
           <button type="button" class="ar" :class="{ on: ar }" lang="ar" @click="!ar && switchLanguage('AR')">&#1593;</button>
@@ -169,7 +169,10 @@ const canAdminUsers = hasPermission('SEC.USER.ADMIN')
   color: #fff !important; font: 600 13.5px/1 Inter, Arial, sans-serif !important; cursor: pointer;
   display: inline-flex; align-items: center; gap: 8px; text-decoration: none !important; box-shadow: none !important;
 }
-.fx-home { background: rgba(255, 255, 255, .14) !important; }
+/* Home and Menu: white with teal text, beside the language switch with a wider gap */
+.fx-right > .fx-btn { background: #fff !important; border-color: #fff !important; color: #014B55 !important; }
+.fx-right > .fx-btn:hover, .fx-right > .fx-btn[aria-expanded=true] { background: #E6F3F4 !important; border-color: #E6F3F4 !important; }
+.fx-right > .fx-btn + .fxh-lang { margin-inline-start: 18px; }
 [dir=rtl] .fx-btn { font-family: Cairo, 'Segoe UI', Arial, sans-serif !important; }
 .fx-btn:hover, .fx-btn[aria-expanded=true] { background: rgba(255, 255, 255, .2) !important; }
 .fx-right { margin-inline-start: auto; display: flex; align-items: center; gap: 12px; }
@@ -212,7 +215,7 @@ const canAdminUsers = hasPermission('SEC.USER.ADMIN')
 .fxh-menu hr { border: 0; border-top: 1px solid #EDF2F4; margin: 4px 0; }
 .fxh-menu a.out, .fxh-menu a.out :deep(svg) { color: #C43325 !important; }
 .fxh-mega {
-  position: fixed; top: 66px; inset-inline-start: 16px; width: min(980px, calc(100vw - 32px)); max-height: calc(100vh - 90px); overflow: auto; z-index: 1001;
+  position: fixed; top: 66px; inset-inline-end: 16px; /* opens under the Menu button, on the right */ width: min(980px, calc(100vw - 32px)); max-height: calc(100vh - 90px); overflow: auto; z-index: 1001;
   background: #fff; color: #0B2533; border: 1px solid #DFE8EC; border-radius: 18px; box-shadow: 0 30px 70px rgba(3, 24, 30, .28); animation: fxhIn .16s ease-out;
 }
 .fxh-mega-h { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #EDF2F4; background: linear-gradient(180deg, #F6FAFA, #fff); }
