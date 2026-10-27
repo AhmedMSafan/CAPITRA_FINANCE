@@ -5,7 +5,7 @@
 import capitraLogo from '@/assets/capitra-mark.svg'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
-import { getUser, type SessionUser } from '@/shared/auth/session'
+import { getUser, hasPermission, type SessionUser } from '@/shared/auth/session'
 import { logout as endSession, refreshCurrentUser } from '@/modules/sec/api/auth.api'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 import { appMenu, type MenuLink } from './appMenu'
@@ -96,6 +96,8 @@ const ICON = {
   out: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>'
 }
 const initials = computed(() => displayName.value.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || '?')
+// Users and Role permissions open only for SEC.USER.ADMIN (the API checks it again)
+const canAdminUsers = hasPermission('SEC.USER.ADMIN')
 </script>
 
 <template>
@@ -124,8 +126,10 @@ const initials = computed(() => displayName.value.split(/\s+/).filter(Boolean).s
               <span>{{ t('Roles', 'الأدوار') }}</span><b>{{ roles.join(', ') || '-' }}</b>
             </div>
             <a role="menuitem" @click="go({ name: 'home' })"><span v-html="ICON.home"></span><span>{{ t('Home', 'الرئيسية') }}</span></a>
+            <template v-if="canAdminUsers">
             <a role="menuitem" @click="go('/admin/users')"><span v-html="ICON.list"></span><span>{{ t('Users', 'المستخدمون') }}</span></a>
             <a role="menuitem" @click="go('/admin/roles')"><span v-html="ICON.grid"></span><span>{{ t('Role permissions', 'صلاحيات الأدوار') }}</span></a>
+            </template>
             <hr />
             <a role="menuitem" class="out" @click="logout"><span v-html="ICON.out"></span><span>{{ t('Sign out', 'تسجيل الخروج') }}</span></a>
           </div>

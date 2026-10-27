@@ -18,7 +18,11 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly problem: ProblemDetails | null
   ) {
-    super(problem?.detail ?? problem?.title ?? `Request failed (${status}).`)
+    super(
+      status === 403
+        ? 'You do not have permission for this. Ask an administrator for it; if your roles were just changed, sign out and sign in again.'
+        : (problem?.detail ?? problem?.title ?? `Request failed (${status}).`)
+    )
     this.name = 'ApiError'
   }
 }
