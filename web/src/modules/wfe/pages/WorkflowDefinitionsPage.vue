@@ -1,315 +1,183 @@
 <template>
-  <div class="workflow-page">
-    <!-- Page heading -->
-    <section class="page-head">
-      <div>
-        <h1>Workflow Engine</h1>
-        <p>Design and manage workflow definitions for business processes.</p>
+  <!-- App 118 page 904 "Workflow Definition Registry": the hero with its counts, a search bar and a gallery of workflow cards. -->
+  <div class="wx wr">
+    <section class="wx-hero">
+      <div class="wr-hero">
+        <div>
+          <span class="wx-eyebrow"><i></i>Workflow registry</span>
+          <h1>Workflow definitions</h1>
+          <p>Every workflow the engine can run. Open one to change its steps and routing in the visual designer, or start a new one.</p>
+        </div>
+        <div class="wr-cta">
+          <router-link class="wx-btn wx-btn--ghost" to="/workflow/inbox"><i class="pi pi-inbox"></i><span>My inbox</span></router-link>
+          <button class="wx-btn wx-btn--hot" type="button" @click="createNew"><i class="pi pi-plus"></i><span>New workflow</span></button>
+        </div>
       </div>
-
-      <div class="breadcrumbs">
-        <span><i class="pi pi-home"></i> Home</span>
-        <i class="pi pi-angle-right"></i>
-        <span>Workflow Engine</span>
-        <i class="pi pi-angle-right"></i>
-        <strong>Workflow Definitions</strong>
+      <div class="wr-kpis">
+        <div class="wr-kpi"><b>{{ rows.length }}</b><span>Workflow definitions</span></div>
+        <div class="wr-kpi"><b>{{ activeCount }}</b><span>Active</span></div>
+        <div class="wr-kpi"><b>{{ totals.steps }}</b><span>Designed steps</span></div>
+        <div class="wr-kpi"><b>{{ totals.flows }}</b><span>Transitions</span></div>
       </div>
     </section>
 
-    <!-- Summary cards -->
-    <section class="summary-grid">
-      <div class="summary-card">
-        <div class="summary-icon summary-icon--blue">
-          <i class="pi pi-clone"></i>
-        </div>
-        <div>
-          <strong>{{ rows.length }}</strong>
-          <span>Total Workflows</span>
-        </div>
+    <div class="wr-bar" role="search">
+      <label class="wr-search">
+        <i class="pi pi-search"></i>
+        <input v-model="search" type="search" placeholder="Search by name, code or description" aria-label="Search workflows" />
+      </label>
+      <div class="wr-chips" role="group" aria-label="Status">
+        <button type="button" class="wx-chip" :aria-pressed="status === 'ALL'" @click="status = 'ALL'">All <em>{{ rows.length }}</em></button>
+        <button type="button" class="wx-chip" :aria-pressed="status === 'Y'" @click="status = 'Y'">Active <em>{{ activeCount }}</em></button>
+        <button type="button" class="wx-chip" :aria-pressed="status === 'N'" @click="status = 'N'">Inactive <em>{{ rows.length - activeCount }}</em></button>
       </div>
-
-      <div class="summary-card">
-        <div class="summary-icon summary-icon--green">
-          <i class="pi pi-check-circle"></i>
-        </div>
-        <div>
-          <strong>{{ activeCount }}</strong>
-          <span>Active Workflows</span>
-        </div>
-      </div>
-
-      <div class="summary-card">
-        <div class="summary-icon summary-icon--orange">
-          <i class="pi pi-pause-circle"></i>
-        </div>
-        <div>
-          <strong>{{ inactiveCount }}</strong>
-          <span>Inactive Workflows</span>
-        </div>
-      </div>
-
-      <div class="summary-card">
-        <div class="summary-icon summary-icon--purple">
-          <i class="pi pi-box"></i>
-        </div>
-        <div>
-          <strong>{{ latestVersion }}</strong>
-          <span>Latest Version</span>
-          <small>Current deployed version</small>
-        </div>
-      </div>
-    </section>
-
-    <!-- Search & Filter -->
-    <section class="filter-card">
-      <div class="card-title">
-        <div class="title-icon">
-          <i class="pi pi-filter"></i>
-        </div>
-        <strong>Search & Filter</strong>
-      </div>
-
-      <div class="filter-grid">
-        <label class="field field--search">
-          <span>Search</span>
-          <div class="input-wrap">
-            <i class="pi pi-search"></i>
-            <input
-              v-model="search"
-              placeholder="Search workflow code or name..."
-              @keyup.enter="load"
-            />
-          </div>
-        </label>
-
-        <label class="field">
-          <span>Status</span>
-          <select v-model="status">
-            <option value="ALL">All Statuses</option>
-            <option value="Y">Active</option>
-            <option value="N">Inactive</option>
-          </select>
-        </label>
-
-        <label class="field">
-          <span>Active</span>
-          <select v-model="activeFilter">
-            <option value="ALL">All</option>
-            <option value="Y">Active</option>
-            <option value="N">Inactive</option>
-          </select>
-        </label>
-
-        <div class="filter-actions">
-          <button class="secondary-button" type="button" @click="resetFilters">
-            <i class="pi pi-refresh"></i>
-            Reset
-          </button>
-
-          <button
-            class="primary-button"
-            type="button"
-            :disabled="loading"
-            @click="load"
-          >
-            <i class="pi pi-search"></i>
-            {{ loading ? 'Loading...' : 'Search' }}
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <div v-if="errorMessage" class="message message--error">
-      {{ errorMessage }}
+      <select v-model="sort" class="wr-sel" aria-label="Sort">
+        <option value="recent">Recently changed</option>
+        <option value="name">Name A–Z</option>
+        <option value="steps">Most steps</option>
+      </select>
     </div>
 
-    <!-- Definitions table -->
-    <section class="grid-card">
-      <div class="grid-header">
-        <div class="grid-title">
-          <i class="pi pi-list"></i>
-          <strong>Workflow Definitions</strong>
+    <div v-if="errorMessage" class="wr-error">{{ errorMessage }}</div>
+
+    <div v-if="loading" class="wr-empty on"><b>Loading workflows…</b></div>
+    <div v-else class="wr-grid">
+      <article v-for="w in shown" :key="w.dgrmId" class="wr-card" :class="{ 'is-off': w.isActive !== 'Y' }">
+        <div class="wr-head">
+          <div class="wr-r1">
+            <span class="wr-code" :title="w.workflowCode">{{ w.workflowCode }}</span>
+            <span v-if="w.isActive === 'Y'" class="wx-pill wx-pill--ok">Active</span>
+            <span v-else class="wx-pill wx-pill--off">Inactive</span>
+          </div>
+          <h3><a href="#" @click.prevent="edit(w.dgrmId)">{{ w.dgrmName }}</a></h3>
+          <p class="wr-desc">{{ w.description || 'No description.' }}</p>
+          <div class="wr-tags">
+            <span class="wx-tag">{{ formatStatus(w.dgrmStatus) }}</span>
+          </div>
         </div>
-
-        <button class="add-workflow-button" type="button" @click="createNew">
-          <i class="pi pi-plus-circle"></i>
-          Add Workflow
-        </button>
-      </div>
-
-      <div v-if="loading" class="loading-state">
-        Loading workflows...
-      </div>
-
-      <div v-else class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Workflow Code</th>
-              <th>Workflow Name</th>
-              <th>Version</th>
-              <th>Status</th>
-              <th>Active</th>
-              <th>Last Updated</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr v-for="w in filtered" :key="w.dgrmId">
-              <td>{{ w.dgrmId }}</td>
-
-              <td>
-                <strong class="workflow-code">
-                  {{ w.workflowCode }}
-                </strong>
-              </td>
-
-              <td>{{ w.dgrmName }}</td>
-
-              <td>{{ w.dgrmVersion }}</td>
-
-              <td>
-                <span
-                  class="status-pill"
-                  :class="statusClass(w.dgrmStatus)"
-                >
-                  {{ formatStatus(w.dgrmStatus) }}
-                </span>
-              </td>
-
-              <td>
-                <span
-                  class="status-pill"
-                  :class="w.isActive === 'Y'
-                    ? 'status-pill--active'
-                    : 'status-pill--inactive'"
-                >
-                  {{ w.isActive === 'Y' ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-
-              <td>
-                <div class="updated-cell">
-                  <strong>
-                    {{ formatDate(w.dgrmLastUpdateOn || w.dgrmCreatedOn) }}
-                  </strong>
-                  <small>
-                    {{ w.lastUpdatedBy || w.createdBy || '—' }}
-                  </small>
-                </div>
-              </td>
-
-              <td>
-                <button
-                  class="design-button"
-                  type="button"
-                  @click="edit(w.dgrmId)"
-                >
-                  <i class="pi pi-pencil"></i>
-                  Design
-                </button>
-              </td>
-            </tr>
-
-            <tr v-if="filtered.length === 0">
-              <td colspan="8" class="empty-state">
-                No workflow definitions found.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="table-footer">
-        <span>
-          Showing {{ filtered.length ? 1 : 0 }}
-          to {{ filtered.length }}
-          of {{ filtered.length }} entries
-        </span>
-
-        <div class="pager">
-          <button type="button"><i class="pi pi-angle-left"></i></button>
-          <button type="button" class="is-active">1</button>
-          <button type="button"><i class="pi pi-angle-right"></i></button>
+        <div class="wr-flow" aria-label="Flow preview">
+          <span v-if="!w.flow.steps.length" class="wr-noflow">No steps designed yet</span>
+          <template v-else>
+            <span class="wr-ev" title="Start"></span>
+            <template v-for="(s, i) in w.flow.steps.slice(0, 3)" :key="i">
+              <span class="wr-ln"></span>
+              <span v-if="s.gateway" class="wr-st dec" :title="s.name"></span>
+              <span v-else class="wr-st" :title="s.name"><i></i><span>{{ s.name }}</span></span>
+            </template>
+            <template v-if="w.flow.steps.length > 3">
+              <span class="wr-ln"></span><span class="wr-more">+{{ w.flow.steps.length - 3 }}</span>
+            </template>
+            <span class="wr-ln"></span><span class="wr-ev end" title="End"></span>
+          </template>
         </div>
-      </div>
-    </section>
+        <div class="wr-meta">
+          <div><b>v{{ w.dgrmVersion }}</b><span>Version</span></div>
+          <div><b>{{ w.flow.steps.length }}</b><span>Steps</span></div>
+          <div><b>{{ w.flow.flows }}</b><span>Transitions</span></div>
+          <div><b>{{ w.flow.gateways }}</b><span>Decisions</span></div>
+        </div>
+        <div class="wr-foot">
+          <small>Updated {{ formatDate(w.dgrmLastUpdateOn || w.dgrmCreatedOn) }} · {{ (w.dgrmLastUpdateBy || w.dgrmCreatedBy || '').toLowerCase() }}</small>
+          <button class="wr-open" type="button" @click="edit(w.dgrmId)"><i class="pi pi-pencil"></i><span>Open designer</span></button>
+        </div>
+      </article>
+    </div>
+    <div v-if="!loading && !shown.length" class="wr-empty on">
+      <b>{{ rows.length ? 'No workflows match' : 'No workflows yet' }}</b>
+      {{ rows.length ? 'Try another search or clear the filters.' : 'Create your first one with New workflow.' }}
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any -- bpmn-js and its moddle objects are untyped */
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getWorkflowDefinitions } from '../services/workflowDefinitionService'
+import { getWorkflowDefinitions, type WorkflowDefinition } from '../services/workflowDefinitionService'
+
+type Flow = { steps: { name: string; gateway: boolean }[]; flows: number; gateways: number }
 
 const router = useRouter()
 
-const rows = ref<any[]>([])
+const rows = ref<(WorkflowDefinition & { flow: Flow })[]>([])
 const search = ref('')
-const status = ref('ALL')
-const activeFilter = ref('ALL')
+const status = ref<'ALL' | 'Y' | 'N'>('ALL')
+const sort = ref<'recent' | 'name' | 'steps'>('recent')
 const loading = ref(false)
 const errorMessage = ref('')
 
-const filtered = computed(() => {
-  let result = rows.value
+const TASKS = ['task', 'userTask', 'serviceTask', 'scriptTask', 'manualTask', 'businessRuleTask', 'sendTask', 'receiveTask', 'callActivity', 'subProcess']
+const GATEWAYS = ['exclusiveGateway', 'parallelGateway', 'inclusiveGateway', 'eventBasedGateway', 'complexGateway']
 
-  if (status.value !== 'ALL') {
-    result = result.filter(x => x.isActive === status.value)
+/** The steps of a BPMN diagram in the order the flow reaches them from its start event. */
+function readFlow(xml: string): Flow {
+  const flow: Flow = { steps: [], flows: 0, gateways: 0 }
+  if (!xml) return flow
+  const doc = new DOMParser().parseFromString(xml, 'application/xml')
+  const process = [...doc.getElementsByTagName('*')].find((e) => e.localName === 'process')
+  if (!process) return flow
+  const nodes = new Map<string, Element>()
+  const next = new Map<string, string[]>()
+  for (const e of process.children) {
+    const id = e.getAttribute('id') || ''
+    if (e.localName === 'sequenceFlow') {
+      flow.flows++
+      const src = e.getAttribute('sourceRef') || ''
+      next.set(src, [...(next.get(src) ?? []), e.getAttribute('targetRef') || ''])
+    } else nodes.set(id, e)
   }
-
-  if (activeFilter.value !== 'ALL') {
-    result = result.filter(x => x.isActive === activeFilter.value)
+  const seen = new Set<string>()
+  const queue = [...nodes.values()].filter((e) => e.localName === 'startEvent').map((e) => e.getAttribute('id') || '')
+  const ordered: Element[] = []
+  while (queue.length) {
+    const id = queue.shift()!
+    if (seen.has(id)) continue
+    seen.add(id)
+    const e = nodes.get(id)
+    if (e) ordered.push(e)
+    queue.push(...(next.get(id) ?? []))
   }
+  // steps the flow does not reach still count
+  for (const e of nodes.values()) if (!seen.has(e.getAttribute('id') || '')) ordered.push(e)
+  for (const e of ordered) {
+    const gateway = GATEWAYS.includes(e.localName)
+    if (!gateway && !TASKS.includes(e.localName)) continue
+    if (gateway) flow.gateways++
+    flow.steps.push({ name: e.getAttribute('name') || e.getAttribute('id') || '', gateway })
+  }
+  return flow
+}
 
-  return result
-})
+const activeCount = computed(() => rows.value.filter((x) => x.isActive === 'Y').length)
 
-const activeCount = computed(() =>
-  rows.value.filter(x => x.isActive === 'Y').length
-)
+const totals = computed(() => ({
+  steps: rows.value.reduce((n, x) => n + x.flow.steps.length, 0),
+  flows: rows.value.reduce((n, x) => n + x.flow.flows, 0)
+}))
 
-const inactiveCount = computed(() =>
-  rows.value.filter(x => x.isActive !== 'Y').length
-)
+const changed = (w: WorkflowDefinition) => w.dgrmLastUpdateOn || w.dgrmCreatedOn || ''
 
-const latestVersion = computed(() => {
-  if (!rows.value.length)
-    return 0
-
-  return Math.max(
-    ...rows.value.map(x =>
-      Number(x.dgrmVersion || 0)
-    )
+const shown = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  const list = rows.value.filter(
+    (w) =>
+      (status.value === 'ALL' || w.isActive === status.value) &&
+      (!q || [w.workflowCode, w.dgrmName, w.description].join(' ').toLowerCase().includes(q))
   )
+  if (sort.value === 'name') return [...list].sort((a, b) => a.dgrmName.localeCompare(b.dgrmName))
+  if (sort.value === 'steps') return [...list].sort((a, b) => b.flow.steps.length - a.flow.steps.length)
+  return [...list].sort((a, b) => changed(b).localeCompare(changed(a)))
 })
 
 async function load() {
   loading.value = true
   errorMessage.value = ''
-
   try {
-    rows.value = await getWorkflowDefinitions(search.value)
-  }
-  catch (e) {
-    errorMessage.value =
-      e instanceof Error
-        ? e.message
-        : 'Unable to load workflows.'
-  }
-  finally {
+    rows.value = (await getWorkflowDefinitions('')).map((w) => ({ ...w, flow: readFlow(w.dgrmContent) }))
+  } catch (e) {
+    errorMessage.value = e instanceof Error ? e.message : 'Unable to load workflows.'
+  } finally {
     loading.value = false
   }
-}
-
-function resetFilters() {
-  search.value = ''
-  status.value = 'ALL'
-  activeFilter.value = 'ALL'
-  load()
 }
 
 function createNew() {
@@ -321,483 +189,102 @@ function edit(id: number) {
 }
 
 function formatDate(v?: string | null) {
-  if (!v)
-    return '—'
-
+  if (!v) return '—'
   const d = new Date(v)
-
-  if (Number.isNaN(d.getTime()))
-    return v
-
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }).format(d)
+  if (Number.isNaN(d.getTime())) return v
+  return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(d)
 }
 
 function formatStatus(value?: string | null) {
-  if (!value)
-    return '—'
-
-  return value.charAt(0).toUpperCase() +
-    value.slice(1).toLowerCase()
-}
-
-function statusClass(value?: string | null) {
-  const normalized = (value || '').toLowerCase()
-
-  if (normalized === 'released')
-    return 'status-pill--released'
-
-  if (normalized === 'draft')
-    return 'status-pill--draft'
-
-  return 'status-pill--neutral'
+  if (!value) return '—'
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
 }
 
 onMounted(load)
 </script>
 
 <style scoped>
-.workflow-page {
-  min-height: 100vh;
-  padding: 12px 24px 18px;
-  background: #f5f8fb;
-  color: #153553;
+.wr { max-width: 1400px; margin: 0 auto; padding: 20px 24px 32px; }
+.wr-hero { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.wr-cta { display: flex; flex-wrap: wrap; gap: 10px; }
+.wr-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
+.wr-kpi { padding: 13px 16px; border-radius: 14px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .12); }
+.wr-kpi b { display: block; font-size: 24px; font-weight: 800; letter-spacing: -.02em; color: #fff; line-height: 1.1; }
+.wr-kpi span { font-size: 12.5px; color: rgba(255, 255, 255, .66); }
+.wr-bar {
+  position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 18px 0 16px; padding: 10px;
+  border-radius: 14px; background: rgba(255, 255, 255, .92); backdrop-filter: blur(10px); border: 1px solid var(--wx-line);
+  box-shadow: 0 8px 24px -18px rgba(11, 37, 51, .35);
 }
-
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: center;
-  margin-bottom: 10px;
+.wr-search { position: relative; flex: 1 1 260px; min-width: 200px; }
+.wr-search .pi { position: absolute; top: 50%; inset-inline-start: 13px; transform: translateY(-50%); color: var(--wx-muted); font-size: 14px; }
+.wr-search input {
+  width: 100%; height: 40px; border: 1px solid var(--wx-line); border-radius: 11px; background: var(--wx-soft); padding: 0 12px 0 38px;
+  font: 500 14px Inter, Arial, sans-serif; color: var(--wx-ink); outline: 0; transition: border-color .15s, box-shadow .15s, background .15s;
 }
-
-.page-head h1 {
-  margin: 0;
-  color: #0d2f58;
-  font-size: 26px;
-  line-height: 1;
-  font-weight: 900;
+html[dir=rtl] .wr-search input { padding: 0 38px 0 12px; }
+.wr-search input:focus { border-color: var(--wx-teal); background: #fff; box-shadow: 0 0 0 4px rgba(0, 99, 109, .12); }
+.wr-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.wr-sel { height: 34px; border: 1px solid var(--wx-line); border-radius: 10px; background: #fff; padding: 0 10px; font: 600 13px Inter, Arial, sans-serif; color: var(--wx-ink2); cursor: pointer; }
+.wr-error { margin-bottom: 14px; padding: 12px 14px; border-radius: 12px; background: var(--wx-red-l); color: var(--wx-red); font-weight: 600; }
+.wr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.wr-card {
+  position: relative; display: flex; flex-direction: column; border-radius: 18px; background: #fff; border: 1px solid var(--wx-line); overflow: hidden;
+  box-shadow: 0 1px 2px rgba(11, 37, 51, .04); transition: transform .18s, box-shadow .18s, border-color .18s; animation: wrIn .4s both;
 }
-
-.page-head p {
-  margin: 5px 0 0;
-  color: #536f88;
-  font-size: 12px;
-  font-weight: 600;
+@keyframes wrIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.wr-card:hover { transform: translateY(-3px); border-color: #B9CBD1; box-shadow: 0 22px 40px -22px rgba(11, 37, 51, .35); }
+.wr-head { padding: 18px 18px 0; display: flex; flex-direction: column; gap: 10px; }
+.wr-r1 { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.wr-code {
+  font: 600 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--wx-teal); background: var(--wx-teal-l); padding: 4px 8px;
+  border-radius: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65%;
 }
-
-.breadcrumbs {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-top: 6px;
-  color: #8191a1;
-  font-size: 10.5px;
-  white-space: nowrap;
+.wr-card h3 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.01em; line-height: 1.3; color: var(--wx-ink); }
+.wr-card h3 a { color: inherit; }
+.wr-card h3 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+.wr-desc {
+  margin: 0; font-size: 13px; line-height: 1.5; color: var(--wx-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; min-height: 39px;
 }
-
-.breadcrumbs strong {
-  color: #205d96;
+.wr-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.wr-flow {
+  margin: 14px 18px 0; padding: 14px 12px; border-radius: 12px; background: var(--wx-soft); border: 1px solid var(--wx-line);
+  background-image: radial-gradient(#D6E3E7 1px, transparent 1.1px); background-size: 12px 12px; display: flex; align-items: center;
+  overflow: hidden; min-height: 58px;
 }
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+.wr-ev { flex: 0 0 auto; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid var(--wx-teal); background: #fff; }
+.wr-ev.end { border-width: 4.5px; border-color: var(--wx-orange); }
+.wr-ln { flex: 0 0 14px; min-width: 10px; height: 2px; background: #9DB9C0; position: relative; }
+.wr-ln::after { content: ""; position: absolute; inset-inline-end: -1px; top: -3px; border: 4px solid transparent; border-inline-start: 5px solid #9DB9C0; border-inline-end: 0; }
+.wr-st {
+  flex: 1 1 0; min-width: 0; max-width: 150px; display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 9px; border-radius: 8px;
+  background: #fff; border: 1px solid #CFDDE1; font-size: 11.5px; font-weight: 600; color: var(--wx-ink2); white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(11, 37, 51, .05);
 }
-
-.summary-card {
-  min-height: 72px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 9px 14px;
-  border: 1px solid #e0e7ec;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 4px 12px rgba(20, 61, 87, .035);
+.wr-st i { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--wx-teal); }
+.wr-st span { overflow: hidden; text-overflow: ellipsis; }
+.wr-st.dec { width: 22px; height: 22px; padding: 0; flex: 0 0 22px; transform: rotate(45deg); border-radius: 4px; border-color: #F3B47F; background: #FFF1E6; }
+.wr-more { flex: 0 0 auto; font-size: 11.5px; font-weight: 700; color: var(--wx-muted); padding: 0 6px; }
+.wr-noflow { font-size: 12.5px; color: var(--wx-muted); font-style: italic; padding: 0 4px; }
+.wr-meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 14px 18px 0; padding: 12px 0; border-top: 1px dashed var(--wx-line); }
+.wr-meta div b { display: block; font-size: 16px; font-weight: 800; color: var(--wx-ink); line-height: 1.2; }
+.wr-meta div span { font-size: 11.5px; color: var(--wx-muted); }
+.wr-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding: 12px 18px; background: #FAFCFC;
+  border-top: 1px solid var(--wx-line);
 }
-
-.summary-icon {
-  width: 54px;
-  height: 54px;
-  flex: 0 0 54px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
+.wr-foot small { font-size: 12px; color: var(--wx-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wr-open {
+  position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px; border: 0; border-radius: 10px;
+  background: var(--wx-teal-d); color: #fff; font: 600 13px Inter, Arial, sans-serif; white-space: nowrap; cursor: pointer; transition: background .15s, transform .15s;
 }
-
-.summary-icon i {
-  font-size: 29px !important;
-  line-height: 1;
-  font-weight: 700;
-}
-
-.summary-icon--blue {
-  color: #1f7be8;
-  background: #e8f2ff;
-}
-
-.summary-icon--green {
-  color: #139b58;
-  background: #e5f7ed;
-}
-
-.summary-icon--orange {
-  color: #ef850d;
-  background: #fff0df;
-}
-
-.summary-icon--purple {
-  color: #8050e0;
-  background: #f0e9ff;
-}
-
-.summary-card strong {
-  display: block;
-  color: #102f50;
-  font-size: 20px;
-  line-height: 1;
-  font-weight: 900;
-}
-
-.summary-card span {
-  display: block;
-  margin-top: 5px;
-  color: #315779;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.summary-card small {
-  display: block;
-  margin-top: 2px;
-  color: #7f91a1;
-  font-size: 8.8px;
-  font-weight: 600;
-}
-
-.filter-card,
-.grid-card {
-  margin-top: 12px;
-  border: 1px solid #dce6ec;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(20, 61, 87, .035);
-}
-
-.filter-card {
-  padding: 11px 16px 13px;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 9px;
-}
-
-.title-icon {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  color: #ffffff;
-  background: #216fd2;
-  font-size: 15px;
-}
-
-.card-title strong,
-.grid-title strong {
-  color: #123553;
-  font-size: 15px;
-  font-weight: 900;
-}
-
-.filter-grid {
-  display: grid;
-  grid-template-columns:
-    minmax(280px, 1.7fr)
-    minmax(150px, .7fr)
-    minmax(150px, .7fr)
-    auto;
-  gap: 14px;
-  align-items: end;
-}
-
-.field {
-  display: grid;
-  gap: 6px;
-}
-
-.field span {
-  color: #234866;
-  font-size: 11px;
-  font-weight: 850;
-}
-
-.field input,
-.field select {
-  width: 100%;
-  height: 38px;
-  box-sizing: border-box;
-  border: 1px solid #cfdce5;
-  border-radius: 9px;
-  background: #fff;
-  color: #173d5d;
-  padding: 0 12px;
-  font: inherit;
-  font-size: 11.5px;
-  outline: none;
-}
-
-.input-wrap {
-  position: relative;
-}
-
-.input-wrap > i {
-  position: absolute;
-  left: 13px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #587792;
-  font-size: 13px;
-}
-
-.input-wrap input {
-  padding-left: 36px;
-}
-
-.filter-actions {
-  display: flex;
-  gap: 9px;
-}
-
-.primary-button,
-.secondary-button,
-.add-workflow-button,
-.design-button {
-  height: 38px;
-  border-radius: 8px;
-  padding: 0 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border: 0;
-  cursor: pointer;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 750;
-}
-
-.primary-button {
-  min-width: 96px;
-  color: #fff;
-  background: #0b4f97;
-}
-
-.primary-button:disabled {
-  opacity: .55;
-  cursor: default;
-}
-
-.secondary-button {
-  min-width: 86px;
-  color: #496175;
-  background: #f5f7f9;
-}
-
-.message--error {
-  margin-top: 12px;
-  color: #9a3f3f;
-}
-
-.grid-card {
-  min-height: 430px;
-  padding: 0 18px 10px;
-}
-
-.grid-header {
-  min-height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.grid-title {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.grid-title > i {
-  color: #0b5ea8;
-  font-size: 18px;
-}
-
-.add-workflow-button {
-  color: #fff;
-  background: #e64444;
-}
-
-.table-wrap {
-  min-height: 305px;
-  overflow: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-thead th {
-  padding: 11px 10px;
-  background: #dcecff;
-  color: #12395d;
-  font-size: 11px;
-  font-weight: 900;
-  text-align: left;
-  white-space: nowrap;
-}
-
-thead th:first-child {
-  border-radius: 8px 0 0 8px;
-}
-
-thead th:last-child {
-  border-radius: 0 8px 8px 0;
-}
-
-tbody td {
-  padding: 13px 10px;
-  border-bottom: 1px solid #e7edf1;
-  color: #2f506a;
-  font-size: 11px;
-  vertical-align: middle;
-}
-
-.workflow-code {
-  color: #12355d;
-  font-weight: 850;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 10px;
-  border-radius: 6px;
-  font-size: 9.5px;
-  font-weight: 800;
-}
-
-.status-pill--released,
-.status-pill--active {
-  color: #10884c;
-  background: #e6f7ee;
-  border: 1px solid #bfe8cf;
-}
-
-.status-pill--inactive {
-  color: #b35a2d;
-  background: #fff0e8;
-  border: 1px solid #ffd2bd;
-}
-
-.status-pill--draft {
-  color: #8d6814;
-  background: #fff7dc;
-  border: 1px solid #f4e3a8;
-}
-
-.status-pill--neutral {
-  color: #5c7082;
-  background: #eef2f5;
-  border: 1px solid #dce3e8;
-}
-
-.updated-cell {
-  display: grid;
-  gap: 2px;
-}
-
-.updated-cell strong {
-  color: #284a66;
-  font-size: 10.5px;
-  font-weight: 700;
-}
-
-.updated-cell small {
-  color: #8a98a5;
-  font-size: 8.5px;
-}
-
-.design-button {
-  height: 32px;
-  padding: 0 11px;
-  color: #fff;
-  background: #27a36d;
-}
-
-.loading-state,
-.empty-state {
-  padding: 28px 12px;
-  text-align: center;
-  color: #7d8e9c;
-}
-
-.table-footer {
-  min-height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #6f8292;
-  font-size: 9.5px;
-}
-
-.pager {
-  display: flex;
-  gap: 6px;
-}
-
-.pager button {
-  width: 32px;
-  height: 32px;
-  border: 1px solid #d2dde5;
-  border-radius: 7px;
-  background: #fff;
-  color: #49657c;
-  cursor: pointer;
-}
-
-.pager button.is-active {
-  color: #fff;
-  border-color: #2f7fe4;
-  background: #2f7fe4;
-}
-
-@media (max-width: 1100px) {
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .filter-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .filter-actions {
-    justify-content: flex-end;
-  }
-
-  .breadcrumbs {
-    display: none;
-  }
-}
+.wr-open:hover { background: var(--wx-teal); transform: translateX(2px); }
+.wr-card.is-off { background: #FCFDFD; }
+.wr-card.is-off .wr-flow { filter: grayscale(.7); opacity: .75; }
+.wr-empty { display: none; padding: 40px 20px; text-align: center; border-radius: 16px; border: 1px dashed var(--wx-line); background: #fff; color: var(--wx-muted); }
+.wr-empty.on { display: block; }
+.wr-empty b { display: block; font-size: 16px; color: var(--wx-ink); margin-bottom: 4px; }
+@media (max-width: 900px) { .wr-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .wr-grid { grid-template-columns: 1fr; } .wr-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); } .wr { padding: 12px; } }
 </style>

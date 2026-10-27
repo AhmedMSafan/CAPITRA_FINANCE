@@ -1,0 +1,72 @@
+/* App 118 (FINOVA Workflow Engine) design language, copied from its pages' inline CSS: the dark teal hero,
+   white rounded cards, pills, tags and filter chips. Native pages use it to look like the APEX pages. */
+:root {
+  --wx-ink: #0B2533; --wx-ink2: #29495A; --wx-muted: #5F7B8A; --wx-line: #DFE8EC; --wx-soft: #F4F8F9;
+  --wx-teal: #00636D; --wx-teal-d: #014B55; --wx-teal-l: #E6F3F4;
+  --wx-orange: #E87722; --wx-orange-l: #FFF1E6; --wx-green: #14734F; --wx-green-l: #E7F6EF;
+  --wx-red: #B42318; --wx-red-l: #FDECEC; --wx-violet: #5B5BD6; --wx-violet-l: #EEEEFC;
+}
+.wx { font-family: Inter, 'Segoe UI', Arial, sans-serif; color: var(--wx-ink); -webkit-font-smoothing: antialiased; }
+.wx *, .wx *::before, .wx *::after { box-sizing: border-box; }
+.wx a { text-decoration: none; }
+.wx-hero {
+  position: relative; overflow: hidden; border-radius: 20px; color: #fff; padding: 30px 32px;
+  background: radial-gradient(120% 140% at 0% 0%, #07505A 0%, #033239 55%, #022429 100%);
+  box-shadow: 0 24px 50px -24px rgba(1, 50, 57, .55);
+}
+.wx-hero::before {
+  content: ""; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(127, 224, 201, .16) 1.1px, transparent 1.2px); background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 55%); mask-image: linear-gradient(90deg, transparent 0%, #000 55%);
+}
+.wx-hero::after {
+  content: ""; position: absolute; width: 420px; height: 420px; border-radius: 50%; right: -120px; top: -220px;
+  background: #E87722; opacity: .22; filter: blur(70px);
+}
+.wx-hero > * { position: relative; z-index: 1; }
+.wx-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 9px; border-radius: 99px;
+  background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .15);
+  font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: rgba(255, 255, 255, .85);
+}
+.wx-eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: #2BD4A8; box-shadow: 0 0 10px #2BD4A8; }
+.wx-hero h1 { margin: 14px 0 6px; font-size: clamp(24px, 2.4vw, 34px); line-height: 1.15; font-weight: 800; letter-spacing: -.02em; color: #fff; }
+.wx-hero h1 em { font-style: normal; color: #FFB25E; }
+.wx-hero p { margin: 0; max-width: 640px; font-size: 15px; line-height: 1.6; color: rgba(255, 255, 255, .72); }
+.wx-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 11px;
+  font: 600 14px/1 Inter, Arial, sans-serif; cursor: pointer; border: 1px solid transparent;
+  transition: transform .15s, box-shadow .15s, background .15s, border-color .15s; white-space: nowrap;
+}
+.wx-btn--hot { background: linear-gradient(135deg, #F59A3C, #E87722 60%, #D9661A); color: #fff !important; box-shadow: 0 10px 22px -10px rgba(232, 119, 34, .8); }
+.wx-btn--hot:hover { transform: translateY(-1px); box-shadow: 0 14px 28px -10px rgba(232, 119, 34, .85); }
+.wx-btn--ghost { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .22); color: #fff !important; }
+.wx-btn--ghost:hover { background: rgba(255, 255, 255, .14); }
+.wx-btn--line { background: #fff; border-color: var(--wx-line); color: var(--wx-ink2) !important; }
+.wx-btn--line:hover { border-color: #B9CBD1; background: var(--wx-soft); }
+.wx-btn:focus-visible, .wx-chip:focus-visible { outline: 3px solid rgba(232, 119, 34, .4); outline-offset: 2px; }
+.wx-sec { display: flex; align-items: center; gap: 12px; margin: 30px 2px 14px; }
+.wx-sec h2 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--wx-muted); }
+.wx-sec::after { content: ""; flex: 1; height: 1px; background: var(--wx-line); }
+.wx-pill { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 99px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.wx-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.wx-pill--ok { background: var(--wx-green-l); color: var(--wx-green); }
+.wx-pill--off { background: #EEF2F4; color: #6B7F88; }
+.wx-pill--warn { background: var(--wx-orange-l); color: #B4570E; }
+.wx-tag {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 7px; background: var(--wx-soft);
+  border: 1px solid var(--wx-line); font-size: 11.5px; font-weight: 600; color: var(--wx-ink2); white-space: nowrap;
+}
+.wx-chip {
+  height: 34px; padding: 0 13px; border-radius: 99px; border: 1px solid var(--wx-line); background: #fff; color: var(--wx-ink2);
+  font: 600 13px Inter, Arial, sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all .15s;
+}
+.wx-chip:hover { border-color: #B9CBD1; }
+.wx-chip em {
+  font-style: normal; font-size: 11.5px; font-weight: 700; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px;
+  display: grid; place-items: center; background: var(--wx-soft); color: var(--wx-muted);
+}
+.wx-chip[aria-pressed=true] { background: var(--wx-teal-d); border-color: var(--wx-teal-d); color: #fff; }
+.wx-chip[aria-pressed=true] em { background: rgba(255, 255, 255, .18); color: #fff; }
+@media (prefers-reduced-motion: reduce) { .wx * { transition: none !important; animation: none !important; } }
+@media (max-width: 640px) { .wx-hero { padding: 22px 18px; } }
