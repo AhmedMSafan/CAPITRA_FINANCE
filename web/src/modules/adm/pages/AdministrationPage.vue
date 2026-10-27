@@ -310,7 +310,7 @@
   .setup-home {
     min-height: calc(100vh - 80px);
     padding: 24px 30px 38px;
-    background: #f5faf6;
+    background: var(--cap-bg);
     font-family: Inter, "Segoe UI", Arial, sans-serif;
   }
 
@@ -343,8 +343,8 @@
     display: grid;
     place-items: center;
     border-radius: 15px;
-    background: #fff0df;
-    color: #bb741f;
+    background: var(--cap-orange-tint);
+    color: var(--cap-icon);
   }
 
     .setup-header-icon i {
@@ -353,7 +353,7 @@
 
   .setup-header-copy h1 {
     margin: 0;
-    color: #244b3a;
+    color: var(--cap-heading);
     font-size: 28px;
     line-height: 1.1;
     font-weight: 800;
@@ -361,7 +361,7 @@
 
   .setup-header-copy p {
     margin: 6px 0 0;
-    color: #718579;
+    color: var(--cap-muted);
     font-size: 14px;
     line-height: 1.35;
   }
@@ -375,14 +375,14 @@
     align-items: center;
     gap: 10px;
     padding: 0 14px;
-    border: 1px solid #dce5e8;
+    border: 1px solid var(--cap-border);
     border-radius: 12px;
     background: #ffffff;
     box-shadow: 0 4px 14px rgba(31, 61, 74, .035);
   }
 
     .setup-search i {
-      color: #183b5b;
+      color: var(--cap-heading);
       font-size: 17px;
     }
 
@@ -391,13 +391,13 @@
       border: 0;
       outline: 0;
       background: transparent;
-      color: #183550;
+      color: var(--cap-heading);
       font: inherit;
       font-size: 13px;
     }
 
       .setup-search input::placeholder {
-        color: #93a1ae;
+        color: var(--cap-faint);
       }
 
   /* Main section cards */
@@ -411,7 +411,7 @@
   .section-card {
     min-height: 292px;
     padding: 18px 20px 16px;
-    border: 1px solid #dde6e8;
+    border: 1px solid var(--cap-border);
     border-radius: 12px;
     background: #ffffff;
     box-shadow: 0 5px 16px rgba(32, 65, 78, .045);
@@ -443,7 +443,7 @@
 
     .section-copy h2 {
       margin: 0;
-      color: #082451;
+      color: var(--cap-heading);
       font-size: 17px;
       line-height: 1.2;
       font-weight: 800;
@@ -451,7 +451,7 @@
 
     .section-copy p {
       margin: 5px 0 0;
-      color: #6b8098;
+      color: var(--cap-muted);
       font-size: 12px;
       line-height: 1.4;
     }
@@ -459,33 +459,33 @@
   /* Tone colors - same soft pastel approach as approved design */
 
   .tone-blue {
-    background: #e7f2ff;
-    color: #1563c7;
+    background: var(--cap-orange-tint);
+    color: var(--cap-icon);
   }
 
   .tone-green {
-    background: #e2f5ea;
-    color: #128451;
+    background: var(--cap-orange-tint);
+    color: var(--cap-icon);
   }
 
   .tone-orange {
-    background: #fff0dc;
-    color: #c87918;
+    background: var(--cap-orange-tint);
+    color: var(--cap-icon);
   }
 
   .tone-purple {
-    background: #eee7ff;
-    color: #6d43bd;
+    background: var(--cap-orange-tint);
+    color: var(--cap-icon);
   }
 
   .tone-teal {
-    background: #dff3f0;
-    color: #087a73;
+    background: var(--cap-orange-tint);
+    color: var(--cap-icon);
   }
 
   .tone-red {
-    background: #fde8e8;
-    color: #b54242;
+    background: var(--cap-orange-tint);
+    color: var(--cap-icon);
   }
 
   /* Setup links */
@@ -494,7 +494,7 @@
     max-height: 200px;
     overflow-y: auto;
     overflow-x: hidden;
-    border-top: 1px solid #e8edef;
+    border-top: 1px solid var(--cap-border-soft);
     padding-right: 3px;
     scrollbar-width: thin;
     scrollbar-color: #c7d5dd transparent;
@@ -526,7 +526,7 @@
     gap: 14px;
     padding: 8px 4px;
     border: 0;
-    border-bottom: 1px solid #e8edef;
+    border-bottom: 1px solid var(--cap-border-soft);
     background: transparent;
     text-align: left;
     font: inherit;
@@ -539,7 +539,7 @@
     }
 
     .setup-link:not(.disabled):hover {
-      background: #fafcfb;
+      background: var(--cap-primary-tint);
     }
 
   .link-left {
@@ -553,7 +553,7 @@
       width: 22px;
       flex: 0 0 22px;
       text-align: center;
-      color: #173d68;
+      color: var(--cap-primary);
       font-size: 17px;
     }
 
@@ -564,7 +564,7 @@
   }
 
     .link-copy strong {
-      color: #102b52;
+      color: var(--cap-heading);
       font-size: 13px;
       line-height: 1.25;
       font-weight: 750;
@@ -572,14 +572,14 @@
 
     .link-copy span {
       margin-top: 3px;
-      color: #788b9e;
+      color: var(--cap-muted);
       font-size: 11px;
       line-height: 1.3;
     }
 
   .link-arrow {
     flex: 0 0 auto;
-    color: #173d68;
+    color: var(--cap-primary);
     font-size: 13px;
   }
 
@@ -597,7 +597,7 @@
     padding: 9px 4px 0;
     border: 0;
     background: transparent;
-    color: #1563c7;
+    color: var(--cap-primary);
     font: inherit;
     font-size: 12px;
     font-weight: 800;
@@ -605,7 +605,7 @@
   }
 
     .view-all-link:hover {
-      color: #0f4f9f;
+      color: var(--cap-primary-hover);
     }
 
     .view-all-link i {
@@ -620,7 +620,7 @@
     place-items: center;
     align-content: center;
     gap: 8px;
-    color: #718579;
+    color: var(--cap-muted);
   }
 
     .empty-state i {
@@ -628,7 +628,7 @@
     }
 
     .empty-state strong {
-      color: #244b3a;
+      color: var(--cap-heading);
       font-size: 15px;
     }
 

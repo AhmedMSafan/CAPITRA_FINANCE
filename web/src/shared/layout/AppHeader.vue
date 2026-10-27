@@ -555,8 +555,8 @@
   }
 
   .capitra-shortcut--admin .capitra-shortcut-icon {
-    color: #7af0a5;
-    background: rgba(31,95,209,.22);
+    color: var(--cap-accent);
+    background: rgba(224,176,74,.16);
   }
 
   .capitra-shortcut--tools .capitra-shortcut-icon {
@@ -565,8 +565,8 @@
   }
 
   .capitra-shortcut--platform .capitra-shortcut-icon {
-    color: #71c9f7;
-    background: rgba(58,146,194,.20);
+    color: var(--cap-accent);
+    background: rgba(224,176,74,.16);
   }
 
   .capitra-shortcut--home .capitra-shortcut-icon {
