@@ -321,6 +321,7 @@
 .ad-card:hover { border-color: #B9CBD1; box-shadow: 0 18px 36px -18px rgba(11, 37, 51, .25); }
 .ad-head { display: flex; gap: 14px; align-items: flex-start; padding: 20px 20px 14px; }
 .ad-ico { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: var(--wx-teal); background: var(--wx-teal-l); font-size: 18px; }
+.ad-ico .pi { font-size: 18px; }
 .ad-head h3 { margin: 2px 0 0; font-size: 16px; font-weight: 700; letter-spacing: -.01em; color: var(--wx-ink); }
 .ad-head p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--wx-muted); }
 .ad-links { display: flex; flex-direction: column; gap: 6px; padding: 0 14px 14px; }
