@@ -90,3 +90,23 @@ export async function updateWorkflowDefinition(id: number, model: any) {
 export async function deleteWorkflowDefinition(id: number) {
   await http.delete<void>(`${API_URL}/${id}`)
 }
+
+export type RunningStep = { elementId: string; stepName: string | null; stepStatus: string; outcome: string | null; enteredAt: string; completedAt: string | null; completedBy: string | null }
+export type RunningInstance = {
+  instanceId: number
+  workflowDefinitionId: number
+  workflowName: string
+  versionNo: string
+  businessReference: string | null
+  instanceStatus: string
+  currentElementId: string | null
+  startedAt: string
+  startedBy: string
+  lastActivity: string
+  steps: RunningStep[]
+}
+
+/** Instances still running, most recently active first, with their step history. */
+export function getRunningInstances() {
+  return http.get<RunningInstance[]>(`${API_URL}/running`)
+}

@@ -15,6 +15,10 @@ public sealed class WfeDefinitionController(WfeDefinitions definitions) : Contro
     public Task<IReadOnlyList<WfeDefinitionDto>> List([FromQuery] string? search, CancellationToken cancellationToken) =>
         definitions.ListAsync(search, cancellationToken);
 
+    [HttpGet("running")]
+    [HasPermission(Permissions.Wfe.DefinitionView)]
+    public Task<IReadOnlyList<WfeRunningInstanceDto>> Running(CancellationToken cancellationToken) => definitions.RunningAsync(cancellationToken);
+
     [HttpGet("{id:long}")]
     [HasPermission(Permissions.Wfe.DefinitionView)]
     public Task<WfeDefinitionDto> Get(long id, CancellationToken cancellationToken) => definitions.GetAsync(id, cancellationToken);

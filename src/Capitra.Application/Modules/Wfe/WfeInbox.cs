@@ -64,6 +64,16 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         return rows.Where(CanAccess).Select(Map).ToList();
     }
 
+    /// <summary>Every open, claimed or in-progress task of every user, for the live operations of the Workflow Engine home.</summary>
+    public async Task<IReadOnlyList<WfeInboxItemDto>> AllOpenAsync(CancellationToken cancellationToken)
+    {
+        var rows = await Query()
+            .Where(x => x.InboxStatus == WfeRuntime.Open || x.InboxStatus == WfeRuntime.Claimed || x.InboxStatus == WfeRuntime.InProgress)
+            .OrderBy(x => x.CreatedAt)
+            .ToListAsync(cancellationToken);
+        return rows.Select(Map).ToList();
+    }
+
     public async Task<WfeInboxItemDto> GetAsync(long inboxId, CancellationToken cancellationToken)
     {
         var row = await Query().FirstOrDefaultAsync(x => x.InboxItemId == inboxId, cancellationToken)

@@ -243,6 +243,12 @@ const router = createRouter({
         {
           path: 'workflowengine',
           name: 'workflow-engine',
+          component: () => import('@/modules/wfe/pages/WorkflowHomePage.vue'),
+          meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Home' }
+        },
+        {
+          path: 'workflowengine/registry',
+          name: 'workflow-registry',
           component: () => import('@/modules/wfe/pages/WorkflowDefinitionsPage.vue'),
           meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Workflow Definitions' }
         },

@@ -30,6 +30,21 @@ public sealed record SaveWfeDefinitionRequest(
     bool IsActive,
     int RowVersion);
 
+public sealed record WfeRunningStepDto(string ElementId, string? StepName, string StepStatus, string? Outcome, DateTime EnteredAt, DateTime? CompletedAt, string? CompletedBy);
+
+public sealed record WfeRunningInstanceDto(
+    long InstanceId,
+    long WorkflowDefinitionId,
+    string WorkflowName,
+    string VersionNo,
+    string? BusinessReference,
+    string InstanceStatus,
+    string? CurrentElementId,
+    DateTime StartedAt,
+    string StartedBy,
+    DateTime LastActivity,
+    IReadOnlyList<WfeRunningStepDto> Steps);
+
 /// <summary>The workflow definitions the BPMN designer reads and saves.</summary>
 public sealed class WfeDefinitions(ICapitraDbContext db)
 {
@@ -45,6 +60,26 @@ public sealed class WfeDefinitions(ICapitraDbContext db)
         }
 
         return await query.OrderBy(x => x.WorkflowCode).Select(x => Map(x)).ToListAsync(cancellationToken);
+    }
+
+    /// <summary>The instances still running (not completed, rejected or cancelled), most recently active first, with their step history.</summary>
+    public async Task<IReadOnlyList<WfeRunningInstanceDto>> RunningAsync(CancellationToken cancellationToken)
+    {
+        string[] closed = ["COMPLETED", "REJECTED", "CANCELLED"];
+        var rows = await db.Set<WfeWorkflowInstance>().AsNoTracking()
+            .Include(x => x.Definition)
+            .Include(x => x.Steps)
+            .Where(x => !closed.Contains(x.InstanceStatus.ToUpper()))
+            .ToListAsync(cancellationToken);
+        return rows
+            .Select(x => new WfeRunningInstanceDto(
+                x.WorkflowInstanceId, x.WorkflowDefinitionId, x.Definition?.WorkflowName ?? x.WorkflowDefinitionId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                x.Definition?.VersionNo ?? "1", x.BusinessReference, x.InstanceStatus, x.CurrentElementId, x.StartedAt, x.StartedBy,
+                x.UpdatedAt ?? x.CreatedAt,
+                x.Steps.OrderBy(s => s.EnteredAt).ThenBy(s => s.StepInstanceId)
+                    .Select(s => new WfeRunningStepDto(s.ElementId, s.StepName, s.StepStatus, s.Outcome, s.EnteredAt, s.CompletedAt, s.CompletedBy)).ToList()))
+            .OrderByDescending(x => x.LastActivity).ThenByDescending(x => x.InstanceId)
+            .ToList();
     }
 
     public async Task<WfeDefinitionDto> GetAsync(long id, CancellationToken cancellationToken) =>

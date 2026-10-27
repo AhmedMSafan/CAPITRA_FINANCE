@@ -1,4 +1,6 @@
+using Capitra.Api.Security;
 using Capitra.Application.Modules.Wfe;
+using Capitra.Application.Security;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Capitra.Api.Controllers.Wfe;
@@ -10,6 +12,10 @@ public sealed class WfeInboxController(WfeInbox inbox) : ControllerBase
 {
     [HttpGet("my")]
     public Task<IReadOnlyList<WfeInboxItemDto>> My(CancellationToken cancellationToken) => inbox.MyInboxAsync(cancellationToken);
+
+    [HttpGet("all")]
+    [HasPermission(Permissions.Wfe.DefinitionView)]
+    public Task<IReadOnlyList<WfeInboxItemDto>> All(CancellationToken cancellationToken) => inbox.AllOpenAsync(cancellationToken);
 
     [HttpGet("{id:long}")]
     public Task<WfeInboxItemDto> Get(long id, CancellationToken cancellationToken) => inbox.GetAsync(id, cancellationToken);

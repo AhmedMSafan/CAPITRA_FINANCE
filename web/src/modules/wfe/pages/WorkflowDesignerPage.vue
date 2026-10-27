@@ -13,7 +13,7 @@
       </div>
 
       <div class="page-head-actions">
-        <button class="btn btn-ghost" @click="router.push('/workflowengine')">
+        <button class="btn btn-ghost" @click="router.push('/workflowengine/registry')">
           <span class="pi pi-arrow-left"></span>
           Workflows
         </button>
