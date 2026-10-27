@@ -436,7 +436,15 @@ public sealed class P0208LoadPortfolioData(IApexSqlReader reader, ApexSession se
         var has = validation.Count;
 
         var h = new StringBuilder();
-        h.AppendLine("<div class=\"fxd\" id=\"ldRoot\" data-batch=\"" + batch + "\">");
+        // the figures the summary popup shows after a validation or an import
+        string Counts(string sheet)
+        {
+            var rows = validation.Where(m => m.C[0] == sheet).ToList();
+            return rows.Count + "/" + rows.Count(m => m.C[4] == "VALID") + "/" + rows.Count(m => m.C[4] == "ERROR");
+        }
+
+        h.AppendLine("<div class=\"fxd\" id=\"ldRoot\" data-batch=\"" + batch + "\" data-total=\"" + P0203Html.Num(total) + "\" data-valid=\"" + P0203Html.Num(valid) + "\" data-err=\"" + P0203Html.Num(err) + "\""
+            + " data-imported=\"" + Attr(request.Item("P208_IMPORTED_ROWS") ?? "0") + "\" data-inv=\"" + Counts("INVESTORS") + "\" data-unit=\"" + Counts("UNITS") + "\" data-acc=\"" + Counts("ACCOUNTS") + "\">");
         h.AppendLine("<header class=\"fxd-hero\"><nav class=\"wb-crumbs\" aria-label=\"Breadcrumb\"><a href=\"" + Attr(pfUrl) + "\"><span class=\"fa fa-arrow-left\" aria-hidden=\"true\"></span> "
             + T("Back to portfolio", "العودة إلى المحفظة") + "</a><span>/</span><a href=\"" + Attr(inboxUrl) + "\">" + T("My inbox", "صندوق المهام") + "</a><span>/</span><span>" + T("Load portfolio data", "تحميل بيانات المحفظة") + "</span></nav>");
         h.AppendLine("<div class=\"fxd-row\"><div class=\"fxd-anim\"><div class=\"fxd-eyebrow\"><i></i>" + T("Purchased Portfolio Workflow", "سير عمل المحافظ المشتراة") + "</div><h1 class=\"fxd-h1\">" + (view ? T("Portfolio data", "بيانات المحفظة") : T("Load portfolio data", "تحميل بيانات المحفظة")) + "</h1>"
@@ -454,8 +462,9 @@ public sealed class P0208LoadPortfolioData(IApexSqlReader reader, ApexSession se
         {
             h.AppendLine("<section class=\"fxd-card\"><div class=\"fxd-card-h\"><h2><span class=\"fa fa-cloud-upload\" aria-hidden=\"true\"></span>" + (batch == "NOT VALIDATED" ? T("Upload the workbook", "ارفع الملف") : T("Upload a corrected workbook", "ارفع ملفاً مصححاً")) + "</h2>"
                 + "<span class=\"fxd-label\">.xlsx</span></div>"
-                + "<div class=\"ld-drop\" id=\"ldDrop\"><span class=\"ic\"><span class=\"fa fa-cloud-upload\" aria-hidden=\"true\"></span></span>"
-                + "<b>" + T("Upload the Excel workbook", "ارفع ملف الإكسل") + "</b><small>" + T("Choose the seller workbook (.xlsx) below, then validate it.", "اختر ملف البائع (.xlsx) بالأسفل ثم تحقق منه.") + "</small>"
+                + "<div class=\"ld-drop\" id=\"ldDrop\"><button type=\"button\" class=\"ic ld-pick\" id=\"ldPick\" aria-label=\"Choose the workbook\"><span class=\"fa fa-cloud-upload\" aria-hidden=\"true\"></span></button>"
+                + "<b>" + T("Upload the Excel workbook", "ارفع ملف الإكسل") + "</b><small class=\"ld-hint\">" + T("Click the cloud to choose the seller workbook (.xlsx), then validate it.", "اضغط على السحابة لاختيار ملف البائع (.xlsx) ثم تحقق منه.") + "</small>"
+                + "<span class=\"ld-file\" id=\"ldFile\"><span class=\"fa fa-file-excel-o\" aria-hidden=\"true\"></span><span></span></span>"
                 + "<div class=\"ld-field\" id=\"ldField\"></div>"
                 + "<div class=\"ld-tabs\"><small>" + T("Needs 3 tabs:", "يحتاج 3 أوراق:") + "</small><span>INVESTORS</span><span>UNITS</span><span>ACCOUNTS</span></div></div>"
                 + "<div class=\"ld-act\"><button type=\"button\" class=\"wb-link\" id=\"ldFmt\"><span class=\"fa fa-table\" aria-hidden=\"true\"></span>" + T("Workbook format", "تنسيق الملف") + "</button><div class=\"ld-slot\" id=\"ldSlot\"></div></div></section>");
@@ -582,7 +591,7 @@ public sealed class P0208LoadPortfolioData(IApexSqlReader reader, ApexSession se
     {
         var rows = members.Where(m => m.C[0] == code).ToList();
         int n = rows.Count, v = rows.Count(m => m.C[4] == "VALID"), e = rows.Count(m => m.C[4] == "ERROR");
-        return "<div class=\"ld-sheet\"><div class=\"top\"><b>" + T(en, ar) + "</b><span>" + v + " " + T("valid", "صحيح") + (e > 0 ? " &middot; <span style=\"color:var(--bad);font-weight:700\">" + e + " " + T("errors", "أخطاء") + "</span>" : string.Empty) + " &middot; " + n + "</span></div>"
+        return "<div class=\"ld-sheet ld-sheet--" + code + "\"><div class=\"top\"><b>" + T(en, ar) + "</b><span>" + v + " " + T("valid", "صحيح") + (e > 0 ? " &middot; <span style=\"color:var(--bad);font-weight:700\">" + e + " " + T("errors", "أخطاء") + "</span>" : string.Empty) + " &middot; " + n + "</span></div>"
             + "<div class=\"ld-bar\"><i class=\"v\" style=\"width:" + (n > 0 ? P0203Html.Num(P0203Html.Round((decimal)v / n * 100)) : "0") + "%\"></i><i class=\"e\" style=\"width:" + (n > 0 ? P0203Html.Num(P0203Html.Round((decimal)e / n * 100)) : "0") + "%\"></i></div></div>";
     }
 }
