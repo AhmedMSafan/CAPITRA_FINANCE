@@ -4,6 +4,7 @@
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ApexWizardPage from '@/modules/apex/ApexWizardPage.vue'
+import MffDashboard from './MffDashboard.vue'
 import { useMffUi } from './mffUi'
 import { wizardPages } from './wizard/wizardPages'
 
@@ -21,7 +22,9 @@ onMounted(() => useMffUi(router, () => props.page))
   <component :is="'link'" v-for="href in appCss" :key="href" rel="stylesheet" :href="href" />
   <div class="mff-app t-PageBody">
     <main class="t-Body-main mff-main">
-      <ApexWizardPage :key="`${route.fullPath}#${opened}`" :app="110" :pages="wizardPages" :page="page" @reload="opened++" />
+      <!-- page 1, the dashboard, in the shared app 118 design; every other page as the APEX export defines it -->
+      <MffDashboard v-if="page === 1" />
+      <ApexWizardPage v-else :key="`${route.fullPath}#${opened}`" :app="110" :pages="wizardPages" :page="page" @reload="opened++" />
     </main>
   </div>
 </template>
