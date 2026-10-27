@@ -72,6 +72,9 @@ function closeDialog() {
     emit('close')
 }
 
+// the role that grants every permission ("*"), ADMIN
+const fullAccessRole = computed(() => props.roles.find(r => r.permissions.includes('*'))?.name ?? null)
+
 function toggleRole(roleName: string) {
   if (form.roles.includes(roleName)) {
     form.roles = form.roles.filter(x => x !== roleName)
@@ -223,6 +226,11 @@ async function saveUser() {
             </label>
           </div>
 
+          <label v-if="fullAccessRole" class="full-access">
+            <input type="checkbox" :checked="form.roles.includes(fullAccessRole)" @change="toggleRole(fullAccessRole)" />
+            <span><b>Full system access</b><small>Every permission in every application (role {{ fullAccessRole }}). The user signs in again to get it.</small></span>
+          </label>
+
           <div class="finova-admin-role-section">
             <div class="finova-admin-role-section__title">
               <i class="pi pi-shield"></i>
@@ -280,5 +288,9 @@ async function saveUser() {
 
 <style scoped>
 .user-hint { color: #64808F; font-size: 11.5px; }
+.full-access { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 14px; padding: 12px 14px; border: 1px solid #CFE7E6; border-radius: 10px; background: #E7F3F2; cursor: pointer; }
+.full-access input { margin-top: 3px; width: 16px; height: 16px; accent-color: #00636D; }
+.full-access b { display: block; color: #014B55; font-size: 13.5px; }
+.full-access small { display: block; color: #5F7787; font-size: 12px; margin-top: 2px; }
 </style>
 
