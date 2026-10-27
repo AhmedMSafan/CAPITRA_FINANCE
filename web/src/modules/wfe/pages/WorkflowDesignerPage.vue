@@ -747,28 +747,26 @@ async function toggleLeftPanel(){
 }
 
 async function toggleRightPanel(){
-  const bpmnCanvas=modeler?.get('canvas')
-  const before=currentViewbox()
-
+  // the canvas narrows or widens; the resize observer below fits the diagram to the new size
   rightPanelOpen.value=!rightPanelOpen.value
   await nextTick()
-
-  try{bpmnCanvas?.resized()}catch{}
-
-  // Preserve exactly the same designer position after the panel slides.
-  if(before && bpmnCanvas){
-    try{
-      bpmnCanvas.viewbox({
-        x:before.x,
-        y:before.y,
-        width:before.width,
-        height:before.height
-      })
-    }catch{}
-  }
-
-  syncZoomPercent()
 }
+
+// When the canvas changes size (the properties panel opens or closes, the window or the browser zoom changes)
+// the diagram is fitted again, so no step is left outside the visible area.
+let canvasSize=''
+let refitTimer:ReturnType<typeof setTimeout>|undefined
+const canvasObserver=new ResizeObserver(entries=>{
+  const r=entries[0]?.contentRect
+  if(!r||r.width<10||r.height<10)return
+  const size=`${Math.round(r.width)}x${Math.round(r.height)}`
+  if(size===canvasSize)return
+  const first=!canvasSize
+  canvasSize=size
+  if(first)return
+  clearTimeout(refitTimer)
+  refitTimer=setTimeout(()=>{void fit()},120)
+})
 
 function clearSelection(){
   selectedId.value=''
@@ -1230,7 +1228,7 @@ async function save(){
     saving.value=false
   }
 }
-onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefined,moddleExtensions:{finova:finovaWorkflowModdle}});bindSelection();await load()}catch(e){msg(e instanceof Error?e.message:'Designer initialization failed.',true)}});onBeforeUnmount(()=>modeler?.destroy())
+onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefined,moddleExtensions:{finova:finovaWorkflowModdle}});bindSelection();await load();if(canvas.value)canvasObserver.observe(canvas.value)}catch(e){msg(e instanceof Error?e.message:'Designer initialization failed.',true)}});onBeforeUnmount(()=>{canvasObserver.disconnect();clearTimeout(refitTimer);modeler?.destroy()})
 </script>
 <style scoped>
 .designer-page,
