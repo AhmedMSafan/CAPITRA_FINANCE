@@ -40,15 +40,6 @@ const modules: BusinessModule[] = [
     enabled: true
   },
   {
-    code: 'WORKFLOW',
-    title: 'Workflow',
-    description: 'Approval inbox, step assignment, committees and SLA tracking for every business process.',
-    route: '/workflow/inbox',
-    tone: 'factoring',
-    icon: 'pi pi-sitemap',
-    enabled: true
-  },
-  {
     code: 'ACCOUNTING',
     title: 'Accounting',
     description: 'Chart of accounts, accounting periods, posting rules and general ledger transactions.',
@@ -66,15 +57,6 @@ const modules: BusinessModule[] = [
     icon: 'pi pi-wallet',
     enabled: true
   },
-  {
-    code: 'ADMIN',
-    title: 'Administration',
-    description: 'Users, roles, workflow definitions and the global reference data shared by every application.',
-    route: '/admin',
-    tone: 'admin',
-    icon: 'pi pi-cog',
-    enabled: true
-  }
 ]
 
 const now = new Date()
@@ -147,6 +129,16 @@ const filteredModules = computed(() => {
             </span>
           </div>
 
+          <RouterLink to="/workflow/inbox" class="smart-item smart-item--inbox">
+            <span class="smart-icon">
+              <i class="pi pi-inbox"></i>
+            </span>
+            <span class="smart-copy">
+              <small>Workflow</small>
+              <strong>My Inbox</strong>
+            </span>
+            <i class="pi pi-angle-right smart-arrow"></i>
+          </RouterLink>
         </div>
       </section>
 

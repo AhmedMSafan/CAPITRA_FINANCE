@@ -26,6 +26,14 @@
   const department = computed(() => user.value?.department?.trim() || '-')
   const roles = computed(() => user.value?.roles ?? [])
 
+  function goAdmin() {
+    router.push('/admin')
+  }
+
+  function goWorkflow() {
+    router.push('/workflowengine')
+  }
+
   function goHome() {
     router.push({ name: 'home' })
   }
@@ -66,6 +74,23 @@
 
     <div class="capitra-header-actions">
       <nav class="capitra-header-shortcuts" aria-label="CAPITRA shortcuts">
+        <button type="button"
+                class="capitra-shortcut capitra-shortcut--admin"
+                title="Administration" aria-label="Administration"
+                @click="goAdmin">
+          <span class="capitra-shortcut-icon">
+            <i class="pi pi-cog"></i>
+          </span>
+        </button>
+
+        <button type="button"
+                class="capitra-shortcut capitra-shortcut--platform"
+                title="Workflow Engine" aria-label="Workflow Engine"
+                @click="goWorkflow">
+          <span class="capitra-shortcut-icon">
+            <i class="pi pi-sitemap"></i>
+          </span>
+        </button>
 
         <button type="button"
                 class="capitra-shortcut capitra-shortcut--home"
