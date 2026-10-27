@@ -1,5 +1,70 @@
+<template>
+  <!-- Administration in the app 118 design: hero with live counts, a search bar and one card per setup area. -->
+  <div class="wx ad wx-page">
+    <section class="wx-hero">
+      <div class="wr-hero">
+        <div>
+          <span class="wx-eyebrow"><i></i>Capitra setup</span>
+          <h1>Administration</h1>
+          <p>Users, roles and access, reference data and the configuration every Capitra module runs on. Open an area to maintain it.</p>
+        </div>
+        <div class="wr-cta">
+          <router-link class="wx-btn wx-btn--ghost" to="/admin/roles"><i class="pi pi-shield"></i><span>Roles</span></router-link>
+          <router-link class="wx-btn wx-btn--ghost" to="/admin/reference-data"><i class="pi pi-list"></i><span>Reference data</span></router-link>
+          <router-link class="wx-btn wx-btn--hot" to="/admin/users"><i class="pi pi-users"></i><span>Users</span></router-link>
+        </div>
+      </div>
+      <div class="wr-kpis">
+        <div class="wr-kpi"><b>{{ show(userCount) }}</b><span>Users &middot; <small>{{ show(activeUsers) }} active</small></span></div>
+        <div class="wr-kpi"><b>{{ show(roleCount) }}</b><span>Roles</span></div>
+        <div class="wr-kpi"><b>{{ show(lookupCount) }}</b><span>Reference data lists</span></div>
+        <div class="wr-kpi"><b>{{ liveCount }} <i>/ {{ allItems.length }}</i></b><span>Setup functions available</span></div>
+      </div>
+    </section>
+
+    <div class="wr-bar" role="search">
+      <label class="wr-search">
+        <i class="pi pi-search"></i>
+        <input v-model="searchText" type="search" placeholder="Search setup areas and functions" aria-label="Search setup" />
+      </label>
+    </div>
+
+    <section class="ad-grid">
+      <article v-for="section in filteredSections" :key="section.title" class="ad-card">
+        <div class="ad-head">
+          <div class="ad-ico"><i :class="section.icon"></i></div>
+          <div>
+            <h3>{{ section.title }}</h3>
+            <p>{{ section.description }}</p>
+          </div>
+        </div>
+        <div class="ad-links">
+          <button v-for="item in section.items" :key="item.title" type="button" class="ad-link" :class="{ 'is-off': !item.route }"
+                  :disabled="!item.route" @click="openSetup(item)">
+            <i :class="item.icon" class="ad-li"></i>
+            <span class="ad-lt"><b>{{ item.title }}</b><small>{{ item.description }}</small></span>
+            <i v-if="item.route" class="pi pi-arrow-right ad-go"></i>
+            <span v-else class="wx-tag">Planned</span>
+          </button>
+        </div>
+        <div v-if="section.viewAllRoute" class="ad-foot">
+          <button type="button" class="ad-all" @click="openViewAll(section)"><span>All reference data</span><i class="pi pi-arrow-right"></i></button>
+        </div>
+      </article>
+    </section>
+
+    <div v-if="filteredSections.length === 0" class="ad-empty">
+      <b>No setup functions found</b>
+      Try a different search term.
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
+  import { getAdminUsers } from '@/modules/sec/services/adminUserService'
+  import { getAdminRoles } from '@/modules/sec/services/adminRoleService'
+  import { getLookupDefinitions } from '../api/lookups.api'
   import { useRouter } from 'vue-router'
 
   const router = useRouter()
@@ -222,465 +287,62 @@
     router.push(item.route)
   }
 
+  // live counts for the hero; a count that cannot be read shows a dash
+  const userCount = ref<number | null>(null)
+  const activeUsers = ref<number | null>(null)
+  const roleCount = ref<number | null>(null)
+  const lookupCount = ref<number | null>(null)
+
+  const allItems = computed(() => sections.flatMap(s => s.items))
+  const liveCount = computed(() => allItems.value.filter(i => i.route).length)
+
+  const show = (n: number | null) => (n === null ? '–' : String(n))
+
+  onMounted(() => {
+    getAdminUsers().then(u => { userCount.value = u.length; activeUsers.value = u.filter(x => x.isActive).length }).catch(() => {})
+    getAdminRoles().then(r => { roleCount.value = r.length }).catch(() => {})
+    getLookupDefinitions().then(l => { lookupCount.value = l.length }).catch(() => {})
+  })
+
   function openViewAll(section: SetupSection) {
     if (!section.viewAllRoute) return
     router.push(section.viewAllRoute)
   }
 </script>
 
-<template>
-  <div class="setup-home">
-    <div class="setup-shell">
-      <div class="setup-top">
-        <div class="setup-header">
-          <div class="setup-header-icon">
-            <i class="pi pi-cog"></i>
-          </div>
-
-          <div class="setup-header-copy">
-            <h1>Administration</h1>
-            <p>Maintain Capitra application and product configuration.</p>
-          </div>
-        </div>
-
-        <div class="setup-search">
-          <i class="pi pi-search"></i>
-          <input v-model="searchText"
-                 type="text"
-                 placeholder="Search setup modules..." />
-        </div>
-      </div>
-
-      <section class="section-grid">
-        <article v-for="section in filteredSections"
-                 :key="section.title"
-                 class="section-card">
-          <div class="section-card-head">
-            <div class="section-icon" :class="`tone-${section.tone}`">
-              <i :class="section.icon"></i>
-            </div>
-
-            <div class="section-copy">
-              <h2>{{ section.title }}</h2>
-              <p>{{ section.description }}</p>
-            </div>
-          </div>
-
-          <div class="section-links">
-            <button v-for="item in section.items"
-                    :key="item.title"
-                    type="button"
-                    class="setup-link"
-                    :class="{ disabled: !item.route }"
-                    @click="openSetup(item)">
-              <div class="link-left">
-                <i :class="item.icon"></i>
-
-                <div class="link-copy">
-                  <strong>{{ item.title }}</strong>
-                  <span>{{ item.description }}</span>
-                </div>
-              </div>
-
-              <i v-if="item.route"
-                 class="pi pi-chevron-right link-arrow"></i>
-            </button>
-
-            <button v-if="section.viewAllRoute"
-                    type="button"
-                    class="view-all-link"
-                    @click="openViewAll(section)">
-              <span>View All Lookups</span>
-              <i class="pi pi-arrow-right"></i>
-            </button>
-          </div>
-        </article>
-      </section>
-
-      <div v-if="filteredSections.length === 0" class="empty-state">
-        <i class="pi pi-search"></i>
-        <strong>No setup functions found</strong>
-        <span>Try a different search term.</span>
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
-  .setup-home {
-    min-height: calc(100vh - 80px);
-    padding: 24px 30px 38px;
-    background: var(--cap-bg);
-    font-family: Inter, "Segoe UI", Arial, sans-serif;
-  }
-
-  .setup-shell {
-    width: 100%;
-    max-width: 1540px;
-    margin: 0 auto;
-  }
-
-  .setup-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 28px;
-  }
-
-  /* Header */
-
-  .setup-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .setup-header-icon {
-    width: 62px;
-    height: 62px;
-    flex: 0 0 62px;
-    display: grid;
-    place-items: center;
-    border-radius: 15px;
-    background: var(--cap-orange-tint);
-    color: var(--cap-icon);
-  }
-
-    .setup-header-icon i {
-      font-size: 27px;
-    }
-
-  .setup-header-copy h1 {
-    margin: 0;
-    color: var(--cap-heading);
-    font-size: 28px;
-    line-height: 1.1;
-    font-weight: 800;
-  }
-
-  .setup-header-copy p {
-    margin: 6px 0 0;
-    color: var(--cap-muted);
-    font-size: 14px;
-    line-height: 1.35;
-  }
-
-  /* Search */
-
-  .setup-search {
-    width: 320px;
-    height: 46px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 14px;
-    border: 1px solid var(--cap-border);
-    border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 4px 14px rgba(31, 61, 74, .035);
-  }
-
-    .setup-search i {
-      color: var(--cap-heading);
-      font-size: 17px;
-    }
-
-    .setup-search input {
-      width: 100%;
-      border: 0;
-      outline: 0;
-      background: transparent;
-      color: var(--cap-heading);
-      font: inherit;
-      font-size: 13px;
-    }
-
-      .setup-search input::placeholder {
-        color: var(--cap-faint);
-      }
-
-  /* Main section cards */
-
-  .section-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
-  }
-
-  .section-card {
-    min-height: 292px;
-    padding: 18px 20px 16px;
-    border: 1px solid var(--cap-border);
-    border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 5px 16px rgba(32, 65, 78, .045);
-  }
-
-  .section-card-head {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 16px;
-  }
-
-  .section-icon {
-    width: 58px;
-    height: 58px;
-    flex: 0 0 58px;
-    display: grid;
-    place-items: center;
-    border-radius: 12px;
-  }
-
-    .section-icon i {
-      font-size: 27px;
-    }
-
-  .section-copy {
-    min-width: 0;
-  }
-
-    .section-copy h2 {
-      margin: 0;
-      color: var(--cap-heading);
-      font-size: 17px;
-      line-height: 1.2;
-      font-weight: 800;
-    }
-
-    .section-copy p {
-      margin: 5px 0 0;
-      color: var(--cap-muted);
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-  /* Tone colors - same soft pastel approach as approved design */
-
-  .tone-blue {
-    background: var(--cap-orange-tint);
-    color: var(--cap-icon);
-  }
-
-  .tone-green {
-    background: var(--cap-orange-tint);
-    color: var(--cap-icon);
-  }
-
-  .tone-orange {
-    background: var(--cap-orange-tint);
-    color: var(--cap-icon);
-  }
-
-  .tone-purple {
-    background: var(--cap-orange-tint);
-    color: var(--cap-icon);
-  }
-
-  .tone-teal {
-    background: var(--cap-orange-tint);
-    color: var(--cap-icon);
-  }
-
-  .tone-red {
-    background: var(--cap-orange-tint);
-    color: var(--cap-icon);
-  }
-
-  /* Setup links */
-
-  .section-links {
-    max-height: 200px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    border-top: 1px solid var(--cap-border-soft);
-    padding-right: 3px;
-    scrollbar-width: thin;
-    scrollbar-color: #c7d5dd transparent;
-  }
-
-    .section-links::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .section-links::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .section-links::-webkit-scrollbar-thumb {
-      background: #c7d5dd;
-      border-radius: 999px;
-    }
-
-      .section-links::-webkit-scrollbar-thumb:hover {
-        background: #aebfc9;
-      }
-
-  .setup-link {
-    width: 100%;
-    min-height: 61px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    padding: 8px 4px;
-    border: 0;
-    border-bottom: 1px solid var(--cap-border-soft);
-    background: transparent;
-    text-align: left;
-    font: inherit;
-    color: inherit;
-    cursor: pointer;
-  }
-
-    .setup-link:last-child {
-      border-bottom: 0;
-    }
-
-    .setup-link:not(.disabled):hover {
-      background: var(--cap-primary-tint);
-    }
-
-  .link-left {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-    .link-left > i {
-      width: 22px;
-      flex: 0 0 22px;
-      text-align: center;
-      color: var(--cap-primary);
-      font-size: 17px;
-    }
-
-  .link-copy {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-    .link-copy strong {
-      color: var(--cap-heading);
-      font-size: 13px;
-      line-height: 1.25;
-      font-weight: 750;
-    }
-
-    .link-copy span {
-      margin-top: 3px;
-      color: var(--cap-muted);
-      font-size: 11px;
-      line-height: 1.3;
-    }
-
-  .link-arrow {
-    flex: 0 0 auto;
-    color: var(--cap-primary);
-    font-size: 13px;
-  }
-
-  .setup-link.disabled {
-    cursor: default;
-    opacity: .76;
-  }
-
-  .view-all-link {
-    width: 100%;
-    min-height: 43px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 9px 4px 0;
-    border: 0;
-    background: transparent;
-    color: var(--cap-primary);
-    font: inherit;
-    font-size: 12px;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-    .view-all-link:hover {
-      color: var(--cap-primary-hover);
-    }
-
-    .view-all-link i {
-      font-size: 12px;
-    }
-
-  /* Empty state */
-
-  .empty-state {
-    min-height: 220px;
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: 8px;
-    color: var(--cap-muted);
-  }
-
-    .empty-state i {
-      font-size: 28px;
-    }
-
-    .empty-state strong {
-      color: var(--cap-heading);
-      font-size: 15px;
-    }
-
-    .empty-state span {
-      font-size: 12px;
-    }
-
-  /* Responsive */
-
-  @media (max-width: 1180px) {
-    .section-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 780px) {
-    .setup-top {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .setup-search {
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .section-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 600px) {
-    .setup-home {
-      padding: 20px 16px 30px;
-    }
-
-    .setup-header-icon {
-      width: 54px;
-      height: 54px;
-      flex-basis: 54px;
-    }
-
-      .setup-header-icon i {
-        font-size: 23px;
-      }
-
-    .setup-header-copy h1 {
-      font-size: 24px;
-    }
-
-    .section-card {
-      padding: 16px;
-    }
-  }
+.wr-kpi small { color: #7FE0C9; font-weight: 600; font-size: 12.5px; }
+.wr-kpi b i { font-style: normal; font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, .55); }
+.ad-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; }
+.ad-card {
+  display: flex; flex-direction: column; border-radius: 16px; background: #fff; border: 1px solid var(--wx-line); overflow: hidden;
+  box-shadow: 0 1px 2px rgba(11, 37, 51, .04); transition: box-shadow .18s, border-color .18s;
+}
+.ad-card:hover { border-color: #B9CBD1; box-shadow: 0 18px 36px -18px rgba(11, 37, 51, .25); }
+.ad-head { display: flex; gap: 14px; align-items: flex-start; padding: 20px 20px 14px; }
+.ad-ico { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: var(--wx-teal); background: var(--wx-teal-l); font-size: 18px; }
+.ad-head h3 { margin: 2px 0 0; font-size: 16px; font-weight: 700; letter-spacing: -.01em; color: var(--wx-ink); }
+.ad-head p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--wx-muted); }
+.ad-links { display: flex; flex-direction: column; gap: 6px; padding: 0 14px 14px; }
+.ad-link {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--wx-line); background: #fff;
+  text-align: start; font: inherit; color: var(--wx-ink); cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.ad-link:hover:not(.is-off) { border-color: #B9CBD1; box-shadow: 0 8px 20px -14px rgba(11, 37, 51, .35); }
+.ad-link:hover:not(.is-off) .ad-go { background: var(--wx-teal-d); border-color: var(--wx-teal-d); color: #fff; }
+.ad-li { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--wx-soft); color: var(--wx-ink2); font-size: 13px; }
+.ad-lt { flex: 1; min-width: 0; }
+.ad-lt b { display: block; font-size: 13.5px; font-weight: 700; }
+.ad-lt small { display: block; margin-top: 2px; font-size: 12px; color: var(--wx-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ad-go {
+  flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; color: var(--wx-muted);
+  background: var(--wx-soft); border: 1px solid var(--wx-line); transition: all .15s;
+}
+.ad-link.is-off { cursor: default; background: #FCFDFD; }
+.ad-link.is-off .ad-lt b { color: var(--wx-ink2); }
+.ad-foot { margin-top: auto; padding: 12px 20px; background: #FAFCFC; border-top: 1px solid var(--wx-line); }
+.ad-all { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; font: 600 13px Inter, Arial, sans-serif; color: var(--wx-teal); cursor: pointer; }
+.ad-empty { padding: 40px 20px; text-align: center; border-radius: 16px; border: 1px dashed var(--wx-line); background: #fff; color: var(--wx-muted); }
+.ad-empty b { display: block; font-size: 16px; color: var(--wx-ink); margin-bottom: 4px; }
+@media (max-width: 640px) { .ad-grid { grid-template-columns: 1fr; } }
 </style>
