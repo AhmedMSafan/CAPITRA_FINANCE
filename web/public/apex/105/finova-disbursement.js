@@ -96,12 +96,16 @@ window.FXW=window.FXW||{};
         +' <span class="ds-chip">'+e(L('Business line','خط الأعمال'))+' MORTGAGE</span>';
       // summary
       q('#dsWf').innerHTML=lineHtml('',e(L('Cheques face value','القيمة الاسمية للشيكات'))+' <small>('+T.cheques+')</small>',T.face)
-        +lineHtml('',e(L('Funding recovery','استرداد التمويل')),T.funding,true)
+        +lineHtml('',e(L('Discount','الخصم')),T.funding,true)
         +lineHtml('sub',e(L('Present value','القيمة الحالية')),T.pv)
         +lineHtml('',e(L('Margin','الهامش')),T.margin,true)
         +lineHtml('',e(L('Fees (admin, legal, valuation)','الرسوم (إدارية، قانونية، تقييم)')),T.fees,true)
-        +lineHtml('info',e(L('Income today','إيراد اليوم')),(+T.marginImmediate||0)+(+T.feesImmediate||0))
-        +lineHtml('info',e(L('Deferred income','إيراد مؤجل')),(+T.marginDeferred||0)+(+T.feesDeferred||0));
+        +lineHtml('sub',e(L('Paid to developer','المدفوع للمطور')),T.payable)
+        +lineHtml('',e(L('Revenue','الإيراد')),(+T.face||0)-(+T.payable||0))
+        +lineHtml('sub',e(L('Net profit (today\'s value)','صافي الربح بقيمة اليوم')),(+T.pv||0)-(+T.payable||0))
+        +lineHtml('info',e(L('Recognised today','يُثبت اليوم')),(+T.marginImmediate||0)+(+T.feesImmediate||0))
+        +lineHtml('info',e(L('Deferred to the cheque dates','مؤجل لتواريخ الشيكات')),(+T.marginDeferred||0)+(+T.feesDeferred||0))
+        +(function(){var R=A('rate')===''||A('rate')==null?null:+A('rate'),pct=function(x){return (Math.round(x*100)/100)+'%';};return '<li class="info" style="display:block;border-bottom:0;font-size:12px;line-height:1.45">'+e(L('We assume the COF rate = PV rate'+(R==null?'':' ('+pct(R)+')')+', so the discount covers the cost of funds and the net profit equals margin + fees.','نفترض أن معدل تكلفة التمويل = معدل القيمة الحالية'+(R==null?'':' ('+pct(R)+')')+'، لذلك يغطي الخصم تكلفة التمويل، وصافي الربح = الهامش + الرسوم.'))+'</li>';})();
       q('#dsPay').textContent=m2(T.payable)+' '+cur;
       var diff=Math.round(((+T.payable)-(+R.price))*100)/100;
       q('#dsBoard').textContent=L('Board-approved price ','السعر المعتمد من المجلس ')+m2(R.price)+(Math.abs(diff)>0.004?' · '+L('difference ','الفرق ')+(diff>0?'+':'')+m2(diff):'');
@@ -109,10 +113,12 @@ window.FXW=window.FXW||{};
       // alerts
       var h='';(d.blockers||[]).forEach(function(b){h+='<div class="ds-alert bad"><span class="fa fa-ban" aria-hidden="true"></span><span>'+e(b)+'</span></div>';});
       (d.warnings||[]).forEach(function(b){h+='<div class="ds-alert warn"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span><span>'+e(b)+'</span></div>';});
-      if(!isDone&&!(d.blockers||[]).length)h+='<div class="ds-alert ok"><span class="fa fa-check-circle" aria-hidden="true"></span><span>'+e(L('Figures balance: interest equals the funding recovery and both GL journals are balanced.','الأرقام متطابقة: الفائدة تساوي استرداد التمويل والقيدان متوازنان.'))+'</span></div>';
+      if(!isDone&&!(d.blockers||[]).length)h+='<div class="ds-alert ok"><span class="fa fa-check-circle" aria-hidden="true"></span><span>'+e(L('Figures balance: interest equals the discount and both GL journals are balanced.','الأرقام متطابقة: الفائدة تساوي الخصم والقيدان متوازنان.'))+'</span></div>';
       q('#dsAlerts').innerHTML=h;
-      if(isDone){var D2=d.done||{};q('#dsDone').innerHTML='<div class="ds-done"><span class="fxd-pill fxd-pill--ok">'+e(L('Completed','مكتمل'))+'</span><b>'+e(D2.tranSetId||'')+'</b>'
-        +e(L('GL batch ','دفعة القيود '))+e(D2.glBatchNo||'-')+' · '+e(D2.glStatus||'')+'<br>'+e(D2.by||'')+' · '+e(D2.on||'')+(D2.comments?'<br><i>'+e(D2.comments)+'</i>':'')+'</div>';}
+      if(isDone){var D2=d.done||{};q('#dsDone').innerHTML='<div class="ds-done"><span class="fxd-pill fxd-pill--ok">'+e(L('Completed','مكتمل'))+'</span>'
+        +e(L('Disbursement ID: ','رقم الصرف: '))+'<b>'+e(D2.disbursementId==null?'-':String(D2.disbursementId))+'</b><br>'
+        +e(L('TRAN_SET_ID: ','رقم مجموعة القيود: '))+'<b>'+e(D2.tranSetId||'-')+'</b><br>'
+        +e(L('GL batch: ','دفعة القيود: '))+e(D2.glBatchNo||'-')+' · '+e(D2.glStatus||'')+'<br>'+e(D2.by||'')+' · '+e(D2.on||'')+(D2.comments?'<br><i>'+e(D2.comments)+'</i>':'')+'</div>';}
       // investor filter
       var sel=q('#dsAccSel'),o='<option value="ALL">'+e(L('All investors','كل المستثمرين'))+'</option>';
       (d.contracts||[]).forEach(function(c){o+='<option value="'+c.acc+'">'+e((W.ar()?c.nameAr:c.name)+' · #'+c.acc)+'</option>';});
@@ -124,7 +130,7 @@ window.FXW=window.FXW||{};
       q('#dsAccSel').style.display=st.tab==='sch'||st.tab==='wal'?'':'none';
       if(st.tab==='sch'){var t={a:0,p:0,i:0,m:0,f:0},last=null;
         h='<div class="ds-scroll"><table class="wb-tbl"><thead><tr><th>#</th><th>'+e(L('Cheque','الشيك'))+'</th><th>'+e(L('Due date','الاستحقاق'))+'</th><th class="fxd-num">'+e(L('Amount','المبلغ'))+'</th>'
-          +'<th class="fxd-num">'+e(L('Opening','الرصيد الافتتاحي'))+'</th><th class="fxd-num">'+e(L('Principal','الأصل'))+'</th><th class="fxd-num">'+e(L('Interest (funding recovery)','الفائدة (استرداد التمويل)'))+'</th>'
+          +'<th class="fxd-num">'+e(L('Opening','الرصيد الافتتاحي'))+'</th><th class="fxd-num">'+e(L('Principal','الأصل'))+'</th><th class="fxd-num">'+e(L('Interest (discount)','الفائدة (الخصم)'))+'</th>'
           +'<th class="fxd-num">'+e(L('Closing','الرصيد الختامي'))+'</th><th class="fxd-num">'+e(L('Margin','الهامش'))+'</th><th class="fxd-num">'+e(L('Fees','الرسوم'))+'</th></tr></thead><tbody>';
         (d.lines||[]).forEach(function(r){if(st.acc!=='ALL'&& String(r.acc)!==st.acc)return;
           if(r.acc!==last){last=r.acc;var c=C[r.acc]||{};h+='<tr class="ds-grp"><td colspan="10">'+e(nm(c))+'<small>#'+r.acc+' · '+e(L('EIR','معدل العائد الفعلي'))+' '+(+c.eir||0).toFixed(4)+'% · '+e(L('PV','ق.ح'))+' '+m2(c.pv)+'</small></td></tr>';}
@@ -132,9 +138,9 @@ window.FXW=window.FXW||{};
           h+='<tr><td>'+r.line+'</td><td><span class="wb-code">'+e(r.no)+'</span></td><td>'+dt(r.due)+'</td><td class="fxd-num">'+m2(r.amt)+'</td><td class="fxd-num">'+m2(r.open)+'</td><td class="fxd-num">'+m2(r.p)+'</td>'
             +'<td class="fxd-num">'+m2(r.i)+'</td><td class="fxd-num">'+m2(r.close)+'</td><td class="fxd-num">'+m2(r.m)+'</td><td class="fxd-num">'+m2(r.f)+'</td></tr>';});
         h+='<tr class="ds-tot"><td colspan="3">'+e(L('Total','الإجمالي'))+'</td><td class="fxd-num">'+m2(t.a)+'</td><td></td><td class="fxd-num">'+m2(t.p)+'</td><td class="fxd-num">'+m2(t.i)+'</td><td></td><td class="fxd-num">'+m2(t.m)+'</td><td class="fxd-num">'+m2(t.f)+'</td></tr></tbody></table></div>'
-          +'<div class="ds-note">'+e(L('Each cheque = principal + interest. Interest is the funding recovery released by the effective interest method; for all investors it adds up to ','كل شيك = أصل + فائدة. الفائدة هي استرداد التمويل بطريقة معدل العائد الفعلي، وإجماليها لكل المستثمرين = '))+'<b>'+m2(d.totals.funding)+'</b>.</div>';}
+          +'<div class="ds-note">'+e(L('Each cheque = principal + interest. Interest is the discount released by the effective interest method; for all investors it adds up to ','كل شيك = أصل + فائدة. الفائدة هي الخصم بطريقة معدل العائد الفعلي، وإجماليها لكل المستثمرين = '))+'<b>'+m2(d.totals.funding)+'</b>.</div>';}
       else if(st.tab==='inc'){var u={n:0,a:0,b:0,c:0,s:0};
-        h='<div class="ds-scroll"><table class="wb-tbl"><thead><tr><th>'+e(L('Cheque date','تاريخ الشيك'))+'</th><th class="fxd-num">'+e(L('Cheques','الشيكات'))+'</th><th class="fxd-num">'+e(L('Funding recovery','استرداد التمويل'))+'</th>'
+        h='<div class="ds-scroll"><table class="wb-tbl"><thead><tr><th>'+e(L('Cheque date','تاريخ الشيك'))+'</th><th class="fxd-num">'+e(L('Cheques','الشيكات'))+'</th><th class="fxd-num">'+e(L('Discount','الخصم'))+'</th>'
           +'<th class="fxd-num">'+e(L('Margin','الهامش'))+'</th><th class="fxd-num">'+e(L('Fees','الرسوم'))+'</th><th class="fxd-num">'+e(L('Total income','إجمالي الإيراد'))+'</th><th>'+e(L('Posting','الترحيل'))+'</th></tr></thead><tbody>';
         (d.income||[]).forEach(function(r){u.n+=+r.n||0;u.a+=+r.funding||0;u.b+=+r.margin||0;u.c+=+r.fees||0;u.s+=+r.total||0;
           h+='<tr><td>'+dt(r.due)+'</td><td class="fxd-num">'+r.n+'</td><td class="fxd-num">'+m2(r.funding)+'</td><td class="fxd-num">'+m2(r.margin)+'</td><td class="fxd-num">'+m2(r.fees)+'</td><td class="fxd-num"><b>'+m2(r.total)+'</b></td>'
@@ -172,11 +178,30 @@ window.FXW=window.FXW||{};
     function ready(){var d=st.d;return d&&!done()&&!(d.blockers||[]).length&& q('#dsDate').value&& q('#dsAcc').value&&(q('#dsRef').value||'').trim()&&(+d.totals.payable)>0;}
     function steps(){var d=st.d,s=[!!(q('#dsDate').value&& q('#dsAcc').value&&(q('#dsRef').value||'').trim()),true,!!(d&&!(d.blockers||[]).length),done()];
       qa('#wbSteps .wb-step').forEach(function(el,i){el.classList.remove('done','now');if(s[i])el.classList.add('done');else if(!el.parentNode.querySelector('.now'))el.classList.add('now');el.querySelector('b').innerHTML=s[i]?'&#10003;':(i+1);});}
+    function ring(){var aside=q('#dsWf')&&q('#dsWf').closest('aside');if(!aside)return;var c=q('#dsReady');
+      if(done()){if(c)c.hidden=true;return;}
+      if(!c){c=document.createElement('section');c.className='fxd-card';c.id='dsReady';
+        c.innerHTML='<div class="fxd-card-h"><h2><span class="fa fa-check-square-o" aria-hidden="true"></span>'+e(L('Ready to complete','جاهز للإكمال'))+'</h2></div>'
+          +'<div class="fxd-card-b"><div class="wb-ring-row"><div class="wb-ring" id="dsRing"><span><span><b id="dsRingN">0/5</b>'+e(L('steps','خطوات'))+'</span></span></div>'
+          +'<p style="margin:0;color:var(--muted);font-size:13.5px" id="dsRingText"></p></div><ul class="wb-checks" id="dsChecks"></ul></div>';
+        aside.insertBefore(c,aside.firstChild);
+        c.addEventListener('click',function(ev){var li=ev.target.closest('li[data-go]');if(!li)return;var el=q('#'+li.getAttribute('data-go'));if(el){el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){try{el.focus();}catch(x){}},300);}});}
+      var d=st.d,blk=d&&(d.blockers||[]).length,items=[
+        [!!q('#dsDate').value,L('Disbursement date','تاريخ الصرف'),L('Set the date of the payment.','حدد تاريخ الدفع.'),'dsDate'],
+        [!!q('#dsAcc').value,L('Bank account','الحساب البنكي'),L('Choose the bank and account the payment leaves from.','اختر البنك والحساب الذي يخرج منه الدفع.'),'dsAcc'],
+        [!!(q('#dsRef').value||'').trim(),L('Payment reference','مرجع الدفع'),L('Enter the bank transfer number.','أدخل رقم التحويل البنكي.'),'dsRef'],
+        [!!d&&!blk&&(+d.totals.payable)>0,L('Figures checked','الأرقام سليمة'),blk?d.blockers[0]:L('The amount payable must be above zero.','يجب أن يكون المبلغ المستحق أكبر من صفر.'),null],
+        [!!(q('#wbComment').value||'').trim(),L('Comment','التعليق'),L('Write a comment in the bar at the bottom.','اكتب تعليقًا في الشريط بالأسفل.'),'wbComment']],
+        n=items.filter(function(x){return x[0];}).length,r=q('#dsRing');
+      r.style.setProperty('--p',Math.round(n/5*100));r.style.setProperty('--ring',n===5?'var(--ok)':'var(--teal-600)');
+      q('#dsRingN').textContent=n+'/5';
+      q('#dsRingText').textContent=n===5?L('Everything is in place. Click Complete disbursement.','كل شيء جاهز. اضغط إكمال الصرف.'):L((5-n)+' step(s) left before you can complete. Click one to jump to it.','متبقي '+(5-n)+' خطوة قبل الإكمال. اضغط على أي منها للانتقال إليها.');
+      q('#dsChecks').innerHTML=items.map(function(x,k){return '<li class="'+(x[0]?'ok':'')+'"'+(!x[0]&&x[3]?' data-go="'+x[3]+'"':'')+'><i>'+(x[0]?'✓':(k+1))+'</i><span>'+(!x[0]&&x[3]?'<a>'+e(x[1])+'</a>':e(x[1]))+(x[0]?'':'<small>'+e(x[2])+'</small>')+'</span></li>';}).join('');}
     function hint(){var b=q('#dsComplete'),cm=(q('#wbComment').value||'').trim(),d=st.d,miss=[];if(!b)return;
       if(!q('#dsDate').value)miss.push(L('disbursement date','تاريخ الصرف'));if(!q('#dsAcc').value)miss.push(L('bank account','الحساب البنكي'));
       if(!(q('#dsRef').value||'').trim())miss.push(L('payment reference','مرجع الدفع'));if(!cm)miss.push(L('comment','تعليق'));
       var blk=d&&(d.blockers||[]).length;b.disabled=!ready()||!cm;
-      q('#wbHint').innerHTML=blk?'<b>'+e(L('Not ready:','غير جاهز:'))+'</b> '+e(d.blockers[0]):miss.length?e(L('Missing: ','ناقص: ')+miss.join(', ')):e(L('Ready to complete.','جاهز للإكمال.'));}
+      q('#wbHint').innerHTML=blk?'<b>'+e(L('Not ready:','غير جاهز:'))+'</b> '+e(d.blockers[0]):miss.length?e(L('Missing: ','ناقص: ')+miss.join(', ')):e(L('Ready to complete.','جاهز للإكمال.'));ring();}
     function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
     function complete(){var d=st.d,cm=(q('#wbComment').value||'').trim();if(!ready()||!cm){hint();return;}
       var T=d.totals,acc=banks.filter(function(x){return String(x.a)===q('#dsAcc').value;})[0]||{};
@@ -225,6 +250,7 @@ window.FXW=window.FXW||{};
       if(t.id==='dsAcc'||t.id==='dsDate'){later();return;}
       if(t.id==='dsAccSel'){st.acc=t.value;panel();return;}
       if(t.closest('.ds-waive')){var tr=t.closest('tr');tr.classList.toggle('is-off',t.checked);later();return;}});
+    root.addEventListener('change',function(){try{hint();}catch(x){}});
     root.addEventListener('input',function(e2){var t=e2.target;if(t.closest('.ds-fin')){later();return;}if(t.id==='dsRef'||t.id==='wbComment'){steps();hint();}});
     // ---------- start
     fillBanks();fillAccs(false);q('#dsDate').value=A('today');

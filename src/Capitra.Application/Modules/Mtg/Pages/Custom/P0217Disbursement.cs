@@ -38,6 +38,7 @@ public sealed class P0217Disbursement(IApexSqlReader reader, IClock clock) : IAp
         var status = head.Text("PORTFOLIO_STATUS_CODE");
         var dev = head.Text("DEV");
         var cur = head.Text("CURRENCY_CODE");
+        var rate = head.Number("PV_RATE");
         string? statusName;
         try
         {
@@ -87,7 +88,7 @@ public sealed class P0217Disbursement(IApexSqlReader reader, IClock clock) : IAp
             """);
 
         h.AppendLine($$"""
-        <div class="fxd" id="dsRoot" data-inbox="{{Attr(inboxUrl)}}" data-cur="{{E(cur)}}" data-done="{{(done > 0 ? "Y" : "N")}}" data-today="{{today}}" data-banks="{{Attr(banks)}}">
+        <div class="fxd" id="dsRoot" data-inbox="{{Attr(inboxUrl)}}" data-cur="{{E(cur)}}" data-done="{{(done > 0 ? "Y" : "N")}}" data-rate="{{(rate is null ? "" : P0203Html.Num(rate))}}" data-today="{{today}}" data-banks="{{Attr(banks)}}">
         """);
         h.AppendLine($$"""
         <header class="fxd-hero"><nav class="wb-crumbs" aria-label="Breadcrumb"><a href="{{Attr(taskUrl)}}"><span class="fa fa-arrow-left" aria-hidden="true"></span> {{T("Back to task", "العودة إلى المهمة")}}</a><span>/</span><span>{{T("Disbursement", "الصرف")}}</span></nav>

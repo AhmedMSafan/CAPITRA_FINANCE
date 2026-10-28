@@ -1459,7 +1459,7 @@ public static class MtgApexPageSql
         """;
 
     public const string P217_HEADER = """
-        select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", trim(p."CURRENCY_CODE") "CURRENCY_CODE"
+        select p."PORTFOLIO_NO", p."PORTFOLIO_STATUS_CODE", coalesce(d."LEGAL_NAME_EN", d."LEGAL_NAME_AR") "DEV", trim(p."CURRENCY_CODE") "CURRENCY_CODE", p."PV_RATE"
         from "MTG_PURCHASED_PORTFOLIOS" p
         join "MTG_DEVELOPERS" d on d."DEVELOPER_ID" = p."DEVELOPER_ID"
         where p."PORTFOLIO_ID" = @P217_PORTFOLIO_ID::bigint
