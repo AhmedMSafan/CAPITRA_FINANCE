@@ -137,7 +137,8 @@ public sealed class P0214FinancialReview(IApexSqlReader reader, ICapitraDbContex
             + "<li class=\"minus\" id=\"frWAl\"><span>" + T("Admin expense", "المصروفات الإدارية") + "</span><b id=\"frWA\"></b></li><li class=\"minus\" id=\"frWLl\"><span>" + T("Legal fees", "الرسوم القانونية") + "</span><b id=\"frWL\"></b></li>"
             + "<li class=\"minus\" id=\"frWVl\"><span>" + T("Valuation expense", "مصروفات التقييم") + "</span><b id=\"frWV\"></b></li></ul>"
             + "<div class=\"fr-total\" id=\"frTotal\"><span>" + T("Proposed purchase value", "قيمة الشراء المقترحة") + "</span><b id=\"frPrice\">-</b></div>"
-            + "<div class=\"fr-er\"><div><span>" + T("Expected return", "العائد المتوقع") + "</span><small>" + T("Cheques face amount - proposed purchase value", "القيمة الاسمية للشيكات - قيمة الشراء المقترحة") + "</small></div><b id=\"frEr\">-</b></div>"
+            + "<div class=\"fr-er\"><span>" + T("Revenue", "الإيراد") + "</span><b id=\"frEr\">-</b><small id=\"frErTxt\">" + T("= cheques face amount - proposed purchase value", "القيمة الاسمية للشيكات - قيمة الشراء المقترحة") + "</small>"
+            + "<span class=\"fr-np\">" + T("Net profit (today's value)", "صافي الربح بقيمة اليوم") + "</span><b id=\"frNp\" class=\"fr-np\">-</b><small id=\"frNpTxt\"></small></div><p class=\"fr-cof\" id=\"frCof\"></p>"
             + "<div class=\"fr-acts\"><button type=\"button\" class=\"fxd-btn fxd-btn--ghost\" id=\"frRecalc\"><span class=\"fa fa-refresh\" aria-hidden=\"true\"></span>" + T("Recalculate", "إعادة الحساب") + "</button>"
             + "<button type=\"button\" class=\"fxd-btn fxd-btn--teal\" id=\"frSave\"><span class=\"fa fa-save\" aria-hidden=\"true\"></span>" + T("Save", "حفظ") + "</button></div><div class=\"fr-state\" id=\"frState\"></div></section></aside></div></div>");
 
