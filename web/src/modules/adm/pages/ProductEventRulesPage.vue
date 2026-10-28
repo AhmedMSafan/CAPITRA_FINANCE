@@ -125,18 +125,21 @@ const componentColumns: CrudColumn<ComponentRow>[] = [
   { field: 'glCount', label: 'GL Lines', type: 'number' }
 ]
 
+// each method shows only the figures it is calculated from
+const method = (...codes: string[]) => (v: FormValues) => codes.includes(String(v.calculationMethodCode ?? ''))
+
 const componentFields = computed<CrudField[]>(() => [
   { name: 'chargeId', label: 'Charge Component', type: 'select', required: true, options: charges.value },
   { name: 'sequenceNo', label: 'Sequence No', type: 'number', required: true, min: 0 },
   { name: 'calculationMethodCode', label: 'Calculation Method', type: 'select', required: true, options: CALCULATION_METHODS },
   { name: 'chargeTimingCode', label: 'Charge Timing', type: 'select', required: true, options: CHARGE_TIMINGS },
   { name: 'incomeRecognitionCode', label: 'Income Recognition', type: 'select', required: true, options: INCOME_RECOGNITIONS },
-  { name: 'fixedAmount', label: 'Fixed Amount', type: 'amount', min: 0 },
-  { name: 'chargeRate', label: 'Rate Percent', type: 'pct', min: 0, max: 100 },
-  { name: 'amountBaseCode', label: 'Rate Applied To', type: 'select', options: AMOUNT_BASES },
-  { name: 'perUnitAmount', label: 'Per Unit Amount', type: 'amount', min: 0 },
-  { name: 'spreadRate', label: 'Spread Percent', type: 'pct', min: 0, max: 100 },
-  { name: 'dayCountBasis', label: 'Day Count Basis', type: 'select', options: DAY_COUNTS },
+  { name: 'fixedAmount', label: 'Fixed Amount', type: 'amount', required: true, min: 0, showIf: method('FIXED') },
+  { name: 'chargeRate', label: 'Rate Percent', type: 'pct', required: true, min: 0, max: 100, showIf: method('PERCENTAGE', 'DAILY_INTEREST') },
+  { name: 'amountBaseCode', label: 'Rate Applied To', type: 'select', required: true, options: AMOUNT_BASES, showIf: method('PERCENTAGE') },
+  { name: 'perUnitAmount', label: 'Per Unit Amount', type: 'amount', required: true, min: 0, showIf: method('PER_UNIT') },
+  { name: 'spreadRate', label: 'Spread Percent', type: 'pct', required: true, min: 0, max: 100, showIf: method('INDEX_PLUS_SPREAD') },
+  { name: 'dayCountBasis', label: 'Day Count Basis', type: 'select', options: DAY_COUNTS, showIf: method('INDEX_PLUS_SPREAD', 'DAILY_INTEREST') },
   { name: 'roundingScale', label: 'Rounding Scale', type: 'number', required: true, min: 0, max: 6 },
   { name: 'minimumAmount', label: 'Minimum Amount', type: 'amount', min: 0 },
   { name: 'maximumAmount', label: 'Maximum Amount', type: 'amount', min: 0 },

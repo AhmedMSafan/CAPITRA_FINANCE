@@ -343,6 +343,12 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
             : e.OneOf(nameof(r.AmountBaseCode), "Amount base", r.AmountBaseCode, AdmProductEventRuleCharge.AmountBases);
         if (method == "PERCENTAGE" && amountBase is null)
             e.Add(nameof(r.AmountBaseCode), "Amount base is required for a percentage charge.");
+        if (method == "FIXED" && r.FixedAmount is null)
+            e.Add(nameof(r.FixedAmount), "Fixed amount is required for a fixed charge.");
+        if (method == "PERCENTAGE" && r.ChargeRate is null)
+            e.Add(nameof(r.ChargeRate), "Rate is required for a percentage charge.");
+        if (method == "PER_UNIT" && r.PerUnitAmount is null)
+            e.Add(nameof(r.PerUnitAmount), "Per unit amount is required for a per unit charge.");
         if (r.ChargeId is null)
             e.Add(nameof(r.ChargeId), "Charge is required.");
         else if (r.ChargeId != entity.ChargeId && !await db.Set<AdmCharge>().AnyAsync(x => x.ChargeId == r.ChargeId && x.IsActive, cancellationToken))

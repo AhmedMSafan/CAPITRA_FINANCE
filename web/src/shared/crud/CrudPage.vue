@@ -113,12 +113,15 @@ function closeDialog() {
   if (!saving.value) dialogVisible.value = false
 }
 
+const shown = (field: CrudField) => !field.showIf || field.showIf(form)
+
 /** Converts the form to the request body: blanks become null, numbers become numbers. */
 function body(): FormValues {
   const values: FormValues = props.hasActive ? { isActive: form.isActive } : {}
   for (const field of props.fields) {
     const raw = form[field.name]
-    if (field.type === 'bool') values[field.name] = Boolean(raw)
+    if (!shown(field)) values[field.name] = null
+    else if (field.type === 'bool') values[field.name] = Boolean(raw)
     else if (raw === '' || raw === null || raw === undefined) values[field.name] = null
     else if (['number', 'amount', 'pct'].includes(field.type)) values[field.name] = Number(raw)
     else if (typeof raw === 'string') values[field.name] = field.uppercase ? raw.trim().toUpperCase() : raw.trim()
@@ -130,7 +133,7 @@ function body(): FormValues {
 function checkRequired(): boolean {
   for (const field of props.fields) {
     const raw = form[field.name]
-    if (field.required && field.type !== 'bool' && (raw === '' || raw === null || raw === undefined))
+    if (field.required && shown(field) && field.type !== 'bool' && (raw === '' || raw === null || raw === undefined))
       fieldErrors[field.name] = `${field.label} is required.`
   }
   return Object.keys(fieldErrors).length === 0
@@ -292,7 +295,7 @@ useFeedback({ errors: [pageError, formError] })
 
         <div class="edit-modal__body">
           <fieldset class="form-grid" :disabled="!canEdit || saving">
-            <div v-for="field in fields" :key="field.name" class="field" :class="{ 'field--wide': field.wide || field.type === 'textarea' }">
+            <div v-for="field in fields" v-show="shown(field)" :key="field.name" class="field" :class="{ 'field--wide': field.wide || field.type === 'textarea' }">
               <label v-if="field.type !== 'bool'" :for="`f-${field.name}`">
                 {{ field.label }}<span v-if="field.required"> *</span>
               </label>

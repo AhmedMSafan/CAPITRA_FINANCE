@@ -28,6 +28,8 @@ export type CrudField = {
   /** Shown but not editable once the record exists (codes). */
   lockedOnEdit?: boolean
   uppercase?: boolean
+  /** Shown only while it returns true for the form's values; a hidden field is sent as null and is not required. */
+  showIf?: (values: FormValues) => boolean
 }
 
 export type FormValues = Record<string, unknown>
