@@ -3,8 +3,8 @@ using Capitra.Domain.Common;
 namespace Capitra.Domain.Modules.Adm;
 
 /// <summary>
-/// ADM_PRODUCT_EVENT_RULES: the charges a product applies on an accounting event (FINOVA_FINANCEING ADM_PRODUCT_EVENT_RULES).
-/// The accounting itself is set up in the GL rule sets of the same product and event.
+/// ADM_PRODUCT_EVENT_RULES: the charges a product applies on an accounting event and their GL entries
+/// (FINOVA_FINANCEING ADM_PRODUCT_EVENT_RULES).
 /// </summary>
 public class AdmProductEventRule : AuditableEntity
 {
@@ -30,4 +30,6 @@ public class AdmProductEventRule : AuditableEntity
     public bool IsActive { get; set; } = true;
 
     public List<AdmProductEventRuleCharge> Charges { get; set; } = [];
+
+    public List<AdmProductEventRuleGlLine> GlLines { get; set; } = [];
 }

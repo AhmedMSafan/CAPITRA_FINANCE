@@ -1293,6 +1293,88 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("ADM_PRODUCT_EVENT_RULE_CHARGES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRuleGlLine", b =>
+                {
+                    b.Property<long>("RuleGlLineId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("RULE_GL_LINE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RuleGlLineId"));
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DebitCreditCode")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("character varying(1)")
+                        .HasColumnName("DEBIT_CREDIT_CODE");
+
+                    b.Property<string>("DescriptionTemplate")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION_TEMPLATE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<int>("LineNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("LINE_NO");
+
+                    b.Property<long>("ProductEventRuleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_EVENT_RULE_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long?>("RuleChargeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("RULE_CHARGE_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("RuleGlLineId")
+                        .HasName("PK_ADM_PRODUCT_EVENT_RULE_GL_LINES");
+
+                    b.HasIndex("AccountId")
+                        .HasDatabaseName("IX_ADM_PRODUCT_EVENT_RULE_GL_LINES_ACCOUNT_ID");
+
+                    b.HasIndex("RuleChargeId")
+                        .HasDatabaseName("IX_ADM_PRODUCT_EVENT_RULE_GL_LINES_RULE_CHARGE_ID");
+
+                    b.HasIndex("ProductEventRuleId", "RuleChargeId", "LineNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_PRODUCT_EVENT_RULE_GL_LINES_PRODUCT_EVENT_RULE_ID");
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ProductEventRuleId", "RuleChargeId", "LineNo"), false);
+
+                    b.ToTable("ADM_PRODUCT_EVENT_RULE_GL_LINES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Chq.ChqActionCatalog", b =>
                 {
                     b.Property<string>("ActionCode")
@@ -33460,6 +33542,29 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULE_CHARGES_ADM_PRODUCT_EVENT_RULES");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRuleGlLine", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULE_GL_LINES_GL_ACCOUNTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmProductEventRule", null)
+                        .WithMany("GlLines")
+                        .HasForeignKey("ProductEventRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULE_GL_LINES_ADM_PRODUCT_EVENT_RULES");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmProductEventRuleCharge", null)
+                        .WithMany()
+                        .HasForeignKey("RuleChargeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULE_GL_LINES_ADM_PRODUCT_EVENT_R_C89D088D");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Chq.ChqCheque", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Chq.ChqLkpLocation", null)
@@ -38119,6 +38224,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRule", b =>
                 {
                     b.Navigation("Charges");
+
+                    b.Navigation("GlLines");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeStepInstance", b =>

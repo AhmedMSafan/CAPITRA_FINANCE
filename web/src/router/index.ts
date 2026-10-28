@@ -252,8 +252,8 @@ const router = createRouter({
         },
         {
           path: 'admin/product-event-rules/:ruleId',
-          name: 'adm-product-event-rule-charges',
-          component: () => import('@/modules/adm/pages/ProductEventRuleChargesPage.vue'),
+          name: 'adm-product-event-rule',
+          component: () => import('@/modules/adm/pages/ProductEventRulePage.vue'),
           props: true,
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Event Rules' }
         },

@@ -22,6 +22,7 @@ public sealed class AdmProductEventRuleConfiguration : IEntityTypeConfiguration<
         builder.HasOne<AdmProduct>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<GlAccountingEventType>().WithMany().HasForeignKey(x => x.EventTypeId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(x => x.Charges).WithOne().HasForeignKey(x => x.ProductEventRuleId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(x => x.GlLines).WithOne().HasForeignKey(x => x.ProductEventRuleId).OnDelete(DeleteBehavior.Cascade);
         builder.ConfigureAudit();
     }
 }

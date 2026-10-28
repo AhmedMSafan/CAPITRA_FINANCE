@@ -11,7 +11,7 @@ public sealed record EventTypeOptionDto(long EventTypeId, string EventTypeCode, 
 public sealed record ProductEventRuleDto(
     long ProductEventRuleId, long ProductId, string ProductCode, string ProductNameEn, long EventTypeId, string EventTypeCode,
     string EventTypeNameEn, string RuleCode, string RuleNameEn, string? RuleNameAr, int PriorityNo, DateOnly EffectiveFromDate,
-    DateOnly? EffectiveToDate, bool IsActive, int ChargeCount, int RowVersion);
+    DateOnly? EffectiveToDate, bool IsActive, int ChargeCount, int GlLineCount, int RowVersion);
 
 public sealed record SaveProductEventRuleRequest(
     long? ProductId, long? EventTypeId, string? RuleCode, string? RuleNameEn, string? RuleNameAr, int? PriorityNo,
@@ -28,10 +28,19 @@ public sealed record SaveRuleChargeRequest(
     decimal? SpreadRate, int? DayCountBasis, decimal? MinimumAmount, decimal? MaximumAmount, int? RoundingScale, string? ChargeTimingCode,
     int? DueDays, decimal? TaxRate, DateOnly? EffectiveFromDate, DateOnly? EffectiveToDate, bool IsActive, int? RowVersion);
 
+public sealed record GlAccountOptionDto(long AccountId, string AccountCode, string AccountNameEn);
+
+public sealed record RuleGlLineDto(
+    long RuleGlLineId, long ProductEventRuleId, long? RuleChargeId, string? ChargeCode, int LineNo, string DebitCreditCode, long AccountId,
+    string AccountCode, string AccountNameEn, string? DescriptionTemplate, bool IsActive, int RowVersion);
+
+public sealed record SaveRuleGlLineRequest(
+    long? RuleChargeId, int? LineNo, string? DebitCreditCode, long? AccountId, string? DescriptionTemplate, bool IsActive, int? RowVersion);
+
 /// <summary>
-/// ADM_PRODUCT_EVENT_RULES and their charges, the Product Event Rules screen of Admin Setup (FINOVA_FINANCEING
-/// ProductEventRulesPage and ProductEventRuleService). The rule's GL entries are not kept here: the GL rule set of the
-/// same product and event does the accounting.
+/// ADM_PRODUCT_EVENT_RULES with their charges and GL entry lines, the Product Event Rules screen of Admin Setup (FINOVA_FINANCEING
+/// ProductEventRulesPage and ProductEventRuleService). GL lines post to chart-of-accounts accounts directly, where
+/// FINOVA_FINANCEING went through account roles and their mappings.
 /// </summary>
 public sealed class AdmProductEventRuleService(ICapitraDbContext db)
 {
@@ -48,7 +57,7 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
                orderby r.RuleNameEn
                select new ProductEventRuleDto(r.ProductEventRuleId, r.ProductId, p.ProductCode, p.ProductNameEn, r.EventTypeId, t.EventTypeCode,
                    t.EventTypeNameEn, r.RuleCode, r.RuleNameEn, r.RuleNameAr, r.PriorityNo, r.EffectiveFromDate, r.EffectiveToDate, r.IsActive,
-                   r.Charges.Count, r.RowVersion))
+                   r.Charges.Count, r.GlLines.Count, r.RowVersion))
             .ToListAsync(cancellationToken);
 
     /// <summary>Active GL accounting events, the events a rule can be set up for.</summary>
@@ -137,6 +146,94 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
         db.Remove(entity);
         await SaveAsync("rule charge", cancellationToken);
     }
+
+    /// <summary>Active posting accounts of the chart of accounts, the accounts a GL line can post to.</summary>
+    public async Task<IReadOnlyList<GlAccountOptionDto>> ListGlAccountsAsync(CancellationToken cancellationToken) =>
+        await db.Set<GlAccount>().AsNoTracking().Where(x => x.IsActive && x.IsPostingAllowed && !x.IsSummary).OrderBy(x => x.AccountCode)
+            .Select(x => new GlAccountOptionDto(x.AccountId, x.AccountCode, x.AccountNameEn))
+            .ToListAsync(cancellationToken);
+
+    /// <summary>The rule's own lines first, then each charge's lines, in line order.</summary>
+    public async Task<IReadOnlyList<RuleGlLineDto>> ListGlLinesAsync(long ruleId, CancellationToken cancellationToken)
+    {
+        await FindAsync(ruleId, cancellationToken);
+        var rows = await (from l in db.Set<AdmProductEventRuleGlLine>().AsNoTracking()
+                          join a in db.Set<GlAccount>() on l.AccountId equals a.AccountId
+                          join rc in db.Set<AdmProductEventRuleCharge>() on l.RuleChargeId equals rc.RuleChargeId into rcs
+                          from rc in rcs.DefaultIfEmpty()
+                          join c in db.Set<AdmCharge>() on rc.ChargeId equals c.ChargeId into cs
+                          from c in cs.DefaultIfEmpty()
+                          where l.ProductEventRuleId == ruleId
+                          select new { l, a.AccountCode, a.AccountNameEn, ChargeCode = c == null ? null : c.ChargeCode, Seq = rc == null ? (int?)null : rc.SequenceNo })
+            .ToListAsync(cancellationToken);
+        return [.. rows.OrderBy(x => x.Seq.HasValue).ThenBy(x => x.Seq).ThenBy(x => x.l.LineNo)
+            .Select(x => new RuleGlLineDto(x.l.RuleGlLineId, x.l.ProductEventRuleId, x.l.RuleChargeId, x.ChargeCode, x.l.LineNo, x.l.DebitCreditCode,
+                x.l.AccountId, x.AccountCode, x.AccountNameEn, x.l.DescriptionTemplate, x.l.IsActive, x.l.RowVersion))];
+    }
+
+    public async Task<RuleGlLineDto> CreateGlLineAsync(long ruleId, SaveRuleGlLineRequest request, CancellationToken cancellationToken)
+    {
+        await FindAsync(ruleId, cancellationToken);
+        var entity = new AdmProductEventRuleGlLine { ProductEventRuleId = ruleId };
+        await ApplyGlLineAsync(entity, request, cancellationToken);
+        db.Add(entity);
+        await db.SaveChangesAsync(cancellationToken);
+        return (await ListGlLinesAsync(ruleId, cancellationToken)).First(x => x.RuleGlLineId == entity.RuleGlLineId);
+    }
+
+    public async Task<RuleGlLineDto> UpdateGlLineAsync(long ruleId, long id, SaveRuleGlLineRequest request, CancellationToken cancellationToken)
+    {
+        var entity = await FindGlLineAsync(ruleId, id, cancellationToken);
+        if (request.RowVersion != entity.RowVersion)
+            throw ChangedByAnotherUser("GL line");
+
+        await ApplyGlLineAsync(entity, request, cancellationToken);
+        await SaveAsync("GL line", cancellationToken);
+        return (await ListGlLinesAsync(ruleId, cancellationToken)).First(x => x.RuleGlLineId == id);
+    }
+
+    public async Task DeleteGlLineAsync(long ruleId, long id, int rowVersion, CancellationToken cancellationToken)
+    {
+        var entity = await FindGlLineAsync(ruleId, id, cancellationToken);
+        if (rowVersion != entity.RowVersion)
+            throw ChangedByAnotherUser("GL line");
+
+        db.Remove(entity);
+        await SaveAsync("GL line", cancellationToken);
+    }
+
+    private async Task ApplyGlLineAsync(AdmProductEventRuleGlLine entity, SaveRuleGlLineRequest r, CancellationToken cancellationToken)
+    {
+        var e = new SetupErrors();
+        var dc = e.OneOf(nameof(r.DebitCreditCode), "Debit/Credit", r.DebitCreditCode, ["D", "C"]);
+        var description = e.Optional(nameof(r.DescriptionTemplate), "Description", r.DescriptionTemplate, 500);
+        var lineNo = r.LineNo ?? 10;
+        if (lineNo < 1)
+            e.Add(nameof(r.LineNo), "Line number must be 1 or more.");
+        if (r.RuleChargeId is not null
+            && !await db.Set<AdmProductEventRuleCharge>().AnyAsync(x => x.RuleChargeId == r.RuleChargeId && x.ProductEventRuleId == entity.ProductEventRuleId, cancellationToken))
+            e.Add(nameof(r.RuleChargeId), "The selected charge does not belong to this product event rule.");
+        if (r.AccountId is null)
+            e.Add(nameof(r.AccountId), "Account is required.");
+        else if (r.AccountId != entity.AccountId
+                 && !await db.Set<GlAccount>().AnyAsync(x => x.AccountId == r.AccountId && x.IsActive && x.IsPostingAllowed && !x.IsSummary, cancellationToken))
+            e.Add(nameof(r.AccountId), "Select an active posting account.");
+        if (await db.Set<AdmProductEventRuleGlLine>().AnyAsync(x => x.ProductEventRuleId == entity.ProductEventRuleId && x.RuleChargeId == r.RuleChargeId
+                                                                    && x.LineNo == lineNo && x.RuleGlLineId != entity.RuleGlLineId, cancellationToken))
+            e.Add(nameof(r.LineNo), "Line number already exists in this section.");
+        e.ThrowIfAny();
+
+        entity.RuleChargeId = r.RuleChargeId;
+        entity.LineNo = lineNo;
+        entity.DebitCreditCode = dc;
+        entity.AccountId = r.AccountId!.Value;
+        entity.DescriptionTemplate = description;
+        entity.IsActive = r.IsActive;
+    }
+
+    private async Task<AdmProductEventRuleGlLine> FindGlLineAsync(long ruleId, long id, CancellationToken cancellationToken) =>
+        await db.Set<AdmProductEventRuleGlLine>().FirstOrDefaultAsync(x => x.RuleGlLineId == id && x.ProductEventRuleId == ruleId, cancellationToken)
+            ?? throw new NotFoundException($"GL line {id} was not found on product event rule {ruleId}.");
 
     private async Task ApplyAsync(AdmProductEventRule entity, SaveProductEventRuleRequest r, CancellationToken cancellationToken)
     {

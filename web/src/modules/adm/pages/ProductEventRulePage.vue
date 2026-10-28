@@ -1,5 +1,6 @@
 <script setup lang="ts">
-// The charges of one product event rule (ADM_PRODUCT_EVENT_RULE_CHARGES): FINOVA_FINANCEING ProductEventRulesPage, Components tab.
+// One product event rule, its charges (ADM_PRODUCT_EVENT_RULE_CHARGES) and GL entries (ADM_PRODUCT_EVENT_RULE_GL_LINES):
+// FINOVA_FINANCEING ProductEventRulesPage, Components and Accounting tabs.
 import { computed, onMounted, ref } from 'vue'
 import CrudPage from '@/shared/crud/CrudPage.vue'
 import type { CrudApi, CrudColumn, CrudField, FieldOption, FormValues } from '@/shared/crud/types'
@@ -8,7 +9,7 @@ import { formatCell } from '@/shared/crud/format'
 import { tr } from '@/shared/layout/language'
 import { todayInCairo } from '@/shared/format/datetime'
 import '@/shared/styles/apex-fx-inbox.css'
-import { CALCULATION_METHODS, CHARGE_TIMINGS, chargesApi, labelOf, productEventRulesApi, type ProductEventRule, type RuleCharge } from '../api/products.api'
+import { CALCULATION_METHODS, CHARGE_TIMINGS, chargesApi, labelOf, productEventRulesApi, type ProductEventRule, type RuleCharge, type RuleGlLine } from '../api/products.api'
 
 const props = defineProps<{ ruleId: string }>()
 const id = computed(() => Number(props.ruleId))
@@ -85,18 +86,81 @@ const toBody = (v: FormValues, rowVersion: number | null) => ({
   rowVersion
 })
 
+// the GL list shows the rule's charges by code, and loses a deleted charge's lines, so it reloads after every charge list load
+const glPage = ref<{ reload: () => Promise<void> } | null>(null)
+const ruleCharges = ref<RuleCharge[]>([])
+
 const api = computed<CrudApi<Row>>(() => ({
-  list: async () => (await productEventRulesApi.charges(id.value)).map(toRow),
+  list: async () => {
+    ruleCharges.value = await productEventRulesApi.charges(id.value)
+    buildGlFields()
+    void glPage.value?.reload()
+    return ruleCharges.value.map(toRow)
+  },
   create: async v => toRow(await productEventRulesApi.createCharge(id.value, toBody(v, null))),
   update: async (row, v) => toRow(await productEventRulesApi.updateCharge(id.value, row.ruleChargeId, toBody(v, row.rowVersion))),
   remove: row => productEventRulesApi.removeCharge(id.value, row.ruleChargeId, row.rowVersion)
 }))
 
+// GL entries: lines of the rule itself (section "Rule") and lines that post one of its charges
+type GlRow = RuleGlLine & { sectionLabel: string; dcLabel: string; accountLabel: string }
+
+const RULE_SECTION = 'RULE'
+const DEBIT_CREDIT: FieldOption[] = [{ value: 'D', label: 'Debit' }, { value: 'C', label: 'Credit' }]
+const glAccounts = ref<FieldOption[]>([])
+
+const glColumns: CrudColumn<GlRow>[] = [
+  { field: 'sectionLabel', label: 'Section', type: 'code' },
+  { field: 'lineNo', label: 'Line', type: 'number' },
+  { field: 'dcLabel', label: 'Dr / Cr' },
+  { field: 'accountLabel', label: 'Account' },
+  { field: 'descriptionTemplate', label: 'Description' }
+]
+
+const glFields = ref<CrudField[]>([])
+function buildGlFields() {
+  glFields.value = [
+    { name: 'section', label: 'Section', type: 'select', required: true,
+      options: [{ value: RULE_SECTION, label: 'Rule (main entry)' }, ...ruleCharges.value.map(c => ({ value: c.ruleChargeId, label: `Charge: ${c.chargeCode} - ${c.chargeNameEn}` }))] },
+    { name: 'lineNo', label: 'Line No', type: 'number', required: true, min: 1 },
+    { name: 'debitCreditCode', label: 'Debit / Credit', type: 'select', required: true, options: DEBIT_CREDIT },
+    { name: 'accountId', label: 'Account', type: 'select', required: true, options: glAccounts.value },
+    { name: 'descriptionTemplate', label: 'Description', type: 'textarea', maxLength: 500 }
+  ]
+}
+buildGlFields()
+
+const toGlRow = (l: RuleGlLine): GlRow => ({
+  ...l,
+  sectionLabel: l.chargeCode ?? tr('Rule'),
+  dcLabel: labelOf(DEBIT_CREDIT as { value: string; label: string }[], l.debitCreditCode),
+  accountLabel: `${l.accountCode} - ${l.accountNameEn}`
+})
+
+const toGlBody = (v: FormValues, rowVersion: number | null) => {
+  const { section, ...rest } = v
+  return {
+    ...rest,
+    ruleChargeId: section == null || section === RULE_SECTION ? null : Number(section),
+    accountId: v.accountId == null ? null : Number(v.accountId),
+    rowVersion
+  }
+}
+
+const glApi = computed<CrudApi<GlRow>>(() => ({
+  list: async () => (await productEventRulesApi.glLines(id.value)).map(toGlRow),
+  create: async v => toGlRow(await productEventRulesApi.createGlLine(id.value, toGlBody(v, null))),
+  update: async (row, v) => toGlRow(await productEventRulesApi.updateGlLine(id.value, row.ruleGlLineId, toGlBody(v, row.rowVersion))),
+  remove: row => productEventRulesApi.removeGlLine(id.value, row.ruleGlLineId, row.rowVersion)
+}))
+
 onMounted(async () => {
-  const [r, c] = await Promise.all([productEventRulesApi.get(id.value), chargesApi.list()])
+  const [r, c, a] = await Promise.all([productEventRulesApi.get(id.value), chargesApi.list(), productEventRulesApi.glAccounts()])
   rule.value = r
   charges.value = c.filter(x => x.isActive).map(x => ({ value: x.chargeId, label: `${x.chargeCode} - ${x.chargeNameEn}` }))
+  glAccounts.value = a.map(x => ({ value: x.accountId, label: `${x.accountCode} - ${x.accountNameEn}` }))
   buildFields()
+  buildGlFields()
 })
 </script>
 
@@ -105,7 +169,7 @@ onMounted(async () => {
     <div class="fx-head">
       <div>
         <h1>{{ rule ? `${rule.ruleCode} · ${rule.ruleNameEn}` : tr('Product Event Rule') }}</h1>
-        <p>{{ tr('The charges this product applies on this accounting event.') }}</p>
+        <p>{{ tr('The charges this product applies on this accounting event, and their GL entries.') }}</p>
       </div>
       <div class="fx-actions">
         <span v-if="rule" class="fx-chip" :class="{ 'fx-chip--ok': rule.isActive }">{{ tr(rule.isActive ? 'Active' : 'Inactive') }}</span>
@@ -132,6 +196,23 @@ onMounted(async () => {
       :row-key="row => row.ruleChargeId"
       :new-values="() => ({ isActive: true, sequenceNo: 10, calculationMethodCode: 'FIXED', chargeTimingCode: 'DUE_SEPARATELY', dayCountBasis: 365, roundingScale: 2, spreadRate: 0, dueDays: 0, taxRate: 0, effectiveFromDate: rule?.effectiveFromDate ?? todayInCairo() })"
       :to-values="row => ({ ...row })"
+      :can-edit="hasPermission('ADM.PRODUCT.EDIT')"
+    />
+
+    <CrudPage
+      ref="glPage"
+      embedded
+      title="GL Entries"
+      description="Debit and credit lines of the rule's main entry and of each charge."
+      icon="pi pi-book"
+      apex-pages="FINOVA_FINANCEING"
+      entity-label="GL Line"
+      :columns="glColumns"
+      :fields="glFields"
+      :api="glApi"
+      :row-key="row => row.ruleGlLineId"
+      :new-values="() => ({ isActive: true, section: RULE_SECTION, lineNo: 10 })"
+      :to-values="row => ({ ...row, section: row.ruleChargeId ?? RULE_SECTION })"
       :can-edit="hasPermission('ADM.PRODUCT.EDIT')"
     />
   </div>

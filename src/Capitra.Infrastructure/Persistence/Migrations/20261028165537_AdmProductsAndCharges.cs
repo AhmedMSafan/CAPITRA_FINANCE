@@ -205,6 +205,48 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "ADM_PRODUCT_EVENT_RULE_GL_LINES",
+                columns: table => new
+                {
+                    RULE_GL_LINE_ID = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PRODUCT_EVENT_RULE_ID = table.Column<long>(type: "bigint", nullable: false),
+                    RULE_CHARGE_ID = table.Column<long>(type: "bigint", nullable: true),
+                    LINE_NO = table.Column<int>(type: "integer", nullable: false),
+                    DEBIT_CREDIT_CODE = table.Column<string>(type: "character varying(1)", maxLength: 1, nullable: false),
+                    ACCOUNT_ID = table.Column<long>(type: "bigint", nullable: false),
+                    DESCRIPTION_TEMPLATE = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    IS_ACTIVE = table.Column<bool>(type: "boolean", nullable: false),
+                    CREATED_BY = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CREATED_AT = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UPDATED_BY = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    UPDATED_AT = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ROW_VERSION = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ADM_PRODUCT_EVENT_RULE_GL_LINES", x => x.RULE_GL_LINE_ID);
+                    table.ForeignKey(
+                        name: "FK_ADM_PRODUCT_EVENT_RULE_GL_LINES_ADM_PRODUCT_EVENT_RULES",
+                        column: x => x.PRODUCT_EVENT_RULE_ID,
+                        principalTable: "ADM_PRODUCT_EVENT_RULES",
+                        principalColumn: "PRODUCT_EVENT_RULE_ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ADM_PRODUCT_EVENT_RULE_GL_LINES_ADM_PRODUCT_EVENT_R_C89D088D",
+                        column: x => x.RULE_CHARGE_ID,
+                        principalTable: "ADM_PRODUCT_EVENT_RULE_CHARGES",
+                        principalColumn: "RULE_CHARGE_ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ADM_PRODUCT_EVENT_RULE_GL_LINES_GL_ACCOUNTS",
+                        column: x => x.ACCOUNT_ID,
+                        principalTable: "GL_ACCOUNTS",
+                        principalColumn: "ACCOUNT_ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_ADM_CHARGES_CHARGE_TYPE_CODE",
                 table: "ADM_CHARGES",
@@ -231,6 +273,23 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 table: "ADM_PRODUCT_EVENT_RULE_CHARGES",
                 columns: new[] { "PRODUCT_EVENT_RULE_ID", "CHARGE_ID" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ADM_PRODUCT_EVENT_RULE_GL_LINES_ACCOUNT_ID",
+                table: "ADM_PRODUCT_EVENT_RULE_GL_LINES",
+                column: "ACCOUNT_ID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ADM_PRODUCT_EVENT_RULE_GL_LINES_RULE_CHARGE_ID",
+                table: "ADM_PRODUCT_EVENT_RULE_GL_LINES",
+                column: "RULE_CHARGE_ID");
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_ADM_PRODUCT_EVENT_RULE_GL_LINES_PRODUCT_EVENT_RULE_ID",
+                table: "ADM_PRODUCT_EVENT_RULE_GL_LINES",
+                columns: new[] { "PRODUCT_EVENT_RULE_ID", "RULE_CHARGE_ID", "LINE_NO" },
+                unique: true)
+                .Annotation("Npgsql:NullsDistinct", false);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ADM_PRODUCT_EVENT_RULES_EVENT_TYPE_ID",
@@ -268,6 +327,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ADM_PRODUCT_EVENT_RULE_GL_LINES");
+
             migrationBuilder.DropTable(
                 name: "ADM_PRODUCT_EVENT_RULE_CHARGES");
 

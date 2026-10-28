@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capitra.Api.Controllers.Adm;
 
-/// <summary>Product event rules and their charges (ADM_PRODUCT_EVENT_RULES). Reading needs ADM.PRODUCT.VIEW; changes need ADM.PRODUCT.EDIT.</summary>
+/// <summary>Product event rules with their charges and GL lines (ADM_PRODUCT_EVENT_RULES). Reading needs ADM.PRODUCT.VIEW; changes need ADM.PRODUCT.EDIT.</summary>
 [ApiController]
 [Route("api/adm/product-event-rules")]
 public sealed class AdmProductEventRuleController(AdmProductEventRuleService rules) : ControllerBase
@@ -17,6 +17,10 @@ public sealed class AdmProductEventRuleController(AdmProductEventRuleService rul
     [HttpGet("event-types")]
     [HasPermission(Permissions.Adm.ProductView)]
     public Task<IReadOnlyList<EventTypeOptionDto>> ListEventTypes(CancellationToken cancellationToken) => rules.ListEventTypesAsync(cancellationToken);
+
+    [HttpGet("gl-accounts")]
+    [HasPermission(Permissions.Adm.ProductView)]
+    public Task<IReadOnlyList<GlAccountOptionDto>> ListGlAccounts(CancellationToken cancellationToken) => rules.ListGlAccountsAsync(cancellationToken);
 
     [HttpGet("{id:long}")]
     [HasPermission(Permissions.Adm.ProductView)]
@@ -56,4 +60,24 @@ public sealed class AdmProductEventRuleController(AdmProductEventRuleService rul
     [HasPermission(Permissions.Adm.ProductEdit)]
     public Task DeleteCharge(long ruleId, long id, [FromQuery] int rowVersion, CancellationToken cancellationToken) =>
         rules.DeleteChargeAsync(ruleId, id, rowVersion, cancellationToken);
+
+    [HttpGet("{ruleId:long}/gl-lines")]
+    [HasPermission(Permissions.Adm.ProductView)]
+    public Task<IReadOnlyList<RuleGlLineDto>> ListGlLines(long ruleId, CancellationToken cancellationToken) =>
+        rules.ListGlLinesAsync(ruleId, cancellationToken);
+
+    [HttpPost("{ruleId:long}/gl-lines")]
+    [HasPermission(Permissions.Adm.ProductEdit)]
+    public Task<RuleGlLineDto> CreateGlLine(long ruleId, SaveRuleGlLineRequest request, CancellationToken cancellationToken) =>
+        rules.CreateGlLineAsync(ruleId, request, cancellationToken);
+
+    [HttpPut("{ruleId:long}/gl-lines/{id:long}")]
+    [HasPermission(Permissions.Adm.ProductEdit)]
+    public Task<RuleGlLineDto> UpdateGlLine(long ruleId, long id, SaveRuleGlLineRequest request, CancellationToken cancellationToken) =>
+        rules.UpdateGlLineAsync(ruleId, id, request, cancellationToken);
+
+    [HttpDelete("{ruleId:long}/gl-lines/{id:long}")]
+    [HasPermission(Permissions.Adm.ProductEdit)]
+    public Task DeleteGlLine(long ruleId, long id, [FromQuery] int rowVersion, CancellationToken cancellationToken) =>
+        rules.DeleteGlLineAsync(ruleId, id, rowVersion, cancellationToken);
 }

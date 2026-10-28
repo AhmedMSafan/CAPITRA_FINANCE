@@ -69,6 +69,7 @@ export type ProductEventRule = {
   effectiveToDate: string | null
   isActive: boolean
   chargeCount: number
+  glLineCount: number
   rowVersion: number
 }
 
@@ -97,6 +98,24 @@ export type RuleCharge = {
   isActive: boolean
   rowVersion: number
 }
+
+/** ADM_PRODUCT_EVENT_RULE_GL_LINES; ruleChargeId null = a line of the rule itself */
+export type RuleGlLine = {
+  ruleGlLineId: number
+  productEventRuleId: number
+  ruleChargeId: number | null
+  chargeCode: string | null
+  lineNo: number
+  debitCreditCode: string
+  accountId: number
+  accountCode: string
+  accountNameEn: string
+  descriptionTemplate: string | null
+  isActive: boolean
+  rowVersion: number
+}
+
+export type GlAccountOption = { accountId: number; accountCode: string; accountNameEn: string }
 
 export type Body = Record<string, unknown>
 
@@ -132,7 +151,13 @@ export const productEventRulesApi = {
   createCharge: (ruleId: number, b: Body) => http.post<RuleCharge>(`${RULES}/${ruleId}/charges`, b),
   updateCharge: (ruleId: number, id: number, b: Body) => http.put<RuleCharge>(`${RULES}/${ruleId}/charges/${id}`, b),
   removeCharge: (ruleId: number, id: number, rowVersion: number) =>
-    http.delete<void>(`${RULES}/${ruleId}/charges/${id}?rowVersion=${rowVersion}`)
+    http.delete<void>(`${RULES}/${ruleId}/charges/${id}?rowVersion=${rowVersion}`),
+  glAccounts: () => http.get<GlAccountOption[]>(`${RULES}/gl-accounts`),
+  glLines: (ruleId: number) => http.get<RuleGlLine[]>(`${RULES}/${ruleId}/gl-lines`),
+  createGlLine: (ruleId: number, b: Body) => http.post<RuleGlLine>(`${RULES}/${ruleId}/gl-lines`, b),
+  updateGlLine: (ruleId: number, id: number, b: Body) => http.put<RuleGlLine>(`${RULES}/${ruleId}/gl-lines/${id}`, b),
+  removeGlLine: (ruleId: number, id: number, rowVersion: number) =>
+    http.delete<void>(`${RULES}/${ruleId}/gl-lines/${id}?rowVersion=${rowVersion}`)
 }
 
 export const CALCULATION_TYPES = [

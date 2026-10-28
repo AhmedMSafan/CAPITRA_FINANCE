@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Product Event Rules (ADM_PRODUCT_EVENT_RULES): FINOVA_FINANCEING ProductEventRulesPage, the rule list.
-// Each rule's charges open on their own page; its GL entries are the GL rule set of the same product and event.
+// Each rule's charges and GL entries open on the rule's own page.
 import { onMounted, ref } from 'vue'
 import CrudPage from '@/shared/crud/CrudPage.vue'
 import type { CrudApi, CrudColumn, CrudField, FieldOption, FormValues } from '@/shared/crud/types'
@@ -19,6 +19,7 @@ const columns: CrudColumn<ProductEventRule>[] = [
   { field: 'eventTypeCode', label: 'Accounting Event', type: 'code' },
   { field: 'priorityNo', label: 'Priority', type: 'number' },
   { field: 'chargeCount', label: 'Charges', type: 'number' },
+  { field: 'glLineCount', label: 'GL Lines', type: 'number' },
   { field: 'effectiveFromDate', label: 'Effective From', type: 'date' },
   { field: 'effectiveToDate', label: 'Effective To', type: 'date' }
 ]
@@ -77,12 +78,11 @@ onMounted(async () => {
     :can-edit="hasPermission('ADM.PRODUCT.EDIT')"
   >
     <template #actions>
-      <RouterLink to="/gl/rule-sets" class="fx-btn"><i class="pi pi-book"></i><span>{{ tr('GL Rule Sets') }}</span></RouterLink>
       <RouterLink to="/admin" class="fx-btn fx-btn--ghost"><i class="pi pi-arrow-left"></i><span>{{ tr('Admin Setup') }}</span></RouterLink>
     </template>
     <template #row-actions="{ row }">
       <RouterLink :to="`/admin/product-event-rules/${row.productEventRuleId}`" class="fx-btn fx-btn--sm pr-charges">
-        <i class="pi pi-wallet"></i>{{ tr('Charges') }}
+        <i class="pi pi-wallet"></i>{{ tr('Charges & GL') }}
       </RouterLink>
     </template>
   </CrudPage>
