@@ -48,7 +48,7 @@
           <thead>
             <tr>
               <th style="width:34px"><input type="checkbox" class="fx-check" aria-label="Select all unclaimed tasks" :checked="allChecked" @change="selectAll(($event.target as HTMLInputElement).checked)"></th>
-              <th>{{ tr('Task') }}</th><th>{{ ar ? 'المحفظة' : 'Portfolio' }}</th><th>{{ tr('Step') }}</th><th class="fx-r">{{ tr('Value') }}</th><th>{{ tr('SLA') }}</th><th>{{ tr('Assignee') }}</th><th></th>
+              <th>{{ tr('Task') }}</th><th>{{ ar ? 'المحفظة' : 'Portfolio' }}</th><th>{{ tr('Step') }}</th><th class="fx-r">{{ tr('Value') }}</th><th>{{ tr('SLA') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Assignee') }}</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -62,12 +62,8 @@
               <td><span class="fx-chip fx-chip--teal">{{ r.t.stepName || r.t.stepCode || '-' }}</span></td>
               <td class="fx-r">{{ money(r.t.amount) }}</td>
               <td><span class="fx-chip" :class="r.slaClass">{{ r.sla }}</span></td>
-              <td>
-                <span class="ib-claim" :class="r.t.claimedBy ? 'is-claimed' : 'is-open'">
-                  <span class="fa" :class="r.t.claimedBy ? 'fa-lock' : 'fa-unlock'" aria-hidden="true"></span>{{ r.t.claimedBy ? tr('Claimed') : tr('Unclaimed') }}
-                </span>
-                <span class="fx-cell-sub">{{ r.t.claimedByName || r.t.claimedBy || r.t.assignedRole || r.t.assignedUserName || r.t.assignedGroup }}</span>
-              </td>
+              <td><span class="ib-claim" :class="r.t.claimedBy ? 'is-claimed' : 'is-open'">{{ r.t.claimedBy ? tr('Task is claimed') : tr('Not claimed') }}</span></td>
+              <td>{{ r.t.claimedByName || r.t.claimedBy || r.t.assignedRole || r.t.assignedUserName || r.t.assignedGroup }}</td>
               <td class="fx-r">
                 <button v-if="r.claimable" type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="claim([r.t.inboxId])">{{ tr('Claim') }}</button>
                 <RouterLink v-else class="fx-btn fx-btn--sm" :to="taskLink(r.t)">{{ tr('Open') }}</RouterLink>
@@ -189,6 +185,10 @@ async function claim(ids: number[]) {
       failed.push(`#${t?.taskId ?? id} ${t?.subject || t?.stepName || ''}: ${e instanceof Error ? e.message : 'error'}`)
     }
   }
+  busy.value = false
+  await load()
+  // a successful claim shows in the Status column; only failures need a notice
+  if (!failed.length) return
   const name = (t: WorkflowInboxTask) => `${t.subject || t.stepName || ''} #${t.taskId}${t.entityRef ? ' · ' + t.entityRef : ''}`
   notice.value = {
     bad: done.length === 0,
@@ -199,12 +199,11 @@ async function claim(ids: number[]) {
     failed,
     open: done.length === 1 ? done[0] : undefined
   }
-  busy.value = false
-  await load()
 }
 
 async function load() {
   selected.value = []
+  notice.value = null
   try {
     tasks.value = await workflowService.getMyInbox()
   } catch (e) {
@@ -217,9 +216,8 @@ onMounted(load)
 
 <style scoped>
 .ib-claim { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-.ib-claim .fa { font-size: 11px; }
-.ib-claim.is-claimed { background: #E6F3F4; color: #00636D; }
-.ib-claim.is-open { background: #FDEFE3; color: #C25E12; }
+.ib-claim.is-claimed { background: #FDEFE3; color: #C25E12; }
+.ib-claim.is-open { background: #EEF2F4; color: #5F7787; }
 .fx-chip--ok { background: var(--fin-ok-50); color: var(--fin-ok); }
 .fx-chip--bad { background: var(--fin-bad-50); color: var(--fin-bad); }
 /* the claim notice: a white region with a teal accent (red when nothing was claimed) */
