@@ -125,3 +125,31 @@
 .fc .fc-sec-head > div{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
 .fc .fc-sec-head p{margin:0;font-size:var(--fs-xs);color:var(--fin-muted)}
 .fc .fc-sec-head > .fx-chip{flex:none}
+
+/* workflow step pages */
+.fc .fc-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--fin-orange-700)}
+.fc .fc-step-card{margin-block-start:14px}
+.fc .fc-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding:16px}
+.fc .fc-fact{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:12px;border:1px solid var(--fin-line-soft);border-radius:var(--fin-radius-sm)}
+.fc .fc-fact > .fa{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--fin-teal-50);color:var(--fin-teal-600)}
+.fc .fc-fact > div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fc .fc-fact span{font-size:var(--fs-xs);color:var(--fin-muted);font-weight:600}
+.fc .fc-fact b{overflow-wrap:anywhere}
+.fc .fc-fact small{font-size:var(--fs-xs);color:var(--fin-muted)}
+.fc .fc-routing{display:flex;flex-direction:column;gap:14px;padding:16px}
+.fc .fc-routing-default{display:flex;flex-wrap:wrap;gap:12px 40px}
+.fc .fc-routing-default > div{display:flex;flex-direction:column;gap:6px}
+.fc .fc-routing-default > div > span:first-child{font-size:var(--fs-xs);color:var(--fin-muted);font-weight:600}
+.fc .fc-routing-default .fx-chip{align-self:flex-start;gap:6px}
+.fc .fc-check{display:flex;align-items:center;gap:10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer}
+.fc .fc-check input{width:16px;height:16px;accent-color:var(--fin-teal-600)}
+.fc .fc-routing-user{display:flex;flex-direction:column;gap:12px;max-width:560px}
+.fc .fc-note{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:var(--fin-radius-sm);background:var(--fin-teal-50);color:var(--fin-teal-700);font-size:var(--fs-sm)}
+.fc .fc-note--warn{background:var(--fin-orange-50);color:var(--fin-orange-700)}
+.fc .fc-note .fa{margin-block-start:2px}
+.fc .fc-complete{display:flex;align-items:flex-end;gap:16px;margin-block-start:14px;padding:16px}
+.fc .fc-complete .fc-field{flex:1}
+.fc .fc-textarea{min-height:72px;resize:vertical;font:inherit}
+@media (max-width:1100px){.fc .fc-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.fc .fc-facts{grid-template-columns:1fr}.fc .fc-complete{flex-direction:column;align-items:stretch}}
+.fc .fc-routing-user .fc-field{flex:none}

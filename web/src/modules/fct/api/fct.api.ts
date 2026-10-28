@@ -128,3 +128,24 @@ export const fctApplicationsApi = {
   setStatus: (offerId: number, statusCode: string) => http.put<void>(`/api/fct/applications/${offerId}/status`, { statusCode }),
   startWorkflow: (offerId: number) => http.post<FctStartWorkflowResult>(`/api/fct/applications/${offerId}/start-workflow`)
 }
+
+/** FINOVA AgreementReviewSummaryDto: the agreement header every factoring workflow step page shows */
+export type FctAgreementReviewSummary = {
+  agreementId: number
+  agreementNumber: string | null
+  clientId: number | null
+  clientName: string | null
+  currencyCode: string | null
+  facilityLimit: number | null
+  approvedLimit: number | null
+  applicationDate: string | null
+  effectiveDate: string | null
+  statusCode: string | null
+}
+
+export type FctUser = { id: string; userName: string | null; email: string | null; fullName: string | null; employeeNo: string | null }
+
+export const fctReviewApi = {
+  reviewSummary: (agreementId: number) => http.get<FctAgreementReviewSummary>(`/api/fct/agreements/${agreementId}/review-summary`),
+  users: () => http.get<FctUser[]>('/api/fct/users')
+}

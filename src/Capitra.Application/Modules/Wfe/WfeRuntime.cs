@@ -112,7 +112,15 @@ public sealed class WfeRuntime(
     /// Completes a task with one of its allowed actions. Module handlers run first, in the same transaction,
     /// so if one fails nothing changes and the task stays open.
     /// </summary>
-    public async Task CompleteAsync(long taskId, string action, string user, IDictionary<string, string?>? variables, CancellationToken cancellationToken)
+    public Task CompleteAsync(long taskId, string action, string user, IDictionary<string, string?>? variables, CancellationToken cancellationToken) =>
+        CompleteAsync(taskId, action, user, variables, null, cancellationToken);
+
+    /// <param name="assignNextTo">
+    /// A user id or name: the next human task of this instance goes to that user instead of the assignee in the definition
+    /// (FINOVA's "assign the next task to a specific user for this workflow instance only").
+    /// </param>
+    public async Task CompleteAsync(
+        long taskId, string action, string user, IDictionary<string, string?>? variables, string? assignNextTo, CancellationToken cancellationToken)
     {
         var own = db.CurrentTransaction is null;
         var transaction = own ? await db.BeginTransactionAsync(cancellationToken) : null;
@@ -165,7 +173,7 @@ public sealed class WfeRuntime(
             if (next is null)
                 await CompleteInstanceAsync(instance, user, cancellationToken);
             else
-                await EnterAndAdvanceAsync(instance, definition, next, user, action, cancellationToken);
+                await EnterAndAdvanceAsync(instance, definition, next, user, action, cancellationToken, assignNextTo);
 
             if (transaction is not null)
                 await transaction.CommitAsync(cancellationToken);
@@ -199,7 +207,8 @@ public sealed class WfeRuntime(
         ?? throw new NotFoundException("Workflow task not found.");
 
     private async Task EnterAndAdvanceAsync(
-        WfeWorkflowInstance instance, WfeWorkflowDefinition definition, BpmnElement element, string user, string? outcome, CancellationToken cancellationToken)
+        WfeWorkflowInstance instance, WfeWorkflowDefinition definition, BpmnElement element, string user, string? outcome, CancellationToken cancellationToken,
+        string? assignNextTo = null)
     {
         // Guard against a malformed diagram looping forever through automatic elements.
         for (var hops = 0; hops < 100; hops++)
@@ -245,15 +254,16 @@ public sealed class WfeRuntime(
                 db.Add(task);
                 await db.SaveChangesAsync(cancellationToken);
 
-                var byRole = string.Equals(element.AssignmentType, "Role", StringComparison.OrdinalIgnoreCase);
+                var toUser = !string.IsNullOrWhiteSpace(assignNextTo);
+                var byRole = !toUser && string.Equals(element.AssignmentType, "Role", StringComparison.OrdinalIgnoreCase);
                 db.Add(new WfeInboxItem
                 {
                     TaskId = task.TaskId,
                     WorkflowInstanceId = instance.WorkflowInstanceId,
                     StepInstanceId = step.StepInstanceId,
                     InboxStatus = Open,
-                    AssignmentType = element.AssignmentType,
-                    AssignedTo = byRole ? null : element.Assignee,
+                    AssignmentType = toUser ? "User" : element.AssignmentType,
+                    AssignedTo = toUser ? assignNextTo!.Trim() : byRole ? null : element.Assignee,
                     AssignedRole = byRole ? element.Assignee : null,
                     Subject = element.Name,
                     Route = element.Route,
@@ -262,7 +272,7 @@ public sealed class WfeRuntime(
                 });
 
                 instance.InstanceStatus = "WAITING";
-                AddHistory(instance.WorkflowInstanceId, "TASK_CREATED", element.Id, null, user, element.Assignee);
+                AddHistory(instance.WorkflowInstanceId, "TASK_CREATED", element.Id, null, user, toUser ? assignNextTo!.Trim() : element.Assignee);
                 await db.SaveChangesAsync(cancellationToken);
                 return;
             }
