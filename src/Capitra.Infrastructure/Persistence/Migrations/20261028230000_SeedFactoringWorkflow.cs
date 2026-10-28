@@ -7,7 +7,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 {
     /// <summary>
     /// The factoring workflow, copied from FINOVA_FINANCEING (WFE_WORKFLOW_DEFINITIONS DGRM_ID 1, FACTORING_LIMIT_APPROVAL) as
-    /// it is, except the Legal Review route parameter "agreementId " lost its trailing space. The steps open the factoring
+    /// it is, except the Legal Review route parameter "agreementId " lost its trailing space, and Committee Approval got
+    /// ACCEPT / REJECT outcomes (REJECT ends the workflow, as Ahmed confirmed). The steps open the factoring
     /// pages by the same route names as in FINOVA_FINANCEING.
     /// </summary>
     [DbContext(typeof(CapitraDbContext))]
@@ -73,7 +74,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                   <bpmn:outgoing>Flow_0z38dkw</bpmn:outgoing>
                 </bpmn:task>
                 <bpmn:sequenceFlow id="Flow_0vi5ko2" name="" sourceRef="Activity_0punm0q" targetRef="Activity_0btcy1n" finova:outcome="" />
-                <bpmn:task id="Activity_0pogexl" name="Committe Approval" finova:stepCode="COMMITTEE_APPROVAL" finova:stepType="HumanTask" finova:assignmentType="Role" finova:assignee="COMMITTEE_SECRETARY" finova:route="factoring-committee-decision" finova:routeParameters="[{&#34;name&#34;:&#34;agreementId&#34;,&#34;value&#34;:&#34;entity_id&#34;}]" finova:actions="CLAIM,COMPLETE">
+                <bpmn:task id="Activity_0pogexl" name="Committe Approval" finova:stepCode="COMMITTEE_APPROVAL" finova:stepType="HumanTask" finova:assignmentType="Role" finova:assignee="COMMITTEE_SECRETARY" finova:route="factoring-committee-decision" finova:routeParameters="[{&#34;name&#34;:&#34;agreementId&#34;,&#34;value&#34;:&#34;entity_id&#34;}]" finova:actions="CLAIM,ACCEPT,REJECT,COMPLETE">
                   <bpmn:incoming>Flow_0z38dkw</bpmn:incoming>
                   <bpmn:incoming>Flow_0db6oid</bpmn:incoming>
                   <bpmn:outgoing>Flow_0qv4imo</bpmn:outgoing>
@@ -85,7 +86,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                   <bpmn:outgoing>Flow_0db6oid</bpmn:outgoing>
                   <bpmn:outgoing>Flow_0igy339</bpmn:outgoing>
                 </bpmn:task>
-                <bpmn:sequenceFlow id="Flow_0qv4imo" name="" sourceRef="Activity_0pogexl" targetRef="Activity_10lu0rl" finova:outcome="" />
+                <bpmn:sequenceFlow id="Flow_0qv4imo" name="ACCEPT" sourceRef="Activity_0pogexl" targetRef="Activity_10lu0rl" finova:outcome="ACCEPT" />
                 <bpmn:sequenceFlow id="Flow_0db6oid" name="REJECT" sourceRef="Activity_10lu0rl" targetRef="Activity_0pogexl" finova:outcome="REJECT" />
                 <bpmn:task id="Activity_1ciisf3" name="Generate Contract" finova:stepCode="CONTRACT_GENERATION" finova:stepType="HumanTask" finova:assignmentType="Role" finova:assignee="OPERATIONS_OFFICER" finova:route="factoring-contract-generation" finova:routeParameters="[{&#34;name&#34;:&#34;agreementId&#34;,&#34;value&#34;:&#34;entity_id&#34;}]" finova:actions="CLAIM,COMPLETE,APPROVE">
                   <bpmn:incoming>Flow_0igy339</bpmn:incoming>
@@ -100,7 +101,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 <bpmn:sequenceFlow id="Flow_0qybf5i" name="" sourceRef="Activity_1ciisf3" targetRef="Activity_0nb9j68" finova:outcome="" />
                 <bpmn:sequenceFlow id="Flow_16r22h2" name="REJECT" sourceRef="Activity_0nb9j68" targetRef="EndEvent_1" finova:outcome="REJECT" />
                 <bpmn:sequenceFlow id="Flow_0dfqa7w" name="ACCEPT" sourceRef="Activity_0nb9j68" targetRef="EndEvent_1" />
-                <bpmn:sequenceFlow id="Flow_1bcnv9y" sourceRef="Activity_0pogexl" targetRef="EndEvent_1" />
+                <bpmn:sequenceFlow id="Flow_1bcnv9y" name="REJECT" sourceRef="Activity_0pogexl" targetRef="EndEvent_1" finova:outcome="REJECT" />
               </bpmn:process>
               <bpmndi:BPMNDiagram id="BPMNDiagram_1">
                 <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_FINOVA">
