@@ -17,7 +17,7 @@
 
     <!-- the result of a claim, as a notice region: what happened, which tasks, and the next step -->
     <section v-if="notice" class="ib-note" :class="{ 'is-bad': notice.bad }" role="status" aria-live="polite">
-      <span class="ib-note-ic" aria-hidden="true"><span class="fa" :class="notice.bad ? 'fa-exclamation' : 'fa-check'"></span></span>
+      <span class="ib-note-ic" aria-hidden="true"><span class="fa" :class="notice.bad ? 'fa-exclamation' : 'fa-hand-grab-o'"></span></span>
       <div class="ib-note-body">
         <b>{{ notice.title }}</b>
         <span>{{ notice.detail }}</span>
@@ -217,10 +217,10 @@ onMounted(load)
 .fx-chip--ok { background: var(--fin-ok-50); color: var(--fin-ok); }
 .fx-chip--bad { background: var(--fin-bad-50); color: var(--fin-bad); }
 /* the claim notice: a white region with a teal accent (red when nothing was claimed) */
-.ib-note { display: flex; align-items: center; gap: 14px; margin-block-end: 14px; padding: 14px 16px; border-radius: 14px; background: #fff;
-  border: 1px solid #DFE8EC; border-inline-start: 4px solid #00636D; box-shadow: 0 8px 22px -16px rgba(11, 37, 51, .35); animation: ib-in .2s ease-out; }
-.ib-note.is-bad { border-inline-start-color: #C43325; }
-.ib-note-ic { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #E6F3F4; color: #00636D; font-size: 15px; }
+.ib-note { display: flex; align-items: center; gap: 14px; margin-block-end: 14px; padding: 14px 16px; border-radius: 14px; background: #FFF8F1;
+  border: 1px solid #F6DCC4; border-inline-start: 4px solid #E87722; box-shadow: 0 8px 22px -16px rgba(11, 37, 51, .35); animation: ib-in .2s ease-out; }
+.ib-note.is-bad { border-color: #F3C9C4; border-inline-start-color: #C43325; background: #FFF6F5; }
+.ib-note-ic { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #E87722; color: #fff; font-size: 15px; }
 .ib-note.is-bad .ib-note-ic { background: #FDECEA; color: #C43325; }
 .ib-note-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .ib-note-body b { font-size: 14.5px; font-weight: 700; color: #0B2533; }
