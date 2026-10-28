@@ -63,8 +63,10 @@
               <td class="fx-r">{{ money(r.t.amount) }}</td>
               <td><span class="fx-chip" :class="r.slaClass">{{ r.sla }}</span></td>
               <td>
-                {{ r.t.claimedByName || r.t.claimedBy || r.t.assignedRole || r.t.assignedUserName || r.t.assignedGroup }}
-                <span v-if="!r.t.claimedBy" class="fx-cell-sub">{{ tr('Unclaimed') }}</span>
+                <span class="ib-claim" :class="r.t.claimedBy ? 'is-claimed' : 'is-open'">
+                  <span class="fa" :class="r.t.claimedBy ? 'fa-lock' : 'fa-unlock'" aria-hidden="true"></span>{{ r.t.claimedBy ? tr('Claimed') : tr('Unclaimed') }}
+                </span>
+                <span class="fx-cell-sub">{{ r.t.claimedByName || r.t.claimedBy || r.t.assignedRole || r.t.assignedUserName || r.t.assignedGroup }}</span>
               </td>
               <td class="fx-r">
                 <button v-if="r.claimable" type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="claim([r.t.inboxId])">{{ tr('Claim') }}</button>
@@ -214,6 +216,10 @@ onMounted(load)
 </script>
 
 <style scoped>
+.ib-claim { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.ib-claim .fa { font-size: 11px; }
+.ib-claim.is-claimed { background: #E6F3F4; color: #00636D; }
+.ib-claim.is-open { background: #FDEFE3; color: #C25E12; }
 .fx-chip--ok { background: var(--fin-ok-50); color: var(--fin-ok); }
 .fx-chip--bad { background: var(--fin-bad-50); color: var(--fin-bad); }
 /* the claim notice: a white region with a teal accent (red when nothing was claimed) */
