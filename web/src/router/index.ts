@@ -27,6 +27,14 @@ const router = createRouter({
           component: () => import('@/modules/home/pages/HomePage.vue'),
           meta: { moduleName: 'HOME', functionName: 'My workspace' }
         },
+        // the Mortgage card of Home: the same page with the three mortgage applications
+        {
+          path: 'mortgage-applications',
+          name: 'home-mortgage',
+          component: () => import('@/modules/home/pages/HomePage.vue'),
+          props: { group: 'mortgage' },
+          meta: { moduleName: 'HOME', functionName: 'Mortgage' }
+        },
         // Mortgage (APEX App 105).
         ...mtgRoutes,
         // Mortgage Finance (APEX App 110).

@@ -5,8 +5,9 @@
 export const AR: Record<string, string> = {
   // Factoring (FINOVA_FINANCEING factoring module; it has no Arabic, these were added in the same wording style)
   Factoring: 'التخصيم',
-  'Invoice factoring for corporate customers: application, credit and risk review, committee approval, contract and limit.': 'تخصيم الفواتير لعملاء الشركات: الطلب ومراجعة الائتمان والمخاطر واعتماد اللجنة والعقد والحد الائتماني.',
-  'Customer workspace': 'مساحة عمل العميل', 'Credit & risk review': 'مراجعة الائتمان والمخاطر', 'Committee approval & limits': 'اعتماد اللجنة والحدود',
+  'Manage factoring applications, agreements, limits, funding and operational processing.': 'إدارة طلبات التخصيم والاتفاقيات والحدود والتمويل والعمليات التشغيلية.',
+  'Mortgage portfolio purchase, approvals, disbursement, repayment schedules and monitoring.': 'شراء محافظ التمويل العقاري والموافقات والصرف وجداول السداد والمتابعة.',
+  'Mortgage applications': 'تطبيقات التمويل العقاري',
   Customers: 'العملاء', 'View and manage customer information.': 'عرض بيانات العملاء وإدارتها.',
   'Workflow Inbox': 'صندوق مهام سير العمل', 'View and process your assigned workflow tasks': 'اعرض مهام سير العمل المسندة إليك وأنجزها',
   'Customer Name': 'اسم العميل', 'Customer Number': 'رقم العميل', 'Client Type': 'نوع العميل', 'All Types': 'جميع الأنواع',
