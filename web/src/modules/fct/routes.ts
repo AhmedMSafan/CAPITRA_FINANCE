@@ -15,5 +15,12 @@ export const fctRoutes: RouteRecordRaw[] = [
     component: () => import('./pages/FactoringCustomerWorkspace.vue'),
     props: true,
     meta: { moduleName: 'FACTORING', functionName: 'Factoring Customer Workspace' }
+  },
+  {
+    path: 'factoring/calculator/:clientId',
+    name: 'FactoringCalculator',
+    component: () => import('./pages/FactoringCalculatorPage.vue'),
+    props: true,
+    meta: { moduleName: 'FACTORING', functionName: 'Factoring Calculator' }
   }
 ]

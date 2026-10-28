@@ -63,3 +63,65 @@
 
 @media (max-width:1100px){.fc .fc-customer{grid-template-columns:repeat(3,minmax(0,1fr))}.fc .fc-customer-main{grid-column:1/-1}}
 @media (max-width:640px){.fc .fc-customer,.fc .fc-quick{grid-template-columns:1fr}.fc .fc-inbox{min-width:0;width:100%}}
+
+/* Factoring Calculator */
+.fc .fc-summary-customer{display:flex;align-items:center;gap:12px;padding:10px 14px;min-width:300px}
+.fc .fc-summary-customer > div:not(.fc-info){display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.fc .fc-summary-customer small{color:var(--fin-muted);font-size:var(--fs-xs)}
+.fc .fc-alert{display:flex;align-items:center;gap:8px;margin-block-start:14px;padding:10px 14px;border:1px solid var(--fin-bad);border-radius:var(--fin-radius);background:var(--fin-bad-50);color:var(--fin-bad);font-size:var(--fs-sm)}
+.fc .fc-alert--sm{margin:0;padding:8px 10px;font-size:var(--fs-xs)}
+.fc .fc-calc{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;align-items:start;margin-block-start:14px}
+.fc .fc-calc-main,.fc .fc-calc-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.fc .fc-calc-side{position:sticky;top:14px}
+.fc .fc-sec-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-block-end:1px solid var(--fin-line)}
+.fc .fc-sec-head h2{margin:0;flex:1;font-size:var(--fs-md, 15px)}
+.fc .fc-sec-ic{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--fin-teal-50);color:var(--fin-teal-600);font-size:14px}
+.fc .fc-sec-ic--orange{background:var(--fin-orange-50);color:var(--fin-orange)}
+.fc .fc-grid{display:grid;gap:12px 16px;padding:16px}
+.fc .fc-grid--3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.fc .fc-grid--4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.fc .fc-field b{color:var(--fin-bad)}
+.fc .fc-actions{display:flex;flex-direction:column;gap:10px;padding:16px}
+.fc .fc-summary{display:flex;flex-direction:column;gap:14px;padding:16px}
+.fc .fc-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:14px;border-radius:var(--fin-radius);background:var(--fin-teal-50)}
+.fc .fc-hero > div{display:flex;flex-direction:column;gap:4px}
+.fc .fc-hero span{font-size:var(--fs-xs);color:var(--fin-muted);font-weight:600}
+.fc .fc-hero b{font-size:28px;color:var(--fin-teal-700)}
+.fc .fc-hero small{color:var(--fin-orange-700);font-weight:700}
+.fc .fc-lines{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0}
+.fc .fc-lines > div{padding:10px;border:1px solid var(--fin-line-soft);border-radius:8px}
+.fc .fc-lines dt{font-size:var(--fs-xs);color:var(--fin-muted)}
+.fc .fc-lines dd{margin:4px 0 0;font-weight:700}
+.fc .fc-mini{margin:0;display:flex;flex-direction:column;gap:4px}
+.fc .fc-mini h3{margin:0 0 4px;font-size:var(--fs-sm);color:var(--fin-orange-700)}
+.fc .fc-mini > div{display:flex;justify-content:space-between;gap:8px;font-size:var(--fs-sm)}
+.fc .fc-mini dt{color:var(--fin-muted)}
+.fc .fc-mini dd{margin:0;font-weight:600}
+.fc .fc-mini .is-total{margin-block-start:4px;padding-block-start:6px;border-block-start:1px solid var(--fin-line)}
+.fc .fc-mini .is-total dt,.fc .fc-mini .is-total dd{color:var(--fin-teal-700);font-weight:700}
+
+/* workspace application actions and the start-workflow modal */
+.fc .fc-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.fc .fc-row-actions .fx-select{flex:none;width:auto;min-width:120px;padding-block:4px}
+.fc-modal-back{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:rgba(15,23,42,.45)}
+.fc-modal{width:min(440px,calc(100vw - 32px));padding:20px;border-radius:var(--fin-radius);background:var(--fin-surface);box-shadow:var(--fin-shadow);color:var(--fin-ink)}
+.fc-modal h2{margin:0 0 14px;font-size:var(--fs-lg)}
+.fc-modal ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.fc-modal li{display:flex;align-items:center;gap:10px;font-size:var(--fs-sm);color:var(--fin-muted)}
+.fc-modal li .fa{width:18px;text-align:center}
+.fc-modal li.is-active{color:var(--fin-ink);font-weight:600}
+.fc-modal li.is-active .fa{color:var(--fin-orange)}
+.fc-modal li.is-done{color:var(--fin-ink)}
+.fc-modal li.is-done .fa{color:var(--fin-ok)}
+.fc-modal li.is-failed .fa{color:var(--fin-bad)}
+.fc-modal p{margin:14px 0 0;font-size:var(--fs-sm)}
+.fc-modal .fc-modal-err{color:var(--fin-bad)}
+.fc-modal footer{display:flex;justify-content:flex-end;margin-block-start:16px}
+
+@media (max-width:1200px){.fc .fc-calc{grid-template-columns:1fr}.fc .fc-calc-side{position:static}.fc .fc-grid--4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.fc .fc-grid--3,.fc .fc-grid--4,.fc .fc-lines{grid-template-columns:1fr}.fc .fc-summary-customer{min-width:0;width:100%}}
+.fc .fc-status-select{flex:none;width:auto;min-width:120px;padding-block:4px}
+.fc .fc-row-msg{margin-block-start:4px;color:var(--fin-bad);font-size:var(--fs-xs);text-align:end;max-width:260px;margin-inline-start:auto}
+.fc .fc-sec-head > div{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fc .fc-sec-head p{margin:0;font-size:var(--fs-xs);color:var(--fin-muted)}
+.fc .fc-sec-head > .fx-chip{flex:none}

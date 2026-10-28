@@ -59,3 +59,72 @@ export const fctApi = {
   applications: (id: number) => http.get<FctApplication[]>(`${API}/${id}/applications`),
   agreements: (id: number) => http.get<FctAgreement[]>(`${API}/${id}/agreements`)
 }
+
+/** Calculator inputs; percentages as entered (90 means 90%) */
+export type FctCalculationRequest = {
+  requestedLimit: number | null
+  expectedVolume: number | null
+  averageTenorDays: number | null
+  numDebtors: number | null
+  estTransactionsPerYear: number | null
+  riskBand: string
+  baseAdvanceRatio: number | null
+  dilutionRate: number | null
+  riskBufferOverride: number | null
+  largestConcentration: number | null
+  costOfFundsRate: number | null
+  operatingSpread: number | null
+  setupFeeFixed: number | null
+  setupFeePct: number | null
+  commissionPct: number | null
+  handlingFee: number | null
+  debtorFee: number | null
+  debtorMinimum: number | null
+}
+
+export type FctCalculationResult = {
+  advanceBasePct: number
+  advanceDilutionPct: number
+  advanceRiskBufferPct: number
+  advancePct: number
+  discountCostOfFundsPct: number
+  discountRiskMarginPct: number
+  discountOperatingSpreadPct: number
+  discountTenorAdjustmentPct: number
+  discountConcentrationPct: number
+  discountRatePct: number
+  spreadOverLcrPct: number
+  setupFeeTotal: number
+  commissionAnnual: number
+  handlingAnnual: number
+  debtorFeesTotal: number
+  interestIncome: number
+  totalAnnualIncome: number
+}
+
+export type FctCreateOfferRequest = {
+  clientId: number
+  notes: string
+  factoringType: string
+  recourseType: string
+  requestedLimit: number
+  averageTenorDays: number
+  costOfFundsRate: number
+  operatingSpread: number
+  riskBand: string
+  advancePct: number
+  advanceDilutionPct: number
+  discountRatePct: number
+  spreadOverLcrPct: number
+}
+
+export type FctCreateOfferResult = { offerId: number; offerRef: string; statusCode: string; existingDraft: boolean; message: string }
+
+export type FctStartWorkflowResult = { agreementId: number; agreementNumber: string; offerId: number; offerRef: string; offerStatusCode: string; message: string }
+
+export const fctApplicationsApi = {
+  calculate: (body: FctCalculationRequest) => http.post<FctCalculationResult>('/api/fct/calculator/calculate', body),
+  createFromCalculator: (body: FctCreateOfferRequest) => http.post<FctCreateOfferResult>('/api/fct/applications/from-calculator', body),
+  setStatus: (offerId: number, statusCode: string) => http.put<void>(`/api/fct/applications/${offerId}/status`, { statusCode }),
+  startWorkflow: (offerId: number) => http.post<FctStartWorkflowResult>(`/api/fct/applications/${offerId}/start-workflow`)
+}
