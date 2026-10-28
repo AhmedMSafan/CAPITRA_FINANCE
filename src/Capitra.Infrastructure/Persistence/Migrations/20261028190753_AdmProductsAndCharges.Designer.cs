@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Capitra.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CapitraDbContext))]
-    [Migration("20261028171454_AdmProductsAndCharges")]
+    [Migration("20261028190753_AdmProductsAndCharges")]
     partial class AdmProductsAndCharges
     {
         /// <inheritdoc />
@@ -1145,11 +1145,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("RULE_NAME_EN");
 
-                    b.Property<string>("StepCode")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("STEP_CODE");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("UPDATED_AT");
@@ -1158,11 +1153,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
-
-                    b.Property<string>("WorkflowCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("WORKFLOW_CODE");
 
                     b.HasKey("ProductEventRuleId")
                         .HasName("PK_ADM_PRODUCT_EVENT_RULES");
@@ -1173,9 +1163,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasIndex("ProductId", "EventTypeId", "RuleCode")
                         .IsUnique()
                         .HasDatabaseName("UQ_ADM_PRODUCT_EVENT_RULES_PRODUCT_ID_EVENT_TYPE_ID_RULE_CODE");
-
-                    b.HasIndex("ProductId", "WorkflowCode", "StepCode")
-                        .HasDatabaseName("IX_ADM_PRODUCT_EVENT_RULES_PRODUCT_ID_WORKFLOW_CODE_STEP_CODE");
 
                     b.ToTable("ADM_PRODUCT_EVENT_RULES", (string)null);
                 });

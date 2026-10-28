@@ -1,26 +1,20 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Domain.Modules.Adm;
-using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Gl;
-using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Adm.Products;
 
 public sealed record EventTypeOptionDto(long EventTypeId, string EventTypeCode, string EventTypeNameEn);
 
-public sealed record WorkflowStepOptionDto(string StepCode, string? StepName);
-
-public sealed record WorkflowOptionDto(string WorkflowCode, string WorkflowName, IReadOnlyList<WorkflowStepOptionDto> Steps);
-
 public sealed record ProductEventRuleDto(
     long ProductEventRuleId, long ProductId, string ProductCode, string ProductNameEn, long EventTypeId, string EventTypeCode,
-    string EventTypeNameEn, string? WorkflowCode, string? StepCode, string RuleCode, string RuleNameEn, string? RuleNameAr, int PriorityNo, DateOnly EffectiveFromDate,
+    string EventTypeNameEn, string RuleCode, string RuleNameEn, string? RuleNameAr, int PriorityNo, DateOnly EffectiveFromDate,
     DateOnly? EffectiveToDate, bool IsActive, int ChargeCount, int GlLineCount, int RowVersion);
 
 public sealed record SaveProductEventRuleRequest(
-    long? ProductId, long? EventTypeId, string? WorkflowCode, string? StepCode, string? RuleCode, string? RuleNameEn, string? RuleNameAr, int? PriorityNo,
+    long? ProductId, long? EventTypeId, string? RuleCode, string? RuleNameEn, string? RuleNameAr, int? PriorityNo,
     DateOnly? EffectiveFromDate, DateOnly? EffectiveToDate, bool IsActive, int? RowVersion);
 
 public sealed record RuleChargeDto(
@@ -62,7 +56,7 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
                join t in db.Set<GlAccountingEventType>() on r.EventTypeId equals t.EventTypeId
                orderby r.RuleNameEn
                select new ProductEventRuleDto(r.ProductEventRuleId, r.ProductId, p.ProductCode, p.ProductNameEn, r.EventTypeId, t.EventTypeCode,
-                   t.EventTypeNameEn, r.WorkflowCode, r.StepCode, r.RuleCode, r.RuleNameEn, r.RuleNameAr, r.PriorityNo, r.EffectiveFromDate, r.EffectiveToDate, r.IsActive,
+                   t.EventTypeNameEn, r.RuleCode, r.RuleNameEn, r.RuleNameAr, r.PriorityNo, r.EffectiveFromDate, r.EffectiveToDate, r.IsActive,
                    r.Charges.Count, r.GlLines.Count, r.RowVersion))
             .ToListAsync(cancellationToken);
 
@@ -71,18 +65,6 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
         await db.Set<GlAccountingEventType>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.EventTypeCode)
             .Select(x => new EventTypeOptionDto(x.EventTypeId, x.EventTypeCode, x.EventTypeNameEn))
             .ToListAsync(cancellationToken);
-
-    /// <summary>Released workflows and their step codes (latest released version of each), the steps a rule can be linked to.</summary>
-    public async Task<IReadOnlyList<WorkflowOptionDto>> ListWorkflowStepsAsync(CancellationToken cancellationToken) =>
-        [.. (await ReleasedWorkflowsAsync(cancellationToken)).Select(x => new WorkflowOptionDto(x.WorkflowCode, x.WorkflowName,
-            [.. BpmnModel.Steps(x.BpmnXml).Select(s => new WorkflowStepOptionDto(s.StepCode!, s.Name)).DistinctBy(s => s.StepCode)]))];
-
-    private async Task<List<WfeWorkflowDefinition>> ReleasedWorkflowsAsync(CancellationToken cancellationToken) =>
-        [.. (await db.Set<WfeWorkflowDefinition>().AsNoTracking()
-                .Where(x => x.IsActive && x.DefinitionStatus == "released").ToListAsync(cancellationToken))
-            .GroupBy(x => x.WorkflowCode)
-            .Select(g => g.OrderByDescending(x => int.TryParse(x.VersionNo, out var v) ? v : 0).First())
-            .OrderBy(x => x.WorkflowCode)];
 
     public async Task<ProductEventRuleDto> GetAsync(long id, CancellationToken cancellationToken) =>
         (await ListAsync(cancellationToken)).FirstOrDefault(x => x.ProductEventRuleId == id)
@@ -271,22 +253,6 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
             e.Add(nameof(r.EffectiveFromDate), "Effective From is required.");
         e.Dates(nameof(r.EffectiveToDate), r.EffectiveFromDate, r.EffectiveToDate);
 
-        // the workflow step is optional, but a workflow needs its step and a step its workflow
-        var workflow = e.Optional(nameof(r.WorkflowCode), "Workflow", r.WorkflowCode, 50, upper: true);
-        var step = e.Optional(nameof(r.StepCode), "Step", r.StepCode, 100, upper: true);
-        if (workflow is not null && step is null)
-            e.Add(nameof(r.StepCode), "Select the workflow step.");
-        else if (workflow is null && step is not null)
-            e.Add(nameof(r.WorkflowCode), "Select the workflow of the step.");
-        else if (workflow is not null && (workflow != entity.WorkflowCode || step != entity.StepCode))
-        {
-            var definition = (await ReleasedWorkflowsAsync(cancellationToken)).FirstOrDefault(x => x.WorkflowCode == workflow);
-            if (definition is null)
-                e.Add(nameof(r.WorkflowCode), $"Workflow '{workflow}' has no released version.");
-            else if (!BpmnModel.Steps(definition.BpmnXml).Any(x => x.StepCode == step))
-                e.Add(nameof(r.StepCode), $"Step '{step}' is not in workflow '{workflow}'.");
-        }
-
         if (code.Length > 0 && r.ProductId is not null && r.EventTypeId is not null
             && await db.Set<AdmProductEventRule>().AnyAsync(x => x.ProductId == r.ProductId && x.EventTypeId == r.EventTypeId && x.RuleCode == code
                                                                  && x.ProductEventRuleId != entity.ProductEventRuleId, cancellationToken))
@@ -295,8 +261,6 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
 
         entity.ProductId = r.ProductId!.Value;
         entity.EventTypeId = r.EventTypeId!.Value;
-        entity.WorkflowCode = workflow;
-        entity.StepCode = step;
         entity.RuleCode = code;
         entity.RuleNameEn = nameEn;
         entity.RuleNameAr = nameAr;

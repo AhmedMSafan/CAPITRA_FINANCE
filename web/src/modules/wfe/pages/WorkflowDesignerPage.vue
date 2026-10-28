@@ -430,6 +430,24 @@
 
             <section class="property-section">
               <div class="section-title">
+                <span class="section-icon pi pi-book"></span>
+                <div>
+                  <strong>Accounting Event</strong>
+                  <small>Business event raised when the step completes; its product event rule gives the charges and GL entries.</small>
+                </div>
+              </div>
+
+              <label class="field-label">Business Event</label>
+              <select v-if="eventTypes.length" v-model="step.eventCode">
+                <option value="">- None -</option>
+                <option v-if="step.eventCode && !eventTypes.some(x=>x.eventTypeCode===step.eventCode)" :value="step.eventCode">{{ step.eventCode }}</option>
+                <option v-for="x in eventTypes" :key="x.eventTypeCode" :value="x.eventTypeCode">{{ x.eventTypeCode }} - {{ x.eventTypeNameEn }}</option>
+              </select>
+              <input v-else v-model="step.eventCode" placeholder="e.g. PP_DISBURSE" />
+            </section>
+
+            <section class="property-section">
+              <div class="section-title">
                 <span class="section-icon pi pi-external-link"></span>
                 <div>
                   <strong>Navigation / Route</strong>
@@ -541,14 +559,18 @@ import BpmnModeler from 'bpmn-js/lib/Modeler'
 import 'bpmn-js/dist/assets/diagram-js.css'; import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css'
 import finovaWorkflowModdle from '../models/finovaWorkflowModel'
 import {createWorkflowDefinition,getWorkflowDefinition,updateWorkflowDefinition} from '../services/workflowDefinitionService'
+import {productEventRulesApi,type EventTypeOption} from '@/modules/adm/api/products.api'
 
 type Var={name:string,type:string,required:boolean}; type Param={name:string,value:string};
-type Step={stepCode:string,stepName:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[]}
+type Step={stepCode:string,stepName:string,eventCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[]}
 const route=useRoute(),router=useRouter(),canvas=ref<HTMLElement|null>(null),saving=ref(false),active=ref(true),selectedId=ref(''),selectedType=ref(''),message=ref(''),messageType=ref<'success'|'error'>('success'),showXml=ref(false),xmlPreview=ref(''),customAction=ref(''),flowOutcome=ref(''),customFlowOutcome=ref(''),selectedFlowSource=ref(''),selectedFlowTarget=ref(''),leftPanelOpen=ref(false),rightPanelOpen=ref(false),zoomPercent=ref(100)
 const variables=reactive<Var[]>([]),steps=reactive<Record<string,Step>>({}); let modeler:any=null
 const form=reactive({dgrmId:0,dgrmName:'',dgrmVersion:'1',dgrmStatus:'draft',dgrmContent:'',dgrmCreatedBy:'SYSTEM',dgrmLastUpdateBy:'SYSTEM',workflowCode:'',description:'',isActive:'Y'})
+// business events for the Accounting Event drop-down; without access to them the field stays free text
+const eventTypes=ref<EventTypeOption[]>([])
+productEventRulesApi.eventTypes().then(x=>eventTypes.value=x).catch(()=>{})
 const actionCatalog=ref(['CLAIM','ACCEPT','APPROVE','REJECT','RETURN','COMPLETE'])
-function emptyStep():Step{return{stepCode:'',stepName:'',stepType:'HumanTask',assignmentType:'Role',assignee:'',route:'',routeParameters:[],actions:['CLAIM','COMPLETE']}}
+function emptyStep():Step{return{stepCode:'',stepName:'',eventCode:'',stepType:'HumanTask',assignmentType:'Role',assignee:'',route:'',routeParameters:[],actions:['CLAIM','COMPLETE']}}
 // selecting an element creates its step settings (bindSelection), so the computed only reads them
 const step=computed<Step>(()=>(selectedId.value?steps[selectedId.value]:undefined)??emptyStep())
 const starter=`<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:finova="http://finova/workflow" id="Definitions_FINOVA" targetNamespace="http://finova/workflow"><bpmn:process id="Process_FINOVA" name="FINOVA Workflow Engine" isExecutable="true"><bpmn:startEvent id="StartEvent_1" name="Start"><bpmn:outgoing>Flow_1</bpmn:outgoing></bpmn:startEvent><bpmn:userTask id="Task_1" name="Approval Task"><bpmn:incoming>Flow_1</bpmn:incoming><bpmn:outgoing>Flow_2</bpmn:outgoing></bpmn:userTask><bpmn:endEvent id="EndEvent_1" name="End"><bpmn:incoming>Flow_2</bpmn:incoming></bpmn:endEvent><bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1"/><bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="EndEvent_1"/></bpmn:process><bpmndi:BPMNDiagram id="BPMNDiagram_1"><bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_FINOVA"><bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1"><dc:Bounds x="180" y="182" width="36" height="36"/></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1"><dc:Bounds x="300" y="160" width="120" height="80"/></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1"><dc:Bounds x="520" y="182" width="36" height="36"/></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="216" y="200"/><di:waypoint x="300" y="200"/></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="420" y="200"/><di:waypoint x="520" y="200"/></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>`
@@ -582,6 +604,7 @@ function loadMetadataFromXml(){
     const s=emptyStep()
     s.stepName=bo.name||''
     s.stepCode=bo.stepCode||''
+    s.eventCode=bo.eventCode||''
     s.stepType=bo.stepType||inferType(e.type)
     s.assignmentType=bo.assignmentType||((s.stepType==='HumanTask')?'Role':'None')
     s.assignee=bo.assignee||''
@@ -612,6 +635,7 @@ function writeMetadataToBpmn(){
     modeling.updateProperties(el,{
       name:s.stepName||el.businessObject.name,
       stepCode:s.stepCode,
+      eventCode:s.eventCode||undefined,
       stepType:s.stepType,
       assignmentType:s.assignmentType,
       assignee:s.assignee,

@@ -50,8 +50,6 @@ export type SaveMppParameters = {
   rowVersion: number
 }
 
-export type WorkflowOption = { workflowCode: string; workflowName: string; steps: { stepCode: string; stepName: string | null }[] }
-
 export type EventTypeOption = { eventTypeId: number; eventTypeCode: string; eventTypeNameEn: string }
 
 /** ADM_PRODUCT_EVENT_RULES */
@@ -63,8 +61,6 @@ export type ProductEventRule = {
   eventTypeId: number
   eventTypeCode: string
   eventTypeNameEn: string
-  workflowCode: string | null
-  stepCode: string | null
   ruleCode: string
   ruleNameEn: string
   ruleNameAr: string | null
@@ -148,7 +144,6 @@ export const productEventRulesApi = {
   list: () => http.get<ProductEventRule[]>(RULES),
   get: (id: number) => http.get<ProductEventRule>(`${RULES}/${id}`),
   eventTypes: () => http.get<EventTypeOption[]>(`${RULES}/event-types`),
-  workflowSteps: () => http.get<WorkflowOption[]>(`${RULES}/workflow-steps`),
   create: (b: Body) => http.post<ProductEventRule>(RULES, b),
   update: (id: number, b: Body) => http.put<ProductEventRule>(`${RULES}/${id}`, b),
   remove: (id: number, rowVersion: number) => http.delete<void>(`${RULES}/${id}?rowVersion=${rowVersion}`),

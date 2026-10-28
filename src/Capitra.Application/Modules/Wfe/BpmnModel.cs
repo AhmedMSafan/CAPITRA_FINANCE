@@ -13,7 +13,8 @@ public sealed record BpmnElement(
     string? Assignee,
     string? Route,
     string? RouteParameters,
-    string? Actions)
+    string? Actions,
+    string? EventCode = null)
 {
     public bool IsHumanTask =>
         Type is "userTask" or "manualTask" || string.Equals(StepType, "HumanTask", StringComparison.OrdinalIgnoreCase);
@@ -58,10 +59,6 @@ public static class BpmnModel
         return Element(xml, target);
     }
 
-    /// <summary>Every element that carries a step code, in diagram order.</summary>
-    public static IReadOnlyList<BpmnElement> Steps(string xml) =>
-        [.. Load(xml).Descendants().Select(Map).Where(x => !string.IsNullOrWhiteSpace(x.StepCode))];
-
     private static bool Matches(XElement flow, string outcome) =>
         string.Equals((string?)flow.Attribute("name"), outcome, StringComparison.OrdinalIgnoreCase)
         || string.Equals(Attr(flow, "outcome"), outcome, StringComparison.OrdinalIgnoreCase);
@@ -79,7 +76,8 @@ public static class BpmnModel
         Attr(e, "assignee"),
         Attr(e, "route"),
         Attr(e, "routeParameters"),
-        Attr(e, "actions"));
+        Attr(e, "actions"),
+        Attr(e, "eventCode"));
 
     private static string? Attr(XElement e, string name) => (string?)e.Attribute(Finova + name) ?? (string?)e.Attribute(name);
 }

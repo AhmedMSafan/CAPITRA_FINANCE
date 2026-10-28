@@ -47,6 +47,14 @@ public sealed class PurchasedPortfolioBpmnTests
         Assert.Equal("CLAIM,START,COMPLETE", BpmnModel.Element(Xml, "Task_COVERAGE_REVIEW").Actions);
     }
 
+    [Fact]
+    public void A_step_carries_its_accounting_event_code()
+    {
+        var xml = Xml.Replace("finova:stepCode=\"DISBURSEMENT\"", "finova:stepCode=\"DISBURSEMENT\" finova:eventCode=\"PP_DISBURSE\"");
+        Assert.Equal("PP_DISBURSE", BpmnModel.Element(xml, "Task_DISBURSEMENT").EventCode);
+        Assert.Null(BpmnModel.Element(xml, "Task_AML_REVIEW").EventCode);
+    }
+
     private static string RepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

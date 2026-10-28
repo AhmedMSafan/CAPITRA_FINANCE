@@ -15,12 +15,6 @@ public class AdmProductEventRule : AuditableEntity
     /// <summary>GL_ACCOUNTING_EVENT_TYPES.EVENT_TYPE_ID.</summary>
     public long EventTypeId { get; set; }
 
-    /// <summary>WFE_WORKFLOW_DEFINITIONS.WORKFLOW_CODE of the workflow whose step this rule serves, e.g. PURCHASED_PORTFOLIO_WF.</summary>
-    public string? WorkflowCode { get; set; }
-
-    /// <summary>The step code in that workflow's BPMN diagram, e.g. DISBURSEMENT.</summary>
-    public string? StepCode { get; set; }
-
     public string RuleCode { get; set; } = string.Empty;
 
     public string RuleNameEn { get; set; } = string.Empty;

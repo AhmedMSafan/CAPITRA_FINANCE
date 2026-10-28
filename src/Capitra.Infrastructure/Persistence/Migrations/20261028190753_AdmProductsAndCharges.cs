@@ -128,8 +128,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PRODUCT_ID = table.Column<long>(type: "bigint", nullable: false),
                     EVENT_TYPE_ID = table.Column<long>(type: "bigint", nullable: false),
-                    WORKFLOW_CODE = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    STEP_CODE = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     RULE_CODE = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     RULE_NAME_EN = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     RULE_NAME_AR = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
@@ -297,11 +295,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 name: "IX_ADM_PRODUCT_EVENT_RULES_EVENT_TYPE_ID",
                 table: "ADM_PRODUCT_EVENT_RULES",
                 column: "EVENT_TYPE_ID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ADM_PRODUCT_EVENT_RULES_PRODUCT_ID_WORKFLOW_CODE_STEP_CODE",
-                table: "ADM_PRODUCT_EVENT_RULES",
-                columns: new[] { "PRODUCT_ID", "WORKFLOW_CODE", "STEP_CODE" });
 
             migrationBuilder.CreateIndex(
                 name: "UQ_ADM_PRODUCT_EVENT_RULES_PRODUCT_ID_EVENT_TYPE_ID_RULE_CODE",

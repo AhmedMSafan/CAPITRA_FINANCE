@@ -13,11 +13,8 @@ public sealed class AdmProductEventRuleConfiguration : IEntityTypeConfiguration<
         builder.HasKey(x => x.ProductEventRuleId);
         builder.HasIndex(x => new { x.ProductId, x.EventTypeId, x.RuleCode }).IsUnique();
         builder.HasIndex(x => x.EventTypeId);
-        builder.HasIndex(x => new { x.ProductId, x.WorkflowCode, x.StepCode });
 
         builder.Property(x => x.ProductEventRuleId).UseIdentityByDefaultColumn();
-        builder.Property(x => x.WorkflowCode).HasMaxLength(50);
-        builder.Property(x => x.StepCode).HasMaxLength(100);
         builder.Property(x => x.RuleCode).HasMaxLength(50);
         builder.Property(x => x.RuleNameEn).HasMaxLength(200);
         builder.Property(x => x.RuleNameAr).HasMaxLength(200);

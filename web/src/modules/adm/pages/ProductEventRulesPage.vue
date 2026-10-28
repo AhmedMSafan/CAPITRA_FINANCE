@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Product Event Rules (ADM_PRODUCT_EVENT_RULES): FINOVA_FINANCEING ProductEventRulesPage. The rule list, and under it the
-// configuration of the selected rule in three tabs as there: Rule GL Entries (the posting of the step's business itself),
+// configuration of the selected rule in three tabs as there: Rule GL Entries (the posting of the business event itself),
 // Charge Components, and Component GL Entries (the posting of one charge).
 import { computed, nextTick, ref } from 'vue'
 import CrudPage from '@/shared/crud/CrudPage.vue'
@@ -11,7 +11,7 @@ import { tr } from '@/shared/layout/language'
 import { todayInCairo } from '@/shared/format/datetime'
 import {
   CALCULATION_METHODS, CHARGE_TIMINGS, chargesApi, labelOf, productEventRulesApi, productsApi,
-  type ProductEventRule, type RuleCharge, type RuleGlLine, type WorkflowOption
+  type ProductEventRule, type RuleCharge, type RuleGlLine
 } from '../api/products.api'
 
 const canEdit = hasPermission('ADM.PRODUCT.EDIT')
@@ -19,12 +19,11 @@ const canEdit = hasPermission('ADM.PRODUCT.EDIT')
 // ---- lists for the drop-downs
 const products = ref<FieldOption[]>([])
 const eventTypes = ref<FieldOption[]>([])
-const workflows = ref<WorkflowOption[]>([])
 const charges = ref<FieldOption[]>([])
 const glAccounts = ref<FieldOption[]>([])
 
 // ---- rule list
-type RuleRow = ProductEventRule & { stepLabel: string }
+type RuleRow = ProductEventRule
 
 const productFilter = ref('')
 const eventFilter = ref('')
@@ -32,7 +31,6 @@ const eventFilter = ref('')
 const ruleColumns: CrudColumn<RuleRow>[] = [
   { field: 'productCode', label: 'Product', type: 'code' },
   { field: 'eventTypeCode', label: 'Business Event', type: 'code' },
-  { field: 'stepLabel', label: 'Workflow Step' },
   { field: 'ruleCode', label: 'Rule Code', type: 'code' },
   { field: 'ruleNameEn', label: 'Rule Name' },
   { field: 'priorityNo', label: 'Priority', type: 'number' },
@@ -40,15 +38,9 @@ const ruleColumns: CrudColumn<RuleRow>[] = [
   { field: 'effectiveToDate', label: 'Effective To', type: 'date' }
 ]
 
-const stepOptions = (values: FormValues): FieldOption[] =>
-  (workflows.value.find(w => w.workflowCode === values.workflowCode)?.steps ?? [])
-    .map(s => ({ value: s.stepCode, label: s.stepName ? `${s.stepCode} - ${s.stepName}` : s.stepCode }))
-
 const ruleFields = computed<CrudField[]>(() => [
   { name: 'productId', label: 'Product', type: 'select', required: true, options: products.value },
   { name: 'eventTypeId', label: 'Business Event', type: 'select', required: true, options: eventTypes.value },
-  { name: 'workflowCode', label: 'Workflow', type: 'select', options: workflows.value.map(w => ({ value: w.workflowCode, label: `${w.workflowCode} - ${w.workflowName}` })) },
-  { name: 'stepCode', label: 'Workflow Step', type: 'select', optionsFor: stepOptions },
   { name: 'ruleCode', label: 'Rule Code', type: 'text', required: true, maxLength: 50, uppercase: true },
   { name: 'priorityNo', label: 'Priority No', type: 'number', required: true, min: 0 },
   { name: 'ruleNameEn', label: 'Rule Name (EN)', type: 'text', required: true, maxLength: 200 },
@@ -56,8 +48,6 @@ const ruleFields = computed<CrudField[]>(() => [
   { name: 'effectiveFromDate', label: 'Effective From', type: 'date', required: true },
   { name: 'effectiveToDate', label: 'Effective To', type: 'date' }
 ])
-
-const toRuleRow = (r: ProductEventRule): RuleRow => ({ ...r, stepLabel: r.workflowCode ? `${r.workflowCode} · ${r.stepCode}` : '' })
 
 const toRuleBody = (v: FormValues, rowVersion: number | null) => ({
   ...v,
@@ -71,13 +61,13 @@ const ruleApi = computed<CrudApi<RuleRow>>(() => {
   const event = eventFilter.value
   return {
     list: async () => {
-      const rows = (await productEventRulesApi.list()).map(toRuleRow)
+      const rows = (await productEventRulesApi.list())
       // keep the open configuration in step with the saved rule
       if (selectedRule.value) selectedRule.value = rows.find(x => x.productEventRuleId === selectedRule.value!.productEventRuleId) ?? null
       return rows.filter(r => (!product || String(r.productId) === product) && (!event || String(r.eventTypeId) === event))
     },
-    create: async v => toRuleRow(await productEventRulesApi.create(toRuleBody(v, null))),
-    update: async (row, v) => toRuleRow(await productEventRulesApi.update(row.productEventRuleId, toRuleBody(v, row.rowVersion))),
+    create: v => productEventRulesApi.create(toRuleBody(v, null)),
+    update: (row, v) => productEventRulesApi.update(row.productEventRuleId, toRuleBody(v, row.rowVersion)),
     remove: async row => {
       await productEventRulesApi.remove(row.productEventRuleId, row.rowVersion)
       if (selectedRule.value?.productEventRuleId === row.productEventRuleId) closeConfiguration()
@@ -235,12 +225,11 @@ const componentGlApi = computed(() => glApiFor(selectedComponent.value?.ruleChar
 
 // ---- start
 void (async () => {
-  const [p, e, w, c, a] = await Promise.all([
-    productsApi.list(), productEventRulesApi.eventTypes(), productEventRulesApi.workflowSteps(), chargesApi.list(), productEventRulesApi.glAccounts()
+  const [p, e, c, a] = await Promise.all([
+    productsApi.list(), productEventRulesApi.eventTypes(), chargesApi.list(), productEventRulesApi.glAccounts()
   ])
   products.value = p.filter(x => x.isActive).map(x => ({ value: x.productId, label: `${x.productCode} - ${x.productNameEn}` }))
   eventTypes.value = e.map(x => ({ value: x.eventTypeId, label: `${x.eventTypeCode} - ${x.eventTypeNameEn}` }))
-  workflows.value = w
   charges.value = c.filter(x => x.isActive).map(x => ({ value: x.chargeId, label: `${x.chargeCode} - ${x.chargeNameEn}` }))
   glAccounts.value = a.map(x => ({ value: x.accountId, label: `${x.accountCode} - ${x.accountNameEn}` }))
 })()
@@ -297,7 +286,6 @@ void (async () => {
             <span class="fx-chip" :class="{ 'fx-chip--ok': selectedRule.isActive }">{{ tr(selectedRule.isActive ? 'Active' : 'Inactive') }}</span>
             <span><b>{{ tr('Product') }}:</b> {{ selectedRule.productCode }}</span>
             <span><b>{{ tr('Event') }}:</b> {{ selectedRule.eventTypeCode }}</span>
-            <span v-if="selectedRule.workflowCode"><b>{{ tr('Step') }}:</b> {{ selectedRule.stepLabel }}</span>
             <span><b>{{ tr('Priority') }}:</b> {{ selectedRule.priorityNo }}</span>
             <span><b>{{ tr('Effective') }}:</b> {{ formatCell(selectedRule.effectiveFromDate, 'date') }}</span>
             <button type="button" class="per-close" :title="tr('Close configuration')" @click="closeConfiguration"><i class="pi pi-times"></i></button>
