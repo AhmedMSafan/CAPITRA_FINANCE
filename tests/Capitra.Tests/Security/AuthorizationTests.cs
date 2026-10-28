@@ -57,6 +57,11 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
 
     [Theory]
     [InlineData("POST", "/api/adm/lookups/country", Permissions.Gl.SetupView)]
+    [InlineData("GET", "/api/adm/products", "")]
+    [InlineData("POST", "/api/adm/products", Permissions.Adm.ProductView)]
+    [InlineData("POST", "/api/adm/charges", Permissions.Adm.ProductView)]
+    [InlineData("PUT", "/api/adm/product-event-rules/1", Permissions.Adm.ProductView)]
+    [InlineData("POST", "/api/adm/product-event-rules/1/charges", Permissions.Adm.LookupEdit)]
     [InlineData("POST", "/api/apex/120/600/IR_ACCOUNTING_EVENT_SOURCES_CATALOGUE", "GL.SOMETHING.ELSE")]
     [InlineData("POST", "/api/apex/120/601/FORM_DML_ACCOUNTING_EVENT_SOURCE_DETAILS", Permissions.Gl.SetupView)]
     public async Task Missing_permission_is_forbidden(string method, string url, string permission)

@@ -15,6 +15,12 @@ public static class Permissions
     {
         /// <summary>Create, change and delete lookup values. Reading lookups only needs a signed-in user.</summary>
         public const string LookupEdit = "ADM.LOOKUP.EDIT";
+
+        /// <summary>Read products, charges and product event rules.</summary>
+        public const string ProductView = "ADM.PRODUCT.VIEW";
+
+        /// <summary>Create, change and delete products, charges and product event rules.</summary>
+        public const string ProductEdit = "ADM.PRODUCT.EDIT";
     }
 
     public static class Sec

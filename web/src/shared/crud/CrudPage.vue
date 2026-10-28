@@ -267,6 +267,7 @@ useFeedback({ errors: [pageError, formError] })
                 <span class="fx-chip" :class="{ 'fx-chip--ok': row.isActive }">{{ tr(row.isActive ? 'Active' : 'Inactive') }}</span>
               </td>
               <td class="fx-r">
+                <slot name="row-actions" :row="row"></slot>
                 <button type="button" class="fx-btn fx-btn--sm" @click="openEdit(row)">{{ tr(canEdit ? 'Edit' : 'View') }}</button>
               </td>
             </tr>

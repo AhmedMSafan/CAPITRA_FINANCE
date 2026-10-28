@@ -225,6 +225,38 @@ const router = createRouter({
           component: () => import('@/modules/adm/pages/AdministrationPage.vue'),
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Administration' }
         },
+        // Product and charge setup (FINOVA_FINANCEING Admin Setup)
+        {
+          path: 'admin/products',
+          name: 'adm-products',
+          component: () => import('@/modules/adm/pages/ProductsPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Catalog' }
+        },
+        {
+          path: 'admin/products/mortgage-portfolio-purchasing',
+          name: 'adm-product-mpp',
+          component: () => import('@/modules/adm/pages/MortgagePortfolioPurchasingProductPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Parameters' }
+        },
+        {
+          path: 'admin/charges',
+          name: 'adm-charges',
+          component: () => import('@/modules/adm/pages/ChargesPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Charges' }
+        },
+        {
+          path: 'admin/product-event-rules',
+          name: 'adm-product-event-rules',
+          component: () => import('@/modules/adm/pages/ProductEventRulesPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Event Rules' }
+        },
+        {
+          path: 'admin/product-event-rules/:ruleId',
+          name: 'adm-product-event-rule-charges',
+          component: () => import('@/modules/adm/pages/ProductEventRuleChargesPage.vue'),
+          props: true,
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Event Rules' }
+        },
         {
           path: 'admin/reference-data',
           name: 'adm-reference-data',

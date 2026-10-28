@@ -22,6 +22,126 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmCharge", b =>
+                {
+                    b.Property<long>("ChargeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CHARGE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ChargeId"));
+
+                    b.Property<string>("CalculationTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("CALCULATION_TYPE_CODE");
+
+                    b.Property<string>("ChargeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CHARGE_CODE");
+
+                    b.Property<string>("ChargeNameAr")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("CHARGE_NAME_AR");
+
+                    b.Property<string>("ChargeNameEn")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("CHARGE_NAME_EN");
+
+                    b.Property<string>("ChargeTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CHARGE_TYPE_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<decimal?>("DefaultAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DEFAULT_AMOUNT");
+
+                    b.Property<decimal?>("DefaultRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("DEFAULT_RATE");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<DateOnly?>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<string>("FinancialNatureCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("FINANCIAL_NATURE_CODE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsRecurring")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_RECURRING");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ChargeId")
+                        .HasName("PK_ADM_CHARGES");
+
+                    b.HasIndex("ChargeCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_CHARGES_CHARGE_CODE");
+
+                    b.HasIndex("ChargeTypeCode")
+                        .HasDatabaseName("IX_ADM_CHARGES_CHARGE_TYPE_CODE");
+
+                    b.HasIndex("CurrencyCode")
+                        .HasDatabaseName("IX_ADM_CHARGES_CURRENCY_CODE");
+
+                    b.ToTable("ADM_CHARGES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpBusinessLine", b =>
                 {
                     b.Property<string>("Code")
@@ -82,6 +202,68 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasName("PK_ADM_LKP_BUSINESS_LINES");
 
                     b.ToTable("ADM_LKP_BUSINESS_LINES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpChargeType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_ADM_LKP_CHARGE_TYPES");
+
+                    b.ToTable("ADM_LKP_CHARGE_TYPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpChequeStatus", b =>
@@ -766,6 +948,349 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasName("PK_ADM_LKP_RISK_LEVELS");
 
                     b.ToTable("ADM_LKP_RISK_LEVELS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProduct", b =>
+                {
+                    b.Property<long>("ProductId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProductId"));
+
+                    b.Property<string>("BusinessLineCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BUSINESS_LINE_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DefaultCurrencyCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("DEFAULT_CURRENCY_CODE");
+
+                    b.Property<DateOnly>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<string>("FactoringModeCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("FACTORING_MODE_CODE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool?>("IsRecourse")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_RECOURSE");
+
+                    b.Property<decimal>("MppInvestorPaymentPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MPP_INVESTOR_PAYMENT_PCT");
+
+                    b.Property<decimal>("MppLateFeeRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MPP_LATE_FEE_RATE");
+
+                    b.Property<decimal>("MppPvRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MPP_PV_RATE");
+
+                    b.Property<decimal>("MppReservedAmountPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MPP_RESERVED_AMOUNT_PCT");
+
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PRODUCT_CODE");
+
+                    b.Property<string>("ProductNameAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("PRODUCT_NAME_AR");
+
+                    b.Property<string>("ProductNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("PRODUCT_NAME_EN");
+
+                    b.Property<string>("ProductTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PRODUCT_TYPE_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProductId")
+                        .HasName("PK_ADM_PRODUCTS");
+
+                    b.HasIndex("BusinessLineCode")
+                        .HasDatabaseName("IX_ADM_PRODUCTS_BUSINESS_LINE_CODE");
+
+                    b.HasIndex("DefaultCurrencyCode")
+                        .HasDatabaseName("IX_ADM_PRODUCTS_DEFAULT_CURRENCY_CODE");
+
+                    b.HasIndex("ProductCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_PRODUCTS_PRODUCT_CODE");
+
+                    b.HasIndex("IsActive", "BusinessLineCode")
+                        .HasDatabaseName("IX_ADM_PRODUCTS_IS_ACTIVE_BUSINESS_LINE_CODE");
+
+                    b.ToTable("ADM_PRODUCTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRule", b =>
+                {
+                    b.Property<long>("ProductEventRuleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_EVENT_RULE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProductEventRuleId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<long>("EventTypeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("EVENT_TYPE_ID");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<int>("PriorityNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("PRIORITY_NO");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("RuleCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("RULE_CODE");
+
+                    b.Property<string>("RuleNameAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("RULE_NAME_AR");
+
+                    b.Property<string>("RuleNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("RULE_NAME_EN");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProductEventRuleId")
+                        .HasName("PK_ADM_PRODUCT_EVENT_RULES");
+
+                    b.HasIndex("EventTypeId")
+                        .HasDatabaseName("IX_ADM_PRODUCT_EVENT_RULES_EVENT_TYPE_ID");
+
+                    b.HasIndex("ProductId", "EventTypeId", "RuleCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_PRODUCT_EVENT_RULES_PRODUCT_ID_EVENT_TYPE_ID_RULE_CODE");
+
+                    b.ToTable("ADM_PRODUCT_EVENT_RULES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRuleCharge", b =>
+                {
+                    b.Property<long>("RuleChargeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("RULE_CHARGE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RuleChargeId"));
+
+                    b.Property<string>("CalculationMethodCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CALCULATION_METHOD_CODE");
+
+                    b.Property<long>("ChargeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CHARGE_ID");
+
+                    b.Property<decimal?>("ChargeRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("CHARGE_RATE");
+
+                    b.Property<string>("ChargeTimingCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CHARGE_TIMING_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int?>("DayCountBasis")
+                        .HasColumnType("integer")
+                        .HasColumnName("DAY_COUNT_BASIS");
+
+                    b.Property<int>("DueDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("DUE_DAYS");
+
+                    b.Property<DateOnly>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<DateOnly?>("EffectiveToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_TO_DATE");
+
+                    b.Property<decimal?>("FixedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FIXED_AMOUNT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<decimal?>("MaximumAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MAXIMUM_AMOUNT");
+
+                    b.Property<decimal?>("MinimumAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MINIMUM_AMOUNT");
+
+                    b.Property<decimal?>("PerUnitAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PER_UNIT_AMOUNT");
+
+                    b.Property<long>("ProductEventRuleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_EVENT_RULE_ID");
+
+                    b.Property<int>("RoundingScale")
+                        .HasColumnType("integer")
+                        .HasColumnName("ROUNDING_SCALE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SequenceNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEQUENCE_NO");
+
+                    b.Property<decimal>("SpreadRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("SPREAD_RATE");
+
+                    b.Property<decimal>("TaxRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("TAX_RATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("RuleChargeId")
+                        .HasName("PK_ADM_PRODUCT_EVENT_RULE_CHARGES");
+
+                    b.HasIndex("ChargeId")
+                        .HasDatabaseName("IX_ADM_PRODUCT_EVENT_RULE_CHARGES_CHARGE_ID");
+
+                    b.HasIndex("ProductEventRuleId", "ChargeId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_PRODUCT_EVENT_RULE_CHARGES_PRODUCT_EVENT_RULE_ID");
+
+                    b.ToTable("ADM_PRODUCT_EVENT_RULE_CHARGES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Chq.ChqActionCatalog", b =>
@@ -32854,6 +33379,22 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("SEC_USER_TOKENS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmCharge", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpChargeType", null)
+                        .WithMany()
+                        .HasForeignKey("ChargeTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_CHARGES_ADM_LKP_CHARGE_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpCurrency", null)
+                        .WithMany()
+                        .HasForeignKey("CurrencyCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ADM_CHARGES_ADM_LKP_CURRENCIES");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpLegalEntity", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpCurrency", null)
@@ -32867,6 +33408,56 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CountryCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_ADM_LKP_LEGAL_ENTITIES_ADM_LKP_COUNTRIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProduct", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpBusinessLine", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessLineCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_PRODUCTS_ADM_LKP_BUSINESS_LINES");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpCurrency", null)
+                        .WithMany()
+                        .HasForeignKey("DefaultCurrencyCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ADM_PRODUCTS_ADM_LKP_CURRENCIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRule", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlAccountingEventType", null)
+                        .WithMany()
+                        .HasForeignKey("EventTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULES_GL_ACCOUNTING_EVENT_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmProduct", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULES_ADM_PRODUCTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRuleCharge", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmCharge", null)
+                        .WithMany()
+                        .HasForeignKey("ChargeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULE_CHARGES_ADM_CHARGES");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmProductEventRule", null)
+                        .WithMany("Charges")
+                        .HasForeignKey("ProductEventRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULE_CHARGES_ADM_PRODUCT_EVENT_RULES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Chq.ChqCheque", b =>
@@ -37523,6 +38114,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_SEC_USER_TOKENS_SEC_USERS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRule", b =>
+                {
+                    b.Navigation("Charges");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeStepInstance", b =>

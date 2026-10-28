@@ -13,6 +13,9 @@ public static class DependencyInjection
     {
         services.AddScoped<IAdmLookupService, AdmLookupService>();
         services.AddScoped<Modules.Adm.Currencies.AdmCurrencyService>();
+        services.AddScoped<Modules.Adm.Products.AdmChargeService>();
+        services.AddScoped<Modules.Adm.Products.AdmProductService>();
+        services.AddScoped<Modules.Adm.Products.AdmProductEventRuleService>();
 
 
 

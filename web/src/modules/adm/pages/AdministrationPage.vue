@@ -65,17 +65,17 @@ const sections: SetupSection[] = [
   {
     title: 'Product Setup', description: 'Configure products, events and product processing rules.', icon: 'pi pi-box', color: '#1D5BBF', tint: '#E8F1FF',
     items: [
-      { title: 'Product Catalog', description: 'Maintain product catalog and product definitions.', icon: 'pi pi-box' },
-      { title: 'Product Event Rules', description: 'Define product events and processing rules.', icon: 'pi pi-sitemap' },
-      { title: 'Business Events', description: 'Maintain business events used by product event rules.', icon: 'pi pi-bolt' },
-      { title: 'Product Parameters', description: 'Maintain product-level configuration and defaults.', icon: 'pi pi-sliders-h' }
+      { title: 'Product Catalog', description: 'Maintain product catalog and product definitions.', icon: 'pi pi-box', route: '/admin/products', perm: 'ADM.PRODUCT.VIEW' },
+      { title: 'Product Event Rules', description: 'Define product events and processing rules.', icon: 'pi pi-sitemap', route: '/admin/product-event-rules', perm: 'ADM.PRODUCT.VIEW' },
+      { title: 'Business Events', description: 'Maintain business events used by product event rules.', icon: 'pi pi-bolt', route: '/gl/accounting-events', perm: 'GL.SETUP.VIEW' },
+      { title: 'Product Parameters', description: 'Maintain product-level configuration and defaults.', icon: 'pi pi-sliders-h', route: '/admin/products/mortgage-portfolio-purchasing', perm: 'ADM.PRODUCT.VIEW' }
     ]
   },
   {
     title: 'Charge Setup', description: 'Maintain charge definitions, types and pricing configuration.', icon: 'pi pi-wallet', color: '#14734F', tint: '#E7F6EF',
     items: [
-      { title: 'Charge Components', description: 'Maintain reusable charge components.', icon: 'pi pi-wallet' },
-      { title: 'Charge Component Types', description: 'Maintain charge component classifications.', icon: 'pi pi-tags' },
+      { title: 'Charge Components', description: 'Maintain reusable charge components.', icon: 'pi pi-wallet', route: '/admin/charges', perm: 'ADM.PRODUCT.VIEW' },
+      { title: 'Charge Component Types', description: 'Maintain charge component classifications.', icon: 'pi pi-tags', route: '/admin/reference-data/charge-type' },
       { title: 'Charge Parameters', description: 'Configure charge defaults and calculation settings.', icon: 'pi pi-percentage' }
     ]
   },
