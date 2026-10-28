@@ -15,7 +15,19 @@
       </div>
     </div>
 
-    <div v-if="message" class="fx-msg" :class="messageBad ? 'fx-chip--bad' : 'fx-chip--ok'">{{ message }}</div>
+    <!-- the result of a claim, as a notice region: what happened, which tasks, and the next step -->
+    <section v-if="notice" class="ib-note" :class="{ 'is-bad': notice.bad }" role="status" aria-live="polite">
+      <span class="ib-note-ic" aria-hidden="true"><span class="fa" :class="notice.bad ? 'fa-exclamation' : 'fa-check'"></span></span>
+      <div class="ib-note-body">
+        <b>{{ notice.title }}</b>
+        <span>{{ notice.detail }}</span>
+        <ul v-if="notice.failed.length" class="ib-note-list"><li v-for="f in notice.failed" :key="f">{{ f }}</li></ul>
+      </div>
+      <RouterLink v-if="notice.open" class="fx-btn fx-btn--teal fx-btn--sm" :to="taskLink(notice.open)">
+        <span class="fa fa-play" aria-hidden="true"></span>{{ tr('Open task') }}
+      </RouterLink>
+      <button type="button" class="ib-note-x" :aria-label="tr('Close')" @click="notice = null"><span class="fa fa-times" aria-hidden="true"></span></button>
+    </section>
 
     <div class="fx-toolbar">
       <div class="fx-seg" role="group" aria-label="Filter tasks">
@@ -85,8 +97,8 @@ const search = ref('')
 const workflow = ref('')
 const selected = ref<number[]>([])
 const busy = ref(false)
-const message = ref('')
-const messageBad = ref(false)
+type Notice = { bad: boolean; title: string; detail: string; failed: string[]; open?: WorkflowInboxTask }
+const notice = ref<Notice | null>(null)
 
 const DAY = 86400000
 // the page's warning window: a task is "Due soon" within two days of its due date
@@ -168,15 +180,23 @@ async function claim(ids: number[]) {
   if (!ids.length) return
   busy.value = true
   const failed: string[] = []
-  let claimed = 0
+  const done: WorkflowInboxTask[] = []
   for (const id of ids) {
-    try { await workflowService.claim(id); claimed++ } catch (e) {
-      const t = tasks.value.find((x) => x.inboxId === id)
-      failed.push(`#${t?.taskId ?? id} (${e instanceof Error ? e.message : 'error'})`)
+    const t = tasks.value.find((x) => x.inboxId === id)
+    try { await workflowService.claim(id); if (t) done.push(t) } catch (e) {
+      failed.push(`#${t?.taskId ?? id} ${t?.subject || t?.stepName || ''}: ${e instanceof Error ? e.message : 'error'}`)
     }
   }
-  message.value = `${claimed} task(s) claimed.` + (failed.length ? ` ${failed.length} could not be claimed: ${failed.join('; ')}` : '')
-  messageBad.value = claimed === 0
+  const name = (t: WorkflowInboxTask) => `${t.subject || t.stepName || ''} #${t.taskId}${t.entityRef ? ' · ' + t.entityRef : ''}`
+  notice.value = {
+    bad: done.length === 0,
+    title: done.length === 0 ? tr('The task could not be claimed') : done.length === 1 ? tr('Task claimed') : `${done.length} ${tr('tasks claimed')}`,
+    detail: done.length === 1 ? `${name(done[0]!)} ${tr('is now assigned to you. Open it to start work.')}`
+      : done.length > 1 ? tr('They are now assigned to you and listed under Claimed by me.')
+      : tr('Nothing was claimed.'),
+    failed,
+    open: done.length === 1 ? done[0] : undefined
+  }
   busy.value = false
   await load()
 }
@@ -186,8 +206,7 @@ async function load() {
   try {
     tasks.value = await workflowService.getMyInbox()
   } catch (e) {
-    message.value = 'Unable to load the inbox: ' + (e instanceof Error ? e.message : '')
-    messageBad.value = true
+    notice.value = { bad: true, title: tr('Unable to load the inbox'), detail: e instanceof Error ? e.message : '', failed: [] }
   }
 }
 
@@ -195,8 +214,20 @@ onMounted(load)
 </script>
 
 <style scoped>
-/* the APEX page's apex.message success / error line */
-.fx-msg { margin-block-end: 12px; padding: 10px 14px; border-radius: var(--fin-radius-sm); font-size: var(--fs-sm); font-weight: 600; }
 .fx-chip--ok { background: var(--fin-ok-50); color: var(--fin-ok); }
 .fx-chip--bad { background: var(--fin-bad-50); color: var(--fin-bad); }
+/* the claim notice: a white region with a teal accent (red when nothing was claimed) */
+.ib-note { display: flex; align-items: center; gap: 14px; margin-block-end: 14px; padding: 14px 16px; border-radius: 14px; background: #fff;
+  border: 1px solid #DFE8EC; border-inline-start: 4px solid #00636D; box-shadow: 0 8px 22px -16px rgba(11, 37, 51, .35); animation: ib-in .2s ease-out; }
+.ib-note.is-bad { border-inline-start-color: #C43325; }
+.ib-note-ic { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #E6F3F4; color: #00636D; font-size: 15px; }
+.ib-note.is-bad .ib-note-ic { background: #FDECEA; color: #C43325; }
+.ib-note-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ib-note-body b { font-size: 14.5px; font-weight: 700; color: #0B2533; }
+.ib-note-body > span { font-size: 13px; color: #5F7787; }
+.ib-note-list { margin: 6px 0 0; padding-inline-start: 18px; font-size: 12.5px; color: #C43325; }
+.ib-note .fx-btn .fa { margin-inline-end: 6px; }
+.ib-note-x { flex: 0 0 auto; width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: #8AA0AB; cursor: pointer; }
+.ib-note-x:hover { background: #F2F6F7; color: #0B2533; }
+@keyframes ib-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 </style>
