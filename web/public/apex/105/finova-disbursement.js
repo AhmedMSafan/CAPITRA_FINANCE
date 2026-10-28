@@ -151,7 +151,8 @@ window.FXW=window.FXW||{};
         h+='</ul></div>';}
       else if(st.tab==='gl'){var J={1:L('Journal 1 · Booking','القيد 1 · الإثبات'),2:L('Journal 2 · Payment to developer','القيد 2 · الدفع للمطور')};
         h='<div class="ds-note">'+e(L('Source PURCHASED_PORTFOLIO · category PP_DISBURSE · TRAN_SET_ID is created on Complete as PORTFOLIO-YEAR-NNNNN.','المصدر PURCHASED_PORTFOLIO · الفئة PP_DISBURSE · يُنشأ رقم TRAN_SET_ID عند الإكمال بصيغة المحفظة-السنة-رقم.'))
-          +(done()&& d.done?' <b>'+e(d.done.tranSetId||'')+'</b>':'')+'</div>';
+          +(done()&& d.done?' <b>'+e(d.done.tranSetId||'')+'</b>':'')
+          +' · '+(d.glRule?e(L('Entries from product event rule ','القيود من قاعدة حدث المنتج '))+'<b>'+e(d.glRule)+'</b>':e(L('Fixed entries (the Disbursement step has no business event)','قيود ثابتة (خطوة الصرف بلا حدث أعمال)')))+'</div>';
         [1,2].forEach(function(j){var dr=0,cr=0,b='';
           (d.gl||[]).forEach(function(g){if(g.j!==j)return;dr+=+g.dr||0;cr+=+g.cr||0;
             b+='<tr><td><span class="wb-code">'+e(g.account)+'</span></td><td>'+e(g.name||'')+'<small>'+e(g.combination)+' · '+e(g.description)+'</small></td><td class="fxd-num">'+(+g.dr?m2(g.dr):'')+'</td><td class="fxd-num">'+(+g.cr?m2(g.cr):'')+'</td></tr>';});

@@ -11,12 +11,15 @@ public sealed class AdmProductEventRuleGlLineConfiguration : IEntityTypeConfigur
     {
         builder.ToTable("ADM_PRODUCT_EVENT_RULE_GL_LINES");
         builder.HasKey(x => x.RuleGlLineId);
-        builder.HasIndex(x => new { x.ProductEventRuleId, x.RuleChargeId, x.LineNo }).IsUnique().AreNullsDistinct(false);
+        builder.HasIndex(x => new { x.ProductEventRuleId, x.RuleChargeId, x.JournalNo, x.LineNo }).IsUnique().AreNullsDistinct(false);
         builder.HasIndex(x => x.RuleChargeId);
         builder.HasIndex(x => x.AccountId);
 
         builder.Property(x => x.RuleGlLineId).UseIdentityByDefaultColumn();
         builder.Property(x => x.DebitCreditCode).HasMaxLength(1);
+        builder.Property(x => x.JournalNo).HasDefaultValue(1);
+        builder.Property(x => x.AmountCode).HasMaxLength(50);
+        builder.Property(x => x.AccountSourceCode).HasMaxLength(30).HasDefaultValue(AdmProductEventRuleGlLine.AccountSourceAccount);
         builder.Property(x => x.DescriptionTemplate).HasMaxLength(500);
 
         builder.HasOne<AdmProductEventRuleCharge>().WithMany().HasForeignKey(x => x.RuleChargeId).OnDelete(DeleteBehavior.Cascade);

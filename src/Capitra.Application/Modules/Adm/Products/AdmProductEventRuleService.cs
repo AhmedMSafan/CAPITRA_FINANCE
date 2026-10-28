@@ -31,11 +31,13 @@ public sealed record SaveRuleChargeRequest(
 public sealed record GlAccountOptionDto(long AccountId, string AccountCode, string AccountNameEn);
 
 public sealed record RuleGlLineDto(
-    long RuleGlLineId, long ProductEventRuleId, long? RuleChargeId, string? ChargeCode, int LineNo, string DebitCreditCode, long AccountId,
-    string AccountCode, string AccountNameEn, string? DescriptionTemplate, bool IsActive, int RowVersion);
+    long RuleGlLineId, long ProductEventRuleId, long? RuleChargeId, string? ChargeCode, int LineNo, int JournalNo, string DebitCreditCode,
+    string AmountCode, string AccountSourceCode, long? AccountId, string? AccountCode, string? AccountNameEn, string? DescriptionTemplate, bool IsActive,
+    int RowVersion);
 
 public sealed record SaveRuleGlLineRequest(
-    long? RuleChargeId, int? LineNo, string? DebitCreditCode, long? AccountId, string? DescriptionTemplate, bool IsActive, int? RowVersion);
+    long? RuleChargeId, int? LineNo, int? JournalNo, string? DebitCreditCode, string? AmountCode, string? AccountSourceCode, long? AccountId,
+    string? DescriptionTemplate, bool IsActive, int? RowVersion);
 
 /// <summary>
 /// ADM_PRODUCT_EVENT_RULES with their charges and GL entry lines, the Product Event Rules screen of Admin Setup (FINOVA_FINANCEING
@@ -65,6 +67,45 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
         await db.Set<GlAccountingEventType>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.EventTypeCode)
             .Select(x => new EventTypeOptionDto(x.EventTypeId, x.EventTypeCode, x.EventTypeNameEn))
             .ToListAsync(cancellationToken);
+
+    /// <summary>
+    /// The rule a posting uses for a product and business event on a date: the active rule in effect with the lowest
+    /// priority number, its charges in effect and its active GL lines; null when there is none.
+    /// </summary>
+    public async Task<ProductEventPlan?> PlanAsync(string productCode, string eventCode, DateOnly date, CancellationToken cancellationToken)
+    {
+        var rule = await (from r in db.Set<AdmProductEventRule>().AsNoTracking()
+                          join p in db.Set<AdmProduct>() on r.ProductId equals p.ProductId
+                          join t in db.Set<GlAccountingEventType>() on r.EventTypeId equals t.EventTypeId
+                          where p.ProductCode == productCode && t.EventTypeCode == eventCode && r.IsActive
+                                && r.EffectiveFromDate <= date && (r.EffectiveToDate == null || r.EffectiveToDate >= date)
+                          orderby r.PriorityNo, r.ProductEventRuleId
+                          select new { r.ProductEventRuleId, r.RuleCode }).FirstOrDefaultAsync(cancellationToken);
+        if (rule is null)
+            return null;
+
+        var charges = await (from rc in db.Set<AdmProductEventRuleCharge>().AsNoTracking()
+                             join c in db.Set<AdmCharge>() on rc.ChargeId equals c.ChargeId
+                             where rc.ProductEventRuleId == rule.ProductEventRuleId && rc.IsActive
+                                   && rc.EffectiveFromDate <= date && (rc.EffectiveToDate == null || rc.EffectiveToDate >= date)
+                             orderby rc.SequenceNo
+                             select new { rc.RuleChargeId, rc.SequenceNo, c.ChargeCode }).ToListAsync(cancellationToken);
+        var lines = await (from l in db.Set<AdmProductEventRuleGlLine>().AsNoTracking()
+                           join a in db.Set<GlAccount>() on l.AccountId equals a.AccountId into accs
+                           from a in accs.DefaultIfEmpty()
+                           where l.ProductEventRuleId == rule.ProductEventRuleId && l.IsActive
+                           select new { l, AccountCode = a == null ? null : a.AccountCode }).ToListAsync(cancellationToken);
+
+        var byId = charges.ToDictionary(x => x.RuleChargeId);
+        return new ProductEventPlan(rule.ProductEventRuleId, rule.RuleCode, eventCode, [.. charges.Select(x => x.ChargeCode)],
+            [.. lines.Where(x => x.l.RuleChargeId is null || byId.ContainsKey(x.l.RuleChargeId.Value))
+                .Select(x =>
+                {
+                    var charge = x.l.RuleChargeId is { } id ? byId[id] : null;
+                    return new ProductEventGlLine(x.l.JournalNo, x.l.LineNo, charge?.SequenceNo, charge?.ChargeCode, x.l.DebitCreditCode, x.l.AmountCode,
+                        x.l.AccountSourceCode == AdmProductEventRuleGlLine.AccountSourceBankAccount, x.AccountCode, x.l.DescriptionTemplate);
+                })]);
+    }
 
     public async Task<ProductEventRuleDto> GetAsync(long id, CancellationToken cancellationToken) =>
         (await ListAsync(cancellationToken)).FirstOrDefault(x => x.ProductEventRuleId == id)
@@ -153,22 +194,23 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
             .Select(x => new GlAccountOptionDto(x.AccountId, x.AccountCode, x.AccountNameEn))
             .ToListAsync(cancellationToken);
 
-    /// <summary>The rule's own lines first, then each charge's lines, in line order.</summary>
+    /// <summary>The rule's own lines first, then each charge's lines, in journal and line order.</summary>
     public async Task<IReadOnlyList<RuleGlLineDto>> ListGlLinesAsync(long ruleId, CancellationToken cancellationToken)
     {
         await FindAsync(ruleId, cancellationToken);
         var rows = await (from l in db.Set<AdmProductEventRuleGlLine>().AsNoTracking()
-                          join a in db.Set<GlAccount>() on l.AccountId equals a.AccountId
+                          join a in db.Set<GlAccount>() on l.AccountId equals a.AccountId into accs
+                          from a in accs.DefaultIfEmpty()
                           join rc in db.Set<AdmProductEventRuleCharge>() on l.RuleChargeId equals rc.RuleChargeId into rcs
                           from rc in rcs.DefaultIfEmpty()
                           join c in db.Set<AdmCharge>() on rc.ChargeId equals c.ChargeId into cs
                           from c in cs.DefaultIfEmpty()
                           where l.ProductEventRuleId == ruleId
-                          select new { l, a.AccountCode, a.AccountNameEn, ChargeCode = c == null ? null : c.ChargeCode, Seq = rc == null ? (int?)null : rc.SequenceNo })
+                          select new { l, AccountCode = a == null ? null : a.AccountCode, AccountNameEn = a == null ? null : a.AccountNameEn, ChargeCode = c == null ? null : c.ChargeCode, Seq = rc == null ? (int?)null : rc.SequenceNo })
             .ToListAsync(cancellationToken);
-        return [.. rows.OrderBy(x => x.Seq.HasValue).ThenBy(x => x.Seq).ThenBy(x => x.l.LineNo)
-            .Select(x => new RuleGlLineDto(x.l.RuleGlLineId, x.l.ProductEventRuleId, x.l.RuleChargeId, x.ChargeCode, x.l.LineNo, x.l.DebitCreditCode,
-                x.l.AccountId, x.AccountCode, x.AccountNameEn, x.l.DescriptionTemplate, x.l.IsActive, x.l.RowVersion))];
+        return [.. rows.OrderBy(x => x.Seq.HasValue).ThenBy(x => x.Seq).ThenBy(x => x.l.JournalNo).ThenBy(x => x.l.LineNo)
+            .Select(x => new RuleGlLineDto(x.l.RuleGlLineId, x.l.ProductEventRuleId, x.l.RuleChargeId, x.ChargeCode, x.l.LineNo, x.l.JournalNo, x.l.DebitCreditCode,
+                x.l.AmountCode, x.l.AccountSourceCode, x.l.AccountId, x.AccountCode, x.AccountNameEn, x.l.DescriptionTemplate, x.l.IsActive, x.l.RowVersion))];
     }
 
     public async Task<RuleGlLineDto> CreateGlLineAsync(long ruleId, SaveRuleGlLineRequest request, CancellationToken cancellationToken)
@@ -208,25 +250,41 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
         var dc = e.OneOf(nameof(r.DebitCreditCode), "Debit/Credit", r.DebitCreditCode, ["D", "C"]);
         var description = e.Optional(nameof(r.DescriptionTemplate), "Description", r.DescriptionTemplate, 500);
         var lineNo = r.LineNo ?? 10;
+        var journalNo = r.JournalNo ?? 1;
+        if (journalNo < 1)
+            e.Add(nameof(r.JournalNo), "Journal number must be 1 or more.");
         if (lineNo < 1)
             e.Add(nameof(r.LineNo), "Line number must be 1 or more.");
         if (r.RuleChargeId is not null
             && !await db.Set<AdmProductEventRuleCharge>().AnyAsync(x => x.RuleChargeId == r.RuleChargeId && x.ProductEventRuleId == entity.ProductEventRuleId, cancellationToken))
             e.Add(nameof(r.RuleChargeId), "The selected charge does not belong to this product event rule.");
-        if (r.AccountId is null)
+        var amount = e.OneOf(nameof(r.AmountCode), "Amount", r.AmountCode,
+            r.RuleChargeId is null ? AdmProductEventRuleGlLine.RuleAmounts : AdmProductEventRuleGlLine.ChargeAmounts);
+        var source = e.OneOf(nameof(r.AccountSourceCode), "Account source", r.AccountSourceCode ?? AdmProductEventRuleGlLine.AccountSourceAccount,
+            [AdmProductEventRuleGlLine.AccountSourceAccount, AdmProductEventRuleGlLine.AccountSourceBankAccount]);
+        var bank = source == AdmProductEventRuleGlLine.AccountSourceBankAccount;
+        if (bank)
+        {
+            if (r.AccountId is not null)
+                e.Add(nameof(r.AccountId), "Leave the account empty: it comes from the bank account chosen at the event.");
+        }
+        else if (r.AccountId is null)
             e.Add(nameof(r.AccountId), "Account is required.");
         else if (r.AccountId != entity.AccountId
                  && !await db.Set<GlAccount>().AnyAsync(x => x.AccountId == r.AccountId && x.IsActive && x.IsPostingAllowed && !x.IsSummary, cancellationToken))
             e.Add(nameof(r.AccountId), "Select an active posting account.");
         if (await db.Set<AdmProductEventRuleGlLine>().AnyAsync(x => x.ProductEventRuleId == entity.ProductEventRuleId && x.RuleChargeId == r.RuleChargeId
-                                                                    && x.LineNo == lineNo && x.RuleGlLineId != entity.RuleGlLineId, cancellationToken))
-            e.Add(nameof(r.LineNo), "Line number already exists in this section.");
+                                                                    && x.JournalNo == journalNo && x.LineNo == lineNo && x.RuleGlLineId != entity.RuleGlLineId, cancellationToken))
+            e.Add(nameof(r.LineNo), "Line number already exists in this journal of this section.");
         e.ThrowIfAny();
 
         entity.RuleChargeId = r.RuleChargeId;
         entity.LineNo = lineNo;
+        entity.JournalNo = journalNo;
         entity.DebitCreditCode = dc;
-        entity.AccountId = r.AccountId!.Value;
+        entity.AmountCode = amount;
+        entity.AccountSourceCode = source;
+        entity.AccountId = bank ? null : r.AccountId;
         entity.DescriptionTemplate = description;
         entity.IsActive = r.IsActive;
     }

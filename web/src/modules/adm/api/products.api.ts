@@ -106,10 +106,13 @@ export type RuleGlLine = {
   ruleChargeId: number | null
   chargeCode: string | null
   lineNo: number
+  journalNo: number
   debitCreditCode: string
-  accountId: number
-  accountCode: string
-  accountNameEn: string
+  amountCode: string
+  accountSourceCode: string
+  accountId: number | null
+  accountCode: string | null
+  accountNameEn: string | null
   descriptionTemplate: string | null
   isActive: boolean
   rowVersion: number
@@ -189,5 +192,26 @@ export const CHARGE_TIMINGS = [
 ]
 
 /** Code to label, for the list columns. */
+/** Figures of the event a rule's own GL line posts (purchased portfolio disbursement). */
+export const RULE_AMOUNTS = [
+  { value: 'FACE_VALUE', label: 'Face value of the cheques' },
+  { value: 'DISCOUNT', label: 'Discount (funding recovery)' },
+  { value: 'MARGIN_DEFERRED', label: 'Margin, pro-rated' },
+  { value: 'MARGIN_IMMEDIATE', label: 'Margin, recognised at once' },
+  { value: 'PURCHASE_PRICE', label: 'Purchase price (payable to developer)' }
+]
+
+/** Figures of one charge a component GL line posts. */
+export const CHARGE_AMOUNTS = [
+  { value: 'CHARGE_AMOUNT', label: 'Charge amount' },
+  { value: 'CHARGE_DEFERRED', label: 'Charge, pro-rated' },
+  { value: 'CHARGE_IMMEDIATE', label: 'Charge, recognised at once' }
+]
+
+export const ACCOUNT_SOURCES = [
+  { value: 'ACCOUNT', label: 'Account below' },
+  { value: 'BANK_ACCOUNT', label: 'GL account of the bank account' }
+]
+
 export const labelOf = (options: { value: string; label: string }[], code: string | null) =>
   options.find(o => o.value === code)?.label ?? code ?? ''

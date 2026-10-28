@@ -40,6 +40,10 @@ public static class BpmnModel
         return Map(element);
     }
 
+    /// <summary>The first element with this step code, or null.</summary>
+    public static BpmnElement? StepByCode(string xml, string stepCode) =>
+        Load(xml).Descendants().Select(Map).FirstOrDefault(x => string.Equals(x.StepCode, stepCode, StringComparison.OrdinalIgnoreCase));
+
     /// <summary>
     /// The element after <paramref name="elementId"/>, or null at the end. With several outgoing flows, the flow whose
     /// name (or finova:outcome) matches the outcome is taken, so APPROVE and REJECT route without extra settings.

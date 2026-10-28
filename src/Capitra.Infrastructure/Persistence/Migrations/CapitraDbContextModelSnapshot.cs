@@ -1302,9 +1302,23 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RuleGlLineId"));
 
-                    b.Property<long>("AccountId")
+                    b.Property<long?>("AccountId")
                         .HasColumnType("bigint")
                         .HasColumnName("ACCOUNT_ID");
+
+                    b.Property<string>("AccountSourceCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("ACCOUNT")
+                        .HasColumnName("ACCOUNT_SOURCE_CODE");
+
+                    b.Property<string>("AmountCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("AMOUNT_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1330,6 +1344,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
+
+                    b.Property<int>("JournalNo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("JOURNAL_NO");
 
                     b.Property<int>("LineNo")
                         .HasColumnType("integer")
@@ -1366,11 +1386,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasIndex("RuleChargeId")
                         .HasDatabaseName("IX_ADM_PRODUCT_EVENT_RULE_GL_LINES_RULE_CHARGE_ID");
 
-                    b.HasIndex("ProductEventRuleId", "RuleChargeId", "LineNo")
+                    b.HasIndex("ProductEventRuleId", "RuleChargeId", "JournalNo", "LineNo")
                         .IsUnique()
                         .HasDatabaseName("UQ_ADM_PRODUCT_EVENT_RULE_GL_LINES_PRODUCT_EVENT_RULE_ID");
 
-                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ProductEventRuleId", "RuleChargeId", "LineNo"), false);
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ProductEventRuleId", "RuleChargeId", "JournalNo", "LineNo"), false);
 
                     b.ToTable("ADM_PRODUCT_EVENT_RULE_GL_LINES", (string)null);
                 });
@@ -33548,7 +33568,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULE_GL_LINES_GL_ACCOUNTS");
 
                     b.HasOne("Capitra.Domain.Modules.Adm.AdmProductEventRule", null)

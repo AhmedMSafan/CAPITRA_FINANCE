@@ -10,7 +10,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { tr } from '@/shared/layout/language'
 import { todayInCairo } from '@/shared/format/datetime'
 import {
-  CALCULATION_METHODS, CHARGE_TIMINGS, chargesApi, labelOf, productEventRulesApi, productsApi,
+  ACCOUNT_SOURCES, CALCULATION_METHODS, CHARGE_AMOUNTS, CHARGE_TIMINGS, RULE_AMOUNTS, chargesApi, labelOf, productEventRulesApi, productsApi,
   type ProductEventRule, type RuleCharge, type RuleGlLine
 } from '../api/products.api'
 
@@ -185,30 +185,42 @@ const componentApi = computed<CrudApi<ComponentRow>>(() => {
 })
 
 // ---- GL entries: one form for rule-level and component lines
-type GlRow = RuleGlLine & { dcLabel: string; accountLabel: string }
+type GlRow = RuleGlLine & { dcLabel: string; amountLabel: string; accountLabel: string }
 
 const DEBIT_CREDIT = [{ value: 'D', label: 'Debit' }, { value: 'C', label: 'Credit' }]
 
 const glColumns: CrudColumn<GlRow>[] = [
+  { field: 'journalNo', label: 'Journal', type: 'number' },
   { field: 'lineNo', label: 'Line No', type: 'number' },
   { field: 'dcLabel', label: 'D/C' },
+  { field: 'amountLabel', label: 'Amount' },
   { field: 'accountLabel', label: 'Account' },
   { field: 'descriptionTemplate', label: 'Description Template' }
 ]
 
-const glFields = computed<CrudField[]>(() => [
+const glFieldsFor = (amounts: { value: string; label: string }[]): CrudField[] => [
+  { name: 'journalNo', label: 'Journal No', type: 'number', required: true, min: 1 },
   { name: 'lineNo', label: 'Line No', type: 'number', required: true, min: 1 },
   { name: 'debitCreditCode', label: 'Debit / Credit', type: 'select', required: true, options: DEBIT_CREDIT },
-  { name: 'accountId', label: 'Account', type: 'select', required: true, options: glAccounts.value, wide: true },
+  { name: 'amountCode', label: 'Amount', type: 'select', required: true, options: amounts },
+  { name: 'accountSourceCode', label: 'Account Source', type: 'select', required: true, options: ACCOUNT_SOURCES },
+  { name: 'accountId', label: 'Account', type: 'select', options: glAccounts.value },
   { name: 'descriptionTemplate', label: 'Description Template', type: 'textarea', maxLength: 500 }
-])
+]
+const ruleGlFields = computed(() => glFieldsFor(RULE_AMOUNTS))
+const componentGlFields = computed(() => glFieldsFor(CHARGE_AMOUNTS))
 
-const toGlRow = (l: RuleGlLine): GlRow => ({ ...l, dcLabel: labelOf(DEBIT_CREDIT, l.debitCreditCode), accountLabel: `${l.accountCode} - ${l.accountNameEn}` })
+const toGlRow = (l: RuleGlLine): GlRow => ({
+  ...l,
+  dcLabel: labelOf(DEBIT_CREDIT, l.debitCreditCode),
+  amountLabel: labelOf([...RULE_AMOUNTS, ...CHARGE_AMOUNTS], l.amountCode),
+  accountLabel: l.accountSourceCode === 'BANK_ACCOUNT' ? tr('Bank account GL') : `${l.accountCode} - ${l.accountNameEn}`
+})
 
 /** The GL lines of one section: the rule itself (ruleChargeId null) or one charge component. */
 function glApiFor(ruleChargeId: number | null): CrudApi<GlRow> {
   const id = ruleId.value
-  const body = (v: FormValues, rowVersion: number | null) => ({ ...v, ruleChargeId, accountId: v.accountId == null ? null : Number(v.accountId), rowVersion })
+  const body = (v: FormValues, rowVersion: number | null) => ({ ...v, ruleChargeId, accountId: v.accountId == null || v.accountId === '' ? null : Number(v.accountId), rowVersion })
   return {
     list: async () => {
       glLines.value = await productEventRulesApi.glLines(id)
@@ -316,10 +328,10 @@ void (async () => {
         apex-pages="FINOVA_FINANCEING"
         entity-label="Entry"
         :columns="glColumns"
-        :fields="glFields"
+        :fields="ruleGlFields"
         :api="ruleGlApi"
         :row-key="row => row.ruleGlLineId"
-        :new-values="() => ({ isActive: true, lineNo: (ruleLines.length + 1) * 10, debitCreditCode: 'D' })"
+        :new-values="() => ({ isActive: true, journalNo: 1, lineNo: (ruleLines.length + 1) * 10, debitCreditCode: 'D', accountSourceCode: 'ACCOUNT' })"
         :to-values="row => ({ ...row })"
         :can-edit="canEdit"
       />
@@ -366,10 +378,10 @@ void (async () => {
           apex-pages="FINOVA_FINANCEING"
           entity-label="Entry"
           :columns="glColumns"
-          :fields="glFields"
+          :fields="componentGlFields"
           :api="componentGlApi"
           :row-key="row => row.ruleGlLineId"
-          :new-values="() => ({ isActive: true, lineNo: (componentLines.length + 1) * 10, debitCreditCode: 'C' })"
+          :new-values="() => ({ isActive: true, journalNo: 1, lineNo: (componentLines.length + 1) * 10, debitCreditCode: 'C', amountCode: 'CHARGE_AMOUNT', accountSourceCode: 'ACCOUNT' })"
           :to-values="row => ({ ...row })"
           :can-edit="canEdit"
         />

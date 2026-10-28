@@ -2,16 +2,19 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Capitra.Application.Abstractions;
+using Capitra.Application.Modules.Adm.Products;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Chq.Packages;
 using Capitra.Application.Modules.Gl.Journals;
 using Capitra.Application.Modules.Mtg.Pages.Custom;
+using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Chq;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Gl;
 using Capitra.Domain.Modules.Mtg;
 using Capitra.Domain.Modules.Trs;
+using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Mtg.Packages;
@@ -27,7 +30,8 @@ public sealed record MtgDisbursementInput(
 /// one transaction: CRM clients, wallet cheques, schedules, the GL tran set and the workflow step.
 /// </summary>
 public sealed class MtgDisbursementPackage(
-    ICapitraDbContext db, IClock clock, ICurrentUser user, ChqEventPackage events, GlPostingApi gl, MtgWorkflowSteps steps)
+    ICapitraDbContext db, IClock clock, ICurrentUser user, ChqEventPackage events, GlPostingApi gl, MtgWorkflowSteps steps,
+    AdmProductEventRuleService rules)
 {
     private const string GlSource = "PURCHASED_PORTFOLIO";
     private const string GlCategory = "PP_DISBURSE";
@@ -38,6 +42,7 @@ public sealed class MtgDisbursementPackage(
     private const string Future = "000";
     private const string BankGl = "110104";
     private const string WalletLocation = "COMPANY_VAULT";
+    private const string DisbursementStep = "DISBURSEMENT";
 
     private static readonly string[] DoneStatuses =
         ["COMPLETED", "CANCELLED", "CANCELED", "CLOSED", "REJECTED", "APPROVED", "SKIPPED", "EXPIRED", "FORWARDED", "RETURNED"];
@@ -136,6 +141,7 @@ public sealed class MtgDisbursementPackage(
         public string BankGlCode = BankGl;
         public string? BankNote;
         public MtgPurchasedPortfolioDisbursement? Done;
+        public string? GlRule;
     }
 
     private string Me => user.UserName ?? string.Empty;
@@ -640,6 +646,88 @@ public sealed class MtgDisbursementPackage(
         g.Gls.Add(new GlLine(j, acct, dr, cr, d));
     }
 
+    /// <summary>
+    /// The GL entries. When the Disbursement step of the portfolio's workflow raises a business event (finova:eventCode),
+    /// they come from the product event rule of MTG_PORTFOLIO_PURCHASING and that event; otherwise the fixed entries below.
+    /// A missing rule, or a charge that is not on it, is a blocker (strict) or falls back to the fixed entries (saved view).
+    /// </summary>
+    private async Task BuildGlAsync(State g, CancellationToken ct, bool strict = true)
+    {
+        var xml = await (from p in db.Set<MtgPurchasedPortfolio>()
+                         join i in db.Set<WfeWorkflowInstance>() on p.WorkflowInstanceId equals i.WorkflowInstanceId
+                         join d in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals d.WorkflowDefinitionId
+                         where p.PortfolioId == g.Pf
+                         select d.BpmnXml).FirstOrDefaultAsync(ct);
+        var ev = xml is null ? null : BpmnModel.StepByCode(xml, DisbursementStep)?.EventCode?.Trim();
+        if (string.IsNullOrEmpty(ev))
+        {
+            BuildGl(g);
+            return;
+        }
+
+        var problems = new List<string>();
+        var plan = await rules.PlanAsync(AdmProduct.MortgagePortfolioPurchasingCode, ev, g.Disb, ct);
+        if (plan is null)
+            problems.Add("No active product event rule for product " + AdmProduct.MortgagePortfolioPurchasingCode + " and business event " + ev + " on "
+                         + D(g.Disb) + ". Add it on Admin Setup > Product Event Rules.");
+        else
+        {
+            foreach (var (code, amount, _) in Charges(g))
+                if (amount != 0 && !plan.ChargeCodes.Contains(code))
+                    problems.Add("Charge " + code + " (" + Fmt(amount) + ") is not a charge component of product event rule " + plan.RuleCode + ".");
+            foreach (var code in plan.ChargeCodes.Where(c => Charges(g).All(x => x.Code != c)))
+                problems.Add("Charge component " + code + " of product event rule " + plan.RuleCode + " has no amount at disbursement.");
+        }
+
+        if (problems.Count > 0)
+        {
+            if (!strict)
+            {
+                BuildGl(g);
+                return;
+            }
+
+            g.Gls.Clear();
+            g.Blk.AddRange(problems.Where(m => !g.Blk.Contains(m)));
+            return;
+        }
+
+        g.Gls.Clear();
+        foreach (var l in ProductEventPosting.Build(plan!, l => AmountOf(g, l), g.BankGlCode))
+            g.Gls.Add(new GlLine(l.JournalNo, l.Account, l.Dr, l.Cr, l.Description));
+        g.GlRule = plan!.RuleCode;
+    }
+
+    /// <summary>The charges of a disbursement with their final amount and income treatment, by ADM_CHARGES code.</summary>
+    private static (string Code, decimal Amount, string Mode)[] Charges(State g) =>
+        [("ADMIN_EXPENSE", g.Admin, g.Am), ("LEGAL_FEE", g.Legal, g.Lm), ("VALUATION_FEE", g.Val, g.Vm)];
+
+    /// <summary>The disbursement figure a GL line of the rule posts.</summary>
+    private static decimal AmountOf(State g, ProductEventGlLine l)
+    {
+        if (l.ChargeCode is not null)
+        {
+            var (_, amount, mode) = Charges(g).First(x => x.Code == l.ChargeCode);
+            return l.AmountCode switch
+            {
+                "CHARGE_AMOUNT" => amount,
+                "CHARGE_DEFERRED" => mode == "PRORATE" ? amount : 0,
+                "CHARGE_IMMEDIATE" => mode == "IMMEDIATE" ? amount : 0,
+                _ => 0,
+            };
+        }
+
+        return l.AmountCode switch
+        {
+            "FACE_VALUE" => g.Fv,
+            "DISCOUNT" => g.Fund,
+            "MARGIN_DEFERRED" => g.DefMargin,
+            "MARGIN_IMMEDIATE" => g.ImmMargin,
+            "PURCHASE_PRICE" => g.Price,
+            _ => 0,
+        };
+    }
+
     private static void BuildGl(State g)
     {
         g.Gls.Clear();
@@ -820,7 +908,7 @@ public sealed class MtgDisbursementPackage(
             cur.Fee += s.FeeRelease ?? 0;
         }
 
-        BuildGl(g);
+        await BuildGlAsync(g, ct, strict: false);
         return g;
     }
 
@@ -960,6 +1048,7 @@ public sealed class MtgDisbursementPackage(
         }
 
         o.Add("gl", gls);
+        o.Add("glRule", g.GlRule);
         return o;
     }
 
@@ -974,7 +1063,7 @@ public sealed class MtgDisbursementPackage(
             g = await ComputeAsync(p, ct);
             await LoadBankAsync(g, p.BankAccountId, ct);
             await ChecksAsync(g, ct);
-            BuildGl(g);
+            await BuildGlAsync(g, ct);
         }
 
         return await ToJsonAsync(g, ct);
@@ -1020,9 +1109,9 @@ public sealed class MtgDisbursementPackage(
         if (!await db.Set<TrsBankAccount>().AnyAsync(x => x.AccountId == p.BankAccountId && x.CurrencyCode.Trim() == cur, ct))
             throw Fail(-20967, "The bank account currency must be " + g.Cur + ".");
         await ChecksAsync(g, ct);
+        await BuildGlAsync(g, ct);
         if (g.Blk.Count > 0)
             throw Fail(-20968, g.Blk[0]);
-        BuildGl(g);
 
         // 1. header with the TRAN_SET_ID
         var ts = await NextTranSetIdAsync(g.PfNo, g.Disb, ct);
