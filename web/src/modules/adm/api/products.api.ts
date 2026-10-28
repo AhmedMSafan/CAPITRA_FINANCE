@@ -85,6 +85,8 @@ export type RuleCharge = {
   fixedAmount: number | null
   chargeRate: number | null
   perUnitAmount: number | null
+  amountBaseCode: string | null
+  incomeRecognitionCode: string
   spreadRate: number
   dayCountBasis: number | null
   minimumAmount: number | null
@@ -182,6 +184,18 @@ export const CALCULATION_METHODS = [
   { value: 'TIERED', label: 'Tiered' },
   { value: 'INDEX_PLUS_SPREAD', label: 'Index + Spread' },
   { value: 'DAILY_INTEREST', label: 'Daily Interest' }
+]
+
+/** What a percentage charge is applied to. */
+export const AMOUNT_BASES = [
+  { value: 'FACE_VALUE', label: 'Face value' },
+  { value: 'PRESENT_VALUE', label: 'Present value' },
+  { value: 'PV_LESS_MARGIN', label: 'Present value less margin' }
+]
+
+export const INCOME_RECOGNITIONS = [
+  { value: 'PRORATE', label: 'Pro-rate' },
+  { value: 'IMMEDIATE', label: 'Immediate' }
 ]
 
 export const CHARGE_TIMINGS = [

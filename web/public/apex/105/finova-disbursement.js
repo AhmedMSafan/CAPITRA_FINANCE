@@ -48,7 +48,7 @@ window.FXW=window.FXW||{};
     var root=document.getElementById('dsRoot'); if(!root)return;
     var ITEMS='#P217_PORTFOLIO_ID,#P217_TASK_ID',A=function(k){return root.getAttribute('data-'+k);};
     var cur=A('cur')||'',banks=[];try{banks=JSON.parse(A('banks')||'[]');}catch(e){banks=[];}
-    var st={tab:'sch',acc:'ALL',d:null,timer:null,seq:0,first:true,mode:{M:'PRORATE',A:'PRORATE',L:'IMMEDIATE',V:'IMMEDIATE'}};
+    var st={tab:'sch',acc:'ALL',d:null,timer:null,seq:0,first:true,mode:{M:'PRORATE'},codes:null};
     function L(en,ar){return W.ar()?ar:en;}
     function q(s){return root.querySelector(s);}
     function qa(s){return [].slice.call(root.querySelectorAll(s));}
@@ -64,9 +64,33 @@ window.FXW=window.FXW||{};
       var h='<option value="">'+e(b?L('Choose an account','اختر الحساب'):L('Choose the bank first','اختر البنك أولاً'))+'</option>';
       list.forEach(function(x){h+='<option value="'+x.a+'">'+e(x.an+(x.t?' · '+x.t:'')+(x.p&& x.p!=='---'?' · '+x.p:''))+'</option>';});
       s.innerHTML=h;if(old&& list.some(function(x){return String(x.a)===old;}))s.value=old;else if(list.length===1)s.value=String(list[0].a);}
-    // ---------- charges: '' = financial review amount, waived = 0
+    // ---------- charges (from the product event rule, or the financial review): '' = calculated amount, waived = 0
     function chargeVal(k){var tr=row(k);if(tr.querySelector('.ds-waive').checked)return '0';var v=tr.querySelector('.ds-fin').value;return v===''?'':String(Math.max(0,Math.round((+v)*100)/100));}
-    function params(){return {x01:q('#dsDate').value,x02:q('#dsAcc').value,x03:chargeVal('A'),x04:chargeVal('L'),x05:chargeVal('V'),x10:st.mode.M,x11:st.mode.A,x12:st.mode.L,x13:st.mode.V};}
+    function charges(){return (st.codes||[]).map(function(k){return {c:k,a:chargeVal(k),m:st.mode[k]||''};});}
+    function params(){return {x01:q('#dsDate').value,x02:q('#dsAcc').value,x10:st.mode.M,x14:st.codes?JSON.stringify(charges()):''};}
+    function pct(n){return (Math.round((+n||0)*10000)/10000)+'%';}
+    function how(c){var B={FACE_VALUE:L('face value','القيمة الاسمية'),PRESENT_VALUE:L('present value','القيمة الحالية'),PV_LESS_MARGIN:L('present value less margin','القيمة الحالية ناقص الهامش')};
+      if(c.method==='PERCENTAGE'&& c.rate!=null)return pct(c.rate)+' '+L('of','من')+' '+(B[c.base]||c.base||'')+(c.baseAmount!=null?' '+m2(c.baseAmount):'');
+      if(c.method==='PER_UNIT'&& c.perUnit!=null)return m2(c.perUnit)+' × '+(c.units||0)+' '+L('units','وحدة');
+      if(c.method==='FIXED'&& !c.problem)return L('Fixed amount','مبلغ ثابت');
+      if(c.method==='FINANCIAL_REVIEW')return L('Financial review','المراجعة المالية');
+      return c.method||'';}
+    function feeRow(c){var nm2=W.ar()&& c.nameAr?c.nameAr:c.name;
+      return '<tr class="ds-fee" data-ch="'+e(c.code)+'"><td><strong>'+e(nm2)+'</strong><small>'+e(L('Charged to the developer','تُحمّل على المطور'))+'</small></td>'
+        +'<td class="fxd-num"><b class="ds-fr"></b><small class="ds-how"></small></td>'
+        +'<td class="fxd-num"><input class="ds-fin ds-in" type="number" step="0.01" min="0" inputmode="decimal" aria-label="'+e(c.name)+' final amount"></td>'
+        +'<td><div class="ds-tr" role="group" aria-label="Income recognition"><button type="button" class="ds-in" data-v="PRORATE" aria-pressed="false">'+e(L('Pro-rate','توزيع زمني'))+'</button>'
+        +'<button type="button" class="ds-in" data-v="IMMEDIATE" aria-pressed="false">'+e(L('Immediate','فوري'))+'</button><button type="button" data-v="LATER" disabled title="Coming soon">'+e(L('Collect later','تحصيل لاحق'))+'</button></div></td>'
+        +'<td><label class="ds-sw"><input type="checkbox" class="ds-waive ds-in" aria-label="Waive '+e(c.name)+'"><i></i></label></td></tr>';}
+    // the rows follow the charges the server returns; typed amounts and waivers are kept while the codes stay the same
+    function buildFees(list){var key=list.map(function(c){return c.code;}).join('|');if(st.codes&& st.codes.join('|')===key)return;
+      var keep={};(st.codes||[]).forEach(function(k){var tr=row(k);if(tr)keep[k]={v:tr.querySelector('.ds-fin').value,w:tr.querySelector('.ds-waive').checked};});
+      qa('.ds-ch tr.ds-fee').forEach(function(tr){tr.remove();});
+      var body=q('.ds-ch tbody');
+      body.insertAdjacentHTML('beforeend',list.length?list.map(feeRow).join(''):'<tr class="ds-fee"><td colspan="5" class="ds-na">'+e(L('The product event rule has no charges.','لا توجد مصروفات على قاعدة المنتج.'))+'</td></tr>');
+      st.codes=list.map(function(c){return c.code;});
+      list.forEach(function(c){var tr=row(c.code),k=keep[c.code];if(k){tr.querySelector('.ds-fin').value=k.v;tr.querySelector('.ds-waive').checked=k.w;}
+        else if(c.entered){tr.querySelector('.ds-fin').value=(+c.amount).toFixed(2);}});}
     function load(){var my=++st.seq;q('#dsBusy').hidden=false;
       W.call('DS_PREVIEW',params(),ITEMS).then(function(d){if(my!==st.seq)return;st.d=d;render();},function(m){if(my!==st.seq)return;W.toast(m,true);})
         .then(function(){if(my===st.seq)q('#dsBusy').hidden=true;});}
@@ -79,21 +103,23 @@ window.FXW=window.FXW||{};
         q('#dsBank').innerHTML='<option>'+e(d.bank.bankName||'-')+'</option>';q('#dsAcc').innerHTML='<option>'+e(d.bank.account||'-')+'</option>';
         qa('.ds-in').forEach(function(x){x.disabled=true;});}
       // charges
-      // with a product event rule only its charge components are shown
-      var RC={A:'ADMIN_EXPENSE',L:'LEGAL_FEE',V:'VALUATION_FEE'};
-      ['A','L','V'].forEach(function(k){row(k).hidden=!!d.ruleCharges&& d.ruleCharges.indexOf(RC[k])<0;});
-      [['A','admin'],['L','legal'],['V','valuation']].forEach(function(x){var tr=row(x[0]),fr=+R[x[1]]||0,fin=+T[x[1]]||0,inp=tr.querySelector('.ds-fin');
-        tr.querySelector('.ds-fr').textContent=m2(fr);inp.placeholder=fr.toFixed(2);
-        if(isDone){inp.value=fin.toFixed(2);tr.querySelector('.ds-waive').checked=fin===0&& fr>0;}
-        var w=tr.querySelector('.ds-waive').checked;tr.classList.toggle('is-off',w);tr.classList.toggle('is-ov',!w&& inp.value!==''&& Math.abs((+inp.value)-fr)>0.004);});
+      var CH=d.charges||[];buildFees(CH);
+      CH.forEach(function(c){var tr=row(c.code),calc=+c.calc||0,fin=+c.amount||0,inp=tr.querySelector('.ds-fin'),hw=tr.querySelector('.ds-how');
+        tr.querySelector('.ds-fr').textContent=m2(calc);inp.placeholder=calc.toFixed(2);
+        hw.textContent=c.problem&& !isDone?c.problem:how(c);hw.style.color=c.problem&& !isDone?'var(--bad)':'';
+        if(isDone){inp.value=fin.toFixed(2);tr.querySelector('.ds-waive').checked=fin===0&& calc>0;qa('.ds-ch tr.ds-fee .ds-in').forEach(function(x){x.disabled=true;});}
+        st.mode[c.code]=c.mode;
+        var w=tr.querySelector('.ds-waive').checked;tr.classList.toggle('is-off',w);tr.classList.toggle('is-ov',!w&& inp.value!==''&& Math.abs((+inp.value)-calc)>0.004);});
       // margin row and income recognition
       var M=row('M');M.querySelector('.ds-fr').textContent=m2(T.margin);M.querySelector('.ds-mfin').textContent=m2(T.margin);
-      var TM=isDone&& d.treatment?d.treatment:st.mode;if(isDone&& d.treatment)st.mode={M:TM.M,A:TM.A,L:TM.L,V:TM.V};
-      ['M','A','L','V'].forEach(function(k){qa('.ds-ch tr[data-ch="'+k+'"] .ds-tr button').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-v')===TM[k]?'true':'false');});});
+      if(isDone&& d.treatment)st.mode.M=d.treatment.M;var TM=st.mode;
+      ['M'].concat(st.codes||[]).forEach(function(k){qa('.ds-ch tr[data-ch="'+k+'"] .ds-tr button').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-v')===TM[k]?'true':'false');});});
       M.querySelector('.ds-std').hidden=TM.M!=='IMMEDIATE';M.classList.toggle('is-warn',TM.M==='IMMEDIATE');
-      q('#dsTrNote').innerHTML='<b>'+e(L('Income recognised on the disbursement date: ','الإيراد المُثبت في تاريخ الصرف: '))+m2((+T.marginImmediate||0)+(+T.feesImmediate||0))+'</b> '
-        +e(L('(Cr 450102 margin income / 450103 fee income)','(دائن 450102 إيراد الهامش / 450103 إيراد الرسوم)'))+'<br><b>'+e(L('Deferred and released on the cheque dates: ','مؤجل ويُثبت في تواريخ الشيكات: '))
-        +m2((+T.marginDeferred||0)+(+T.feesDeferred||0))+'</b> '+e(L('(Cr 120403 unearned margin / 120404 unearned fees)','(دائن 120403 هامش مؤجل / 120404 رسوم مؤجلة)'));
+      var fixedGl=!d.glRule;
+      q('#dsTrNote').innerHTML=(d.chargeSource==='RULE'&& d.chargeRule?e(L('Charges and amounts from product event rule ','المصروفات ومبالغها من قاعدة المنتج '))+'<b>'+e(d.chargeRule)+'</b>.<br>':'')
+        +'<b>'+e(L('Income recognised on the disbursement date: ','الإيراد المُثبت في تاريخ الصرف: '))+m2((+T.marginImmediate||0)+(+T.feesImmediate||0))+'</b> '
+        +(fixedGl?e(L('(Cr 450102 margin income / 450103 fee income)','(دائن 450102 إيراد الهامش / 450103 إيراد الرسوم)')):'')+'<br><b>'+e(L('Deferred and released on the cheque dates: ','مؤجل ويُثبت في تواريخ الشيكات: '))
+        +m2((+T.marginDeferred||0)+(+T.feesDeferred||0))+'</b> '+(fixedGl?e(L('(Cr 120403 unearned margin / 120404 unearned fees)','(دائن 120403 هامش مؤجل / 120404 رسوم مؤجلة)')):'');
       // GL account of the bank
       var gl=d.bank||{};q('#dsGlLine').innerHTML='<span class="fa fa-book" aria-hidden="true"></span>'+e(L('Payment credited to GL account','يُقيد الدفع على حساب'))+' <b>'+e(gl.gl||'-')+'</b> '+e(gl.glName||'')
         +' <span class="ds-chip">'+e(L('Business line','خط الأعمال'))+' MORTGAGE</span>';
@@ -102,7 +128,7 @@ window.FXW=window.FXW||{};
         +lineHtml('',e(L('Discount','الخصم')),T.funding,true)
         +lineHtml('sub',e(L('Present value','القيمة الحالية')),T.pv)
         +lineHtml('',e(L('Margin','الهامش')),T.margin,true)
-        +lineHtml('',e(L('Fees (admin, legal, valuation)','الرسوم (إدارية، قانونية، تقييم)')),T.fees,true)
+        +lineHtml('',e(L('Charges','المصروفات')),T.fees,true)
         +lineHtml('sub',e(L('Paid to developer','المدفوع للمطور')),T.payable)
         +lineHtml('',e(L('Revenue','الإيراد')),(+T.face||0)-(+T.payable||0))
         +lineHtml('sub',e(L('Net profit (today\'s value)','صافي الربح بقيمة اليوم')),(+T.pv||0)-(+T.payable||0))

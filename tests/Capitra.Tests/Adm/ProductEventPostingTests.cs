@@ -14,7 +14,14 @@ public sealed class ProductEventPostingTests
         new(1, 60, seq, code, "C", "CHARGE_IMMEDIATE", false, "450103", "Fee income - recognised on disbursement"),
     ];
 
-    private static readonly ProductEventPlan Plan = new(1, "PP_DISBURSE", "PP_DISBURSE", ["ADMIN_EXPENSE", "LEGAL_FEE", "VALUATION_FEE"],
+    private static ProductEventCharge Component(int seq, string code, string method, decimal? rate = null, decimal? perUnit = null,
+        decimal? fixedAmount = null, string? amountBase = null, decimal? min = null, decimal? max = null) =>
+        new(seq, seq, code, code, null, method, fixedAmount, rate, perUnit, amountBase, "PRORATE", min, max, 2, "DEDUCT_FROM_DISBURSEMENT", 0);
+
+    private static readonly ProductEventPlan Plan = new(1, "PP_DISBURSE", "PP_DISBURSE",
+    [
+        Component(10, "ADMIN_EXPENSE", "PERCENTAGE"), Component(20, "LEGAL_FEE", "PER_UNIT"), Component(30, "VALUATION_FEE", "PER_UNIT"),
+    ],
     [
         Rule(1, 10, "D", "FACE_VALUE", "120401", "Investor cheques - face value"),
         Rule(1, 20, "C", "DISCOUNT", "120402", "Unearned income - funding recovery"),
@@ -56,5 +63,20 @@ public sealed class ProductEventPostingTests
             new ProductEventPostingLine(2, "110104", 0, 832, "Payment to developer"),
         ], lines);
         Assert.Equal(lines.Where(x => x.JournalNo == 1).Sum(x => x.Dr), lines.Where(x => x.JournalNo == 1).Sum(x => x.Cr));
+    }
+
+    [Fact]
+    public void Charge_components_are_calculated_from_the_rule()
+    {
+        decimal? BaseOf(string code) => code switch { "FACE_VALUE" => 1000m, "PRESENT_VALUE" => 900m, _ => null };
+
+        Assert.Equal(new ProductEventChargeAmount(9, 900, null),
+            ProductEventPosting.Calculate(Component(10, "ADMIN_EXPENSE", "PERCENTAGE", rate: 1, amountBase: "PRESENT_VALUE"), BaseOf, 3));
+        Assert.Equal(1500, ProductEventPosting.Calculate(Component(20, "LEGAL_FEE", "PER_UNIT", perUnit: 500), BaseOf, 3).Amount);
+        Assert.Equal(250, ProductEventPosting.Calculate(Component(30, "VALUATION_FEE", "FIXED", fixedAmount: 200, min: 250), BaseOf, 3).Amount);
+        Assert.Equal(12.35m, ProductEventPosting.Calculate(Component(10, "ADMIN_EXPENSE", "PERCENTAGE", rate: 1.2345m, amountBase: "FACE_VALUE"), BaseOf, 3).Amount);
+        Assert.Equal(100, ProductEventPosting.Calculate(Component(10, "ADMIN_EXPENSE", "PERCENTAGE", rate: 50, amountBase: "FACE_VALUE", max: 100), BaseOf, 3).Amount);
+        Assert.Equal("the rule has no rate", ProductEventPosting.Calculate(Component(10, "ADMIN_EXPENSE", "PERCENTAGE", amountBase: "FACE_VALUE"), BaseOf, 3).Problem);
+        Assert.NotNull(ProductEventPosting.Calculate(Component(10, "ADMIN_EXPENSE", "TIERED"), BaseOf, 3).Problem);
     }
 }

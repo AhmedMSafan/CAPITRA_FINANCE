@@ -10,7 +10,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { tr } from '@/shared/layout/language'
 import { todayInCairo } from '@/shared/format/datetime'
 import {
-  ACCOUNT_SOURCES, CALCULATION_METHODS, CHARGE_AMOUNTS, CHARGE_TIMINGS, RULE_AMOUNTS, chargesApi, labelOf, productEventRulesApi, productsApi,
+  ACCOUNT_SOURCES, AMOUNT_BASES, CALCULATION_METHODS, INCOME_RECOGNITIONS, CHARGE_AMOUNTS, CHARGE_TIMINGS, RULE_AMOUNTS, chargesApi, labelOf, productEventRulesApi, productsApi,
   type ProductEventRule, type RuleCharge, type RuleGlLine
 } from '../api/products.api'
 
@@ -111,7 +111,7 @@ function openComponentGl(component: RuleCharge) {
 }
 
 // ---- charge components
-type ComponentRow = RuleCharge & { methodLabel: string; timingLabel: string; valueLabel: string; glCount: number }
+type ComponentRow = RuleCharge & { methodLabel: string; timingLabel: string; incomeLabel: string; valueLabel: string; glCount: number }
 
 const DAY_COUNTS: FieldOption[] = [360, 365, 366].map(v => ({ value: v, label: String(v) }))
 
@@ -121,6 +121,7 @@ const componentColumns: CrudColumn<ComponentRow>[] = [
   { field: 'methodLabel', label: 'Calculation' },
   { field: 'valueLabel', label: 'Rate / Amount' },
   { field: 'timingLabel', label: 'Charge Timing' },
+  { field: 'incomeLabel', label: 'Income Recognition' },
   { field: 'glCount', label: 'GL Lines', type: 'number' }
 ]
 
@@ -129,8 +130,10 @@ const componentFields = computed<CrudField[]>(() => [
   { name: 'sequenceNo', label: 'Sequence No', type: 'number', required: true, min: 0 },
   { name: 'calculationMethodCode', label: 'Calculation Method', type: 'select', required: true, options: CALCULATION_METHODS },
   { name: 'chargeTimingCode', label: 'Charge Timing', type: 'select', required: true, options: CHARGE_TIMINGS },
+  { name: 'incomeRecognitionCode', label: 'Income Recognition', type: 'select', required: true, options: INCOME_RECOGNITIONS },
   { name: 'fixedAmount', label: 'Fixed Amount', type: 'amount', min: 0 },
   { name: 'chargeRate', label: 'Rate Percent', type: 'pct', min: 0, max: 100 },
+  { name: 'amountBaseCode', label: 'Rate Applied To', type: 'select', options: AMOUNT_BASES },
   { name: 'perUnitAmount', label: 'Per Unit Amount', type: 'amount', min: 0 },
   { name: 'spreadRate', label: 'Spread Percent', type: 'pct', min: 0, max: 100 },
   { name: 'dayCountBasis', label: 'Day Count Basis', type: 'select', options: DAY_COUNTS },
@@ -148,13 +151,15 @@ const valueOf = (c: RuleCharge) => {
   if (c.calculationMethodCode === 'FIXED') return formatCell(c.fixedAmount, 'amount')
   if (c.calculationMethodCode === 'PER_UNIT') return c.perUnitAmount == null ? '' : `${formatCell(c.perUnitAmount, 'amount')} / unit`
   if (c.calculationMethodCode === 'INDEX_PLUS_SPREAD') return `${tr('Index')} + ${formatCell(c.spreadRate, 'pct')}`
-  return formatCell(c.chargeRate, 'pct')
+  const rate = formatCell(c.chargeRate, 'pct')
+  return c.amountBaseCode && rate ? `${rate} ${tr('of')} ${tr(labelOf(AMOUNT_BASES, c.amountBaseCode))}` : rate
 }
 
 const toComponentRow = (c: RuleCharge, lines: RuleGlLine[]): ComponentRow => ({
   ...c,
   methodLabel: labelOf(CALCULATION_METHODS, c.calculationMethodCode),
   timingLabel: labelOf(CHARGE_TIMINGS, c.chargeTimingCode),
+  incomeLabel: labelOf(INCOME_RECOGNITIONS, c.incomeRecognitionCode),
   valueLabel: valueOf(c),
   glCount: lines.filter(l => l.ruleChargeId === c.ruleChargeId).length
 })
@@ -162,6 +167,7 @@ const toComponentRow = (c: RuleCharge, lines: RuleGlLine[]): ComponentRow => ({
 const toComponentBody = (v: FormValues, rowVersion: number | null) => ({
   ...v,
   chargeId: v.chargeId == null ? null : Number(v.chargeId),
+  amountBaseCode: v.amountBaseCode || null,
   dayCountBasis: v.dayCountBasis == null ? null : Number(v.dayCountBasis),
   rowVersion
 })
@@ -349,7 +355,7 @@ void (async () => {
         :fields="componentFields"
         :api="componentApi"
         :row-key="row => row.ruleChargeId"
-        :new-values="() => ({ isActive: true, sequenceNo: (ruleCharges.length + 1) * 10, calculationMethodCode: 'FIXED', chargeTimingCode: 'DUE_SEPARATELY', dayCountBasis: 365, roundingScale: 2, spreadRate: 0, dueDays: 0, taxRate: 0, effectiveFromDate: selectedRule?.effectiveFromDate ?? todayInCairo() })"
+        :new-values="() => ({ isActive: true, sequenceNo: (ruleCharges.length + 1) * 10, calculationMethodCode: 'FIXED', chargeTimingCode: 'DUE_SEPARATELY', incomeRecognitionCode: 'PRORATE', dayCountBasis: 365, roundingScale: 2, spreadRate: 0, dueDays: 0, taxRate: 0, effectiveFromDate: selectedRule?.effectiveFromDate ?? todayInCairo() })"
         :to-values="row => ({ ...row })"
         :can-edit="canEdit"
       >

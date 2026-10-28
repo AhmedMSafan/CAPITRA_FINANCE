@@ -19,10 +19,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Mtg.Packages;
 
-/// <summary>The figures page 217 sends to preview_json and complete (x01 to x13).</summary>
+/// <summary>The final amount (null: the calculated one) and income recognition of one charge, by ADM_CHARGES code.</summary>
+public sealed record MtgDisbursementChargeInput(string Code, decimal? Amount, string? Mode);
+
+/// <summary>The figures page 217 sends to preview_json and complete (x01, x02, x10 and the charges in x14).</summary>
 public sealed record MtgDisbursementInput(
-    long PortfolioId, decimal? Admin, decimal? Legal, decimal? Valuation, DateOnly? DisbDate, long? BankAccountId,
-    string? MarginMode, string? AdminMode, string? LegalMode, string? ValuationMode);
+    long PortfolioId, DateOnly? DisbDate, long? BankAccountId, string? MarginMode, IReadOnlyList<MtgDisbursementChargeInput>? Charges);
 
 /// <summary>
 /// FNV_PP_DISB_PKG: the disbursement of a purchased portfolio (page 217). The preview shows the cheques, the
@@ -94,6 +96,40 @@ public sealed class MtgDisbursementPackage(
 
     private sealed record GlLine(int J, string Acct, decimal Dr, decimal Cr, string Descr);
 
+    /// <summary>One charge of the disbursement: calculated from its product event rule component, or the financial review amount.</summary>
+    private sealed class Fee
+    {
+        public string Code = string.Empty;
+        public string Name = string.Empty;
+        public string? NameAr;
+        public int Seq;
+        public long? RuleChargeId;
+        public string Method = FromReview;
+        public string? BaseCode;
+        public decimal? BaseAmt;
+        public decimal? Rate;
+        public decimal? PerUnit;
+        public int? Units;
+        public string Timing = "DEDUCT_FROM_DISBURSEMENT";
+        public decimal TaxRate;
+        public decimal Calc;
+        public decimal Amount;
+        public string DefMode = "PRORATE";
+        public string Mode = "PRORATE";
+        public string? Problem;
+        public bool Entered;
+    }
+
+    private const string FromReview = "FINANCIAL_REVIEW";
+
+    /// <summary>The charges of the financial review, when the Disbursement step raises no business event.</summary>
+    private static readonly (string Code, string Name, string NameAr, string Mode)[] ReviewCharges =
+    [
+        ("ADMIN_EXPENSE", "Admin expense", "المصروفات الإدارية", "PRORATE"),
+        ("LEGAL_FEE", "Legal fees", "الرسوم القانونية", "IMMEDIATE"),
+        ("VALUATION_FEE", "Valuation expense", "مصروفات التقييم", "IMMEDIATE"),
+    ];
+
     /// <summary>The package globals of one call.</summary>
     private sealed class State
     {
@@ -118,14 +154,9 @@ public sealed class MtgDisbursementPackage(
         public decimal FrLegal;
         public decimal FrVal;
         public decimal BoardPrice;
-        public decimal Admin;
-        public decimal Legal;
-        public decimal Val;
+        public List<Fee> Ch = [];
         public decimal Fees;
         public string Mm = "PRORATE";
-        public string Am = "PRORATE";
-        public string Lm = "IMMEDIATE";
-        public string Vm = "IMMEDIATE";
         public decimal DefMargin;
         public decimal ImmMargin;
         public decimal DefFees;
@@ -142,7 +173,9 @@ public sealed class MtgDisbursementPackage(
         public string? BankNote;
         public MtgPurchasedPortfolioDisbursement? Done;
         public string? GlRule;
-        public HashSet<string>? RuleCharges;
+        public bool PlanRead;
+        public string? Event;
+        public ProductEventPlan? Plan;
     }
 
     private string Me => user.UserName ?? string.Empty;
@@ -175,8 +208,65 @@ public sealed class MtgDisbursementPackage(
     {
         g.DefMargin = g.Mm == "PRORATE" ? g.Margin : 0;
         g.ImmMargin = g.Mm == "IMMEDIATE" ? g.Margin : 0;
-        g.DefFees = (g.Am == "PRORATE" ? g.Admin : 0) + (g.Lm == "PRORATE" ? g.Legal : 0) + (g.Vm == "PRORATE" ? g.Val : 0);
+        g.DefFees = g.Ch.Where(x => x.Mode == "PRORATE").Sum(x => x.Amount);
         g.ImmFees = g.Fees - g.DefFees;
+    }
+
+    /// <summary>The final amount of a charge by ADM_CHARGES code, 0 when the disbursement does not have it.</summary>
+    private static decimal Amt(State g, string code) => g.Ch.FirstOrDefault(x => x.Code == code)?.Amount ?? 0;
+
+    private static string? ModeFor(State g, string code) => g.Ch.FirstOrDefault(x => x.Code == code)?.Mode;
+
+    /// <summary>
+    /// The charges: with a product event rule, each charge component in effect calculated from the rule (fixed amount, rate %
+    /// of the base it names, or amount per unit times the distinct units of the selected contracts); otherwise the charges
+    /// of the financial review. The page may enter another final amount (0 waives it) and income recognition.
+    /// </summary>
+    private async Task FeesAsync(State g, MtgDisbursementInput p, CancellationToken ct)
+    {
+        g.Ch.Clear();
+        if (g.Plan is not null)
+        {
+            var units = await (from a in db.Set<MtgPurchasedPortfolioAccount>()
+                               where a.PortfolioId == g.Pf && (a.DealDecisionCode ?? "SELECTED") == "SELECTED"
+                               select a.UnitId).Distinct().CountAsync(ct);
+            decimal? BaseOf(string code) => code switch
+            {
+                "FACE_VALUE" => g.Fv,
+                "PRESENT_VALUE" => g.Pv,
+                "PV_LESS_MARGIN" => g.Pv - g.Margin,
+                _ => null,
+            };
+            foreach (var c in g.Plan.Charges)
+            {
+                var r = ProductEventPosting.Calculate(c, BaseOf, units);
+                g.Ch.Add(new Fee
+                {
+                    Code = c.ChargeCode, Name = c.ChargeNameEn, NameAr = c.ChargeNameAr, Seq = c.SequenceNo, RuleChargeId = c.RuleChargeId,
+                    Method = c.CalculationMethodCode, BaseCode = c.CalculationMethodCode == "PERCENTAGE" ? c.AmountBaseCode : null, BaseAmt = r.Base,
+                    Rate = c.CalculationMethodCode == "PERCENTAGE" ? c.ChargeRate : null, PerUnit = c.CalculationMethodCode == "PER_UNIT" ? c.PerUnitAmount : null,
+                    Units = c.CalculationMethodCode == "PER_UNIT" ? units : null, Timing = c.ChargeTimingCode, TaxRate = c.TaxRate,
+                    Calc = Round(r.Amount, 2), DefMode = c.IncomeRecognitionCode, Problem = r.Problem,
+                });
+            }
+        }
+        else
+        {
+            decimal[] review = [g.FrAdmin, g.FrLegal, g.FrVal];
+            for (var i = 0; i < ReviewCharges.Length; i++)
+            {
+                var (code, name, nameAr, mode) = ReviewCharges[i];
+                g.Ch.Add(new Fee { Code = code, Name = name, NameAr = nameAr, Seq = (i + 1) * 10, Calc = review[i], DefMode = mode });
+            }
+        }
+
+        foreach (var f in g.Ch)
+        {
+            var input = p.Charges?.FirstOrDefault(x => string.Equals(x.Code, f.Code, StringComparison.OrdinalIgnoreCase));
+            f.Entered = input?.Amount is not null;
+            f.Amount = f.Entered ? Round(input!.Amount!.Value, 2) : f.Calc;
+            f.Mode = ModeOf(input?.Mode, f.DefMode);
+        }
     }
 
     private IQueryable<GlCoaSegmentValue> Natural() =>
@@ -381,31 +471,9 @@ public sealed class MtgDisbursementPackage(
         g.FrLegal = fr.IsLegalIncluded ? fr.LegalFinalAmount ?? 0 : 0;
         g.FrVal = fr.IsValuationIncluded ? fr.ValuationFinalAmount ?? 0 : 0;
         g.BoardPrice = fr.ProposedPurchaseValue ?? 0;
-        g.Admin = Round(p.Admin ?? g.FrAdmin, 2);
-        g.Legal = Round(p.Legal ?? g.FrLegal, 2);
-        g.Val = Round(p.Valuation ?? g.FrVal, 2);
-        // with a product event rule, only its charge components in effect are charged: the others are left out
-        var (_, plan) = await EventPlanAsync(g.Pf, p.DisbDate ?? today, ct);
-        if (plan is not null)
-        {
-            g.RuleCharges = [.. plan.ChargeCodes];
-            if (!g.RuleCharges.Contains("ADMIN_EXPENSE"))
-                g.FrAdmin = g.Admin = 0;
-            if (!g.RuleCharges.Contains("LEGAL_FEE"))
-                g.FrLegal = g.Legal = 0;
-            if (!g.RuleCharges.Contains("VALUATION_FEE"))
-                g.FrVal = g.Val = 0;
-        }
-
-        if (g.Admin < 0 || g.Legal < 0 || g.Val < 0)
-            throw Fail(-20952, "Charges cannot be negative.");
-        g.Fees = g.Admin + g.Legal + g.Val;
         g.Mm = ModeOf(p.MarginMode, "PRORATE");
-        g.Am = ModeOf(p.AdminMode, "PRORATE");
-        g.Lm = ModeOf(p.LegalMode, "IMMEDIATE");
-        g.Vm = ModeOf(p.ValuationMode, "IMMEDIATE");
-        SplitIncome(g);
         g.Disb = p.DisbDate ?? today;
+        await ReadPlanAsync(g, ct);
         var r = (g.Rate ?? 0) / 100;
 
         var rows = await (from c in db.Set<MtgPurchasedPortfolioCheque>()
@@ -464,6 +532,11 @@ public sealed class MtgDisbursementPackage(
         }
 
         g.Fund = g.Fv - g.Pv;
+        await FeesAsync(g, p, ct);
+        if (g.Ch.Any(x => x.Amount < 0))
+            throw Fail(-20952, "Charges cannot be negative.");
+        g.Fees = g.Ch.Sum(x => x.Amount);
+        SplitIncome(g);
         g.Price = Round(g.Pv - g.Margin - g.Fees, 2);
         // deferred margin and fees shared between the contracts by present value; the last contract takes the rounding
         decimal am = 0, af = 0;
@@ -642,12 +715,31 @@ public sealed class MtgDisbursementPackage(
             g.Wrn.Add(unmatched.ToString(CultureInfo.InvariantCulture) + " cheque(s) have a bank name that is not in the wallet issuer bank list; they are stored with the bank name only.");
         if (g.BankNote is not null)
             g.Wrn.Add(g.BankNote);
-        if ("LATER" == g.Mm || "LATER" == g.Am || "LATER" == g.Lm || "LATER" == g.Vm)
+        if ("LATER" == g.Mm || g.Ch.Any(x => x.Mode == "LATER"))
             g.Blk.Add("Collect later is not available yet. Choose Pro-rate or Immediate for every charge.");
         if (g.Mm == "IMMEDIATE" && g.Margin > 0)
             g.Wrn.Add("The margin is recognised as income immediately. IFRS 9 and EAS 47 require it to be spread over the cheque dates by the effective interest method.");
-        if (g.Admin != g.FrAdmin || g.Legal != g.FrLegal || g.Val != g.FrVal)
-            g.Wrn.Add("Charges differ from the financial review: the amount payable to the developer changes from " + Fmt(g.BoardPrice) + " to " + Fmt(g.Price) + ".");
+        if (g.Plan is null)
+        {
+            if (g.Ch.Any(x => x.Amount != x.Calc))
+                g.Wrn.Add("Charges differ from the financial review: the amount payable to the developer changes from " + Fmt(g.BoardPrice) + " to " + Fmt(g.Price) + ".");
+            return;
+        }
+
+        foreach (var f in g.Ch)
+        {
+            if (f.Problem is not null && !f.Entered)
+                g.Blk.Add("Charge " + f.Name + ": " + f.Problem + ". Set it on Admin Setup > Product Event Rules (rule " + g.Plan.RuleCode + ") or enter the amount.");
+            if (f.Amount != 0 && f.Timing != "DEDUCT_FROM_DISBURSEMENT")
+                g.Blk.Add("Charge " + f.Name + " has charge timing " + f.Timing + " on product event rule " + g.Plan.RuleCode
+                          + ". The disbursement deducts its charges from the amount paid to the developer, so its timing must be DEDUCT_FROM_DISBURSEMENT.");
+            if (f.Amount != 0 && f.TaxRate != 0)
+                g.Wrn.Add("Charge " + f.Name + " has a tax rate of " + Num(f.TaxRate) + "% on the rule; tax is not calculated at disbursement.");
+        }
+
+        if (Math.Abs(g.Price - g.BoardPrice) > 0.004m)
+            g.Wrn.Add("With the charges of product event rule " + g.Plan.RuleCode + " the amount payable to the developer is " + Fmt(g.Price)
+                      + ", against the board-approved price of " + Fmt(g.BoardPrice) + ".");
     }
 
     private static string Num(decimal n) => (n / 1.000000000000000000000000000000000m).ToString(CultureInfo.InvariantCulture);
@@ -667,7 +759,8 @@ public sealed class MtgDisbursementPackage(
     /// </summary>
     private async Task BuildGlAsync(State g, CancellationToken ct, bool strict = true)
     {
-        var (ev, plan) = await EventPlanAsync(g.Pf, g.Disb, ct);
+        await ReadPlanAsync(g, ct);
+        var (ev, plan) = (g.Event, g.Plan);
         if (ev is null)
         {
             BuildGl(g);
@@ -680,11 +773,24 @@ public sealed class MtgDisbursementPackage(
                          + D(g.Disb) + ". Add it on Admin Setup > Product Event Rules.");
         else
         {
-            foreach (var (code, amount, _) in Charges(g))
-                if (amount != 0 && !plan.ChargeCodes.Contains(code))
-                    problems.Add("Charge " + code + " (" + Fmt(amount) + ") is not a charge component of product event rule " + plan.RuleCode + ".");
-            foreach (var code in plan.ChargeCodes.Where(c => Charges(g).All(x => x.Code != c)))
-                problems.Add("Charge component " + code + " of product event rule " + plan.RuleCode + " has no amount at disbursement.");
+            foreach (var f in g.Ch.Where(x => x.Amount != 0))
+            {
+                if (!plan.ChargeCodes.Contains(f.Code))
+                    problems.Add("Charge " + f.Code + " (" + Fmt(f.Amount) + ") is not a charge component of product event rule " + plan.RuleCode + ".");
+                else if (!plan.Lines.Any(l => l.ChargeCode == f.Code
+                                              && (l.AmountCode == "CHARGE_AMOUNT" || l.AmountCode == (f.Mode == "PRORATE" ? "CHARGE_DEFERRED" : "CHARGE_IMMEDIATE"))))
+                    problems.Add("Charge " + f.Name + " is recognised " + (f.Mode == "PRORATE" ? "pro-rated" : "immediately") + " but product event rule "
+                                 + plan.RuleCode + " has no " + (f.Mode == "PRORATE" ? "CHARGE_DEFERRED" : "CHARGE_IMMEDIATE") + " GL line for it.");
+            }
+        }
+
+        if (problems.Count == 0)
+        {
+            var built = ProductEventPosting.Build(plan!, l => AmountOf(g, l), g.BankGlCode);
+            foreach (var j in built.GroupBy(x => x.JournalNo))
+                if (j.Sum(x => x.Dr) != j.Sum(x => x.Cr))
+                    problems.Add("Journal " + j.Key.ToString(CultureInfo.InvariantCulture) + " of product event rule " + plan!.RuleCode + " is not balanced: debit "
+                                 + Fmt(j.Sum(x => x.Dr)) + ", credit " + Fmt(j.Sum(x => x.Cr)) + ". Check its GL lines.");
         }
 
         if (problems.Count > 0)
@@ -710,6 +816,14 @@ public sealed class MtgDisbursementPackage(
     /// The business event the Disbursement step of the portfolio's workflow raises (finova:eventCode), null when none,
     /// and the product event rule of MTG_PORTFOLIO_PURCHASING for it on the date, null when there is none.
     /// </summary>
+    private async Task ReadPlanAsync(State g, CancellationToken ct)
+    {
+        if (g.PlanRead)
+            return;
+        (g.Event, g.Plan) = await EventPlanAsync(g.Pf, g.Disb, ct);
+        g.PlanRead = true;
+    }
+
     private async Task<(string? Event, ProductEventPlan? Plan)> EventPlanAsync(long portfolioId, DateOnly date, CancellationToken ct)
     {
         var xml = await (from p in db.Set<MtgPurchasedPortfolio>()
@@ -723,21 +837,19 @@ public sealed class MtgDisbursementPackage(
         return (ev, await rules.PlanAsync(AdmProduct.MortgagePortfolioPurchasingCode, ev, date, ct));
     }
 
-    /// <summary>The charges of a disbursement with their final amount and income treatment, by ADM_CHARGES code.</summary>
-    private static (string Code, decimal Amount, string Mode)[] Charges(State g) =>
-        [("ADMIN_EXPENSE", g.Admin, g.Am), ("LEGAL_FEE", g.Legal, g.Lm), ("VALUATION_FEE", g.Val, g.Vm)];
-
     /// <summary>The disbursement figure a GL line of the rule posts.</summary>
     private static decimal AmountOf(State g, ProductEventGlLine l)
     {
         if (l.ChargeCode is not null)
         {
-            var (_, amount, mode) = Charges(g).First(x => x.Code == l.ChargeCode);
+            var f = g.Ch.FirstOrDefault(x => x.Code == l.ChargeCode);
+            if (f is null)
+                return 0;
             return l.AmountCode switch
             {
-                "CHARGE_AMOUNT" => amount,
-                "CHARGE_DEFERRED" => mode == "PRORATE" ? amount : 0,
-                "CHARGE_IMMEDIATE" => mode == "IMMEDIATE" ? amount : 0,
+                "CHARGE_AMOUNT" => f.Amount,
+                "CHARGE_DEFERRED" => f.Mode == "PRORATE" ? f.Amount : 0,
+                "CHARGE_IMMEDIATE" => f.Mode == "IMMEDIATE" ? f.Amount : 0,
                 _ => 0,
             };
         }
@@ -855,9 +967,6 @@ public sealed class MtgDisbursementPackage(
         g.FrPv = done.PvAmount ?? 0;
         g.FrN = done.ChequeCount ?? 0;
         g.Margin = done.MarginAmount ?? 0;
-        g.Admin = done.AdminFinalAmount ?? 0;
-        g.Legal = done.LegalFinalAmount ?? 0;
-        g.Val = done.ValuationFinalAmount ?? 0;
         g.FrAdmin = done.AdminFrAmount ?? 0;
         g.FrLegal = done.LegalFrAmount ?? 0;
         g.FrVal = done.ValuationFrAmount ?? 0;
@@ -865,9 +974,31 @@ public sealed class MtgDisbursementPackage(
         g.Price = done.PayableAmount ?? 0;
         g.BoardPrice = done.BoardPriceAmount ?? 0;
         g.Mm = Nvl(done.MarginTreatment, "PRORATE")!;
-        g.Am = Nvl(done.AdminTreatment, "PRORATE")!;
-        g.Lm = Nvl(done.LegalTreatment, "PRORATE")!;
-        g.Vm = Nvl(done.ValuationTreatment, "PRORATE")!;
+        var saved = await db.Set<MtgPurchasedPortfolioDisbursementCharge>().AsNoTracking().Where(x => x.DisbursementId == done.DisbursementId)
+            .OrderBy(x => x.SequenceNo).ToListAsync(ct);
+        g.Ch = saved.Select(x => new Fee
+        {
+            Code = x.ChargeCode, Name = x.ChargeNameEn, NameAr = x.ChargeNameAr, Seq = x.SequenceNo, RuleChargeId = x.RuleChargeId, Method = x.CalculationMethodCode,
+            BaseCode = x.AmountBaseCode, BaseAmt = x.BaseAmount, Rate = x.ChargeRate, PerUnit = x.PerUnitAmount, Units = x.UnitCount,
+            Calc = x.CalculatedAmount, Amount = x.FinalAmount, Mode = x.IncomeRecognitionCode, DefMode = x.IncomeRecognitionCode,
+        }).ToList();
+        if (saved.Count == 0)
+        {
+            // a disbursement completed before its charges were saved one by one
+            (decimal? Fr, decimal? Fin, string? Mode)[] old =
+                [(done.AdminFrAmount, done.AdminFinalAmount, done.AdminTreatment), (done.LegalFrAmount, done.LegalFinalAmount, done.LegalTreatment),
+                 (done.ValuationFrAmount, done.ValuationFinalAmount, done.ValuationTreatment)];
+            for (var i = 0; i < ReviewCharges.Length; i++)
+            {
+                var mode = Nvl(old[i].Mode, "PRORATE")!;
+                g.Ch.Add(new Fee
+                {
+                    Code = ReviewCharges[i].Code, Name = ReviewCharges[i].Name, NameAr = ReviewCharges[i].NameAr, Seq = (i + 1) * 10,
+                    Calc = old[i].Fr ?? 0, Amount = old[i].Fin ?? 0, Mode = mode, DefMode = mode,
+                });
+            }
+        }
+
         SplitIncome(g);
         await LoadBankAsync(g, done.BankAccountId, ct);
         g.BankGlCode = done.BankGlAccount!;
@@ -1006,12 +1137,14 @@ public sealed class MtgDisbursementPackage(
                 {
                     { "disbDate", D(g.Disb) }, { "cheques", g.C.Count }, { "contracts", g.A.Count }, { "investors", inv },
                     { "clientsNew", nn }, { "clientsExisting", no }, { "face", g.Fv }, { "pv", g.Pv }, { "funding", g.Fund },
-                    { "margin", g.Margin }, { "admin", g.Admin }, { "legal", g.Legal }, { "valuation", g.Val }, { "fees", g.Fees },
+                    { "margin", g.Margin }, { "admin", Amt(g, "ADMIN_EXPENSE") }, { "legal", Amt(g, "LEGAL_FEE") }, { "valuation", Amt(g, "VALUATION_FEE") },
+                    { "fees", g.Fees },
                     { "marginDeferred", g.DefMargin }, { "marginImmediate", g.ImmMargin }, { "feesDeferred", g.DefFees },
                     { "feesImmediate", g.ImmFees }, { "payable", g.Price },
                 }
             },
-            { "treatment", new J { { "M", g.Mm }, { "A", g.Am }, { "L", g.Lm }, { "V", g.Vm } } },
+            { "treatment", new J { { "M", g.Mm } } },
+            { "chargeSource", g.Mode == "DONE" ? (g.Ch.Any(x => x.RuleChargeId is not null) ? "RULE" : "REVIEW") : g.Plan is null ? "REVIEW" : "RULE" },
             {
                 "bank", new J
                 {
@@ -1074,7 +1207,13 @@ public sealed class MtgDisbursementPackage(
 
         o.Add("gl", gls);
         o.Add("glRule", g.GlRule);
-        o.Add("ruleCharges", g.RuleCharges?.Order().ToList());
+        o.Add("chargeRule", g.Plan?.RuleCode);
+        o.Add("charges", g.Ch.OrderBy(x => x.Seq).Select(f => new J
+        {
+            { "code", f.Code }, { "name", f.Name }, { "nameAr", f.NameAr }, { "seq", f.Seq }, { "method", f.Method }, { "base", f.BaseCode },
+            { "baseAmount", f.BaseAmt }, { "rate", f.Rate }, { "perUnit", f.PerUnit }, { "units", f.Units }, { "calc", f.Calc }, { "amount", f.Amount },
+            { "mode", f.Mode }, { "defMode", f.DefMode }, { "problem", f.Problem }, { "entered", f.Entered },
+        }).ToList());
         return o;
     }
 
@@ -1161,11 +1300,11 @@ public sealed class MtgDisbursementPackage(
             FundingRecoveryAmount = g.Fund,
             MarginAmount = g.Margin,
             AdminFrAmount = g.FrAdmin,
-            AdminFinalAmount = g.Admin,
+            AdminFinalAmount = Amt(g, "ADMIN_EXPENSE"),
             LegalFrAmount = g.FrLegal,
-            LegalFinalAmount = g.Legal,
+            LegalFinalAmount = Amt(g, "LEGAL_FEE"),
             ValuationFrAmount = g.FrVal,
-            ValuationFinalAmount = g.Val,
+            ValuationFinalAmount = Amt(g, "VALUATION_FEE"),
             FeesAmount = g.Fees,
             BoardPriceAmount = g.BoardPrice,
             PayableAmount = g.Price,
@@ -1173,9 +1312,9 @@ public sealed class MtgDisbursementPackage(
             Comments = Substr(comment, 4000),
             StatusCode = "COMPLETED",
             MarginTreatment = g.Mm,
-            AdminTreatment = g.Am,
-            LegalTreatment = g.Lm,
-            ValuationTreatment = g.Vm,
+            AdminTreatment = ModeFor(g, "ADMIN_EXPENSE"),
+            LegalTreatment = ModeFor(g, "LEGAL_FEE"),
+            ValuationTreatment = ModeFor(g, "VALUATION_FEE"),
             MarginDeferredAmount = g.DefMargin,
             MarginImmediateAmount = g.ImmMargin,
             FeesDeferredAmount = g.DefFees,
@@ -1183,6 +1322,16 @@ public sealed class MtgDisbursementPackage(
         };
         db.Set<MtgPurchasedPortfolioDisbursement>().Add(head);
         await db.SaveChangesAsync(ct);
+        foreach (var f in g.Ch)
+        {
+            db.Set<MtgPurchasedPortfolioDisbursementCharge>().Add(new MtgPurchasedPortfolioDisbursementCharge
+            {
+                DisbursementId = head.DisbursementId, PortfolioId = p.PortfolioId, SequenceNo = f.Seq, ChargeCode = f.Code, ChargeNameEn = f.Name,
+                ChargeNameAr = f.NameAr, RuleChargeId = f.RuleChargeId, CalculationMethodCode = f.Method, AmountBaseCode = f.BaseCode, BaseAmount = f.BaseAmt,
+                ChargeRate = f.Rate, PerUnitAmount = f.PerUnit, UnitCount = f.Units, CalculatedAmount = f.Calc, FinalAmount = f.Amount,
+                IncomeRecognitionCode = f.Mode,
+            });
+        }
 
         // 2. investors in CRM
         await ResolveClientsAsync(g, true, ct);

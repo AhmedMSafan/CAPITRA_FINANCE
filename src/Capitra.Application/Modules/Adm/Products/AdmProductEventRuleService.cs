@@ -19,13 +19,14 @@ public sealed record SaveProductEventRuleRequest(
 
 public sealed record RuleChargeDto(
     long RuleChargeId, long ProductEventRuleId, long ChargeId, string ChargeCode, string ChargeNameEn, int SequenceNo,
-    string CalculationMethodCode, decimal? FixedAmount, decimal? ChargeRate, decimal? PerUnitAmount, decimal SpreadRate, int? DayCountBasis,
+    string CalculationMethodCode, decimal? FixedAmount, decimal? ChargeRate, decimal? PerUnitAmount, string? AmountBaseCode,
+    string IncomeRecognitionCode, decimal SpreadRate, int? DayCountBasis,
     decimal? MinimumAmount, decimal? MaximumAmount, int RoundingScale, string ChargeTimingCode, int DueDays, decimal TaxRate,
     DateOnly EffectiveFromDate, DateOnly? EffectiveToDate, bool IsActive, int RowVersion);
 
 public sealed record SaveRuleChargeRequest(
     long? ChargeId, int? SequenceNo, string? CalculationMethodCode, decimal? FixedAmount, decimal? ChargeRate, decimal? PerUnitAmount,
-    decimal? SpreadRate, int? DayCountBasis, decimal? MinimumAmount, decimal? MaximumAmount, int? RoundingScale, string? ChargeTimingCode,
+    string? AmountBaseCode, string? IncomeRecognitionCode, decimal? SpreadRate, int? DayCountBasis, decimal? MinimumAmount, decimal? MaximumAmount, int? RoundingScale, string? ChargeTimingCode,
     int? DueDays, decimal? TaxRate, DateOnly? EffectiveFromDate, DateOnly? EffectiveToDate, bool IsActive, int? RowVersion);
 
 public sealed record GlAccountOptionDto(long AccountId, string AccountCode, string AccountNameEn);
@@ -89,7 +90,9 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
                              where rc.ProductEventRuleId == rule.ProductEventRuleId && rc.IsActive
                                    && rc.EffectiveFromDate <= date && (rc.EffectiveToDate == null || rc.EffectiveToDate >= date)
                              orderby rc.SequenceNo
-                             select new { rc.RuleChargeId, rc.SequenceNo, c.ChargeCode }).ToListAsync(cancellationToken);
+                             select new ProductEventCharge(rc.RuleChargeId, rc.SequenceNo, c.ChargeCode, c.ChargeNameEn, c.ChargeNameAr,
+                                 rc.CalculationMethodCode, rc.FixedAmount, rc.ChargeRate, rc.PerUnitAmount, rc.AmountBaseCode, rc.IncomeRecognitionCode,
+                                 rc.MinimumAmount, rc.MaximumAmount, rc.RoundingScale, rc.ChargeTimingCode, rc.TaxRate)).ToListAsync(cancellationToken);
         var lines = await (from l in db.Set<AdmProductEventRuleGlLine>().AsNoTracking()
                            join a in db.Set<GlAccount>() on l.AccountId equals a.AccountId into accs
                            from a in accs.DefaultIfEmpty()
@@ -97,7 +100,7 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
                            select new { l, AccountCode = a == null ? null : a.AccountCode }).ToListAsync(cancellationToken);
 
         var byId = charges.ToDictionary(x => x.RuleChargeId);
-        return new ProductEventPlan(rule.ProductEventRuleId, rule.RuleCode, eventCode, [.. charges.Select(x => x.ChargeCode)],
+        return new ProductEventPlan(rule.ProductEventRuleId, rule.RuleCode, eventCode, charges,
             [.. lines.Where(x => x.l.RuleChargeId is null || byId.ContainsKey(x.l.RuleChargeId.Value))
                 .Select(x =>
                 {
@@ -151,7 +154,7 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
                       where x.ProductEventRuleId == ruleId
                       orderby x.SequenceNo, c.ChargeNameEn
                       select new RuleChargeDto(x.RuleChargeId, x.ProductEventRuleId, x.ChargeId, c.ChargeCode, c.ChargeNameEn, x.SequenceNo,
-                          x.CalculationMethodCode, x.FixedAmount, x.ChargeRate, x.PerUnitAmount, x.SpreadRate, x.DayCountBasis, x.MinimumAmount,
+                          x.CalculationMethodCode, x.FixedAmount, x.ChargeRate, x.PerUnitAmount, x.AmountBaseCode, x.IncomeRecognitionCode, x.SpreadRate, x.DayCountBasis, x.MinimumAmount,
                           x.MaximumAmount, x.RoundingScale, x.ChargeTimingCode, x.DueDays, x.TaxRate, x.EffectiveFromDate, x.EffectiveToDate,
                           x.IsActive, x.RowVersion))
             .ToListAsync(cancellationToken);
@@ -333,6 +336,13 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
         var e = new SetupErrors();
         var method = e.OneOf(nameof(r.CalculationMethodCode), "Calculation method", r.CalculationMethodCode, CalculationMethods);
         var timing = e.OneOf(nameof(r.ChargeTimingCode), "Charge timing", r.ChargeTimingCode ?? "DUE_SEPARATELY", ChargeTimings);
+        var income = e.OneOf(nameof(r.IncomeRecognitionCode), "Income recognition", r.IncomeRecognitionCode ?? "PRORATE",
+            AdmProductEventRuleCharge.IncomeRecognitions);
+        var amountBase = string.IsNullOrWhiteSpace(r.AmountBaseCode)
+            ? null
+            : e.OneOf(nameof(r.AmountBaseCode), "Amount base", r.AmountBaseCode, AdmProductEventRuleCharge.AmountBases);
+        if (method == "PERCENTAGE" && amountBase is null)
+            e.Add(nameof(r.AmountBaseCode), "Amount base is required for a percentage charge.");
         if (r.ChargeId is null)
             e.Add(nameof(r.ChargeId), "Charge is required.");
         else if (r.ChargeId != entity.ChargeId && !await db.Set<AdmCharge>().AnyAsync(x => x.ChargeId == r.ChargeId && x.IsActive, cancellationToken))
@@ -366,6 +376,8 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
         entity.FixedAmount = r.FixedAmount;
         entity.ChargeRate = r.ChargeRate;
         entity.PerUnitAmount = r.PerUnitAmount;
+        entity.AmountBaseCode = method == "PERCENTAGE" ? amountBase : null;
+        entity.IncomeRecognitionCode = income;
         entity.SpreadRate = r.SpreadRate ?? 0m;
         entity.DayCountBasis = r.DayCountBasis;
         entity.MinimumAmount = r.MinimumAmount;

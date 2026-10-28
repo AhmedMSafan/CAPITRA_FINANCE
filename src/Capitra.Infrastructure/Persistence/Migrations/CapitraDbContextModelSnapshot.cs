@@ -1173,6 +1173,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RuleChargeId"));
 
+                    b.Property<string>("AmountBaseCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("AMOUNT_BASE_CODE");
+
                     b.Property<string>("CalculationMethodCode")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -1224,6 +1229,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("FIXED_AMOUNT");
+
+                    b.Property<string>("IncomeRecognitionCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("PRORATE")
+                        .HasColumnName("INCOME_RECOGNITION_CODE");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
@@ -30169,6 +30182,131 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_PURCHASED_PORTFOLIO_DISBURSEMENTS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDisbursementCharge", b =>
+                {
+                    b.Property<long>("DisbursementChargeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_CHARGE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DisbursementChargeId"));
+
+                    b.Property<string>("AmountBaseCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("AMOUNT_BASE_CODE");
+
+                    b.Property<decimal?>("BaseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("BASE_AMOUNT");
+
+                    b.Property<decimal>("CalculatedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CALCULATED_AMOUNT");
+
+                    b.Property<string>("CalculationMethodCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CALCULATION_METHOD_CODE");
+
+                    b.Property<string>("ChargeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CHARGE_CODE");
+
+                    b.Property<string>("ChargeNameAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CHARGE_NAME_AR");
+
+                    b.Property<string>("ChargeNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CHARGE_NAME_EN");
+
+                    b.Property<decimal?>("ChargeRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("CHARGE_RATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<decimal>("FinalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("FINAL_AMOUNT");
+
+                    b.Property<string>("IncomeRecognitionCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INCOME_RECOGNITION_CODE");
+
+                    b.Property<decimal?>("PerUnitAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PER_UNIT_AMOUNT");
+
+                    b.Property<long>("PortfolioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PORTFOLIO_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long?>("RuleChargeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("RULE_CHARGE_ID");
+
+                    b.Property<int>("SequenceNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEQUENCE_NO");
+
+                    b.Property<int?>("UnitCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("UNIT_COUNT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DisbursementChargeId")
+                        .HasName("PK_MTG_PURCHASED_PORTFOLIO_DISBURSEMENT_CHARGES");
+
+                    b.HasIndex("PortfolioId")
+                        .HasDatabaseName("IX_MTG_PP_DISBURSEMENT_CHARGES_PORTFOLIO_ID");
+
+                    b.HasIndex("DisbursementId", "ChargeCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_MTG_PP_DISBURSEMENT_CHARGES_DISBURSEMENT_ID_CHARGE_CODE");
+
+                    b.ToTable("MTG_PURCHASED_PORTFOLIO_DISBURSEMENT_CHARGES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDocument", b =>
                 {
                     b.Property<long>("DocumentId")
@@ -37840,6 +37978,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_PP_CHEQUES_MTG_PURCHASED_PORTFOLIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDisbursementCharge", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDisbursement", null)
+                        .WithMany()
+                        .HasForeignKey("DisbursementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_MTG_PP_DISBURSEMENT_CHARGES_MTG_PURCHASED_PORTFOLIO_6CE5976C");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mtg.MtgPurchasedPortfolioDocument", b =>

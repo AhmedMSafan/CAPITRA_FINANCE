@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Mtg.Packages;
@@ -106,7 +107,7 @@ public sealed class P0217Disbursement(IApexSqlReader reader, IClock clock) : IAp
         <section class="fxd-card"><div class="fxd-card-h"><h2><span class="fa fa-university" aria-hidden="true"></span>{{T("Payment to the developer", "الدفع للمطور")}}</h2><span class="fxd-label">{{E(cur)}}</span></div><div class="ds-fields"><div class="wb-f"><label for="dsDate">{{T("Disbursement date", "تاريخ الصرف")}} *</label><input id="dsDate" type="date" class="ds-in"></div><div class="wb-f"><label for="dsRef">{{T("Payment reference", "مرجع الدفع")}} *</label><input id="dsRef" maxlength="200" class="ds-in" placeholder="{{Attr("Transfer / cheque no.")}}"></div><div class="wb-f"><label for="dsBank">{{T("Bank", "البنك")}} *</label><select id="dsBank" class="ds-in"></select></div><div class="wb-f"><label for="dsAcc">{{T("Bank account", "الحساب البنكي")}} *</label><select id="dsAcc" class="ds-in"></select></div></div><div class="ds-glline" id="dsGlLine"></div></section>
         """);
         h.AppendLine($$"""
-        <section class="fxd-card"><div class="fxd-card-h"><h2><span class="fa fa-file-text-o" aria-hidden="true"></span>{{T("Margin and charges", "الهامش والمصروفات")}}</h2><span class="ds-chip ds-edit">{{T("Choose how each one is recognised", "اختر طريقة إثبات كل بند")}}</span></div><div class="wb-tbl-wrap"><table class="wb-tbl ds-ch"><thead><tr><th>{{T("Item", "البند")}}</th><th class="fxd-num">{{T("Financial review", "المراجعة المالية")}}</th><th class="fxd-num">{{T("Final amount", "المبلغ النهائي")}}</th><th>{{T("Income recognition", "إثبات الإيراد")}}</th><th>{{T("Waive", "إعفاء")}}</th></tr></thead><tbody><tr data-ch="M"><td><strong>{{T("Margin", "الهامش")}}</strong><small>{{T("Main profit of the deal", "الربح الأساسي للصفقة")}}</small></td><td class="fxd-num"><b class="ds-fr"></b></td><td class="fxd-num"><b class="ds-mfin"></b></td><td><div class="ds-tr" role="group" aria-label="Income recognition"><button type="button" class="ds-in" data-v="PRORATE" aria-pressed="false">{{T("Pro-rate", "توزيع زمني")}}</button><button type="button" class="ds-in" data-v="IMMEDIATE" aria-pressed="false">{{T("Immediate", "فوري")}}</button><button type="button" data-v="LATER" disabled title="Coming soon">{{T("Collect later", "تحصيل لاحق")}}</button></div><span class="ds-std" hidden>{{T("Not IFRS 9 / EAS 47", "غير متوافق مع IFRS 9 / EAS 47")}}</span></td><td class="ds-na">&ndash;</td></tr><tr data-ch="A"><td><strong>{{T("Admin expense", "المصروفات الإدارية")}}</strong><small>{{T("Charged to the developer", "تُحمّل على المطور")}}</small></td><td class="fxd-num"><b class="ds-fr"></b></td><td class="fxd-num"><input class="ds-fin ds-in" type="number" step="0.01" min="0" inputmode="decimal" aria-label="Admin expense final amount"></td><td><div class="ds-tr" role="group" aria-label="Income recognition"><button type="button" class="ds-in" data-v="PRORATE" aria-pressed="false">{{T("Pro-rate", "توزيع زمني")}}</button><button type="button" class="ds-in" data-v="IMMEDIATE" aria-pressed="false">{{T("Immediate", "فوري")}}</button><button type="button" data-v="LATER" disabled title="Coming soon">{{T("Collect later", "تحصيل لاحق")}}</button></div></td><td><label class="ds-sw"><input type="checkbox" class="ds-waive ds-in" aria-label="Waive admin expense"><i></i></label></td></tr><tr data-ch="L"><td><strong>{{T("Legal fees", "الرسوم القانونية")}}</strong><small>{{T("Charged to the developer", "تُحمّل على المطور")}}</small></td><td class="fxd-num"><b class="ds-fr"></b></td><td class="fxd-num"><input class="ds-fin ds-in" type="number" step="0.01" min="0" inputmode="decimal" aria-label="Legal fees final amount"></td><td><div class="ds-tr" role="group" aria-label="Income recognition"><button type="button" class="ds-in" data-v="PRORATE" aria-pressed="false">{{T("Pro-rate", "توزيع زمني")}}</button><button type="button" class="ds-in" data-v="IMMEDIATE" aria-pressed="false">{{T("Immediate", "فوري")}}</button><button type="button" data-v="LATER" disabled title="Coming soon">{{T("Collect later", "تحصيل لاحق")}}</button></div></td><td><label class="ds-sw"><input type="checkbox" class="ds-waive ds-in" aria-label="Waive legal fees"><i></i></label></td></tr><tr data-ch="V"><td><strong>{{T("Valuation expense", "مصروفات التقييم")}}</strong><small>{{T("Charged to the developer", "تُحمّل على المطور")}}</small></td><td class="fxd-num"><b class="ds-fr"></b></td><td class="fxd-num"><input class="ds-fin ds-in" type="number" step="0.01" min="0" inputmode="decimal" aria-label="Valuation expense final amount"></td><td><div class="ds-tr" role="group" aria-label="Income recognition"><button type="button" class="ds-in" data-v="PRORATE" aria-pressed="false">{{T("Pro-rate", "توزيع زمني")}}</button><button type="button" class="ds-in" data-v="IMMEDIATE" aria-pressed="false">{{T("Immediate", "فوري")}}</button><button type="button" data-v="LATER" disabled title="Coming soon">{{T("Collect later", "تحصيل لاحق")}}</button></div></td><td><label class="ds-sw"><input type="checkbox" class="ds-waive ds-in" aria-label="Waive valuation expense"><i></i></label></td></tr></tbody></table></div><div class="ds-note" id="dsTrNote"></div></section>
+        <section class="fxd-card"><div class="fxd-card-h"><h2><span class="fa fa-file-text-o" aria-hidden="true"></span>{{T("Margin and charges", "الهامش والمصروفات")}}</h2><span class="ds-chip ds-edit">{{T("Choose how each one is recognised", "اختر طريقة إثبات كل بند")}}</span></div><div class="wb-tbl-wrap"><table class="wb-tbl ds-ch"><thead><tr><th>{{T("Item", "البند")}}</th><th class="fxd-num">{{T("Calculated", "المحسوب")}}</th><th class="fxd-num">{{T("Final amount", "المبلغ النهائي")}}</th><th>{{T("Income recognition", "إثبات الإيراد")}}</th><th>{{T("Waive", "إعفاء")}}</th></tr></thead><tbody><tr data-ch="M"><td><strong>{{T("Margin", "الهامش")}}</strong><small>{{T("Main profit of the deal", "الربح الأساسي للصفقة")}}</small></td><td class="fxd-num"><b class="ds-fr"></b></td><td class="fxd-num"><b class="ds-mfin"></b></td><td><div class="ds-tr" role="group" aria-label="Income recognition"><button type="button" class="ds-in" data-v="PRORATE" aria-pressed="false">{{T("Pro-rate", "توزيع زمني")}}</button><button type="button" class="ds-in" data-v="IMMEDIATE" aria-pressed="false">{{T("Immediate", "فوري")}}</button><button type="button" data-v="LATER" disabled title="Coming soon">{{T("Collect later", "تحصيل لاحق")}}</button></div><span class="ds-std" hidden>{{T("Not IFRS 9 / EAS 47", "غير متوافق مع IFRS 9 / EAS 47")}}</span></td><td class="ds-na">&ndash;</td></tr></tbody></table></div><div class="ds-note" id="dsTrNote"></div></section>
         """);
         h.AppendLine($$"""
         <section class="fxd-card"><div class="ds-tabs"><div class="wb-seg" role="group" aria-label="Details" id="dsTabs"><button type="button" data-tab="sch" aria-pressed="true">{{T("Repayment schedule", "جدول السداد")}}</button><button type="button" data-tab="inc" aria-pressed="false">{{T("Unearned income", "الإيراد المؤجل")}}</button><button type="button" data-tab="gl" aria-pressed="false">{{T("GL entries", "القيود")}}</button><button type="button" data-tab="crm" aria-pressed="false">{{T("CRM clients", "العملاء")}}</button><button type="button" data-tab="wal" aria-pressed="false">{{T("Cheque wallet", "محفظة الشيكات")}}</button></div><select id="dsAccSel" aria-label="Investor"></select></div><div class="ds-load" id="dsBusy"><i></i><span>{{T("Calculating...", "جارٍ الحساب...")}}</span></div><div id="dsPanel"></div></section></div>
@@ -171,7 +172,7 @@ public sealed class P0217StepActions(MtgWorkflowSteps steps) : IApexProcess
         new { ok = true, html = await steps.StepActionsAsync(217, request, ct, "dsComplete", "dsNoReject", "Complete disbursement", "إكمال الصرف") };
 }
 
-/// <summary>The x01 to x13 of DS_PREVIEW and DS_COMPLETE.</summary>
+/// <summary>The x01, x02, x10 and x14 of DS_PREVIEW and DS_COMPLETE.</summary>
 internal static class P0217Input
 {
     /// <summary>to_date(nullif(trim(x),''),'YYYY-MM-DD').</summary>
@@ -182,15 +183,27 @@ internal static class P0217Input
 
     public static MtgDisbursementInput Read(ApexRequest request) => new(
         MtgAjax.Long(request.Item("P217_PORTFOLIO_ID")) ?? 0,
-        MtgAjax.Number(request.X03),
-        MtgAjax.Number(request.X04),
-        MtgAjax.Number(request.X05),
         Date(request.X01),
         MtgAjax.Long(request.X02),
         request.X10,
-        request.X11,
-        request.X12,
-        request.X13);
+        Charges(request.X14));
+
+    /// <summary>x14: [{"c": charge code, "a": final amount or "" for the calculated one, "m": income recognition}].</summary>
+    private static List<MtgDisbursementChargeInput>? Charges(string? x)
+    {
+        if (string.IsNullOrWhiteSpace(x))
+            return null;
+        var list = new List<MtgDisbursementChargeInput>();
+        foreach (var e in JsonDocument.Parse(x).RootElement.EnumerateArray())
+        {
+            string? S(string n) => e.TryGetProperty(n, out var v) && v.ValueKind != JsonValueKind.Null
+                ? v.ValueKind == JsonValueKind.String ? v.GetString() : v.GetRawText() : null;
+            if (S("c") is { Length: > 0 } code)
+                list.Add(new MtgDisbursementChargeInput(code, MtgAjax.Number(S("a")), S("m")));
+        }
+
+        return list;
+    }
 }
 
 /// <summary>App 105 page 217, Ajax Callback DS_PREVIEW: FNV_PP_DISB_PKG.preview_json, or {success: false, message: sqlerrm}.</summary>

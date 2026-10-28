@@ -23,6 +23,12 @@ public class AdmProductEventRuleCharge : AuditableEntity
 
     public decimal? PerUnitAmount { get; set; }
 
+    /// <summary>What a PERCENTAGE rate is applied to; one of <see cref="AmountBases"/>.</summary>
+    public string? AmountBaseCode { get; set; }
+
+    /// <summary>How the charge is recognised as income; one of <see cref="IncomeRecognitions"/>.</summary>
+    public string IncomeRecognitionCode { get; set; } = "PRORATE";
+
     /// <summary>Spread over the index, in percent.</summary>
     public decimal SpreadRate { get; set; }
 
@@ -48,4 +54,9 @@ public class AdmProductEventRuleCharge : AuditableEntity
     public DateOnly? EffectiveToDate { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    public static readonly string[] AmountBases = ["FACE_VALUE", "PRESENT_VALUE", "PV_LESS_MARGIN"];
+
+    /// <summary>PRORATE: deferred and released with the effective interest; IMMEDIATE: income on the event date.</summary>
+    public static readonly string[] IncomeRecognitions = ["PRORATE", "IMMEDIATE"];
 }
