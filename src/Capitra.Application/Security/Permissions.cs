@@ -80,6 +80,15 @@ public static class Permissions
         public const string Edit = "MFF.EDIT";
     }
 
+    public static class Fct
+    {
+        /// <summary>Read the factoring customers, their applications, agreements and limits.</summary>
+        public const string View = "FCT.VIEW";
+
+        /// <summary>Create and change factoring applications and start their workflow.</summary>
+        public const string Edit = "FCT.EDIT";
+    }
+
     public static class Mtg
     {
         /// <summary>Read developers, signatories, projects, units and investors.</summary>

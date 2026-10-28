@@ -3,6 +3,29 @@
 // App 100 page 2 (Admin Setup) and App 118 page 1 (Workflow Engine home) have no Arabic in APEX; their texts below
 // were added for this app in the same wording style.
 export const AR: Record<string, string> = {
+  // Factoring (FINOVA_FINANCEING factoring module; it has no Arabic, these were added in the same wording style)
+  Factoring: 'التخصيم',
+  'Invoice factoring for corporate customers: application, credit and risk review, committee approval, contract and limit.': 'تخصيم الفواتير لعملاء الشركات: الطلب ومراجعة الائتمان والمخاطر واعتماد اللجنة والعقد والحد الائتماني.',
+  'Customer workspace': 'مساحة عمل العميل', 'Credit & risk review': 'مراجعة الائتمان والمخاطر', 'Committee approval & limits': 'اعتماد اللجنة والحدود',
+  Customers: 'العملاء', 'View and manage customer information.': 'عرض بيانات العملاء وإدارتها.',
+  'Workflow Inbox': 'صندوق مهام سير العمل', 'View and process your assigned workflow tasks': 'اعرض مهام سير العمل المسندة إليك وأنجزها',
+  'Customer Name': 'اسم العميل', 'Customer Number': 'رقم العميل', 'Client Type': 'نوع العميل', 'All Types': 'جميع الأنواع',
+  'Enter customer name...': 'أدخل اسم العميل...', 'Enter customer number...': 'أدخل رقم العميل...',
+  Clear: 'مسح', Show: 'عرض', 'entries per page': 'سجلات في الصفحة', Phone: 'الهاتف', Email: 'البريد الإلكتروني',
+  Actions: 'الإجراءات', Process: 'معالجة', 'Open Factoring Workspace': 'فتح مساحة عمل التخصيم',
+  'Loading customers...': 'جارٍ تحميل العملاء...', 'No customers match the current filters.': 'لا يوجد عملاء مطابقون لعوامل التصفية الحالية.',
+  Showing: 'عرض', to: 'إلى', entries: 'سجلات', Previous: 'السابق', Next: 'التالي',
+  'Process Customer': 'معالجة العميل', 'Factoring Customer Workspace': 'مساحة عمل عميل التخصيم', 'Back to Factoring': 'العودة إلى التخصيم',
+  Country: 'الدولة', Currency: 'العملة', 'Relationship Manager': 'مدير العلاقة',
+  'Factoring Calculator': 'حاسبة التخصيم', 'Create a new application using the factoring calculator': 'أنشئ طلبًا جديدًا باستخدام حاسبة التخصيم',
+  'Factoring Applications': 'طلبات التخصيم', Agreements: 'الاتفاقيات', Limits: 'الحدود', Disbursements: 'الصرف', Claims: 'المطالبات',
+  'Loading customer factoring data...': 'جارٍ تحميل بيانات التخصيم للعميل...',
+  'Application No.': 'رقم الطلب', 'Application Date': 'تاريخ الطلب', 'Requested Limit': 'الحد المطلوب', Type: 'النوع',
+  'Workflow Step': 'خطوة سير العمل', 'WF Started': 'بدأ سير العمل', 'Workflow Started': 'بدأ سير العمل', 'Workflow Not Started': 'لم يبدأ سير العمل',
+  'No applications found for this customer.': 'لا توجد طلبات لهذا العميل.', 'Agreement No.': 'رقم الاتفاقية', 'Facility Limit': 'حد التسهيل',
+  'No agreements found for this customer.': 'لا توجد اتفاقيات لهذا العميل.',
+  'Approved limits will be available here.': 'ستظهر الحدود المعتمدة هنا.', 'Disbursement data will be available here.': 'ستظهر بيانات الصرف هنا.',
+  'Claims data will be available here.': 'ستظهر بيانات المطالبات هنا.', 'Customer ID is missing from the route.': 'رقم العميل غير موجود في الرابط.',
   // App 100 page 1 and the header (finova-home-lang.js; FINOVA becomes CAPITRA / كابيترا)
   'CAPITRA · Digital Finance Platform': 'كابيترا · منصة التمويل الرقمي',
   ',': '،', Welcome: 'مرحبًا', 'Good morning': 'صباح الخير', 'Good afternoon': 'مساء الخير', 'Good evening': 'مساء الخير',

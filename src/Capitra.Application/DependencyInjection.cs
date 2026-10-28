@@ -17,6 +17,9 @@ public static class DependencyInjection
         services.AddScoped<Modules.Adm.Products.AdmProductService>();
         services.AddScoped<Modules.Adm.Products.AdmProductEventRuleService>();
 
+        // Factoring (FINOVA_FINANCEING factoring module).
+        services.AddScoped<Modules.Fct.FctWorkspaceService>();
+
 
 
         // Portfolio workflow steps: one service per step.

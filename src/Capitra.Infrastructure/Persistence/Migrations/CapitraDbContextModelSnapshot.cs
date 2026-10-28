@@ -4023,6 +4023,613 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("CRM_LKP_STATUS_CODES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctAgreement", b =>
+                {
+                    b.Property<long>("AgreementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("AGREEMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AgreementId"));
+
+                    b.Property<string>("AdditionalTermsConditions")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("ADDITIONAL_TERMS_CONDITIONS");
+
+                    b.Property<decimal>("AdvanceRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("ADVANCE_RATE_PCT");
+
+                    b.Property<string>("AgreementName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("AGREEMENT_NAME");
+
+                    b.Property<string>("AgreementNameAr")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("AGREEMENT_NAME_AR");
+
+                    b.Property<string>("AgreementNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("AGREEMENT_NUMBER");
+
+                    b.Property<string>("AgreementRef")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("AGREEMENT_REF");
+
+                    b.Property<string>("AgreementType")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("AGREEMENT_TYPE");
+
+                    b.Property<string>("AgreementTypeAr")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("AGREEMENT_TYPE_AR");
+
+                    b.Property<string>("AmlRiskBand")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("AML_RISK_BAND");
+
+                    b.Property<string>("AmlScreeningNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("AML_SCREENING_NOTES");
+
+                    b.Property<DateTime?>("AmlScreeningReportAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("AML_SCREENING_REPORT_AT");
+
+                    b.Property<string>("AmlScreeningResult")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("AML_SCREENING_RESULT");
+
+                    b.Property<DateTime?>("ApplicationAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("APPLICATION_AT");
+
+                    b.Property<string>("ApprovalAuthority")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("APPROVAL_AUTHORITY");
+
+                    b.Property<string>("ApprovalAuthorityAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("APPROVAL_AUTHORITY_AR");
+
+                    b.Property<DateOnly?>("ApprovalDate")
+                        .HasColumnType("date")
+                        .HasColumnName("APPROVAL_DATE");
+
+                    b.Property<string>("ApprovalReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("APPROVAL_REFERENCE");
+
+                    b.Property<decimal?>("ApprovedAdvRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("APPROVED_ADV_RATE");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<decimal?>("ApprovedLimit")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("APPROVED_LIMIT");
+
+                    b.Property<int?>("ApprovedTenorMth")
+                        .HasColumnType("integer")
+                        .HasColumnName("APPROVED_TENOR_MTH");
+
+                    b.Property<string>("Attribute1")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ATTRIBUTE1");
+
+                    b.Property<string>("Attribute2")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ATTRIBUTE2");
+
+                    b.Property<string>("Attribute3")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ATTRIBUTE3");
+
+                    b.Property<string>("Attribute4")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ATTRIBUTE4");
+
+                    b.Property<string>("Attribute5")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ATTRIBUTE5");
+
+                    b.Property<decimal?>("AvailableAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("AVAILABLE_AMOUNT");
+
+                    b.Property<decimal?>("BaseRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("BASE_RATE_PCT");
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<DateOnly?>("ConstractSignoffDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CONSTRACT_SIGNOFF_DATE");
+
+                    b.Property<DateOnly?>("ContractEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CONTRACT_END_DATE");
+
+                    b.Property<DateOnly?>("ContractStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CONTRACT_START_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("CreditBureauScore")
+                        .HasPrecision(28, 2)
+                        .HasColumnType("numeric(28,2)")
+                        .HasColumnName("CREDIT_BUREAU_SCORE");
+
+                    b.Property<DateOnly?>("CreditMemoDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CREDIT_MEMO_DATE");
+
+                    b.Property<string>("CreditNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("CREDIT_NOTES");
+
+                    b.Property<long>("CurrencyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CURRENCY_ID");
+
+                    b.Property<string>("CurrentStep")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CURRENT_STEP");
+
+                    b.Property<string>("DayCountConvention")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("DAY_COUNT_CONVENTION");
+
+                    b.Property<decimal?>("DilutionReservePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("DILUTION_RESERVE_PCT");
+
+                    b.Property<DateTime?>("EffectiveAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("EFFECTIVE_AT");
+
+                    b.Property<decimal?>("EffectiveRatePct")
+                        .HasPrecision(28, 10)
+                        .HasColumnType("numeric(28,10)")
+                        .HasColumnName("EFFECTIVE_RATE_PCT");
+
+                    b.Property<decimal>("FacilityLimit")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("FACILITY_LIMIT");
+
+                    b.Property<string>("FactoringType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("FACTORING_TYPE");
+
+                    b.Property<string>("FactoringTypeAr")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("FACTORING_TYPE_AR");
+
+                    b.Property<DateOnly?>("FirstUtilizationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("FIRST_UTILIZATION_DATE");
+
+                    b.Property<DateOnly?>("FsAssessmentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("FS_ASSESSMENT_DATE");
+
+                    b.Property<long?>("FsAssessmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FS_ASSESSMENT_ID");
+
+                    b.Property<string>("FsAssessmentResult")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("FS_ASSESSMENT_RESULT");
+
+                    b.Property<string>("FsNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("FS_NOTES");
+
+                    b.Property<string>("GoverningLaw")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("GOVERNING_LAW");
+
+                    b.Property<string>("GoverningLawAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("GOVERNING_LAW_AR");
+
+                    b.Property<int?>("GracePeriodDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("GRACE_PERIOD_DAYS");
+
+                    b.Property<long>("InstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("INSTANCE_ID");
+
+                    b.Property<string>("InterestCalcMethod")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INTEREST_CALC_METHOD");
+
+                    b.Property<string>("InterestFreq")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("INTEREST_FREQ");
+
+                    b.Property<string>("InvestigationNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("INVESTIGATION_NOTES");
+
+                    b.Property<DateTime?>("InvestigationReportAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("INVESTIGATION_REPORT_AT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("Jurisdiction")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("JURISDICTION");
+
+                    b.Property<string>("JurisdictionAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("JURISDICTION_AR");
+
+                    b.Property<DateOnly?>("LastUtilizationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("LAST_UTILIZATION_DATE");
+
+                    b.Property<string>("LegalOpenionNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("LEGAL_OPENION_NOTES");
+
+                    b.Property<DateTime?>("LegalOpenionReportAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("LEGAL_OPENION_REPORT_AT");
+
+                    b.Property<long?>("LimitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LIMIT_ID");
+
+                    b.Property<decimal?>("MarginPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MARGIN_PCT");
+
+                    b.Property<DateTime?>("MaturityAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("MATURITY_AT");
+
+                    b.Property<decimal?>("MaxAdvanceRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_ADVANCE_RATE_PCT");
+
+                    b.Property<decimal?>("MaxDebtorConcentrationPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_DEBTOR_CONCENTRATION_PCT");
+
+                    b.Property<decimal?>("MaxDilutionPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_DILUTION_PCT");
+
+                    b.Property<int?>("MaxInvoiceTenorDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("MAX_INVOICE_TENOR_DAYS");
+
+                    b.Property<decimal?>("MaxSingleInvoiceAmt")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("MAX_SINGLE_INVOICE_AMT");
+
+                    b.Property<decimal?>("MaxSingleInvoicePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_SINGLE_INVOICE_PCT");
+
+                    b.Property<decimal?>("MinAdvanceRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MIN_ADVANCE_RATE_PCT");
+
+                    b.Property<decimal?>("MinInvoiceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MIN_INVOICE_AMOUNT");
+
+                    b.Property<int?>("MinInvoiceTenorDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("MIN_INVOICE_TENOR_DAYS");
+
+                    b.Property<DateOnly?>("NextReviewDate")
+                        .HasColumnType("date")
+                        .HasColumnName("NEXT_REVIEW_DATE");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("NotesAr")
+                        .HasColumnType("text")
+                        .HasColumnName("NOTES_AR");
+
+                    b.Property<string>("NotificationType")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("NOTIFICATION_TYPE");
+
+                    b.Property<string>("NotificationTypeAr")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("NOTIFICATION_TYPE_AR");
+
+                    b.Property<string>("OperationsOfficer")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("OPERATIONS_OFFICER");
+
+                    b.Property<long?>("OpsEmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("OPS_EMPLOYEE_ID");
+
+                    b.Property<decimal?>("PenaltyRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PENALTY_RATE_PCT");
+
+                    b.Property<long?>("PreviousAgreementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PREVIOUS_AGREEMENT_ID");
+
+                    b.Property<string>("ProductCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PRODUCT_CODE");
+
+                    b.Property<long?>("RateTypeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("RATE_TYPE_ID");
+
+                    b.Property<decimal?>("RecommendedAdvRate")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("RECOMMENDED_ADV_RATE");
+
+                    b.Property<decimal?>("RecommendedLimt")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("RECOMMENDED_LIMT");
+
+                    b.Property<int?>("RecommendedTenorMth")
+                        .HasColumnType("integer")
+                        .HasColumnName("RECOMMENDED_TENOR_MTH");
+
+                    b.Property<string>("RecourseType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RECOURSE_TYPE");
+
+                    b.Property<string>("RecourseTypeAr")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RECOURSE_TYPE_AR");
+
+                    b.Property<string>("RelationshipManager")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("RELATIONSHIP_MANAGER");
+
+                    b.Property<DateOnly?>("RenewalDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RENEWAL_DATE");
+
+                    b.Property<decimal?>("RequiredLimit")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("REQUIRED_LIMIT");
+
+                    b.Property<decimal?>("ReserveRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("RESERVE_RATE_PCT");
+
+                    b.Property<string>("RiskDecision")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("RISK_DECISION");
+
+                    b.Property<DateOnly?>("RiskMemoDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RISK_MEMO_DATE");
+
+                    b.Property<string>("RiskNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("RISK_NOTES");
+
+                    b.Property<long?>("RmEmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("RM_EMPLOYEE_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly?>("RrAssessmentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RR_ASSESSMENT_DATE");
+
+                    b.Property<long?>("RrAssessmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("RR_ASSESSMENT_ID");
+
+                    b.Property<string>("RrAssessmentResult")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("RR_ASSESSMENT_RESULT");
+
+                    b.Property<string>("RrNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("RR_NOTES");
+
+                    b.Property<DateOnly?>("SigningDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SIGNING_DATE");
+
+                    b.Property<string>("SpecialConditions")
+                        .HasColumnType("text")
+                        .HasColumnName("SPECIAL_CONDITIONS");
+
+                    b.Property<string>("SpecialConditionsAr")
+                        .HasColumnType("text")
+                        .HasColumnName("SPECIAL_CONDITIONS_AR");
+
+                    b.Property<decimal?>("SpreadPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("SPREAD_PCT");
+
+                    b.Property<string>("StatusCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<long?>("StatusId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("STATUS_ID");
+
+                    b.Property<decimal?>("SublimitAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SUBLIMIT_AMOUNT");
+
+                    b.Property<long>("TaskId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("TASK_ID");
+
+                    b.Property<int?>("TenorMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("TENOR_MONTHS");
+
+                    b.Property<DateOnly?>("TerminationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("TERMINATION_DATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<decimal?>("UtilizedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("UTILIZED_AMOUNT");
+
+                    b.Property<int?>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("VERSION_NUMBER");
+
+                    b.HasKey("AgreementId")
+                        .HasName("PK_FCT_AGREEMENTS");
+
+                    b.HasIndex("AgreementNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_FCT_AGREEMENTS_AGREEMENT_NUMBER");
+
+                    b.HasIndex("ClientId")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_CLIENT_ID");
+
+                    b.HasIndex("CurrencyId")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_CURRENCY_ID");
+
+                    b.HasIndex("NextReviewDate")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_NEXT_REVIEW_DATE");
+
+                    b.HasIndex("PreviousAgreementId")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_PREVIOUS_AGREEMENT_ID");
+
+                    b.HasIndex("RateTypeId")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_RATE_TYPE_ID");
+
+                    b.HasIndex("RecourseType")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_RECOURSE_TYPE");
+
+                    b.HasIndex("RmEmployeeId")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_RM_EMPLOYEE_ID");
+
+                    b.HasIndex("StatusId")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_STATUS_ID");
+
+                    b.HasIndex("AgreementType", "FactoringType")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_AGREEMENT_TYPE_FACTORING_TYPE");
+
+                    b.HasIndex("EffectiveAt", "MaturityAt")
+                        .HasDatabaseName("IX_FCT_AGREEMENTS_EFFECTIVE_AT_MATURITY_AT");
+
+                    b.ToTable("FCT_AGREEMENTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursement", b =>
                 {
                     b.Property<long>("DisbursementId")
@@ -4649,6 +5256,267 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_FCT_DISBURSEMENTS_FACILITY_ID_SUBLIMIT_ID");
 
                     b.ToTable("FCT_DISBURSEMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctOffer", b =>
+                {
+                    b.Property<long>("OfferId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("OFFER_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("OfferId"));
+
+                    b.Property<decimal>("AdvanceRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("ADVANCE_RATE_PCT");
+
+                    b.Property<string>("AgreementNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("AGREEMENT_NO");
+
+                    b.Property<DateOnly?>("ApprovalDate")
+                        .HasColumnType("date")
+                        .HasColumnName("APPROVAL_DATE");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<string>("Attribute2")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ATTRIBUTE2");
+
+                    b.Property<string>("Attribute3")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ATTRIBUTE3");
+
+                    b.Property<string>("Attribute4")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ATTRIBUTE4");
+
+                    b.Property<string>("Attribute5")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ATTRIBUTE5");
+
+                    b.Property<int?>("AvgTenorDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("AVG_TENOR_DAYS");
+
+                    b.Property<decimal?>("BaseRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("BASE_RATE_PCT");
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<DateOnly?>("ClientResponseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CLIENT_RESPONSE_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("CurrencyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CURRENCY_ID");
+
+                    b.Property<string>("DayCountConvention")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("DAY_COUNT_CONVENTION");
+
+                    b.Property<decimal?>("DilutionReservePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("DILUTION_RESERVE_PCT");
+
+                    b.Property<decimal?>("EffectiveRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("EFFECTIVE_RATE_PCT");
+
+                    b.Property<string>("FactoringType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("FACTORING_TYPE");
+
+                    b.Property<string>("InterestCalcMethod")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INTEREST_CALC_METHOD");
+
+                    b.Property<string>("InterestFreq")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("INTEREST_FREQ");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<decimal?>("MarginPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MARGIN_PCT");
+
+                    b.Property<decimal?>("MaxAdvanceRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_ADVANCE_RATE_PCT");
+
+                    b.Property<decimal?>("MaxDebtorConcentrationPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_DEBTOR_CONCENTRATION_PCT");
+
+                    b.Property<decimal?>("MaxDilutionPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_DILUTION_PCT");
+
+                    b.Property<int?>("MaxInvoiceTenorDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("MAX_INVOICE_TENOR_DAYS");
+
+                    b.Property<decimal?>("MaxLimitTenorMth")
+                        .HasPrecision(28, 2)
+                        .HasColumnType("numeric(28,2)")
+                        .HasColumnName("MAX_LIMIT_TENOR_MTH");
+
+                    b.Property<decimal?>("MaxSingleInvoiceAmt")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("MAX_SINGLE_INVOICE_AMT");
+
+                    b.Property<decimal?>("MaxSingleInvoicePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MAX_SINGLE_INVOICE_PCT");
+
+                    b.Property<decimal?>("MinAdvanceRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MIN_ADVANCE_RATE_PCT");
+
+                    b.Property<decimal?>("MinInvoiceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MIN_INVOICE_AMOUNT");
+
+                    b.Property<int?>("MinInvoiceTenorDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("MIN_INVOICE_TENOR_DAYS");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("NOTES");
+
+                    b.Property<DateTime?>("OfferAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("OFFER_AT");
+
+                    b.Property<string>("OfferRef")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("OFFER_REF");
+
+                    b.Property<decimal?>("PenaltyRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PENALTY_RATE_PCT");
+
+                    b.Property<string>("ProductCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("PRODUCT_CODE");
+
+                    b.Property<long?>("RateTypeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("RATE_TYPE_ID");
+
+                    b.Property<string>("RecourseType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("RECOURSE_TYPE");
+
+                    b.Property<string>("RelationshipManager")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("RELATIONSHIP_MANAGER");
+
+                    b.Property<decimal>("RequestedLimit")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("REQUESTED_LIMIT");
+
+                    b.Property<decimal?>("ReserveRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("RESERVE_RATE_PCT");
+
+                    b.Property<string>("RiskBand")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("RISK_BAND");
+
+                    b.Property<long?>("RmEmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("RM_EMPLOYEE_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal?>("SpreadPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("SPREAD_PCT");
+
+                    b.Property<string>("StatusCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("OfferId")
+                        .HasName("PK_FCT_OFFERS");
+
+                    b.HasIndex("CurrencyId")
+                        .HasDatabaseName("IX_FCT_OFFERS_CURRENCY_ID");
+
+                    b.HasIndex("ClientId", "CurrencyId", "OfferAt")
+                        .HasDatabaseName("IX_FCT_OFFERS_CLIENT_ID_CURRENCY_ID_OFFER_AT");
+
+                    b.ToTable("FCT_OFFERS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fin.FinBranch", b =>
@@ -33801,6 +34669,35 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_CRM_LKP_CURRENCIES_CRM_LKP_COUNTRIES");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctAgreement", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_AGREEMENTS_CRM_CLIENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmLkpCurrency", null)
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_AGREEMENTS_CRM_LKP_CURRENCIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctAgreement", null)
+                        .WithMany()
+                        .HasForeignKey("PreviousAgreementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FCT_AGREEMENTS_FCT_AGREEMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmLkpStatusCode", null)
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FCT_AGREEMENTS_CRM_LKP_STATUS_CODES");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursement", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
@@ -33815,6 +34712,23 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OriginalDisbursementId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_FCT_DISBURSEMENTS_FCT_DISBURSEMENTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctOffer", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_OFFERS_CRM_CLIENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmLkpCurrency", null)
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_OFFERS_CRM_LKP_CURRENCIES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fin.FinBranch", b =>

@@ -68,7 +68,8 @@ const ARROW = '<path d="M5 12h14M13 5l7 7-7 7"/>'
 const icon = (paths: string, size = 24) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`
 
-// the APEX page's card list (reg calls), each pointed at this app's module; Personal Mortgage is not built here yet
+// the APEX page's card list (reg calls), each pointed at this app's module, plus Factoring (FINOVA_FINANCEING);
+// Personal Mortgage is not built here yet
 const apps: App[] = [
   { tier: 1, name: 'Portfolio Acquisition', short: 'Portfolio', descr: 'Evaluate, screen and acquire real-estate financing portfolios through one controlled, fully audited workflow.',
     to: '/mortgage', color: '#E87722', tint: '#FFF1E6', icon: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/><path d="M9 10h.01M15 10h.01"/>',
@@ -77,6 +78,10 @@ const apps: App[] = [
     to: '/mortgage-finance', color: '#14734F', tint: '#E7F6EF',
     icon: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 15.5c0-1 .9-1.5 2-1.5s2 .5 2 1.5-1 1.3-2 1.5-2 .5-2 1.5.9 1.5 2 1.5 2-.5 2-1.5"/><path d="M12 13v1M12 19v1"/>',
     feats: ['Eligibility checks', 'Subsidy calculation', 'Programme reporting'] },
+  { tier: 1, name: 'Factoring', short: 'Factoring', descr: 'Invoice factoring for corporate customers: application, credit and risk review, committee approval, contract and limit.',
+    to: '/factoring', color: '#00636D', tint: '#E6F3F4',
+    icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-1M12 11v1"/><path d="M10 16.2c.4.5 1.1.8 2 .8 1.1 0 2-.6 2-1.5s-.9-1.3-2-1.5-2-.6-2-1.5.9-1.5 2-1.5c.9 0 1.6.3 2 .8"/>',
+    feats: ['Customer workspace', 'Credit & risk review', 'Committee approval & limits'] },
   { tier: 1, name: 'Personal Mortgage', short: 'Mortgage', descr: 'Standard mortgage finance: calculation, offer, origination, credit, booking, servicing and collections.',
     to: null, color: '#5B5BD6', tint: '#EEEEFC', icon: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M9 17l2-2 2 1.5 3-3.5"/>',
     feats: ['Calculator & customer offers', 'Origination, credit & booking', 'Servicing & collections'] },
