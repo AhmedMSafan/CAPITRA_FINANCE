@@ -58,6 +58,10 @@ public static class BpmnModel
         return Element(xml, target);
     }
 
+    /// <summary>Every element that carries a step code, in diagram order.</summary>
+    public static IReadOnlyList<BpmnElement> Steps(string xml) =>
+        [.. Load(xml).Descendants().Select(Map).Where(x => !string.IsNullOrWhiteSpace(x.StepCode))];
+
     private static bool Matches(XElement flow, string outcome) =>
         string.Equals((string?)flow.Attribute("name"), outcome, StringComparison.OrdinalIgnoreCase)
         || string.Equals(Attr(flow, "outcome"), outcome, StringComparison.OrdinalIgnoreCase);

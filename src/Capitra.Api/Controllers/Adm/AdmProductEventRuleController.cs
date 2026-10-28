@@ -18,6 +18,10 @@ public sealed class AdmProductEventRuleController(AdmProductEventRuleService rul
     [HasPermission(Permissions.Adm.ProductView)]
     public Task<IReadOnlyList<EventTypeOptionDto>> ListEventTypes(CancellationToken cancellationToken) => rules.ListEventTypesAsync(cancellationToken);
 
+    [HttpGet("workflow-steps")]
+    [HasPermission(Permissions.Adm.ProductView)]
+    public Task<IReadOnlyList<WorkflowOptionDto>> ListWorkflowSteps(CancellationToken cancellationToken) => rules.ListWorkflowStepsAsync(cancellationToken);
+
     [HttpGet("gl-accounts")]
     [HasPermission(Permissions.Adm.ProductView)]
     public Task<IReadOnlyList<GlAccountOptionDto>> ListGlAccounts(CancellationToken cancellationToken) => rules.ListGlAccountsAsync(cancellationToken);

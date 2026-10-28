@@ -197,7 +197,11 @@ function showError(error: unknown) {
 /** A saved value that is no longer offered (made inactive) stays visible instead of turning blank. */
 function isMissingOption(field: CrudField): boolean {
   const value = form[field.name]
-  return value !== '' && value !== null && value !== undefined && !(field.options ?? []).some(o => o.value === value)
+  return value !== '' && value !== null && value !== undefined && !optionsOf(field).some(o => o.value === value)
+}
+
+function optionsOf(field: CrudField) {
+  return field.optionsFor ? field.optionsFor(form) : field.options ?? []
 }
 
 function messageOf(error: unknown, fallback: string) {
@@ -305,7 +309,7 @@ useFeedback({ errors: [pageError, formError] })
               >
                 <option value="">- Select -</option>
                 <option v-if="isMissingOption(field)" :value="form[field.name]">{{ form[field.name] }} (inactive)</option>
-                <option v-for="o in field.options ?? []" :key="o.value" :value="o.value">{{ o.label }}</option>
+                <option v-for="o in optionsOf(field)" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
 
               <textarea

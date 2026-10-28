@@ -251,13 +251,6 @@ const router = createRouter({
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Event Rules' }
         },
         {
-          path: 'admin/product-event-rules/:ruleId',
-          name: 'adm-product-event-rule',
-          component: () => import('@/modules/adm/pages/ProductEventRulePage.vue'),
-          props: true,
-          meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Event Rules' }
-        },
-        {
           path: 'admin/reference-data',
           name: 'adm-reference-data',
           component: () => import('@/modules/adm/pages/ReferenceDataPage.vue'),

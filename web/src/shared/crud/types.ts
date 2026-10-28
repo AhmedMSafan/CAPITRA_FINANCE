@@ -22,6 +22,8 @@ export type CrudField = {
   min?: number
   max?: number
   options?: FieldOption[]
+  /** Options that depend on other values of the form (a step list that follows the chosen workflow); wins over options. */
+  optionsFor?: (values: FormValues) => FieldOption[]
   rtl?: boolean
   /** Spans both columns of the form grid. */
   wide?: boolean
