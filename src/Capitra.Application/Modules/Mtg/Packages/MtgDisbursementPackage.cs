@@ -142,6 +142,7 @@ public sealed class MtgDisbursementPackage(
         public string? BankNote;
         public MtgPurchasedPortfolioDisbursement? Done;
         public string? GlRule;
+        public HashSet<string>? RuleCharges;
     }
 
     private string Me => user.UserName ?? string.Empty;
@@ -383,6 +384,19 @@ public sealed class MtgDisbursementPackage(
         g.Admin = Round(p.Admin ?? g.FrAdmin, 2);
         g.Legal = Round(p.Legal ?? g.FrLegal, 2);
         g.Val = Round(p.Valuation ?? g.FrVal, 2);
+        // with a product event rule, only its charge components in effect are charged: the others are left out
+        var (_, plan) = await EventPlanAsync(g.Pf, p.DisbDate ?? today, ct);
+        if (plan is not null)
+        {
+            g.RuleCharges = [.. plan.ChargeCodes];
+            if (!g.RuleCharges.Contains("ADMIN_EXPENSE"))
+                g.FrAdmin = g.Admin = 0;
+            if (!g.RuleCharges.Contains("LEGAL_FEE"))
+                g.FrLegal = g.Legal = 0;
+            if (!g.RuleCharges.Contains("VALUATION_FEE"))
+                g.FrVal = g.Val = 0;
+        }
+
         if (g.Admin < 0 || g.Legal < 0 || g.Val < 0)
             throw Fail(-20952, "Charges cannot be negative.");
         g.Fees = g.Admin + g.Legal + g.Val;
@@ -653,20 +667,14 @@ public sealed class MtgDisbursementPackage(
     /// </summary>
     private async Task BuildGlAsync(State g, CancellationToken ct, bool strict = true)
     {
-        var xml = await (from p in db.Set<MtgPurchasedPortfolio>()
-                         join i in db.Set<WfeWorkflowInstance>() on p.WorkflowInstanceId equals i.WorkflowInstanceId
-                         join d in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals d.WorkflowDefinitionId
-                         where p.PortfolioId == g.Pf
-                         select d.BpmnXml).FirstOrDefaultAsync(ct);
-        var ev = xml is null ? null : BpmnModel.StepByCode(xml, DisbursementStep)?.EventCode?.Trim();
-        if (string.IsNullOrEmpty(ev))
+        var (ev, plan) = await EventPlanAsync(g.Pf, g.Disb, ct);
+        if (ev is null)
         {
             BuildGl(g);
             return;
         }
 
         var problems = new List<string>();
-        var plan = await rules.PlanAsync(AdmProduct.MortgagePortfolioPurchasingCode, ev, g.Disb, ct);
         if (plan is null)
             problems.Add("No active product event rule for product " + AdmProduct.MortgagePortfolioPurchasingCode + " and business event " + ev + " on "
                          + D(g.Disb) + ". Add it on Admin Setup > Product Event Rules.");
@@ -696,6 +704,23 @@ public sealed class MtgDisbursementPackage(
         foreach (var l in ProductEventPosting.Build(plan!, l => AmountOf(g, l), g.BankGlCode))
             g.Gls.Add(new GlLine(l.JournalNo, l.Account, l.Dr, l.Cr, l.Description));
         g.GlRule = plan!.RuleCode;
+    }
+
+    /// <summary>
+    /// The business event the Disbursement step of the portfolio's workflow raises (finova:eventCode), null when none,
+    /// and the product event rule of MTG_PORTFOLIO_PURCHASING for it on the date, null when there is none.
+    /// </summary>
+    private async Task<(string? Event, ProductEventPlan? Plan)> EventPlanAsync(long portfolioId, DateOnly date, CancellationToken ct)
+    {
+        var xml = await (from p in db.Set<MtgPurchasedPortfolio>()
+                         join i in db.Set<WfeWorkflowInstance>() on p.WorkflowInstanceId equals i.WorkflowInstanceId
+                         join d in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals d.WorkflowDefinitionId
+                         where p.PortfolioId == portfolioId
+                         select d.BpmnXml).FirstOrDefaultAsync(ct);
+        var ev = xml is null ? null : BpmnModel.StepByCode(xml, DisbursementStep)?.EventCode?.Trim();
+        if (string.IsNullOrEmpty(ev))
+            return (null, null);
+        return (ev, await rules.PlanAsync(AdmProduct.MortgagePortfolioPurchasingCode, ev, date, ct));
     }
 
     /// <summary>The charges of a disbursement with their final amount and income treatment, by ADM_CHARGES code.</summary>
@@ -1049,6 +1074,7 @@ public sealed class MtgDisbursementPackage(
 
         o.Add("gl", gls);
         o.Add("glRule", g.GlRule);
+        o.Add("ruleCharges", g.RuleCharges?.Order().ToList());
         return o;
     }
 

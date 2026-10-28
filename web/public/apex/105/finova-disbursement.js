@@ -79,6 +79,9 @@ window.FXW=window.FXW||{};
         q('#dsBank').innerHTML='<option>'+e(d.bank.bankName||'-')+'</option>';q('#dsAcc').innerHTML='<option>'+e(d.bank.account||'-')+'</option>';
         qa('.ds-in').forEach(function(x){x.disabled=true;});}
       // charges
+      // with a product event rule only its charge components are shown
+      var RC={A:'ADMIN_EXPENSE',L:'LEGAL_FEE',V:'VALUATION_FEE'};
+      ['A','L','V'].forEach(function(k){row(k).hidden=!!d.ruleCharges&& d.ruleCharges.indexOf(RC[k])<0;});
       [['A','admin'],['L','legal'],['V','valuation']].forEach(function(x){var tr=row(x[0]),fr=+R[x[1]]||0,fin=+T[x[1]]||0,inp=tr.querySelector('.ds-fin');
         tr.querySelector('.ds-fr').textContent=m2(fr);inp.placeholder=fr.toFixed(2);
         if(isDone){inp.value=fin.toFixed(2);tr.querySelector('.ds-waive').checked=fin===0&& fr>0;}
