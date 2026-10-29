@@ -22,7 +22,7 @@
     </section>
 
     <div class="fm-sec">
-      <h2>{{ tr(group === 'mortgage' ? 'Mortgage applications' : 'Business applications') }}</h2>
+      <h2>{{ tr(group === 'mortgage' ? 'Mortgage applications' : group === 'collection' ? 'Collection and repayments' : 'Business applications') }}</h2>
       <router-link v-if="group" to="/" class="fm-back"><span v-html="icon(BACK, 15)"></span>{{ tr('All applications') }}</router-link>
     </div>
     <div class="fm-grid fm-grid--1">
@@ -58,10 +58,11 @@ import { getUser } from '@/shared/auth/session'
 import { language, tr } from '@/shared/layout/language'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 
-type App = { tier: 1 | 2 | 'mortgage'; name: string; short: string; descr: string; to: string | null; color: string; tint: string; icon: string; feats: string[]; inbox?: boolean }
+type App = { tier: 1 | 2 | 'mortgage' | 'collection'; name: string; short: string; descr: string; to: string | null; color: string; tint: string; icon: string; feats: string[]; inbox?: boolean }
 
-// group 'mortgage' (route /mortgage-applications) shows the three mortgage applications behind the Mortgage card
-const props = defineProps<{ group?: 'mortgage' }>()
+// group 'mortgage' (route /mortgage-applications) shows the three mortgage applications behind the Mortgage card;
+// group 'collection' (route /collection-repayments) the two APEX App 136 functions behind the Collection and Repayments card
+const props = defineProps<{ group?: 'mortgage' | 'collection' }>()
 
 const user = getUser()
 const displayName = user?.fullName?.trim() || user?.userName?.trim() || 'CAPITRA User'
@@ -85,6 +86,15 @@ const apps: App[] = [
     to: '/factoring', color: '#00636D', tint: '#E6F3F4',
     icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-1M12 11v1"/><path d="M10 16.2c.4.5 1.1.8 2 .8 1.1 0 2-.6 2-1.5s-.9-1.3-2-1.5-2-.6-2-1.5.9-1.5 2-1.5c.9 0 1.6.3 2 .8"/>',
     feats: [] },
+  // APEX App 136 "Collection And Repayments": its Home cards except Cheques Movements; not built yet
+  { tier: 1, name: 'Collection and Repayments', short: 'Collection', descr: 'Cheques collection and customer repayment transactions.',
+    to: '/collection-repayments', color: '#E87722', tint: '#FFF1E6',
+    icon: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>',
+    feats: ['Customer Payment Sources', 'Cheques Collection'] },
+  { tier: 'collection', name: 'Customer Payment Sources', short: 'Payments', descr: 'Customer Repayment Transactions',
+    to: null, color: '#E87722', tint: '#FFF1E6', icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>', feats: [] },
+  { tier: 'collection', name: 'Cheques Collection', short: 'Collection', descr: 'Reconcile due factoring cheques against bank statements and record collected, bounced, or rejected results.',
+    to: null, color: '#00636D', tint: '#E6F3F4', icon: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>', feats: [] },
   { tier: 'mortgage', name: 'Portfolio Acquisition', short: 'Portfolio', descr: 'Evaluate, screen and acquire real-estate financing portfolios through one controlled, fully audited workflow.',
     to: '/mortgage', color: '#E87722', tint: '#FFF1E6', icon: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/><path d="M9 10h.01M15 10h.01"/>',
     feats: ['Due diligence & AML screening', 'Committee approval', 'Acquisition tracking'] },
@@ -110,8 +120,8 @@ const apps: App[] = [
 ]
 const tier = (n: App['tier']) => apps.filter((a) => a.tier === n)
 const business = computed(() => tier(props.group ?? 1))
-// the live applications themselves: the Mortgage card only opens its three cards
-const live = computed(() => apps.filter((a) => a.to && a.name !== 'Mortgage').length)
+// the live applications themselves: the Mortgage and Collection and Repayments cards only open their cards
+const live = computed(() => apps.filter((a) => a.to && !['Mortgage', 'Collection and Repayments'].includes(a.name)).length)
 
 const tasks = ref<number | null>(null)
 onMounted(async () => {
