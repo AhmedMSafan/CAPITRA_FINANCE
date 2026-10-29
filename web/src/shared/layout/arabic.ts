@@ -3,6 +3,10 @@
 // App 100 page 2 (Admin Setup) and App 118 page 1 (Workflow Engine home) have no Arabic in APEX; their texts below
 // were added for this app in the same wording style.
 export const AR: Record<string, string> = {
+  'Role code': 'رمز الدور',
+  'No users have this role, so its code can be changed.': 'لا يوجد مستخدمون لهذا الدور، لذا يمكن تغيير رمزه.',
+  'Remove every user from this role before changing its code.': 'أزل جميع المستخدمين من هذا الدور قبل تغيير رمزه.',
+  'Role name is required.': 'اسم الدور مطلوب.',
   'Limit No.': 'رقم الحد',
   'Level': 'المستوى',
   'Utilized': 'المستخدم',

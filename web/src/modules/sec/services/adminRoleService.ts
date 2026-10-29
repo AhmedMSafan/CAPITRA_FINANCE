@@ -15,3 +15,7 @@ export async function createAdminRole(roleName: string): Promise<void> {
 
 export const setRolePermissions = (roleId: string, permissions: string[]) =>
   withMessages(http.put<AdminRole>(`${API_BASE}/${encodeURIComponent(roleId)}/permissions`, { permissions }))
+
+/** Changes the role code; the API refuses while any user has the role. */
+export const renameAdminRole = (roleId: string, roleName: string) =>
+  withMessages(http.put<AdminRole>(`${API_BASE}/${encodeURIComponent(roleId)}/name`, { roleName }))
