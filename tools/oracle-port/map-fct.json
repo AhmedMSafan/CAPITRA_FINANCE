@@ -1163,5 +1163,309 @@
    }
   },
   "pk": null
+ },
+ "FNV_REPAYMENT_ALLOCATIONS": {
+  "table": "FCT_REPAYMENT_ALLOCATIONS",
+  "class": "FctRepaymentAllocation",
+  "columns": {
+   "ALLOCATION_ID": {
+    "column": "ALLOCATION_ID",
+    "kind": "int"
+   },
+   "REPAYMENT_TXN_ID": {
+    "column": "REPAYMENT_TXN_ID",
+    "kind": "int"
+   },
+   "REPAYMENT_SOURCE_ID": {
+    "column": "REPAYMENT_SOURCE_ID",
+    "kind": "int"
+   },
+   "TARGET_TYPE": {
+    "column": "TARGET_TYPE",
+    "kind": "string"
+   },
+   "TARGET_ID": {
+    "column": "TARGET_ID",
+    "kind": "int"
+   },
+   "DISBURSEMENT_ID": {
+    "column": "DISBURSEMENT_ID",
+    "kind": "int"
+   },
+   "COMPONENT_CODE": {
+    "column": "COMPONENT_CODE",
+    "kind": "string"
+   },
+   "ALLOCATION_MODE": {
+    "column": "ALLOCATION_MODE",
+    "kind": "string"
+   },
+   "REQUESTED_VALUE": {
+    "column": "REQUESTED_VALUE",
+    "kind": "decimal"
+   },
+   "ALLOCATION_AMOUNT": {
+    "column": "ALLOCATION_AMOUNT",
+    "kind": "decimal"
+   },
+   "ALLOCATION_DATE": {
+    "column": "ALLOCATION_DATE",
+    "kind": "date"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "REVERSAL_REASON": {
+    "column": "REVERSAL_REASON",
+    "kind": "string"
+   },
+   "REVERSED_BY": {
+    "column": "REVERSED_BY",
+    "kind": "string"
+   },
+   "REVERSED_AT": {
+    "column": "REVERSED_AT",
+    "kind": "datetime"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "ALLOCATION_ID"
+ },
+ "FNV_REPAYMENT_REQUESTS": {
+  "table": "FCT_REPAYMENT_REQUESTS",
+  "class": "FctRepaymentRequest",
+  "columns": {
+   "REPAYMENT_REQUEST_ID": {
+    "column": "REPAYMENT_REQUEST_ID",
+    "kind": "int"
+   },
+   "CLIENT_ID": {
+    "column": "CLIENT_ID",
+    "kind": "int"
+   },
+   "CHEQUES_COUNT": {
+    "column": "CHEQUES_COUNT",
+    "kind": "int"
+   },
+   "CHEQUES_AMOUNT": {
+    "column": "CHEQUES_AMOUNT",
+    "kind": "decimal"
+   },
+   "REMAINING_AMOUNT": {
+    "column": "REMAINING_AMOUNT",
+    "kind": "decimal"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "REPAYMENT_TRAN_NO": {
+    "column": "REPAYMENT_TRAN_NO",
+    "kind": "int"
+   },
+   "SOURCE": {
+    "column": "SOURCE",
+    "kind": "string"
+   },
+   "BANK_TRANSFER": {
+    "column": "BANK_TRANSFER",
+    "kind": "decimal"
+   },
+   "CREDIT_BALANCE": {
+    "column": "CREDIT_BALANCE",
+    "kind": "decimal"
+   }
+  },
+  "pk": "REPAYMENT_REQUEST_ID"
+ },
+ "FNV_REPAYMENT_SOURCES": {
+  "table": "FCT_REPAYMENT_SOURCES",
+  "class": "FctRepaymentSource",
+  "columns": {
+   "REPAYMENT_SOURCE_ID": {
+    "column": "REPAYMENT_SOURCE_ID",
+    "kind": "int"
+   },
+   "REPAYMENT_TXN_ID": {
+    "column": "REPAYMENT_TXN_ID",
+    "kind": "int"
+   },
+   "SOURCE_TYPE": {
+    "column": "SOURCE_TYPE",
+    "kind": "string"
+   },
+   "CHEQUE_ID": {
+    "column": "CHEQUE_ID",
+    "kind": "int"
+   },
+   "SOURCE_REPAYMENT_TXN_ID": {
+    "column": "SOURCE_REPAYMENT_TXN_ID",
+    "kind": "int"
+   },
+   "SOURCE_GL_ACCOUNT_ID": {
+    "column": "SOURCE_GL_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "SOURCE_REFERENCE": {
+    "column": "SOURCE_REFERENCE",
+    "kind": "string"
+   },
+   "SOURCE_AMOUNT": {
+    "column": "SOURCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "ALLOCATED_AMOUNT": {
+    "column": "ALLOCATED_AMOUNT",
+    "kind": "decimal"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "REPAYMENT_SOURCE_ID"
+ },
+ "FNV_REPAYMENT_TRANSACTIONS": {
+  "table": "FCT_REPAYMENT_TRANSACTIONS",
+  "class": "FctRepaymentTransaction",
+  "columns": {
+   "REPAYMENT_TXN_ID": {
+    "column": "REPAYMENT_TXN_ID",
+    "kind": "int"
+   },
+   "REPAYMENT_NUMBER": {
+    "column": "REPAYMENT_NUMBER",
+    "kind": "string"
+   },
+   "CLIENT_ID": {
+    "column": "CLIENT_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "AGREEMENT_ID": {
+    "column": "AGREEMENT_ID",
+    "kind": "int"
+   },
+   "REPAYMENT_METHOD": {
+    "column": "REPAYMENT_METHOD",
+    "kind": "string"
+   },
+   "TRANSACTION_DATE": {
+    "column": "TRANSACTION_DATE",
+    "kind": "date"
+   },
+   "VALUE_DATE": {
+    "column": "VALUE_DATE",
+    "kind": "date"
+   },
+   "CURRENCY_ID": {
+    "column": "CURRENCY_ID",
+    "kind": "int"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "RECEIPT_AMOUNT": {
+    "column": "RECEIPT_AMOUNT",
+    "kind": "decimal"
+   },
+   "ALLOCATED_AMOUNT": {
+    "column": "ALLOCATED_AMOUNT",
+    "kind": "decimal"
+   },
+   "SOURCE_GL_ACCOUNT_ID": {
+    "column": "SOURCE_GL_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "BANK_STATEMENT_REFERENCE": {
+    "column": "BANK_STATEMENT_REFERENCE",
+    "kind": "string"
+   },
+   "EXTERNAL_REFERENCE": {
+    "column": "EXTERNAL_REFERENCE",
+    "kind": "string"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "ACCOUNTING_EVENT_ID": {
+    "column": "ACCOUNTING_EVENT_ID",
+    "kind": "int"
+   },
+   "GL_POSTED_FLAG": {
+    "column": "IS_GL_POSTED",
+    "kind": "flag"
+   },
+   "GL_JOURNAL_REF": {
+    "column": "GL_JOURNAL_REF",
+    "kind": "string"
+   },
+   "REVERSAL_REASON": {
+    "column": "REVERSAL_REASON",
+    "kind": "string"
+   },
+   "REVERSED_BY": {
+    "column": "REVERSED_BY",
+    "kind": "string"
+   },
+   "REVERSED_AT": {
+    "column": "REVERSED_AT",
+    "kind": "datetime"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "REPAYMENT_TXN_ID"
  }
 }

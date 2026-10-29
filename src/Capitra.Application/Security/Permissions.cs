@@ -89,6 +89,15 @@ public static class Permissions
         public const string Edit = "CRM.EDIT";
     }
 
+    public static class Collection
+    {
+        /// <summary>Read the customer repayment transactions and the due factoring cheques (App 136).</summary>
+        public const string View = "COLLECTION.VIEW";
+
+        /// <summary>Record bank transfers and apply the bank's cheque results (App 136).</summary>
+        public const string Edit = "COLLECTION.EDIT";
+    }
+
     public static class Fct
     {
         /// <summary>Read the factoring customers, their applications, agreements and limits.</summary>
