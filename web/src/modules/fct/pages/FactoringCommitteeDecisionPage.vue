@@ -4,7 +4,7 @@
   <FctStepShell :agreement-id="Number(agreementId)" title="Committee Decision" icon="fa-gavel"
                 subtitle="Record the committee-approved facility terms before client acceptance."
                 summary-note="Factoring application under committee review" loading-text="Loading committee decision..."
-                :summary="page?.summary ?? null" :loading="loading" :error="error" :success="success">
+                :summary="page?.summary ?? null" :loading="loading">
     <template #actions>
       <button type="button" class="fx-btn" :disabled="!page" @click="printDecision">
         <span class="fa fa-print" aria-hidden="true"></span>{{ tr('Print Decision Letter') }}</button>
@@ -31,6 +31,7 @@
         <div class="fc-form-actions">
           <button type="button" class="fx-btn fx-btn--primary" :disabled="saving" @click="save">
             <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-o'" aria-hidden="true"></span>{{ tr(saving ? 'Saving...' : 'Save Committee Decision') }}</button>
+          <FctStepActions :save="persist" :disabled="saving" />
         </div>
       </section>
 
@@ -59,7 +60,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import FctStepShell from '../components/FctStepShell.vue'
+import FctStepActions from '../components/FctStepActions.vue'
 import FctProcessStrip from '../components/FctProcessStrip.vue'
 import { dayInput, errorText, formatAmount, formatDate, formatMonths, formatRate, num, printLetter, toDay } from '../components/stepFormat'
 import { fctStepsApi, type FctCommitteeDecision, type FctCommitteeDecisionTerms } from '../api/fct.api'
@@ -78,6 +81,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
+useFeedback({ errors: [error], notices: [success] })
 
 const value = (e: Event) => (e.target as HTMLInputElement).value
 
@@ -98,7 +102,7 @@ async function load() {
   }
 }
 
-async function save() {
+async function persist(): Promise<boolean> {
   saving.value = true
   error.value = ''
   success.value = ''
@@ -106,12 +110,17 @@ async function save() {
     assign(await fctStepsApi.saveCommitteeDecision(Number(props.agreementId), {
       approvalDate: form.approvalDate, approvedLimit: num(form.approvedLimit), approvedAdvRate: num(form.approvedAdvRate), approvedTenorMth: num(form.approvedTenorMth)
     }))
-    success.value = tr('Committee decision saved. Return to the workflow task to Accept or Reject this step.')
+    return true
   } catch (e) {
     error.value = errorText(e, 'Unable to save committee decision.')
+    return false
   } finally {
     saving.value = false
   }
+}
+
+async function save() {
+  if (await persist()) success.value = tr('Committee decision saved.')
 }
 
 function printDecision() {

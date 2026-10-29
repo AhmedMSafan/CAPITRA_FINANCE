@@ -2,8 +2,6 @@
 .fc{color:var(--fin-ink)}
 .fc > .fx-card + .fx-card,.fc .fc-quick + .fx-card{margin-block-start:14px}
 .fc .fc-muted{color:var(--fin-muted);font-size:var(--fs-xs)}
-.fc .fc-error{color:var(--fin-bad)}
-.fc .fc-error .fa{color:var(--fin-bad)}
 
 .fc .fc-title{display:flex;align-items:center;gap:14px}
 .fc .fc-title-ic{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:12px;background:var(--fin-orange-50);color:var(--fin-orange);font-size:20px}
@@ -68,8 +66,6 @@
 .fc .fc-summary-customer{display:flex;align-items:center;gap:12px;padding:10px 14px;min-width:300px}
 .fc .fc-summary-customer > div:not(.fc-info){display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
 .fc .fc-summary-customer small{color:var(--fin-muted);font-size:var(--fs-xs)}
-.fc .fc-alert{display:flex;align-items:center;gap:8px;margin-block-start:14px;padding:10px 14px;border:1px solid var(--fin-bad);border-radius:var(--fin-radius);background:var(--fin-bad-50);color:var(--fin-bad);font-size:var(--fs-sm)}
-.fc .fc-alert--sm{margin:0;padding:8px 10px;font-size:var(--fs-xs)}
 .fc .fc-calc{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;align-items:start;margin-block-start:14px}
 .fc .fc-calc-main,.fc .fc-calc-side{display:flex;flex-direction:column;gap:14px;min-width:0}
 .fc .fc-calc-side{position:sticky;top:14px}
@@ -121,7 +117,6 @@
 @media (max-width:1200px){.fc .fc-calc{grid-template-columns:1fr}.fc .fc-calc-side{position:static}.fc .fc-grid--4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){.fc .fc-grid--3,.fc .fc-grid--4,.fc .fc-lines{grid-template-columns:1fr}.fc .fc-summary-customer{min-width:0;width:100%}}
 .fc .fc-status-select{flex:none;width:auto;min-width:120px;padding-block:4px}
-.fc .fc-row-msg{margin-block-start:4px;color:var(--fin-bad);font-size:var(--fs-xs);text-align:end;max-width:260px;margin-inline-start:auto}
 .fc .fc-sec-head > div{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
 .fc .fc-sec-head p{margin:0;font-size:var(--fs-xs);color:var(--fin-muted)}
 .fc .fc-sec-head > .fx-chip{flex:none}
@@ -160,7 +155,6 @@
 .fc .fc-docs-head > div{flex:1;display:flex;flex-direction:column;gap:2px}
 .fc .fc-docs-head h2{margin:0;font-size:var(--fs-lg)}
 .fc .fc-docs-head small{color:var(--fin-muted);font-size:var(--fs-xs)}
-.fc .fc-docs .fc-alert{margin:0}
 .fc .fc-docs-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .fc .fc-docs .fc-field{flex:none}
 .fc .fc-drop{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px;border:2px dashed var(--fin-teal-100);border-radius:var(--fin-radius);background:var(--fin-teal-50);text-align:center;cursor:pointer}
@@ -182,7 +176,6 @@
 @media (max-width:640px){.fc .fc-docs-fields{grid-template-columns:1fr}}
 
 /* ---- the workflow step pages after Operation Received (FINOVA_FINANCEING Factoring*Page) ---- */
-.fc .fc-ok{display:flex;align-items:center;gap:8px;margin-block-start:14px;padding:10px 14px;border:1px solid var(--fin-ok);border-radius:var(--fin-radius);background:var(--fin-ok-50);color:var(--fin-ok);font-size:var(--fs-sm)}
 .fc .fc-full{grid-column:1/-1}
 .fc .fc-span2{grid-column:span 2}
 .fc .fc-form-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding:0 16px 16px}
@@ -218,3 +211,15 @@
 .fc .fc-upload-row{margin:0}
 .fc .fc-upload-row > div{flex:1}
 .fc .fc-upload-row small{color:var(--fin-muted)}
+
+/* workflow actions inside the step page */
+.fc .fc-btn-reject{border-color:var(--fin-bad);color:var(--fin-bad)!important}
+.fc .fc-btn-reject:hover{background:var(--fin-bad-50);border-color:var(--fin-bad)}
+.fc-act-modal{display:flex;flex-direction:column;gap:14px;width:min(480px,calc(100vw - 32px))}
+.fc-act-modal .fc-form-actions{padding:0}
+.fc-act-modal .fc-field{flex:none}
+.fc-act-head{display:flex;gap:12px;align-items:flex-start}
+.fc-act-head h2{margin:0 0 4px}
+.fc-act-head p{margin:0;color:var(--fin-muted);font-size:var(--fs-sm)}
+.fc-act-ic{display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:50%;background:var(--fin-teal-50);color:var(--fin-teal-600);font-size:18px}
+.fc-act-ic.is-bad{background:var(--fin-bad-50);color:var(--fin-bad)}

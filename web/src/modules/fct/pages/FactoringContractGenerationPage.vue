@@ -4,7 +4,7 @@
   <FctStepShell :agreement-id="Number(agreementId)" title="Contract Generation" icon="fa-file-text-o"
                 subtitle="Finalize agreement dates and terms, generate the contract and upload the signed or draft document."
                 summary-note="Factoring agreement at contract preparation stage" loading-text="Loading contract generation..."
-                :summary="page?.summary ?? null" :loading="loading" :error="error" :success="success">
+                :summary="page?.summary ?? null" :loading="loading">
     <template v-if="page">
       <FctProcessStrip :current="7" />
 
@@ -46,8 +46,9 @@
           <FctAgreementDocuments :agreement-id="Number(agreementId)" label="Upload Contract" icon="fa-upload" />
           <button type="button" class="fx-btn" :disabled="saving" @click="generateContract">
             <span class="fa fa-print" aria-hidden="true"></span>{{ tr('Generate Contract') }}</button>
-          <button type="button" class="fx-btn fx-btn--primary" :disabled="saving" @click="save()">
+          <button type="button" class="fx-btn fx-btn--primary" :disabled="saving" @click="save">
             <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-check-circle'" aria-hidden="true"></span>{{ tr('Save Step') }}</button>
+          <FctStepActions :save="persist" :disabled="saving" />
         </div>
       </section>
     </template>
@@ -57,7 +58,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import FctStepShell from '../components/FctStepShell.vue'
+import FctStepActions from '../components/FctStepActions.vue'
 import FctProcessStrip from '../components/FctProcessStrip.vue'
 import FctAgreementDocuments from '../components/FctAgreementDocuments.vue'
 import { dayInput, errorText, formatAmount, formatDate, formatMonths, formatRate, num, printLetter, toDay, toUtcDay } from '../components/stepFormat'
@@ -74,6 +77,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
+useFeedback({ errors: [error], notices: [success] })
 
 const value = (e: Event) => (e.target as HTMLInputElement).value
 
@@ -94,7 +98,7 @@ async function load() {
   }
 }
 
-async function save(): Promise<boolean> {
+async function persist(): Promise<boolean> {
   if (!c.agreementNumber?.trim()) {
     error.value = tr('Agreement number is required.')
     return false
@@ -104,7 +108,6 @@ async function save(): Promise<boolean> {
   success.value = ''
   try {
     assign(await fctStepsApi.saveContractGeneration(Number(props.agreementId), { ...c, agreementNumber: c.agreementNumber.trim(), tenorMonths: num(c.tenorMonths) }))
-    success.value = tr('Contract generation details saved successfully.')
     return true
   } catch (e) {
     error.value = errorText(e, 'Unable to save contract generation details.')
@@ -114,8 +117,12 @@ async function save(): Promise<boolean> {
   }
 }
 
+async function save() {
+  if (await persist()) success.value = tr('Contract generation details saved successfully.')
+}
+
 async function generateContract() {
-  if (!(await save()) || !page.value) return
+  if (!(await persist()) || !page.value) return
   const s = page.value.summary
   printLetter(tr('Capitra Factoring Contract'), `${tr('Agreement')} ${c.agreementNumber || '-'}`, [
     [tr('Client'), s.clientName || '-'],

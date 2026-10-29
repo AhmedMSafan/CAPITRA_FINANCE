@@ -4,7 +4,7 @@
   <FctStepShell :agreement-id="Number(agreementId)" title="Risk Review" icon="fa-shield"
                 subtitle="Review the credit recommendation and record the risk officer assessment."
                 summary-note="Factoring application under risk review" loading-text="Loading risk review..."
-                :summary="page?.summary ?? null" :loading="loading" :error="error" :success="success">
+                :summary="page?.summary ?? null" :loading="loading">
     <template v-if="page">
       <FctProcessStrip :current="4" />
 
@@ -37,6 +37,7 @@
         <div class="fc-form-actions">
           <button type="button" class="fx-btn fx-btn--primary" :disabled="saving" @click="save">
             <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-o'" aria-hidden="true"></span>{{ tr(saving ? 'Saving...' : 'Save Risk Review') }}</button>
+          <FctStepActions :save="persist" :disabled="saving" />
         </div>
       </section>
     </template>
@@ -46,7 +47,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import FctStepShell from '../components/FctStepShell.vue'
+import FctStepActions from '../components/FctStepActions.vue'
 import FctProcessStrip from '../components/FctProcessStrip.vue'
 import { dayInput, errorText, formatAmount, formatMonths, toDay } from '../components/stepFormat'
 import { fctStepsApi, type FctRiskReview } from '../api/fct.api'
@@ -59,6 +62,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
+useFeedback({ errors: [error], notices: [success] })
 
 const value = (e: Event) => (e.target as HTMLInputElement).value
 
@@ -80,18 +84,23 @@ async function load() {
   }
 }
 
-async function save() {
+async function persist(): Promise<boolean> {
   saving.value = true
   error.value = ''
   success.value = ''
   try {
     assign(await fctStepsApi.saveRiskReview(Number(props.agreementId), { ...form }))
-    success.value = tr('Risk review saved. Return to the workflow task to Accept or Reject this step.')
+    return true
   } catch (e) {
     error.value = errorText(e, 'Unable to save risk review.')
+    return false
   } finally {
     saving.value = false
   }
+}
+
+async function save() {
+  if (await persist()) success.value = tr('Risk review saved.')
 }
 
 onMounted(load)

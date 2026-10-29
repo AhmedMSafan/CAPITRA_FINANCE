@@ -17,7 +17,6 @@
       </div>
     </div>
 
-    <div v-if="error" class="fc-alert" role="alert"><span class="fa fa-exclamation-circle" aria-hidden="true"></span>{{ error }}</div>
     <div v-if="loading" class="fx-card fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading assignment workbench...') }}</div>
 
     <template v-else>
@@ -93,6 +92,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { dateLocale, tr } from '@/shared/layout/language'
 import { DISPLAY_TIME_ZONE } from '@/shared/format/datetime'
+import { showSuccess } from '@/shared/feedback/feedback'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 import type { WorkflowInboxTask } from '@/modules/wfe/models/workflow'
 import FctAgreementDocuments from '../components/FctAgreementDocuments.vue'
@@ -110,6 +111,7 @@ const users = ref<FctUser[]>([])
 const loading = ref(false)
 const completing = ref(false)
 const error = ref('')
+useFeedback({ errors: [error] })
 const completionComment = ref('')
 const assignSpecificUser = ref(false)
 const selectedUserId = ref('')
@@ -179,6 +181,7 @@ async function completeCurrentTask() {
       routingMode: assignSpecificUser.value ? 'USER' : 'DEFAULT',
       assignedUserId: assignSpecificUser.value ? selectedUserId.value : null
     })
+    showSuccess(tr('Step completed.'))
     await router.push({ name: 'workflow-inbox' })
   } catch (e) {
     error.value = errorText(e, 'Unable to complete workflow task.')

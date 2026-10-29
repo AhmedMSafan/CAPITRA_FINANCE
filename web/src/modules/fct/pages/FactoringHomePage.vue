@@ -77,7 +77,6 @@
         </table>
       </div>
       <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading customers...') }}</div>
-      <div v-else-if="error" class="fx-empty fc-error"><span class="fa fa-exclamation-circle" aria-hidden="true"></span>{{ error }}</div>
       <div v-else-if="!paged.length" class="fx-empty"><span class="fa fa-users" aria-hidden="true"></span>{{ tr('No customers match the current filters.') }}</div>
       <div class="fc-foot">
         <span class="fc-muted">{{ tr('Showing') }} {{ from }} {{ tr('to') }} {{ to }} {{ tr('of') }} {{ filtered.length }} {{ tr('entries') }}</span>
@@ -96,6 +95,7 @@ import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import './factoring.css'
 import { computed, onMounted, ref } from 'vue'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { tr } from '@/shared/layout/language'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 import { fctApi, type FctCustomer } from '../api/fct.api'
@@ -106,6 +106,7 @@ const PAGE_SIZE = 10
 const customers = ref<FctCustomer[]>([])
 const loading = ref(false)
 const error = ref('')
+useFeedback({ errors: [error] })
 const inboxCount = ref(0)
 
 const customerName = ref('')

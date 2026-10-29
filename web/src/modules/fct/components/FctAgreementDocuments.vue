@@ -17,8 +17,6 @@
           <button type="button" class="fx-btn fx-btn--sm" :aria-label="tr('Close')" @click="visible = false"><span class="fa fa-times" aria-hidden="true"></span></button>
         </header>
 
-        <div v-if="error" class="fc-alert fc-alert--sm" role="alert"><span class="fa fa-exclamation-circle" aria-hidden="true"></span>{{ error }}</div>
-
         <template v-if="canEdit">
           <div class="fc-docs-fields">
             <label class="fc-field"><span>{{ tr('Document Type') }}</span>
@@ -77,6 +75,7 @@
 import { ref } from 'vue'
 import { dateLocale, tr } from '@/shared/layout/language'
 import { DISPLAY_TIME_ZONE } from '@/shared/format/datetime'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { hasPermission } from '@/shared/auth/session'
 import { fctDocumentsApi, type FctAgreementDocument, type FctLovItem } from '../api/fct.api'
 import { viewDocument } from './stepFormat'
@@ -97,6 +96,7 @@ const statusId = ref<number | null>(null)
 const loading = ref(false)
 const uploading = ref(false)
 const error = ref('')
+useFeedback({ errors: [error] })
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const errorText = (e: unknown, fallback: string) => (e instanceof Error ? e.message : tr(fallback))

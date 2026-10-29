@@ -4,7 +4,7 @@
   <FctStepShell :agreement-id="Number(agreementId)" title="Legal Review" icon="fa-balance-scale"
                 subtitle="Review the final contract, record the legal opinion and complete the legal decision."
                 summary-note="Factoring agreement currently under legal review" loading-text="Loading legal review..."
-                :summary="page?.summary ?? null" :loading="loading" :error="error" :success="success" @uploaded="loadDocuments">
+                :summary="page?.summary ?? null" :loading="loading" @uploaded="loadDocuments">
     <template v-if="page">
       <FctProcessStrip :current="8" with-legal-review />
 
@@ -29,13 +29,13 @@
       <section class="fx-card fc-step-card">
         <header class="fc-sec-head">
           <span class="fc-sec-ic" aria-hidden="true"><span class="fa fa-gavel"></span></span>
-          <div><h2>{{ tr('Legal Review Details') }}</h2><p>{{ tr('Record the legal review date and the legal opinion before returning to the workflow task.') }}</p></div>
+          <div><h2>{{ tr('Legal Review Details') }}</h2><p>{{ tr('Record the legal review date and the legal opinion, then accept or reject the step.') }}</p></div>
         </header>
         <div class="fc-grid fc-grid--3">
           <label class="fc-field"><span>{{ tr('Legal Review Date') }}</span>
             <input :value="dayInput(form.legalReviewDate)" class="fx-search" type="date" @input="form.legalReviewDate = toUtcDay(value($event))"></label>
           <p class="fc-note fc-span2"><span class="fa fa-random" aria-hidden="true"></span>
-            <span><b>{{ tr('Workflow Decision') }}</b> · {{ tr('ACCEPT and REJECT are handled on the workflow task, not inside this business page. ACCEPT creates the customer credit limit.') }}</span></p>
+            <span><b>{{ tr('Workflow Decision') }}</b> · {{ tr('Save and Accept creates the customer credit limit.') }}</span></p>
           <label class="fc-field fc-full"><span>{{ tr('Legal Opinion Notes') }}</span>
             <textarea v-model="form.legalOpinionNotes" class="fx-search fc-textarea" rows="7"
                       :placeholder="tr('Enter the legal opinion, observations, required amendments or approval notes...')"></textarea></label>
@@ -44,6 +44,7 @@
           <FctAgreementDocuments :agreement-id="Number(agreementId)" label="Upload Final Contract" icon="fa-upload" @uploaded="loadDocuments" />
           <button type="button" class="fx-btn fx-btn--primary" :disabled="saving" @click="save">
             <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-o'" aria-hidden="true"></span>{{ tr(saving ? 'Saving...' : 'Save Legal Review') }}</button>
+          <FctStepActions :save="persist" :disabled="saving" />
         </div>
       </section>
     </template>
@@ -53,7 +54,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import FctStepShell from '../components/FctStepShell.vue'
+import FctStepActions from '../components/FctStepActions.vue'
 import FctProcessStrip from '../components/FctProcessStrip.vue'
 import FctAgreementDocuments from '../components/FctAgreementDocuments.vue'
 import { dayInput, errorText, formatDate, toUtcDay, viewDocument } from '../components/stepFormat'
@@ -68,6 +71,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
+useFeedback({ errors: [error], notices: [success] })
 
 // the list comes newest first
 const latest = computed(() => documents.value[0] ?? null)
@@ -103,18 +107,23 @@ async function view(documentId: number) {
   }
 }
 
-async function save() {
+async function persist(): Promise<boolean> {
   saving.value = true
   error.value = ''
   success.value = ''
   try {
     assign(await fctStepsApi.saveLegalReview(Number(props.agreementId), { ...form }))
-    success.value = tr('Legal review saved. Return to the workflow task to Accept or Reject this step.')
+    return true
   } catch (e) {
     error.value = errorText(e, 'Unable to save legal review.')
+    return false
   } finally {
     saving.value = false
   }
+}
+
+async function save() {
+  if (await persist()) success.value = tr('Legal review saved.')
 }
 
 onMounted(load)

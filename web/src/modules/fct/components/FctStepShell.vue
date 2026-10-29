@@ -1,6 +1,6 @@
 <template>
-  <!-- The frame every FINOVA_FINANCEING factoring step page shares: title, Documents, Back to Task, the messages and the
-       Application Summary. The step's own forms go in the slot. -->
+  <!-- The frame every FINOVA_FINANCEING factoring step page shares: title, Documents, Back to Task and the Application
+       Summary. Messages are pop-ups, raised by each page. The step's own forms go in the slot. -->
   <div class="fx fc">
     <div class="fx-head fc-no-print">
       <div class="fc-title">
@@ -18,8 +18,6 @@
       </div>
     </div>
 
-    <div v-if="error" class="fc-alert fc-no-print" role="alert"><span class="fa fa-exclamation-circle" aria-hidden="true"></span>{{ error }}</div>
-    <div v-if="success" class="fc-ok fc-no-print" role="status"><span class="fa fa-check-circle" aria-hidden="true"></span>{{ success }}</div>
     <div v-if="loading" class="fx-card fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr(loadingText) }}</div>
 
     <template v-else-if="summary">
@@ -63,8 +61,6 @@ defineProps<{
     currencyCode: string | null; applicationDate: string | null; relationshipManager: string | null; statusCode: string | null } | null
   submittedBy?: string | null
   loading: boolean
-  error: string
-  success?: string
 }>()
 
 const emit = defineEmits<{ uploaded: [] }>()

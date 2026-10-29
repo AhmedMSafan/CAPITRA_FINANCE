@@ -4,10 +4,11 @@
   <FctStepShell :agreement-id="Number(agreementId)" title="Credit Analysis" icon="fa-line-chart"
                 subtitle="Review financial analysis, credit scoring and the final credit recommendation."
                 summary-note="Factoring application under credit review" loading-text="Loading credit analysis..."
-                :summary="page?.summary ?? null" :loading="loading" :error="error" :success="success">
+                :summary="page?.summary ?? null" :loading="loading">
     <template #actions>
       <button type="button" class="fx-btn fx-btn--primary" :disabled="saving || !page" @click="saveProgress">
         <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-o'" aria-hidden="true"></span>{{ tr('Save Progress') }}</button>
+      <FctStepActions :save="persistProgress" :disabled="saving || !page" />
     </template>
 
     <section v-if="page" class="fx-card fc-step-card">
@@ -88,7 +89,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import FctStepShell from '../components/FctStepShell.vue'
+import FctStepActions from '../components/FctStepActions.vue'
 import FctAgreementDocuments from '../components/FctAgreementDocuments.vue'
 import { dayInput, errorText, formatAmount, formatDate, formatMonths, formatRate, num, printLetter, toDay } from '../components/stepFormat'
 import { fctStepsApi, type FctCreditAnalysis, type FctCreditMemo, type FctFinancialAnalysis, type FctRiskRating } from '../api/fct.api'
@@ -111,6 +114,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
+useFeedback({ errors: [error], notices: [success] })
 
 const id = () => Number(props.agreementId)
 const value = (e: Event) => (e.target as HTMLInputElement).value
@@ -125,15 +129,18 @@ function assign(p: FctCreditAnalysis) {
   Object.assign(memo, p.creditMemo)
 }
 
-async function run(job: () => Promise<void>, done: string, fallback: string) {
+// done is the pop-up after a save; the workflow actions save without one
+async function run(job: () => Promise<void>, done: string | null, fallback: string): Promise<boolean> {
   saving.value = true
   error.value = ''
   success.value = ''
   try {
     await job()
-    success.value = tr(done)
+    if (done) success.value = tr(done)
+    return true
   } catch (e) {
     error.value = errorText(e, fallback)
+    return false
   } finally {
     saving.value = false
   }
@@ -145,9 +152,11 @@ const saveRisk = () => run(async () => { Object.assign(risk, await fctStepsApi.s
   'Risk rating saved.', 'Unable to save risk rating.')
 const saveMemo = () => run(async () => { Object.assign(memo, await fctStepsApi.saveCreditMemo(id(), memoBody())) },
   'Credit memo saved.', 'Unable to save credit memo.')
-const saveProgress = () => run(async () => {
+const progress = (done: string | null) => run(async () => {
   assign(await fctStepsApi.saveCreditAnalysisProgress(id(), { financialAnalysis: financial, riskRating: risk, creditMemo: memoBody() }))
-}, 'Credit analysis progress saved.', 'Unable to save credit analysis progress.')
+}, done, 'Unable to save credit analysis progress.')
+const saveProgress = () => progress('Credit analysis progress saved.')
+const persistProgress = () => progress(null)
 
 function printMemo() {
   const s = page.value?.summary

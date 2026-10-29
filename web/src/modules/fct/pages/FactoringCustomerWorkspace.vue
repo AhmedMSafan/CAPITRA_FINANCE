@@ -56,7 +56,6 @@
       </div>
 
       <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading customer factoring data...') }}</div>
-      <div v-else-if="error" class="fx-empty fc-error"><span class="fa fa-exclamation-circle" aria-hidden="true"></span>{{ error }}</div>
 
       <div v-else-if="tab === 'applications'" class="fx-table-wrap">
         <table class="fx-table">
@@ -98,7 +97,6 @@
                     <span class="fa fa-play" aria-hidden="true"></span>
                   </button>
                 </div>
-                <div v-if="messages[a.offerId]" class="fc-row-msg" role="status">{{ messages[a.offerId] }}</div>
               </td>
             </tr>
           </tbody>
@@ -194,6 +192,8 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { dateLocale, tr } from '@/shared/layout/language'
 import { DISPLAY_TIME_ZONE } from '@/shared/format/datetime'
 import { workflowService } from '@/modules/wfe/services/workflowService'
+import { showError } from '@/shared/feedback/feedback'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { hasPermission } from '@/shared/auth/session'
 import { fctApi, fctApplicationsApi, type FctAgreement, type FctApplication, type FctCreditLimit, type FctCustomerDetails } from '../api/fct.api'
 
@@ -208,6 +208,7 @@ const limits = ref<FctCreditLimit[]>([])
 const inboxCount = ref(0)
 const loading = ref(false)
 const error = ref('')
+useFeedback({ errors: [error] })
 const tab = ref<Tab>('applications')
 const canEdit = computed(() => hasPermission('FCT.EDIT'))
 
@@ -216,7 +217,6 @@ const canEdit = computed(() => hasPermission('FCT.EDIT'))
 const STATUS_OPTIONS = ['DRAFT', 'ACCEPTED', 'REJECTED', 'SUBMITTED']
 const selected = reactive<Record<number, string>>({})
 const busy = reactive<Record<number, boolean>>({})
-const messages = reactive<Record<number, string>>({})
 const progress = ref<'' | 'working' | 'done'>('')
 
 const editable = (a: FctApplication) => STATUS_OPTIONS.includes(a.statusCode || '')
@@ -275,12 +275,11 @@ async function saveStatus(a: FctApplication) {
   const status = selected[a.offerId] ?? ''
   if (!dirty(a) || !STATUS_OPTIONS.includes(status)) return
   busy[a.offerId] = true
-  delete messages[a.offerId]
   try {
     await fctApplicationsApi.setStatus(a.offerId, status)
     a.statusCode = status
   } catch (e) {
-    messages[a.offerId] = errorText(e)
+    showError(errorText(e))
   } finally {
     busy[a.offerId] = false
   }
@@ -289,7 +288,6 @@ async function saveStatus(a: FctApplication) {
 async function startWorkflow(a: FctApplication) {
   if (!canStart(a)) return
   busy[a.offerId] = true
-  delete messages[a.offerId]
   progress.value = 'working'
   try {
     await fctApplicationsApi.startWorkflow(a.offerId)
@@ -297,7 +295,7 @@ async function startWorkflow(a: FctApplication) {
     await Promise.all([loadData(Number(props.clientId)), loadInbox()])
     await new Promise((r) => setTimeout(r, 700))
   } catch (e) {
-    messages[a.offerId] = errorText(e)
+    showError(errorText(e))
   } finally {
     progress.value = ''
     busy[a.offerId] = false
