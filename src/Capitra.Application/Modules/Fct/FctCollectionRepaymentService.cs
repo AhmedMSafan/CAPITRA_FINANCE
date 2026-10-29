@@ -59,10 +59,10 @@ public sealed record FctChequeResultDto(
 /// </summary>
 public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock)
 {
-    // App 136 passes these fixed values to save_repayment (pages 7 and 712): legal entity 1, currency 1 / EGP, GL account 15.
+    // App 136 passes these fixed values to save_repayment (pages 7 and 712): legal entity 1, currency 1 / EGP. Its GL account (15)
+    // is left empty: GL is built later (Ahmed, 29 Oct).
     public const long LegalEntityId = 1;
     public const string CurrencyCode = "EGP";
-    public const long SourceGlAccountId = 15;
 
     /// <summary>The Bank Result list of page 712 (static LOV).</summary>
     public static readonly IReadOnlyList<FctOptionDto> BankResults =
@@ -283,7 +283,6 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
             CurrencyCode = CurrencyCode,
             ReceiptAmount = method == "CHEQUE" ? 0 : receiptAmount,
             AllocatedAmount = 0,
-            SourceGlAccountId = SourceGlAccountId,
             BankStatementReference = bankStatementReference,
             ExternalReference = externalReference,
             StatusCode = "DRAFT",
@@ -300,7 +299,6 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
         {
             RepaymentTxnId = txn.RepaymentTxnId,
             SourceType = "BANK_TRANSFER",
-            SourceGlAccountId = SourceGlAccountId,
             SourceReference = bankStatementReference ?? externalReference,
             SourceAmount = receiptAmount,
             AllocatedAmount = 0,
