@@ -80,6 +80,15 @@ public static class Permissions
         public const string Edit = "MFF.EDIT";
     }
 
+    public static class Crm
+    {
+        /// <summary>Read the CRM clients.</summary>
+        public const string View = "CRM.VIEW";
+
+        /// <summary>Create and change CRM clients.</summary>
+        public const string Edit = "CRM.EDIT";
+    }
+
     public static class Fct
     {
         /// <summary>Read the factoring customers, their applications, agreements and limits.</summary>

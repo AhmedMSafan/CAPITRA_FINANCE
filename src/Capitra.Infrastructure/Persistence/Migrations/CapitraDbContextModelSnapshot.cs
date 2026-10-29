@@ -3439,6 +3439,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("CLIENT_REF_CODE");
 
+                    b.Property<string>("ClientRoleCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CLIENT_ROLE_CODE");
+
                     b.Property<string>("ClientSegment")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
@@ -3704,6 +3709,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasIndex("ClientNumber")
                         .IsUnique()
                         .HasDatabaseName("UQ_CRM_CLIENTS_CLIENT_NUMBER");
+
+                    b.HasIndex("ClientRoleCode")
+                        .HasDatabaseName("IX_CRM_CLIENTS_CLIENT_ROLE_CODE");
 
                     b.HasIndex("CountryId")
                         .HasDatabaseName("IX_CRM_CLIENTS_COUNTRY_ID");

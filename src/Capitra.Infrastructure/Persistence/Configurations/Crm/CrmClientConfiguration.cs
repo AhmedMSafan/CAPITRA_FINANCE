@@ -11,6 +11,7 @@ public sealed class CrmClientConfiguration : IEntityTypeConfiguration<CrmClient>
         builder.ToTable("CRM_CLIENTS");
         builder.HasKey(x => x.ClientId);
         builder.HasIndex(x => x.CityId);
+        builder.HasIndex(x => x.ClientRoleCode);
         builder.HasIndex(x => x.CountryId);
         builder.HasIndex(x => x.GroupCode);
         builder.HasIndex(x => x.IndustryId);
@@ -32,6 +33,7 @@ public sealed class CrmClientConfiguration : IEntityTypeConfiguration<CrmClient>
         builder.Property(x => x.TradeName).HasMaxLength(500);
         builder.Property(x => x.TradeNameAr).HasMaxLength(500);
         builder.Property(x => x.ClientType).HasMaxLength(30);
+        builder.Property(x => x.ClientRoleCode).HasMaxLength(30);
         builder.Property(x => x.LegalStructure).HasMaxLength(50);
         builder.Property(x => x.LegalStructureAr).HasMaxLength(50);
         builder.Property(x => x.RegistrationNumber).HasMaxLength(50);
