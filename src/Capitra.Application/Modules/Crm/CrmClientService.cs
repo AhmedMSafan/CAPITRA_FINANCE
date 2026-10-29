@@ -1,6 +1,5 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
-using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Crm;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +17,7 @@ public sealed record CrmClientFormDto(
 
 public sealed record CrmOptionDto(string Value, string Label);
 
-/// <summary>The dialog's lists: countries and currencies (CRM_LKP_*), active client roles (ADM_LKP_CLIENT_ROLES).</summary>
+/// <summary>The dialog's lists: countries and currencies (CRM_LKP_*) and the client roles.</summary>
 public sealed record CrmClientOptionsDto(IReadOnlyList<CrmOptionDto> Countries, IReadOnlyList<CrmOptionDto> Currencies, IReadOnlyList<CrmOptionDto> ClientRoles);
 
 /// <summary>
@@ -27,6 +26,13 @@ public sealed record CrmClientOptionsDto(IReadOnlyList<CrmOptionDto> Countries, 
 /// </summary>
 public sealed class CrmClientService(ICapitraDbContext db)
 {
+    /// <summary>The client roles FINOVA's code knows (no roles table in the database): the developer and investor lists use them.</summary>
+    public static readonly IReadOnlyList<CrmOptionDto> ClientRoles =
+    [
+        new("REAL_ESTATE_DEVELOPER", "Real Estate Developer"),
+        new("INVESTOR", "Investor"),
+    ];
+
     public async Task<IReadOnlyList<CrmClientListDto>> ListAsync(CancellationToken cancellationToken) =>
         await db.Set<CrmClient>().AsNoTracking()
             .OrderBy(x => x.ClientId)
@@ -42,16 +48,14 @@ public sealed class CrmClientService(ICapitraDbContext db)
             .SingleOrDefaultAsync(cancellationToken)
         ?? throw new NotFoundException($"Client with ID {clientId} was not found.");
 
-    // FINOVA LovService: countries by name, currencies by code, active client roles by display order then name
+    // FINOVA LovService: countries by name, currencies by code
     public async Task<CrmClientOptionsDto> OptionsAsync(CancellationToken cancellationToken)
     {
         var countries = await db.Set<CrmLkpCountry>().AsNoTracking().OrderBy(x => x.CountryName)
             .Select(x => new CrmOptionDto(x.CountryId.ToString(), x.CountryName)).ToListAsync(cancellationToken);
         var currencies = await db.Set<CrmLkpCurrency>().AsNoTracking().OrderBy(x => x.CurrencyCode)
             .Select(x => new CrmOptionDto(x.CurrencyId.ToString(), x.CurrencyCode)).ToListAsync(cancellationToken);
-        var roles = await db.Set<AdmLkpClientRole>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.DisplayOrder).ThenBy(x => x.NameEn)
-            .Select(x => new CrmOptionDto(x.Code, x.NameEn)).ToListAsync(cancellationToken);
-        return new CrmClientOptionsDto(countries, currencies, roles);
+        return new CrmClientOptionsDto(countries, currencies, ClientRoles);
     }
 
     public async Task<CrmClientFormDto> CreateAsync(CrmClientFormDto dto, CancellationToken cancellationToken)
@@ -117,7 +121,7 @@ public sealed class CrmClientService(ICapitraDbContext db)
         if (!await db.Set<CrmLkpCurrency>().AnyAsync(x => x.CurrencyId == dto.BaseCurrencyId, cancellationToken)) errors["baseCurrencyId"] = ["Base Currency is required."];
         if (!await db.Set<CrmLkpStatusCode>().AnyAsync(x => x.StatusId == dto.StatusId, cancellationToken)) errors["statusId"] = [$"Status ID {dto.StatusId} does not exist."];
         var role = Blank(dto.ClientRoleCode)?.ToUpperInvariant();
-        if (role is not null && !await db.Set<AdmLkpClientRole>().AnyAsync(x => x.Code == role, cancellationToken)) errors["clientRoleCode"] = [$"Client Role {role} does not exist."];
+        if (role is not null && ClientRoles.All(x => x.Value != role)) errors["clientRoleCode"] = [$"Client Role {role} does not exist."];
         if (errors.Count > 0) throw new BusinessValidationException(errors);
     }
 

@@ -27,7 +27,7 @@ public class CrmClient : AuditableEntity
 
     public string ClientType { get; set; } = string.Empty;
 
-    /// <summary>CLIENT_ROLE_CODE -> ADM_LKP_CLIENT_ROLES (added by FINOVA_FINANCEING); optional.</summary>
+    /// <summary>CLIENT_ROLE_CODE (added by FINOVA_FINANCEING): REAL_ESTATE_DEVELOPER or INVESTOR, a fixed list; optional.</summary>
     public string? ClientRoleCode { get; set; }
 
     public string LegalStructure { get; set; } = string.Empty;
