@@ -75,13 +75,9 @@ const BACK = '<path d="M19 12H5M11 19l-7-7 7-7"/>'
 const icon = (paths: string, size = 24) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`
 
-// Home shows three business cards, CRM, Mortgage and Factoring, with the FINOVA_FINANCEING home texts; Mortgage opens the APEX page's
+// Home shows two business cards, Mortgage and Factoring, with the FINOVA_FINANCEING home texts; Mortgage opens the APEX page's
 // three mortgage cards (reg calls), each pointed at this app's module. Personal Mortgage is not built here yet.
 const apps: App[] = [
-  { tier: 1, name: 'Customer Relationship Management', short: 'CRM', descr: 'Manage clients, customer information, factoring offers and commercial relationships.',
-    to: '/crm', color: '#004A52', tint: '#E3EEF0',
-    icon: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c0-3 2.4-5 5.5-5s5.5 2 5.5 5"/><path d="M13.8 14.3c2.7-.8 6.2.5 6.7 4.2"/>',
-    feats: [] },
   { tier: 1, name: 'Mortgage', short: 'Mortgage', descr: 'Mortgage portfolio purchase, approvals, disbursement, repayment schedules and monitoring.',
     to: '/mortgage-applications', color: '#E87722', tint: '#FFF1E6', icon: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
     feats: ['Portfolio Acquisition', 'Subsidized Mortgage Finance', 'Personal Mortgage'] },
@@ -106,7 +102,11 @@ const apps: App[] = [
   { tier: 2, name: 'Cheques Wallet', short: 'Wallet', descr: 'Client cheque batches from upload to custody, deposit and collection.', to: '/cheque-wallet', color: '#B4570E', tint: '#FFF1E6',
     icon: '<path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7H5"/><path d="M16 14h.01"/>', feats: [] },
   { tier: 2, name: 'Admin Setup', short: 'Admin', descr: 'Users, roles, modules and platform-wide settings in one place.', to: '/admin', color: '#475569', tint: '#EEF2F6',
-    icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', feats: [] }
+    icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', feats: [] },
+  { tier: 2, name: 'Customer Relationship Management', short: 'CRM', descr: 'Manage clients, customer information, factoring offers and commercial relationships.',
+    to: '/crm', color: '#004A52', tint: '#E3EEF0',
+    icon: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c0-3 2.4-5 5.5-5s5.5 2 5.5 5"/><path d="M13.8 14.3c2.7-.8 6.2.5 6.7 4.2"/>',
+    feats: [] }
 ]
 const tier = (n: App['tier']) => apps.filter((a) => a.tier === n)
 const business = computed(() => tier(props.group ?? 1))
@@ -128,4 +128,6 @@ onMounted(async () => {
 .fm-back span { display: inline-flex; }
 /* the same smaller greeting as the Workflow Engine home: it carries the full name */
 .fm-hero h1 { font-size: clamp(20px, 1.9vw, 26px); }
+/* five shared services (CRM after Admin) on one row on wide screens */
+@media (min-width: 1201px) { .fm-grid--2 { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 </style>
