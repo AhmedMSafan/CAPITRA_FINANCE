@@ -27,7 +27,6 @@
       </div>
     </div>
 
-    <div v-if="error" class="fc-alert" role="alert"><span class="fa fa-exclamation-circle" aria-hidden="true"></span>{{ error }}</div>
 
     <div class="fc-calc">
       <main class="fc-calc-main">
@@ -94,7 +93,6 @@
             <button v-if="canEdit" type="button" class="fx-btn fx-btn--primary fx-btn--block" :disabled="creating" @click="useInOffer">
               <span class="fa" :class="creating ? 'fa-spinner fa-spin' : 'fa-arrow-circle-right'" aria-hidden="true"></span>{{ tr(creating ? 'Creating Offer...' : 'Use In Offer') }}
             </button>
-            <div v-if="offerError" class="fc-alert fc-alert--sm" role="alert"><span class="fa fa-exclamation-circle" aria-hidden="true"></span>{{ offerError }}</div>
           </div>
         </section>
 
@@ -157,6 +155,7 @@ import './factoring.css'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { tr } from '@/shared/layout/language'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import { hasPermission } from '@/shared/auth/session'
 import { fctApi, fctApplicationsApi, type FctCalculationResult, type FctCustomerDetails } from '../api/fct.api'
 
@@ -174,6 +173,7 @@ const result = ref<FctCalculationResult | null>(null)
 const calculating = ref(false)
 const creating = ref(false)
 const offerError = ref('')
+useFeedback({ errors: [error, offerError] })
 
 // FINOVA's starting values
 const f = reactive({

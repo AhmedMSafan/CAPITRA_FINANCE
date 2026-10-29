@@ -4,7 +4,7 @@
   <FctStepShell :agreement-id="Number(agreementId)" title="Customer Approval" icon="fa-handshake-o"
                 subtitle="Capture the client response, signed acceptance and notes required for contract preparation."
                 summary-note="Factoring application at client acceptance stage" loading-text="Loading contract request..."
-                :summary="page?.summary ?? null" :loading="loading" :error="error" :success="success">
+                :summary="page?.summary ?? null" :loading="loading">
     <template v-if="page">
       <FctProcessStrip :current="6" />
 
@@ -40,6 +40,7 @@
             <span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save Client Response') }}</button>
           <button type="button" class="fx-btn fx-btn--primary" :disabled="saving" @click="sendContractRequest">
             <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-paper-plane'" aria-hidden="true"></span>{{ tr('Send Contract Request') }}</button>
+          <FctStepActions :save="persist" :disabled="saving" />
         </div>
       </section>
     </template>
@@ -49,7 +50,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import FctStepShell from '../components/FctStepShell.vue'
+import FctStepActions from '../components/FctStepActions.vue'
 import FctProcessStrip from '../components/FctProcessStrip.vue'
 import FctAgreementDocuments from '../components/FctAgreementDocuments.vue'
 import { errorText, formatAmount, formatMonths, formatRate } from '../components/stepFormat'
@@ -63,6 +66,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
+useFeedback({ errors: [error], notices: [success] })
 
 function assign(p: FctContractRequest) {
   page.value = p
@@ -81,23 +85,28 @@ async function load() {
   }
 }
 
-async function save(done: string) {
+async function persist(): Promise<boolean> {
   saving.value = true
   error.value = ''
   success.value = ''
   try {
     assign(await fctStepsApi.saveContractRequest(Number(props.agreementId), { notesToOperations: notes.value }))
-    success.value = tr(done)
+    return true
   } catch (e) {
     error.value = errorText(e, 'Unable to save client response.')
+    return false
   } finally {
     saving.value = false
   }
 }
 
+async function save(done: string) {
+  if (await persist()) success.value = tr(done)
+}
+
 const saveResponse = () => save('Client response saved successfully.')
-// as in FINOVA, sending the request saves the response; the step is accepted or rejected on the task
-const sendContractRequest = () => save('Client response saved. Return to the workflow task to Accept or Reject this step.')
+// as in FINOVA, sending the request saves the response
+const sendContractRequest = () => save('Contract request sent.')
 
 onMounted(load)
 </script>

@@ -4,7 +4,7 @@
   <FctStepShell ref="shell" :agreement-id="Number(agreementId)" title="Investigation" icon="fa-search"
                 subtitle="Record the client inquiry, AML screening and legal opinion for this application."
                 summary-note="Factoring application under investigation" loading-text="Loading inquiry field report..."
-                :summary="page?.summary ?? null" :loading="loading" :error="error" :success="success">
+                :summary="page?.summary ?? null" :loading="loading">
     <template v-if="page">
       <section class="fx-card fc-step-card">
         <header class="fc-sec-head">
@@ -24,6 +24,7 @@
             <span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr(saving ? 'Saving...' : 'Save and return') }}</button>
           <button type="button" class="fx-btn fx-btn--primary" :disabled="saving" @click="save(false)">
             <span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr(saving ? 'Saving...' : 'Save Application') }}</button>
+          <FctStepActions :save="persist" :disabled="saving" />
         </div>
       </section>
 
@@ -93,7 +94,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import FctStepShell from '../components/FctStepShell.vue'
+import FctStepActions from '../components/FctStepActions.vue'
 import { dayInput, errorText, formatDate, num, toUtcDay } from '../components/stepFormat'
 import { fctStepsApi, type FctAmlDetails, type FctInquiryDetails, type FctInquiryFieldReport, type FctLegalDetails } from '../api/fct.api'
 
@@ -110,6 +113,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
+useFeedback({ errors: [error], notices: [success] })
 
 const value = (e: Event) => (e.target as HTMLInputElement).value
 
@@ -133,10 +137,10 @@ async function load() {
 }
 
 // as in FINOVA, every save button saves the three forms together
-async function save(andReturn: boolean) {
+async function persist(): Promise<boolean> {
   if ((f.inquiry.creditBureauScore ?? 0) < 0) {
     error.value = tr('Credit Bureau Score cannot be negative.')
-    return
+    return false
   }
   saving.value = true
   error.value = ''
@@ -145,13 +149,19 @@ async function save(andReturn: boolean) {
     assign(await fctStepsApi.saveInquiry(Number(props.agreementId), {
       inquiry: { ...f.inquiry, creditBureauScore: num(f.inquiry.creditBureauScore) }, aml: f.aml, legal: f.legal
     }))
-    if (andReturn) shell.value?.backToTask()
-    else success.value = tr('Inquiry field report saved.')
+    return true
   } catch (e) {
     error.value = errorText(e, 'Unable to save inquiry field report.')
+    return false
   } finally {
     saving.value = false
   }
+}
+
+async function save(andReturn: boolean) {
+  if (!(await persist())) return
+  if (andReturn) shell.value?.backToTask()
+  else success.value = tr('Inquiry field report saved.')
 }
 
 onMounted(load)

@@ -4,7 +4,7 @@
   <FctStepShell ref="shell" :agreement-id="Number(agreementId)" title="Sales Review" icon="fa-pencil-square-o"
                 subtitle="Review and complete the application before the investigation starts."
                 summary-note="Factoring application under sales review" loading-text="Loading application..."
-                :summary="summary" :submitted-by="form?.createdBy" :loading="loading" :error="error" :success="success">
+                :summary="summary" :submitted-by="form?.createdBy" :loading="loading">
     <template v-if="form">
       <section class="fx-card fc-step-card">
         <header class="fc-sec-head">
@@ -41,6 +41,7 @@
             <span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr(saving ? 'Saving...' : 'Save and return') }}</button>
           <button type="button" class="fx-btn fx-btn--primary" :disabled="saving" @click="save(false)">
             <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-o'" aria-hidden="true"></span>{{ tr(saving ? 'Saving...' : 'Save Application') }}</button>
+          <FctStepActions :save="persist" :disabled="saving" />
         </div>
       </section>
 
@@ -67,7 +68,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
+import { useFeedback } from '@/shared/feedback/useFeedback'
 import FctStepShell from '../components/FctStepShell.vue'
+import FctStepActions from '../components/FctStepActions.vue'
 import { dayInput, errorText, num, toUtcDay } from '../components/stepFormat'
 import { fctStepsApi, type FctAgreementForm } from '../api/fct.api'
 
@@ -81,6 +84,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
+useFeedback({ errors: [error], notices: [success] })
 
 const value = (e: Event) => (e.target as HTMLInputElement).value
 
@@ -107,9 +111,9 @@ async function load() {
   }
 }
 
-async function save(andReturn: boolean) {
+async function persist(): Promise<boolean> {
   const f = form.value
-  if (!f) return
+  if (!f) return false
   saving.value = true
   error.value = ''
   success.value = ''
@@ -119,13 +123,19 @@ async function save(andReturn: boolean) {
       currencyId: f.currencyId, facilityLimit: num(f.facilityLimit) ?? 0, advanceRatePct: num(f.advanceRatePct) ?? 0, tenorMonths: num(f.tenorMonths),
       notes: f.notes
     })
-    if (andReturn) shell.value?.backToTask()
-    else success.value = tr('Application saved.')
+    return true
   } catch (e) {
     error.value = errorText(e, 'Unable to save factoring application.')
+    return false
   } finally {
     saving.value = false
   }
+}
+
+async function save(andReturn: boolean) {
+  if (!(await persist())) return
+  if (andReturn) shell.value?.backToTask()
+  else success.value = tr('Application saved.')
 }
 
 onMounted(load)
