@@ -23,6 +23,12 @@ public sealed record FctAgreementDto(
     long AgreementId, string AgreementNumber, DateTime? ApplicationAt, decimal FacilityLimit, string? CurrencyCode, string FactoringType,
     string? StatusCode, string? WorkflowStepName);
 
+/// <summary>FCT_CREDIT_LIMITS, as FINOVA's credit-limits/by-client returns it (with the currency code).</summary>
+public sealed record FctCreditLimitDto(
+    long CreditLimitId, string LimitNumber, string? LimitRef, string LimitName, string LimitLevel, string LimitType, string? LimitCategory,
+    long CurrencyId, string? CurrencyCode, decimal ApprovedAmount, decimal CurrentLimit, decimal UtilizedAmount, decimal? AvailableAmount,
+    DateTime EffectiveAt, DateTime ExpiryAt, bool IsActive);
+
 /// <summary>
 /// The Factoring home (customers) and the Factoring Customer Workspace, from FINOVA_FINANCEING FactoringHomePage and
 /// FactoringCustomerWorkspace: customers are CRM_CLIENTS, applications FCT_OFFERS, agreements FCT_AGREEMENTS.
@@ -87,6 +93,18 @@ public sealed class FctWorkspaceService(ICapitraDbContext db)
         return [.. rows.Select(x => new FctAgreementDto(x.a.AgreementId, x.a.AgreementNumber, x.a.ApplicationAt, x.a.FacilityLimit,
             x.CurrencyCode, x.a.FactoringType, x.a.StatusCode, steps.GetValueOrDefault(x.a.InstanceId)))];
     }
+
+    /// <summary>The customer's credit limits, newest first; Legal Review ACCEPT creates the agreement-level one.</summary>
+    public async Task<IReadOnlyList<FctCreditLimitDto>> ListCreditLimitsAsync(long clientId, CancellationToken cancellationToken) =>
+        await (from x in db.Set<FctCreditLimit>().AsNoTracking()
+               where x.ClientId == clientId
+               join cu in db.Set<CrmLkpCurrency>() on x.CurrencyId equals cu.CurrencyId into cus
+               from cu in cus.DefaultIfEmpty()
+               orderby x.CreatedAt descending
+               select new FctCreditLimitDto(x.CreditLimitId, x.LimitNumber, x.LimitRef, x.LimitName, x.LimitLevel, x.LimitType, x.LimitCategory,
+                   x.CurrencyId, cu == null ? null : cu.CurrencyCode, x.ApprovedAmount, x.CurrentLimit, x.UtilizedAmount, x.AvailableAmount,
+                   x.EffectiveAt, x.ExpiryAt, x.IsActive))
+            .ToListAsync(cancellationToken);
 
     /// <summary>Per workflow instance, the name of its newest step that is not completed yet.</summary>
     private async Task<Dictionary<long, string?>> CurrentStepsAsync(IEnumerable<long> instanceIds, CancellationToken cancellationToken)

@@ -22,6 +22,8 @@ public static class DependencyInjection
         services.AddScoped<Modules.Fct.FctApplicationService>();
         services.AddScoped<Modules.Fct.FctReviewService>();
         services.AddScoped<Modules.Fct.FctDocumentService>();
+        services.AddScoped<Modules.Fct.FctStepService>();
+        services.AddScoped<Modules.Wfe.IWfeTaskCompletionHandler, Modules.Fct.FctLegalReviewCompletionHandler>();
 
 
 

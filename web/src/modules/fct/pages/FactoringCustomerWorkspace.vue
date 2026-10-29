@@ -129,10 +129,37 @@
         <div v-if="!agreements.length" class="fx-empty"><span class="fa fa-handshake-o" aria-hidden="true"></span>{{ tr('No agreements found for this customer.') }}</div>
       </div>
 
-      <!-- FINOVA shows these three tabs as placeholders -->
+      <div v-else-if="tab === 'limits'" class="fx-table-wrap">
+        <table class="fx-table">
+          <thead>
+            <tr>
+              <th>{{ tr('Limit No.') }}</th><th>{{ tr('Level') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Currency') }}</th>
+              <th class="fx-r">{{ tr('Approved Amount') }}</th><th class="fx-r">{{ tr('Utilized') }}</th><th class="fx-r">{{ tr('Available') }}</th>
+              <th>{{ tr('Effective Date') }}</th><th>{{ tr('Expiry Date') }}</th><th>{{ tr('Status') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="l in limits" :key="l.creditLimitId">
+              <td><b class="fc-ref">{{ l.limitNumber }}</b></td>
+              <td>{{ l.limitLevel }}</td>
+              <td>{{ l.limitType }}</td>
+              <td>{{ l.currencyCode || '-' }}</td>
+              <td class="fx-r">{{ amount(l.approvedAmount) }}</td>
+              <td class="fx-r">{{ amount(l.utilizedAmount) }}</td>
+              <td class="fx-r">{{ amount(l.availableAmount) }}</td>
+              <td>{{ date(l.effectiveAt) }}</td>
+              <td>{{ date(l.expiryAt) }}</td>
+              <td><span class="fx-chip" :class="l.isActive ? 'fx-chip--ok' : 'fx-chip--warn'">{{ tr(l.isActive ? 'Active' : 'Inactive') }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-if="!limits.length" class="fx-empty"><span class="fa fa-database" aria-hidden="true"></span>{{ tr('Approved limits will be available here.') }}</div>
+      </div>
+
+      <!-- FINOVA shows these two tabs as placeholders -->
       <div v-else class="fx-empty">
         <span class="fa" :class="tabs.find((t) => t.key === tab)?.icon" aria-hidden="true"></span>
-        {{ tr(tab === 'limits' ? 'Approved limits will be available here.' : tab === 'disbursements' ? 'Disbursement data will be available here.' : 'Claims data will be available here.') }}
+        {{ tr(tab === 'disbursements' ? 'Disbursement data will be available here.' : 'Claims data will be available here.') }}
       </div>
 
       <div class="fc-foot">
@@ -168,7 +195,7 @@ import { dateLocale, tr } from '@/shared/layout/language'
 import { DISPLAY_TIME_ZONE } from '@/shared/format/datetime'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 import { hasPermission } from '@/shared/auth/session'
-import { fctApi, fctApplicationsApi, type FctAgreement, type FctApplication, type FctCustomerDetails } from '../api/fct.api'
+import { fctApi, fctApplicationsApi, type FctAgreement, type FctApplication, type FctCreditLimit, type FctCustomerDetails } from '../api/fct.api'
 
 const props = defineProps<{ clientId: string }>()
 
@@ -177,6 +204,7 @@ type Tab = 'applications' | 'agreements' | 'limits' | 'disbursements' | 'claims'
 const client = ref<FctCustomerDetails | null>(null)
 const applications = ref<FctApplication[]>([])
 const agreements = ref<FctAgreement[]>([])
+const limits = ref<FctCreditLimit[]>([])
 const inboxCount = ref(0)
 const loading = ref(false)
 const error = ref('')
@@ -204,11 +232,12 @@ function startHint(a: FctApplication) {
 const tabs = computed(() => [
   { key: 'applications' as const, label: 'Factoring Applications', count: applications.value.length, icon: 'fa-file-text-o' },
   { key: 'agreements' as const, label: 'Agreements', count: agreements.value.length, icon: 'fa-handshake-o' },
-  { key: 'limits' as const, label: 'Limits', count: 0, icon: 'fa-database' },
+  { key: 'limits' as const, label: 'Limits', count: limits.value.length, icon: 'fa-database' },
   { key: 'disbursements' as const, label: 'Disbursements', count: 0, icon: 'fa-exchange' },
   { key: 'claims' as const, label: 'Claims', count: 0, icon: 'fa-flag-o' }
 ])
-const rows = computed(() => (tab.value === 'applications' ? applications.value.length : tab.value === 'agreements' ? agreements.value.length : 0))
+const rows = computed(() =>
+  tab.value === 'applications' ? applications.value.length : tab.value === 'agreements' ? agreements.value.length : tab.value === 'limits' ? limits.value.length : 0)
 
 const amount = (v: number | null | undefined) =>
   v == null ? '-' : new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(v)
@@ -228,7 +257,9 @@ function tone(status: string | null | undefined) {
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 async function loadData(id: number) {
-  ;[client.value, applications.value, agreements.value] = await Promise.all([fctApi.customer(id), fctApi.applications(id), fctApi.agreements(id)])
+  ;[client.value, applications.value, agreements.value, limits.value] = await Promise.all([
+    fctApi.customer(id), fctApi.applications(id), fctApi.agreements(id), fctApi.creditLimits(id)
+  ])
   for (const a of applications.value) selected[a.offerId] = a.statusCode || ''
 }
 

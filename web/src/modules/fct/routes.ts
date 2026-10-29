@@ -30,5 +30,61 @@ export const fctRoutes: RouteRecordRaw[] = [
     component: () => import('./pages/FactoringAgreementAssignSalesPage.vue'),
     props: true,
     meta: { moduleName: 'FACTORING', functionName: 'Operation Received' }
+  },
+  {
+    path: 'factoring/agreements/:agreementId/review',
+    name: 'factoring-agreement-sales-review',
+    component: () => import('./pages/FactoringAgreementSalesReviewPage.vue'),
+    props: true,
+    meta: { moduleName: 'FACTORING', functionName: 'Sales Review' }
+  },
+  {
+    path: 'factoring/agreements/:agreementId/inquiry-field-report',
+    name: 'factoring-inquiry-field-report',
+    component: () => import('./pages/FactoringInquiryFieldReportPage.vue'),
+    props: true,
+    meta: { moduleName: 'FACTORING', functionName: 'Investigation' }
+  },
+  {
+    path: 'factoring/agreements/:agreementId/credit-analysis',
+    name: 'factoring-credit-analysis',
+    component: () => import('./pages/FactoringCreditAnalysisPage.vue'),
+    props: true,
+    meta: { moduleName: 'FACTORING', functionName: 'Credit Analysis' }
+  },
+  {
+    path: 'factoring/agreements/:agreementId/risk-review',
+    name: 'factoring-risk-review',
+    component: () => import('./pages/FactoringRiskReviewPage.vue'),
+    props: true,
+    meta: { moduleName: 'FACTORING', functionName: 'Risk Review' }
+  },
+  {
+    path: 'factoring/agreements/:agreementId/committee-decision',
+    name: 'factoring-committee-decision',
+    component: () => import('./pages/FactoringCommitteeDecisionPage.vue'),
+    props: true,
+    meta: { moduleName: 'FACTORING', functionName: 'Committee Decision' }
+  },
+  {
+    path: 'factoring/agreements/:agreementId/contract-request',
+    name: 'factoring-contract-request',
+    component: () => import('./pages/FactoringContractRequestPage.vue'),
+    props: true,
+    meta: { moduleName: 'FACTORING', functionName: 'Customer Approval' }
+  },
+  {
+    path: 'factoring/agreements/:agreementId/contract-generation',
+    name: 'factoring-contract-generation',
+    component: () => import('./pages/FactoringContractGenerationPage.vue'),
+    props: true,
+    meta: { moduleName: 'FACTORING', functionName: 'Contract Generation' }
+  },
+  {
+    path: 'factoring/agreements/:agreementId/legal-review',
+    name: 'factoring-legal-review',
+    component: () => import('./pages/FactoringLegalReviewPage.vue'),
+    props: true,
+    meta: { moduleName: 'FACTORING', functionName: 'Legal Review' }
   }
 ]

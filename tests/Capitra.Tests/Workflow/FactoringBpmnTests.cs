@@ -42,4 +42,16 @@ public sealed class FactoringBpmnTests
         Assert.Equal("Activity_0pogexl", BpmnModel.Next(Xml, "Activity_10lu0rl", "REJECT")?.Id);
         Assert.Equal("CLAIM,ACCEPT,REJECT,COMPLETE", BpmnModel.Element(Xml, "Activity_0pogexl").Actions);
     }
+
+    [Theory]
+    [InlineData("ACCEPT", "LEGAL_REVIEW", "FACTORING_LIMIT_APPROVAL", true)]
+    [InlineData("accept", "legal_review", null, true)]
+    [InlineData("REJECT", "LEGAL_REVIEW", "FACTORING_LIMIT_APPROVAL", false)]
+    [InlineData("ACCEPT", "COMMITTEE_APPROVAL", "FACTORING_LIMIT_APPROVAL", false)]
+    [InlineData("ACCEPT", "LEGAL_REVIEW", "PURCHASED_PORTFOLIO", false)]
+    public void Only_legal_review_accept_creates_the_credit_limit(string action, string step, string? workflow, bool expected)
+    {
+        var handler = new Capitra.Application.Modules.Fct.FctLegalReviewCompletionHandler(null!, null!);
+        Assert.Equal(expected, handler.CanHandle(new WfeTaskContext(1, 1, workflow, step, action, "tester")));
+    }
 }

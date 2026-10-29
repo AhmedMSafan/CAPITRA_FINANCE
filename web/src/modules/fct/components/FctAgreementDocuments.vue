@@ -1,8 +1,8 @@
 <template>
   <!-- FINOVA_FINANCEING Sales Review "Documents" button and dialog, shared by every factoring workflow step page:
        pick the document type and status, drop or browse a file, and see the agreement's attached documents. -->
-  <button type="button" class="fx-btn fx-btn--teal" @click="open">
-    <span class="fa fa-folder-open-o" aria-hidden="true"></span>{{ tr('Documents') }}
+  <button type="button" class="fx-btn" :class="{ 'fx-btn--teal': !label }" @click="open">
+    <span class="fa" :class="icon || 'fa-folder-open-o'" aria-hidden="true"></span>{{ tr(label || 'Documents') }}
   </button>
 
   <Teleport to="body">
@@ -79,8 +79,11 @@ import { dateLocale, tr } from '@/shared/layout/language'
 import { DISPLAY_TIME_ZONE } from '@/shared/format/datetime'
 import { hasPermission } from '@/shared/auth/session'
 import { fctDocumentsApi, type FctAgreementDocument, type FctLovItem } from '../api/fct.api'
+import { viewDocument } from './stepFormat'
 
-const props = defineProps<{ agreementId: number }>()
+// label / icon: the same dialog behind a step's own button (Upload Contract, Upload Signed Acceptance)
+const props = defineProps<{ agreementId: number; label?: string; icon?: string }>()
+const emit = defineEmits<{ uploaded: [] }>()
 
 const MAX_BYTES = 10 * 1024 * 1024
 const canEdit = hasPermission('FCT.EDIT')
@@ -158,6 +161,7 @@ async function upload(file: File) {
   try {
     await fctDocumentsApi.upload(props.agreementId, file, typeId.value, statusId.value)
     await loadDocuments()
+    emit('uploaded')
   } catch (e) {
     error.value = errorText(e, 'Unable to upload document.')
   } finally {
@@ -166,14 +170,9 @@ async function upload(file: File) {
 }
 
 async function view(d: FctAgreementDocument) {
-  // opened before the download, so the browser does not block it as a pop-up
-  const tab = window.open('', '_blank')
   try {
-    const url = URL.createObjectURL(await fctDocumentsApi.content(d.documentId))
-    if (tab) tab.location.href = url
-    else window.open(url, '_blank', 'noopener')
+    await viewDocument(d.documentId)
   } catch (e) {
-    tab?.close()
     error.value = errorText(e, 'Unable to open document.')
   }
 }
