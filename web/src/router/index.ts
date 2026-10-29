@@ -6,6 +6,7 @@ import { mffRoutes } from '@/modules/mff/routes'
 import { chqRoutes } from '@/modules/chq/routes'
 import { crmRoutes } from '@/modules/crm/routes'
 import { fctRoutes } from '@/modules/fct/routes'
+import { collectionRoutes } from '@/modules/collection/routes'
 
 // Every page lives under AppLayout and needs a signed-in user, except the login page.
 // Module routes are added here as each module is built (src/modules/{module}).
@@ -52,6 +53,8 @@ const router = createRouter({
         // CRM and Factoring (FINOVA_FINANCEING).
         ...crmRoutes,
         ...fctRoutes,
+        // Collection and Repayments (APEX App 136).
+        ...collectionRoutes,
         // General ledger (APEX App 120).
         {
           path: 'gl',

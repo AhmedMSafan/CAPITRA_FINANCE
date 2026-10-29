@@ -2151,6 +2151,92 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("CHQ_CHEQUES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Chq.ChqChequeStatusHist", b =>
+                {
+                    b.Property<long>("ChequeStatusHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CHEQUE_STATUS_HISTORY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ChequeStatusHistoryId"));
+
+                    b.Property<string>("BankStatementReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BANK_STATEMENT_REFERENCE");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CHANGED_AT");
+
+                    b.Property<string>("ChangedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHANGED_BY");
+
+                    b.Property<long>("ChequeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CHEQUE_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("NewStatusCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("NEW_STATUS_CODE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("OldStatusCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("OLD_STATUS_CODE");
+
+                    b.Property<string>("ReasonCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("REASON_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly>("StatusDate")
+                        .HasColumnType("date")
+                        .HasColumnName("STATUS_DATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ChequeStatusHistoryId")
+                        .HasName("PK_CHQ_CHEQUE_STATUS_HIST");
+
+                    b.HasIndex("ChequeId", "StatusDate")
+                        .HasDatabaseName("IX_CHQ_CHEQUE_STATUS_HIST_CHEQUE_ID_STATUS_DATE");
+
+                    b.ToTable("CHQ_CHEQUE_STATUS_HIST", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Chq.ChqDepositBatch", b =>
                 {
                     b.Property<long>("DepositBatchId")
@@ -6481,6 +6567,446 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_FCT_OFFERS_CLIENT_ID_CURRENCY_ID_OFFER_AT");
 
                     b.ToTable("FCT_OFFERS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentAllocation", b =>
+                {
+                    b.Property<long>("AllocationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ALLOCATION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AllocationId"));
+
+                    b.Property<decimal>("AllocationAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ALLOCATION_AMOUNT");
+
+                    b.Property<DateOnly>("AllocationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ALLOCATION_DATE");
+
+                    b.Property<string>("AllocationMode")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasColumnName("ALLOCATION_MODE");
+
+                    b.Property<string>("ComponentCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("COMPONENT_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<long>("RepaymentSourceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_SOURCE_ID");
+
+                    b.Property<long>("RepaymentTxnId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_TXN_ID");
+
+                    b.Property<decimal>("RequestedValue")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)")
+                        .HasColumnName("REQUESTED_VALUE");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REVERSAL_REASON");
+
+                    b.Property<DateTime?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REVERSED_AT");
+
+                    b.Property<string>("ReversedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REVERSED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<long>("TargetId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("TARGET_ID");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("TARGET_TYPE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("AllocationId")
+                        .HasName("PK_FCT_REPAYMENT_ALLOCATIONS");
+
+                    b.HasIndex("DisbursementId")
+                        .HasDatabaseName("IX_FCT_REPAYMENT_ALLOCATIONS_DISBURSEMENT_ID");
+
+                    b.HasIndex("RepaymentSourceId")
+                        .HasDatabaseName("IX_FCT_REPAYMENT_ALLOCATIONS_REPAYMENT_SOURCE_ID");
+
+                    b.HasIndex("RepaymentTxnId", "StatusCode", "AllocationDate")
+                        .HasDatabaseName("IX_FCT_REPAYMENT_ALLOCATIONS_REPAYMENT_TXN_ID_STATUS_CODE");
+
+                    b.HasIndex("TargetType", "TargetId", "ComponentCode", "StatusCode")
+                        .HasDatabaseName("IX_FCT_REPAYMENT_ALLOCATIONS_TARGET_TYPE_TARGET_ID");
+
+                    b.ToTable("FCT_REPAYMENT_ALLOCATIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentRequest", b =>
+                {
+                    b.Property<long>("RepaymentRequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_REQUEST_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RepaymentRequestId"));
+
+                    b.Property<decimal?>("BankTransfer")
+                        .HasPrecision(28, 2)
+                        .HasColumnType("numeric(28,2)")
+                        .HasColumnName("BANK_TRANSFER");
+
+                    b.Property<decimal?>("ChequesAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHEQUES_AMOUNT");
+
+                    b.Property<int?>("ChequesCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("CHEQUES_COUNT");
+
+                    b.Property<long?>("ClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal?>("CreditBalance")
+                        .HasPrecision(28, 2)
+                        .HasColumnType("numeric(28,2)")
+                        .HasColumnName("CREDIT_BALANCE");
+
+                    b.Property<decimal?>("RemainingAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("REMAINING_AMOUNT");
+
+                    b.Property<long>("RepaymentTranNo")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_TRAN_NO");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SOURCE");
+
+                    b.Property<string>("StatusCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("RepaymentRequestId")
+                        .HasName("PK_FCT_REPAYMENT_REQUESTS");
+
+                    b.ToTable("FCT_REPAYMENT_REQUESTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentSource", b =>
+                {
+                    b.Property<long>("RepaymentSourceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_SOURCE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RepaymentSourceId"));
+
+                    b.Property<decimal>("AllocatedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ALLOCATED_AMOUNT");
+
+                    b.Property<long?>("ChequeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CHEQUE_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("RepaymentTxnId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_TXN_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal>("SourceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SOURCE_AMOUNT");
+
+                    b.Property<long?>("SourceGlAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SOURCE_GL_ACCOUNT_ID");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("SOURCE_REFERENCE");
+
+                    b.Property<long?>("SourceRepaymentTxnId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SOURCE_REPAYMENT_TXN_ID");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SOURCE_TYPE");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("RepaymentSourceId")
+                        .HasName("PK_FCT_REPAYMENT_SOURCES");
+
+                    b.HasIndex("ChequeId", "StatusCode")
+                        .HasDatabaseName("IX_FCT_REPAYMENT_SOURCES_CHEQUE_ID_STATUS_CODE");
+
+                    b.HasIndex("RepaymentTxnId", "StatusCode")
+                        .HasDatabaseName("IX_FCT_REPAYMENT_SOURCES_REPAYMENT_TXN_ID_STATUS_CODE");
+
+                    b.HasIndex("SourceRepaymentTxnId", "StatusCode")
+                        .HasDatabaseName("IX_FCT_REPAYMENT_SOURCES_SOURCE_REPAYMENT_TXN_ID_STATUS_CODE");
+
+                    b.ToTable("FCT_REPAYMENT_SOURCES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", b =>
+                {
+                    b.Property<long>("RepaymentTxnId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_TXN_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RepaymentTxnId"));
+
+                    b.Property<long?>("AccountingEventId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ACCOUNTING_EVENT_ID");
+
+                    b.Property<long?>("AgreementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("AGREEMENT_ID");
+
+                    b.Property<decimal>("AllocatedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ALLOCATED_AMOUNT");
+
+                    b.Property<string>("BankStatementReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BANK_STATEMENT_REFERENCE");
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<long?>("CurrencyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CURRENCY_ID");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("EXTERNAL_REFERENCE");
+
+                    b.Property<string>("GlJournalRef")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("GL_JOURNAL_REF");
+
+                    b.Property<bool>("IsGlPosted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_GL_POSTED");
+
+                    b.Property<long>("LegalEntityId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LEGAL_ENTITY_ID");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<decimal>("ReceiptAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("RECEIPT_AMOUNT");
+
+                    b.Property<string>("RepaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("REPAYMENT_METHOD");
+
+                    b.Property<string>("RepaymentNumber")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("REPAYMENT_NUMBER");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REVERSAL_REASON");
+
+                    b.Property<DateTime?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REVERSED_AT");
+
+                    b.Property<string>("ReversedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REVERSED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long?>("SourceGlAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SOURCE_GL_ACCOUNT_ID");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateOnly>("TransactionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("TRANSACTION_DATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly>("ValueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VALUE_DATE");
+
+                    b.HasKey("RepaymentTxnId")
+                        .HasName("PK_FCT_REPAYMENT_TRANSACTIONS");
+
+                    b.HasIndex("RepaymentNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_FCT_REPAYMENT_TRANSACTIONS_REPAYMENT_NUMBER");
+
+                    b.HasIndex("ClientId", "LegalEntityId", "ValueDate", "StatusCode")
+                        .HasDatabaseName("IX_FCT_REPAYMENT_TRANSACTIONS_CLIENT_ID_LEGAL_ENTITY_ID");
+
+                    b.ToTable("FCT_REPAYMENT_TRANSACTIONS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fin.FinBranch", b =>
@@ -35569,6 +36095,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_CHQ_CHEQUES_CHQ_LKP_REJECTION_REASONS");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Chq.ChqChequeStatusHist", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Chq.ChqCheque", null)
+                        .WithMany()
+                        .HasForeignKey("ChequeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CHQ_CHEQUE_STATUS_HIST_CHQ_CHEQUES");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Chq.ChqEvent", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Chq.ChqDepositBatch", null)
@@ -35793,6 +36329,52 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_FCT_OFFERS_CRM_LKP_CURRENCIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentAllocation", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctDisbursement", null)
+                        .WithMany()
+                        .HasForeignKey("DisbursementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_REPAYMENT_ALLOCATIONS_FCT_DISBURSEMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentSource", null)
+                        .WithMany()
+                        .HasForeignKey("RepaymentSourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_REPAYMENT_ALLOCATIONS_FCT_REPAYMENT_SOURCES");
+
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("RepaymentTxnId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_REPAYMENT_ALLOCATIONS_FCT_REPAYMENT_TRANSACTIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentSource", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Chq.ChqCheque", null)
+                        .WithMany()
+                        .HasForeignKey("ChequeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FCT_REPAYMENT_SOURCES_CHQ_CHEQUES");
+
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("RepaymentTxnId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_REPAYMENT_SOURCES_FCT_REPAYMENT_TRANSACTIONS_RE_10F8E45A");
+
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("SourceRepaymentTxnId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FCT_REPAYMENT_SOURCES_FCT_REPAYMENT_TRANSACTIONS_SO_9FCB51DD");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fin.FinBranch", b =>

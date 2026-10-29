@@ -1311,5 +1311,52 @@
    }
   },
   "pk": "STATUS_CODE"
+ },
+ "FNV_CHEQUE_STATUS_HISTORY": {
+  "table": "CHQ_CHEQUE_STATUS_HIST",
+  "class": "ChqChequeStatusHist",
+  "columns": {
+   "CHEQUE_STATUS_HISTORY_ID": {
+    "column": "CHEQUE_STATUS_HISTORY_ID",
+    "kind": "int"
+   },
+   "CHEQUE_ID": {
+    "column": "CHEQUE_ID",
+    "kind": "int"
+   },
+   "OLD_STATUS_CODE": {
+    "column": "OLD_STATUS_CODE",
+    "kind": "string"
+   },
+   "NEW_STATUS_CODE": {
+    "column": "NEW_STATUS_CODE",
+    "kind": "string"
+   },
+   "STATUS_DATE": {
+    "column": "STATUS_DATE",
+    "kind": "date"
+   },
+   "BANK_STATEMENT_REFERENCE": {
+    "column": "BANK_STATEMENT_REFERENCE",
+    "kind": "string"
+   },
+   "REASON_CODE": {
+    "column": "REASON_CODE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CHANGED_BY": {
+    "column": "CHANGED_BY",
+    "kind": "string"
+   },
+   "CHANGED_AT": {
+    "column": "CHANGED_AT",
+    "kind": "datetime"
+   }
+  },
+  "pk": "CHEQUE_STATUS_HISTORY_ID"
  }
 }
