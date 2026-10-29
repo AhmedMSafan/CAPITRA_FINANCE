@@ -2,12 +2,10 @@ using System.Globalization;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Gl;
-using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Chq;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
 using Capitra.Domain.Modules.Trs;
-using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Fct;
@@ -59,14 +57,12 @@ public sealed record FctChequeResultDto(
 /// (page 712). The rules are FNV_COLLECTION_REPAYMENT_PKG's save_repayment, update_cheque_status, apply_cheque_status and
 /// create_cheque_payment_sources.
 /// </summary>
-public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime)
+public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock)
 {
     // App 136 passes these fixed values to save_repayment (pages 7 and 712): legal entity 1, currency 1 / EGP, GL account 15.
     public const long LegalEntityId = 1;
     public const string CurrencyCode = "EGP";
     public const long SourceGlAccountId = 15;
-
-    public const string WorkflowCode = "CUSTOMER_REPAYMENT_WORKFLOW";
 
     /// <summary>The Bank Result list of page 712 (static LOV).</summary>
     public static readonly IReadOnlyList<FctOptionDto> BankResults =
@@ -200,8 +196,9 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
 
     /// <summary>
     /// Apply Bank Results (apply_cheque_status): sets every cheque's result, then for each client with collected cheques
-    /// makes one CHEQUE repayment transaction and one repayment request, links the cheques as its sources and starts the
-    /// repayment workflow. All of it succeeds or fails together.
+    /// makes one CHEQUE repayment transaction and one repayment request, links the cheques as its sources. The repayment
+    /// workflow (wfe_operations_pkg.submit_repayment_request) is not started: no workflow for now (Ahmed, 29 Oct).
+    /// All of it succeeds or fails together.
     /// </summary>
     public async Task<string> ApplyChequeResultsAsync(IReadOnlyList<FctChequeResultDto>? rows, CancellationToken cancellationToken)
     {
@@ -256,7 +253,6 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
             foreach (var row in rows.Where(r => r.NewStatusCode?.Trim().ToUpperInvariant() == "COLLECTED" && r.CustomerId?.Trim() == key))
                 await CreateChequePaymentSourceAsync(txn, row.ChequeId!.Value, cancellationToken);
 
-            await StartWorkflowAsync(request, sum.Amount, cancellationToken);
         }
 
         await tx.CommitAsync(cancellationToken);
@@ -324,7 +320,6 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
         await db.SaveChangesAsync(cancellationToken);
         txn.AgreementId = request.RepaymentRequestId;
         await db.SaveChangesAsync(cancellationToken);
-        await StartWorkflowAsync(request, receiptAmount, cancellationToken);
         return txn;
     }
 
@@ -422,28 +417,6 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
          where s.ChequeId == chequeId && s.StatusCode == "ACTIVE" && t.StatusCode != "REVERSED" && t.StatusCode != "CANCELLED"
                && (exceptTxnId == null || t.RepaymentTxnId != exceptTxnId)
          select s).AnyAsync(cancellationToken);
-
-    /// <summary>
-    /// wfe_operations_pkg.submit_repayment_request: starts CUSTOMER_REPAYMENT_WORKFLOW for the request, when that workflow
-    /// is defined in Capitra (its only step opened App 148 page 713, which is not ported).
-    /// </summary>
-    private async Task StartWorkflowAsync(FctRepaymentRequest request, decimal amount, CancellationToken cancellationToken)
-    {
-        if (!await db.Set<WfeWorkflowDefinition>().AnyAsync(x => x.WorkflowCode == WorkflowCode, cancellationToken)) return;
-        var reference = $"REPAY-{request.RepaymentRequestId}";
-        var variables = new Dictionary<string, string?>
-        {
-            ["entity_id"] = request.RepaymentRequestId.ToString(CultureInfo.InvariantCulture),
-            ["entity_type"] = "REPAYMENT_REQUEST",
-            ["entity_ref"] = reference,
-            ["entity_name"] = $"Repayment Request - {reference}",
-            ["client_id"] = request.ClientId?.ToString(CultureInfo.InvariantCulture),
-            ["amount"] = amount.ToString("0.00", CultureInfo.InvariantCulture),
-            ["currency_code"] = CurrencyCode,
-            ["module_code"] = "FACTORING",
-        };
-        await runtime.StartAsync(WorkflowCode, reference, variables, User, cancellationToken);
-    }
 
     private static string? Trim(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
