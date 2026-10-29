@@ -8,8 +8,6 @@ export const AR: Record<string, string> = {
   'Utilized': 'المستخدم',
   'Available': 'المتاح',
   'Expiry Date': 'تاريخ الانتهاء',
-  'Active': 'نشط',
-  'Inactive': 'غير نشط',
   // factoring workflow step pages (FINOVA_FINANCEING)
   'Application Header Form': 'نموذج بيانات الطلب',
   'Offer Number': 'رقم العرض',

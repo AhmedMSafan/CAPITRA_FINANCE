@@ -20,8 +20,9 @@
             <select v-model.number="form.clientId" class="fx-select"><option v-for="c in form.clients" :key="c.value" :value="c.value">{{ c.label }}</option></select></label>
           <label class="fc-field"><span>{{ tr('Factoring Type') }}</span>
             <select v-model="form.factoringType" class="fx-select">
-              <option value="RECEIVABLES - SUPPLIER FINANCE">RECEIVABLES - SUPPLIER FINANCE</option>
-              <option value="REVERSE - BUYER FINANCE">REVERSE - BUYER FINANCE</option>
+              <!-- the calculator's product names are not among FINOVA's two options; keep the saved one visible -->
+              <option v-if="form.factoringType && !FACTORING_TYPES.includes(form.factoringType)" :value="form.factoringType">{{ form.factoringType }}</option>
+              <option v-for="t in FACTORING_TYPES" :key="t" :value="t">{{ t }}</option>
             </select></label>
           <label class="fc-field"><span>{{ tr('Recourse Type') }}</span>
             <select v-model="form.recourseType" class="fx-select">
@@ -71,6 +72,8 @@ import { dayInput, errorText, num, toUtcDay } from '../components/stepFormat'
 import { fctStepsApi, type FctAgreementForm } from '../api/fct.api'
 
 const props = defineProps<{ agreementId: string }>()
+
+const FACTORING_TYPES = ['RECEIVABLES - SUPPLIER FINANCE', 'REVERSE - BUYER FINANCE']
 
 const shell = ref<InstanceType<typeof FctStepShell> | null>(null)
 const form = ref<FctAgreementForm | null>(null)

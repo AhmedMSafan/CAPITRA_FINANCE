@@ -1121,14 +1121,14 @@
 }
 
 .wf-action-complete {
-  border: 1px solid #273e70;
-  background: #304d86;
+  border: 1px solid #0d5a5e;
+  background: #0f6b70;
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(48, 77, 134, .18);
+  box-shadow: 0 3px 8px rgba(15, 107, 112, .18);
 }
 
 .wf-action-complete:hover:not(:disabled) {
-  background: #273f70;
+  background: #0d5a5e;
 }
 
 .wf-task-layout {
