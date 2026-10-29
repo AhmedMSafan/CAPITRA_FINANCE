@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue'
   import type { AdminRole } from '../models/AdminRole'
-  import { createAdminRole, getAdminRoles, getPermissionCatalog, setRolePermissions } from '../services/adminRoleService'
+  import { createAdminRole, getAdminRoles, getPermissionCatalog, renameAdminRole, setRolePermissions } from '../services/adminRoleService'
   import { getAdminUsers } from '../services/adminUserService'
   import { tr } from '@/shared/layout/language'
   import '@/shared/styles/apex-fx-inbox.css'
@@ -17,6 +17,9 @@
   const catalog = ref<string[]>([])
   const selectedRole = ref<AdminRole | null>(null)
   const selectedPermissions = ref<string[]>([])
+  // the role code can change only while no user has the role
+  const editedName = ref('')
+  const canRename = computed(() => !!selectedRole.value && (userCounts.value[selectedRole.value.name] ?? 0) === 0)
   const savedMessage = ref('')
 
   const searchText = ref('')
@@ -83,6 +86,7 @@
   function selectRole(role: AdminRole | null) {
     selectedRole.value = role
     selectedPermissions.value = role ? [...role.permissions] : []
+    editedName.value = role?.name ?? ''
     if (role) savedMessage.value = ''
   }
 
@@ -101,10 +105,13 @@
     savedMessage.value = ''
 
     try {
+      const name = editedName.value.trim()
+      if (!name) throw new Error(tr('Role name is required.'))
+      if (name !== selectedRole.value.name) await renameAdminRole(selectedRole.value.id, name)
       const saved = await setRolePermissions(selectedRole.value.id, selectedPermissions.value)
       roles.value = roles.value.map(r => r.id === saved.id ? saved : r)
       selectRole(null)
-      savedMessage.value = `Permissions for '${saved.name}' saved.`
+      savedMessage.value = `Role '${saved.name}' saved.`
     } catch (error) {
       errorMessage.value =
         error instanceof Error
@@ -197,6 +204,11 @@
         </header>
         <div class="finova-admin-dialog__body">
           <div v-if="errorMessage" class="finova-admin-inline-error"><i class="pi pi-exclamation-circle"></i><span>{{ errorMessage }}</span></div>
+          <label class="finova-admin-field roles-name">
+            <span>{{ tr('Role code') }}</span>
+            <input v-model="editedName" type="text" :disabled="!canRename" />
+            <small>{{ canRename ? tr('No users have this role, so its code can be changed.') : tr('Remove every user from this role before changing its code.') }}</small>
+          </label>
           <div class="roles-permission-grid">
             <label v-for="code in catalog" :key="code" class="finova-admin-role-option">
               <input v-model="selectedPermissions" type="checkbox" :value="code" />
@@ -222,5 +234,7 @@
   .roles-msg { margin-block-end: 12px; padding: 10px 14px; border-radius: var(--fin-radius-sm); font-size: var(--fs-sm); font-weight: 600; }
   .roles-msg--ok { background: var(--fin-ok-50); color: var(--fin-ok); }
   .roles-msg--bad { background: var(--fin-bad-50); color: var(--fin-bad); }
+  .roles-name { margin-block-end: 14px; }
+  .roles-name small { color: var(--fin-muted); font-weight: 400; }
   .roles-permission-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 8px; }
 </style>
