@@ -1,3 +1,4 @@
+using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Crm;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,6 +12,7 @@ public sealed class CrmClientConfiguration : IEntityTypeConfiguration<CrmClient>
         builder.ToTable("CRM_CLIENTS");
         builder.HasKey(x => x.ClientId);
         builder.HasIndex(x => x.CityId);
+        builder.HasIndex(x => x.ClientRoleCode);
         builder.HasIndex(x => x.CountryId);
         builder.HasIndex(x => x.GroupCode);
         builder.HasIndex(x => x.IndustryId);
@@ -32,6 +34,7 @@ public sealed class CrmClientConfiguration : IEntityTypeConfiguration<CrmClient>
         builder.Property(x => x.TradeName).HasMaxLength(500);
         builder.Property(x => x.TradeNameAr).HasMaxLength(500);
         builder.Property(x => x.ClientType).HasMaxLength(30);
+        builder.Property(x => x.ClientRoleCode).HasMaxLength(30);
         builder.Property(x => x.LegalStructure).HasMaxLength(50);
         builder.Property(x => x.LegalStructureAr).HasMaxLength(50);
         builder.Property(x => x.RegistrationNumber).HasMaxLength(50);
@@ -66,6 +69,7 @@ public sealed class CrmClientConfiguration : IEntityTypeConfiguration<CrmClient>
         builder.Property(x => x.Attribute5).HasMaxLength(500);
         builder.Property(x => x.SupplierBankAccount).HasMaxLength(100);
 
+        builder.HasOne<AdmLkpClientRole>().WithMany().HasForeignKey(x => x.ClientRoleCode).OnDelete(DeleteBehavior.Restrict);
         // CITY_ID -> LKP_CITIES: added when the LKP tables are ported.
         builder.HasOne<CrmLkpCountry>().WithMany().HasForeignKey(x => x.CountryId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<CrmLkpCurrency>().WithMany().HasForeignKey(x => x.BaseCurrencyId).OnDelete(DeleteBehavior.Restrict);

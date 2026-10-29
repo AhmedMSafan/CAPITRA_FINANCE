@@ -1,6 +1,6 @@
 <template>
   <!-- FINOVA_FINANCEING CrmHomePage "Customers": the same filters, sortable columns and paging, in this app's fx- theme.
-       Start Processing opens the customer's workspace. -->
+       Start Processing opens the customer's workspace; New Customer and Edit open the client dialog. -->
   <div class="fx fc">
     <div class="fx-head">
       <div class="fc-title">
@@ -10,6 +10,9 @@
           <p>{{ tr('View and manage customer information.') }}</p>
         </div>
       </div>
+      <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="openClient(null)">
+        <span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New Customer') }}
+      </button>
     </div>
 
     <div class="fx-card fx-card-pad fc-filters">
@@ -63,6 +66,9 @@
                 <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="workspace(c.clientId)" :title="tr('Start Processing')">
                   <span class="fa fa-play-circle-o" aria-hidden="true"></span>{{ tr('Process') }}
                 </RouterLink>
+                <button v-if="canEdit" type="button" class="fx-btn fx-btn--sm crm-edit" :title="tr('Edit')" @click="openClient(c.clientId)">
+                  <span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Edit') }}
+                </button>
               </td>
             </tr>
           </tbody>
@@ -79,6 +85,8 @@
         </div>
       </div>
     </div>
+
+    <CrmClientDialog v-model:visible="dialogOpen" :client-id="dialogClientId" @saved="load" />
   </div>
 </template>
 
@@ -89,7 +97,9 @@ import '@/modules/fct/pages/factoring.css'
 import { computed, onMounted, ref } from 'vue'
 import { useFeedback } from '@/shared/feedback/useFeedback'
 import { tr } from '@/shared/layout/language'
-import { fctApi, type FctCustomer } from '@/modules/fct/api/fct.api'
+import { hasPermission } from '@/shared/auth/session'
+import { crmApi, type CrmClientRow } from '../api/crm.api'
+import CrmClientDialog from '../components/CrmClientDialog.vue'
 
 type SortField = 'clientId' | 'clientNumber' | 'clientName' | 'clientType' | 'phoneNumber' | 'email' | 'isActive'
 
@@ -106,7 +116,10 @@ const COLUMNS: { field: SortField; label: string }[] = [
   { field: 'isActive', label: 'Status' }
 ]
 
-const customers = ref<FctCustomer[]>([])
+const customers = ref<CrmClientRow[]>([])
+const canEdit = hasPermission('CRM.EDIT')
+const dialogOpen = ref(false)
+const dialogClientId = ref<number | null>(null)
 const loading = ref(false)
 const error = ref('')
 useFeedback({ errors: [error] })
@@ -123,7 +136,7 @@ const sortAsc = ref(true)
 const clientTypes = computed(() => [ALL, ...[...new Set(customers.value.map((c) => c.clientType).filter(Boolean))].sort()])
 
 // FINOVA sorts the id as a number, the rest as text (numeric-aware, case-insensitive); Status sorts Active before Inactive
-const sortValue = (c: FctCustomer, f: SortField) => (f === 'isActive' ? (c.isActive ? 'Active' : 'Inactive') : String(c[f] ?? '').trim())
+const sortValue = (c: CrmClientRow, f: SortField) => (f === 'isActive' ? (c.isActive ? 'Active' : 'Inactive') : String(c[f] ?? '').trim())
 const filtered = computed(() => {
   const name = applied.value.name.trim().toLowerCase()
   const number = applied.value.number.trim().toLowerCase()
@@ -155,6 +168,11 @@ function changeSort(f: SortField) {
 const sortIcon = (f: SortField) => (sortField.value !== f ? 'fa-sort' : sortAsc.value ? 'fa-sort-asc' : 'fa-sort-desc')
 const ariaSort = (f: SortField) => (sortField.value !== f ? undefined : sortAsc.value ? 'ascending' : 'descending')
 
+function openClient(clientId: number | null) {
+  dialogClientId.value = clientId
+  dialogOpen.value = true
+}
+
 function search() {
   applied.value = { name: customerName.value, number: customerNumber.value, type: clientType.value }
   page.value = 1
@@ -167,20 +185,24 @@ function clearFilters() {
   search()
 }
 
-onMounted(async () => {
+async function load() {
   loading.value = true
   try {
-    customers.value = await fctApi.customers()
+    customers.value = await crmApi.clients()
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
 </script>
 
 <style scoped>
 .crm-sort { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; white-space: nowrap; }
 .crm-sort .fa { font-size: 11px; opacity: .45; }
-.crm-sort.is-on, .crm-sort.is-on .fa { color: var(--fin-teal-600); opacity: 1; }
+.crm-edit { margin-inline-start: 6px; }
+.crm-sort.is-on, .crm-edit { margin-inline-start: 6px; }
+.crm-sort.is-on .fa { color: var(--fin-teal-600); opacity: 1; }
 </style>
