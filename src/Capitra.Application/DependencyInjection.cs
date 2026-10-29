@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<Modules.Fct.FctWorkspaceService>();
         services.AddScoped<Modules.Fct.FctApplicationService>();
         services.AddScoped<Modules.Fct.FctReviewService>();
+        services.AddScoped<Modules.Fct.FctDocumentService>();
 
 
 

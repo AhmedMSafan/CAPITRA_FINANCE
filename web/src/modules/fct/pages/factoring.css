@@ -153,3 +153,30 @@
 @media (max-width:1100px){.fc .fc-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.fc .fc-facts{grid-template-columns:1fr}.fc .fc-complete{flex-direction:column;align-items:stretch}}
 .fc .fc-routing-user .fc-field{flex:none}
+
+/* agreement documents dialog (FctAgreementDocuments) */
+.fc-modal.fc-docs{width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto;display:flex;flex-direction:column;gap:14px}
+.fc .fc-docs-head{display:flex;align-items:center;gap:12px}
+.fc .fc-docs-head > div{flex:1;display:flex;flex-direction:column;gap:2px}
+.fc .fc-docs-head h2{margin:0;font-size:var(--fs-lg)}
+.fc .fc-docs-head small{color:var(--fin-muted);font-size:var(--fs-xs)}
+.fc .fc-docs .fc-alert{margin:0}
+.fc .fc-docs-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fc .fc-docs .fc-field{flex:none}
+.fc .fc-drop{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px;border:2px dashed var(--fin-teal-100);border-radius:var(--fin-radius);background:var(--fin-teal-50);text-align:center;cursor:pointer}
+.fc .fc-drop:hover,.fc .fc-drop:focus-visible{border-color:var(--fin-teal-600);outline:none}
+.fc .fc-drop.is-busy{cursor:progress;opacity:.8}
+.fc .fc-drop small{color:var(--fin-muted);font-size:var(--fs-xs)}
+.fc .fc-drop-ic{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--fin-surface);color:var(--fin-orange);font-size:20px}
+.fc .fc-docs-list{border:1px solid var(--fin-line);border-radius:var(--fin-radius)}
+.fc .fc-docs-list-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-block-end:1px solid var(--fin-line)}
+.fc .fc-docs-list-head em{font-style:normal;padding:0 8px;border-radius:999px;background:var(--fin-teal-600);color:#fff;font-size:11px;font-weight:700}
+.fc .fc-docs-list ul{list-style:none;margin:0;padding:0}
+.fc .fc-docs-list li{display:flex;align-items:center;gap:12px;padding:10px 14px}
+.fc .fc-docs-list li + li{border-block-start:1px solid var(--fin-line-soft)}
+.fc .fc-docs-list li > div{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fc .fc-docs-list li b{overflow-wrap:anywhere;font-size:var(--fs-sm)}
+.fc .fc-docs-list li small{color:var(--fin-muted);font-size:var(--fs-xs)}
+.fc .fc-docs-file{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--fin-orange-50);color:var(--fin-orange)}
+.fc .fc-docs > .fc-note{margin:0}
+@media (max-width:640px){.fc .fc-docs-fields{grid-template-columns:1fr}}

@@ -149,3 +149,33 @@ export const fctReviewApi = {
   reviewSummary: (agreementId: number) => http.get<FctAgreementReviewSummary>(`/api/fct/agreements/${agreementId}/review-summary`),
   users: () => http.get<FctUser[]>('/api/fct/users')
 }
+
+/** FCT_AGREEMENT_DOCUMENTS row, as FINOVA's document list returns it */
+export type FctAgreementDocument = {
+  documentId: number
+  agreementId: number
+  docTypeId: number
+  documentTitle: string
+  fileName: string
+  fileExtension: string | null
+  fileSizeBytes: number | null
+  mimeType: string | null
+  statusId: number
+  creationDate: string
+  createdBy: string
+}
+
+export type FctLovItem = { value: number; label: string; code: string }
+
+export const fctDocumentsApi = {
+  lookups: () => http.get<{ documentTypes: FctLovItem[]; documentStatuses: FctLovItem[] }>('/api/fct/document-lookups'),
+  list: (agreementId: number) => http.get<FctAgreementDocument[]>(`/api/fct/agreements/${agreementId}/documents`),
+  upload: (agreementId: number, file: File, docTypeId: number, statusId: number) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('docTypeId', String(docTypeId))
+    form.append('statusId', String(statusId))
+    return http.upload<FctAgreementDocument>(`/api/fct/agreements/${agreementId}/documents`, form)
+  },
+  content: (documentId: number) => http.blob(`/api/fct/documents/${documentId}/content`)
+}

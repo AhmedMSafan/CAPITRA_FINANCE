@@ -65,7 +65,19 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return data as T
 }
 
+/** A file the API sends back (a stored document), fetched with the login token so it can be shown in a new tab. */
+async function blob(path: string): Promise<Blob> {
+  const token = getToken()
+  const response = await fetch(`${API_BASE_URL}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+  if (!response.ok) {
+    const text = await response.text()
+    throw new ApiError(response.status, text ? (JSON.parse(text) as ProblemDetails) : null)
+  }
+  return response.blob()
+}
+
 export const http = {
+  blob,
   get: <T>(path: string) => request<T>('GET', path),
   post: <T>(path: string, body?: unknown) => request<T>('POST', path, body),
   upload: <T>(path: string, form: FormData) => request<T>('POST', path, form),

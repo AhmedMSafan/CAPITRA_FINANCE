@@ -12,6 +12,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <FctAgreementDocuments :agreement-id="Number(agreementId)" />
         <button type="button" class="fx-btn" @click="backToTask"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Task') }}</button>
       </div>
     </div>
@@ -94,6 +95,7 @@ import { dateLocale, tr } from '@/shared/layout/language'
 import { DISPLAY_TIME_ZONE } from '@/shared/format/datetime'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 import type { WorkflowInboxTask } from '@/modules/wfe/models/workflow'
+import FctAgreementDocuments from '../components/FctAgreementDocuments.vue'
 import { fctReviewApi, type FctAgreementReviewSummary, type FctUser } from '../api/fct.api'
 
 const props = defineProps<{ agreementId: string }>()

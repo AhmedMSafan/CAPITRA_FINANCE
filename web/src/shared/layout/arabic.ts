@@ -3,6 +3,28 @@
 // App 100 page 2 (Admin Setup) and App 118 page 1 (Workflow Engine home) have no Arabic in APEX; their texts below
 // were added for this app in the same wording style.
 export const AR: Record<string, string> = {
+  // Factoring agreement documents
+  'Documents': 'المستندات',
+  'Upload supporting documents for this agreement': 'ارفع المستندات الداعمة لهذه الاتفاقية',
+  'Close': 'إغلاق',
+  'Document Type': 'نوع المستند',
+  'Select document type': 'اختر نوع المستند',
+  'Select status': 'اختر الحالة',
+  'Uploading document...': 'جارٍ رفع المستند...',
+  'Drop files here or click to upload': 'اسحب الملفات هنا أو اضغط للرفع',
+  'Browse Files': 'استعراض الملفات',
+  'Max 10 MB': 'الحد الأقصى 10 ميجابايت',
+  'Attached Documents': 'المستندات المرفقة',
+  'Loading documents...': 'جارٍ تحميل المستندات...',
+  'No documents uploaded yet.': 'لم يتم رفع مستندات بعد.',
+  'View document': 'عرض المستند',
+  'Documents are stored against this factoring agreement.': 'تُحفظ المستندات على اتفاقية التخصيم هذه.',
+  'Unable to load document types/statuses.': 'تعذر تحميل أنواع وحالات المستندات.',
+  'Please select document type and status.': 'يرجى اختيار نوع المستند وحالته.',
+  'The selected file exceeds the 10 MB limit.': 'الملف المختار يتجاوز حد 10 ميجابايت.',
+  'Unable to load agreement documents.': 'تعذر تحميل مستندات الاتفاقية.',
+  'Unable to upload document.': 'تعذر رفع المستند.',
+  'Unable to open document.': 'تعذر فتح المستند.',
   // Factoring workflow step pages
   'WORKFLOW TASK': 'مهمة سير العمل',
   'Review the agreement and confirm how the next workflow task should be assigned.': 'راجع الاتفاقية وحدد كيفية إسناد مهمة سير العمل التالية.',

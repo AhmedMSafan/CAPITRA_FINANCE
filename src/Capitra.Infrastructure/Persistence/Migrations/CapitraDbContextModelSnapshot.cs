@@ -548,6 +548,72 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("ADM_LKP_DOCUMENT_GROUPS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentStatusCode", b =>
+                {
+                    b.Property<long>("StatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("STATUS_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("StatusId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STATUS_CODE_VALUE");
+
+                    b.Property<string>("StatusName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STATUS_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("StatusId")
+                        .HasName("PK_ADM_LKP_DOCUMENT_STATUS_CODES");
+
+                    b.HasIndex("StatusCodeValue")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_LKP_DOCUMENT_STATUS_CODES_STATUS_CODE_VALUE");
+
+                    b.ToTable("ADM_LKP_DOCUMENT_STATUS_CODES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmLkpDocumentType", b =>
                 {
                     b.Property<long>("DocumentTypeId")
@@ -4628,6 +4694,205 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_FCT_AGREEMENTS_EFFECTIVE_AT_MATURITY_AT");
 
                     b.ToTable("FCT_AGREEMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctAgreementDocument", b =>
+                {
+                    b.Property<long>("DocumentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DocumentId"));
+
+                    b.Property<long>("AgreementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("AGREEMENT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DocTypeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOC_TYPE_ID");
+
+                    b.Property<string>("DocumentDesc")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DOCUMENT_DESC");
+
+                    b.Property<string>("DocumentDescAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DOCUMENT_DESC_AR");
+
+                    b.Property<string>("DocumentNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("DOCUMENT_NUMBER");
+
+                    b.Property<string>("DocumentTitle")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DOCUMENT_TITLE");
+
+                    b.Property<string>("DocumentTitleAr")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DOCUMENT_TITLE_AR");
+
+                    b.Property<DateOnly?>("ExecutionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EXECUTION_DATE");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EXPIRY_DATE");
+
+                    b.Property<byte[]>("FileContent")
+                        .HasColumnType("bytea")
+                        .HasColumnName("FILE_CONTENT");
+
+                    b.Property<string>("FileExtension")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("FILE_EXTENSION");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("FILE_NAME");
+
+                    b.Property<string>("FilePath")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("FILE_PATH");
+
+                    b.Property<int?>("FileSizeBytes")
+                        .HasColumnType("integer")
+                        .HasColumnName("FILE_SIZE_BYTES");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<bool>("IsConfidential")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_CONFIDENTIAL");
+
+                    b.Property<bool>("IsExecuted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_EXECUTED");
+
+                    b.Property<bool>("IsLatestVersion")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_LATEST_VERSION");
+
+                    b.Property<bool>("IsOriginalReceived")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ORIGINAL_RECEIVED");
+
+                    b.Property<DateOnly?>("IssueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ISSUE_DATE");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("MIME_TYPE");
+
+                    b.Property<DateOnly?>("NotarizationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("NOTARIZATION_DATE");
+
+                    b.Property<string>("NotarizationRef")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NOTARIZATION_REF");
+
+                    b.Property<DateOnly?>("OriginalReceivedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ORIGINAL_RECEIVED_DATE");
+
+                    b.Property<long?>("PreviousVersionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PREVIOUS_VERSION_ID");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REMARKS");
+
+                    b.Property<string>("RemarksAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REMARKS_AR");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long>("StatusId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("STATUS_ID");
+
+                    b.Property<string>("StorageType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STORAGE_TYPE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly?>("VerificationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VERIFICATION_DATE");
+
+                    b.Property<string>("VerifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("VERIFIED_BY");
+
+                    b.Property<int?>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("VERSION_NUMBER");
+
+                    b.HasKey("DocumentId")
+                        .HasName("PK_FCT_AGREEMENT_DOCUMENTS");
+
+                    b.HasIndex("AgreementId")
+                        .HasDatabaseName("IX_FCT_AGREEMENT_DOCUMENTS_AGREEMENT_ID");
+
+                    b.HasIndex("DocTypeId")
+                        .HasDatabaseName("IX_FCT_AGREEMENT_DOCUMENTS_DOC_TYPE_ID");
+
+                    b.HasIndex("ExpiryDate")
+                        .HasDatabaseName("IX_FCT_AGREEMENT_DOCUMENTS_EXPIRY_DATE");
+
+                    b.HasIndex("PreviousVersionId")
+                        .HasDatabaseName("IX_FCT_AGREEMENT_DOCUMENTS_PREVIOUS_VERSION_ID");
+
+                    b.HasIndex("StatusId")
+                        .HasDatabaseName("IX_FCT_AGREEMENT_DOCUMENTS_STATUS_ID");
+
+                    b.ToTable("FCT_AGREEMENT_DOCUMENTS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursement", b =>
@@ -34696,6 +34961,36 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_FCT_AGREEMENTS_CRM_LKP_STATUS_CODES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctAgreementDocument", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctAgreement", null)
+                        .WithMany()
+                        .HasForeignKey("AgreementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_AGREEMENT_DOCUMENTS_FCT_AGREEMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpDocumentType", null)
+                        .WithMany()
+                        .HasForeignKey("DocTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_AGREEMENT_DOCUMENTS_ADM_LKP_DOCUMENT_TYPES");
+
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctAgreementDocument", null)
+                        .WithMany()
+                        .HasForeignKey("PreviousVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FCT_AGREEMENT_DOCUMENTS_FCT_AGREEMENT_DOCUMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmLkpDocumentStatusCode", null)
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_AGREEMENT_DOCUMENTS_ADM_LKP_DOCUMENT_STATUS_CODES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursement", b =>
