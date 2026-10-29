@@ -183,7 +183,8 @@
 
           <template v-else-if="task.status === 'IN_PROGRESS'">
             This task is in progress. Use Continue work whenever you need to return to the working screen.
-            <template v-if="task.route"> The task is completed from that screen, when its work is done.</template>
+            <template v-if="completesHere"> Save your work on that screen, then accept or reject the task below.</template>
+            <template v-else-if="task.route"> The task is completed from that screen, when its work is done.</template>
           </template>
 
           <template v-else>
@@ -193,8 +194,9 @@
       </section>
 
       <!-- a task with a business screen is completed there (the Excel import completes Load Excel, the review pages
-           accept or reject); the panel serves only tasks without a screen -->
-      <section v-if="task.status === 'IN_PROGRESS' && !task.route"
+           accept or reject); the panel serves tasks without a screen, and the factoring steps, whose screens only save
+           (as in FINOVA_FINANCEING) -->
+      <section v-if="task.status === 'IN_PROGRESS' && (!task.route || completesHere)"
                class="wf-completion-panel">
         <label for="completionComment">
           Completion Comment
@@ -239,6 +241,9 @@
   const actionLoading = ref(false)
   const error = ref('')
   const completionComment = ref('')
+
+  // FINOVA_FINANCEING factoring step pages save their data; ACCEPT / REJECT happen here on the task
+  const completesHere = computed(() => task.value?.workflowCode === 'FACTORING_LIMIT_APPROVAL')
 
   const inboxId = computed(() =>
     Number(route.params.inboxId)

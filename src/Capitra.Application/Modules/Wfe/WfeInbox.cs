@@ -47,7 +47,8 @@ public sealed record WfeInboxItemDto(
     string? AssignedGroup,
     string? ClientNumber = null);
 
-public sealed record CompleteInboxItemRequest(string? Action, string? Comment);
+/// <summary>RoutingMode USER sends the next task to AssignedUserId instead of the workflow default (FINOVA's routing override).</summary>
+public sealed record CompleteInboxItemRequest(string? Action, string? Comment, string? RoutingMode = null, string? AssignedUserId = null);
 
 /// <summary>
 /// My Inbox: the open tasks the signed-in user may work on (assigned to them, or to one of their roles),
@@ -104,7 +105,10 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         var row = await AccessibleAsync(inboxId, cancellationToken);
         var action = string.IsNullOrWhiteSpace(request.Action) ? "COMPLETE" : request.Action;
         var variables = string.IsNullOrWhiteSpace(request.Comment) ? null : new Dictionary<string, string?> { ["TASK_COMMENT"] = request.Comment };
-        await runtime.CompleteAsync(row.TaskId, action, Me, variables, cancellationToken);
+        var toUser = string.Equals(request.RoutingMode, "USER", StringComparison.OrdinalIgnoreCase);
+        if (toUser && string.IsNullOrWhiteSpace(request.AssignedUserId))
+            throw new BusinessRuleException("Select a user or turn off Assign to a specific user.");
+        await runtime.CompleteAsync(row.TaskId, action, Me, variables, toUser ? request.AssignedUserId : null, cancellationToken);
         db.DiscardChanges();
         var done = await Query().FirstAsync(x => x.InboxItemId == inboxId, cancellationToken);
         return Map(done);

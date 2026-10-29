@@ -34,12 +34,12 @@
     </section>
 
     <section class="fc-quick">
-      <!-- the Factoring Calculator creates the application (FCT_OFFERS); it is the next page to be ported -->
-      <button type="button" class="fx-card fc-quick-card fc-quick-card--calc" disabled :title="tr('Coming soon')">
+      <!-- the Factoring Calculator creates the application (FCT_OFFERS) -->
+      <RouterLink :to="{ name: 'FactoringCalculator', params: { clientId } }" class="fx-card fc-quick-card fc-quick-card--calc">
         <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-calculator"></span></span>
         <span class="fc-quick-copy"><b>{{ tr('Factoring Calculator') }}</b><small>{{ tr('Create a new application using the factoring calculator') }}</small></span>
         <span class="fa fa-arrow-right" aria-hidden="true"></span>
-      </button>
+      </RouterLink>
       <RouterLink to="/workflow/inbox" class="fx-card fc-quick-card">
         <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-envelope-o"></span></span>
         <span class="fc-quick-copy"><b>{{ tr('Workflow Inbox') }}</b><small>{{ tr('View and process your assigned workflow tasks') }}</small></span>
@@ -65,6 +65,7 @@
               <th>{{ tr('Application No.') }}</th><th>{{ tr('Application Date') }}</th><th class="fx-r">{{ tr('Requested Limit') }}</th>
               <th>{{ tr('Currency') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Workflow Step') }}</th>
               <th class="fc-c">{{ tr('WF Started') }}</th>
+              <th v-if="canEdit" class="fx-r">{{ tr('Actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -74,11 +75,30 @@
               <td class="fx-r">{{ amount(a.requestedLimit) }}</td>
               <td>{{ a.currencyCode || '-' }}</td>
               <td>{{ a.factoringType || '-' }}</td>
-              <td><span class="fx-chip" :class="tone(a.statusCode)">{{ a.statusCode || '-' }}</span></td>
+              <td>
+                <select v-if="canEdit && editable(a)" v-model="selected[a.offerId]" class="fx-select fc-status-select" :aria-label="`${tr('Status')} ${a.offerRef}`"
+                        :disabled="busy[a.offerId] || !!a.agreementNo">
+                  <option v-for="st in STATUS_OPTIONS" :key="st" :value="st">{{ st }}</option>
+                </select>
+                <span v-else class="fx-chip" :class="tone(a.statusCode)">{{ a.statusCode || '-' }}</span>
+              </td>
               <td>{{ a.workflowStepName || '-' }}</td>
               <td class="fc-c">
                 <span v-if="a.workflowStepName || a.agreementNo" class="fc-wf fc-wf--yes" :title="tr('Workflow Started')"><span class="fa fa-check" aria-hidden="true"></span></span>
                 <span v-else class="fc-wf" :title="tr('Workflow Not Started')"><span class="fa fa-minus" aria-hidden="true"></span></span>
+              </td>
+              <td v-if="canEdit" class="fx-r">
+                <div class="fc-row-actions">
+                  <button type="button" class="fx-btn fx-btn--sm" :title="tr(busy[a.offerId] ? 'Saving...' : 'Save Status')" :aria-label="`${tr('Save Status')} ${a.offerRef}`"
+                          :disabled="!dirty(a) || busy[a.offerId] || !!a.agreementNo" @click="saveStatus(a)">
+                    <span class="fa fa-floppy-o" aria-hidden="true"></span>
+                  </button>
+                  <button type="button" class="fx-btn fx-btn--primary fx-btn--sm" :title="tr(startHint(a))" :aria-label="`${tr('Start Agreement Workflow')} ${a.offerRef}`"
+                          :disabled="!canStart(a)" @click="startWorkflow(a)">
+                    <span class="fa fa-play" aria-hidden="true"></span>
+                  </button>
+                </div>
+                <div v-if="messages[a.offerId]" class="fc-row-msg" role="status">{{ messages[a.offerId] }}</div>
               </td>
             </tr>
           </tbody>
@@ -109,16 +129,60 @@
         <div v-if="!agreements.length" class="fx-empty"><span class="fa fa-handshake-o" aria-hidden="true"></span>{{ tr('No agreements found for this customer.') }}</div>
       </div>
 
-      <!-- FINOVA shows these three tabs as placeholders -->
+      <div v-else-if="tab === 'limits'" class="fx-table-wrap">
+        <table class="fx-table">
+          <thead>
+            <tr>
+              <th>{{ tr('Limit No.') }}</th><th>{{ tr('Level') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Currency') }}</th>
+              <th class="fx-r">{{ tr('Approved Amount') }}</th><th class="fx-r">{{ tr('Utilized') }}</th><th class="fx-r">{{ tr('Available') }}</th>
+              <th>{{ tr('Effective Date') }}</th><th>{{ tr('Expiry Date') }}</th><th>{{ tr('Status') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="l in limits" :key="l.creditLimitId">
+              <td><b class="fc-ref">{{ l.limitNumber }}</b></td>
+              <td>{{ l.limitLevel }}</td>
+              <td>{{ l.limitType }}</td>
+              <td>{{ l.currencyCode || '-' }}</td>
+              <td class="fx-r">{{ amount(l.approvedAmount) }}</td>
+              <td class="fx-r">{{ amount(l.utilizedAmount) }}</td>
+              <td class="fx-r">{{ amount(l.availableAmount) }}</td>
+              <td>{{ date(l.effectiveAt) }}</td>
+              <td>{{ date(l.expiryAt) }}</td>
+              <td><span class="fx-chip" :class="l.isActive ? 'fx-chip--ok' : 'fx-chip--warn'">{{ tr(l.isActive ? 'Active' : 'Inactive') }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-if="!limits.length" class="fx-empty"><span class="fa fa-database" aria-hidden="true"></span>{{ tr('Approved limits will be available here.') }}</div>
+      </div>
+
+      <!-- FINOVA shows these two tabs as placeholders -->
       <div v-else class="fx-empty">
         <span class="fa" :class="tabs.find((t) => t.key === tab)?.icon" aria-hidden="true"></span>
-        {{ tr(tab === 'limits' ? 'Approved limits will be available here.' : tab === 'disbursements' ? 'Disbursement data will be available here.' : 'Claims data will be available here.') }}
+        {{ tr(tab === 'disbursements' ? 'Disbursement data will be available here.' : 'Claims data will be available here.') }}
       </div>
 
       <div class="fc-foot">
         <span class="fc-muted">{{ tr('Showing') }} {{ rows ? 1 : 0 }} {{ tr('to') }} {{ rows }} {{ tr('of') }} {{ rows }} {{ tr('entries') }}</span>
       </div>
     </section>
+
+    <!-- FINOVA's "Starting Workflow" modal. Capitra creates the agreement and starts the workflow in one call,
+         so both steps complete together when it returns. -->
+    <div v-if="progress" class="fc-modal-back" role="presentation">
+      <section class="fc-modal" role="dialog" aria-modal="true" aria-labelledby="fc-wf-title">
+        <h2 id="fc-wf-title">{{ tr('Starting Workflow') }}</h2>
+        <ol>
+          <li :class="progress === 'working' ? 'is-active' : 'is-done'">
+            <span class="fa" :class="progress === 'working' ? 'fa-spinner fa-spin' : 'fa-check-circle'" aria-hidden="true"></span>{{ tr('Creating Application') }}
+          </li>
+          <li :class="progress === 'working' ? 'is-active' : 'is-done'">
+            <span class="fa" :class="progress === 'working' ? 'fa-spinner fa-spin' : 'fa-check-circle'" aria-hidden="true"></span>{{ tr('Starting Workflow') }}
+          </li>
+        </ol>
+        <p class="fc-muted"><span class="fa fa-info-circle" aria-hidden="true"></span> {{ tr('Do not close or refresh this page until the process is complete.') }}</p>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -126,11 +190,12 @@
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import './factoring.css'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { dateLocale, tr } from '@/shared/layout/language'
 import { DISPLAY_TIME_ZONE } from '@/shared/format/datetime'
 import { workflowService } from '@/modules/wfe/services/workflowService'
-import { fctApi, type FctAgreement, type FctApplication, type FctCustomerDetails } from '../api/fct.api'
+import { hasPermission } from '@/shared/auth/session'
+import { fctApi, fctApplicationsApi, type FctAgreement, type FctApplication, type FctCreditLimit, type FctCustomerDetails } from '../api/fct.api'
 
 const props = defineProps<{ clientId: string }>()
 
@@ -139,19 +204,40 @@ type Tab = 'applications' | 'agreements' | 'limits' | 'disbursements' | 'claims'
 const client = ref<FctCustomerDetails | null>(null)
 const applications = ref<FctApplication[]>([])
 const agreements = ref<FctAgreement[]>([])
+const limits = ref<FctCreditLimit[]>([])
 const inboxCount = ref(0)
 const loading = ref(false)
 const error = ref('')
 const tab = ref<Tab>('applications')
+const canEdit = computed(() => hasPermission('FCT.EDIT'))
+
+// FINOVA's application actions: the status can be changed while it is one of these, and the agreement workflow starts
+// from a saved ACCEPTED application that has no agreement yet.
+const STATUS_OPTIONS = ['DRAFT', 'ACCEPTED', 'REJECTED', 'SUBMITTED']
+const selected = reactive<Record<number, string>>({})
+const busy = reactive<Record<number, boolean>>({})
+const messages = reactive<Record<number, string>>({})
+const progress = ref<'' | 'working' | 'done'>('')
+
+const editable = (a: FctApplication) => STATUS_OPTIONS.includes(a.statusCode || '')
+const dirty = (a: FctApplication) => editable(a) && selected[a.offerId] !== a.statusCode
+const canStart = (a: FctApplication) => a.statusCode === 'ACCEPTED' && !dirty(a) && !busy[a.offerId] && !a.agreementNo
+function startHint(a: FctApplication) {
+  if (a.statusCode !== 'ACCEPTED') return 'Save ACCEPTED status first'
+  if (dirty(a)) return 'Save Status before starting workflow'
+  if (a.agreementNo) return 'Agreement already generated'
+  return 'Start Agreement Workflow'
+}
 
 const tabs = computed(() => [
   { key: 'applications' as const, label: 'Factoring Applications', count: applications.value.length, icon: 'fa-file-text-o' },
   { key: 'agreements' as const, label: 'Agreements', count: agreements.value.length, icon: 'fa-handshake-o' },
-  { key: 'limits' as const, label: 'Limits', count: 0, icon: 'fa-database' },
+  { key: 'limits' as const, label: 'Limits', count: limits.value.length, icon: 'fa-database' },
   { key: 'disbursements' as const, label: 'Disbursements', count: 0, icon: 'fa-exchange' },
   { key: 'claims' as const, label: 'Claims', count: 0, icon: 'fa-flag-o' }
 ])
-const rows = computed(() => (tab.value === 'applications' ? applications.value.length : tab.value === 'agreements' ? agreements.value.length : 0))
+const rows = computed(() =>
+  tab.value === 'applications' ? applications.value.length : tab.value === 'agreements' ? agreements.value.length : tab.value === 'limits' ? limits.value.length : 0)
 
 const amount = (v: number | null | undefined) =>
   v == null ? '-' : new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(v)
@@ -168,6 +254,56 @@ function tone(status: string | null | undefined) {
   return 'fx-chip--warn'
 }
 
+const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e))
+
+async function loadData(id: number) {
+  ;[client.value, applications.value, agreements.value, limits.value] = await Promise.all([
+    fctApi.customer(id), fctApi.applications(id), fctApi.agreements(id), fctApi.creditLimits(id)
+  ])
+  for (const a of applications.value) selected[a.offerId] = a.statusCode || ''
+}
+
+async function loadInbox() {
+  try {
+    inboxCount.value = (await workflowService.getMyInbox()).length
+  } catch {
+    inboxCount.value = 0
+  }
+}
+
+async function saveStatus(a: FctApplication) {
+  const status = selected[a.offerId] ?? ''
+  if (!dirty(a) || !STATUS_OPTIONS.includes(status)) return
+  busy[a.offerId] = true
+  delete messages[a.offerId]
+  try {
+    await fctApplicationsApi.setStatus(a.offerId, status)
+    a.statusCode = status
+  } catch (e) {
+    messages[a.offerId] = errorText(e)
+  } finally {
+    busy[a.offerId] = false
+  }
+}
+
+async function startWorkflow(a: FctApplication) {
+  if (!canStart(a)) return
+  busy[a.offerId] = true
+  delete messages[a.offerId]
+  progress.value = 'working'
+  try {
+    await fctApplicationsApi.startWorkflow(a.offerId)
+    progress.value = 'done'
+    await Promise.all([loadData(Number(props.clientId)), loadInbox()])
+    await new Promise((r) => setTimeout(r, 700))
+  } catch (e) {
+    messages[a.offerId] = errorText(e)
+  } finally {
+    progress.value = ''
+    busy[a.offerId] = false
+  }
+}
+
 onMounted(async () => {
   const id = Number(props.clientId)
   if (!Number.isFinite(id) || id <= 0) {
@@ -176,16 +312,12 @@ onMounted(async () => {
   }
   loading.value = true
   try {
-    ;[client.value, applications.value, agreements.value] = await Promise.all([fctApi.customer(id), fctApi.applications(id), fctApi.agreements(id)])
+    await loadData(id)
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = errorText(e)
   } finally {
     loading.value = false
   }
-  try {
-    inboxCount.value = (await workflowService.getMyInbox()).length
-  } catch {
-    inboxCount.value = 0
-  }
+  await loadInbox()
 })
 </script>

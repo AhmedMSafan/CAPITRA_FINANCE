@@ -27,4 +27,9 @@ public sealed class FctWorkspaceController(FctWorkspaceService workspace) : Cont
     [HasPermission(Permissions.Fct.View)]
     public Task<IReadOnlyList<FctAgreementDto>> Agreements(long clientId, CancellationToken cancellationToken) =>
         workspace.ListAgreementsAsync(clientId, cancellationToken);
+
+    [HttpGet("{clientId:long}/credit-limits")]
+    [HasPermission(Permissions.Fct.View)]
+    public Task<IReadOnlyList<FctCreditLimitDto>> CreditLimits(long clientId, CancellationToken cancellationToken) =>
+        workspace.ListCreditLimitsAsync(clientId, cancellationToken);
 }
