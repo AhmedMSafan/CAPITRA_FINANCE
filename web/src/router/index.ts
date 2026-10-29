@@ -4,6 +4,7 @@ import { isAuthenticated } from '@/shared/auth/session'
 import { mtgRoutes } from '@/modules/mtg/routes'
 import { mffRoutes } from '@/modules/mff/routes'
 import { chqRoutes } from '@/modules/chq/routes'
+import { crmRoutes } from '@/modules/crm/routes'
 import { fctRoutes } from '@/modules/fct/routes'
 
 // Every page lives under AppLayout and needs a signed-in user, except the login page.
@@ -40,7 +41,8 @@ const router = createRouter({
         // Mortgage Finance (APEX App 110).
         ...mffRoutes,
         ...chqRoutes,
-        // Factoring (FINOVA_FINANCEING).
+        // CRM and Factoring (FINOVA_FINANCEING).
+        ...crmRoutes,
         ...fctRoutes,
         // General ledger (APEX App 120).
         {
