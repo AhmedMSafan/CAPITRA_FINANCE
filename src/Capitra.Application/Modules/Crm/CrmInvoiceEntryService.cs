@@ -130,17 +130,25 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
     public async Task<CrmInvoiceEntryDto> SaveAsync(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken)
     {
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
+        await SaveCoreAsync(disbursementId, dto, cancellationToken);
+        await tx.CommitAsync(cancellationToken);
+        return await GetAsync(disbursementId, cancellationToken);
+    }
+
+    /// <summary>Apply Changes inside the caller's transaction; returns the request and its batch, null when it has none yet.</summary>
+    internal async Task<(FctDisbursement Request, FctInvoiceBatch? Batch)> SaveCoreAsync(
+        long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken)
+    {
         var d = await SaveFormsAsync(disbursementId, dto.Terms, dto.Batch, cancellationToken);
-        var batchId = (await BatchOfAsync(disbursementId, false, cancellationToken))?.BatchId;
-        if (batchId is { } id)
+        var batch = await BatchOfAsync(disbursementId, false, cancellationToken);
+        if (batch is not null)
         {
-            await SaveInvoicesAsync(id, dto.Invoices ?? [], dto.DeletedInvoiceIds ?? [], cancellationToken);
-            await SaveChequesAsync(id, d.DisbursementId, dto.Cheques ?? [], dto.DeletedChequeIds ?? [], cancellationToken);
+            await SaveInvoicesAsync(batch.BatchId, dto.Invoices ?? [], dto.DeletedInvoiceIds ?? [], cancellationToken);
+            await SaveChequesAsync(batch.BatchId, d.DisbursementId, dto.Cheques ?? [], dto.DeletedChequeIds ?? [], cancellationToken);
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
-        return await GetAsync(disbursementId, cancellationToken);
+        return (d, batch);
     }
 
     /// <summary>
@@ -349,7 +357,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
     }
 
     /// <summary>sync_invoice_advances: each invoice takes the request's advance rate, its advance and its reserve.</summary>
-    private async Task SyncInvoiceAdvancesAsync(FctDisbursement d, long batchId, CancellationToken cancellationToken)
+    internal async Task SyncInvoiceAdvancesAsync(FctDisbursement d, long batchId, CancellationToken cancellationToken)
     {
         if (d.AdvanceRatePct is not { } rate || rate < 0 || rate > 100)
             throw new BusinessRuleException("ADVANCE_RATE_PCT must be between 0 and 100 on the disbursement request.");
@@ -477,7 +485,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
     }
 
     /// <summary>The batch's cheques (FND_CHEQUE.BATCH_ID), only those uploaded for this request: CHQ_CHEQUES.BATCH_ID is shared with other batches.</summary>
-    private IQueryable<ChqCheque> Cheques(long batchId, long disbursementId)
+    internal IQueryable<ChqCheque> Cheques(long batchId, long disbursementId)
     {
         var id = disbursementId.ToString(CultureInfo.InvariantCulture);
         return db.Set<ChqCheque>().Where(x => x.BatchId == batchId && x.SourceRefType == "DISBURSEMENT" && x.SourceRefId == id);

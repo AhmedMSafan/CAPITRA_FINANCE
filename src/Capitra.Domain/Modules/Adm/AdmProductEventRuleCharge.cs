@@ -55,7 +55,16 @@ public class AdmProductEventRuleCharge : AuditableEntity
 
     public bool IsActive { get; set; } = true;
 
-    public static readonly string[] AmountBases = ["FACE_VALUE", "PRESENT_VALUE", "PV_LESS_MARGIN"];
+    /// <summary>
+    /// Mortgage portfolio purchasing: FACE_VALUE, PRESENT_VALUE, PV_LESS_MARGIN. Factoring disbursement
+    /// (FNV_DISBURSEMENT_PROCESS_PKG.base_value): the rest.
+    /// </summary>
+    public static readonly string[] AmountBases =
+    [
+        "FACE_VALUE", "PRESENT_VALUE", "PV_LESS_MARGIN",
+        "DISBURSEMENT_GROSS_INVOICE_AMOUNT", "DISBURSEMENT_NET_AMOUNT", "ELIGIBLE_INVOICE_AMOUNT", "ADVANCE_AMOUNT", "INVOICE_COUNT",
+        "CHEQUE_COUNT", "TENOR_DAYS", "APPROVED_LIMIT",
+    ];
 
     /// <summary>PRORATE: deferred and released with the effective interest; IMMEDIATE: income on the event date.</summary>
     public static readonly string[] IncomeRecognitions = ["PRORATE", "IMMEDIATE"];

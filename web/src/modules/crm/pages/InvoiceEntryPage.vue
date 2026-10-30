@@ -303,9 +303,98 @@
         </div>
       </section>
 
+      <!-- the result of Process Disbursement Request: not a region of page 705, shown so the calculation can be checked -->
+      <template v-if="result && (result.charges.length || result.schedule.length)">
+        <section class="col-sec">
+          <h2>
+            <span class="fa fa-calculator" aria-hidden="true"></span>{{ tr('Disbursement Charges') }}
+            <span v-if="result.statusCode" class="fx-chip fx-chip--teal ie-chip">{{ result.statusCode }}</span>
+          </h2>
+          <div class="ie-totals">
+            <div><small>{{ tr('Approved Invoice Amount') }}</small><b>{{ formatAmount(result.approvedInvoiceAmount) }}</b></div>
+            <div><small>{{ tr('Approved Advance Amount') }}</small><b>{{ formatAmount(result.approvedAdvanceAmount) }}</b></div>
+            <div><small>{{ tr('Fee Deducted') }}</small><b>{{ formatAmount(result.feeDeducted) }}</b></div>
+            <div><small>{{ tr('Tax Deducted') }}</small><b>{{ formatAmount(result.taxDeducted) }}</b></div>
+            <div><small>{{ tr('Net Amount') }}</small><b class="ie-net">{{ formatAmount(result.netAmount) }}</b></div>
+          </div>
+          <div class="fx-table-wrap">
+            <table class="fx-table">
+              <thead>
+                <tr>
+                  <th>{{ tr('Charge') }}</th>
+                  <th>{{ tr('Calculation Method') }}</th>
+                  <th>{{ tr('Amount Base') }}</th>
+                  <th class="fx-r">{{ tr('Base Amount') }}</th>
+                  <th class="fx-r">{{ tr('Rate %') }}</th>
+                  <th class="fx-r">{{ tr('Charge Amount') }}</th>
+                  <th class="fx-r">{{ tr('Tax Amount') }}</th>
+                  <th class="fx-r">{{ tr('Total Amount') }}</th>
+                  <th>{{ tr('Charge Timing') }}</th>
+                  <th>{{ tr('Due Date') }}</th>
+                  <th>{{ tr('Status') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="c in result.charges" :key="c.disbursementChargeId">
+                  <td><b>{{ c.ruleCode }}</b><div class="ie-sub">{{ c.ruleName }}</div></td>
+                  <td>{{ c.calculationMethod }}</td>
+                  <td>{{ c.baseCode }}</td>
+                  <td class="fx-r">{{ c.baseAmount == null ? '' : formatAmount(c.baseAmount) }}</td>
+                  <td class="fx-r">{{ c.ratePercent ?? '' }}</td>
+                  <td class="fx-r">{{ formatAmount(c.chargeAmount) }}</td>
+                  <td class="fx-r">{{ formatAmount(c.taxAmount) }}</td>
+                  <td class="fx-r"><b>{{ formatAmount(c.totalAmount) }}</b></td>
+                  <td>{{ c.chargeTimingCode }}</td>
+                  <td>{{ formatDate(c.dueDate) }}</td>
+                  <td>{{ c.statusCode }}</td>
+                </tr>
+                <tr v-if="!result.charges.length"><td colspan="11" class="fx-empty">{{ tr('No data found') }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="col-sec">
+          <h2><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Repayment Schedule') }} <span class="ie-count">{{ result.schedule.length }}</span></h2>
+          <div class="fx-table-wrap">
+            <table class="fx-table">
+              <thead>
+                <tr>
+                  <th class="fx-r">{{ tr('Installment No') }}</th>
+                  <th>{{ tr('Due Date') }}</th>
+                  <th class="fx-r">{{ tr('Opening Principal') }}</th>
+                  <th class="fx-r">{{ tr('Principal Due') }}</th>
+                  <th class="fx-r">{{ tr('Interest Due') }}</th>
+                  <th class="fx-r">{{ tr('Total Installment') }}</th>
+                  <th class="fx-r">{{ tr('Closing Principal') }}</th>
+                  <th class="fx-r">{{ tr('Interest Rate') }}</th>
+                  <th class="fx-r">{{ tr('Day Count') }}</th>
+                  <th>{{ tr('Status') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in result.schedule" :key="r.installmentNo">
+                  <td class="fx-r">{{ r.installmentNo }}</td>
+                  <td>{{ formatDate(r.dueDate) }}</td>
+                  <td class="fx-r">{{ formatAmount(r.openingPrincipal) }}</td>
+                  <td class="fx-r">{{ formatAmount(r.principalDue) }}</td>
+                  <td class="fx-r">{{ formatAmount(r.interestDue) }}</td>
+                  <td class="fx-r"><b>{{ formatAmount(r.totalInstallment) }}</b></td>
+                  <td class="fx-r">{{ formatAmount(r.closingPrincipal) }}</td>
+                  <td class="fx-r">{{ r.interestRate ?? '' }}</td>
+                  <td class="fx-r">{{ r.dayCount ?? '' }}</td>
+                  <td>{{ r.statusCode }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </template>
+
       <div v-if="!readOnly" class="col-actions ie-buttons">
         <RouterLink class="fx-btn" :to="{ name: 'crm-disbursement-requests' }">{{ tr('Cancel') }}</RouterLink>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="apply"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Apply Changes') }}</button>
+        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="processRequest"><span class="fa fa-cogs" aria-hidden="true"></span>{{ tr('Process Disbursement Request') }}</button>
       </div>
     </div>
     <div v-else class="fx-card fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
@@ -322,11 +411,12 @@ import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatAmount } from '@/shared/format/money'
+import { formatDate } from '@/shared/format/datetime'
 import { fieldErrors, messageOf } from '@/modules/collection/pages/collection'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
 import {
-  invoiceEntryApi, type ChequeRow, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry, type InvoiceEntrySave, type InvoiceRow,
-  type InvoiceSummary
+  invoiceEntryApi, processApi, type ChequeRow, type DisbursementResult, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry,
+  type InvoiceEntrySave, type InvoiceRow, type InvoiceSummary
 } from '../api/invoiceEntry.api'
 
 const props = defineProps<{ disbursementId: number }>()
@@ -351,6 +441,7 @@ const bad = (field: string) => !!errors.value[field]
 const terms = reactive({} as DisbursementTerms)
 const batch = reactive({} as InvoiceBatch)
 const summary = ref<InvoiceSummary | null>(null)
+const result = ref<DisbursementResult | null>(null)
 const options = reactive<InvoiceEntry['options']>({ clients: [], limits: [], currencies: [], products: [] })
 const invoices = ref<InvoiceRow[]>([])
 const cheques = ref<ChequeRow[]>([])
@@ -383,7 +474,9 @@ async function load() {
   ready.value = false
   errors.value = {}
   try {
-    show(await invoiceEntryApi.get(props.disbursementId))
+    const [page, processed] = await Promise.all([invoiceEntryApi.get(props.disbursementId), processApi.result(props.disbursementId)])
+    show(page)
+    result.value = processed
   } catch (err) {
     showError(messageOf(err))
   } finally {
@@ -499,6 +592,14 @@ const upload = () => check() && run(async () => {
   showSuccess(tr(result.message))
 })
 
+// Process Disbursement Request: saves the page, then the charges and the repayment schedule
+const processRequest = () => check() && run(async () => {
+  const done = await processApi.process(props.disbursementId, payload())
+  show(done.page)
+  result.value = done.result
+  showSuccess(tr(done.message))
+})
+
 // the step's Complete saves the page first
 const saveForStep = async () => (readOnly.value ? true : check() && (await run(async () => {
   show(await invoiceEntryApi.save(props.disbursementId, payload()))
@@ -539,6 +640,13 @@ watch(() => props.disbursementId, load, { immediate: true })
 .ie-util-foot i { color: rgba(255, 255, 255, .4); }
 
 .ie-wide { grid-column: span 2; }
+.ie-chip { margin-inline-start: 6px; }
+.ie-sub { font-size: 12px; color: #6b7c7b; }
+.ie-totals { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.ie-totals > div { padding: 10px 14px; border: 1px solid var(--fin-line); border-radius: 10px; }
+.ie-totals small { display: block; font-size: 11px; color: #6b7c7b; text-transform: uppercase; letter-spacing: .04em; }
+.ie-totals b { font-size: 16px; }
+.ie-net { color: #00636D; }
 .ie-buttons { justify-content: flex-end; margin-top: 16px; }
 .ie-upl { background: rgb(245, 240, 240); color: #000; border-color: transparent; font-weight: 600; }
 .ie-upload-row { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
@@ -554,6 +662,7 @@ select.ie-cell.is-ok { color: #2f9e64; font-weight: 600; }
 select.ie-cell.is-bad { color: #c0392b; font-weight: 600; }
 @media (max-width: 760px) {
   .ie-wide { grid-column: auto; }
+  .ie-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ie-upload-row { flex-direction: column; align-items: stretch; }
 }
 </style>

@@ -122,3 +122,51 @@ export const invoiceEntryApi = {
   limits: (clientId: number) => http.get<CrmOption[]>(`${API}/clients/${clientId}/invoice-entry-limits`),
   advanceRate: (limitId: number) => http.get<number | null>(`${API}/limits/${limitId}/advance-rate`)
 }
+
+/** A calculated charge (FCT_DISBURSEMENT_CHARGES) */
+export type DisbursementCharge = {
+  disbursementChargeId: number
+  ruleCode: string
+  ruleName: string
+  calculationMethod: string
+  baseCode: string | null
+  baseAmount: number | null
+  ratePercent: number | null
+  chargeAmount: number
+  taxAmount: number
+  totalAmount: number
+  chargeTimingCode: string
+  dueDate: string | null
+  statusCode: string
+}
+
+/** A row of the current repayment schedule (FCT_REPAYMENTS) */
+export type RepaymentRow = {
+  installmentNo: number
+  dueDate: string
+  openingPrincipal: number | null
+  principalDue: number | null
+  interestDue: number | null
+  totalInstallment: number | null
+  closingPrincipal: number | null
+  interestRate: number | null
+  dayCount: number | null
+  statusCode: string
+}
+
+export type DisbursementResult = {
+  statusCode: string | null
+  approvedInvoiceAmount: number
+  approvedAdvanceAmount: number
+  feeDeducted: number | null
+  taxDeducted: number | null
+  netAmount: number | null
+  charges: DisbursementCharge[]
+  schedule: RepaymentRow[]
+}
+
+export const processApi = {
+  process: (id: number, body: InvoiceEntrySave) =>
+    http.post<{ page: InvoiceEntry; result: DisbursementResult; message: string }>(`/api/crm/disbursement-requests/${id}/invoice-entry/process`, body),
+  result: (id: number) => http.get<DisbursementResult>(`/api/crm/disbursement-requests/${id}/invoice-entry/result`)
+}

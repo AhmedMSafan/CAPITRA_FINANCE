@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<Modules.Crm.CrmClientService>();
         services.AddScoped<Modules.Crm.CrmDisbursementRequestService>();
         services.AddScoped<Modules.Crm.CrmInvoiceEntryService>();
+        services.AddScoped<Modules.Crm.CrmDisbursementProcessService>();
         services.AddScoped<Modules.Fct.FctCollectionRepaymentService>();
         services.AddScoped<Modules.Fct.FctWorkspaceService>();
         services.AddScoped<Modules.Fct.FctApplicationService>();
