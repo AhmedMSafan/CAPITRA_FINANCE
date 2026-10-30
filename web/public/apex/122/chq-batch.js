@@ -60,7 +60,7 @@ function render(){var d=S.d,b=d.batch,sub=b.status==='SUBMITTED';
   $('#cdActs').html(a);
   $('#cqSteps .cq-step[data-s=4]').toggleClass('done',sub).toggleClass('now',!sub).find('i').html(sub?IC.check:'4');
   var n=$('#cdNext');
-  if(sub)n.attr('class','cd-next ok').html('<span class="ni">'+IC.check+'</span><div><b>Submitted '+esc(b.submittedAt||'')+(b.submittedBy?' by '+esc(b.submittedBy):'')+'</b><p>'+esc(b.submitted)+' cheque'+(+b.submitted===1?' is':'s are')+' in the client wallet. Each line shows its cheque reference.</p></div>');
+  if(sub)n.attr('class','cd-next ok').html('<span class="ni">'+IC.check+'</span><div><b>Submitted '+esc(b.submittedAt||'')+(b.submittedBy?' by '+esc(b.submittedBy):'')+'</b><p>'+esc(b.submitted)+' cheque'+(+b.submitted===1?' is':'s are')+' in the client wallet. Each line shows its cheque reference.'+(b.glTranSetId?' GL entries posted under <b>'+esc(b.glTranSetId)+'</b>.':'')+'</p></div>');
   else if(+b.errors)n.attr('class','cd-next bad').html('<span class="ni">!</span><div><b>'+esc(b.errors)+' line'+(+b.errors===1?' has':'s have')+' errors</b><p>A batch with errors cannot be submitted. Correct the Excel file and upload it again as a new batch (delete this one), or click <b>Check again</b> after a correction in the data.</p></div>');
   else if(canSubmit(b))n.attr('class','cd-next').html('<span class="ni">4</span><div><b>Ready to submit</b><p>All '+esc(b.valid)+' lines are valid. Click <b>Submit to the wallet</b> to create the cheques and put them in the client wallet.</p></div>');
   else n.attr('class','cd-next warn').html('<span class="ni">!</span><div><b>Nothing to submit yet</b><p>The batch has no valid line. Click <b>Check again</b> or upload the file again.</p></div>');
@@ -78,7 +78,7 @@ function render(){var d=S.d,b=d.batch,sub=b.status==='SUBMITTED';
     +'<div class="cq-f"><label for="cdNotes">Notes</label><input type="text" id="cdNotes" maxlength="2000" value="'+esc(b.notes||'')+'"'+dis+'></div>'
     +(sub?'':'<div class="cd-save"><button type="button" class="gp-btn gp-btn--pri" data-a="SAVE">'+IC.check+'<span>Save and check again</span></button></div>')
     +'<div class="cd-kv"><span>File</span><b>'+esc(b.file||'-')+'</b><span>Received</span><b>'+esc(b.received||'-')+'</b><span>Cheque date</span><b>'+esc(b.chequeDate||'-')+'</b>'
-    +'<span>Created</span><b>'+esc((b.created||'')+(b.createdBy?' · '+b.createdBy:''))+'</b>'+(b.updated?'<span>Updated</span><b>'+esc(b.updated+(b.updatedBy?' · '+b.updatedBy:''))+'</b>':'')+'</div>');
+    +'<span>Created</span><b>'+esc((b.created||'')+(b.createdBy?' · '+b.createdBy:''))+'</b>'+(b.glTranSetId?'<span>GL tran set ID</span><b>'+esc(b.glTranSetId)+'</b>':'')+(b.updated?'<span>Updated</span><b>'+esc(b.updated+(b.updatedBy?' · '+b.updatedBy:''))+'</b>':'')+'</div>');
   renderLines();}
 function renderLines(){var L=S.d.lines||[],c={ALL:L.length,VALID:0,ERROR:0,SUBMITTED:0};L.forEach(function(l){if(c[l.status]!=null)c[l.status]++;});
   $('#cdChips').html([['ALL','All'],['VALID','Valid'],['ERROR','Errors'],['SUBMITTED','Submitted']].filter(function(x){return x[0]==='ALL'||c[x[0]];})
@@ -98,12 +98,13 @@ $(document).on('click','#cdActs [data-a],#cdHead [data-a]',function(){var a=$(th
       function(d){after(d,'Batch checked again');});return;}
   if(a==='SUBMIT'){popup('ask','Submit '+b.no+' to the wallet?',b.customer||'',
       '<div class="cq-confirm"><b>What happens:</b> '+esc(b.valid)+' cheque'+(+b.valid===1?' is':'s are')+' created for '+esc(b.customer||'the customer')+' ('+money(b.amount)+' '+esc(b.currency||'')+'), each with its cheque reference, '
-      +'and put in the client wallet with a first "received" movement. The batch can no longer be changed.</div>',
+      +'and put in the client wallet with a first "received" movement. The GL entries of the product rule are posted with them; if the GL cannot be posted, nothing is saved. The batch can no longer be changed.</div>',
       [['close','Cancel'],['go','Submit to the wallet','gp-btn--hot','wallet']],function(k){if(k!=='go')return;
-        run('CHQ_BATCH_ACT',{x01:'SUBMIT',x02:S.id},'Submitting to the wallet…',b.no,['Checking the batch one last time','Creating '+b.valid+' cheque'+(+b.valid===1?'':'s'),'Recording the first movement','Putting the cheques in the client wallet'],
+        run('CHQ_BATCH_ACT',{x01:'SUBMIT',x02:S.id},'Submitting to the wallet…',b.no,['Checking the batch one last time','Creating '+b.valid+' cheque'+(+b.valid===1?'':'s'),'Recording the first movement','Putting the cheques in the client wallet','Posting the GL entries'],
           function(d){if(d.ok===false){fail(d,'The batch was not submitted');return;}
             popup('ok',d.count+' cheque'+(d.count===1?'':'s')+' in the wallet','Batch '+b.no+' is submitted.',
-              '<ul class="cq-cl"><li class="ok" style="--i:0"><span class="mk">'+IC.check+'</span><div class="grow"><b>Cheques created</b><p>'+esc(d.count)+' cheque'+(d.count===1?'':'s')+' for '+esc(b.customer||'')+'. Their references are on the lines.</p></div></li></ul>',
+              '<ul class="cq-cl"><li class="ok" style="--i:0"><span class="mk">'+IC.check+'</span><div class="grow"><b>Cheques created</b><p>'+esc(d.count)+' cheque'+(d.count===1?'':'s')+' for '+esc(b.customer||'')+'. Their references are on the lines.</p></div></li>'
+                +((d.batch||{}).glTranSetId?'<li class="ok" style="--i:1"><span class="mk">'+IC.check+'</span><div class="grow"><b>GL entries posted</b><p>GL tran set ID <b>'+esc(d.batch.glTranSetId)+'</b></p></div></li>':'')+'</ul>',
               [['close','Close'],['wallet','Open the cheques wallet','gp-btn--hot','wallet']],function(k){if(k==='wallet'&& S.d.walletUrl)apex.navigation.redirect(S.d.walletUrl);});load();});});return;}
   if(a==='DELETE'){popup('bad','Delete batch '+b.no+'?','This cannot be undone.','<div class="cq-confirm danger">The batch and its '+esc(b.total)+' lines are deleted. No cheque was created from it, so nothing else changes.</div>',
       [['close','Cancel'],['go','Delete the batch','gp-btn--danger','trash']],function(k){if(k!=='go')return;

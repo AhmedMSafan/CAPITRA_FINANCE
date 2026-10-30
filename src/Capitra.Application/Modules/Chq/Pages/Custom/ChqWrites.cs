@@ -66,6 +66,7 @@ public sealed class P0121BatchAction(ICapitraDbContext db, ChqUploadPackage uplo
                 b.Add("valid", r.ValidRows ?? 0);
                 b.Add("errors", r.ErrorRows ?? 0);
                 b.Add("status", r.BatchStatus);
+                b.Add("glTranSetId", r.GlTranSetId);
             }
 
             res.Add("batch", b);

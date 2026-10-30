@@ -2,7 +2,9 @@ using System.Globalization;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Capitra.Application.Abstractions;
+using Capitra.Application.Modules.Adm.Products;
 using Capitra.Application.Modules.Apex;
+using Capitra.Application.Modules.Gl;
 using Capitra.Domain.Modules.Chq;
 using Capitra.Domain.Modules.Crm;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +43,7 @@ public sealed record ChqNewBatch
 /// lines into cheques of the wallet, each with its first RECEIVED event.
 /// </summary>
 public sealed partial class ChqUploadPackage(
-    ICapitraDbContext db, ICurrentUser user, IClock clock, IWorkbookReader workbook, ChqEventPackage events)
+    ICapitraDbContext db, ICurrentUser user, IClock clock, IWorkbookReader workbook, ChqEventPackage events, ProductActionPosting posting)
 {
     private const int MaxIssues = 15;
 
@@ -321,6 +323,24 @@ public sealed partial class ChqUploadPackage(
         batch.BatchStatus = "SUBMITTED";
         batch.SubmittedBy = by;
         batch.SubmittedAt = Now;
+        await db.SaveChangesAsync(ct);
+
+        // GL of the product action "Cheque batch submission" (the rule linked to it in Admin Setup), in the same transaction:
+        // when it cannot post, the submission is rolled back with it
+        var total = lines.Sum(l => l.ChequeAmount ?? 0);
+        var ts = await posting.PostAsync(ProductActions.ChequeBatchSubmit,
+            new ProductActionDocument("CHEQUE_UPLOAD_BATCH", batch.BatchId.ToString(CultureInfo.InvariantCulture), batch.BatchNo, GlTime.Today(clock),
+                batch.CurrencyCode, $"Cheque batch {batch.BatchNo}: {count} cheque(s) received in the wallet for {batch.CustomerNameEn ?? batch.CustomerId}"),
+            code => code == "CHEQUE_AMOUNT" ? total : null, ct);
+        batch.GlTranSetId = ts;
+        var ids = lines.Select(l => l.TargetChequeId).ToList();
+        foreach (var c in await db.Set<ChqCheque>().Where(c => ids.Contains(c.ChequeId)).ToListAsync(ct))
+        {
+            c.IsGlPosted = true;
+            c.GlJournalRef = ts;
+            c.GlPostAt = Now;
+        }
+
         await db.SaveChangesAsync(ct);
         return count;
     }

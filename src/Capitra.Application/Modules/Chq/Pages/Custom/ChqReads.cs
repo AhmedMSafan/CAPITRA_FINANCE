@@ -143,6 +143,7 @@ public sealed class P0121Batch(IApexSqlReader reader) : IApexProcess
                     { "updatedBy", b.Text("UPDATED_BY") },
                     { "submittedAt", DmyHm(b["SUBMITTED_DT"]) },
                     { "submittedBy", b.Text("SUBMITTED_BY") },
+                    { "glTranSetId", b.Text("GL_TRAN_SET_ID") },
                 }
             },
             {

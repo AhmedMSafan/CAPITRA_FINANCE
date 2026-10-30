@@ -120,6 +120,27 @@ export type RuleGlLine = {
   rowVersion: number
 }
 
+/** A fixed action of a product (a button outside the workflow) and the rule linked to it (ADM_PRODUCT_ACTIONS). */
+export type ProductAction = {
+  actionCode: string
+  actionNameEn: string
+  actionNameAr: string
+  description: string
+  moduleCode: string
+  amountCodes: string[]
+  productActionId: number | null
+  productEventRuleId: number | null
+  ruleCode: string | null
+  ruleNameEn: string | null
+  eventTypeCode: string | null
+  isActive: boolean
+  rowVersion: number | null
+}
+
+export type ProductActionRuleOption = { productEventRuleId: number; ruleCode: string; ruleNameEn: string; eventTypeCode: string; isActive: boolean }
+
+export type ProductActions = { actions: ProductAction[]; rules: ProductActionRuleOption[] }
+
 export type GlAccountOption = { accountId: number; accountCode: string; accountNameEn: string }
 
 export type Body = Record<string, unknown>
@@ -142,7 +163,10 @@ export const productsApi = {
   remove: (id: number, rowVersion: number) => http.delete<void>(`${PRODUCTS}/${id}?rowVersion=${rowVersion}`),
   /** null while the product is not in the catalog. */
   getMortgagePortfolioPurchasing: () => http.get<Product | null>(`${PRODUCTS}/mortgage-portfolio-purchasing`),
-  saveMortgagePortfolioPurchasing: (b: SaveMppParameters) => http.put<Product>(`${PRODUCTS}/mortgage-portfolio-purchasing`, b)
+  saveMortgagePortfolioPurchasing: (b: SaveMppParameters) => http.put<Product>(`${PRODUCTS}/mortgage-portfolio-purchasing`, b),
+  actions: (id: number) => http.get<ProductActions>(`${PRODUCTS}/${id}/actions`),
+  saveAction: (id: number, actionCode: string, b: { productEventRuleId: number | null; isActive: boolean; rowVersion: number | null }) =>
+    http.put<ProductActions>(`${PRODUCTS}/${id}/actions/${actionCode}`, b)
 }
 
 export const productEventRulesApi = {
@@ -206,13 +230,14 @@ export const CHARGE_TIMINGS = [
 ]
 
 /** Code to label, for the list columns. */
-/** Figures of the event a rule's own GL line posts (purchased portfolio disbursement). */
+/** Figures of the event a rule's own GL line posts (purchased portfolio disbursement; cheque amount for the cheque batch submission). */
 export const RULE_AMOUNTS = [
   { value: 'FACE_VALUE', label: 'Face value of the cheques' },
   { value: 'DISCOUNT', label: 'Discount (funding recovery)' },
   { value: 'MARGIN_DEFERRED', label: 'Margin, pro-rated' },
   { value: 'MARGIN_IMMEDIATE', label: 'Margin, recognised at once' },
-  { value: 'PURCHASE_PRICE', label: 'Purchase price (payable to developer)' }
+  { value: 'PURCHASE_PRICE', label: 'Purchase price (payable to developer)' },
+  { value: 'CHEQUE_AMOUNT', label: 'Cheque amount (cheques received in the wallet)' }
 ]
 
 /** Figures of one charge a component GL line posts. */

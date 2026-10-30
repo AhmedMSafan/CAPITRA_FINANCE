@@ -25,6 +25,9 @@ public interface ICapitraDbContext
     /// <summary>The transaction started with <see cref="BeginTransactionAsync"/>, if one is open.</summary>
     IDbContextTransaction? CurrentTransaction { get; }
 
+    /// <summary>Runs one SQL statement (values passed as parameters) in the open transaction; returns the rows affected.</summary>
+    Task<int> ExecuteSqlAsync(FormattableString sql, CancellationToken cancellationToken = default);
+
     /// <summary>Forgets every loaded and pending entity, after a failed save, so the next save starts clean.</summary>
     void DiscardChanges();
 }

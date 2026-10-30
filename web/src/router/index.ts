@@ -263,6 +263,13 @@ const router = createRouter({
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Parameters' }
         },
         {
+          path: 'admin/products/:productId(\\d+)/actions',
+          name: 'adm-product-actions',
+          component: () => import('@/modules/adm/pages/ProductActionsPage.vue'),
+          props: route => ({ productId: Number(route.params.productId) }),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Actions' }
+        },
+        {
           path: 'admin/charges',
           name: 'adm-charges',
           component: () => import('@/modules/adm/pages/ChargesPage.vue'),
