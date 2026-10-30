@@ -479,7 +479,7 @@ export const AR: Record<string, string> = {
   "Define each product's rules, their charges and accounting entries.": 'تعريف قواعد كل منتج ورسومها وقيودها المحاسبية.',
   'Business Events': 'أحداث الأعمال', 'Maintain business events used by product event rules.': 'إدارة أحداث الأعمال المستخدمة في قواعد أحداث المنتجات.',
   'Product Parameters': 'معاملات المنتجات', 'Maintain product-level configuration and defaults.': 'إدارة إعدادات المنتجات وقيمها الافتراضية.',
-  'Charge Setup': 'إعدادات الرسوم', 'Maintain charge definitions, types and pricing configuration.': 'إدارة تعريفات الرسوم وأنواعها وإعدادات التسعير.',
+  'Charges and Rate Setup': 'إعدادات الرسوم والأسعار', 'Maintain charge definitions, types, pricing and rate indexes.': 'إدارة تعريفات الرسوم وأنواعها والتسعير ومؤشرات الأسعار.',
   'Charge Components': 'مكونات الرسوم', 'Maintain reusable charge components.': 'إدارة مكونات الرسوم القابلة لإعادة الاستخدام.',
   'Charge Component Types': 'أنواع مكونات الرسوم', 'Maintain charge component classifications.': 'إدارة تصنيفات مكونات الرسوم.',
   'Charge Parameters': 'معاملات الرسوم', 'Configure charge defaults and calculation settings.': 'تهيئة القيم الافتراضية للرسوم وإعدادات الاحتساب.',

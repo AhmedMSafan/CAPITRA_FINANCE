@@ -71,7 +71,7 @@ const sections: SetupSection[] = [
     ]
   },
   {
-    title: 'Charge Setup', description: 'Maintain charge definitions, types and pricing configuration.', icon: 'pi pi-wallet', color: '#14734F', tint: '#E7F6EF',
+    title: 'Charges and Rate Setup', description: 'Maintain charge definitions, types, pricing and rate indexes.', icon: 'pi pi-wallet', color: '#14734F', tint: '#E7F6EF',
     items: [
       { title: 'Charge Components', description: 'Maintain reusable charge components.', icon: 'pi pi-wallet', route: '/admin/charges', perm: 'ADM.PRODUCT.VIEW' },
       { title: 'Charge Component Types', description: 'Maintain charge component classifications.', icon: 'pi pi-tags', route: '/admin/reference-data/charge-type' },
