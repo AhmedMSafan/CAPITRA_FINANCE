@@ -21,6 +21,7 @@ public static class DependencyInjection
 
         // Factoring (FINOVA_FINANCEING factoring module).
         services.AddScoped<Modules.Crm.CrmClientService>();
+        services.AddScoped<Modules.Crm.CrmDisbursementRequestService>();
         services.AddScoped<Modules.Fct.FctCollectionRepaymentService>();
         services.AddScoped<Modules.Fct.FctWorkspaceService>();
         services.AddScoped<Modules.Fct.FctApplicationService>();
