@@ -277,5 +277,67 @@
    }
   },
   "pk": "RISK_LEVEL_CODE"
+ },
+ "FNV_RATE_INDEXES": {
+  "table": "ADM_RATE_INDEXES",
+  "class": "AdmRateIndex",
+  "columns": {
+   "RATE_INDEX_ID": {
+    "column": "RATE_INDEX_ID",
+    "kind": "int"
+   },
+   "RATE_INDEX_CODE": {
+    "column": "RATE_INDEX_CODE",
+    "kind": "string"
+   },
+   "RATE_INDEX_NAME": {
+    "column": "RATE_INDEX_NAME",
+    "kind": "string"
+   },
+   "CURRENCY_ID": {
+    "column": "CURRENCY_ID",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "RATE_INDEX_ID"
+ },
+ "FNV_RATE_INDEX_VALUES": {
+  "table": "ADM_RATE_INDEX_VALUES",
+  "class": "AdmRateIndexValue",
+  "columns": {
+   "RATE_VALUE_ID": {
+    "column": "RATE_VALUE_ID",
+    "kind": "int"
+   },
+   "RATE_INDEX_ID": {
+    "column": "RATE_INDEX_ID",
+    "kind": "int"
+   },
+   "EFFECTIVE_FROM": {
+    "column": "EFFECTIVE_FROM_DATE",
+    "kind": "date"
+   },
+   "EFFECTIVE_TO": {
+    "column": "EFFECTIVE_TO_DATE",
+    "kind": "date"
+   },
+   "ANNUAL_RATE_PCT": {
+    "column": "ANNUAL_RATE_PCT",
+    "kind": "decimal"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "RATE_VALUE_ID"
  }
 }
