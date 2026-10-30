@@ -1143,6 +1143,73 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("ADM_PRODUCTS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductAction", b =>
+                {
+                    b.Property<long>("ProductActionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_ACTION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProductActionId"));
+
+                    b.Property<string>("ActionCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ACTION_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<long?>("ProductEventRuleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_EVENT_RULE_ID");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ProductActionId")
+                        .HasName("PK_ADM_PRODUCT_ACTIONS");
+
+                    b.HasIndex("ActionCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_PRODUCT_ACTIONS_ACTION_CODE");
+
+                    b.HasIndex("ProductEventRuleId")
+                        .HasDatabaseName("IX_ADM_PRODUCT_ACTIONS_PRODUCT_EVENT_RULE_ID");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("IX_ADM_PRODUCT_ACTIONS_PRODUCT_ID");
+
+                    b.ToTable("ADM_PRODUCT_ACTIONS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRule", b =>
                 {
                     b.Property<long>("ProductEventRuleId")
@@ -3199,6 +3266,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("FILE_NAME");
+
+                    b.Property<string>("GlTranSetId")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("GL_TRAN_SET_ID");
 
                     b.Property<long>("LegalEntityId")
                         .HasColumnType("bigint")
@@ -23606,6 +23678,76 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("GL_SOURCE_VALUE_DEFINITIONS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlTranSetSequence", b =>
+                {
+                    b.Property<string>("ModuleCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("MODULE_CODE");
+
+                    b.Property<int>("YearNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("YEAR_NO");
+
+                    b.Property<string>("AppCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("APP_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("Digits")
+                        .HasColumnType("integer")
+                        .HasColumnName("DIGITS");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<long>("LastNo")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LAST_NO");
+
+                    b.Property<string>("ModuleNameAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("MODULE_NAME_AR");
+
+                    b.Property<string>("ModuleNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("MODULE_NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ModuleCode", "YearNo")
+                        .HasName("PK_GL_TRAN_SET_SEQUENCES");
+
+                    b.ToTable("GL_TRAN_SET_SEQUENCES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Gl.GlYearEndCloseLine", b =>
                 {
                     b.Property<long>("YearEndCloseLineId")
@@ -36022,6 +36164,22 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("DefaultCurrencyCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_ADM_PRODUCTS_ADM_LKP_CURRENCIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductAction", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmProductEventRule", null)
+                        .WithMany()
+                        .HasForeignKey("ProductEventRuleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ADM_PRODUCT_ACTIONS_ADM_PRODUCT_EVENT_RULES");
+
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmProduct", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_PRODUCT_ACTIONS_ADM_PRODUCTS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRule", b =>

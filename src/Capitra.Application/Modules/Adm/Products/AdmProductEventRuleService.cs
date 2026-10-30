@@ -82,9 +82,23 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
                                 && r.EffectiveFromDate <= date && (r.EffectiveToDate == null || r.EffectiveToDate >= date)
                           orderby r.PriorityNo, r.ProductEventRuleId
                           select new { r.ProductEventRuleId, r.RuleCode }).FirstOrDefaultAsync(cancellationToken);
-        if (rule is null)
-            return null;
+        return rule is null ? null : await PlanOfAsync(rule.ProductEventRuleId, rule.RuleCode, eventCode, date, cancellationToken);
+    }
 
+    /// <summary>The plan of one rule (the rule a product action is linked to) on a date; null when it is inactive or not in effect.</summary>
+    public async Task<ProductEventPlan?> PlanOfRuleAsync(long ruleId, DateOnly date, CancellationToken cancellationToken)
+    {
+        var rule = await (from r in db.Set<AdmProductEventRule>().AsNoTracking()
+                          join t in db.Set<GlAccountingEventType>() on r.EventTypeId equals t.EventTypeId
+                          where r.ProductEventRuleId == ruleId && r.IsActive
+                                && r.EffectiveFromDate <= date && (r.EffectiveToDate == null || r.EffectiveToDate >= date)
+                          select new { r.ProductEventRuleId, r.RuleCode, t.EventTypeCode }).FirstOrDefaultAsync(cancellationToken);
+        return rule is null ? null : await PlanOfAsync(rule.ProductEventRuleId, rule.RuleCode, rule.EventTypeCode, date, cancellationToken);
+    }
+
+    private async Task<ProductEventPlan> PlanOfAsync(long ruleId, string ruleCode, string eventCode, DateOnly date, CancellationToken cancellationToken)
+    {
+        var rule = new { ProductEventRuleId = ruleId, RuleCode = ruleCode };
         var charges = await (from rc in db.Set<AdmProductEventRuleCharge>().AsNoTracking()
                              join c in db.Set<AdmCharge>() on rc.ChargeId equals c.ChargeId
                              where rc.ProductEventRuleId == rule.ProductEventRuleId && rc.IsActive

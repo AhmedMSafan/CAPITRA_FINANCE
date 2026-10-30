@@ -31,6 +31,7 @@ public sealed class ChqUploadBatchConfiguration : IEntityTypeConfiguration<ChqUp
         builder.Property(x => x.TotalRows).HasPrecision(28, 2);
         builder.Property(x => x.Notes).HasMaxLength(2000);
         builder.Property(x => x.SubmittedBy).HasMaxLength(100);
+        builder.Property(x => x.GlTranSetId).HasMaxLength(40);
 
         builder.ConfigureAudit();
     }

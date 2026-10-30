@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Product Catalog (ADM_PRODUCTS): FINOVA_FINANCEING ProductsPage in the shared list layout.
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import CrudPage from '@/shared/crud/CrudPage.vue'
 import type { CrudApi, CrudColumn, CrudField, FieldOption, FormValues } from '@/shared/crud/types'
 import { hasPermission } from '@/shared/auth/session'
@@ -17,6 +18,7 @@ const RECOURSE: FieldOption[] = [
   { value: 'N', label: 'Without recourse' }
 ]
 
+const router = useRouter()
 const businessLines = ref<FieldOption[]>([])
 const currencies = ref<FieldOption[]>([])
 
@@ -88,5 +90,15 @@ onMounted(async () => {
       <RouterLink to="/admin/products/mortgage-portfolio-purchasing" class="fx-btn"><i class="pi pi-sliders-h"></i><span>{{ tr('Portfolio Purchasing Parameters') }}</span></RouterLink>
       <RouterLink to="/admin" class="fx-btn fx-btn--ghost"><i class="pi pi-arrow-left"></i><span>{{ tr('Admin Setup') }}</span></RouterLink>
     </template>
+    <template #row-actions="{ row }">
+      <button type="button" class="fx-btn fx-btn--sm pc-actions" :title="tr('Actions of the product outside the workflow and the rule each one posts')"
+              @click="router.push(`/admin/products/${row.productId}/actions`)">
+        <i class="pi pi-bolt"></i>{{ tr('Actions') }}
+      </button>
+    </template>
   </CrudPage>
 </template>
+
+<style scoped>
+.pc-actions { margin-inline-end: 6px; }
+</style>

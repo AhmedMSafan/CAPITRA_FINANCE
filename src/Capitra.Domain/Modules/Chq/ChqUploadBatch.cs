@@ -59,4 +59,7 @@ public class ChqUploadBatch : AuditableEntity
     public string? SubmittedBy { get; set; }
 
     public DateTime? SubmittedAt { get; set; }
+
+    /// <summary>The GL transaction set posted when the batch was submitted to the wallet (CAP-CHW-...).</summary>
+    public string? GlTranSetId { get; set; }
 }
