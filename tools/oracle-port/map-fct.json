@@ -1467,5 +1467,204 @@
    }
   },
   "pk": "REPAYMENT_TXN_ID"
+ },
+ "FCT_INVOICE_BATCHES": {
+  "table": "FCT_INVOICE_BATCHES",
+  "class": "FctInvoiceBatch",
+  "columns": {
+   "BATCH_ID": {
+    "column": "BATCH_ID",
+    "kind": "int"
+   },
+   "BATCH_NUMBER": {
+    "column": "BATCH_NUMBER",
+    "kind": "string"
+   },
+   "BATCH_REF": {
+    "column": "BATCH_REF",
+    "kind": "string"
+   },
+   "BATCH_NAME": {
+    "column": "BATCH_NAME",
+    "kind": "string"
+   },
+   "BATCH_NAME_AR": {
+    "column": "BATCH_NAME_AR",
+    "kind": "string"
+   },
+   "CLIENT_ID": {
+    "column": "CLIENT_ID",
+    "kind": "int"
+   },
+   "AGREEMENT_ID": {
+    "column": "AGREEMENT_ID",
+    "kind": "int"
+   },
+   "BATCH_DATE": {
+    "column": "BATCH_DATE",
+    "kind": "date"
+   },
+   "SUBMISSION_DATE": {
+    "column": "SUBMISSION_AT",
+    "kind": "datetime"
+   },
+   "SUBMISSION_METHOD": {
+    "column": "SUBMISSION_METHOD",
+    "kind": "string"
+   },
+   "SUBMISSION_METHOD_AR": {
+    "column": "SUBMISSION_METHOD_AR",
+    "kind": "string"
+   },
+   "BATCH_TYPE": {
+    "column": "BATCH_TYPE",
+    "kind": "string"
+   },
+   "BATCH_TYPE_AR": {
+    "column": "BATCH_TYPE_AR",
+    "kind": "string"
+   },
+   "CURRENCY_ID": {
+    "column": "CURRENCY_ID",
+    "kind": "int"
+   },
+   "TOTAL_INVOICES": {
+    "column": "TOTAL_INVOICES",
+    "kind": "int"
+   },
+   "TOTAL_GROSS_AMOUNT": {
+    "column": "TOTAL_GROSS_AMOUNT",
+    "kind": "decimal"
+   },
+   "TOTAL_NET_AMOUNT": {
+    "column": "TOTAL_NET_AMOUNT",
+    "kind": "decimal"
+   },
+   "TOTAL_TAX_AMOUNT": {
+    "column": "TOTAL_TAX_AMOUNT",
+    "kind": "decimal"
+   },
+   "VALIDATED_INVOICES": {
+    "column": "VALIDATED_INVOICES",
+    "kind": "int"
+   },
+   "REJECTED_INVOICES": {
+    "column": "REJECTED_INVOICES",
+    "kind": "int"
+   },
+   "APPROVED_INVOICES": {
+    "column": "APPROVED_INVOICES",
+    "kind": "int"
+   },
+   "FUNDED_INVOICES": {
+    "column": "FUNDED_INVOICES",
+    "kind": "int"
+   },
+   "APPROVED_AMOUNT": {
+    "column": "APPROVED_AMOUNT",
+    "kind": "decimal"
+   },
+   "REJECTED_AMOUNT": {
+    "column": "REJECTED_AMOUNT",
+    "kind": "decimal"
+   },
+   "PROCESSING_START": {
+    "column": "PROCESSING_START_AT",
+    "kind": "datetime"
+   },
+   "PROCESSING_END": {
+    "column": "PROCESSING_END_AT",
+    "kind": "datetime"
+   },
+   "PROCESSING_DURATION_SEC": {
+    "column": "PROCESSING_DURATION_SEC",
+    "kind": "int"
+   },
+   "ERROR_COUNT": {
+    "column": "ERROR_COUNT",
+    "kind": "int"
+   },
+   "WARNING_COUNT": {
+    "column": "WARNING_COUNT",
+    "kind": "int"
+   },
+   "UPLOAD_FILE_NAME": {
+    "column": "UPLOAD_FILE_NAME",
+    "kind": "string"
+   },
+   "UPLOAD_FILE_SIZE": {
+    "column": "UPLOAD_FILE_SIZE",
+    "kind": "int"
+   },
+   "UPLOAD_FILE_TYPE": {
+    "column": "UPLOAD_FILE_TYPE",
+    "kind": "string"
+   },
+   "UPLOAD_FILE_CONTENT": {
+    "column": "UPLOAD_FILE_CONTENT",
+    "kind": "blob"
+   },
+   "UPLOAD_TEMPLATE_VER": {
+    "column": "UPLOAD_TEMPLATE_VER",
+    "kind": "string"
+   },
+   "STATUS_ID": {
+    "column": "STATUS_ID",
+    "kind": "int"
+   },
+   "SUBMITTED_BY": {
+    "column": "SUBMITTED_BY",
+    "kind": "string"
+   },
+   "VALIDATED_BY": {
+    "column": "VALIDATED_BY",
+    "kind": "string"
+   },
+   "VALIDATION_DATE": {
+    "column": "VALIDATION_AT",
+    "kind": "datetime"
+   },
+   "APPROVED_BY": {
+    "column": "APPROVED_BY",
+    "kind": "string"
+   },
+   "APPROVAL_DATE": {
+    "column": "APPROVAL_AT",
+    "kind": "datetime"
+   },
+   "REMARKS": {
+    "column": "REMARKS",
+    "kind": "string"
+   },
+   "REMARKS_AR": {
+    "column": "REMARKS_AR",
+    "kind": "string"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "DISBURSEMENT_ID": {
+    "column": "DISBURSEMENT_ID",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATION_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_UPDATE_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "BATCH_ID"
  }
 }

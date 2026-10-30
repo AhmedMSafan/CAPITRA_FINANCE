@@ -6387,6 +6387,267 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("FCT_DISBURSEMENTS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctInvoiceBatch", b =>
+                {
+                    b.Property<long>("BatchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("BATCH_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("BatchId"));
+
+                    b.Property<long?>("AgreementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("AGREEMENT_ID");
+
+                    b.Property<DateTime?>("ApprovalAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("APPROVAL_AT");
+
+                    b.Property<decimal?>("ApprovedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("APPROVED_AMOUNT");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<long?>("ApprovedInvoices")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPROVED_INVOICES");
+
+                    b.Property<DateOnly>("BatchDate")
+                        .HasColumnType("date")
+                        .HasColumnName("BATCH_DATE");
+
+                    b.Property<string>("BatchName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("BATCH_NAME");
+
+                    b.Property<string>("BatchNameAr")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("BATCH_NAME_AR");
+
+                    b.Property<string>("BatchNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BATCH_NUMBER");
+
+                    b.Property<string>("BatchRef")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("BATCH_REF");
+
+                    b.Property<string>("BatchType")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BATCH_TYPE");
+
+                    b.Property<string>("BatchTypeAr")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BATCH_TYPE_AR");
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long?>("CurrencyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CURRENCY_ID");
+
+                    b.Property<long?>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<long?>("ErrorCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ERROR_COUNT");
+
+                    b.Property<long?>("FundedInvoices")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FUNDED_INVOICES");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<long?>("ProcessingDurationSec")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PROCESSING_DURATION_SEC");
+
+                    b.Property<DateTime?>("ProcessingEndAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("PROCESSING_END_AT");
+
+                    b.Property<DateTime?>("ProcessingStartAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("PROCESSING_START_AT");
+
+                    b.Property<decimal?>("RejectedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("REJECTED_AMOUNT");
+
+                    b.Property<long?>("RejectedInvoices")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REJECTED_INVOICES");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("REMARKS");
+
+                    b.Property<string>("RemarksAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("REMARKS_AR");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long?>("StatusId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("STATUS_ID");
+
+                    b.Property<DateTime?>("SubmissionAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SUBMISSION_AT");
+
+                    b.Property<string>("SubmissionMethod")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SUBMISSION_METHOD");
+
+                    b.Property<string>("SubmissionMethodAr")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SUBMISSION_METHOD_AR");
+
+                    b.Property<string>("SubmittedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("SUBMITTED_BY");
+
+                    b.Property<decimal?>("TotalGrossAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_GROSS_AMOUNT");
+
+                    b.Property<long?>("TotalInvoices")
+                        .HasColumnType("bigint")
+                        .HasColumnName("TOTAL_INVOICES");
+
+                    b.Property<decimal?>("TotalNetAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_NET_AMOUNT");
+
+                    b.Property<decimal?>("TotalTaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_TAX_AMOUNT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<byte[]>("UploadFileContent")
+                        .HasColumnType("bytea")
+                        .HasColumnName("UPLOAD_FILE_CONTENT");
+
+                    b.Property<string>("UploadFileName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("UPLOAD_FILE_NAME");
+
+                    b.Property<int?>("UploadFileSize")
+                        .HasColumnType("integer")
+                        .HasColumnName("UPLOAD_FILE_SIZE");
+
+                    b.Property<string>("UploadFileType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPLOAD_FILE_TYPE");
+
+                    b.Property<string>("UploadTemplateVer")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("UPLOAD_TEMPLATE_VER");
+
+                    b.Property<string>("ValidatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("VALIDATED_BY");
+
+                    b.Property<long?>("ValidatedInvoices")
+                        .HasColumnType("bigint")
+                        .HasColumnName("VALIDATED_INVOICES");
+
+                    b.Property<DateTime?>("ValidationAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("VALIDATION_AT");
+
+                    b.Property<long?>("WarningCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WARNING_COUNT");
+
+                    b.HasKey("BatchId")
+                        .HasName("PK_FCT_INVOICE_BATCHES");
+
+                    b.HasIndex("BatchDate")
+                        .HasDatabaseName("IX_FCT_INVOICE_BATCHES_BATCH_DATE");
+
+                    b.HasIndex("BatchNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_FCT_INVOICE_BATCHES_BATCH_NUMBER");
+
+                    b.HasIndex("BatchType")
+                        .HasDatabaseName("IX_FCT_INVOICE_BATCHES_BATCH_TYPE");
+
+                    b.HasIndex("ClientId")
+                        .HasDatabaseName("IX_FCT_INVOICE_BATCHES_CLIENT_ID");
+
+                    b.HasIndex("CurrencyId")
+                        .HasDatabaseName("IX_FCT_INVOICE_BATCHES_CURRENCY_ID");
+
+                    b.HasIndex("DisbursementId")
+                        .HasDatabaseName("IX_FCT_INVOICE_BATCHES_DISBURSEMENT_ID");
+
+                    b.HasIndex("StatusId")
+                        .HasDatabaseName("IX_FCT_INVOICE_BATCHES_STATUS_ID");
+
+                    b.HasIndex("SubmissionAt")
+                        .HasDatabaseName("IX_FCT_INVOICE_BATCHES_SUBMISSION_AT");
+
+                    b.HasIndex("SubmissionMethod")
+                        .HasDatabaseName("IX_FCT_INVOICE_BATCHES_SUBMISSION_METHOD");
+
+                    b.ToTable("FCT_INVOICE_BATCHES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctOffer", b =>
                 {
                     b.Property<long>("OfferId")
@@ -36484,6 +36745,34 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OriginalDisbursementId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_FCT_DISBURSEMENTS_FCT_DISBURSEMENTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctInvoiceBatch", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_INVOICE_BATCHES_CRM_CLIENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmLkpCurrency", null)
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FCT_INVOICE_BATCHES_CRM_LKP_CURRENCIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctDisbursement", null)
+                        .WithMany()
+                        .HasForeignKey("DisbursementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FCT_INVOICE_BATCHES_FCT_DISBURSEMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmLkpStatusCode", null)
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FCT_INVOICE_BATCHES_CRM_LKP_STATUS_CODES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctOffer", b =>
