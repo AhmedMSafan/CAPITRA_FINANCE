@@ -1,5 +1,5 @@
 // CRM (FINOVA_FINANCEING crm module): its Home card opens the CRM functions (route home-crm), Customer Workspace ("Customers")
-// and Customer Disbursement Request (APEX App 150722 pages 750 and 751).
+// and Customer Disbursement Request (APEX App 150722 pages 750 and 751) with its Invoice Upload step (App 148 page 705).
 import type { RouteRecordRaw } from 'vue-router'
 
 const meta = (functionName: string) => ({ moduleName: 'CRM', functionName })
@@ -11,5 +11,9 @@ export const crmRoutes: RouteRecordRaw[] = [
   {
     path: 'crm/disbursement-requests/:disbursementId(\\d+)', name: 'crm-disbursement-request', component: () => import('./pages/DisbursementRequestPage.vue'),
     props: (r) => ({ disbursementId: Number(r.params.disbursementId) }), meta: meta('Disbursement Request Detail')
+  },
+  {
+    path: 'crm/disbursement-requests/:disbursementId(\\d+)/invoices', name: 'crm-disbursement-invoice-entry', component: () => import('./pages/InvoiceEntryPage.vue'),
+    props: (r) => ({ disbursementId: Number(r.params.disbursementId) }), meta: meta('Invoice Entry & Verification')
   }
 ]

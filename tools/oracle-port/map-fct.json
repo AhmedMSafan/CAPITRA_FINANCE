@@ -1666,5 +1666,588 @@
    }
   },
   "pk": "BATCH_ID"
+ },
+ "FCT_INVOICES": {
+  "table": "FCT_INVOICES",
+  "class": "FctInvoice",
+  "columns": {
+   "INVOICE_ID": {
+    "column": "INVOICE_ID",
+    "kind": "int"
+   },
+   "INVOICE_NUMBER": {
+    "column": "INVOICE_NUMBER",
+    "kind": "string"
+   },
+   "INVOICE_REF": {
+    "column": "INVOICE_REF",
+    "kind": "string"
+   },
+   "CLIENT_INVOICE_NUMBER": {
+    "column": "CLIENT_INVOICE_NUMBER",
+    "kind": "string"
+   },
+   "CLIENT_INVOICE_DATE": {
+    "column": "CLIENT_INVOICE_AT",
+    "kind": "datetime"
+   },
+   "CLIENT_PO_NUMBER": {
+    "column": "CLIENT_PO_NUMBER",
+    "kind": "string"
+   },
+   "CLIENT_DO_NUMBER": {
+    "column": "CLIENT_DO_NUMBER",
+    "kind": "string"
+   },
+   "CLIENT_CONTRACT_REF": {
+    "column": "CLIENT_CONTRACT_REF",
+    "kind": "string"
+   },
+   "BATCH_ID": {
+    "column": "BATCH_ID",
+    "kind": "int"
+   },
+   "CLIENT_ID": {
+    "column": "CLIENT_ID",
+    "kind": "int"
+   },
+   "DEBTOR_ID": {
+    "column": "DEBTOR_ID",
+    "kind": "int"
+   },
+   "AGREEMENT_ID": {
+    "column": "AGREEMENT_ID",
+    "kind": "int"
+   },
+   "AGRMT_DEBTOR_ID": {
+    "column": "AGRMT_DEBTOR_ID",
+    "kind": "int"
+   },
+   "CREDIT_LIMIT_ID": {
+    "column": "CREDIT_LIMIT_ID",
+    "kind": "int"
+   },
+   "INVOICE_TYPE": {
+    "column": "INVOICE_TYPE",
+    "kind": "string"
+   },
+   "INVOICE_TYPE_AR": {
+    "column": "INVOICE_TYPE_AR",
+    "kind": "string"
+   },
+   "INVOICE_CATEGORY": {
+    "column": "INVOICE_CATEGORY",
+    "kind": "string"
+   },
+   "INVOICE_CATEGORY_AR": {
+    "column": "INVOICE_CATEGORY_AR",
+    "kind": "string"
+   },
+   "FACTORING_TYPE": {
+    "column": "FACTORING_TYPE",
+    "kind": "string"
+   },
+   "FACTORING_TYPE_AR": {
+    "column": "FACTORING_TYPE_AR",
+    "kind": "string"
+   },
+   "RECOURSE_TYPE": {
+    "column": "RECOURSE_TYPE",
+    "kind": "string"
+   },
+   "RECOURSE_TYPE_AR": {
+    "column": "RECOURSE_TYPE_AR",
+    "kind": "string"
+   },
+   "CURRENCY_ID": {
+    "column": "CURRENCY_ID",
+    "kind": "int"
+   },
+   "GROSS_AMOUNT": {
+    "column": "GROSS_AMOUNT",
+    "kind": "decimal"
+   },
+   "TAX_AMOUNT": {
+    "column": "TAX_AMOUNT",
+    "kind": "decimal"
+   },
+   "TAX_RATE_PCT": {
+    "column": "TAX_RATE_PCT",
+    "kind": "decimal"
+   },
+   "DISCOUNT_AMOUNT": {
+    "column": "DISCOUNT_AMOUNT",
+    "kind": "decimal"
+   },
+   "NET_AMOUNT": {
+    "column": "NET_AMOUNT",
+    "kind": "decimal"
+   },
+   "ELIGIBLE_AMOUNT": {
+    "column": "ELIGIBLE_AMOUNT",
+    "kind": "decimal"
+   },
+   "INELIGIBLE_AMOUNT": {
+    "column": "INELIGIBLE_AMOUNT",
+    "kind": "decimal"
+   },
+   "INELIGIBLE_REASON": {
+    "column": "INELIGIBLE_REASON",
+    "kind": "string"
+   },
+   "INELIGIBLE_REASON_AR": {
+    "column": "INELIGIBLE_REASON_AR",
+    "kind": "string"
+   },
+   "APPROVED_AMOUNT": {
+    "column": "APPROVED_AMOUNT",
+    "kind": "decimal"
+   },
+   "ADVANCE_RATE_PCT": {
+    "column": "ADVANCE_RATE_PCT",
+    "kind": "decimal"
+   },
+   "ADVANCE_AMOUNT": {
+    "column": "ADVANCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "FUNDED_AMOUNT": {
+    "column": "FUNDED_AMOUNT",
+    "kind": "decimal"
+   },
+   "UNFUNDED_AMOUNT": {
+    "column": "UNFUNDED_AMOUNT",
+    "kind": "decimal"
+   },
+   "RESERVE_AMOUNT": {
+    "column": "RESERVE_AMOUNT",
+    "kind": "decimal"
+   },
+   "RESERVE_HELD_PCT": {
+    "column": "RESERVE_HELD_PCT",
+    "kind": "decimal"
+   },
+   "COLLECTED_AMOUNT": {
+    "column": "COLLECTED_AMOUNT",
+    "kind": "decimal"
+   },
+   "OUTSTANDING_AMOUNT": {
+    "column": "OUTSTANDING_AMOUNT",
+    "kind": "decimal"
+   },
+   "SETTLED_AMOUNT": {
+    "column": "SETTLED_AMOUNT",
+    "kind": "decimal"
+   },
+   "WRITE_OFF_AMOUNT": {
+    "column": "WRITE_OFF_AMOUNT",
+    "kind": "decimal"
+   },
+   "CREDIT_NOTE_AMOUNT": {
+    "column": "CREDIT_NOTE_AMOUNT",
+    "kind": "decimal"
+   },
+   "DEBIT_NOTE_AMOUNT": {
+    "column": "DEBIT_NOTE_AMOUNT",
+    "kind": "decimal"
+   },
+   "ADJUSTMENT_AMOUNT": {
+    "column": "ADJUSTMENT_AMOUNT",
+    "kind": "decimal"
+   },
+   "DILUTION_AMOUNT": {
+    "column": "DILUTION_AMOUNT",
+    "kind": "decimal"
+   },
+   "DILUTION_PCT": {
+    "column": "DILUTION_PCT",
+    "kind": "decimal"
+   },
+   "DISPUTED_AMOUNT": {
+    "column": "DISPUTED_AMOUNT",
+    "kind": "decimal"
+   },
+   "IS_DISPUTED": {
+    "column": "IS_DISPUTED",
+    "kind": "flag"
+   },
+   "DISPUTE_DATE": {
+    "column": "DISPUTE_DATE",
+    "kind": "date"
+   },
+   "DISPUTE_REASON": {
+    "column": "DISPUTE_REASON",
+    "kind": "string"
+   },
+   "DISPUTE_REASON_AR": {
+    "column": "DISPUTE_REASON_AR",
+    "kind": "string"
+   },
+   "SUBMISSION_DATE": {
+    "column": "SUBMISSION_AT",
+    "kind": "datetime"
+   },
+   "VERIFICATION_DATE": {
+    "column": "VERIFICATION_DATE",
+    "kind": "date"
+   },
+   "APPROVAL_DATE": {
+    "column": "APPROVAL_DATE",
+    "kind": "date"
+   },
+   "FUNDING_DATE": {
+    "column": "FUNDING_DATE",
+    "kind": "date"
+   },
+   "DUE_DATE": {
+    "column": "DUE_AT",
+    "kind": "datetime"
+   },
+   "ORIGINAL_DUE_DATE": {
+    "column": "ORIGINAL_DUE_DATE",
+    "kind": "date"
+   },
+   "EXTENDED_DUE_DATE": {
+    "column": "EXTENDED_DUE_DATE",
+    "kind": "date"
+   },
+   "GRACE_PERIOD_DAYS": {
+    "column": "GRACE_PERIOD_DAYS",
+    "kind": "int"
+   },
+   "EFFECTIVE_DUE_DATE": {
+    "column": "EFFECTIVE_DUE_DATE",
+    "kind": "date"
+   },
+   "FIRST_COLLECTION_DATE": {
+    "column": "FIRST_COLLECTION_DATE",
+    "kind": "date"
+   },
+   "LAST_COLLECTION_DATE": {
+    "column": "LAST_COLLECTION_DATE",
+    "kind": "date"
+   },
+   "SETTLEMENT_DATE": {
+    "column": "SETTLEMENT_DATE",
+    "kind": "date"
+   },
+   "MATURITY_DATE": {
+    "column": "MATURITY_DATE",
+    "kind": "date"
+   },
+   "DAYS_OUTSTANDING": {
+    "column": "DAYS_OUTSTANDING",
+    "kind": "int"
+   },
+   "DAYS_PAST_DUE": {
+    "column": "DAYS_PAST_DUE",
+    "kind": "int"
+   },
+   "AGING_BUCKET": {
+    "column": "AGING_BUCKET",
+    "kind": "string"
+   },
+   "AGING_BUCKET_AR": {
+    "column": "AGING_BUCKET_AR",
+    "kind": "string"
+   },
+   "IS_OVERDUE": {
+    "column": "IS_OVERDUE",
+    "kind": "flag"
+   },
+   "OVERDUE_DATE": {
+    "column": "OVERDUE_DATE",
+    "kind": "date"
+   },
+   "OVERDUE_DAYS": {
+    "column": "OVERDUE_DAYS",
+    "kind": "int"
+   },
+   "INTEREST_AMOUNT": {
+    "column": "INTEREST_AMOUNT",
+    "kind": "decimal"
+   },
+   "PENALTY_AMOUNT": {
+    "column": "PENALTY_AMOUNT",
+    "kind": "decimal"
+   },
+   "FEE_AMOUNT": {
+    "column": "FEE_AMOUNT",
+    "kind": "decimal"
+   },
+   "TOTAL_CHARGES": {
+    "column": "TOTAL_CHARGES",
+    "kind": "decimal"
+   },
+   "BASE_CURRENCY_ID": {
+    "column": "BASE_CURRENCY_ID",
+    "kind": "int"
+   },
+   "EXCHANGE_RATE": {
+    "column": "EXCHANGE_RATE",
+    "kind": "decimal"
+   },
+   "BASE_GROSS_AMOUNT": {
+    "column": "BASE_GROSS_AMOUNT",
+    "kind": "decimal"
+   },
+   "BASE_NET_AMOUNT": {
+    "column": "BASE_NET_AMOUNT",
+    "kind": "decimal"
+   },
+   "BASE_FUNDED_AMOUNT": {
+    "column": "BASE_FUNDED_AMOUNT",
+    "kind": "decimal"
+   },
+   "BASE_OUTSTANDING": {
+    "column": "BASE_OUTSTANDING",
+    "kind": "decimal"
+   },
+   "DEBTOR_CONFIRMED": {
+    "column": "IS_DEBTOR_CONFIRMED",
+    "kind": "flag"
+   },
+   "DEBTOR_CONFIRM_DATE": {
+    "column": "DEBTOR_CONFIRM_DATE",
+    "kind": "date"
+   },
+   "DEBTOR_CONFIRM_METHOD": {
+    "column": "DEBTOR_CONFIRM_METHOD",
+    "kind": "string"
+   },
+   "DEBTOR_CONFIRM_REF": {
+    "column": "DEBTOR_CONFIRM_REF",
+    "kind": "string"
+   },
+   "DEBTOR_REJECTION_REASON": {
+    "column": "DEBTOR_REJECTION_REASON",
+    "kind": "string"
+   },
+   "DEBTOR_REJECTION_REASON_AR": {
+    "column": "DEBTOR_REJECTION_REASON_AR",
+    "kind": "string"
+   },
+   "IS_ASSIGNED": {
+    "column": "IS_ASSIGNED",
+    "kind": "flag"
+   },
+   "ASSIGNMENT_DATE": {
+    "column": "ASSIGNMENT_DATE",
+    "kind": "date"
+   },
+   "ASSIGNMENT_REF": {
+    "column": "ASSIGNMENT_REF",
+    "kind": "string"
+   },
+   "NOTICE_SENT": {
+    "column": "IS_NOTICE_SENT",
+    "kind": "flag"
+   },
+   "NOTICE_DATE": {
+    "column": "NOTICE_DATE",
+    "kind": "date"
+   },
+   "NOTICE_METHOD": {
+    "column": "NOTICE_METHOD",
+    "kind": "string"
+   },
+   "NOTICE_ACKNOWLEDGED": {
+    "column": "IS_NOTICE_ACKNOWLEDGED",
+    "kind": "flag"
+   },
+   "NOTICE_ACK_DATE": {
+    "column": "NOTICE_ACK_DATE",
+    "kind": "date"
+   },
+   "IS_INSURED": {
+    "column": "IS_INSURED",
+    "kind": "flag"
+   },
+   "INSURED_AMOUNT": {
+    "column": "INSURED_AMOUNT",
+    "kind": "decimal"
+   },
+   "INSURANCE_POLICY_REF": {
+    "column": "INSURANCE_POLICY_REF",
+    "kind": "string"
+   },
+   "INSURANCE_COVERAGE_PCT": {
+    "column": "INSURANCE_COVERAGE_PCT",
+    "kind": "decimal"
+   },
+   "RISK_GRADE": {
+    "column": "RISK_GRADE",
+    "kind": "string"
+   },
+   "RISK_SCORE": {
+    "column": "RISK_SCORE",
+    "kind": "decimal"
+   },
+   "PROVISION_PCT": {
+    "column": "PROVISION_PCT",
+    "kind": "decimal"
+   },
+   "PROVISION_AMOUNT": {
+    "column": "PROVISION_AMOUNT",
+    "kind": "decimal"
+   },
+   "EXPECTED_LOSS": {
+    "column": "EXPECTED_LOSS",
+    "kind": "decimal"
+   },
+   "IS_RECOURSE": {
+    "column": "IS_RECOURSE",
+    "kind": "flag"
+   },
+   "RECOURSE_DATE": {
+    "column": "RECOURSE_DATE",
+    "kind": "date"
+   },
+   "RECOURSE_AMOUNT": {
+    "column": "RECOURSE_AMOUNT",
+    "kind": "decimal"
+   },
+   "RECOURSE_STATUS": {
+    "column": "RECOURSE_STATUS",
+    "kind": "string"
+   },
+   "RECOURSE_STATUS_AR": {
+    "column": "RECOURSE_STATUS_AR",
+    "kind": "string"
+   },
+   "VERIFIED_BY": {
+    "column": "VERIFIED_BY",
+    "kind": "string"
+   },
+   "VERIFICATION_METHOD": {
+    "column": "VERIFICATION_METHOD",
+    "kind": "string"
+   },
+   "VERIFICATION_NOTES": {
+    "column": "VERIFICATION_NOTES",
+    "kind": "string"
+   },
+   "VERIFICATION_NOTES_AR": {
+    "column": "VERIFICATION_NOTES_AR",
+    "kind": "string"
+   },
+   "APPROVED_BY": {
+    "column": "APPROVED_BY",
+    "kind": "string"
+   },
+   "APPROVAL_NOTES": {
+    "column": "APPROVAL_NOTES",
+    "kind": "string"
+   },
+   "APPROVAL_NOTES_AR": {
+    "column": "APPROVAL_NOTES_AR",
+    "kind": "string"
+   },
+   "REJECTION_REASON": {
+    "column": "REJECTION_REASON",
+    "kind": "string"
+   },
+   "REJECTION_REASON_AR": {
+    "column": "REJECTION_REASON_AR",
+    "kind": "string"
+   },
+   "STATUS_ID": {
+    "column": "STATUS_ID",
+    "kind": "int"
+   },
+   "PREVIOUS_STATUS_ID": {
+    "column": "PREVIOUS_STATUS_ID",
+    "kind": "int"
+   },
+   "DESCRIPTION": {
+    "column": "DESCRIPTION",
+    "kind": "string"
+   },
+   "DESCRIPTION_AR": {
+    "column": "DESCRIPTION_AR",
+    "kind": "string"
+   },
+   "RISK_RATING_CODE": {
+    "column": "RISK_RATING_CODE",
+    "kind": "string"
+   },
+   "ATTRIBUTE2": {
+    "column": "ATTRIBUTE2",
+    "kind": "string"
+   },
+   "ATTRIBUTE3": {
+    "column": "ATTRIBUTE3",
+    "kind": "string"
+   },
+   "ATTRIBUTE4": {
+    "column": "ATTRIBUTE4",
+    "kind": "string"
+   },
+   "ATTRIBUTE5": {
+    "column": "ATTRIBUTE5",
+    "kind": "string"
+   },
+   "ATTRIBUTE6": {
+    "column": "ATTRIBUTE6",
+    "kind": "string"
+   },
+   "ATTRIBUTE7": {
+    "column": "ATTRIBUTE7",
+    "kind": "string"
+   },
+   "ATTRIBUTE8": {
+    "column": "ATTRIBUTE8",
+    "kind": "string"
+   },
+   "ATTRIBUTE9": {
+    "column": "ATTRIBUTE9",
+    "kind": "string"
+   },
+   "ATTRIBUTE10": {
+    "column": "ATTRIBUTE10",
+    "kind": "string"
+   },
+   "REMARKS": {
+    "column": "REMARKS",
+    "kind": "text"
+   },
+   "REMARKS_AR": {
+    "column": "REMARKS_AR",
+    "kind": "text"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "CHEQUE_NO": {
+    "column": "CHEQUE_NO",
+    "kind": "string"
+   },
+   "DISBURSEMENT_ID": {
+    "column": "DISBURSEMENT_ID",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATION_DATE": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "LAST_UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "LAST_UPDATE_DATE": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "INVOICE_ID"
  }
 }
