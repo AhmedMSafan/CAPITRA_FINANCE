@@ -14,9 +14,13 @@ public sealed class AdmProductEventRuleController(AdmProductEventRuleService rul
     [HasPermission(Permissions.Adm.ProductView)]
     public Task<IReadOnlyList<ProductEventRuleDto>> List(CancellationToken cancellationToken) => rules.ListAsync(cancellationToken);
 
-    [HttpGet("event-types")]
+    [HttpGet("journal-sources")]
     [HasPermission(Permissions.Adm.ProductView)]
-    public Task<IReadOnlyList<EventTypeOptionDto>> ListEventTypes(CancellationToken cancellationToken) => rules.ListEventTypesAsync(cancellationToken);
+    public Task<IReadOnlyList<JournalSourceOptionDto>> ListJournalSources(CancellationToken cancellationToken) => rules.ListJournalSourcesAsync(cancellationToken);
+
+    [HttpGet("journal-categories")]
+    [HasPermission(Permissions.Adm.ProductView)]
+    public Task<IReadOnlyList<JournalCategoryOptionDto>> ListJournalCategories(CancellationToken cancellationToken) => rules.ListJournalCategoriesAsync(cancellationToken);
 
     [HttpGet("gl-accounts")]
     [HasPermission(Permissions.Adm.ProductView)]

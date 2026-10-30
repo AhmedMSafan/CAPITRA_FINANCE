@@ -14,7 +14,7 @@ public sealed record BpmnElement(
     string? Route,
     string? RouteParameters,
     string? Actions,
-    string? EventCode = null)
+    string? RuleCode = null)
 {
     public bool IsHumanTask =>
         Type is "userTask" or "manualTask" || string.Equals(StepType, "HumanTask", StringComparison.OrdinalIgnoreCase);
@@ -81,7 +81,7 @@ public static class BpmnModel
         Attr(e, "route"),
         Attr(e, "routeParameters"),
         Attr(e, "actions"),
-        Attr(e, "eventCode"));
+        Attr(e, "ruleCode"));
 
     private static string? Attr(XElement e, string name) => (string?)e.Attribute(Finova + name) ?? (string?)e.Attribute(name);
 }

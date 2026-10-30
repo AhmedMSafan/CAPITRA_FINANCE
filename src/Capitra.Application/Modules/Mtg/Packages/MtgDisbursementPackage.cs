@@ -174,7 +174,7 @@ public sealed class MtgDisbursementPackage(
         public MtgPurchasedPortfolioDisbursement? Done;
         public string? GlRule;
         public bool PlanRead;
-        public string? Event;
+        public string? RuleCode;
         public ProductEventPlan? Plan;
     }
 
@@ -753,15 +753,15 @@ public sealed class MtgDisbursementPackage(
     }
 
     /// <summary>
-    /// The GL entries. When the Disbursement step of the portfolio's workflow raises a business event (finova:eventCode),
-    /// they come from the product event rule of MTG_PORTFOLIO_PURCHASING and that event; otherwise the fixed entries below.
+    /// The GL entries. When the Disbursement step of the portfolio's workflow points at a product event rule (finova:ruleCode),
+    /// they come from that rule of MTG_PORTFOLIO_PURCHASING; otherwise the fixed entries below.
     /// A missing rule, or a charge that is not on it, is a blocker (strict) or falls back to the fixed entries (saved view).
     /// </summary>
     private async Task BuildGlAsync(State g, CancellationToken ct, bool strict = true)
     {
         await ReadPlanAsync(g, ct);
-        var (ev, plan) = (g.Event, g.Plan);
-        if (ev is null)
+        var (ruleCode, plan) = (g.RuleCode, g.Plan);
+        if (ruleCode is null)
         {
             BuildGl(g);
             return;
@@ -769,8 +769,8 @@ public sealed class MtgDisbursementPackage(
 
         var problems = new List<string>();
         if (plan is null)
-            problems.Add("No active product event rule for product " + AdmProduct.MortgagePortfolioPurchasingCode + " and business event " + ev + " on "
-                         + D(g.Disb) + ". Add it on Admin Setup > Product Event Rules.");
+            problems.Add("Product event rule " + ruleCode + " of product " + AdmProduct.MortgagePortfolioPurchasingCode + " is missing, inactive or not in effect on "
+                         + D(g.Disb) + ". Check it on Admin Setup > Product Event Rules, or the rule of the Disbursement step in the workflow designer.");
         else
         {
             foreach (var f in g.Ch.Where(x => x.Amount != 0))
@@ -813,28 +813,28 @@ public sealed class MtgDisbursementPackage(
     }
 
     /// <summary>
-    /// The business event the Disbursement step of the portfolio's workflow raises (finova:eventCode), null when none,
-    /// and the product event rule of MTG_PORTFOLIO_PURCHASING for it on the date, null when there is none.
+    /// The product event rule the Disbursement step of the portfolio's workflow points at (finova:ruleCode), null when none,
+    /// and that rule of MTG_PORTFOLIO_PURCHASING on the date, null when it is missing, inactive or not in effect.
     /// </summary>
     private async Task ReadPlanAsync(State g, CancellationToken ct)
     {
         if (g.PlanRead)
             return;
-        (g.Event, g.Plan) = await EventPlanAsync(g.Pf, g.Disb, ct);
+        (g.RuleCode, g.Plan) = await RulePlanAsync(g.Pf, g.Disb, ct);
         g.PlanRead = true;
     }
 
-    private async Task<(string? Event, ProductEventPlan? Plan)> EventPlanAsync(long portfolioId, DateOnly date, CancellationToken ct)
+    private async Task<(string? RuleCode, ProductEventPlan? Plan)> RulePlanAsync(long portfolioId, DateOnly date, CancellationToken ct)
     {
         var xml = await (from p in db.Set<MtgPurchasedPortfolio>()
                          join i in db.Set<WfeWorkflowInstance>() on p.WorkflowInstanceId equals i.WorkflowInstanceId
                          join d in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals d.WorkflowDefinitionId
                          where p.PortfolioId == portfolioId
                          select d.BpmnXml).FirstOrDefaultAsync(ct);
-        var ev = xml is null ? null : BpmnModel.StepByCode(xml, DisbursementStep)?.EventCode?.Trim();
-        if (string.IsNullOrEmpty(ev))
+        var code = xml is null ? null : BpmnModel.StepByCode(xml, DisbursementStep)?.RuleCode?.Trim();
+        if (string.IsNullOrEmpty(code))
             return (null, null);
-        return (ev, await rules.PlanAsync(AdmProduct.MortgagePortfolioPurchasingCode, ev, date, ct));
+        return (code, await rules.PlanByCodeAsync(AdmProduct.MortgagePortfolioPurchasingCode, code, date, ct));
     }
 
     /// <summary>The disbursement figure a GL line of the rule posts.</summary>
@@ -884,8 +884,8 @@ public sealed class MtgDisbursementPackage(
         var o = new JsonObject
         {
             ["tran_set_id"] = ts,
-            ["source"] = GlSource,
-            ["category"] = GlCategory,
+            ["source"] = g.GlRule is null ? GlSource : g.Plan!.SourceCode,
+            ["category"] = g.GlRule is null ? GlCategory : g.Plan!.CategoryCode,
             ["accounting_date"] = D(g.Disb),
         };
         if (!string.IsNullOrEmpty(g.Cur))

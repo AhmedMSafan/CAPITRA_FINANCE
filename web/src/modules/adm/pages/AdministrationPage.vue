@@ -63,11 +63,10 @@ type SetupSection = { title: string; description: string; icon: string; color: s
 // the rest are marked Coming soon.
 const sections: SetupSection[] = [
   {
-    title: 'Product Setup', description: 'Configure products, events and product processing rules.', icon: 'pi pi-box', color: '#1D5BBF', tint: '#E8F1FF',
+    title: 'Product Setup', description: 'Configure products and their processing rules.', icon: 'pi pi-box', color: '#1D5BBF', tint: '#E8F1FF',
     items: [
       { title: 'Product Catalog', description: 'Maintain product catalog and product definitions.', icon: 'pi pi-box', route: '/admin/products', perm: 'ADM.PRODUCT.VIEW' },
-      { title: 'Product Event Rules', description: 'Define product events and processing rules.', icon: 'pi pi-sitemap', route: '/admin/product-event-rules', perm: 'ADM.PRODUCT.VIEW' },
-      { title: 'Business Events', description: 'Maintain business events used by product event rules.', icon: 'pi pi-bolt', route: '/gl/accounting-events', perm: 'GL.SETUP.VIEW' },
+      { title: 'Product Event Rules', description: 'Define each product\'s rules, charges and GL entries.', icon: 'pi pi-sitemap', route: '/admin/product-event-rules', perm: 'ADM.PRODUCT.VIEW' },
       { title: 'Product Parameters', description: 'Maintain product-level configuration and defaults.', icon: 'pi pi-sliders-h', route: '/admin/products/mortgage-portfolio-purchasing', perm: 'ADM.PRODUCT.VIEW' }
     ]
   },

@@ -6,15 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Adm.Products;
 
-public sealed record EventTypeOptionDto(long EventTypeId, string EventTypeCode, string EventTypeNameEn);
+public sealed record JournalSourceOptionDto(long SourceId, string SourceCode, string SourceNameEn);
+
+public sealed record JournalCategoryOptionDto(long CategoryId, string CategoryCode, string CategoryNameEn, long? DefaultSourceId);
 
 public sealed record ProductEventRuleDto(
-    long ProductEventRuleId, long ProductId, string ProductCode, string ProductNameEn, long EventTypeId, string EventTypeCode,
-    string EventTypeNameEn, string RuleCode, string RuleNameEn, string? RuleNameAr, int PriorityNo, DateOnly EffectiveFromDate,
-    DateOnly? EffectiveToDate, bool IsActive, int ChargeCount, int GlLineCount, int RowVersion);
+    long ProductEventRuleId, long ProductId, string ProductCode, string ProductNameEn, long JournalSourceId, string JournalSourceCode,
+    long JournalCategoryId, string JournalCategoryCode, string RuleCode, string RuleNameEn, string? RuleNameAr, int PriorityNo,
+    DateOnly EffectiveFromDate, DateOnly? EffectiveToDate, bool IsActive, int ChargeCount, int GlLineCount, int RowVersion);
 
 public sealed record SaveProductEventRuleRequest(
-    long? ProductId, long? EventTypeId, string? RuleCode, string? RuleNameEn, string? RuleNameAr, int? PriorityNo,
+    long? ProductId, long? JournalSourceId, long? JournalCategoryId, string? RuleCode, string? RuleNameEn, string? RuleNameAr, int? PriorityNo,
     DateOnly? EffectiveFromDate, DateOnly? EffectiveToDate, bool IsActive, int? RowVersion);
 
 public sealed record RuleChargeDto(
@@ -56,49 +58,50 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
     public async Task<IReadOnlyList<ProductEventRuleDto>> ListAsync(CancellationToken cancellationToken) =>
         await (from r in db.Set<AdmProductEventRule>().AsNoTracking()
                join p in db.Set<AdmProduct>() on r.ProductId equals p.ProductId
-               join t in db.Set<GlAccountingEventType>() on r.EventTypeId equals t.EventTypeId
+               join s in db.Set<GlJournalSource>() on r.JournalSourceId equals s.SourceId
+               join c in db.Set<GlJournalCategory>() on r.JournalCategoryId equals c.CategoryId
                orderby r.RuleNameEn
-               select new ProductEventRuleDto(r.ProductEventRuleId, r.ProductId, p.ProductCode, p.ProductNameEn, r.EventTypeId, t.EventTypeCode,
-                   t.EventTypeNameEn, r.RuleCode, r.RuleNameEn, r.RuleNameAr, r.PriorityNo, r.EffectiveFromDate, r.EffectiveToDate, r.IsActive,
-                   r.Charges.Count, r.GlLines.Count, r.RowVersion))
+               select new ProductEventRuleDto(r.ProductEventRuleId, r.ProductId, p.ProductCode, p.ProductNameEn, r.JournalSourceId, s.SourceCode,
+                   r.JournalCategoryId, c.CategoryCode, r.RuleCode, r.RuleNameEn, r.RuleNameAr, r.PriorityNo, r.EffectiveFromDate, r.EffectiveToDate,
+                   r.IsActive, r.Charges.Count, r.GlLines.Count, r.RowVersion))
             .ToListAsync(cancellationToken);
 
-    /// <summary>Active GL accounting events, the events a rule can be set up for.</summary>
-    public async Task<IReadOnlyList<EventTypeOptionDto>> ListEventTypesAsync(CancellationToken cancellationToken) =>
-        await db.Set<GlAccountingEventType>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.EventTypeCode)
-            .Select(x => new EventTypeOptionDto(x.EventTypeId, x.EventTypeCode, x.EventTypeNameEn))
+    /// <summary>Active GL journal sources, the sources a rule can post under.</summary>
+    public async Task<IReadOnlyList<JournalSourceOptionDto>> ListJournalSourcesAsync(CancellationToken cancellationToken) =>
+        await db.Set<GlJournalSource>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.SourceCode)
+            .Select(x => new JournalSourceOptionDto(x.SourceId, x.SourceCode, x.SourceNameEn))
+            .ToListAsync(cancellationToken);
+
+    /// <summary>Active GL journal categories, the categories a rule's GL entries can carry.</summary>
+    public async Task<IReadOnlyList<JournalCategoryOptionDto>> ListJournalCategoriesAsync(CancellationToken cancellationToken) =>
+        await db.Set<GlJournalCategory>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.CategoryCode)
+            .Select(x => new JournalCategoryOptionDto(x.CategoryId, x.CategoryCode, x.CategoryNameEn, x.DefaultSourceId))
             .ToListAsync(cancellationToken);
 
     /// <summary>
-    /// The rule a posting uses for a product and business event on a date: the active rule in effect with the lowest
-    /// priority number, its charges in effect and its active GL lines; null when there is none.
+    /// The plan of the rule a workflow step points at (its rule code, on the step's product) on a date: its charges in effect
+    /// and its active GL lines; null when the product has no such rule, or it is inactive or not in effect.
     /// </summary>
-    public async Task<ProductEventPlan?> PlanAsync(string productCode, string eventCode, DateOnly date, CancellationToken cancellationToken)
+    public async Task<ProductEventPlan?> PlanByCodeAsync(string productCode, string ruleCode, DateOnly date, CancellationToken cancellationToken)
     {
-        var rule = await (from r in db.Set<AdmProductEventRule>().AsNoTracking()
-                          join p in db.Set<AdmProduct>() on r.ProductId equals p.ProductId
-                          join t in db.Set<GlAccountingEventType>() on r.EventTypeId equals t.EventTypeId
-                          where p.ProductCode == productCode && t.EventTypeCode == eventCode && r.IsActive
-                                && r.EffectiveFromDate <= date && (r.EffectiveToDate == null || r.EffectiveToDate >= date)
-                          orderby r.PriorityNo, r.ProductEventRuleId
-                          select new { r.ProductEventRuleId, r.RuleCode }).FirstOrDefaultAsync(cancellationToken);
-        return rule is null ? null : await PlanOfAsync(rule.ProductEventRuleId, rule.RuleCode, eventCode, date, cancellationToken);
+        var ruleId = await (from r in db.Set<AdmProductEventRule>().AsNoTracking()
+                            join p in db.Set<AdmProduct>() on r.ProductId equals p.ProductId
+                            where p.ProductCode == productCode && r.RuleCode == ruleCode
+                            select (long?)r.ProductEventRuleId).FirstOrDefaultAsync(cancellationToken);
+        return ruleId is null ? null : await PlanOfRuleAsync(ruleId.Value, date, cancellationToken);
     }
 
     /// <summary>The plan of one rule (the rule a product action is linked to) on a date; null when it is inactive or not in effect.</summary>
     public async Task<ProductEventPlan?> PlanOfRuleAsync(long ruleId, DateOnly date, CancellationToken cancellationToken)
     {
         var rule = await (from r in db.Set<AdmProductEventRule>().AsNoTracking()
-                          join t in db.Set<GlAccountingEventType>() on r.EventTypeId equals t.EventTypeId
+                          join s in db.Set<GlJournalSource>() on r.JournalSourceId equals s.SourceId
+                          join c in db.Set<GlJournalCategory>() on r.JournalCategoryId equals c.CategoryId
                           where r.ProductEventRuleId == ruleId && r.IsActive
                                 && r.EffectiveFromDate <= date && (r.EffectiveToDate == null || r.EffectiveToDate >= date)
-                          select new { r.ProductEventRuleId, r.RuleCode, t.EventTypeCode }).FirstOrDefaultAsync(cancellationToken);
-        return rule is null ? null : await PlanOfAsync(rule.ProductEventRuleId, rule.RuleCode, rule.EventTypeCode, date, cancellationToken);
-    }
-
-    private async Task<ProductEventPlan> PlanOfAsync(long ruleId, string ruleCode, string eventCode, DateOnly date, CancellationToken cancellationToken)
-    {
-        var rule = new { ProductEventRuleId = ruleId, RuleCode = ruleCode };
+                          select new { r.ProductEventRuleId, r.RuleCode, s.SourceCode, c.CategoryCode }).FirstOrDefaultAsync(cancellationToken);
+        if (rule is null)
+            return null;
         var charges = await (from rc in db.Set<AdmProductEventRuleCharge>().AsNoTracking()
                              join c in db.Set<AdmCharge>() on rc.ChargeId equals c.ChargeId
                              where rc.ProductEventRuleId == rule.ProductEventRuleId && rc.IsActive
@@ -114,7 +117,7 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
                            select new { l, AccountCode = a == null ? null : a.AccountCode }).ToListAsync(cancellationToken);
 
         var byId = charges.ToDictionary(x => x.RuleChargeId);
-        return new ProductEventPlan(rule.ProductEventRuleId, rule.RuleCode, eventCode, charges,
+        return new ProductEventPlan(rule.ProductEventRuleId, rule.RuleCode, rule.SourceCode, rule.CategoryCode, charges,
             [.. lines.Where(x => x.l.RuleChargeId is null || byId.ContainsKey(x.l.RuleChargeId.Value))
                 .Select(x =>
                 {
@@ -320,22 +323,27 @@ public sealed class AdmProductEventRuleService(ICapitraDbContext db)
             e.Add(nameof(r.ProductId), "Product is required.");
         else if (!await db.Set<AdmProduct>().AnyAsync(x => x.ProductId == r.ProductId, cancellationToken))
             e.Add(nameof(r.ProductId), "The selected product does not exist.");
-        if (r.EventTypeId is null)
-            e.Add(nameof(r.EventTypeId), "Accounting event is required.");
-        else if (!await db.Set<GlAccountingEventType>().AnyAsync(x => x.EventTypeId == r.EventTypeId && x.IsActive, cancellationToken))
-            e.Add(nameof(r.EventTypeId), "The selected accounting event does not exist or is inactive.");
+        if (r.JournalSourceId is null)
+            e.Add(nameof(r.JournalSourceId), "Journal source is required.");
+        else if (!await db.Set<GlJournalSource>().AnyAsync(x => x.SourceId == r.JournalSourceId && x.IsActive, cancellationToken))
+            e.Add(nameof(r.JournalSourceId), "The selected journal source does not exist or is inactive.");
+        if (r.JournalCategoryId is null)
+            e.Add(nameof(r.JournalCategoryId), "Journal category is required.");
+        else if (!await db.Set<GlJournalCategory>().AnyAsync(x => x.CategoryId == r.JournalCategoryId && x.IsActive, cancellationToken))
+            e.Add(nameof(r.JournalCategoryId), "The selected journal category does not exist or is inactive.");
         if (r.EffectiveFromDate is null)
             e.Add(nameof(r.EffectiveFromDate), "Effective From is required.");
         e.Dates(nameof(r.EffectiveToDate), r.EffectiveFromDate, r.EffectiveToDate);
 
-        if (code.Length > 0 && r.ProductId is not null && r.EventTypeId is not null
-            && await db.Set<AdmProductEventRule>().AnyAsync(x => x.ProductId == r.ProductId && x.EventTypeId == r.EventTypeId && x.RuleCode == code
+        if (code.Length > 0 && r.ProductId is not null
+            && await db.Set<AdmProductEventRule>().AnyAsync(x => x.ProductId == r.ProductId && x.RuleCode == code
                                                                  && x.ProductEventRuleId != entity.ProductEventRuleId, cancellationToken))
-            e.Add(nameof(r.RuleCode), "Rule code already exists for the selected product and event.");
+            e.Add(nameof(r.RuleCode), "Rule code already exists for the selected product.");
         e.ThrowIfAny();
 
         entity.ProductId = r.ProductId!.Value;
-        entity.EventTypeId = r.EventTypeId!.Value;
+        entity.JournalSourceId = r.JournalSourceId!.Value;
+        entity.JournalCategoryId = r.JournalCategoryId!.Value;
         entity.RuleCode = code;
         entity.RuleNameEn = nameEn;
         entity.RuleNameAr = nameAr;

@@ -10,9 +10,10 @@
 --        910101 Cheques Received in Custody      (debit)
 --        910102 Clients' Cheques in Custody      (credit)
 --      FINANCIAL_STATEMENT_CLASS OFF_BALANCE_SHEET: in the trial balance, not in the balance sheet or income statement
---   2. journal category CHW_RECEIVED and business event CHW_CHEQUES_RECEIVED (source FACTORING)
+--   2. journal category CHW_RECEIVED (source FACTORING)
 --   3. product CHEQUE_WALLET "Cheques Wallet"
---   4. rule CHW_CHEQUES_RECEIVED: Dr 910101 / Cr 910102, amount CHEQUE_AMOUNT (the batch's cheques)
+--   4. rule CHW_CHEQUES_RECEIVED (journal source FACTORING, category CHW_RECEIVED): Dr 910101 / Cr 910102,
+--      amount CHEQUE_AMOUNT (the batch's cheques)
 --   5. the product action CHW_BATCH_SUBMIT "Cheque batch submission" linked to that rule
 -- From then on Submit to the wallet posts these entries under CAP-CHW-<year>-<number>,
 -- in the same transaction as the cheques: no rule or a GL error means nothing is saved.
@@ -28,7 +29,6 @@ DECLARE
   v_acc_root bigint;
   v_source   bigint;
   v_cat      bigint;
-  v_event    bigint;
   v_product  bigint;
   v_rule     bigint;
   a          record;
@@ -93,16 +93,6 @@ BEGIN
    WHERE NOT EXISTS (SELECT 1 FROM "GL_JOURNAL_CATEGORIES" WHERE "CATEGORY_CODE" = 'CHW_RECEIVED');
   SELECT "CATEGORY_ID" INTO v_cat FROM "GL_JOURNAL_CATEGORIES" WHERE "CATEGORY_CODE" = 'CHW_RECEIVED';
 
-  SELECT "EVENT_TYPE_ID" INTO v_event FROM "GL_ACCOUNTING_EVENT_TYPES" WHERE "EVENT_TYPE_CODE" = 'CHW_CHEQUES_RECEIVED';
-  IF v_event IS NULL THEN
-    INSERT INTO "GL_ACCOUNTING_EVENT_TYPES" ("SOURCE_ID", "EVENT_TYPE_CODE", "EVENT_TYPE_NAME_EN", "EVENT_TYPE_NAME_AR", "DEFAULT_CATEGORY_ID",
-                                             "IS_ACCOUNTING_REQUIRED", "IS_MANUAL_ADJUST_ALLOWED", "IS_ACTIVE", "DESCRIPTION", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
-    VALUES (v_source, 'CHW_CHEQUES_RECEIVED', 'Cheques received in wallet', 'استلام شيكات في المحفظة', v_cat,
-            true, false, true, 'Client cheques of a cheque batch enter the cheques wallet (not yet collected).', v_by, now(), 1)
-    RETURNING "EVENT_TYPE_ID" INTO v_event;
-    RAISE NOTICE 'business event CHW_CHEQUES_RECEIVED created';
-  END IF;
-
   -- 3. product CHEQUE_WALLET
   SELECT "PRODUCT_ID" INTO v_product FROM "ADM_PRODUCTS" WHERE "PRODUCT_CODE" = 'CHEQUE_WALLET';
   IF v_product IS NULL THEN
@@ -119,13 +109,13 @@ BEGIN
 
   -- 4. the rule and its GL entries
   SELECT "PRODUCT_EVENT_RULE_ID" INTO v_rule FROM "ADM_PRODUCT_EVENT_RULES"
-   WHERE "PRODUCT_ID" = v_product AND "EVENT_TYPE_ID" = v_event AND "RULE_CODE" = 'CHW_CHEQUES_RECEIVED';
+   WHERE "PRODUCT_ID" = v_product AND "RULE_CODE" = 'CHW_CHEQUES_RECEIVED';
   IF v_rule IS NOT NULL THEN
     RAISE NOTICE 'rule CHW_CHEQUES_RECEIVED exists (id %): its GL entries are left as they are', v_rule;
   ELSE
-    INSERT INTO "ADM_PRODUCT_EVENT_RULES" ("PRODUCT_ID", "EVENT_TYPE_ID", "RULE_CODE", "RULE_NAME_EN", "RULE_NAME_AR", "PRIORITY_NO",
+    INSERT INTO "ADM_PRODUCT_EVENT_RULES" ("PRODUCT_ID", "JOURNAL_SOURCE_ID", "JOURNAL_CATEGORY_ID", "RULE_CODE", "RULE_NAME_EN", "RULE_NAME_AR", "PRIORITY_NO",
                                            "EFFECTIVE_FROM_DATE", "IS_ACTIVE", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
-    VALUES (v_product, v_event, 'CHW_CHEQUES_RECEIVED', 'Cheques received in wallet', 'استلام شيكات في المحفظة', 1, v_from, true, v_by, now(), 1)
+    VALUES (v_product, v_source, v_cat, 'CHW_CHEQUES_RECEIVED', 'Cheques received in wallet', 'استلام شيكات في المحفظة', 1, v_from, true, v_by, now(), 1)
     RETURNING "PRODUCT_EVENT_RULE_ID" INTO v_rule;
 
     INSERT INTO "ADM_PRODUCT_EVENT_RULE_GL_LINES" ("PRODUCT_EVENT_RULE_ID", "RULE_CHARGE_ID", "JOURNAL_NO", "LINE_NO", "DEBIT_CREDIT_CODE",

@@ -7,10 +7,10 @@
 -- It sets up, with the same figures and accounts the Disbursement posts today:
 --   1. charge type FEE and the charges ADMIN_EXPENSE, LEGAL_FEE, VALUATION_FEE
 --   2. business line MORTGAGE and product MTG_PORTFOLIO_PURCHASING (kept as they are when they exist)
---   3. business event PP_DISBURSE (GL_ACCOUNTING_EVENT_TYPES, source PURCHASED_PORTFOLIO)
+--   3. the journal source PURCHASED_PORTFOLIO and category PP_DISBURSE the rule posts under (must exist)
 --   4. rule PP_DISBURSE: the three charges, the rule GL entries
 --      (booking journal 1 and payment journal 2) and each charge's GL entries
---   5. finova:eventCode="PP_DISBURSE" on the Disbursement step of PURCHASED_PORTFOLIO_WF
+--   5. finova:ruleCode="PP_DISBURSE" on the Disbursement step of PURCHASED_PORTFOLIO_WF (the step points at the rule)
 -- From then on the Disbursement takes its GL entries from the rule.
 -- Safe to run again: what exists is kept; a rule that exists is not changed.
 -- One transaction: any error changes nothing.
@@ -21,7 +21,7 @@ DECLARE
   v_from    date := DATE '2020-01-01';   -- rule and charges in effect from
   v_product bigint;
   v_source  bigint;
-  v_event   bigint;
+  v_cat     bigint;
   v_rule    bigint;
   v_rc      bigint;
   v_missing text;
@@ -75,31 +75,25 @@ BEGIN
     RAISE NOTICE 'product MTG_PORTFOLIO_PURCHASING created: enter its rates on Admin Setup > Mortgage Portfolio Purchasing';
   END IF;
 
-  -- 3. business event PP_DISBURSE of source PURCHASED_PORTFOLIO
+  -- 3. journal source PURCHASED_PORTFOLIO and category PP_DISBURSE
   SELECT "SOURCE_ID" INTO v_source FROM "GL_JOURNAL_SOURCES" WHERE "SOURCE_CODE" = 'PURCHASED_PORTFOLIO';
   IF v_source IS NULL THEN
     RAISE EXCEPTION 'GL journal source PURCHASED_PORTFOLIO is missing. Nothing changed.';
   END IF;
-  SELECT "EVENT_TYPE_ID" INTO v_event FROM "GL_ACCOUNTING_EVENT_TYPES" WHERE "EVENT_TYPE_CODE" = 'PP_DISBURSE';
-  IF v_event IS NULL THEN
-    INSERT INTO "GL_ACCOUNTING_EVENT_TYPES" ("SOURCE_ID", "EVENT_TYPE_CODE", "EVENT_TYPE_NAME_EN", "EVENT_TYPE_NAME_AR", "DEFAULT_CATEGORY_ID",
-                                             "IS_ACCOUNTING_REQUIRED", "IS_MANUAL_ADJUST_ALLOWED", "IS_ACTIVE", "DESCRIPTION", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
-    VALUES (v_source, 'PP_DISBURSE', 'Purchased portfolio disbursement', 'صرف المحفظة المشتراة',
-            (SELECT "CATEGORY_ID" FROM "GL_JOURNAL_CATEGORIES" WHERE "CATEGORY_CODE" = 'PP_DISBURSE'),
-            true, false, true, 'Booking of a purchased portfolio and payment to the developer', v_by, now(), 1)
-    RETURNING "EVENT_TYPE_ID" INTO v_event;
-    RAISE NOTICE 'business event PP_DISBURSE created';
+  SELECT "CATEGORY_ID" INTO v_cat FROM "GL_JOURNAL_CATEGORIES" WHERE "CATEGORY_CODE" = 'PP_DISBURSE';
+  IF v_cat IS NULL THEN
+    RAISE EXCEPTION 'GL journal category PP_DISBURSE is missing. Nothing changed.';
   END IF;
 
   -- 4. the rule, its charges and GL entries
   SELECT "PRODUCT_EVENT_RULE_ID" INTO v_rule FROM "ADM_PRODUCT_EVENT_RULES"
-   WHERE "PRODUCT_ID" = v_product AND "EVENT_TYPE_ID" = v_event AND "RULE_CODE" = 'PP_DISBURSE';
+   WHERE "PRODUCT_ID" = v_product AND "RULE_CODE" = 'PP_DISBURSE';
   IF v_rule IS NOT NULL THEN
     RAISE NOTICE 'rule PP_DISBURSE exists (id %): its charges and GL entries are left as they are', v_rule;
   ELSE
-    INSERT INTO "ADM_PRODUCT_EVENT_RULES" ("PRODUCT_ID", "EVENT_TYPE_ID", "RULE_CODE", "RULE_NAME_EN", "RULE_NAME_AR", "PRIORITY_NO",
+    INSERT INTO "ADM_PRODUCT_EVENT_RULES" ("PRODUCT_ID", "JOURNAL_SOURCE_ID", "JOURNAL_CATEGORY_ID", "RULE_CODE", "RULE_NAME_EN", "RULE_NAME_AR", "PRIORITY_NO",
                                            "EFFECTIVE_FROM_DATE", "IS_ACTIVE", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
-    VALUES (v_product, v_event, 'PP_DISBURSE', 'Purchased portfolio disbursement', 'صرف المحفظة المشتراة', 1, v_from, true, v_by, now(), 1)
+    VALUES (v_product, v_source, v_cat, 'PP_DISBURSE', 'Purchased portfolio disbursement', 'صرف المحفظة المشتراة', 1, v_from, true, v_by, now(), 1)
     RETURNING "PRODUCT_EVENT_RULE_ID" INTO v_rule;
 
     -- rule GL entries: journal 1 booking, journal 2 payment to the developer
@@ -143,14 +137,14 @@ BEGIN
     RAISE NOTICE 'rule PP_DISBURSE created (id %) with 3 charges and 13 GL entries', v_rule;
   END IF;
 
-  -- 5. the Disbursement step raises PP_DISBURSE (every version of the workflow, so running portfolios use it too)
+  -- 5. the Disbursement step points at rule PP_DISBURSE (every version of the workflow, so running portfolios use it too)
   UPDATE "WFE_WORKFLOW_DEFINITIONS"
-     SET "BPMN_XML" = replace("BPMN_XML", 'finova:stepCode="DISBURSEMENT"', 'finova:stepCode="DISBURSEMENT" finova:eventCode="PP_DISBURSE"'),
+     SET "BPMN_XML" = replace("BPMN_XML", 'finova:stepCode="DISBURSEMENT"', 'finova:stepCode="DISBURSEMENT" finova:ruleCode="PP_DISBURSE"'),
          "UPDATED_BY" = v_by, "UPDATED_AT" = now(), "ROW_VERSION" = "ROW_VERSION" + 1
    WHERE "WORKFLOW_CODE" = 'PURCHASED_PORTFOLIO_WF' AND "BPMN_XML" LIKE '%finova:stepCode="DISBURSEMENT"%'
-     AND "BPMN_XML" NOT LIKE '%finova:stepCode="DISBURSEMENT" finova:eventCode=%';
+     AND "BPMN_XML" NOT LIKE '%finova:stepCode="DISBURSEMENT" finova:ruleCode=%';
   GET DIAGNOSTICS v_n = ROW_COUNT;
-  RAISE NOTICE '% workflow version(s) of PURCHASED_PORTFOLIO_WF now raise PP_DISBURSE on Disbursement', v_n;
+  RAISE NOTICE '% workflow version(s) of PURCHASED_PORTFOLIO_WF now post rule PP_DISBURSE on Disbursement', v_n;
 
   RAISE NOTICE 'Setup done. The Disbursement GL tab shows "Entries from product event rule PP_DISBURSE".';
 END $$;

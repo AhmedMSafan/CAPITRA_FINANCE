@@ -8,9 +8,9 @@ namespace Capitra.Application.Modules.Adm.Products;
 
 public sealed record ProductActionDto(
     string ActionCode, string ActionNameEn, string ActionNameAr, string Description, string ModuleCode, IReadOnlyList<string> AmountCodes,
-    long? ProductActionId, long? ProductEventRuleId, string? RuleCode, string? RuleNameEn, string? EventTypeCode, bool IsActive, int? RowVersion);
+    long? ProductActionId, long? ProductEventRuleId, string? RuleCode, string? RuleNameEn, bool IsActive, int? RowVersion);
 
-public sealed record ProductActionRuleOptionDto(long ProductEventRuleId, string RuleCode, string RuleNameEn, string EventTypeCode, bool IsActive);
+public sealed record ProductActionRuleOptionDto(long ProductEventRuleId, string RuleCode, string RuleNameEn, bool IsActive);
 
 public sealed record ProductActionsDto(IReadOnlyList<ProductActionDto> Actions, IReadOnlyList<ProductActionRuleOptionDto> Rules);
 
@@ -25,22 +25,19 @@ public sealed class AdmProductActionService(ICapitraDbContext db)
         var links = await (from a in db.Set<AdmProductAction>().AsNoTracking()
                            join r in db.Set<AdmProductEventRule>() on a.ProductEventRuleId equals r.ProductEventRuleId into rs
                            from r in rs.DefaultIfEmpty()
-                           join t in db.Set<GlAccountingEventType>() on r.EventTypeId equals t.EventTypeId into ts
-                           from t in ts.DefaultIfEmpty()
                            where a.ProductId == productId
-                           select new { a, RuleCode = r == null ? null : r.RuleCode, RuleNameEn = r == null ? null : r.RuleNameEn, EventTypeCode = t == null ? null : t.EventTypeCode })
+                           select new { a, RuleCode = r == null ? null : r.RuleCode, RuleNameEn = r == null ? null : r.RuleNameEn })
             .ToListAsync(cancellationToken);
         var actions = ProductActions.All.Where(x => x.ProductCode == product.ProductCode).Select(d =>
         {
             var l = links.FirstOrDefault(x => x.a.ActionCode == d.ActionCode);
             return new ProductActionDto(d.ActionCode, d.ActionNameEn, d.ActionNameAr, d.Description, d.ModuleCode, d.AmountCodes,
-                l?.a.ProductActionId, l?.a.ProductEventRuleId, l?.RuleCode, l?.RuleNameEn, l?.EventTypeCode, l?.a.IsActive ?? false, l?.a.RowVersion);
+                l?.a.ProductActionId, l?.a.ProductEventRuleId, l?.RuleCode, l?.RuleNameEn, l?.a.IsActive ?? false, l?.a.RowVersion);
         }).ToList();
         var rules = await (from r in db.Set<AdmProductEventRule>().AsNoTracking()
-                           join t in db.Set<GlAccountingEventType>() on r.EventTypeId equals t.EventTypeId
                            where r.ProductId == productId
                            orderby r.RuleNameEn
-                           select new ProductActionRuleOptionDto(r.ProductEventRuleId, r.RuleCode, r.RuleNameEn, t.EventTypeCode, r.IsActive))
+                           select new ProductActionRuleOptionDto(r.ProductEventRuleId, r.RuleCode, r.RuleNameEn, r.IsActive))
             .ToListAsync(cancellationToken);
         return new ProductActionsDto(actions, rules);
     }
