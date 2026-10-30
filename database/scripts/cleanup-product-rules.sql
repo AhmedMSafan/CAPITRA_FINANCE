@@ -2,9 +2,9 @@
 -- Capitra: remove the migrated product event rules (Ahmed, 30 Oct 2026)
 -- Run in pgAdmin > Query Tool on CAPITRA_DB. Press F5.
 --
--- Keeps only:
---   PP_DISBURSE           the purchased portfolio disbursement rule
---   CHW_CHEQUES_RECEIVED  the cheque batch submission rule (setup-cheque-wallet-rule.sql)
+-- Keeps only the rules of the two products Ahmed set up:
+--   MTG_PORTFOLIO_PURCHASING  (the purchased portfolio disbursement rule PP_DISBURSE)
+--   CHEQUE_WALLET             (the cheque batch submission rule CHW_CHEQUES_RECEIVED)
 -- Every other rule in ADM_PRODUCT_EVENT_RULES is deleted with its charge components
 -- (ADM_PRODUCT_EVENT_RULE_CHARGES) and GL entry lines (ADM_PRODUCT_EVENT_RULE_GL_LINES).
 -- Products, charges, charge types, business events and GL accounts are not touched.
@@ -16,12 +16,14 @@
 DO $$
 DECLARE
   v_delete boolean := false;   -- << set to true to delete
-  v_keep   text[]  := ARRAY['PP_DISBURSE', 'CHW_CHEQUES_RECEIVED'];
+  v_keep   text[]  := ARRAY['MTG_PORTFOLIO_PURCHASING', 'CHEQUE_WALLET'];   -- products whose rules are kept
   v_rules  bigint[];
   v_n      bigint;
   r        record;
 BEGIN
-  SELECT array_agg("PRODUCT_EVENT_RULE_ID") INTO v_rules FROM "ADM_PRODUCT_EVENT_RULES" WHERE "RULE_CODE" <> ALL (v_keep);
+  SELECT array_agg(er."PRODUCT_EVENT_RULE_ID") INTO v_rules
+    FROM "ADM_PRODUCT_EVENT_RULES" er JOIN "ADM_PRODUCTS" ep ON ep."PRODUCT_ID" = er."PRODUCT_ID"
+   WHERE ep."PRODUCT_CODE" <> ALL (v_keep);
   IF v_rules IS NULL THEN
     RAISE NOTICE 'Nothing to delete: only the kept rules exist.';
     RETURN;
@@ -33,8 +35,8 @@ BEGIN
              FROM "ADM_PRODUCT_EVENT_RULES" x JOIN "ADM_PRODUCTS" p ON p."PRODUCT_ID" = x."PRODUCT_ID"
             WHERE x."PRODUCT_EVENT_RULE_ID" = ANY (v_rules) ORDER BY p."PRODUCT_CODE", x."RULE_CODE"
   LOOP
-    RAISE NOTICE '% rule % "%" (id %): % charge component(s), % GL line(s)',
-      CASE WHEN v_delete THEN 'deleting' ELSE 'would delete' END, r."RULE_CODE", r."RULE_NAME_EN", r."PRODUCT_EVENT_RULE_ID", r.charges, r.gl_lines;
+    RAISE NOTICE '% rule % "%" of product % (id %): % charge component(s), % GL line(s)',
+      CASE WHEN v_delete THEN 'deleting' ELSE 'would delete' END, r."RULE_CODE", r."RULE_NAME_EN", r."PRODUCT_CODE", r."PRODUCT_EVENT_RULE_ID", r.charges, r.gl_lines;
   END LOOP;
 
   IF NOT v_delete THEN
