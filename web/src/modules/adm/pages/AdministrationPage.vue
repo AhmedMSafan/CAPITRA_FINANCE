@@ -75,7 +75,8 @@ const sections: SetupSection[] = [
     items: [
       { title: 'Charge Components', description: 'Maintain reusable charge components.', icon: 'pi pi-wallet', route: '/admin/charges', perm: 'ADM.PRODUCT.VIEW' },
       { title: 'Charge Component Types', description: 'Maintain charge component classifications.', icon: 'pi pi-tags', route: '/admin/reference-data/charge-type' },
-      { title: 'Charge Parameters', description: 'Configure charge defaults and calculation settings.', icon: 'pi pi-percentage' }
+      { title: 'Rate Maintenance', description: 'Maintain rate indexes and the rate of each period.', icon: 'pi pi-percentage', route: '/admin/rate-indexes', perm: 'ADM.PRODUCT.VIEW' },
+      { title: 'Charge Parameters', description: 'Configure charge defaults and calculation settings.', icon: 'pi pi-sliders-h' }
     ]
   },
   {
