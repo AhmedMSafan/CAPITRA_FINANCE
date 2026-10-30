@@ -284,6 +284,12 @@ const router = createRouter({
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Charges' }
         },
         {
+          path: 'admin/rate-indexes',
+          name: 'adm-rate-indexes',
+          component: () => import('@/modules/adm/pages/RateIndexesPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Rate Maintenance' }
+        },
+        {
           path: 'admin/product-event-rules',
           name: 'adm-product-event-rules',
           component: () => import('@/modules/adm/pages/ProductEventRulesPage.vue'),

@@ -73,9 +73,11 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         var batch = await BatchOfAsync(disbursementId, true, cancellationToken);
         var today = GlTime.Today(clock);
 
-        // INITIALIZE_PAGE_VALUES: the index rate of rate index 1, the business date and the method defaults (here only where none is saved)
+        // INITIALIZE_PAGE_VALUES: the index rate of rate index 1 (its period that holds today), the business date and the method defaults
+        // (here only where none is saved)
         var indexRate = await db.Set<AdmRateIndexValue>().AsNoTracking()
-            .Where(x => x.RateIndexId == 1 && x.EffectiveToDate == null).Select(x => (decimal?)x.AnnualRatePct).FirstOrDefaultAsync(cancellationToken);
+            .Where(x => x.RateIndexId == 1 && x.EffectiveFromDate <= today).OrderByDescending(x => x.EffectiveFromDate)
+            .Select(x => (decimal?)x.AnnualRatePct).FirstOrDefaultAsync(cancellationToken);
         var terms = new CrmDisbursementTermsDto(
             d.DisbursementNumber, d.DisbursementDate, d.ClientId, d.LimitId, d.CurrencyId, d.ProductId ?? 1, d.GrossAmount, d.AdvanceRatePct, d.TenorMonth,
             indexRate ?? d.IndexRate, d.SpreadRate, d.BaseDayCountBasis ?? "ACTUAL/360", d.RepaymentStartDate ?? today,
