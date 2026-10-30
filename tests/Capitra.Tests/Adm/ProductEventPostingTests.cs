@@ -18,7 +18,7 @@ public sealed class ProductEventPostingTests
         decimal? fixedAmount = null, string? amountBase = null, decimal? min = null, decimal? max = null) =>
         new(seq, seq, code, code, null, method, fixedAmount, rate, perUnit, amountBase, "PRORATE", min, max, 2, "DEDUCT_FROM_DISBURSEMENT", 0);
 
-    private static readonly ProductEventPlan Plan = new(1, "PP_DISBURSE", "PP_DISBURSE",
+    private static readonly ProductEventPlan Plan = new(1, "PP_DISBURSE", "PURCHASED_PORTFOLIO", "PP_DISBURSE",
     [
         Component(10, "ADMIN_EXPENSE", "PERCENTAGE"), Component(20, "LEGAL_FEE", "PER_UNIT"), Component(30, "VALUATION_FEE", "PER_UNIT"),
     ],

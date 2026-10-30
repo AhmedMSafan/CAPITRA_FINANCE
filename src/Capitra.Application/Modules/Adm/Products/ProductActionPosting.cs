@@ -47,17 +47,8 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
         if (lines.Count == 0)
             throw Fail(-20987, $"Rule {plan.RuleCode} gives no GL entries for this {doc.DocumentType.ToLowerInvariant().Replace('_', ' ')}.");
 
-        var ev = await (from t in db.Set<GlAccountingEventType>().AsNoTracking()
-                        join s in db.Set<GlJournalSource>() on t.SourceId equals s.SourceId
-                        join c in db.Set<GlJournalCategory>() on t.DefaultCategoryId equals c.CategoryId into cs
-                        from c in cs.DefaultIfEmpty()
-                        where t.EventTypeCode == plan.EventCode
-                        select new { s.SourceCode, CategoryCode = c == null ? null : c.CategoryCode }).FirstOrDefaultAsync(ct);
-        if (ev?.CategoryCode is null)
-            throw Fail(-20988, $"Business event {plan.EventCode} needs a journal source and a default journal category.");
-
         var ts = await tranSetIds.NextAsync(def.ModuleCode, doc.Date, ct);
-        var res = await gl.PostTranSetAsync(Payload(def, doc, ts, ev.SourceCode, ev.CategoryCode, plan.RuleCode, lines), ct);
+        var res = await gl.PostTranSetAsync(Payload(def, doc, ts, plan.SourceCode, plan.CategoryCode, plan.RuleCode, lines), ct);
         var r = JsonDocument.Parse(res).RootElement;
         if (Str(r, "status") != "OK")
             throw Fail(-20989, "GL refused the entries: " + Str(r, "message") + " " + FirstError(r));

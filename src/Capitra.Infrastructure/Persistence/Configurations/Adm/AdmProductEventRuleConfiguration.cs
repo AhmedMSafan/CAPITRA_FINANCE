@@ -11,8 +11,9 @@ public sealed class AdmProductEventRuleConfiguration : IEntityTypeConfiguration<
     {
         builder.ToTable("ADM_PRODUCT_EVENT_RULES");
         builder.HasKey(x => x.ProductEventRuleId);
-        builder.HasIndex(x => new { x.ProductId, x.EventTypeId, x.RuleCode }).IsUnique();
-        builder.HasIndex(x => x.EventTypeId);
+        builder.HasIndex(x => new { x.ProductId, x.RuleCode }).IsUnique();
+        builder.HasIndex(x => x.JournalSourceId);
+        builder.HasIndex(x => x.JournalCategoryId);
 
         builder.Property(x => x.ProductEventRuleId).UseIdentityByDefaultColumn();
         builder.Property(x => x.RuleCode).HasMaxLength(50);
@@ -20,7 +21,8 @@ public sealed class AdmProductEventRuleConfiguration : IEntityTypeConfiguration<
         builder.Property(x => x.RuleNameAr).HasMaxLength(200);
 
         builder.HasOne<AdmProduct>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<GlAccountingEventType>().WithMany().HasForeignKey(x => x.EventTypeId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<GlJournalSource>().WithMany().HasForeignKey(x => x.JournalSourceId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<GlJournalCategory>().WithMany().HasForeignKey(x => x.JournalCategoryId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(x => x.Charges).WithOne().HasForeignKey(x => x.ProductEventRuleId).OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(x => x.GlLines).WithOne().HasForeignKey(x => x.ProductEventRuleId).OnDelete(DeleteBehavior.Cascade);
         builder.ConfigureAudit();

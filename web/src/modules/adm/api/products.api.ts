@@ -50,7 +50,9 @@ export type SaveMppParameters = {
   rowVersion: number
 }
 
-export type EventTypeOption = { eventTypeId: number; eventTypeCode: string; eventTypeNameEn: string }
+export type JournalSourceOption = { sourceId: number; sourceCode: string; sourceNameEn: string }
+
+export type JournalCategoryOption = { categoryId: number; categoryCode: string; categoryNameEn: string; defaultSourceId: number | null }
 
 /** ADM_PRODUCT_EVENT_RULES */
 export type ProductEventRule = {
@@ -58,9 +60,10 @@ export type ProductEventRule = {
   productId: number
   productCode: string
   productNameEn: string
-  eventTypeId: number
-  eventTypeCode: string
-  eventTypeNameEn: string
+  journalSourceId: number
+  journalSourceCode: string
+  journalCategoryId: number
+  journalCategoryCode: string
   ruleCode: string
   ruleNameEn: string
   ruleNameAr: string | null
@@ -132,12 +135,11 @@ export type ProductAction = {
   productEventRuleId: number | null
   ruleCode: string | null
   ruleNameEn: string | null
-  eventTypeCode: string | null
   isActive: boolean
   rowVersion: number | null
 }
 
-export type ProductActionRuleOption = { productEventRuleId: number; ruleCode: string; ruleNameEn: string; eventTypeCode: string; isActive: boolean }
+export type ProductActionRuleOption = { productEventRuleId: number; ruleCode: string; ruleNameEn: string; isActive: boolean }
 
 export type ProductActions = { actions: ProductAction[]; rules: ProductActionRuleOption[] }
 
@@ -172,7 +174,8 @@ export const productsApi = {
 export const productEventRulesApi = {
   list: () => http.get<ProductEventRule[]>(RULES),
   get: (id: number) => http.get<ProductEventRule>(`${RULES}/${id}`),
-  eventTypes: () => http.get<EventTypeOption[]>(`${RULES}/event-types`),
+  journalSources: () => http.get<JournalSourceOption[]>(`${RULES}/journal-sources`),
+  journalCategories: () => http.get<JournalCategoryOption[]>(`${RULES}/journal-categories`),
   create: (b: Body) => http.post<ProductEventRule>(RULES, b),
   update: (id: number, b: Body) => http.put<ProductEventRule>(`${RULES}/${id}`, b),
   remove: (id: number, rowVersion: number) => http.delete<void>(`${RULES}/${id}?rowVersion=${rowVersion}`),

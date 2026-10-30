@@ -1237,13 +1237,17 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("EFFECTIVE_TO_DATE");
 
-                    b.Property<long>("EventTypeId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("EVENT_TYPE_ID");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
+
+                    b.Property<long>("JournalCategoryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOURNAL_CATEGORY_ID");
+
+                    b.Property<long>("JournalSourceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOURNAL_SOURCE_ID");
 
                     b.Property<int>("PriorityNo")
                         .HasColumnType("integer")
@@ -1287,12 +1291,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasKey("ProductEventRuleId")
                         .HasName("PK_ADM_PRODUCT_EVENT_RULES");
 
-                    b.HasIndex("EventTypeId")
-                        .HasDatabaseName("IX_ADM_PRODUCT_EVENT_RULES_EVENT_TYPE_ID");
+                    b.HasIndex("JournalCategoryId")
+                        .HasDatabaseName("IX_ADM_PRODUCT_EVENT_RULES_JOURNAL_CATEGORY_ID");
 
-                    b.HasIndex("ProductId", "EventTypeId", "RuleCode")
+                    b.HasIndex("JournalSourceId")
+                        .HasDatabaseName("IX_ADM_PRODUCT_EVENT_RULES_JOURNAL_SOURCE_ID");
+
+                    b.HasIndex("ProductId", "RuleCode")
                         .IsUnique()
-                        .HasDatabaseName("UQ_ADM_PRODUCT_EVENT_RULES_PRODUCT_ID_EVENT_TYPE_ID_RULE_CODE");
+                        .HasDatabaseName("UQ_ADM_PRODUCT_EVENT_RULES_PRODUCT_ID_RULE_CODE");
 
                     b.ToTable("ADM_PRODUCT_EVENT_RULES", (string)null);
                 });
@@ -36184,12 +36191,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProductEventRule", b =>
                 {
-                    b.HasOne("Capitra.Domain.Modules.Gl.GlAccountingEventType", null)
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalCategory", null)
                         .WithMany()
-                        .HasForeignKey("EventTypeId")
+                        .HasForeignKey("JournalCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULES_GL_ACCOUNTING_EVENT_TYPES");
+                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULES_GL_JOURNAL_CATEGORIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Gl.GlJournalSource", null)
+                        .WithMany()
+                        .HasForeignKey("JournalSourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ADM_PRODUCT_EVENT_RULES_GL_JOURNAL_SOURCES");
 
                     b.HasOne("Capitra.Domain.Modules.Adm.AdmProduct", null)
                         .WithMany()

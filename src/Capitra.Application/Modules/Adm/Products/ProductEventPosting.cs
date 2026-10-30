@@ -11,9 +11,10 @@ public sealed record ProductEventCharge(
     decimal? FixedAmount, decimal? ChargeRate, decimal? PerUnitAmount, string? AmountBaseCode, string IncomeRecognitionCode,
     decimal? MinimumAmount, decimal? MaximumAmount, int RoundingScale, string ChargeTimingCode, decimal TaxRate);
 
-/// <summary>The rule that applies to a product and business event on a date: its charges and its GL lines.</summary>
+/// <summary>A product event rule on a date: the journal source and category it posts under, its charges and its GL lines.</summary>
 public sealed record ProductEventPlan(
-    long ProductEventRuleId, string RuleCode, string EventCode, IReadOnlyList<ProductEventCharge> Charges, IReadOnlyList<ProductEventGlLine> Lines)
+    long ProductEventRuleId, string RuleCode, string SourceCode, string CategoryCode, IReadOnlyList<ProductEventCharge> Charges,
+    IReadOnlyList<ProductEventGlLine> Lines)
 {
     public IEnumerable<string> ChargeCodes => Charges.Select(x => x.ChargeCode);
 }

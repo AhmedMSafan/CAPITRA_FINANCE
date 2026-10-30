@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // Product Event Rules (ADM_PRODUCT_EVENT_RULES): FINOVA_FINANCEING ProductEventRulesPage. The rule list, and under it the
-// configuration of the selected rule in three tabs as there: Rule GL Entries (the posting of the business event itself),
-// Charge Components, and Component GL Entries (the posting of one charge).
+// configuration of the selected rule in three tabs as there: Rule GL Entries (the posting of the rule itself),
+// Charge Components, and Component GL Entries (the posting of one charge). A rule belongs to a product and posts under its own
+// journal source and category; a workflow step or a product action points at the rule directly (no business event in between).
 import { computed, nextTick, ref } from 'vue'
 import CrudPage from '@/shared/crud/CrudPage.vue'
 import type { CrudApi, CrudColumn, CrudField, FieldOption, FormValues } from '@/shared/crud/types'
@@ -18,7 +19,8 @@ const canEdit = hasPermission('ADM.PRODUCT.EDIT')
 
 // ---- lists for the drop-downs
 const products = ref<FieldOption[]>([])
-const eventTypes = ref<FieldOption[]>([])
+const journalSources = ref<FieldOption[]>([])
+const journalCategories = ref<FieldOption[]>([])
 const charges = ref<FieldOption[]>([])
 const glAccounts = ref<FieldOption[]>([])
 
@@ -26,13 +28,13 @@ const glAccounts = ref<FieldOption[]>([])
 type RuleRow = ProductEventRule
 
 const productFilter = ref('')
-const eventFilter = ref('')
 
 const ruleColumns: CrudColumn<RuleRow>[] = [
   { field: 'productCode', label: 'Product', type: 'code' },
-  { field: 'eventTypeCode', label: 'Business Event', type: 'code' },
   { field: 'ruleCode', label: 'Rule Code', type: 'code' },
   { field: 'ruleNameEn', label: 'Rule Name' },
+  { field: 'journalSourceCode', label: 'Journal Source', type: 'code' },
+  { field: 'journalCategoryCode', label: 'Journal Category', type: 'code' },
   { field: 'priorityNo', label: 'Priority', type: 'number' },
   { field: 'effectiveFromDate', label: 'Effective From', type: 'date' },
   { field: 'effectiveToDate', label: 'Effective To', type: 'date' }
@@ -40,11 +42,12 @@ const ruleColumns: CrudColumn<RuleRow>[] = [
 
 const ruleFields = computed<CrudField[]>(() => [
   { name: 'productId', label: 'Product', type: 'select', required: true, options: products.value },
-  { name: 'eventTypeId', label: 'Business Event', type: 'select', required: true, options: eventTypes.value },
   { name: 'ruleCode', label: 'Rule Code', type: 'text', required: true, maxLength: 50, uppercase: true },
-  { name: 'priorityNo', label: 'Priority No', type: 'number', required: true, min: 0 },
   { name: 'ruleNameEn', label: 'Rule Name (EN)', type: 'text', required: true, maxLength: 200 },
   { name: 'ruleNameAr', label: 'Rule Name (AR)', type: 'text', maxLength: 200, rtl: true },
+  { name: 'journalSourceId', label: 'Journal Source', type: 'select', required: true, options: journalSources.value },
+  { name: 'journalCategoryId', label: 'Journal Category', type: 'select', required: true, options: journalCategories.value },
+  { name: 'priorityNo', label: 'Priority No', type: 'number', required: true, min: 0 },
   { name: 'effectiveFromDate', label: 'Effective From', type: 'date', required: true },
   { name: 'effectiveToDate', label: 'Effective To', type: 'date' }
 ])
@@ -52,19 +55,19 @@ const ruleFields = computed<CrudField[]>(() => [
 const toRuleBody = (v: FormValues, rowVersion: number | null) => ({
   ...v,
   productId: v.productId == null ? null : Number(v.productId),
-  eventTypeId: v.eventTypeId == null ? null : Number(v.eventTypeId),
+  journalSourceId: v.journalSourceId == null ? null : Number(v.journalSourceId),
+  journalCategoryId: v.journalCategoryId == null ? null : Number(v.journalCategoryId),
   rowVersion
 })
 
 const ruleApi = computed<CrudApi<RuleRow>>(() => {
   const product = productFilter.value
-  const event = eventFilter.value
   return {
     list: async () => {
       const rows = (await productEventRulesApi.list())
       // keep the open configuration in step with the saved rule
       if (selectedRule.value) selectedRule.value = rows.find(x => x.productEventRuleId === selectedRule.value!.productEventRuleId) ?? null
-      return rows.filter(r => (!product || String(r.productId) === product) && (!event || String(r.eventTypeId) === event))
+      return rows.filter(r => !product || String(r.productId) === product)
     },
     create: v => productEventRulesApi.create(toRuleBody(v, null)),
     update: (row, v) => productEventRulesApi.update(row.productEventRuleId, toRuleBody(v, row.rowVersion)),
@@ -246,11 +249,12 @@ const componentGlApi = computed(() => glApiFor(selectedComponent.value?.ruleChar
 
 // ---- start
 void (async () => {
-  const [p, e, c, a] = await Promise.all([
-    productsApi.list(), productEventRulesApi.eventTypes(), chargesApi.list(), productEventRulesApi.glAccounts()
+  const [p, so, ca, c, a] = await Promise.all([
+    productsApi.list(), productEventRulesApi.journalSources(), productEventRulesApi.journalCategories(), chargesApi.list(), productEventRulesApi.glAccounts()
   ])
   products.value = p.filter(x => x.isActive).map(x => ({ value: x.productId, label: `${x.productCode} - ${x.productNameEn}` }))
-  eventTypes.value = e.map(x => ({ value: x.eventTypeId, label: `${x.eventTypeCode} - ${x.eventTypeNameEn}` }))
+  journalSources.value = so.map(x => ({ value: x.sourceId, label: `${x.sourceCode} - ${x.sourceNameEn}` }))
+  journalCategories.value = ca.map(x => ({ value: x.categoryId, label: `${x.categoryCode} - ${x.categoryNameEn}` }))
   charges.value = c.filter(x => x.isActive).map(x => ({ value: x.chargeId, label: `${x.chargeCode} - ${x.chargeNameEn}` }))
   glAccounts.value = a.map(x => ({ value: x.accountId, label: `${x.accountCode} - ${x.accountNameEn}` }))
 })()
@@ -260,7 +264,7 @@ void (async () => {
   <div class="per">
     <CrudPage
       title="Product Event Rules"
-      description="Define business-event rules, charges and their accounting entries."
+      description="Define each product's rules, their charges and accounting entries."
       icon="pi pi-sitemap"
       apex-pages="FINOVA_FINANCEING"
       entity-label="Rule"
@@ -279,10 +283,6 @@ void (async () => {
         <select v-model="productFilter" class="per-filter" :aria-label="tr('Product')">
           <option value="">{{ tr('All Products') }}</option>
           <option v-for="x in products" :key="x.value" :value="String(x.value)">{{ x.label }}</option>
-        </select>
-        <select v-model="eventFilter" class="per-filter" :aria-label="tr('Business Event')">
-          <option value="">{{ tr('All Business Events') }}</option>
-          <option v-for="x in eventTypes" :key="x.value" :value="String(x.value)">{{ x.label }}</option>
         </select>
       </template>
       <template #row-actions="{ row }">
@@ -306,7 +306,7 @@ void (async () => {
           <div class="per-meta">
             <span class="fx-chip" :class="{ 'fx-chip--ok': selectedRule.isActive }">{{ tr(selectedRule.isActive ? 'Active' : 'Inactive') }}</span>
             <span><b>{{ tr('Product') }}:</b> {{ selectedRule.productCode }}</span>
-            <span><b>{{ tr('Event') }}:</b> {{ selectedRule.eventTypeCode }}</span>
+            <span><b>{{ tr('Journal') }}:</b> {{ selectedRule.journalSourceCode }} / {{ selectedRule.journalCategoryCode }}</span>
             <span><b>{{ tr('Priority') }}:</b> {{ selectedRule.priorityNo }}</span>
             <span><b>{{ tr('Effective') }}:</b> {{ formatCell(selectedRule.effectiveFromDate, 'date') }}</span>
             <button type="button" class="per-close" :title="tr('Close configuration')" @click="closeConfiguration"><i class="pi pi-times"></i></button>
@@ -332,7 +332,7 @@ void (async () => {
         :key="`rule-gl-${ruleId}`"
         embedded
         title="Rule-Level Accounting Entries"
-        description="Debit and credit entries for the business event itself, independent of charge components."
+        description="Debit and credit entries of the rule itself, independent of charge components."
         icon="pi pi-book"
         apex-pages="FINOVA_FINANCEING"
         entity-label="Entry"
@@ -350,7 +350,7 @@ void (async () => {
         :key="`components-${ruleId}`"
         embedded
         title="Charge Components"
-        description="Pricing and charge components applicable to this Product + Business Event rule."
+        description="Pricing and charge components applicable to this product rule."
         icon="pi pi-box"
         apex-pages="FINOVA_FINANCEING"
         entity-label="Charge Component"

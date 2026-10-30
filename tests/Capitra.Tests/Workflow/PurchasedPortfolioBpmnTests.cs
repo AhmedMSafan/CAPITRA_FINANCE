@@ -48,11 +48,11 @@ public sealed class PurchasedPortfolioBpmnTests
     }
 
     [Fact]
-    public void A_step_carries_its_accounting_event_code()
+    public void A_step_carries_its_product_event_rule_code()
     {
-        var xml = Xml.Replace("finova:stepCode=\"DISBURSEMENT\"", "finova:stepCode=\"DISBURSEMENT\" finova:eventCode=\"PP_DISBURSE\"");
-        Assert.Equal("PP_DISBURSE", BpmnModel.Element(xml, "Task_DISBURSEMENT").EventCode);
-        Assert.Null(BpmnModel.Element(xml, "Task_AML_REVIEW").EventCode);
+        var xml = Xml.Replace("finova:stepCode=\"DISBURSEMENT\"", "finova:stepCode=\"DISBURSEMENT\" finova:ruleCode=\"PP_DISBURSE\"");
+        Assert.Equal("PP_DISBURSE", BpmnModel.Element(xml, "Task_DISBURSEMENT").RuleCode);
+        Assert.Null(BpmnModel.Element(xml, "Task_AML_REVIEW").RuleCode);
     }
 
     private static string RepoRoot()

@@ -123,7 +123,7 @@ useFeedback({ errors: [pageError] })
               <select :id="`pa-rule-${a.actionCode}`" v-model="form[a.actionCode]!.ruleId">
                 <option value="">{{ tr('- Choose the rule -') }}</option>
                 <option v-for="r in rules" :key="r.productEventRuleId" :value="String(r.productEventRuleId)">
-                  {{ r.ruleCode }} - {{ r.ruleNameEn }} ({{ r.eventTypeCode }}){{ r.isActive ? '' : ' · inactive' }}
+                  {{ r.ruleCode }} - {{ r.ruleNameEn }}{{ r.isActive ? '' : ' · inactive' }}
                 </option>
               </select>
             </div>

@@ -21,7 +21,7 @@ public sealed class GlTranSetIdsTests
     [Fact]
     public void Cheque_batch_submission_rule_posts_one_debit_and_one_credit_of_the_cheque_total()
     {
-        var plan = new ProductEventPlan(2, "CHW_CHEQUES_RECEIVED", "CHW_CHEQUES_RECEIVED", [],
+        var plan = new ProductEventPlan(2, "CHW_CHEQUES_RECEIVED", "FACTORING", "CHW_RECEIVED", [],
         [
             new(1, 10, null, null, "D", "CHEQUE_AMOUNT", false, "910101", "Cheques received in custody"),
             new(1, 20, null, null, "C", "CHEQUE_AMOUNT", false, "910102", "Clients' cheques in custody"),
