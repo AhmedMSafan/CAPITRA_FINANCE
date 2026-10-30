@@ -23,7 +23,7 @@ public sealed class CrmInvoiceUploadRequest
 /// </summary>
 [ApiController]
 [Route("api/crm/disbursement-requests")]
-public sealed class CrmInvoiceEntryController(CrmInvoiceEntryService service) : ControllerBase
+public sealed class CrmInvoiceEntryController(CrmInvoiceEntryService service, CrmDisbursementProcessService process) : ControllerBase
 {
     private const long MaxUploadBytes = 20 * 1024 * 1024;
 
@@ -46,6 +46,17 @@ public sealed class CrmInvoiceEntryController(CrmInvoiceEntryService service) : 
         return await service.UploadAsync(
             disbursementId, dto, await FileOf(request.InvoiceFile, cancellationToken), await FileOf(request.ChequeFile, cancellationToken), cancellationToken);
     }
+
+    /// <summary>Process Disbursement Request: saves the page, then calculates the charges and the repayment schedule.</summary>
+    [HttpPost("{disbursementId:long}/invoice-entry/process")]
+    [HasPermission(Permissions.Crm.Edit)]
+    public Task<CrmDisbursementProcessedDto> Process(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken) =>
+        process.ProcessAsync(disbursementId, dto, cancellationToken);
+
+    /// <summary>The request's processed figures, charges and current repayment schedule.</summary>
+    [HttpGet("{disbursementId:long}/invoice-entry/result")]
+    [HasPermission(Permissions.Crm.View)]
+    public Task<CrmDisbursementResultDto> Result(long disbursementId, CancellationToken cancellationToken) => process.ResultAsync(disbursementId, cancellationToken);
 
     [HttpGet("{disbursementId:long}/invoice-entry/summary")]
     [HasPermission(Permissions.Crm.View)]

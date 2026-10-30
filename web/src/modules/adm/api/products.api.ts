@@ -217,7 +217,15 @@ export const CALCULATION_METHODS = [
 export const AMOUNT_BASES = [
   { value: 'FACE_VALUE', label: 'Face value' },
   { value: 'PRESENT_VALUE', label: 'Present value' },
-  { value: 'PV_LESS_MARGIN', label: 'Present value less margin' }
+  { value: 'PV_LESS_MARGIN', label: 'Present value less margin' },
+  { value: 'DISBURSEMENT_GROSS_INVOICE_AMOUNT', label: 'Gross Invoice Amount in Disbursement' },
+  { value: 'DISBURSEMENT_NET_AMOUNT', label: 'Disbursement Net Amount' },
+  { value: 'ELIGIBLE_INVOICE_AMOUNT', label: 'Eligible Invoice Amount' },
+  { value: 'ADVANCE_AMOUNT', label: 'Advance Amount' },
+  { value: 'INVOICE_COUNT', label: 'Invoice Count in Disbursement' },
+  { value: 'CHEQUE_COUNT', label: 'Cheque Count' },
+  { value: 'TENOR_DAYS', label: 'Tenor Days' },
+  { value: 'APPROVED_LIMIT', label: 'Approved Facility Limit' }
 ]
 
 export const INCOME_RECOGNITIONS = [

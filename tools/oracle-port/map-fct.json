@@ -2249,5 +2249,140 @@
    }
   },
   "pk": "INVOICE_ID"
+ },
+ "FNV_REPAYMENTS": {
+  "table": "FCT_REPAYMENTS",
+  "class": "FctRepayment",
+  "columns": {
+   "SCHEDULE_ID": {
+    "column": "SCHEDULE_ID",
+    "kind": "int"
+   },
+   "DISBURSEMENT_ID": {
+    "column": "DISBURSEMENT_ID",
+    "kind": "int"
+   },
+   "INSTALLMENT_NO": {
+    "column": "INSTALLMENT_NO",
+    "kind": "int"
+   },
+   "DUE_DATE": {
+    "column": "DUE_DATE",
+    "kind": "date"
+   },
+   "ADJUSTED_DUE_DT": {
+    "column": "ADJUSTED_DUE_AT",
+    "kind": "datetime"
+   },
+   "OPENING_PRINCIPAL": {
+    "column": "OPENING_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "OUTSTANDING_PRINCIPAL": {
+    "column": "OUTSTANDING_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "OUTSTANDING_INTEREST": {
+    "column": "OUTSTANDING_INTEREST",
+    "kind": "decimal"
+   },
+   "TOTAL_INSTALLMENT": {
+    "column": "TOTAL_INSTALLMENT",
+    "kind": "decimal"
+   },
+   "CLOSING_PRINCIPAL": {
+    "column": "CLOSING_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "PAID_PRINCIPAL": {
+    "column": "PAID_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "PAID_INTEREST": {
+    "column": "PAID_INTEREST",
+    "kind": "decimal"
+   },
+   "PAID_FEE": {
+    "column": "PAID_FEE",
+    "kind": "decimal"
+   },
+   "PAID_PENALTY": {
+    "column": "PAID_PENALTY",
+    "kind": "decimal"
+   },
+   "PRINCIPAL_DUE": {
+    "column": "PRINCIPAL_DUE",
+    "kind": "decimal"
+   },
+   "INTEREST_DUE": {
+    "column": "INTEREST_DUE",
+    "kind": "decimal"
+   },
+   "PENALTY_DUE": {
+    "column": "PENALTY_DUE",
+    "kind": "decimal"
+   },
+   "FEE_DUE": {
+    "column": "FEE_DUE",
+    "kind": "decimal"
+   },
+   "INTEREST_RATE": {
+    "column": "INTEREST_RATE",
+    "kind": "decimal"
+   },
+   "INDEX_RATE_ID": {
+    "column": "INDEX_RATE_ID",
+    "kind": "int"
+   },
+   "DAY_COUNT": {
+    "column": "DAY_COUNT",
+    "kind": "int"
+   },
+   "DAY_COUNT_BASIS": {
+    "column": "DAY_COUNT_BASIS",
+    "kind": "string"
+   },
+   "LAST_PAYMENT_DT": {
+    "column": "LAST_PAYMENT_AT",
+    "kind": "datetime"
+   },
+   "DAYS_OVERDUE": {
+    "column": "DAYS_OVERDUE",
+    "kind": "int"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "SCHEDULE_VERSION": {
+    "column": "SCHEDULE_VERSION",
+    "kind": "int"
+   },
+   "IS_CURRENT_VERSION": {
+    "column": "IS_CURRENT_VERSION",
+    "kind": "flag"
+   },
+   "RECALC_REASON": {
+    "column": "RECALC_REASON",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": null
  }
 }
