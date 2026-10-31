@@ -12,7 +12,7 @@
         </div>
       </div>
       <div class="col-actions">
-        <RouterLink class="fx-btn" :to="back"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to list') }}</RouterLink>
+        <RouterLink class="fx-btn" :to="back"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Factoring Workspace') }}</RouterLink>
         <FctStepActions :save="saveForStep" :disabled="busy" />
       </div>
     </div>
