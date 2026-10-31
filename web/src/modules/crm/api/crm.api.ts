@@ -10,6 +10,10 @@ export type CrmClientRow = {
   phoneNumber: string | null
   email: string | null
   isActive: boolean
+  /** the newest of the client's applications, agreements and disbursement requests; null when it has none */
+  lastActivityAt: string | null
+  lastActivityType: 'Application' | 'Agreement' | 'Disbursement' | null
+  lastActivityRef: string | null
 }
 
 /** The fields of the client dialog */

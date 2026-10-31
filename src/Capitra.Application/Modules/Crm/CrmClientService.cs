@@ -1,13 +1,18 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Domain.Modules.Crm;
+using Capitra.Domain.Modules.Fct;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Crm;
 
-/// <summary>CRM_CLIENTS, as the CRM home lists them.</summary>
+/// <summary>
+/// CRM_CLIENTS, as the CRM home lists them, with the client's latest transaction: the newest of its factoring applications
+/// (FCT_OFFERS), agreements and disbursement requests by creation time (Ahmed, 31 Oct 2026); null when it has none.
+/// </summary>
 public sealed record CrmClientListDto(
-    long ClientId, string ClientNumber, string ClientName, string ClientType, string? PhoneNumber, string? Email, bool IsActive);
+    long ClientId, string ClientNumber, string ClientName, string ClientType, string? PhoneNumber, string? Email, bool IsActive,
+    DateTime? LastActivityAt, string? LastActivityType, string? LastActivityRef);
 
 /// <summary>The fields of FINOVA's client dialog (Basic Information, Contact Information, Classification).</summary>
 public sealed record CrmClientFormDto(
@@ -33,11 +38,33 @@ public sealed class CrmClientService(ICapitraDbContext db)
         new("INVESTOR", "Investor"),
     ];
 
-    public async Task<IReadOnlyList<CrmClientListDto>> ListAsync(CancellationToken cancellationToken) =>
-        await db.Set<CrmClient>().AsNoTracking()
-            .OrderBy(x => x.ClientId)
-            .Select(x => new CrmClientListDto(x.ClientId, x.ClientNumber, x.ClientName, x.ClientType, x.PhoneNumber, x.Email, x.IsActive))
-            .ToListAsync(cancellationToken);
+    public async Task<IReadOnlyList<CrmClientListDto>> ListAsync(CancellationToken cancellationToken)
+    {
+        var clients = await db.Set<CrmClient>().AsNoTracking().OrderBy(x => x.ClientId).ToListAsync(cancellationToken);
+        var latest = await LatestActivityAsync(cancellationToken);
+        return [.. clients.Select(x =>
+        {
+            var a = latest.GetValueOrDefault(x.ClientId);
+            return new CrmClientListDto(x.ClientId, x.ClientNumber, x.ClientName, x.ClientType, x.PhoneNumber, x.Email, x.IsActive,
+                a?.At, a?.Type, a?.Ref);
+        })];
+    }
+
+    private sealed record Activity(long ClientId, string Type, string Ref, DateTime At);
+
+    /// <summary>Per client, its newest application, agreement or disbursement request.</summary>
+    private async Task<Dictionary<long, Activity>> LatestActivityAsync(CancellationToken cancellationToken)
+    {
+        var offers = await db.Set<FctOffer>().AsNoTracking()
+            .Select(x => new Activity(x.ClientId, "Application", x.OfferRef, x.CreatedAt)).ToListAsync(cancellationToken);
+        var agreements = await db.Set<FctAgreement>().AsNoTracking()
+            .Select(x => new Activity(x.ClientId, "Agreement", x.AgreementNumber, x.CreatedAt)).ToListAsync(cancellationToken);
+        var disbursements = await db.Set<FctDisbursement>().AsNoTracking()
+            .Select(x => new Activity(x.ClientId, "Disbursement", x.DisbursementNumber, x.CreatedAt)).ToListAsync(cancellationToken);
+        return offers.Concat(agreements).Concat(disbursements)
+            .GroupBy(x => x.ClientId)
+            .ToDictionary(g => g.Key, g => g.MaxBy(x => x.At)!);
+    }
 
     public async Task<CrmClientFormDto> GetAsync(long clientId, CancellationToken cancellationToken) =>
         await db.Set<CrmClient>().AsNoTracking()

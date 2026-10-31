@@ -419,6 +419,7 @@ export const AR: Record<string, string> = {
   'Factoring applications, agreements, limits, disbursements and claims of this customer.': 'طلبات التخصيم والاتفاقيات والحدود والصرف والمطالبات لهذا العميل.',
   'Mortgage applications and finance of this customer.': 'طلبات التمويل العقاري وتمويل هذا العميل.',
   'Disbursement Requests': 'طلبات الصرف',
+  'Recent Customers': 'العملاء الأحدث نشاطًا', 'latest application, agreement or disbursement': 'آخر طلب أو اتفاقية أو صرف', 'Last Activity': 'آخر نشاط',
   'Back to Factoring Workspace': 'العودة إلى مساحة عمل التخصيم', 'Disbursement Request': 'طلب صرف', 'From limit': 'من الحد',
   'Agreement Status': 'حالة الاتفاقية', 'Request Details': 'تفاصيل الطلب', 'Disbursement Type': 'نوع الصرف', 'Given on save': 'يُعطى عند الحفظ',
   Optional: 'اختياري', 'After saving, start the workflow from the Disbursements tab.': 'بعد الحفظ، ابدأ سير العمل من تبويب الصرف.',

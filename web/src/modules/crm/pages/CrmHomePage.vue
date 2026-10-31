@@ -15,6 +15,25 @@
       </button>
     </div>
 
+    <!-- the customers with the latest transactions, one click from their workspaces (Ahmed, 31 Oct 2026) -->
+    <section v-if="recent.length" class="fx-card crm-recent" :aria-label="tr('Recent Customers')">
+      <div class="crm-recent-head">
+        <h2><span class="fa fa-clock-o" aria-hidden="true"></span>{{ tr('Recent Customers') }}</h2>
+        <small>· {{ tr('latest application, agreement or disbursement') }}</small>
+      </div>
+      <div class="crm-recent-grid">
+        <RouterLink v-for="c in recent" :key="c.clientId" :to="workspace(c.clientId)" class="crm-recent-card" :title="tr('Workspaces')">
+          <span class="crm-recent-ic" aria-hidden="true"><span class="fa" :class="ACTIVITY_ICON[c.lastActivityType!]"></span></span>
+          <span class="crm-recent-copy">
+            <span class="crm-recent-no">{{ c.clientNumber }}</span>
+            <b>{{ c.clientName }}</b>
+            <small>{{ tr(c.lastActivityType!) }} {{ c.lastActivityRef }} · {{ formatDate(c.lastActivityAt) }}</small>
+          </span>
+          <span class="fa fa-arrow-right" aria-hidden="true"></span>
+        </RouterLink>
+      </div>
+    </section>
+
     <div class="fx-card fx-card-pad fc-filters">
       <label class="fc-field">
         <span>{{ tr('Customer Name') }}</span>
@@ -62,6 +81,10 @@
               <td>{{ c.phoneNumber || '-' }}</td>
               <td>{{ c.email || '-' }}</td>
               <td><span class="fx-chip" :class="c.isActive ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(c.isActive ? 'Active' : 'Inactive') }}</span></td>
+              <td>
+                <span v-if="c.lastActivityAt" class="crm-last"><b>{{ formatDate(c.lastActivityAt) }}</b><small>{{ tr(c.lastActivityType!) }} {{ c.lastActivityRef }}</small></span>
+                <span v-else class="fc-muted">-</span>
+              </td>
               <td class="fx-r">
                 <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="workspace(c.clientId)" :title="tr('Workspaces')">
                   <span class="fa fa-th-large" aria-hidden="true"></span>{{ tr('Workspaces') }}
@@ -98,14 +121,15 @@ import { computed, onMounted, ref } from 'vue'
 import { useFeedback } from '@/shared/feedback/useFeedback'
 import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'
+import { formatDate } from '@/shared/format/datetime'
 import { crmApi, type CrmClientRow } from '../api/crm.api'
 import CrmClientDialog from '../components/CrmClientDialog.vue'
 
-type SortField = 'clientId' | 'clientNumber' | 'clientName' | 'clientType' | 'phoneNumber' | 'email' | 'isActive'
+type SortField = 'clientId' | 'clientNumber' | 'clientName' | 'clientType' | 'phoneNumber' | 'email' | 'isActive' | 'lastActivityAt'
 
 const ALL = 'All Types'
 const PAGE_SIZE = 10
-// FINOVA's columns, each sortable; Client ID ascending first
+// FINOVA's columns, each sortable, and Last Activity: the list opens newest activity first
 const COLUMNS: { field: SortField; label: string }[] = [
   { field: 'clientId', label: 'Client ID' },
   { field: 'clientNumber', label: 'Customer Number' },
@@ -113,8 +137,11 @@ const COLUMNS: { field: SortField; label: string }[] = [
   { field: 'clientType', label: 'Client Type' },
   { field: 'phoneNumber', label: 'Phone' },
   { field: 'email', label: 'Email' },
-  { field: 'isActive', label: 'Status' }
+  { field: 'isActive', label: 'Status' },
+  { field: 'lastActivityAt', label: 'Last Activity' }
 ]
+const RECENT_COUNT = 8
+const ACTIVITY_ICON = { Application: 'fa-file-text-o', Agreement: 'fa-handshake-o', Disbursement: 'fa-money' } as const
 
 const customers = ref<CrmClientRow[]>([])
 const canEdit = hasPermission('CRM.EDIT')
@@ -130,8 +157,8 @@ const clientType = ref(ALL)
 // the filters apply when Search is pressed (or Enter), as on the FINOVA page
 const applied = ref({ name: '', number: '', type: ALL })
 const page = ref(1)
-const sortField = ref<SortField>('clientId')
-const sortAsc = ref(true)
+const sortField = ref<SortField>('lastActivityAt')
+const sortAsc = ref(false)
 
 const clientTypes = computed(() => [ALL, ...[...new Set(customers.value.map((c) => c.clientType).filter(Boolean))].sort()])
 
@@ -147,10 +174,19 @@ const filtered = computed(() => {
       (!name || c.clientName.toLowerCase().includes(name)) &&
       (!number || c.clientNumber.toLowerCase().includes(number)) &&
       (applied.value.type === ALL || c.clientType === applied.value.type))
-    .sort((a, b) => dir * (f === 'clientId'
+    .sort((a, b) => f === 'lastActivityAt' ? byActivity(a, b, dir) : dir * (f === 'clientId'
       ? a.clientId - b.clientId
       : sortValue(a, f).localeCompare(sortValue(b, f), undefined, { numeric: true, sensitivity: 'base' })))
 })
+// by last activity time; customers without any stay last either way, then by Client ID
+const activityTime = (c: CrmClientRow) => (c.lastActivityAt ? Date.parse(c.lastActivityAt) : null)
+function byActivity(a: CrmClientRow, b: CrmClientRow, dir: number) {
+  const x = activityTime(a)
+  const y = activityTime(b)
+  if (x == null || y == null) return x == null && y == null ? a.clientId - b.clientId : x == null ? 1 : -1
+  return dir * (x - y) || a.clientId - b.clientId
+}
+const recent = computed(() => customers.value.filter((c) => c.lastActivityAt).sort((a, b) => byActivity(a, b, -1)).slice(0, RECENT_COUNT))
 const pageCount = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
 const pages = computed(() => Array.from({ length: pageCount.value }, (_, i) => i + 1))
 const paged = computed(() => filtered.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
@@ -161,7 +197,8 @@ const to = computed(() => Math.min(page.value * PAGE_SIZE, filtered.value.length
 const workspace = (clientId: number) => ({ name: 'crm-customer-workspace', params: { clientId } })
 
 function changeSort(f: SortField) {
-  sortAsc.value = sortField.value === f ? !sortAsc.value : true
+  // Last Activity starts newest first, the other columns ascending
+  sortAsc.value = sortField.value === f ? !sortAsc.value : f !== 'lastActivityAt'
   sortField.value = f
   page.value = 1
 }
@@ -200,6 +237,25 @@ onMounted(load)
 </script>
 
 <style scoped>
+.crm-recent { margin-bottom: 14px; padding: 14px 16px; }
+.crm-recent-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.crm-recent-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; color: var(--fin-teal-700); }
+.crm-recent-head h2 .fa { color: var(--fin-orange); }
+.crm-recent-head small { font-size: 12px; color: var(--fin-muted); }
+.crm-recent-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.crm-recent-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--fin-line); border-radius: 12px; background: #fff; color: var(--fin-ink); text-decoration: none; }
+.crm-recent-card:hover { border-color: var(--fin-teal-600); }
+.crm-recent-card > .fa { color: var(--fin-teal-600); }
+.crm-recent-ic { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--fin-teal-50); color: var(--fin-teal-600); }
+.crm-recent-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.crm-recent-copy b, .crm-recent-copy small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.crm-recent-copy b { font-size: 14px; }
+.crm-recent-copy small { font-size: 11.5px; color: var(--fin-muted); }
+.crm-recent-no { font-size: 11px; font-weight: 700; color: var(--fin-orange-700); }
+.crm-last { display: flex; flex-direction: column; gap: 1px; line-height: 1.25; }
+.crm-last small { font-size: 11.5px; color: var(--fin-muted); }
+@media (max-width: 1100px) { .crm-recent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .crm-recent-grid { grid-template-columns: 1fr; } }
 .crm-sort { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; white-space: nowrap; }
 .crm-sort .fa { font-size: 11px; opacity: .45; }
 .crm-edit { margin-inline-start: 6px; }
