@@ -1,87 +1,103 @@
 <template>
   <!-- APEX App 150722 page 751 "Disbursement Request Detail": the FCT_DISBURSEMENTS form, redesigned (Ahmed, 31 Oct 2026). A new
        request is made from a limit of the Factoring Customer Workspace, so the customer, the limit and its currency come with it and
-       only show; the limit's agreement fills the Application Summary. The workflow is started from the workspace's Disbursements
+       only show, with the limit's agreement, in one strip. The workflow is started from the workspace's Disbursements
        tab, after which the request only shows. Opened from a workflow task, the step's Complete button is here too. -->
   <div class="fx fc">
     <div class="fx-head">
-      <div class="fc-title">
-        <span class="fc-title-ic" aria-hidden="true"><span class="fa fa-file-text-o"></span></span>
-        <div>
-          <h1>{{ tr('Disbursement Request Detail') }}</h1>
-          <p>{{ number }}</p>
+      <div>
+        <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
+          <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span>
+          <RouterLink :to="{ name: 'crm-customers' }">{{ tr('Customers') }}</RouterLink><span aria-hidden="true">›</span>
+          <template v-if="form.clientId != null">
+            <RouterLink :to="{ name: 'crm-customer-workspace', params: { clientId: form.clientId } }">{{ tr('Customer Workspace') }}</RouterLink><span aria-hidden="true">›</span>
+            <RouterLink :to="back">{{ tr('Factoring Customer Workspace') }}</RouterLink><span aria-hidden="true">›</span>
+          </template>
+          <b>{{ tr(isSaved ? 'Disbursement Request' : 'New Disbursement Request') }}</b>
+        </nav>
+        <div class="dr-title">
+          <h1>{{ tr(isSaved ? 'Disbursement Request' : 'New Disbursement Request') }}</h1>
+          <span class="fx-chip" :class="started ? 'fx-chip--teal' : 'fx-chip--warn'">{{ tr(started ? 'WF Started' : 'Workflow Not Started') }}</span>
         </div>
+        <p class="dr-sub">{{ isSaved ? number : `${tr('From limit')} ${limit?.limitNumber ?? ''}` }}</p>
       </div>
-      <div class="col-actions">
-        <RouterLink class="fx-btn" :to="back"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Customer Workspace') }}</RouterLink>
+      <div class="fx-actions">
+        <RouterLink class="fx-btn" :to="back"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Factoring Workspace') }}</RouterLink>
         <FctStepActions v-if="isSaved" :save="keep" :disabled="busy" />
       </div>
     </div>
 
-    <div v-if="ready" class="col-stack">
-      <!-- the Application Summary region: hidden while there is no agreement -->
-      <section v-if="summary" class="dr-sum" :aria-label="tr('Application Summary')">
-        <div class="dr-sum-title">
-          <span class="dr-sum-ic" aria-hidden="true">&#x2702;</span>{{ tr('Application Summary') }}
-          <span class="dr-badge" :class="{ 'is-on': summary.statusCode === 'ACTIVE' }">{{ summary.statusCode }}</span>
+    <template v-if="ready">
+      <!-- the customer, the limit and its agreement (page 751's Application Summary) in one strip -->
+      <section class="fx-card dr-strip">
+        <div class="fc-customer-main">
+          <span class="fc-title-ic" aria-hidden="true"><span class="fa fa-building-o"></span></span>
+          <div>
+            <span class="fc-customer-no">{{ customer?.clientNumber || '—' }}</span>
+            <b class="fc-customer-name">{{ customer?.clientName || '—' }}</b>
+            <span class="fc-customer-ar">{{ summary ? `${tr('Agreement')} ${summary.agreementNumber}` : '' }}</span>
+          </div>
         </div>
-        <div class="dr-sum-grid">
-          <div><div class="dr-sum-label">{{ tr('Agreement No.') }}</div><div class="dr-sum-value is-link">{{ summary.agreementNumber }}</div></div>
-          <div><div class="dr-sum-label">{{ tr('Client') }}</div><div class="dr-sum-value">{{ summary.clientName }}</div></div>
-          <div><div class="dr-sum-label">{{ tr('Requested Amount') }}</div><div class="dr-sum-value">{{ summary.currencyCode }} {{ wholeAmount(summary.facilityLimit) }}</div></div>
-          <div><div class="dr-sum-label">{{ tr('Submitted') }}</div><div class="dr-sum-value">{{ submitted(summary) }}</div></div>
+        <div class="fc-info"><span>{{ tr('Limit') }}</span><b>{{ limit?.limitNumber ?? '—' }}</b></div>
+        <div class="fc-info"><span>{{ tr('Currency') }}</span><span class="fx-chip fx-chip--brand fx-chip--plain">{{ limit?.currencyCode ?? '—' }}</span></div>
+        <div class="fc-info"><span>{{ tr('Facility Limit') }}</span><b>{{ summary ? wholeAmount(summary.facilityLimit) : '—' }}</b></div>
+        <div class="fc-info"><span>{{ tr('Available Limit') }}</span><b>{{ limit?.availableAmount == null ? '—' : wholeAmount(limit.availableAmount) }}</b></div>
+        <div class="fc-info"><span>{{ tr('Agreement Status') }}</span>
+          <span v-if="summary?.statusCode" class="fx-chip fx-chip--plain" :class="summary.statusCode === 'ACTIVE' ? 'fx-chip--ok' : 'fx-chip--warn'">{{ summary.statusCode }}</span>
+          <b v-else>—</b>
         </div>
       </section>
 
-      <section class="col-sec">
-        <h2>
-          <span class="fa fa-money" aria-hidden="true"></span>{{ tr('Disbursement Request Detail') }}
-          <span v-if="started" class="fx-chip fx-chip--teal dr-chip">{{ tr('WF Started') }}</span>
-        </h2>
-        <div class="col-grid">
-          <div class="fc-field">
-            <span>{{ tr('Disbursement Number') }}</span>
-            <div class="col-ro">{{ number }}</div>
-          </div>
-          <label class="fc-field" :class="{ 'col-bad': bad('disbursementDate') }">
-            <span>{{ tr('Disbursement Date') }} <b v-if="!readOnly">*</b></span>
-            <input v-model="form.disbursementDate" class="fx-search" type="date" :disabled="readOnly">
-          </label>
-          <div class="fc-field">
-            <span>{{ tr('Customer') }}</span>
-            <div class="col-ro">{{ customer ? `${customer.clientName} -- ${customer.clientNumber}` : '-' }}</div>
-          </div>
-          <div class="fc-field" :class="{ 'col-bad': bad('limitId') }">
-            <span>{{ tr('Limit') }}</span>
-            <div class="col-ro">{{ limit?.limitNumber ?? '-' }}</div>
-          </div>
-          <div class="fc-field">
-            <span>{{ tr('Available Limit') }}</span>
-            <div class="col-ro">{{ limit?.availableAmount == null ? '-' : formatAmount(limit.availableAmount) }}</div>
-          </div>
-          <div class="fc-field">
-            <span>{{ tr('Currency') }}</span>
-            <div class="col-ro">{{ limit?.currencyCode ?? '-' }}</div>
-          </div>
-          <label class="fc-field" :class="{ 'col-bad': bad('grossAmount') }">
-            <span>{{ tr('Invoices Gross Amount') }} <b v-if="!readOnly">*</b></span>
-            <input v-model.number="form.grossAmount" class="fx-search" type="number" min="0" step="0.01" inputmode="decimal" :readonly="readOnly">
-          </label>
-          <label class="fc-field dr-wide">
-            <span>{{ tr('Remarks') }}</span>
-            <input v-model="form.remarks" class="fx-search" type="text" maxlength="2000" :readonly="readOnly">
-          </label>
+      <section class="fx-card dr-sec">
+        <div class="dr-sec-head">
+          <h2><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Request Details') }}</h2>
+          <div v-if="started" class="dr-step"><span>{{ tr('Workflow Step') }}</span><span class="fx-chip fx-chip--teal fx-chip--plain">{{ step || '-' }}</span></div>
         </div>
-        <div v-if="!readOnly" class="col-actions dr-buttons">
-          <RouterLink class="fx-btn" :to="back">{{ tr('Cancel') }}</RouterLink>
-          <template v-if="isSaved">
-            <button type="button" class="fx-btn fc-btn-reject" :disabled="busy" @click="remove"><span class="fa fa-trash-o" aria-hidden="true"></span>{{ tr('Delete') }}</button>
-            <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="save"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Apply Changes') }}</button>
-          </template>
-          <button v-else type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="create"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Create') }}</button>
+
+        <!-- once the workflow has started (or without CRM.EDIT) the request only shows -->
+        <div v-if="readOnly" class="dr-kv">
+          <div><span>{{ tr('Disbursement Number') }}</span><b>{{ number }}</b></div>
+          <div><span>{{ tr('Disbursement Date') }}</span><b>{{ formatDate(form.disbursementDate) }}</b></div>
+          <div><span>{{ tr('Invoices Gross Amount') }}</span><b class="dr-amt">{{ formatAmount(Number(form.grossAmount ?? 0)) }} <small>{{ limit?.currencyCode ?? '' }}</small></b></div>
+          <div><span>{{ tr('Disbursement Type') }}</span><b>{{ type || '-' }}</b></div>
+          <div class="dr-wide"><span>{{ tr('Remarks') }}</span><b class="dr-text">{{ form.remarks || '-' }}</b></div>
         </div>
+
+        <template v-else>
+          <div class="dr-form">
+            <label class="fc-field" :class="{ 'col-bad': bad('disbursementDate') }">
+              <span>{{ tr('Disbursement Date') }} <b class="dr-req">*</b></span>
+              <input v-model="form.disbursementDate" class="fx-search" type="date">
+            </label>
+            <label class="fc-field" :class="{ 'col-bad': bad('grossAmount') }">
+              <span>{{ tr('Invoices Gross Amount') }} <b class="dr-req">*</b></span>
+              <span class="dr-amount">
+                <input v-model.number="form.grossAmount" class="fx-search" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00">
+                <em>{{ limit?.currencyCode ?? '' }}</em>
+              </span>
+            </label>
+            <div class="fc-field">
+              <span>{{ tr('Disbursement Number') }}</span>
+              <div class="col-ro" :class="{ 'dr-muted': !isSaved }">{{ isSaved ? number : tr('Given on save') }}</div>
+            </div>
+            <label class="fc-field dr-wide">
+              <span>{{ tr('Remarks') }}</span>
+              <textarea v-model="form.remarks" class="fx-search dr-textarea" maxlength="2000" :placeholder="tr('Optional')"></textarea>
+            </label>
+          </div>
+          <div class="dr-foot">
+            <span class="dr-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('After saving, start the workflow from the Disbursements tab.') }}</span>
+            <div class="dr-buttons">
+              <template v-if="isSaved">
+                <button type="button" class="fx-btn fc-btn-reject" :disabled="busy" @click="remove"><span class="fa fa-trash-o" aria-hidden="true"></span>{{ tr('Delete') }}</button>
+                <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="save"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Apply Changes') }}</button>
+              </template>
+              <button v-else type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="create"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Create') }}</button>
+            </div>
+          </div>
+        </template>
       </section>
-    </div>
+    </template>
     <div v-else class="fx-card fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
   </div>
 </template>
@@ -96,7 +112,7 @@ import { useRouter } from 'vue-router'
 import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
-import { todayInCairo } from '@/shared/format/datetime'
+import { formatDate, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount } from '@/shared/format/money'
 import { fieldErrors, messageOf } from '@/modules/collection/pages/collection'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
@@ -111,6 +127,9 @@ const canEdit = hasPermission('CRM.EDIT')
 const customer = ref<FctCustomerDetails | null>(null)
 const limit = ref<FctCreditLimit | null>(null)
 const summary = ref<AgreementSummary | null>(null)
+// from the customer's list: the type and the open workflow step of a started request
+const type = ref<string | null>(null)
+const step = ref<string | null>(null)
 const ready = ref(false)
 const busy = ref(false)
 const started = ref(false)
@@ -134,13 +153,8 @@ const form = reactive<DisbursementRequestSave>(blank())
 const back = computed(() => form.clientId == null ? { name: 'crm-customers' }
   : { name: 'FactoringCustomerWorkspace', params: { clientId: form.clientId }, query: { tab: 'disbursements', from: 'customer' } })
 
-// the summary's numbers: TO_CHAR(FACILITY_LIMIT, 'FM999,999,999,999') and the application date as MM/DD/YYYY
+// the strip's limits: TO_CHAR(FACILITY_LIMIT, 'FM999,999,999,999')
 const wholeAmount = (n: number) => Math.round(n).toLocaleString('en-US')
-function submitted(s: AgreementSummary): string {
-  const d = s.applicationAt ? new Date(s.applicationAt) : null
-  const date = d ? `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}` : ''
-  return `${date} · ${s.relationshipManager ?? ''}`
-}
 
 // the customer card and the limit row of the workspace the request belongs to
 async function loadParty(clientId: number, limitId: number | null) {
@@ -170,6 +184,9 @@ async function load() {
       started.value = d.workflowStarted
       await loadParty(d.clientId, d.limitId)
       summary.value = d.agreementId == null ? null : await disbursementApi.agreementSummary(d.agreementId)
+      const row = (await disbursementApi.list(d.clientId)).find((x) => x.disbursementId === d.disbursementId)
+      type.value = row?.disbursementType ?? null
+      step.value = row?.workflowStepName ?? null
     }
   } catch (err) {
     showError(messageOf(err))
@@ -230,21 +247,37 @@ watch(() => [props.disbursementId, props.clientId, props.limitId], load, { immed
 </script>
 
 <style scoped>
-/* the Application Summary card of page 751 */
-.dr-sum { background: var(--fin-surface); border: 1px solid var(--fin-line); border-radius: 12px; padding: 18px 22px; }
-.dr-sum-title { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-weight: 700; font-size: 16px; color: var(--fin-ink); }
-.dr-sum-ic { width: 30px; height: 30px; border-radius: 8px; background: #E6F3F4; color: #00636D; display: flex; align-items: center; justify-content: center; font-size: 15px; }
-.dr-badge { margin-inline-start: auto; padding: 4px 10px; border-radius: 999px; background: #9bb0af; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .04em; }
-.dr-badge.is-on { background: #2f9e64; }
-.dr-sum-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
-.dr-sum-label { margin-bottom: 5px; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: #9bb0af; }
-.dr-sum-value { font-weight: 700; font-size: 15px; color: var(--fin-ink); overflow-wrap: anywhere; }
-.dr-sum-value.is-link { color: #00636D; }
-.dr-chip { margin-inline-start: 6px; }
-.dr-wide { grid-column: span 2; }
-.dr-buttons { justify-content: flex-end; margin-top: 16px; }
+.dr-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dr-title h1 { margin: 0; }
+.dr-sub { margin: 4px 0 0; color: var(--fin-muted); font-size: var(--fs-sm); }
+/* the customer strip, as the Factoring Customer Workspace's customer card */
+.dr-strip { display: grid; grid-template-columns: minmax(240px, 1.5fr) repeat(5, minmax(110px, 1fr)); gap: 14px 18px; align-items: center; padding: 16px 18px; }
+.dr-sec { margin-block-start: 14px; padding: 18px 20px; }
+.dr-sec-head { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--fin-line-soft); }
+.dr-sec-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; color: var(--fin-teal-700); }
+.dr-sec-head h2 .fa { color: var(--fin-orange); }
+.dr-step { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--fin-muted); }
+.dr-kv { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 22px; }
+.dr-kv > div > span { display: block; margin-bottom: 6px; font-size: var(--fs-xs); font-weight: 600; color: var(--fin-muted); }
+.dr-kv b { font-size: 15px; color: var(--fin-ink); overflow-wrap: anywhere; }
+.dr-kv .dr-amt { font-size: 18px; color: var(--fin-teal-700); }
+.dr-kv .dr-amt small { font-size: 12px; color: var(--fin-muted); }
+.dr-kv .dr-text { font-weight: 500; white-space: pre-wrap; }
+.dr-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; }
+.dr-wide { grid-column: 1 / -1; }
+.dr-req { color: var(--fin-orange); }
+.dr-amount { position: relative; display: block; }
+.dr-amount input { width: 100%; padding-inline-end: 56px !important; text-align: end; }
+.dr-amount em { position: absolute; inset-inline-end: 12px; top: 50%; transform: translateY(-50%); font-style: normal; font-size: 12px; font-weight: 700; color: var(--fin-muted); }
+.dr-textarea { min-height: 70px; padding-top: 8px; resize: vertical; }
+.dr-muted { color: var(--fin-muted); font-weight: 500; }
+.dr-foot { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--fin-line-soft); }
+.dr-note { display: flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--fin-muted); }
+.dr-buttons { margin-inline-start: auto; display: flex; gap: 8px; }
+@media (max-width: 1100px) { .dr-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } .dr-strip .fc-customer-main { grid-column: 1 / -1; } }
 @media (max-width: 760px) {
-  .dr-sum-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dr-wide { grid-column: auto; }
+  .dr-strip, .dr-kv, .dr-form { grid-template-columns: 1fr; }
+  .dr-strip .fc-info { border-inline-start: 0; padding-inline-start: 0; }
+  .dr-foot { flex-direction: column; align-items: stretch; }
 }
 </style>
