@@ -17,12 +17,12 @@ namespace Capitra.Application.Modules.Crm;
 public sealed record CrmDisbursementRequestListDto(
     long DisbursementId, string DisbursementNumber, DateOnly DisbursementDate, string? ClientName, decimal GrossAmount, decimal? NetAmount,
     DateOnly? RepaymentStartDate, int? TenorMonth, string? DisbursementRef, string? DisbursementType, bool WorkflowStarted,
-    long? LimitId, string? LimitNumber, string? CurrencyCode, string? WorkflowStepName);
+    long? LimitId, string? LimitNumber, string? CurrencyCode, string? WorkflowStepName, string? GlTranSetId);
 
 /// <summary>App 150722 page 751 "Disbursement Request Detail".</summary>
 public sealed record CrmDisbursementRequestDto(
     long DisbursementId, string DisbursementNumber, DateOnly DisbursementDate, long ClientId, string? ClientName, long? LimitId, long CurrencyId,
-    decimal GrossAmount, string? Remarks, long? AgreementId, bool WorkflowStarted);
+    decimal GrossAmount, string? Remarks, long? AgreementId, bool WorkflowStarted, string? GlTranSetId);
 
 /// <summary>The page 751 items the user fills.</summary>
 public sealed record CrmDisbursementRequestSaveDto(
@@ -67,7 +67,7 @@ public sealed class CrmDisbursementRequestService(ICapitraDbContext db, ICurrent
         return [.. rows.Select(x => new CrmDisbursementRequestListDto(
             x.d.DisbursementId, x.d.DisbursementNumber, x.d.DisbursementDate, x.ClientName, x.d.GrossAmount, x.d.NetAmount,
             x.d.RepaymentStartDate, x.d.TenorMonth, x.d.DisbursementRef, x.d.DisbursementType, x.d.IsActive,
-            x.d.LimitId, x.LimitNumber, x.CurrencyCode, steps.GetValueOrDefault(Reference(x.d.DisbursementId))))];
+            x.d.LimitId, x.LimitNumber, x.CurrencyCode, steps.GetValueOrDefault(Reference(x.d.DisbursementId)), x.d.GlTranSetId))];
     }
 
     /// <summary>The workflow's business reference of a request, DISB-id.</summary>
@@ -100,7 +100,7 @@ public sealed class CrmDisbursementRequestService(ICapitraDbContext db, ICurrent
             .Where(x => x.ClientId == d.ClientId).Select(x => x.ClientName).FirstOrDefaultAsync(cancellationToken);
         return new CrmDisbursementRequestDto(
             d.DisbursementId, d.DisbursementNumber, d.DisbursementDate, d.ClientId, clientName, d.LimitId, d.CurrencyId, d.GrossAmount, d.Remarks,
-            d.AgreementId, d.IsActive);
+            d.AgreementId, d.IsActive, d.GlTranSetId);
     }
 
     /// <summary>P751_CLIENT_ID: the clients that are not prospects, by name.</summary>

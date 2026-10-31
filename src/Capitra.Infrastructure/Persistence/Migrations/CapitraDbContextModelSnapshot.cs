@@ -6133,6 +6133,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("GL_POSTING_DATE");
 
+                    b.Property<string>("GlTranSetId")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("GL_TRAN_SET_ID");
+
                     b.Property<decimal>("GrossAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")

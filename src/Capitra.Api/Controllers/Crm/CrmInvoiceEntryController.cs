@@ -23,7 +23,8 @@ public sealed class CrmInvoiceUploadRequest
 /// </summary>
 [ApiController]
 [Route("api/crm/disbursement-requests")]
-public sealed class CrmInvoiceEntryController(CrmInvoiceEntryService service, CrmDisbursementProcessService process) : ControllerBase
+public sealed class CrmInvoiceEntryController(
+    CrmInvoiceEntryService service, CrmDisbursementProcessService process, CrmDisbursementChargePaymentService payments) : ControllerBase
 {
     private const long MaxUploadBytes = 20 * 1024 * 1024;
 
@@ -54,6 +55,21 @@ public sealed class CrmInvoiceEntryController(CrmInvoiceEntryService service, Cr
         process.ProcessAsync(disbursementId, dto, cancellationToken);
 
     /// <summary>The request's processed figures, charges and current repayment schedule.</summary>
+    [HttpGet("{disbursementId:long}/invoice-entry/charge-payment")]
+    [HasPermission(Permissions.Crm.View)]
+    public Task<CrmChargePaymentDto> ChargePayment(long disbursementId, CancellationToken cancellationToken) =>
+        payments.GetAsync(disbursementId, cancellationToken);
+
+    [HttpPost("{disbursementId:long}/invoice-entry/charge-payment/sources/{repaymentSourceId:long}")]
+    [HasPermission(Permissions.Crm.Edit)]
+    public Task<CrmChargePaymentDto> PayCharges(long disbursementId, long repaymentSourceId, CancellationToken cancellationToken) =>
+        payments.PayAsync(disbursementId, repaymentSourceId, cancellationToken);
+
+    [HttpPost("{disbursementId:long}/invoice-entry/charge-payment/payments/{allocationId:long}/reverse")]
+    [HasPermission(Permissions.Crm.Edit)]
+    public Task<CrmChargePaymentDto> ReversePayment(long disbursementId, long allocationId, CancellationToken cancellationToken) =>
+        payments.ReverseAsync(disbursementId, allocationId, cancellationToken);
+
     [HttpGet("{disbursementId:long}/invoice-entry/result")]
     [HasPermission(Permissions.Crm.View)]
     public Task<CrmDisbursementResultDto> Result(long disbursementId, CancellationToken cancellationToken) => process.ResultAsync(disbursementId, cancellationToken);

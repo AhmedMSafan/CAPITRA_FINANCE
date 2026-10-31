@@ -358,6 +358,83 @@
         </div>
       </section>
 
+      <!-- Charges Payment (agreed with Ahmed, 31 Oct 2026): the charges are paid from the customer's payment sources; Complete needs
+           them all paid and then posts their GL under the product's transaction set ID -->
+      <section class="col-sec">
+        <h2>
+          <span class="fa fa-money" aria-hidden="true"></span>{{ tr('Charges Payment') }}
+          <span v-if="payment" class="fx-chip ie-chip" :class="payChip">{{ tr(payLabel) }}</span>
+          <span v-if="payment?.glTranSetId" class="ie-ts"><span class="fa fa-book" aria-hidden="true"></span>{{ tr('GL Tran Set ID') }}
+            <b>{{ payment.glTranSetId }}</b></span>
+        </h2>
+        <div v-if="payment" class="ie-totals ie-totals--3">
+          <div><small>{{ tr('Total Charges') }}</small><b>{{ formatAmount(payment.totalCharges) }}</b></div>
+          <div><small>{{ tr('Paid') }}</small><b class="ie-net">{{ formatAmount(payment.paidAmount) }}</b></div>
+          <div><small>{{ tr('Outstanding') }}</small><b :class="{ 'ie-due': payment.outstandingAmount > 0 }">{{ formatAmount(payment.outstandingAmount) }}</b></div>
+        </div>
+
+        <template v-if="canPay">
+          <h3 class="ie-subhead">{{ tr('Available Payment Sources') }}</h3>
+          <div class="fx-table-wrap">
+            <table class="fx-table">
+              <thead>
+                <tr>
+                  <th>{{ tr('Repayment No.') }}</th><th>{{ tr('Source') }}</th><th>{{ tr('Reference') }}</th><th>{{ tr('Value Date') }}</th>
+                  <th class="fx-r">{{ tr('Amount') }}</th><th class="fx-r">{{ tr('Used') }}</th><th class="fx-r">{{ tr('Available') }}</th>
+                  <th class="fx-r"><span class="fx-sr">{{ tr('Actions') }}</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="src in payment!.sources" :key="src.repaymentSourceId">
+                  <td><b>{{ src.repaymentNumber }}</b></td>
+                  <td>{{ tr(sourceLabel(src.sourceType)) }}</td>
+                  <td>{{ src.reference || '-' }}</td>
+                  <td>{{ formatDate(src.valueDate) }}</td>
+                  <td class="fx-r">{{ formatAmount(src.sourceAmount) }}</td>
+                  <td class="fx-r">{{ formatAmount(src.usedAmount) }}</td>
+                  <td class="fx-r"><b>{{ formatAmount(src.availableAmount) }}</b></td>
+                  <td class="fx-r">
+                    <button type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="payFrom(src)">
+                      <span class="fa fa-check" aria-hidden="true"></span>{{ tr('Pay Charges') }}</button>
+                  </td>
+                </tr>
+                <tr v-if="!payment!.sources.length">
+                  <td colspan="8" class="fx-empty">{{ tr('This customer has no payment source with balance. Record the customer\'s payment (collected cheque or bank transfer) first.') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
+
+        <h3 class="ie-subhead">{{ tr('Payments') }}</h3>
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead>
+              <tr>
+                <th>{{ tr('Charge') }}</th><th>{{ tr('Repayment No.') }}</th><th>{{ tr('Source') }}</th><th>{{ tr('Reference') }}</th>
+                <th>{{ tr('Date') }}</th><th class="fx-r">{{ tr('Amount') }}</th>
+                <th v-if="canReverse" class="fx-r"><span class="fx-sr">{{ tr('Actions') }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="p in payment?.payments ?? []" :key="p.allocationId">
+                <td><b>{{ p.ruleCode }}</b></td>
+                <td>{{ p.repaymentNumber }}</td>
+                <td>{{ tr(sourceLabel(p.sourceType)) }}</td>
+                <td>{{ p.reference || '-' }}</td>
+                <td>{{ formatDate(p.allocationDate) }}</td>
+                <td class="fx-r"><b>{{ formatAmount(p.amount) }}</b></td>
+                <td v-if="canReverse" class="fx-r">
+                  <button type="button" class="fx-btn fx-btn--sm" :disabled="busy" :title="tr('Reverse')" @click="reversePayment(p)">
+                    <span class="fa fa-undo" aria-hidden="true"></span>{{ tr('Reverse') }}</button>
+                </td>
+              </tr>
+              <tr v-if="!payment?.payments.length"><td :colspan="canReverse ? 7 : 6" class="fx-empty">{{ tr('No data found') }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="col-sec">
         <h2><span class="fa fa-credit-card" aria-hidden="true"></span>{{ tr('Repayment Schedule') }} <span class="ie-count">{{ schedule.length }}</span></h2>
         <div class="fx-table-wrap">
@@ -419,7 +496,7 @@ import { formatDate } from '@/shared/format/datetime'
 import { fieldErrors, messageOf } from '@/modules/collection/pages/collection'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
 import {
-  invoiceEntryApi, processApi, type ChequeRow, type DisbursementResult, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry,
+  chargePaymentApi, invoiceEntryApi, processApi, type ChargePayment, type ChargePaymentRow, type ChargeSource, type ChequeRow, type DisbursementResult, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry,
   type InvoiceEntrySave, type InvoiceRow, type InvoiceSummary
 } from '../api/invoiceEntry.api'
 
@@ -455,6 +532,15 @@ const summary = ref<InvoiceSummary | null>(null)
 const result = ref<DisbursementResult | null>(null)
 const charges = computed(() => result.value?.charges ?? [])
 const schedule = computed(() => result.value?.schedule ?? [])
+const payment = ref<ChargePayment | null>(null)
+const posted = computed(() => !!payment.value?.glTranSetId)
+const canPay = computed(() => !readOnly.value && !posted.value && (payment.value?.outstandingAmount ?? 0) > 0)
+const canReverse = computed(() => !readOnly.value && !posted.value)
+const PAY_LABELS: Record<string, string> = { NO_CHARGES: 'No Charges', NOT_PAID: 'Not Paid', PARTIALLY_PAID: 'Partially Paid', PAID: 'Paid' }
+const payLabel = computed(() => PAY_LABELS[payment.value?.statusCode ?? 'NO_CHARGES'] ?? '')
+const payChip = computed(() => (payment.value?.statusCode === 'PAID' ? 'fx-chip--teal' : payment.value?.statusCode === 'NO_CHARGES' ? '' : 'fx-chip--warn'))
+const SOURCE_LABELS: Record<string, string> = { CHEQUE: 'Collected Cheque', BANK_TRANSFER: 'Bank Transfer', CREDIT_BALANCE: 'Credit Balance' }
+const sourceLabel = (t: string) => SOURCE_LABELS[t] ?? t
 const options = reactive<InvoiceEntry['options']>({ clients: [], limits: [], currencies: [], products: [], reverseProductIds: [] })
 const invoices = ref<InvoiceRow[]>([])
 const cheques = ref<ChequeRow[]>([])
@@ -487,9 +573,12 @@ async function load() {
   ready.value = false
   errors.value = {}
   try {
-    const [page, processed] = await Promise.all([invoiceEntryApi.get(props.disbursementId), processApi.result(props.disbursementId)])
+    const [page, processed, paid] = await Promise.all([
+      invoiceEntryApi.get(props.disbursementId), processApi.result(props.disbursementId), chargePaymentApi.get(props.disbursementId)
+    ])
     show(page)
     result.value = processed
+    payment.value = paid
   } catch (err) {
     showError(messageOf(err))
   } finally {
@@ -610,7 +699,21 @@ const processRequest = () => check() && run(async () => {
   const done = await processApi.process(props.disbursementId, payload())
   show(done.page)
   result.value = done.result
+  payment.value = await chargePaymentApi.get(props.disbursementId)
   showSuccess(tr(done.message))
+})
+
+// Pay Charges: the source pays what it can of the outstanding charges
+const payFrom = (src: ChargeSource) => run(async () => {
+  payment.value = await chargePaymentApi.pay(props.disbursementId, src.repaymentSourceId)
+  result.value = await processApi.result(props.disbursementId)
+  showSuccess(tr('The charges were paid from the payment source.'))
+})
+
+const reversePayment = (p: ChargePaymentRow) => run(async () => {
+  payment.value = await chargePaymentApi.reverse(props.disbursementId, p.allocationId)
+  result.value = await processApi.result(props.disbursementId)
+  showSuccess(tr('The payment was reversed and its amount returned to the source.'))
 })
 
 // the step's Complete saves the page first
@@ -656,6 +759,11 @@ watch(() => props.disbursementId, load, { immediate: true })
 .ie-note { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; padding: 9px 12px; border-radius: 8px; background: #E6F3F4; color: #00636D; font-size: 13px; }
 .ie-note .fa { margin-block-start: 2px; }
 .ie-locked { background: #F1F4F6; color: #3D4A55; cursor: default; }
+.ie-totals.ie-totals--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ie-due { color: #E87722; }
+.ie-subhead { margin: 16px 0 8px; font-size: 13px; font-weight: 700; color: var(--fin-ink, #1d2a33); }
+.ie-ts { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--fin-muted, #6b7a86); }
+.ie-ts b { font-family: monospace; font-size: 13px; color: #00636D; }
 .ie-src { margin-inline-start: 6px; font-style: normal; font-size: 11px; font-weight: 600; color: #E87722; }
 .ie-chip { margin-inline-start: 6px; }
 .ie-sub { font-size: 12px; color: #6b7c7b; }

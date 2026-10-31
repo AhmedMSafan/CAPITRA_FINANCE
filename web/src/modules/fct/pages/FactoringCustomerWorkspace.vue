@@ -168,7 +168,7 @@
             <tr>
               <th>{{ tr('Disbursement No') }}</th><th>{{ tr('Date') }}</th><th>{{ tr('Limit No.') }}</th><th>{{ tr('Currency') }}</th>
               <th class="fx-r">{{ tr('Gross Amount') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Workflow Step') }}</th>
-              <th class="fx-r">{{ tr('Actions') }}</th>
+              <th>{{ tr('GL Tran Set ID') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -180,6 +180,7 @@
               <td class="fx-r">{{ amount(d.grossAmount) }}</td>
               <td><span class="fx-chip" :class="d.workflowStarted ? 'fx-chip--teal' : 'fx-chip--warn'">{{ tr(d.workflowStarted ? 'WF Started' : 'Workflow Not Started') }}</span></td>
               <td>{{ d.workflowStepName || '-' }}</td>
+              <td><b v-if="d.glTranSetId" class="fc-ref">{{ d.glTranSetId }}</b><span v-else>-</span></td>
               <td class="fx-r">
                 <div class="fc-row-actions">
                   <RouterLink class="fx-btn fx-btn--sm" :to="{ name: 'crm-disbursement-request', params: { disbursementId: d.disbursementId } }"
