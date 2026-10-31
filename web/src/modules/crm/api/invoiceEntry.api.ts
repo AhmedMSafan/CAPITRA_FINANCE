@@ -89,7 +89,7 @@ export type InvoiceEntry = {
   summary: InvoiceSummary
   invoices: InvoiceRow[]
   cheques: ChequeRow[]
-  options: { clients: CrmOption[]; limits: CrmOption[]; currencies: CrmOption[]; products: CrmOption[] }
+  options: { clients: CrmOption[]; limits: CrmOption[]; currencies: CrmOption[]; products: CrmOption[]; reverseProductIds: number[] }
 }
 
 export type InvoiceEntrySave = {

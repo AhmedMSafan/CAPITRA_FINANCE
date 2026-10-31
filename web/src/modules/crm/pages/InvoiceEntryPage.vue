@@ -46,6 +46,10 @@
       <!-- Disbursement Request Detail -->
       <section class="col-sec">
         <h2><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Disbursement Request Detail') }}</h2>
+        <p v-if="isReverse" class="ie-note">
+          <span class="fa fa-info-circle" aria-hidden="true"></span>
+          {{ tr('Reverse factoring: the rates come from the agreement, and the tenor, start date and repayment methods come from the cheques. They are filled in when you save or upload.') }}
+        </p>
         <div class="col-grid">
           <div class="fc-field">
             <span>{{ tr('Disbursement Number') }}</span>
@@ -83,56 +87,56 @@
             </select>
           </label>
           <label class="fc-field" :class="{ 'col-bad': bad('terms.grossAmount') }">
-            <span>{{ tr('Invoices Gross Amount') }} <b>*</b></span>
-            <input v-model.number="terms.grossAmount" class="fx-search" type="number" min="0" step="0.01" inputmode="decimal" :readonly="readOnly">
+            <span>{{ tr('Invoices Gross Amount') }} <b v-if="!isReverse">*</b><em v-else class="ie-src">{{ tr('Total of invoices') }}</em></span>
+            <input v-model.number="terms.grossAmount" class="fx-search" type="number" min="0" step="0.01" inputmode="decimal" :readonly="locked" :class="{ 'ie-locked': isReverse }">
           </label>
           <label class="fc-field" :class="{ 'col-bad': bad('terms.advanceRatePct') }">
-            <span>{{ tr('Advance Rate %') }}</span>
-            <input v-model.number="terms.advanceRatePct" class="fx-search" type="number" min="0" max="100" step="0.01" inputmode="decimal" :readonly="readOnly">
+            <span>{{ tr('Advance Rate %') }}<em v-if="isReverse" class="ie-src">{{ tr('From agreement') }}</em></span>
+            <input v-model.number="terms.advanceRatePct" class="fx-search" type="number" min="0" max="100" step="0.01" inputmode="decimal" :readonly="locked" :class="{ 'ie-locked': isReverse }">
           </label>
           <label class="fc-field">
-            <span>{{ tr('Tenor Months') }}</span>
-            <input v-model.number="terms.tenorMonth" class="fx-search" type="number" min="0" step="1" inputmode="numeric" :readonly="readOnly">
+            <span>{{ tr('Tenor Months') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
+            <input v-model.number="terms.tenorMonth" class="fx-search" type="number" min="0" step="1" inputmode="numeric" :readonly="locked" :class="{ 'ie-locked': isReverse }">
           </label>
           <div class="fc-field">
             <span>{{ tr('Index Rate') }}</span>
             <div class="col-ro">{{ terms.indexRate ?? '' }}</div>
           </div>
           <label class="fc-field">
-            <span>{{ tr('Spread Rate') }}</span>
-            <input v-model.number="terms.spreadRate" class="fx-search" type="number" step="0.01" inputmode="decimal" :readonly="readOnly">
+            <span>{{ tr('Spread Rate') }}<em v-if="isReverse" class="ie-src">{{ tr('From agreement') }}</em></span>
+            <input v-model.number="terms.spreadRate" class="fx-search" type="number" step="0.01" inputmode="decimal" :readonly="locked" :class="{ 'ie-locked': isReverse }">
           </label>
           <label class="fc-field">
-            <span>{{ tr('Base Day Count') }}</span>
-            <select v-model="terms.baseDayCount" class="fx-select" :disabled="readOnly">
-              <option v-for="o in dayCounts" :key="o" :value="o">{{ o }}</option>
+            <span>{{ tr('Base Day Count') }}<em v-if="isReverse" class="ie-src">{{ tr('From agreement') }}</em></span>
+            <select v-model="terms.baseDayCount" class="fx-select" :disabled="locked" :class="{ 'ie-locked': isReverse }">
+              <option v-for="o in dayCountOptions" :key="o" :value="o">{{ o }}</option>
             </select>
           </label>
           <label class="fc-field">
-            <span>{{ tr('Repayment Start Date') }}</span>
-            <input v-model="terms.repaymentStartDate" class="fx-search" type="date" :disabled="readOnly">
+            <span>{{ tr('Repayment Start Date') }}<em v-if="isReverse" class="ie-src">{{ tr('First cheque') }}</em></span>
+            <input v-model="terms.repaymentStartDate" class="fx-search" type="date" :disabled="locked" :class="{ 'ie-locked': isReverse }">
           </label>
           <label class="fc-field">
-            <span>{{ tr('Principal Repayment Schedule Type') }}</span>
-            <select v-model="terms.principalRepaymentScheduleType" class="fx-select" :disabled="readOnly">
+            <span>{{ tr('Principal Repayment Schedule Type') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
+            <select v-model="terms.principalRepaymentScheduleType" class="fx-select" :disabled="locked" :class="{ 'ie-locked': isReverse }">
               <option v-for="o in scheduleTypes" :key="o" :value="o">{{ o }}</option>
             </select>
           </label>
           <label class="fc-field">
-            <span>{{ tr('Principal Repayment Method') }}</span>
-            <select v-model="terms.principalRepaymentMethod" class="fx-select" :disabled="readOnly">
+            <span>{{ tr('Principal Repayment Method') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
+            <select v-model="terms.principalRepaymentMethod" class="fx-select" :disabled="locked" :class="{ 'ie-locked': isReverse }">
               <option v-for="o in principalMethods" :key="o" :value="o">{{ o }}</option>
             </select>
           </label>
           <label class="fc-field">
-            <span>{{ tr('Principal Distribution Method') }}</span>
-            <select v-model="terms.principalDistributionMethod" class="fx-select" :disabled="readOnly">
+            <span>{{ tr('Principal Distribution Method') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
+            <select v-model="terms.principalDistributionMethod" class="fx-select" :disabled="locked" :class="{ 'ie-locked': isReverse }">
               <option v-for="o in distributionMethods" :key="o" :value="o">{{ o }}</option>
             </select>
           </label>
           <label class="fc-field">
-            <span>{{ tr('Interest Repayment Method') }}</span>
-            <select v-model="terms.interestRepaymentMethod" class="fx-select" :disabled="readOnly">
+            <span>{{ tr('Interest Repayment Method') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
+            <select v-model="terms.interestRepaymentMethod" class="fx-select" :disabled="locked" :class="{ 'ie-locked': isReverse }">
               <option v-for="o in interestMethods" :key="o.value" :value="o.value">{{ o.label }}</option>
             </select>
           </label>
@@ -436,6 +440,10 @@ const paymentMethods = ['CHEQUE', 'TRANSFER', 'INTERNAL']
 
 const canEdit = hasPermission('CRM.EDIT')
 const readOnly = computed(() => !canEdit)
+// reverse factoring (agreed with Ahmed, 31 Oct 2026): the rates are the agreement's and the repayment terms the cheques', set by the server
+const isReverse = computed(() => terms.productId != null && options.reverseProductIds.includes(terms.productId))
+const locked = computed(() => readOnly.value || isReverse.value)
+const dayCountOptions = computed(() => !terms.baseDayCount || dayCounts.includes(terms.baseDayCount) ? dayCounts : [...dayCounts, terms.baseDayCount])
 const ready = ref(false)
 const busy = ref(false)
 const errors = ref<Record<string, string[]>>({})
@@ -447,7 +455,7 @@ const summary = ref<InvoiceSummary | null>(null)
 const result = ref<DisbursementResult | null>(null)
 const charges = computed(() => result.value?.charges ?? [])
 const schedule = computed(() => result.value?.schedule ?? [])
-const options = reactive<InvoiceEntry['options']>({ clients: [], limits: [], currencies: [], products: [] })
+const options = reactive<InvoiceEntry['options']>({ clients: [], limits: [], currencies: [], products: [], reverseProductIds: [] })
 const invoices = ref<InvoiceRow[]>([])
 const cheques = ref<ChequeRow[]>([])
 const changedInvoices = new Set<number>()
@@ -538,7 +546,7 @@ function check(): boolean {
   if (!terms.disbursementDate) e['terms.disbursementDate'] = ['Disbursement Date must have some value.']
   if (terms.clientId == null) e['terms.clientId'] = ['Client Id must have some value.']
   if (terms.currencyId == null) e['terms.currencyId'] = ['Currency must have some value.']
-  if (terms.grossAmount == null || (terms.grossAmount as unknown) === '') e['terms.grossAmount'] = ['Invoices Gross Amount must have some value.']
+  if (!isReverse.value && (terms.grossAmount == null || (terms.grossAmount as unknown) === '')) e['terms.grossAmount'] = ['Invoices Gross Amount must have some value.']
   if (!batch.batchNumber?.trim()) e['batch.batchNumber'] = ['Batch Number must have some value.']
   if (batch.clientId == null) e['batch.clientId'] = ['Client must have some value.']
   if (!batch.batchDate) e['batch.batchDate'] = ['Batch Date must have some value.']
@@ -645,6 +653,10 @@ watch(() => props.disbursementId, load, { immediate: true })
 .ie-util-foot i { color: rgba(255, 255, 255, .4); }
 
 .ie-wide { grid-column: span 2; }
+.ie-note { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; padding: 9px 12px; border-radius: 8px; background: #E6F3F4; color: #00636D; font-size: 13px; }
+.ie-note .fa { margin-block-start: 2px; }
+.ie-locked { background: #F1F4F6; color: #3D4A55; cursor: default; }
+.ie-src { margin-inline-start: 6px; font-style: normal; font-size: 11px; font-weight: 600; color: #E87722; }
 .ie-chip { margin-inline-start: 6px; }
 .ie-sub { font-size: 12px; color: #6b7c7b; }
 .ie-totals { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }

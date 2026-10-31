@@ -38,8 +38,10 @@ public sealed record CrmInvoiceSummaryDto(
     string LimitNumber, string ClientName, decimal ApprovedLimit, decimal AvailableAmount, string CurrencyCode, decimal TotalInvoices,
     decimal ApprovedInvoiced, decimal AdvanceRate, decimal UtilizationAmount, int UtilizationPercent);
 
+/// <param name="ReverseProductIds">The products of factoring mode REVERSE: their rates come from the agreement and their repayment terms from the cheques.</param>
 public sealed record CrmInvoiceEntryOptionsDto(
-    IReadOnlyList<CrmOptionDto> Clients, IReadOnlyList<CrmOptionDto> Limits, IReadOnlyList<CrmOptionDto> Currencies, IReadOnlyList<CrmOptionDto> Products);
+    IReadOnlyList<CrmOptionDto> Clients, IReadOnlyList<CrmOptionDto> Limits, IReadOnlyList<CrmOptionDto> Currencies, IReadOnlyList<CrmOptionDto> Products,
+    IReadOnlyList<long> ReverseProductIds);
 
 public sealed record CrmInvoiceEntryDto(
     long DisbursementId, CrmDisbursementTermsDto Terms, CrmInvoiceBatchDto Batch, CrmInvoiceSummaryDto Summary, IReadOnlyList<CrmInvoiceRowDto> Invoices,
@@ -63,6 +65,8 @@ public sealed record CrmInvoiceUploadResultDto(CrmInvoiceEntryDto Page, string M
 public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, IWorkbookReader workbooks)
 {
     private const long LegalEntityId = 1;
+
+    internal const string ReverseMode = "REVERSE";
 
     private string User => currentUser.UserName ?? "SYSTEM";
 
@@ -150,6 +154,8 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         }
 
         await db.SaveChangesAsync(cancellationToken);
+        await DeriveReverseTermsAsync(d, batch?.BatchId, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
         return (d, batch);
     }
 
@@ -191,6 +197,8 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         batch.UploadFileSize = files.Sum(x => x.Content.Length);
         batch.UploadFileType = files.Select(x => x.MimeType).FirstOrDefault(x => x is not null) ?? batch.UploadFileType;
         await db.SaveChangesAsync(cancellationToken);
+        await DeriveReverseTermsAsync(d, batch.BatchId, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
 
         return new CrmInvoiceUploadResultDto(await GetAsync(disbursementId, cancellationToken),
@@ -199,11 +207,12 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
 
     private async Task<FctDisbursement> SaveFormsAsync(long disbursementId, CrmDisbursementTermsDto t, CrmInvoiceBatchDto b, CancellationToken cancellationToken)
     {
+        var reverse = await IsReverseAsync(t.ProductId, cancellationToken);
         var errors = new Dictionary<string, string[]>();
         if (t.DisbursementDate is null) errors["terms.disbursementDate"] = ["Disbursement Date must have some value."];
         if (t.ClientId is null) errors["terms.clientId"] = ["Client Id must have some value."];
         if (t.CurrencyId is null) errors["terms.currencyId"] = ["Currency Id must have some value."];
-        if (t.GrossAmount is null) errors["terms.grossAmount"] = ["Invoices Gross Amount must have some value."];
+        if (t.GrossAmount is null && !reverse) errors["terms.grossAmount"] = ["Invoices Gross Amount must have some value."];
         if (string.IsNullOrWhiteSpace(b.BatchNumber)) errors["batch.batchNumber"] = ["Batch Number must have some value."];
         if (b.ClientId is null) errors["batch.clientId"] = ["Client Id must have some value."];
         if (b.BatchDate is null) errors["batch.batchDate"] = ["Batch Date must have some value."];
@@ -221,7 +230,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         d.LimitId = t.LimitId;
         d.CurrencyId = t.CurrencyId!.Value;
         d.ProductId = t.ProductId;
-        d.GrossAmount = t.GrossAmount!.Value;
+        d.GrossAmount = t.GrossAmount ?? d.GrossAmount;
         d.AdvanceRatePct = t.AdvanceRatePct;
         d.TenorMonth = t.TenorMonth;
         d.IndexRate = t.IndexRate;
@@ -234,6 +243,8 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         d.InterestRepaymentMethod = t.InterestRepaymentMethod;
         d.PaymentMethod = t.PaymentMethod;
         d.Remarks = Blank(t.Remarks);
+        if (reverse)
+            await ReverseRatesAsync(d, cancellationToken);
 
         // SAVE_BATCH_HEADER_FOR_UPLOAD: the request's batch, added when there is none
         var batch = await BatchOfAsync(disbursementId, false, cancellationToken);
@@ -471,12 +482,70 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
             .Select(x => new { x.CreditLimitId, x.AvailableAmount }).ToListAsync(cancellationToken);
         var currencies = await db.Set<CrmLkpCurrency>().AsNoTracking().OrderBy(x => x.CurrencyCode).Select(x => new { x.CurrencyId, x.CurrencyCode }).ToListAsync(cancellationToken);
         var products = await db.Set<AdmProduct>().AsNoTracking().Where(x => x.BusinessLineCode == "FACTORING").OrderBy(x => x.ProductNameEn)
-            .Select(x => new { x.ProductId, x.ProductNameEn }).ToListAsync(cancellationToken);
+            .Select(x => new { x.ProductId, x.ProductNameEn, x.FactoringModeCode }).ToListAsync(cancellationToken);
         return new CrmInvoiceEntryOptionsDto(
             clients.Select(x => new CrmOptionDto(Id(x.ClientId), x.ClientName)).ToList(),
             limits.Select(x => new CrmOptionDto(Id(x.CreditLimitId), x.AvailableAmount is { } a ? Math.Round(a, 0, MidpointRounding.AwayFromZero).ToString("#,##0", CultureInfo.InvariantCulture) : string.Empty)).ToList(),
             currencies.Select(x => new CrmOptionDto(Id(x.CurrencyId), x.CurrencyCode)).ToList(),
-            products.Select(x => new CrmOptionDto(Id(x.ProductId), x.ProductNameEn)).ToList());
+            products.Select(x => new CrmOptionDto(Id(x.ProductId), x.ProductNameEn)).ToList(),
+            products.Where(x => x.FactoringModeCode == ReverseMode).Select(x => x.ProductId).ToList());
+    }
+
+    /// <summary>Whether the product is a reverse factoring product (ADM_PRODUCTS.FACTORING_MODE_CODE REVERSE).</summary>
+    internal async Task<bool> IsReverseAsync(long? productId, CancellationToken cancellationToken) =>
+        productId is { } id && await db.Set<AdmProduct>().AsNoTracking().AnyAsync(x => x.ProductId == id && x.FactoringModeCode == ReverseMode, cancellationToken);
+
+    /// <summary>
+    /// Reverse factoring (agreed with Ahmed, 31 Oct 2026): the rates are the agreement's, the limit's where the agreement has none, and the
+    /// four repayment methods follow the cheques: each cheque is an installment of principal and interest, in proportion to its amount.
+    /// </summary>
+    private async Task ReverseRatesAsync(FctDisbursement d, CancellationToken cancellationToken)
+    {
+        var agreement = await db.Set<FctAgreement>().AsNoTracking().Where(x => x.AgreementId == d.AgreementId)
+            .Select(x => new { x.AdvanceRatePct, x.SpreadPct, x.DayCountConvention }).FirstOrDefaultAsync(cancellationToken);
+        var limit = await db.Set<FctCreditLimit>().AsNoTracking().Where(x => x.CreditLimitId == d.LimitId)
+            .Select(x => new { x.AdvanceRatePct, x.SpreadRate }).FirstOrDefaultAsync(cancellationToken);
+        d.AdvanceRatePct = agreement?.AdvanceRatePct is > 0 ? agreement.AdvanceRatePct : limit?.AdvanceRatePct ?? d.AdvanceRatePct;
+        d.SpreadRate = agreement?.SpreadPct ?? limit?.SpreadRate ?? d.SpreadRate;
+        d.BaseDayCountBasis = DayCountOf(agreement?.DayCountConvention) ?? d.BaseDayCountBasis;
+        d.PrincipalRepaymentScheduleType = "NORMAL_SCHEDULE";
+        d.PrincipalRepaymentMethod = "CHEQUE_DUE_DATE";
+        d.PrincipalDistributionMethod = "CHEQUE_AMOUNT";
+        d.InterestRepaymentMethod = "SAME_AS_PRINCIPAL";
+    }
+
+    /// <summary>The agreement's day count convention (ACT/360) as page 705 names it (ACTUAL/360).</summary>
+    private static string? DayCountOf(string? convention) =>
+        string.IsNullOrWhiteSpace(convention) ? null
+        : convention.Trim().ToUpperInvariant() is var c && c.StartsWith("ACT/", StringComparison.Ordinal) ? "ACTUAL/" + c[4..] : c;
+
+    /// <summary>
+    /// Reverse factoring: Invoices Gross Amount is the total of the request's invoices, the repayment starts on the first cheque's due date
+    /// and the tenor runs to the last one's (in whole months from the disbursement date; the schedule ends on the last cheque itself).
+    /// </summary>
+    private async Task DeriveReverseTermsAsync(FctDisbursement d, long? batchId, CancellationToken cancellationToken)
+    {
+        if (!await IsReverseAsync(d.ProductId, cancellationToken)) return;
+        if (batchId is not { } b)
+        {
+            d.GrossAmount = 0;
+            return;
+        }
+
+        d.GrossAmount = await db.Set<FctInvoice>().Where(x => x.BatchId == b).SumAsync(x => (decimal?)x.GrossAmount, cancellationToken) ?? 0;
+        var dues = await Cheques(b, d.DisbursementId).Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED")
+            .Select(x => x.DueDate).ToListAsync(cancellationToken);
+        if (dues.Count == 0) return;
+        d.RepaymentStartDate = dues.Min();
+        d.TenorMonth = TenorMonths(d.DisbursementDate, dues.Max());
+    }
+
+    /// <summary>The fewest whole months from the disbursement date that reach the date (at least 1).</summary>
+    public static int TenorMonths(DateOnly from, DateOnly to)
+    {
+        var months = 1;
+        while (CrmRepaymentSchedule.AddMonths(from, months) < to) months++;
+        return months;
     }
 
     /// <summary>Resolve Disbursement Context: the request's latest batch.</summary>

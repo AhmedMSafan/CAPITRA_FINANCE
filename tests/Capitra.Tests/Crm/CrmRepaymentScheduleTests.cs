@@ -54,4 +54,31 @@ public sealed class CrmRepaymentScheduleTests
         d.TenorMonth = 0;
         Assert.Throws<BusinessRuleException>(() => CrmRepaymentSchedule.Build(d, 0, [], [], 1));
     }
+
+    [Fact]
+    public void Reverse_factoring_schedule_is_the_cheques_and_ends_on_the_last_one()
+    {
+        // 3 cheques of 400,000; the tenor (4 months) would end on 28 Feb, but the schedule stops on the last cheque
+        var cheques = new[]
+        {
+            new CrmScheduleSource(new DateOnly(2026, 11, 30), 400_000m), new CrmScheduleSource(new DateOnly(2026, 12, 31), 400_000m),
+            new CrmScheduleSource(new DateOnly(2027, 1, 31), 400_000m),
+        };
+        var d = Request("CHEQUE_DUE_DATE", "CHEQUE_AMOUNT", "SAME_AS_PRINCIPAL");
+        d.TenorMonth = 4;
+        var rows = CrmRepaymentSchedule.Build(d, 0, [], cheques, 1, new DateOnly(2027, 1, 31));
+        Assert.Equal(cheques.Select(x => x.DueDate), rows.Select(x => x.DueDate));
+        Assert.All(rows, x => Assert.True(x.InterestDue > 0));
+        Assert.Equal(1_000_000m, rows.Sum(x => x.PrincipalDue!.Value));
+        Assert.Equal(0m, rows[^1].ClosingPrincipal);
+    }
+
+    [Theory]
+    [InlineData("2026-10-30", "2026-11-30", 1)]
+    [InlineData("2026-10-30", "2027-01-30", 3)]
+    [InlineData("2026-10-30", "2027-01-31", 4)]
+    [InlineData("2026-10-30", "2027-02-01", 4)]
+    [InlineData("2026-10-30", "2026-10-30", 1)]
+    public void Reverse_tenor_reaches_the_last_cheque(string from, string to, int months) =>
+        Assert.Equal(months, CrmInvoiceEntryService.TenorMonths(DateOnly.Parse(from), DateOnly.Parse(to)));
 }
