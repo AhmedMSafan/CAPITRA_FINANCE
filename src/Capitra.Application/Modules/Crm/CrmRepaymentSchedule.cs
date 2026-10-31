@@ -49,8 +49,10 @@ public static class CrmRepaymentSchedule
     /// <param name="invoices">The request's ELIGIBLE invoices: due date and advance amount.</param>
     /// <param name="cheques">The request's cheques that are not CANCELLED or REPLACED: due date and amount.</param>
     /// <param name="version">The new SCHEDULE_VERSION.</param>
+    /// <param name="maturityDate">Reverse factoring: the last cheque's due date, in place of the disbursement date plus the tenor.</param>
     public static List<FctRepayment> Build(
-        FctDisbursement d, decimal financedCharges, IReadOnlyList<CrmScheduleSource> invoices, IReadOnlyList<CrmScheduleSource> cheques, int version)
+        FctDisbursement d, decimal financedCharges, IReadOnlyList<CrmScheduleSource> invoices, IReadOnlyList<CrmScheduleSource> cheques, int version,
+        DateOnly? maturityDate = null)
     {
         if ((d.TenorMonth ?? 0) <= 0) throw new BusinessRuleException("TENOR_MONTH must be greater than zero.");
 
@@ -66,7 +68,7 @@ public static class CrmRepaymentSchedule
 
         var disbursementDate = d.DisbursementDate;
         var start = d.RepaymentStartDate is { } r && r > disbursementDate ? r : disbursementDate;
-        var maturity = AddMonths(disbursementDate, d.TenorMonth!.Value);
+        var maturity = maturityDate ?? AddMonths(disbursementDate, d.TenorMonth!.Value);
         var rate = (d.IndexRate ?? 0) + (d.SpreadRate ?? 0);
         var initialPrincipal = Math.Round(d.ApprovedAdvanceAmount + financedCharges, 4, MidpointRounding.AwayFromZero);
         DateOnly Capped(DateOnly x) => x < maturity ? x : maturity;
