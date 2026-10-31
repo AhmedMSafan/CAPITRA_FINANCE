@@ -27,6 +27,8 @@ export type CrudField = {
   wide?: boolean
   /** Shown but not editable once the record exists (codes). */
   lockedOnEdit?: boolean
+  /** Always shown and never editable: set by a script or the server, not on this form. */
+  readOnly?: boolean
   uppercase?: boolean
   /** Shown only while it returns true for the form's values; a hidden field is sent as null and is not required. */
   showIf?: (values: FormValues) => boolean

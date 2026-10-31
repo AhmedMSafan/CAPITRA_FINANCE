@@ -304,7 +304,7 @@ useFeedback({ errors: [pageError, formError] })
                 v-if="field.type === 'select'"
                 :id="`f-${field.name}`"
                 v-model="form[field.name]"
-                :disabled="field.lockedOnEdit && !!editingRow"
+                :disabled="field.readOnly || (field.lockedOnEdit && !!editingRow)"
               >
                 <option value="">- Select -</option>
                 <option v-if="isMissingOption(field)" :value="form[field.name]">{{ form[field.name] }} (inactive)</option>
@@ -334,7 +334,7 @@ useFeedback({ errors: [pageError, formError] })
                 :min="field.min"
                 :max="field.max"
                 :maxlength="field.maxLength"
-                :disabled="field.lockedOnEdit && !!editingRow"
+                :disabled="field.readOnly || (field.lockedOnEdit && !!editingRow)"
                 :dir="field.rtl ? 'rtl' : undefined"
                 :class="{ upper: field.uppercase }"
               />

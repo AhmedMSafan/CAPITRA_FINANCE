@@ -22,6 +22,12 @@ public class AdmProduct : AuditableEntity
 
     public string? FactoringModeCode { get; set; }
 
+    /// <summary>
+    /// GL_TRAN_SET_CODE: 3 letters, unique, naming the product's GL transaction set IDs CAP-{code}-{year}-{number}
+    /// (GL_TRAN_SET_SEQUENCES.MODULE_CODE). Set by script; the Product Catalog shows it read-only.
+    /// </summary>
+    public string? GlTranSetCode { get; set; }
+
     /// <summary>With or without recourse; blank when it does not apply.</summary>
     public bool? IsRecourse { get; set; }
 
