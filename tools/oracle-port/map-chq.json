@@ -1,0 +1,1362 @@
+{
+ "FND_CHEQUE": {
+  "table": "CHQ_CHEQUES",
+  "class": "ChqCheque",
+  "columns": {
+   "CHEQUE_ID": {
+    "column": "CHEQUE_ID",
+    "kind": "int"
+   },
+   "CHEQUE_REF": {
+    "column": "CHEQUE_REF",
+    "kind": "string"
+   },
+   "CHEQUE_NO": {
+    "column": "CHEQUE_NO",
+    "kind": "string"
+   },
+   "CHEQUE_DATE": {
+    "column": "CHEQUE_AT",
+    "kind": "datetime"
+   },
+   "DUE_DATE": {
+    "column": "DUE_DATE",
+    "kind": "date"
+   },
+   "ISSUER_BANK_NAME": {
+    "column": "ISSUER_BANK_NAME",
+    "kind": "string"
+   },
+   "ISSUER_BANK_CODE": {
+    "column": "ISSUER_BANK_CODE",
+    "kind": "string"
+   },
+   "ISSUER_BANK_BRANCH": {
+    "column": "ISSUER_BANK_BRANCH",
+    "kind": "string"
+   },
+   "ISSUER_ACCOUNT_NO": {
+    "column": "ISSUER_ACCOUNT_NO",
+    "kind": "string"
+   },
+   "DRAWER_NAME_EN": {
+    "column": "DRAWER_NAME_EN",
+    "kind": "string"
+   },
+   "DRAWER_NAME_AR": {
+    "column": "DRAWER_NAME_AR",
+    "kind": "string"
+   },
+   "DRAWER_NATIONAL_ID": {
+    "column": "DRAWER_NATIONAL_ID",
+    "kind": "string"
+   },
+   "CUSTOMER_ID": {
+    "column": "CUSTOMER_ID",
+    "kind": "string"
+   },
+   "CUSTOMER_NAME_EN": {
+    "column": "CUSTOMER_NAME_EN",
+    "kind": "string"
+   },
+   "CUSTOMER_NAME_AR": {
+    "column": "CUSTOMER_NAME_AR",
+    "kind": "string"
+   },
+   "DRAWDOWN_ID": {
+    "column": "DRAWDOWN_ID",
+    "kind": "int"
+   },
+   "SCHEDULE_ID": {
+    "column": "SCHEDULE_ID",
+    "kind": "int"
+   },
+   "DEPOSIT_BANK_ACCOUNT_ID": {
+    "column": "DEPOSIT_BANK_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "CHEQUE_AMOUNT": {
+    "column": "CHEQUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "SOURCE_MODULE": {
+    "column": "SOURCE_MODULE",
+    "kind": "string"
+   },
+   "SOURCE_REF_TYPE": {
+    "column": "SOURCE_REF_TYPE",
+    "kind": "string"
+   },
+   "SOURCE_REF_ID": {
+    "column": "SOURCE_REF_ID",
+    "kind": "string"
+   },
+   "RECEIVED_DT": {
+    "column": "RECEIVED_AT",
+    "kind": "datetime"
+   },
+   "DEPOSIT_DT": {
+    "column": "DEPOSIT_AT",
+    "kind": "datetime"
+   },
+   "COLLECTION_DT": {
+    "column": "COLLECTION_AT",
+    "kind": "datetime"
+   },
+   "REJECTION_DT": {
+    "column": "REJECTION_AT",
+    "kind": "datetime"
+   },
+   "WITHDRAWAL_DT": {
+    "column": "WITHDRAWAL_AT",
+    "kind": "datetime"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "REJECTION_REASON_CODE": {
+    "column": "REJECTION_REASON_CODE",
+    "kind": "string"
+   },
+   "REJECTION_NOTES": {
+    "column": "REJECTION_NOTES",
+    "kind": "string"
+   },
+   "IS_REPLACED": {
+    "column": "IS_REPLACED",
+    "kind": "flag"
+   },
+   "REPLACEMENT_CHEQUE_ID": {
+    "column": "REPLACEMENT_CHEQUE_ID",
+    "kind": "int"
+   },
+   "DEPOSIT_BATCH_ID": {
+    "column": "DEPOSIT_BATCH_ID",
+    "kind": "int"
+   },
+   "GL_POSTED": {
+    "column": "IS_GL_POSTED",
+    "kind": "flag"
+   },
+   "GL_JOURNAL_REF": {
+    "column": "GL_JOURNAL_REF",
+    "kind": "string"
+   },
+   "GL_POST_DT": {
+    "column": "GL_POST_AT",
+    "kind": "datetime"
+   },
+   "PAYMENT_ID": {
+    "column": "PAYMENT_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "DRAWER_ACCOUNT_NO": {
+    "column": "DRAWER_ACCOUNT_NO",
+    "kind": "string"
+   },
+   "PARTY_TAX_ID": {
+    "column": "PARTY_TAX_ID",
+    "kind": "string"
+   },
+   "CURRENT_LOCATION_CODE": {
+    "column": "CURRENT_LOCATION_CODE",
+    "kind": "string"
+   },
+   "CURRENT_CUSTODIAN_USER": {
+    "column": "CURRENT_CUSTODIAN_USER",
+    "kind": "string"
+   },
+   "LAST_EVENT_ID": {
+    "column": "LAST_EVENT_ID",
+    "kind": "int"
+   },
+   "LAST_EVENT_DT": {
+    "column": "LAST_EVENT_AT",
+    "kind": "datetime"
+   },
+   "BATCH_ID": {
+    "column": "BATCH_ID",
+    "kind": "int"
+   },
+   "DEPOSIT_BANK_ID": {
+    "column": "DEPOSIT_BANK_ID",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "CHEQUE_ID"
+ },
+ "FND_CHEQUE_ACTION_CATALOG": {
+  "table": "CHQ_ACTION_CATALOGS",
+  "class": "ChqActionCatalog",
+  "columns": {
+   "ACTION_CODE": {
+    "column": "ACTION_CODE",
+    "kind": "string"
+   },
+   "ACTION_NAME_EN": {
+    "column": "ACTION_NAME_EN",
+    "kind": "string"
+   },
+   "ACTION_NAME_AR": {
+    "column": "ACTION_NAME_AR",
+    "kind": "string"
+   },
+   "EVENT_TYPE": {
+    "column": "EVENT_TYPE",
+    "kind": "string"
+   },
+   "TARGET_LOCATION_CODE": {
+    "column": "TARGET_LOCATION_CODE",
+    "kind": "string"
+   },
+   "ALLOWED_FROM_STATUS": {
+    "column": "ALLOWED_FROM_STATUS",
+    "kind": "string"
+   },
+   "ALLOWED_FROM_LOCATION": {
+    "column": "ALLOWED_FROM_LOCATION",
+    "kind": "string"
+   },
+   "REQUIRE_DEPOSIT_BATCH": {
+    "column": "IS_DEPOSIT_BATCH_REQUIRED",
+    "kind": "flag"
+   },
+   "REQUIRE_BANK_REF": {
+    "column": "IS_BANK_REF_REQUIRED",
+    "kind": "flag"
+   },
+   "REQUIRE_REJECTION_REASON": {
+    "column": "IS_REJECTION_REASON_REQUIRED",
+    "kind": "flag"
+   },
+   "REQUIRE_NOTES": {
+    "column": "IS_NOTES_REQUIRED",
+    "kind": "flag"
+   },
+   "PACKAGE_PROCEDURE_NAME": {
+    "column": "PACKAGE_PROCEDURE_NAME",
+    "kind": "string"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "ACTION_CODE"
+ },
+ "FND_CHEQUE_BANK_CHARGE": {
+  "table": "CHQ_BANK_CHARGES",
+  "class": "ChqBankCharge",
+  "columns": {
+   "CHARGE_ID": {
+    "column": "CHARGE_ID",
+    "kind": "int"
+   },
+   "CHARGE_REF": {
+    "column": "CHARGE_REF",
+    "kind": "string"
+   },
+   "CHEQUE_ID": {
+    "column": "CHEQUE_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "CHARGE_TYPE": {
+    "column": "CHARGE_TYPE",
+    "kind": "string"
+   },
+   "CHARGE_DESCRIPTION_EN": {
+    "column": "CHARGE_DESCRIPTION_EN",
+    "kind": "string"
+   },
+   "CHARGE_DESCRIPTION_AR": {
+    "column": "CHARGE_DESCRIPTION_AR",
+    "kind": "string"
+   },
+   "CHARGE_AMOUNT": {
+    "column": "CHARGE_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "CHARGED_BY_BANK": {
+    "column": "CHARGED_BY_BANK",
+    "kind": "string"
+   },
+   "CHARGE_DT": {
+    "column": "CHARGE_AT",
+    "kind": "datetime"
+   },
+   "RECOVERED_FROM_CUSTOMER": {
+    "column": "IS_RECOVERED_FROM_CUSTOMER",
+    "kind": "flag"
+   },
+   "RECOVERY_DT": {
+    "column": "RECOVERY_AT",
+    "kind": "datetime"
+   },
+   "RECOVERY_AMOUNT": {
+    "column": "RECOVERY_AMOUNT",
+    "kind": "decimal"
+   },
+   "GL_POSTED": {
+    "column": "IS_GL_POSTED",
+    "kind": "flag"
+   },
+   "GL_DEBIT_ACCOUNT": {
+    "column": "GL_DEBIT_ACCOUNT",
+    "kind": "string"
+   },
+   "GL_CREDIT_ACCOUNT": {
+    "column": "GL_CREDIT_ACCOUNT",
+    "kind": "string"
+   },
+   "GL_JOURNAL_REF": {
+    "column": "GL_JOURNAL_REF",
+    "kind": "string"
+   },
+   "GL_POST_DT": {
+    "column": "GL_POST_AT",
+    "kind": "datetime"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "CHARGE_ID"
+ },
+ "FND_CHEQUE_BANK_STATEMENT": {
+  "table": "CHQ_BANK_STATEMENTS",
+  "class": "ChqBankStatement",
+  "columns": {
+   "STATEMENT_LINE_ID": {
+    "column": "STATEMENT_LINE_ID",
+    "kind": "int"
+   },
+   "STATEMENT_REF": {
+    "column": "STATEMENT_REF",
+    "kind": "string"
+   },
+   "BANK_ACCOUNT_ID": {
+    "column": "BANK_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "STATEMENT_DATE": {
+    "column": "STATEMENT_DATE",
+    "kind": "date"
+   },
+   "VALUE_DATE": {
+    "column": "VALUE_DATE",
+    "kind": "date"
+   },
+   "TRANSACTION_TYPE": {
+    "column": "TRANSACTION_TYPE",
+    "kind": "string"
+   },
+   "TRANSACTION_AMOUNT": {
+    "column": "TRANSACTION_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "BANK_REFERENCE": {
+    "column": "BANK_REFERENCE",
+    "kind": "string"
+   },
+   "DESCRIPTION": {
+    "column": "DESCRIPTION",
+    "kind": "string"
+   },
+   "MATCHED_CHEQUE_ID": {
+    "column": "MATCHED_CHEQUE_ID",
+    "kind": "int"
+   },
+   "RECON_STATUS": {
+    "column": "RECON_STATUS",
+    "kind": "string"
+   },
+   "RECON_DT": {
+    "column": "RECON_AT",
+    "kind": "datetime"
+   },
+   "RECON_BY": {
+    "column": "RECON_BY",
+    "kind": "string"
+   },
+   "RECON_NOTES": {
+    "column": "RECON_NOTES",
+    "kind": "string"
+   },
+   "CLOSING_BALANCE": {
+    "column": "CLOSING_BALANCE",
+    "kind": "decimal"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "STATEMENT_LINE_ID"
+ },
+ "FND_CHEQUE_DEPOSIT_BATCH": {
+  "table": "CHQ_DEPOSIT_BATCHES",
+  "class": "ChqDepositBatch",
+  "columns": {
+   "DEPOSIT_BATCH_ID": {
+    "column": "DEPOSIT_BATCH_ID",
+    "kind": "int"
+   },
+   "BATCH_REF": {
+    "column": "BATCH_REF",
+    "kind": "string"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "DEPOSIT_BANK_ACCOUNT_ID": {
+    "column": "DEPOSIT_BANK_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "BATCH_DATE": {
+    "column": "BATCH_DATE",
+    "kind": "date"
+   },
+   "TOTAL_CHEQUES": {
+    "column": "TOTAL_CHEQUES",
+    "kind": "decimal"
+   },
+   "TOTAL_AMOUNT": {
+    "column": "TOTAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "COLLECTED_COUNT": {
+    "column": "COLLECTED_COUNT",
+    "kind": "int"
+   },
+   "COLLECTED_AMOUNT": {
+    "column": "COLLECTED_AMOUNT",
+    "kind": "decimal"
+   },
+   "REJECTED_COUNT": {
+    "column": "REJECTED_COUNT",
+    "kind": "int"
+   },
+   "REJECTED_AMOUNT": {
+    "column": "REJECTED_AMOUNT",
+    "kind": "decimal"
+   },
+   "WITHDRAWN_COUNT": {
+    "column": "WITHDRAWN_COUNT",
+    "kind": "int"
+   },
+   "WITHDRAWN_AMOUNT": {
+    "column": "WITHDRAWN_AMOUNT",
+    "kind": "decimal"
+   },
+   "PENDING_COUNT": {
+    "column": "PENDING_COUNT",
+    "kind": "int"
+   },
+   "PENDING_AMOUNT": {
+    "column": "PENDING_AMOUNT",
+    "kind": "decimal"
+   },
+   "BATCH_STATUS": {
+    "column": "BATCH_STATUS",
+    "kind": "string"
+   },
+   "SUBMITTED_DT": {
+    "column": "SUBMITTED_AT",
+    "kind": "datetime"
+   },
+   "CLEARED_DT": {
+    "column": "CLEARED_AT",
+    "kind": "datetime"
+   },
+   "BANK_BATCH_REF": {
+    "column": "BANK_BATCH_REF",
+    "kind": "string"
+   },
+   "BANK_CONFIRMED": {
+    "column": "IS_BANK_CONFIRMED",
+    "kind": "flag"
+   },
+   "BANK_CONFIRMED_DT": {
+    "column": "BANK_CONFIRMED_AT",
+    "kind": "datetime"
+   },
+   "GL_POSTED": {
+    "column": "IS_GL_POSTED",
+    "kind": "flag"
+   },
+   "GL_JOURNAL_REF": {
+    "column": "GL_JOURNAL_REF",
+    "kind": "string"
+   },
+   "GL_POST_DT": {
+    "column": "GL_POST_AT",
+    "kind": "datetime"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "DEPOSIT_BATCH_ID"
+ },
+ "FND_CHEQUE_EVENT": {
+  "table": "CHQ_EVENTS",
+  "class": "ChqEvent",
+  "columns": {
+   "EVENT_ID": {
+    "column": "EVENT_ID",
+    "kind": "int"
+   },
+   "CHEQUE_ID": {
+    "column": "CHEQUE_ID",
+    "kind": "int"
+   },
+   "DEPOSIT_BATCH_ID": {
+    "column": "DEPOSIT_BATCH_ID",
+    "kind": "int"
+   },
+   "EVENT_TYPE": {
+    "column": "EVENT_TYPE",
+    "kind": "string"
+   },
+   "EVENT_DT": {
+    "column": "EVENT_AT",
+    "kind": "datetime"
+   },
+   "EFFECTIVE_DT": {
+    "column": "EFFECTIVE_AT",
+    "kind": "datetime"
+   },
+   "EVENT_AMOUNT": {
+    "column": "EVENT_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "REJECTION_REASON_CODE": {
+    "column": "REJECTION_REASON_CODE",
+    "kind": "string"
+   },
+   "BANK_REF": {
+    "column": "BANK_REF",
+    "kind": "string"
+   },
+   "NEW_STATUS_CODE": {
+    "column": "NEW_STATUS_CODE",
+    "kind": "string"
+   },
+   "OLD_STATUS_CODE": {
+    "column": "OLD_STATUS_CODE",
+    "kind": "string"
+   },
+   "GL_POSTED": {
+    "column": "IS_GL_POSTED",
+    "kind": "flag"
+   },
+   "GL_JOURNAL_REF": {
+    "column": "GL_JOURNAL_REF",
+    "kind": "string"
+   },
+   "GL_POST_DT": {
+    "column": "GL_POST_AT",
+    "kind": "datetime"
+   },
+   "GL_DEBIT_ACCOUNT": {
+    "column": "GL_DEBIT_ACCOUNT",
+    "kind": "string"
+   },
+   "GL_CREDIT_ACCOUNT": {
+    "column": "GL_CREDIT_ACCOUNT",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "MOVEMENT_GROUP_ID": {
+    "column": "MOVEMENT_GROUP_ID",
+    "kind": "int"
+   },
+   "FROM_LOCATION_CODE": {
+    "column": "FROM_LOCATION_CODE",
+    "kind": "string"
+   },
+   "TO_LOCATION_CODE": {
+    "column": "TO_LOCATION_CODE",
+    "kind": "string"
+   },
+   "FROM_CUSTODIAN_USER": {
+    "column": "FROM_CUSTODIAN_USER",
+    "kind": "string"
+   },
+   "TO_CUSTODIAN_USER": {
+    "column": "TO_CUSTODIAN_USER",
+    "kind": "string"
+   },
+   "HANDOVER_BY": {
+    "column": "HANDOVER_BY",
+    "kind": "string"
+   },
+   "RECEIVED_BY": {
+    "column": "RECEIVED_BY",
+    "kind": "string"
+   },
+   "RECEIVED_DT": {
+    "column": "RECEIVED_AT",
+    "kind": "datetime"
+   },
+   "MOVEMENT_REF": {
+    "column": "MOVEMENT_REF",
+    "kind": "string"
+   },
+   "SOURCE_PAGE_ID": {
+    "column": "SOURCE_PAGE_ID",
+    "kind": "int"
+   },
+   "SOURCE_APP_ID": {
+    "column": "SOURCE_APP_ID",
+    "kind": "int"
+   },
+   "SOURCE_SESSION_ID": {
+    "column": "SOURCE_SESSION_ID",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "EVENT_ID"
+ },
+ "FND_CHEQUE_EVENT_GROUP": {
+  "table": "CHQ_EVENT_GROUPS",
+  "class": "ChqEventGroup",
+  "columns": {
+   "MOVEMENT_GROUP_ID": {
+    "column": "MOVEMENT_GROUP_ID",
+    "kind": "int"
+   },
+   "EVENT_TYPE": {
+    "column": "EVENT_TYPE",
+    "kind": "string"
+   },
+   "EVENT_DT": {
+    "column": "EVENT_AT",
+    "kind": "datetime"
+   },
+   "EFFECTIVE_DT": {
+    "column": "EFFECTIVE_AT",
+    "kind": "datetime"
+   },
+   "DEPOSIT_BATCH_ID": {
+    "column": "DEPOSIT_BATCH_ID",
+    "kind": "int"
+   },
+   "TO_LOCATION_CODE": {
+    "column": "TO_LOCATION_CODE",
+    "kind": "string"
+   },
+   "MOVEMENT_REF": {
+    "column": "MOVEMENT_REF",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "MOVEMENT_GROUP_ID"
+ },
+ "FND_CHEQUE_REPLACEMENT": {
+  "table": "CHQ_REPLACEMENTS",
+  "class": "ChqReplacement",
+  "columns": {
+   "REPLACEMENT_ID": {
+    "column": "REPLACEMENT_ID",
+    "kind": "int"
+   },
+   "REPLACEMENT_REF": {
+    "column": "REPLACEMENT_REF",
+    "kind": "string"
+   },
+   "ORIGINAL_CHEQUE_ID": {
+    "column": "ORIGINAL_CHEQUE_ID",
+    "kind": "int"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "TRIGGER_EVENT": {
+    "column": "TRIGGER_EVENT",
+    "kind": "string"
+   },
+   "TRIGGER_EVENT_DT": {
+    "column": "TRIGGER_EVENT_AT",
+    "kind": "datetime"
+   },
+   "SETTLEMENT_METHOD": {
+    "column": "SETTLEMENT_METHOD",
+    "kind": "string"
+   },
+   "SETTLEMENT_AMOUNT": {
+    "column": "SETTLEMENT_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "ORIGINAL_CHEQUE_AMOUNT": {
+    "column": "ORIGINAL_CHEQUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "NEW_CHEQUE_ID": {
+    "column": "NEW_CHEQUE_ID",
+    "kind": "int"
+   },
+   "TRANSFER_BANK_ACCOUNT_ID": {
+    "column": "TRANSFER_BANK_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "TRANSFER_TXN_REF": {
+    "column": "TRANSFER_TXN_REF",
+    "kind": "string"
+   },
+   "TRANSFER_DT": {
+    "column": "TRANSFER_AT",
+    "kind": "datetime"
+   },
+   "INTERNAL_FUND_SOURCE": {
+    "column": "INTERNAL_FUND_SOURCE",
+    "kind": "string"
+   },
+   "INTERNAL_APPROVAL_BY": {
+    "column": "INTERNAL_APPROVAL_BY",
+    "kind": "string"
+   },
+   "REQUESTED_DT": {
+    "column": "REQUESTED_AT",
+    "kind": "datetime"
+   },
+   "SETTLED_DT": {
+    "column": "SETTLED_AT",
+    "kind": "datetime"
+   },
+   "STATUS": {
+    "column": "REPLACEMENT_STATUS",
+    "kind": "string"
+   },
+   "PAYMENT_ID": {
+    "column": "PAYMENT_ID",
+    "kind": "int"
+   },
+   "GL_POSTED": {
+    "column": "IS_GL_POSTED",
+    "kind": "flag"
+   },
+   "GL_JOURNAL_REF": {
+    "column": "GL_JOURNAL_REF",
+    "kind": "string"
+   },
+   "GL_POST_DT": {
+    "column": "GL_POST_AT",
+    "kind": "datetime"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "REPLACEMENT_ID"
+ },
+ "FND_CHEQUE_UPLOAD_BATCH": {
+  "table": "CHQ_UPLOAD_BATCHES",
+  "class": "ChqUploadBatch",
+  "columns": {
+   "BATCH_ID": {
+    "column": "BATCH_ID",
+    "kind": "int"
+   },
+   "BATCH_NO": {
+    "column": "BATCH_NO",
+    "kind": "string"
+   },
+   "BATCH_STATUS": {
+    "column": "BATCH_STATUS",
+    "kind": "string"
+   },
+   "FILE_NAME": {
+    "column": "FILE_NAME",
+    "kind": "string"
+   },
+   "MIME_TYPE": {
+    "column": "MIME_TYPE",
+    "kind": "string"
+   },
+   "LEGAL_ENTITY_ID": {
+    "column": "LEGAL_ENTITY_ID",
+    "kind": "int"
+   },
+   "CUSTOMER_ID": {
+    "column": "CUSTOMER_ID",
+    "kind": "string"
+   },
+   "CUSTOMER_NAME_EN": {
+    "column": "CUSTOMER_NAME_EN",
+    "kind": "string"
+   },
+   "CUSTOMER_NAME_AR": {
+    "column": "CUSTOMER_NAME_AR",
+    "kind": "string"
+   },
+   "DRAWER_NAME_EN": {
+    "column": "DRAWER_NAME_EN",
+    "kind": "string"
+   },
+   "DRAWER_NAME_AR": {
+    "column": "DRAWER_NAME_AR",
+    "kind": "string"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "SOURCE_MODULE": {
+    "column": "SOURCE_MODULE",
+    "kind": "string"
+   },
+   "SOURCE_REF_TYPE": {
+    "column": "SOURCE_REF_TYPE",
+    "kind": "string"
+   },
+   "SOURCE_REF_ID": {
+    "column": "SOURCE_REF_ID",
+    "kind": "string"
+   },
+   "CHEQUE_DATE": {
+    "column": "CHEQUE_AT",
+    "kind": "datetime"
+   },
+   "RECEIVED_DT": {
+    "column": "RECEIVED_AT",
+    "kind": "datetime"
+   },
+   "DEFAULT_LOCATION_CODE": {
+    "column": "DEFAULT_LOCATION_CODE",
+    "kind": "string"
+   },
+   "DEFAULT_CUSTODIAN_USER": {
+    "column": "DEFAULT_CUSTODIAN_USER",
+    "kind": "string"
+   },
+   "TOTAL_ROWS": {
+    "column": "TOTAL_ROWS",
+    "kind": "decimal"
+   },
+   "VALID_ROWS": {
+    "column": "VALID_ROWS",
+    "kind": "int"
+   },
+   "ERROR_ROWS": {
+    "column": "ERROR_ROWS",
+    "kind": "int"
+   },
+   "SUBMITTED_ROWS": {
+    "column": "SUBMITTED_ROWS",
+    "kind": "int"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "SUBMITTED_BY": {
+    "column": "SUBMITTED_BY",
+    "kind": "string"
+   },
+   "SUBMITTED_DT": {
+    "column": "SUBMITTED_AT",
+    "kind": "datetime"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "BATCH_ID"
+ },
+ "FND_CHEQUE_UPLOAD_LINE": {
+  "table": "CHQ_UPLOAD_LINES",
+  "class": "ChqUploadLine",
+  "columns": {
+   "LINE_ID": {
+    "column": "LINE_ID",
+    "kind": "int"
+   },
+   "BATCH_ID": {
+    "column": "BATCH_ID",
+    "kind": "int"
+   },
+   "LINE_NO": {
+    "column": "LINE_NO",
+    "kind": "int"
+   },
+   "RAW_SR": {
+    "column": "RAW_SR",
+    "kind": "string"
+   },
+   "RAW_CLIENT_ID": {
+    "column": "RAW_CLIENT_ID",
+    "kind": "string"
+   },
+   "RAW_PARTY_TAX_ID": {
+    "column": "RAW_PARTY_TAX_ID",
+    "kind": "string"
+   },
+   "RAW_CHEQUE_NO": {
+    "column": "RAW_CHEQUE_NO",
+    "kind": "string"
+   },
+   "RAW_DUE_DATE": {
+    "column": "RAW_DUE_DATE_TEXT",
+    "kind": "string"
+   },
+   "RAW_CHEQUE_AMOUNT": {
+    "column": "RAW_CHEQUE_AMOUNT_TEXT",
+    "kind": "string"
+   },
+   "RAW_ISSUER_BANK_CODE": {
+    "column": "RAW_ISSUER_BANK_CODE",
+    "kind": "string"
+   },
+   "CLIENT_ID": {
+    "column": "CLIENT_ID",
+    "kind": "string"
+   },
+   "PARTY_TAX_ID": {
+    "column": "PARTY_TAX_ID",
+    "kind": "string"
+   },
+   "CHEQUE_NO": {
+    "column": "CHEQUE_NO",
+    "kind": "string"
+   },
+   "DUE_DATE": {
+    "column": "DUE_DATE",
+    "kind": "date"
+   },
+   "CHEQUE_AMOUNT": {
+    "column": "CHEQUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "ISSUER_BANK_CODE": {
+    "column": "ISSUER_BANK_CODE",
+    "kind": "string"
+   },
+   "ISSUER_BANK_NAME": {
+    "column": "ISSUER_BANK_NAME",
+    "kind": "string"
+   },
+   "LINE_STATUS": {
+    "column": "LINE_STATUS",
+    "kind": "string"
+   },
+   "ERROR_MESSAGE": {
+    "column": "ERROR_MESSAGE",
+    "kind": "string"
+   },
+   "TARGET_CHEQUE_ID": {
+    "column": "TARGET_CHEQUE_ID",
+    "kind": "int"
+   },
+   "TARGET_CHEQUE_REF": {
+    "column": "TARGET_CHEQUE_REF",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_DT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "LINE_ID"
+ },
+ "LKP_CHEQUE_EVENT_TYPE": {
+  "table": "CHQ_LKP_EVENT_TYPES",
+  "class": "ChqLkpEventType",
+  "columns": {
+   "EVENT_TYPE": {
+    "column": "EVENT_TYPE",
+    "kind": "string"
+   },
+   "EVENT_DESC_EN": {
+    "column": "EVENT_DESC_EN",
+    "kind": "string"
+   },
+   "EVENT_DESC_AR": {
+    "column": "EVENT_DESC_AR",
+    "kind": "string"
+   }
+  },
+  "pk": "EVENT_TYPE"
+ },
+ "LKP_CHEQUE_ISSUER_BANK": {
+  "table": "CHQ_LKP_ISSUER_BANKS",
+  "class": "ChqLkpIssuerBank",
+  "columns": {
+   "BANK_CODE": {
+    "column": "BANK_CODE",
+    "kind": "string"
+   },
+   "BANK_NAME_EN": {
+    "column": "BANK_NAME_EN",
+    "kind": "string"
+   },
+   "BANK_NAME_AR": {
+    "column": "BANK_NAME_AR",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "BANK_CODE"
+ },
+ "LKP_CHEQUE_LOCATION": {
+  "table": "CHQ_LKP_LOCATIONS",
+  "class": "ChqLkpLocation",
+  "columns": {
+   "LOCATION_CODE": {
+    "column": "LOCATION_CODE",
+    "kind": "string"
+   },
+   "LOCATION_NAME": {
+    "column": "LOCATION_NAME",
+    "kind": "string"
+   },
+   "LOCATION_TYPE": {
+    "column": "LOCATION_TYPE",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "DISPLAY_SEQ": {
+    "column": "DISPLAY_SEQ",
+    "kind": "int"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "LOCATION_CODE"
+ },
+ "LKP_CHEQUE_REJECTION_REASON": {
+  "table": "CHQ_LKP_REJECTION_REASONS",
+  "class": "ChqLkpRejectionReason",
+  "columns": {
+   "REASON_CODE": {
+    "column": "REASON_CODE",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "REASON_CODE"
+ },
+ "LKP_CHEQUE_STATUS": {
+  "table": "CHQ_LKP_STATUSES",
+  "class": "ChqLkpStatus",
+  "columns": {
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "IS_TERMINAL": {
+    "column": "IS_TERMINAL",
+    "kind": "flag"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "IS_ACTIVE": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_DT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "STATUS_CODE"
+ },
+ "FNV_CHEQUE_STATUS_HISTORY": {
+  "table": "CHQ_CHEQUE_STATUS_HIST",
+  "class": "ChqChequeStatusHist",
+  "columns": {
+   "CHEQUE_STATUS_HISTORY_ID": {
+    "column": "CHEQUE_STATUS_HISTORY_ID",
+    "kind": "int"
+   },
+   "CHEQUE_ID": {
+    "column": "CHEQUE_ID",
+    "kind": "int"
+   },
+   "OLD_STATUS_CODE": {
+    "column": "OLD_STATUS_CODE",
+    "kind": "string"
+   },
+   "NEW_STATUS_CODE": {
+    "column": "NEW_STATUS_CODE",
+    "kind": "string"
+   },
+   "STATUS_DATE": {
+    "column": "STATUS_DATE",
+    "kind": "date"
+   },
+   "BANK_STATEMENT_REFERENCE": {
+    "column": "BANK_STATEMENT_REFERENCE",
+    "kind": "string"
+   },
+   "REASON_CODE": {
+    "column": "REASON_CODE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CHANGED_BY": {
+    "column": "CHANGED_BY",
+    "kind": "string"
+   },
+   "CHANGED_AT": {
+    "column": "CHANGED_AT",
+    "kind": "datetime"
+   }
+  },
+  "pk": "CHEQUE_STATUS_HISTORY_ID"
+ }
+}

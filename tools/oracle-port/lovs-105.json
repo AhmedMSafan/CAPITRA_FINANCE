@@ -1,0 +1,520 @@
+{
+  "ACCESS_ROLES": {
+    "type": "SQL",
+    "query": "select role_name d, role_id r\nfrom APEX_APPL_ACL_ROLES where application_id = :APP_ID \norder by 1",
+    "return": "R",
+    "display": "D"
+  },
+  "DESKTOP THEME STYLES": {
+    "type": "SQL",
+    "query": "select s.name d,\n       s.theme_style_id r\n  from apex_application_theme_styles s,\n       apex_application_themes t\n where s.application_id = :app_id\n   and t.application_id = s.application_id\n   and t.theme_number   = s.theme_number\n   and t.is_current     = 'Yes'\n order by 1",
+    "return": "R",
+    "display": "D"
+  },
+  "EMAIL_USERNAME_FORMAT": {
+    "type": "STATIC",
+    "values": [
+      [
+        "Email Addresses",
+        "EMAIL"
+      ]
+    ]
+  },
+  "FCT_AGREEMENT_DEBTORS.PAYMENT_TERMS": {
+    "type": "TABLE",
+    "table": "FCT_AGREEMENT_DEBTORS",
+    "where": null,
+    "return": "AGRMT_DEBTOR_ID",
+    "display": "PAYMENT_TERMS",
+    "default_sort": "PAYMENT_TERMS",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_AGREEMENTS.AGREEMENT_NUMBER": {
+    "type": "TABLE",
+    "table": "FCT_AGREEMENTS",
+    "where": null,
+    "return": "AGREEMENT_ID",
+    "display": "AGREEMENT_NUMBER",
+    "default_sort": "AGREEMENT_NUMBER",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_CLIENTS.CLIENT_NUMBER": {
+    "type": "TABLE",
+    "table": "FCT_CLIENTS",
+    "where": null,
+    "return": "CLIENT_ID",
+    "display": "CLIENT_NUMBER",
+    "default_sort": "CLIENT_NUMBER",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_CREDIT_LIMITS.LIMIT_NUMBER": {
+    "type": "TABLE",
+    "table": "FCT_CREDIT_LIMITS",
+    "where": null,
+    "return": "CREDIT_LIMIT_ID",
+    "display": "LIMIT_NUMBER",
+    "default_sort": "LIMIT_NUMBER",
+    "default_sort_direction": "ASC"
+  },
+  "FCT_DEBTORS.DEBTOR_NUMBER": {
+    "type": "TABLE",
+    "table": "FCT_DEBTORS",
+    "where": null,
+    "return": "DEBTOR_ID",
+    "display": "DEBTOR_NUMBER",
+    "default_sort": "DEBTOR_NUMBER",
+    "default_sort_direction": "ASC"
+  },
+  "FNV_APPROVAL_STEP_ALL": {
+    "type": "SQL",
+    "query": "select STEP_NAME_EN d, STEP_CODE r\nfrom REF_APPROVAL_STEP where ACTIVE_FLAG='Y' order by SEQUENCE_NO",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_CHEQUE_ACCOUNT_BY_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select i.INVESTOR_CODE || ' - ' || nvl(i.FULL_NAME_EN,'-') || ' - ' || u.UNIT_CODE d, pa.PORTFOLIO_ACCOUNT_ID r\nfrom FNV_PURSHASED_PORTFOLIO_ACCOUNT pa\njoin FNV_INVESTOR i on i.INVESTOR_ID=pa.INVESTOR_ID\njoin FNV_PROJECT_UNIT u on u.UNIT_ID=pa.UNIT_ID\nwhere pa.PORTFOLIO_ID=:P408_PORTFOLIO_ID order by i.INVESTOR_CODE,u.UNIT_CODE",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_CHEQUE_STATUS": {
+    "type": "SQL",
+    "query": "select CHEQUE_STATUS_EN d, CHEQUE_STATUS_CODE r\nfrom REF_CHEQUE_STATUS where ACTIVE_FLAG='Y' order by CHEQUE_STATUS_EN",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_CURRENCY": {
+    "type": "SQL",
+    "query": "select CURRENCY_NAME_EN || ' (' || CURRENCY_CODE || ')' d, CURRENCY_CODE r\nfrom REF_CURRENCY where ACTIVE_YN='Y' order by CURRENCY_CODE",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_DD_CHECK_TYPE": {
+    "type": "SQL",
+    "query": "select CHECK_NAME_EN d, CHECK_TYPE_CODE r\nfrom REF_DD_CHECK_TYPE where ACTIVE_FLAG='Y' order by DISPLAY_SEQ, CHECK_NAME_EN",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_DECISION_TYPE_ALL": {
+    "type": "SQL",
+    "query": "select DECISION_NAME_EN d, DECISION_CODE r\nfrom REF_DECISION_TYPE where ACTIVE_FLAG='Y' order by DECISION_NAME_EN",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_DEVELOPER": {
+    "type": "SQL",
+    "query": "select nvl(LEGAL_NAME_EN,'-') || ' (' || DEVELOPER_CODE || ')' d,\n       DEVELOPER_ID r\n  from FNV_REALESTATE_DEVELOPER\n where ACTIVE_FLAG='Y'\n order by nvl(LEGAL_NAME_EN,LEGAL_NAME_AR)",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_DOCUMENT_GROUP": {
+    "type": "SQL",
+    "query": "select GROUP_NAME_EN d,\n       GROUP_CODE r\n  from REF_DOCUMENT_GROUP\n where ACTIVE_FLAG='Y'\n order by DISPLAY_SEQ, GROUP_NAME_EN",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_DOCUMENT_TYPE": {
+    "type": "SQL",
+    "query": "select DOCUMENT_TYPE_NAME || ' (' || DOCUMENT_TYPE_CODE || ')' d,\n       DOCUMENT_TYPE_CODE r\n  from REF_DOCUMENT_TYPE\n where IS_ACTIVE='Y'\n order by GROUP_CODE, SORT_ORDER, DOCUMENT_TYPE_NAME",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_ENTITY_TYPE": {
+    "type": "SQL",
+    "query": "select 'Portfolio' d, 'PORTFOLIO' r, 1 seq from dual union all\nselect 'Developer' d, 'DEVELOPER' r, 2 seq from dual union all\nselect 'Project' d, 'PROJECT' r, 3 seq from dual union all\nselect 'Investor' d, 'INVESTOR' r, 4 seq from dual union all\nselect 'Signatory' d, 'SIGNATORY' r, 5 seq from dual union all\nselect 'Guarantee' d, 'GUARANTEE' r, 6 seq from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_GUARANTEE_DOCUMENT_BY_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select nvl(d.DOCUMENT_NO,d.FILE_NAME) || ' - ' || nvl(t.DOCUMENT_TYPE_NAME,'-') d, d.DOCUMENT_ID r\nfrom FNV_PURSHASED_PORTFOLIO_DOCUMENT d join REF_DOCUMENT_TYPE t on t.DOCUMENT_TYPE_CODE=d.DOCUMENT_TYPE_CODE\nwhere d.PORTFOLIO_ID=:P502_PORTFOLIO_ID and d.DOCUMENT_TYPE_CODE='GUARANTEE_DOC' order by d.DOCUMENT_ID desc",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_GUARANTEE_TYPE": {
+    "type": "SQL",
+    "query": "select GUARANTEE_NAME_EN || case when MANDATORY_FLAG='Y' then ' - Mandatory' end d, GUARANTEE_TYPE_CODE r\nfrom REF_GUARANTEE_TYPE where ACTIVE_FLAG='Y' order by DISPLAY_SEQ, GUARANTEE_TYPE_CODE",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_INQUIRY_TYPE": {
+    "type": "SQL",
+    "query": "select INQUIRY_NAME_EN d, INQUIRY_TYPE_CODE r\nfrom REF_INQUIRY_TYPE where ACTIVE_FLAG='Y' order by DISPLAY_SEQ, INQUIRY_NAME_EN",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_INSURANCE_DOCUMENT_BY_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select nvl(d.DOCUMENT_NO,d.FILE_NAME) || ' - ' || nvl(t.DOCUMENT_TYPE_NAME,'-') d, d.DOCUMENT_ID r\nfrom FNV_PURSHASED_PORTFOLIO_DOCUMENT d join REF_DOCUMENT_TYPE t on t.DOCUMENT_TYPE_CODE=d.DOCUMENT_TYPE_CODE\nwhere d.PORTFOLIO_ID=:P504_PORTFOLIO_ID and d.DOCUMENT_TYPE_CODE='INSURANCE_POLICY' order by d.DOCUMENT_ID desc",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_INSURANCE_TYPE": {
+    "type": "SQL",
+    "query": "select INSURANCE_NAME_EN d, INSURANCE_TYPE_CODE r\nfrom REF_INSURANCE_TYPE where ACTIVE_FLAG='Y' order by INSURANCE_NAME_EN",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_INSURANCE_UNIT_BY_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select u.UNIT_CODE || ' - ' || nvl(ut.UNIT_TYPE_NAME_EN,'-') d, u.UNIT_ID r\nfrom FNV_PROJECT_UNIT u join FNV_PURSHASED_PORTFOLIO p on p.PROJECT_ID=u.PROJECT_ID left join REF_UNIT_TYPE ut on ut.UNIT_TYPE_CODE=u.UNIT_TYPE_CODE\nwhere p.PORTFOLIO_ID=:P504_PORTFOLIO_ID and u.ACTIVE_FLAG='Y' order by u.UNIT_CODE",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_INVESTOR": {
+    "type": "SQL",
+    "query": "select nvl(FULL_NAME_EN,'-') || ' (' || INVESTOR_CODE || ')' d, INVESTOR_ID r\nfrom FNV_INVESTOR where ACTIVE_FLAG='Y' order by nvl(FULL_NAME_EN,FULL_NAME_AR)",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_PAYMENT_STATUS": {
+    "type": "SQL",
+    "query": "select PAYMENT_STATUS_EN d, PAYMENT_STATUS_CODE r\nfrom REF_PAYMENT_STATUS where ACTIVE_FLAG='Y' order by PAYMENT_STATUS_EN",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select PORTFOLIO_NO || ' - ' || nvl(PROJECT_NAME_EN,'-') d, PORTFOLIO_ID r\nfrom FNV_V_PORTFOLIO_SUMMARY order by REQUEST_DATE desc, PORTFOLIO_NO desc",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_PORTFOLIO_ACCOUNT_BY_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select i.INVESTOR_CODE || ' - ' || nvl(i.FULL_NAME_EN,'-') || ' - ' || u.UNIT_CODE d, pa.PORTFOLIO_ACCOUNT_ID r\nfrom FNV_PURSHASED_PORTFOLIO_ACCOUNT pa\njoin FNV_INVESTOR i on i.INVESTOR_ID=pa.INVESTOR_ID\njoin FNV_PROJECT_UNIT u on u.UNIT_ID=pa.UNIT_ID\nwhere pa.PORTFOLIO_ID=:P206_PORTFOLIO_ID order by i.INVESTOR_CODE,u.UNIT_CODE",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_PORTFOLIO_STATUS": {
+    "type": "SQL",
+    "query": "select STATUS_NAME_EN d, STATUS_CODE r\nfrom REF_PORTFOLIO_STATUS where ACTIVE_FLAG='Y' order by DISPLAY_SEQ",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_PROJECT": {
+    "type": "SQL",
+    "query": "select nvl(PROJECT_NAME_EN,'-') || ' (' || PROJECT_CODE || ')' d,\n       PROJECT_ID r\n  from FNV_PROJECT\n where ACTIVE_FLAG='Y'\n order by nvl(PROJECT_NAME_EN,PROJECT_NAME_AR)",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_PROJECT_BY_DEVELOPER": {
+    "type": "SQL",
+    "query": "select nvl(PROJECT_NAME_EN,'-') || ' (' || PROJECT_CODE || ')' d,\n       PROJECT_ID r\n  from FNV_PROJECT\n where ACTIVE_FLAG='Y'\n   and DEVELOPER_ID=:P202_DEVELOPER_ID\n order by nvl(PROJECT_NAME_EN,PROJECT_NAME_AR)",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_PROJECT_BY_DEVELOPER_741": {
+    "type": "SQL",
+    "query": "select nvl(PROJECT_NAME_EN,'-') || ' (' || PROJECT_CODE || ')' d,\n       PROJECT_ID r\n  from FNV_PROJECT\n where ACTIVE_FLAG='Y'\n   and DEVELOPER_ID=:P741_DEVELOPER_ID\n order by nvl(PROJECT_NAME_EN,PROJECT_NAME_AR)",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_PROJECT_UNIT_BY_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select u.UNIT_CODE || ' - ' || nvl(ut.UNIT_TYPE_NAME_EN,'-') d, u.UNIT_ID r\nfrom FNV_PROJECT_UNIT u\njoin FNV_PURSHASED_PORTFOLIO p on p.PROJECT_ID=u.PROJECT_ID\nleft join REF_UNIT_TYPE ut on ut.UNIT_TYPE_CODE=u.UNIT_TYPE_CODE\nwhere p.PORTFOLIO_ID=:P205_PORTFOLIO_ID and u.ACTIVE_FLAG='Y' order by u.UNIT_CODE",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_RISK_LEVEL": {
+    "type": "SQL",
+    "query": "select RISK_LEVEL_NAME_EN d,\n       RISK_LEVEL_CODE r\n  from REF_RISK_LEVEL\n where ACTIVE_FLAG='Y'\n order by SORT_ORDER, RISK_LEVEL_NAME_EN",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_SECURITY_DOCUMENT_BY_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select nvl(d.DOCUMENT_NO,d.FILE_NAME) || ' - ' || nvl(t.DOCUMENT_TYPE_NAME,'-') d, d.DOCUMENT_ID r\nfrom FNV_PURSHASED_PORTFOLIO_DOCUMENT d join REF_DOCUMENT_TYPE t on t.DOCUMENT_TYPE_CODE=d.DOCUMENT_TYPE_CODE\nwhere d.PORTFOLIO_ID=:P506_PORTFOLIO_ID and t.GROUP_CODE='GUARANTEE' order by d.DOCUMENT_ID desc",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_UNIT_TYPE": {
+    "type": "SQL",
+    "query": "select UNIT_TYPE_NAME_EN d,\n       UNIT_TYPE_CODE r\n  from REF_UNIT_TYPE\n where ACTIVE_FLAG='Y'\n order by UNIT_TYPE_NAME_EN",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_VALUATION_DOCUMENT_BY_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select nvl(d.DOCUMENT_NO,d.FILE_NAME)||' - '||nvl(rt.DOCUMENT_TYPE_NAME,'-') d, d.DOCUMENT_ID r\nfrom FNV_PURSHASED_PORTFOLIO_DOCUMENT d\njoin REF_DOCUMENT_TYPE rt on rt.DOCUMENT_TYPE_CODE=d.DOCUMENT_TYPE_CODE\nwhere d.PORTFOLIO_ID=:P402_PORTFOLIO_ID\n  and d.DOCUMENT_TYPE_CODE='VALUATION_REPORT'\norder by d.DOCUMENT_ID desc",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_VALUATION_TYPE": {
+    "type": "SQL",
+    "query": "select VALUATION_NAME_EN d, VALUATION_TYPE_CODE r\nfrom REF_VALUATION_TYPE where ACTIVE_FLAG='Y' order by DISPLAY_SEQ, VALUATION_TYPE_CODE",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_VALUATION_UNIT_BY_PORTFOLIO": {
+    "type": "SQL",
+    "query": "select u.UNIT_CODE || ' - ' || nvl(ut.UNIT_TYPE_NAME_EN,'-') d, u.UNIT_ID r\nfrom FNV_PROJECT_UNIT u\njoin FNV_PURSHASED_PORTFOLIO p on p.PROJECT_ID=u.PROJECT_ID\nleft join REF_UNIT_TYPE ut on ut.UNIT_TYPE_CODE=u.UNIT_TYPE_CODE\nwhere p.PORTFOLIO_ID=:P402_PORTFOLIO_ID and u.ACTIVE_FLAG='Y' order by u.UNIT_CODE",
+    "return": "R",
+    "display": "D"
+  },
+  "FNV_YES_NO": {
+    "type": "SQL",
+    "query": "select 'Yes' d, 'Y' r, 1 seq from dual\nunion all select 'No', 'N', 2 from dual\norder by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "LKP_CURRENCIES.CURRENCY_CODE": {
+    "type": "TABLE",
+    "table": "LKP_CURRENCIES",
+    "where": null,
+    "return": "CURRENCY_ID",
+    "display": "CURRENCY_CODE",
+    "default_sort": "CURRENCY_CODE",
+    "default_sort_direction": "ASC"
+  },
+  "LKP_STATUS_CODES.STATUS_CODE": {
+    "type": "TABLE",
+    "table": "LKP_STATUS_CODES",
+    "where": null,
+    "return": "STATUS_ID",
+    "display": "STATUS_CODE",
+    "default_sort": "STATUS_CODE",
+    "default_sort_direction": "ASC"
+  },
+  "LOCALE_WFL_ACTIVE_STATUS": {
+    "type": "SQL",
+    "query": "SELECT CASE code\n WHEN 'ALL' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'All' END\n WHEN 'Y' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'Active' END\n ELSE CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN ' ' ELSE 'Inactive' END\n       END d, code r\nFROM (SELECT 'ALL' code,1 seq FROM dual UNION ALL SELECT 'Y',2 FROM dual UNION ALL SELECT 'N',3 FROM dual)\nORDER BY seq",
+    "return": "R",
+    "display": "D"
+  },
+  "LOCALE_YN": {
+    "type": "SQL",
+    "query": "SELECT CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'Yes' END d, 'Y' r, 1 seq FROM dual\nUNION ALL\nSELECT CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'No' END, 'N', 2 FROM dual\nORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "REF_MODULE": {
+    "type": "TABLE",
+    "table": "REF_MODULE",
+    "where": null,
+    "return": "MODULE_NAME_EN",
+    "display": "MODULE_CODE",
+    "default_sort": "MODULE_CODE",
+    "default_sort_direction": "ASC"
+  },
+  "TIMEFRAME (4 WEEKS)": {
+    "type": "SQL",
+    "query": "select disp,\n       val as seconds\n  from table( apex_util.get_timeframe_lov_data )\n order by insert_order",
+    "return": "SECONDS",
+    "display": "DISP"
+  },
+  "UMS_ACTIVE_DEPARTMENTS": {
+    "type": "SQL",
+    "query": "SELECT CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR'\n            THEN NVL(department_name_ar,department_name_en)\n            ELSE department_name_en END || ' (' || department_code || ')' d,\n       department_id r\n  FROM ums_departments\n WHERE is_active='Y'\n ORDER BY 1\n",
+    "return": "R",
+    "display": "D"
+  },
+  "UMS_ACTIVE_ROLES": {
+    "type": "SQL",
+    "query": "SELECT CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR'\n            THEN NVL(group_name_ar,group_name_en)\n            ELSE group_name_en END || ' (' || group_code || ')' d,\n       group_code r\n  FROM ums_groups\n WHERE is_active='Y'\n ORDER BY 1\n",
+    "return": "R",
+    "display": "D"
+  },
+  "UMS_ACTIVE_USERS": {
+    "type": "SQL",
+    "query": "SELECT CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR'\n            THEN NVL(full_name_ar,full_name_en)\n            ELSE full_name_en END || ' (' || apex_username || ')' d,\n       user_id r\n  FROM ums_active_users_v\n ORDER BY 1\n",
+    "return": "R",
+    "display": "D"
+  },
+  "UMS_ACTIVE_WFL_USERS": {
+    "type": "SQL",
+    "query": "SELECT CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR'\n            THEN NVL(role_name_ar,role_name_en)\n            ELSE role_name_en END || ' (' || role_code || ')' d,\n       role_code r\n  FROM ums_roles\n WHERE is_active='Y'\n ORDER BY 1\n",
+    "return": "R",
+    "display": "D"
+  },
+  "USER_THEME_PREFERENCE": {
+    "type": "STATIC",
+    "values": [
+      [
+        "Allow End Users to choose Theme Style",
+        "Yes"
+      ]
+    ]
+  },
+  "VIEW_AS_REPORT_CHART": {
+    "type": "STATIC",
+    "values": [
+      [
+        "Add Report Page",
+        "REPORT"
+      ],
+      [
+        "Add Chart Page",
+        "CHART"
+      ]
+    ]
+  },
+  "WFE_WF_ENTITY_TYPES.ENTITY_NAME_EN": {
+    "type": "TABLE",
+    "table": "WFE_WF_ENTITY_TYPES",
+    "where": null,
+    "return": "ENTITY_TYPE",
+    "display": "ENTITY_NAME_EN",
+    "default_sort": "ENTITY_NAME_EN",
+    "default_sort_direction": "ASC"
+  },
+  "WFE_WF_TASK_ACTION_CATALOG.ACTION_NAME_EN": {
+    "type": "TABLE",
+    "table": "WFE_WF_TASK_ACTION_CATALOG",
+    "where": null,
+    "return": "ACTION_CODE",
+    "display": "ACTION_NAME_EN",
+    "default_sort": "ACTION_NAME_EN",
+    "default_sort_direction": "ASC"
+  },
+  "WFE_WORKFLOW_COMMITTEES.COMMITTEE_CODE": {
+    "type": "TABLE",
+    "table": "WFE_WORKFLOW_COMMITTEES",
+    "where": null,
+    "return": "COMMITTEE_ID",
+    "display": "COMMITTEE_CODE",
+    "default_sort": "COMMITTEE_CODE",
+    "default_sort_direction": "ASC"
+  },
+  "WFE_WORKFLOW_DEFINITIONS.WORKFLOW_CODE": {
+    "type": "TABLE",
+    "table": "WFE_WORKFLOW_DEFINITIONS",
+    "where": null,
+    "return": "WORKFLOW_DEF_ID",
+    "display": "WORKFLOW_CODE",
+    "default_sort": "WORKFLOW_CODE",
+    "default_sort_direction": "ASC"
+  },
+  "WFE_WORKFLOW_STEPS.STEP_CODE": {
+    "type": "TABLE",
+    "table": "WFE_WORKFLOW_STEPS",
+    "where": null,
+    "return": "STEP_ID",
+    "display": "STEP_CODE",
+    "default_sort": "STEP_CODE",
+    "default_sort_direction": "ASC"
+  },
+  "WFL_ACTION_CODES": {
+    "type": "SQL",
+    "query": "SELECT CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR'\n            THEN NVL(action_name_ar,action_name_en)\n            ELSE action_name_en END || ' (' || action_code || ')' d,\n       action_code r\n  FROM wfe_wf_task_action_catalog\n WHERE is_active='Y'\n ORDER BY display_seq NULLS LAST, action_code\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_ASSIGNEE_TYPES": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(REPLACE(code,'_',' ')) d, code r\nFROM (\n SELECT 'USER' code,1 seq FROM dual UNION ALL SELECT 'ROLE',2 FROM dual UNION ALL\n SELECT 'GROUP',3 FROM dual UNION ALL SELECT 'DEPARTMENT',4 FROM dual UNION ALL\n SELECT 'MANAGER',5 FROM dual UNION ALL SELECT 'DYNAMIC_RULE',6 FROM dual UNION ALL\n SELECT 'ROUND_ROBIN',7 FROM dual UNION ALL SELECT 'LEAST_LOADED',8 FROM dual UNION ALL\n SELECT 'SKILL_BASED',9 FROM dual UNION ALL SELECT 'SYSTEM',10 FROM dual\n) ORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_COMMITTEES": {
+    "type": "SQL",
+    "query": "SELECT committee_name || ' (' || committee_code || ')' d, committee_id r\n  FROM wfe_workflow_committees\n WHERE is_active='Y'\n   AND TRUNC(SYSDATE) >= TRUNC(effective_from)\n   AND (effective_to IS NULL OR TRUNC(SYSDATE) <= TRUNC(effective_to))\n ORDER BY committee_name\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_DRAFT_DEFINITION": {
+    "type": "SQL",
+    "query": "SELECT workflow_code || ' \\2014 ' || workflow_name || ' (v' || version_number || ')' d,\n       workflow_def_id r\n  FROM wfe_workflow_definitions\n WHERE is_active = 'N'\n ORDER BY workflow_code, version_number DESC\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_ENTITY_TYPES": {
+    "type": "SQL",
+    "query": "SELECT CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR'\n            THEN NVL(entity_name_ar,entity_name_en)\n            ELSE entity_name_en END || ' (' || entity_type || ')' d,\n       entity_type r\n  FROM wfe_wf_entity_types\n WHERE is_active='Y'\n ORDER BY 1\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_MODULES": {
+    "type": "SQL",
+    "query": "SELECT CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR'\n            THEN NVL(module_name_ar,module_name_en)\n            ELSE module_name_en END || ' (' || module_code || ')' d,\n       module_code r\n  FROM ums_modules\n WHERE is_active='Y'\n   AND (UMS_SECURITY_PKG.HAS_MODULE_ACCESS(:APP_USER,module_code)='Y'\n        OR UMS_SECURITY_PKG.HAS_PERMISSION(:APP_USER,'WFE.ADMIN')='Y')\n ORDER BY display_seq NULLS LAST, module_code\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_OUTCOME": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(LOWER(code)) d, code r\nFROM (SELECT 'APPROVED' code,1 seq FROM dual UNION ALL SELECT 'REJECTED',2 FROM dual UNION ALL\n      SELECT 'RETURNED',3 FROM dual UNION ALL SELECT 'ESCALATED',4 FROM dual UNION ALL\n      SELECT 'TIMED_OUT',5 FROM dual UNION ALL SELECT 'CANCELLED',6 FROM dual UNION ALL\n      SELECT 'COMPLETED',7 FROM dual UNION ALL SELECT 'ERROR',8 FROM dual UNION ALL SELECT 'ANY',9 FROM dual)\nORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_RULE_CONDITION_TYPES": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(REPLACE(column_value,'_',' ')) d, column_value r\nFROM TABLE(APEX_STRING.SPLIT(\n       NVL(APEX_APP_SETTING.GET_VALUE('WFE_ALLOWED_RULE_CONDITIONS'),'SIMPLE,EXPRESSION'), ','))\n",
+    "return": "R",
+    "display": "D",
+    "default_sort": "D",
+    "default_sort_direction": "ASC"
+  },
+  "WFL_RULE_TYPES": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(REPLACE(code,'_',' ')) d, code r\nFROM (\n SELECT 'ROUTING' code,1 seq FROM dual UNION ALL SELECT 'AUTO_APPROVAL',2 FROM dual UNION ALL\n SELECT 'AUTO_REJECTION',3 FROM dual UNION ALL SELECT 'SKIP',4 FROM dual UNION ALL\n SELECT 'ESCALATION',5 FROM dual UNION ALL SELECT 'ASSIGNMENT',6 FROM dual UNION ALL\n SELECT 'VALIDATION',7 FROM dual UNION ALL SELECT 'AMOUNT_THRESHOLD',8 FROM dual UNION ALL\n SELECT 'RISK_BASED',9 FROM dual UNION ALL SELECT 'COMPLIANCE',10 FROM dual UNION ALL\n SELECT 'SLA',11 FROM dual UNION ALL SELECT 'NOTIFICATION',12 FROM dual UNION ALL SELECT 'CUSTOM',13 FROM dual\n) ORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_SLA_ACTIONS": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(REPLACE(code,'_',' ')) d, code r\nFROM (\n SELECT 'NOTIFY' code,1 seq FROM dual UNION ALL SELECT 'ESCALATE',2 FROM dual UNION ALL\n SELECT 'AUTO_APPROVE',3 FROM dual UNION ALL SELECT 'AUTO_REJECT',4 FROM dual UNION ALL\n SELECT 'REASSIGN',5 FROM dual UNION ALL SELECT 'SUSPEND',6 FROM dual UNION ALL\n SELECT 'CANCEL',7 FROM dual UNION ALL SELECT 'LOG_ONLY',8 FROM dual UNION ALL\n SELECT 'EXECUTIVE_ALERT',9 FROM dual\n) ORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_SLA_SCOPE": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(REPLACE(code,'_',' ')) d, code r\nFROM (\n SELECT 'GLOBAL' code,1 seq FROM dual UNION ALL SELECT 'PROGRAM',2 FROM dual UNION ALL\n SELECT 'PRODUCT',3 FROM dual UNION ALL SELECT 'REGION',4 FROM dual UNION ALL\n SELECT 'COUNTRY',5 FROM dual UNION ALL SELECT 'ENTITY',6 FROM dual UNION ALL\n SELECT 'PRIORITY_BASED',7 FROM dual UNION ALL SELECT 'AMOUNT_BASED',8 FROM dual\n) ORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_SLA_TYPES": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(REPLACE(code,'_',' ')) d, code r\nFROM (\n SELECT 'WORKFLOW_TOTAL' code,1 seq FROM dual UNION ALL SELECT 'STEP_COMPLETION',2 FROM dual UNION ALL\n SELECT 'RESPONSE_TIME',3 FROM dual UNION ALL SELECT 'FIRST_ACTION',4 FROM dual UNION ALL\n SELECT 'ESCALATION',5 FROM dual UNION ALL SELECT 'RESOLUTION',6 FROM dual\n) ORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_STEP_TYPES": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(REPLACE(code,'_',' ')) d, code r\nFROM (\n SELECT 'APPROVAL' code,1 seq FROM dual UNION ALL SELECT 'REVIEW',2 FROM dual UNION ALL\n SELECT 'VERIFICATION',3 FROM dual UNION ALL SELECT 'VALIDATION',4 FROM dual UNION ALL\n SELECT 'DECISION',5 FROM dual UNION ALL SELECT 'NOTIFICATION',6 FROM dual UNION ALL\n SELECT 'SYSTEM_CHECK',7 FROM dual UNION ALL SELECT 'MANUAL_ACTION',8 FROM dual UNION ALL\n SELECT 'PARALLEL_GATEWAY',9 FROM dual UNION ALL SELECT 'CONDITIONAL_GATEWAY',10 FROM dual UNION ALL\n SELECT 'JOIN_GATEWAY',11 FROM dual UNION ALL SELECT 'TIMER',12 FROM dual UNION ALL\n SELECT 'SUBPROCESS',13 FROM dual UNION ALL SELECT 'SERVICE_TASK',14 FROM dual UNION ALL\n SELECT 'SCRIPT_TASK',15 FROM dual\n) ORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_TRANSITION_CONDITIONS": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(REPLACE(column_value,'_',' ')) d, column_value r\nFROM TABLE(APEX_STRING.SPLIT(\n       NVL(APEX_APP_SETTING.GET_VALUE('WFE_ALLOWED_TRANSITION_CONDITIONS'),'NONE,AMOUNT_BASED'), ','))\n",
+    "return": "R",
+    "display": "D",
+    "default_sort": "D",
+    "default_sort_direction": "ASC"
+  },
+  "WFL_TRANSITION_TYPES": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(LOWER(code)) d, code r\nFROM (SELECT 'APPROVE' code,1 seq FROM dual UNION ALL SELECT 'REJECT',2 FROM dual UNION ALL\n      SELECT 'RETURN',3 FROM dual UNION ALL SELECT 'ESCALATE',4 FROM dual UNION ALL\n      SELECT 'SKIP',5 FROM dual UNION ALL SELECT 'TIMEOUT',6 FROM dual UNION ALL\n      SELECT 'CONDITIONAL',7 FROM dual UNION ALL SELECT 'DEFAULT',8 FROM dual UNION ALL\n      SELECT 'ERROR',9 FROM dual UNION ALL SELECT 'CANCEL',10 FROM dual UNION ALL\n      SELECT 'RESUBMIT',11 FROM dual UNION ALL SELECT 'DELEGATE',12 FROM dual)\nORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_WORKFLOW_CATEGORY": {
+    "type": "SQL",
+    "query": "SELECT CASE code\n WHEN 'ONBOARDING' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'Onboarding' END\n WHEN 'CREDIT_LIMIT' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN ' ' ELSE 'Credit Limit' END\n WHEN 'INVOICE' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'Invoice' END\n WHEN 'FUNDING' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'Funding' END\n WHEN 'PAYMENT' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'Payment' END\n WHEN 'COLLECTION' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'Collection' END\n WHEN 'COMPLIANCE' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'Compliance' END\n WHEN 'DOCUMENT' THEN CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'Document' END\n ELSE CASE WHEN NVL(:G_LOCALE_CODE,'EN')='AR' THEN '' ELSE 'General' END\n       END d, code r\nFROM (\n SELECT 'ONBOARDING' code,1 seq FROM dual UNION ALL SELECT 'CREDIT_LIMIT',2 FROM dual UNION ALL\n SELECT 'INVOICE',3 FROM dual UNION ALL SELECT 'FUNDING',4 FROM dual UNION ALL\n SELECT 'PAYMENT',5 FROM dual UNION ALL SELECT 'COLLECTION',6 FROM dual UNION ALL\n SELECT 'COMPLIANCE',7 FROM dual UNION ALL SELECT 'DOCUMENT',8 FROM dual UNION ALL\n SELECT 'GENERAL',99 FROM dual\n) ORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_WORKFLOW_PRIORITY": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(LOWER(code)) d, code r\nFROM (SELECT 'CRITICAL' code,1 seq FROM dual UNION ALL SELECT 'HIGH',2 FROM dual UNION ALL\n      SELECT 'NORMAL',3 FROM dual UNION ALL SELECT 'LOW',4 FROM dual)\nORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_WORKFLOW_STEPS": {
+    "type": "SQL",
+    "query": "SELECT step_order || '. ' || step_name || ' (' || step_code || ')' d,\n       step_id r\n  FROM wfe_workflow_steps\n WHERE workflow_def_id = COALESCE(\n       :P906_WORKFLOW_DEF_ID,:P911_WORKFLOW_DEF_ID,:P908_WORKFLOW_DEF_ID)\n   AND is_active='Y'\n ORDER BY step_order\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WFL_WORKFLOW_TYPES": {
+    "type": "SQL",
+    "query": "SELECT INITCAP(REPLACE(code,'_',' ')) d, code r\nFROM (\n SELECT 'SEQUENTIAL' code,1 seq FROM dual UNION ALL SELECT 'PARALLEL',2 FROM dual UNION ALL\n SELECT 'CONDITIONAL',3 FROM dual UNION ALL SELECT 'HYBRID',4 FROM dual UNION ALL\n SELECT 'STATE_MACHINE',5 FROM dual UNION ALL SELECT 'AD_HOC',6 FROM dual\n) ORDER BY seq\n",
+    "return": "R",
+    "display": "D"
+  },
+  "WORKFLOW_DEFINITION": {
+    "type": "SQL",
+    "query": "SELECT workflow_code || ' \\2014 ' || workflow_name || ' (v' || version_number || ')' d,\n       workflow_def_id r\n  FROM wfe_workflow_definitions\n WHERE (:G_DEFAULT_MODULE_CODE IS NULL OR module_code = :G_DEFAULT_MODULE_CODE\n        OR UMS_SECURITY_PKG.HAS_PERMISSION(:APP_USER,'WFE.ADMIN')='Y')\n ORDER BY workflow_code, version_number DESC",
+    "return": "R",
+    "display": "D"
+  }
+}

@@ -1,0 +1,20 @@
+using Capitra.Domain.Modules.Mff;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Capitra.Infrastructure.Persistence.Configurations.Mff;
+
+public sealed class MffLkpSupportTypeConfiguration : IEntityTypeConfiguration<MffLkpSupportType>
+{
+    public void Configure(EntityTypeBuilder<MffLkpSupportType> builder)
+    {
+        builder.ToTable("MFF_LKP_SUPPORT_TYPES");
+        builder.HasKey(x => x.Code);
+
+        builder.Property(x => x.Code).HasMaxLength(50);
+        builder.Property(x => x.NameAr).HasMaxLength(200);
+        builder.Property(x => x.NameEn).HasMaxLength(200);
+
+        builder.ConfigureAudit();
+    }
+}

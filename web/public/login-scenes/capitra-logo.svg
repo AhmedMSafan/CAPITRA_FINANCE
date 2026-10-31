@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 40" role="img" aria-label="Capitra">
+  <rect x="1" y="2" width="36" height="36" rx="9" fill="#134E4A" stroke="rgba(255,255,255,.18)"/>
+  <path d="M27.5 13.5A9.5 9.5 0 1 0 27.5 26.5" fill="none" stroke="#E0B04A" stroke-width="4.2" stroke-linecap="round"/>
+  <circle cx="19" cy="20" r="2.6" fill="#ffffff"/>
+  <text x="46" y="27" fill="#ffffff" font-family="Inter,'Segoe UI',Arial,sans-serif" font-size="19" font-weight="800" letter-spacing="1.5">CAPITRA</text>
+</svg>

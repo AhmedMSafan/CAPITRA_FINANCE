@@ -1,0 +1,213 @@
+{
+  "BOOLEAN": {
+    "type": "STATIC",
+    "values": [
+      [
+        "Yes",
+        "TRUE"
+      ],
+      [
+        "No",
+        "FALSE"
+      ]
+    ]
+  },
+  "MFF_ACTIVE_LOAN": {
+    "type": "SQL",
+    "query": "select l.loan_account_no||' - '||a.application_no d,l.loan_id r from mff_loans l join mff_applications a on a.application_id=l.application_id where l.loan_status in ('ACTIVE','DELINQUENT') order by l.loan_account_no",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_ALLOWED_TRANSITION": {
+    "type": "SQL",
+    "query": "select nvl(s.name_en,s.name_ar) d,t.to_status_code r from ref_mff_status_transition t join ref_mff_application_status s on s.code=t.to_status_code where t.from_status_code=:P29_CURRENT_STATUS and t.active_flag='Y' and (t.role_code is null or t.role_code=:P29_ROLE_CODE) order by s.display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_APPLICATION": {
+    "type": "SQL",
+    "query": "select a.application_no||' - '||nvl(p.full_name_ar,'?') d,a.application_id r from mff_applications a join mff_persons p on p.person_id=a.primary_person_id order by a.application_id desc",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_APPLICATION_DOCUMENT": {
+    "type": "SQL",
+    "query": "select nvl(t.name_en,t.name_ar)||' - '||nvl(d.file_name,'#'||d.document_id) d,d.document_id r from mff_application_documents d left join ref_mff_document_type t on t.code=d.document_type_code where d.application_id=:P54_APPLICATION_ID order by d.document_id desc",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_CASE_STATUS": {
+    "type": "SQL",
+    "query": "select 'Open' d,'OPEN' r,1 seq from dual union all select 'In Progress','IN_PROGRESS',2 from dual union all select 'Closed','CLOSED',3 from dual union all select 'Cured','CURED',4 from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_CHECK_RESULT": {
+    "type": "SQL",
+    "query": "select 'Pass' d,'PASS' r,1 seq from dual union all select 'Warning' d,'WARN' r,2 seq from dual union all select 'Fail' d,'FAIL' r,3 seq from dual union all select 'Override' d,'OVERRIDE' r,4 seq from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_CITY": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar)||' ('||code||')' d, code r from ref_mff_city where active_flag='Y' order by governorate_code,display_order,name_ar",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_CONTRACT_STATUS": {
+    "type": "SQL",
+    "query": "select 'Draft' d,'DRAFT' r,1 seq from dual union all select 'Signed','SIGNED',2 from dual union all select 'Cancelled','CANCELLED',3 from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_CREDIT_BUREAU": {
+    "type": "SQL",
+    "query": "select nvl(org_name_en,org_name_ar) d, org_id r from mff_organizations where org_type_code='CREDIT_BUREAU' and active_flag='Y' order by 1",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_CREDIT_INQUIRY_RESULT": {
+    "type": "SQL",
+    "query": "select 'Accepted' d,'PASS' r,1 seq from dual union all select 'Rejected','FAIL',2 from dual union all select 'Refer / Review','REFER',3 from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_DECISION_CODE": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d, code r from ref_mff_decision_code where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_DELINQUENCY_STAGE": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d,code r from ref_mff_delinquency_stage where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_DOCUMENT_TYPE": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d, code r from ref_mff_document_type where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_EMPLOYMENT_TYPE": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d, code r from ref_mff_employment_type where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_EVENT_TYPE": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d,code r from ref_mff_event_type where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_FINANCIERS": {
+    "type": "SQL",
+    "query": "select nvl(org_name_en,org_name_ar) d, org_id r from mff_organizations where org_type_code in ('BANK','NBFI') and active_flag='Y' order by 1",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_FUND_ORGS": {
+    "type": "SQL",
+    "query": "select nvl(org_name_en,org_name_ar) d, org_id r from mff_organizations where org_type_code='FUND' and active_flag='Y' order by 1",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_GENDER": {
+    "type": "SQL",
+    "query": "select 'Male' d,'M' r,1 seq from dual union all select 'Female','F',2 from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_GOVERNORATE": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d, code r from ref_mff_governorate where active_flag='Y' order by display_order,name_ar",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_INCOME_TYPE": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d, code r from ref_mff_income_type where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_LEGAL_ACTION_TYPE": {
+    "type": "SQL",
+    "query": "select 'Legal Notice' d,'NOTICE' r,1 seq from dual union all select 'Demand Letter' d,'DEMAND' r,2 seq from dual union all select 'Court Case' d,'COURT_CASE' r,3 seq from dual union all select 'Execution' d,'EXECUTION' r,4 seq from dual union all select 'Property Sale' d,'PROPERTY_SALE' r,5 seq from dual union all select 'Other' d,'OTHER' r,6 seq from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_MARITAL_STATUS": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d, code r from ref_mff_marital_status where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_OFFER_STATUS": {
+    "type": "SQL",
+    "query": "select 'Draft' d,'DRAFT' r,1 seq from dual union all select 'Issued','ISSUED',2 from dual union all select 'Accepted','ACCEPTED',3 from dual union all select 'Declined','DECLINED',4 from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_OPEN_ASSIGNMENT": {
+    "type": "SQL",
+    "query": "select assignment_type||' - '||assigned_to||' (#'||assignment_id||')' d,assignment_id r from mff_work_assignments where application_id=:P29_APPLICATION_ID and nvl(assignment_status,'OPEN')<>'COMPLETED' order by assignment_id desc",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_PROGRAM_VERSIONS": {
+    "type": "SQL",
+    "query": "select program_code||' - '||version_no||' - '||program_name_ar d, program_version_id r from mff_program_versions order by program_version_id",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_PROJECTS": {
+    "type": "SQL",
+    "query": "select project_code||' - '||project_name_ar d, project_id r from mff_housing_projects where active_flag='Y' order by project_name_ar",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_PROPERTY_REG_STATUS": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d, code r from ref_mff_property_reg_status where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_SETTLEMENT_TYPE": {
+    "type": "SQL",
+    "query": "select 'Full Settlement' d,'FULL' r,1 seq from dual union all select 'Partial Settlement','PARTIAL',2 from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_SUBSIDY_STATUS": {
+    "type": "SQL",
+    "query": "select 'Pending' d,'PENDING' r,1 seq from dual union all select 'Approved','APPROVED',2 from dual union all select 'Rejected','REJECTED',3 from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_SUPPORT_TYPE": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d, code r from ref_mff_support_type where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_USER_ROLE": {
+    "type": "SQL",
+    "query": "select nvl(name_en,name_ar) d,code r from ref_mff_user_role where active_flag='Y' order by display_order",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_VERIFICATION_STATUS": {
+    "type": "SQL",
+    "query": "select 'Pending' d,'PENDING' r,1 seq from dual union all select 'Verified','VERIFIED',2 from dual union all select 'Rejected','REJECTED',3 from dual order by seq",
+    "return": "R",
+    "display": "D"
+  },
+  "MFF_YES_NO": {
+    "type": "SQL",
+    "query": "select 'Yes' d,'Y' r,1 seq from dual union all select 'No','N',2 from dual order by seq",
+    "return": "R",
+    "display": "D"
+  }
+}
