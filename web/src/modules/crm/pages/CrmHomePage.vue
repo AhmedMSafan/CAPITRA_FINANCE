@@ -157,8 +157,8 @@ const paged = computed(() => filtered.value.slice((page.value - 1) * PAGE_SIZE, 
 const from = computed(() => (filtered.value.length ? (page.value - 1) * PAGE_SIZE + 1 : 0))
 const to = computed(() => Math.min(page.value * PAGE_SIZE, filtered.value.length))
 
-// the CRM workspace is not ported yet: Start Processing opens the Factoring Customer Workspace
-const workspace = (clientId: number) => ({ name: 'FactoringCustomerWorkspace', params: { clientId } })
+// Start Processing opens the Customer Workspace, which leads to each business line's workspace
+const workspace = (clientId: number) => ({ name: 'crm-customer-workspace', params: { clientId } })
 
 function changeSort(f: SortField) {
   sortAsc.value = sortField.value === f ? !sortAsc.value : true

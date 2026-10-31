@@ -6,13 +6,18 @@
       <div>
         <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
           <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span>
-          <RouterLink :to="{ name: 'factoring-home' }">{{ tr('Factoring') }}</RouterLink><span aria-hidden="true">›</span>
+          <template v-if="fromCustomer">
+            <RouterLink :to="{ name: 'crm-customers' }">{{ tr('Customers') }}</RouterLink><span aria-hidden="true">›</span>
+            <RouterLink :to="customerWorkspace">{{ tr('Customer Workspace') }}</RouterLink><span aria-hidden="true">›</span>
+          </template>
+          <template v-else><RouterLink :to="{ name: 'factoring-home' }">{{ tr('Factoring') }}</RouterLink><span aria-hidden="true">›</span></template>
           <b>{{ tr('Process Customer') }}</b>
         </nav>
         <h1>{{ tr('Factoring Customer Workspace') }}</h1>
       </div>
       <div class="fx-actions">
-        <RouterLink :to="{ name: 'factoring-home' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Factoring') }}</RouterLink>
+        <RouterLink v-if="fromCustomer" :to="customerWorkspace" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Customer Workspace') }}</RouterLink>
+        <RouterLink v-else :to="{ name: 'factoring-home' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Factoring') }}</RouterLink>
       </div>
     </div>
 
@@ -33,7 +38,7 @@
       <div class="fc-info"><span>{{ tr('Email') }}</span><b class="fc-email"><span class="fa fa-envelope-o" aria-hidden="true"></span> {{ client?.email || '—' }}</b></div>
     </section>
 
-    <section class="fc-quick">
+    <section class="fc-quick fc-quick--3">
       <!-- the Factoring Calculator creates the application (FCT_OFFERS) -->
       <RouterLink :to="{ name: 'FactoringCalculator', params: { clientId } }" class="fx-card fc-quick-card fc-quick-card--calc">
         <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-calculator"></span></span>
@@ -44,6 +49,12 @@
         <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-envelope-o"></span></span>
         <span class="fc-quick-copy"><b>{{ tr('Workflow Inbox') }}</b><small>{{ tr('View and process your assigned workflow tasks') }}</small></span>
         <em class="fc-count">{{ inboxCount }}</em>
+        <span class="fa fa-arrow-right" aria-hidden="true"></span>
+      </RouterLink>
+      <!-- Customer Disbursement Request (APEX App 150722 page 750), moved here from its CRM card -->
+      <RouterLink :to="{ name: 'crm-disbursement-requests' }" class="fx-card fc-quick-card">
+        <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-money"></span></span>
+        <span class="fc-quick-copy"><b>{{ tr('Disbursement Requests') }}</b><small>{{ tr('Request a disbursement against an active credit limit and start the disbursement workflow.') }}</small></span>
         <span class="fa fa-arrow-right" aria-hidden="true"></span>
       </RouterLink>
     </section>
@@ -189,6 +200,7 @@ import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import './factoring.css'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { dateLocale, tr } from '@/shared/layout/language'
 import { DISPLAY_TIME_ZONE } from '@/shared/format/datetime'
 import { workflowService } from '@/modules/wfe/services/workflowService'
@@ -198,6 +210,10 @@ import { hasPermission } from '@/shared/auth/session'
 import { fctApi, fctApplicationsApi, type FctAgreement, type FctApplication, type FctCreditLimit, type FctCustomerDetails } from '../api/fct.api'
 
 const props = defineProps<{ clientId: string }>()
+const route = useRoute()
+// opened from the Customer Workspace (Customers > Process): the way back goes there, not to the Factoring home
+const fromCustomer = computed(() => route.query.from === 'customer')
+const customerWorkspace = computed(() => ({ name: 'crm-customer-workspace', params: { clientId: props.clientId } }))
 
 type Tab = 'applications' | 'agreements' | 'limits' | 'disbursements' | 'claims'
 

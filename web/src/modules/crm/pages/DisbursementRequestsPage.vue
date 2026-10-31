@@ -11,7 +11,7 @@
         </div>
       </div>
       <div class="col-actions">
-        <RouterLink class="fx-btn" :to="{ name: 'home-crm' }"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('CRM') }}</RouterLink>
+        <RouterLink class="fx-btn" :to="{ name: 'crm-customers' }"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Customers') }}</RouterLink>
         <RouterLink v-if="canEdit" class="fx-btn fx-btn--teal" :to="{ name: 'crm-disbursement-request-new' }">
           <span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Create') }}
         </RouterLink>
