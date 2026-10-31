@@ -520,7 +520,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         : convention.Trim().ToUpperInvariant() is var c && c.StartsWith("ACT/", StringComparison.Ordinal) ? "ACTUAL/" + c[4..] : c;
 
     /// <summary>
-    /// Reverse factoring: Invoices Gross Amount is the total of the request's invoices, the repayment starts on the first cheque's due date
+    /// Reverse factoring: Invoices Gross Amount is the total of the request's eligible invoices, the repayment starts on the first cheque's due date
     /// and the tenor runs to the last one's (in whole months from the disbursement date; the schedule ends on the last cheque itself).
     /// </summary>
     private async Task DeriveReverseTermsAsync(FctDisbursement d, long? batchId, CancellationToken cancellationToken)
@@ -532,7 +532,9 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
             return;
         }
 
-        d.GrossAmount = await db.Set<FctInvoice>().Where(x => x.BatchId == b).SumAsync(x => (decimal?)x.GrossAmount, cancellationToken) ?? 0;
+        // only the ELIGIBLE invoices (Ahmed, 31 Oct 2026): a rejected invoice is not financed and takes no commission
+        var invoices = await db.Set<FctInvoice>().Where(x => x.BatchId == b).Select(x => new { x.StatusCode, x.GrossAmount }).ToListAsync(cancellationToken);
+        d.GrossAmount = invoices.Where(x => CrmRepaymentSchedule.Normalize(x.StatusCode) == "ELIGIBLE").Sum(x => x.GrossAmount);
         var dues = await Cheques(b, d.DisbursementId).Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED")
             .Select(x => x.DueDate).ToListAsync(cancellationToken);
         if (dues.Count == 0) return;

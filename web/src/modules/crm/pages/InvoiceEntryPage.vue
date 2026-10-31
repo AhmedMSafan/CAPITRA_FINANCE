@@ -87,7 +87,7 @@
             </select>
           </label>
           <label class="fc-field" :class="{ 'col-bad': bad('terms.grossAmount') }">
-            <span>{{ tr('Invoices Gross Amount') }} <b v-if="!isReverse">*</b><em v-else class="ie-src">{{ tr('Total of invoices') }}</em></span>
+            <span>{{ tr('Invoices Gross Amount') }} <b v-if="!isReverse">*</b><em v-else class="ie-src">{{ tr('Total of eligible invoices') }}</em></span>
             <input v-model.number="terms.grossAmount" class="fx-search" type="number" min="0" step="0.01" inputmode="decimal" :readonly="locked" :class="{ 'ie-locked': isReverse }">
           </label>
           <label class="fc-field" :class="{ 'col-bad': bad('terms.advanceRatePct') }">
