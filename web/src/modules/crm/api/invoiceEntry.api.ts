@@ -165,6 +165,49 @@ export type DisbursementResult = {
   schedule: RepaymentRow[]
 }
 
+/** A payment source of the customer with balance left */
+export type ChargeSource = {
+  repaymentSourceId: number
+  repaymentNumber: string
+  sourceType: string
+  reference: string | null
+  valueDate: string
+  sourceAmount: number
+  usedAmount: number
+  availableAmount: number
+}
+
+/** One payment of a charge from a source */
+export type ChargePaymentRow = {
+  allocationId: number
+  ruleCode: string
+  repaymentNumber: string
+  sourceType: string
+  reference: string | null
+  allocationDate: string
+  amount: number
+}
+
+/** The Charges Payment section */
+export type ChargePayment = {
+  totalCharges: number
+  paidAmount: number
+  outstandingAmount: number
+  statusCode: 'NO_CHARGES' | 'NOT_PAID' | 'PARTIALLY_PAID' | 'PAID'
+  glTranSetId: string | null
+  glPostingDate: string | null
+  sources: ChargeSource[]
+  payments: ChargePaymentRow[]
+}
+
+const paymentUrl = (id: number) => `/api/crm/disbursement-requests/${id}/invoice-entry/charge-payment`
+
+export const chargePaymentApi = {
+  get: (id: number) => http.get<ChargePayment>(paymentUrl(id)),
+  pay: (id: number, sourceId: number) => http.post<ChargePayment>(`${paymentUrl(id)}/sources/${sourceId}`, {}),
+  reverse: (id: number, allocationId: number) => http.post<ChargePayment>(`${paymentUrl(id)}/payments/${allocationId}/reverse`, {})
+}
+
 export const processApi = {
   process: (id: number, body: InvoiceEntrySave) =>
     http.post<{ page: InvoiceEntry; result: DisbursementResult; message: string }>(`/api/crm/disbursement-requests/${id}/invoice-entry/process`, body),

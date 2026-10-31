@@ -20,6 +20,8 @@ export type DisbursementRequestRow = {
   currencyCode: string | null
   /** the open step of the started workflow; null before it starts and after it ends */
   workflowStepName: string | null
+  /** FCT_DISBURSEMENTS.GL_TRAN_SET_ID: the charges' GL posting of Complete on Invoice Upload */
+  glTranSetId: string | null
 }
 
 /** Page 751 form */
@@ -35,6 +37,7 @@ export type DisbursementRequest = {
   remarks: string | null
   agreementId: number | null
   workflowStarted: boolean
+  glTranSetId: string | null
 }
 
 /** The page 751 items the user fills */

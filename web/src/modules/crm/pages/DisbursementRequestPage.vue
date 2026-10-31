@@ -60,6 +60,7 @@
           <div><span>{{ tr('Disbursement Date') }}</span><b>{{ formatDate(form.disbursementDate) }}</b></div>
           <div><span>{{ tr('Invoices Gross Amount') }}</span><b class="dr-amt">{{ formatAmount(Number(form.grossAmount ?? 0)) }} <small>{{ limit?.currencyCode ?? '' }}</small></b></div>
           <div><span>{{ tr('Disbursement Type') }}</span><b>{{ type || '-' }}</b></div>
+          <div><span>{{ tr('GL Tran Set ID') }}</span><b class="dr-ts">{{ glTranSetId || '-' }}</b></div>
           <div class="dr-wide"><span>{{ tr('Remarks') }}</span><b class="dr-text">{{ form.remarks || '-' }}</b></div>
         </div>
 
@@ -130,6 +131,7 @@ const summary = ref<AgreementSummary | null>(null)
 // from the customer's list: the type and the open workflow step of a started request
 const type = ref<string | null>(null)
 const step = ref<string | null>(null)
+const glTranSetId = ref<string | null>(null)
 const ready = ref(false)
 const busy = ref(false)
 const started = ref(false)
@@ -182,6 +184,7 @@ async function load() {
       })
       number.value = d.disbursementNumber
       started.value = d.workflowStarted
+      glTranSetId.value = d.glTranSetId
       await loadParty(d.clientId, d.limitId)
       summary.value = d.agreementId == null ? null : await disbursementApi.agreementSummary(d.agreementId)
       const row = (await disbursementApi.list(d.clientId)).find((x) => x.disbursementId === d.disbursementId)
@@ -262,6 +265,7 @@ watch(() => [props.disbursementId, props.clientId, props.limitId], load, { immed
 .dr-kv b { font-size: 15px; color: var(--fin-ink); overflow-wrap: anywhere; }
 .dr-kv .dr-amt { font-size: 18px; color: var(--fin-teal-700); }
 .dr-kv .dr-amt small { font-size: 12px; color: var(--fin-muted); }
+.dr-kv .dr-ts { font-family: var(--fin-mono, monospace); color: var(--fin-teal-700); }
 .dr-kv .dr-text { font-weight: 500; white-space: pre-wrap; }
 .dr-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; }
 .dr-wide { grid-column: 1 / -1; }

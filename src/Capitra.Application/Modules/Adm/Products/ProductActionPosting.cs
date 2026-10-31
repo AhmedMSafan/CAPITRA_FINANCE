@@ -44,19 +44,34 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
             throw Fail(-20986, $"Rule {plan.RuleCode} posts {string.Join(", ", unknown)}, which the action \"{def.ActionNameEn}\" does not provide (it provides {string.Join(", ", def.AmountCodes)}).");
 
         var lines = ProductEventPosting.Build(plan, l => amountOf(l.AmountCode) ?? 0, null);
+
+        return await PostLinesAsync(plan, lines, def.ModuleCode, def.ActionNameEn, def.CostCenter, def.BusinessLine, doc, ct);
+    }
+
+    /// <summary>
+    /// Posts lines already built from a rule (e.g. its charges' lines) under the next CAP-{moduleCode} transaction set ID, in the
+    /// caller's transaction; returns that ID. Every journal must balance.
+    /// </summary>
+    public async Task<string> PostLinesAsync(
+        ProductEventPlan plan, IReadOnlyList<ProductEventPostingLine> lines, string moduleCode, string title, string costCenter, string businessLine,
+        ProductActionDocument doc, CancellationToken ct)
+    {
         if (lines.Count == 0)
             throw Fail(-20987, $"Rule {plan.RuleCode} gives no GL entries for this {doc.DocumentType.ToLowerInvariant().Replace('_', ' ')}.");
+        foreach (var j in lines.GroupBy(x => x.JournalNo))
+            if (j.Sum(x => x.Dr) != j.Sum(x => x.Cr))
+                throw Fail(-20988, $"Journal {j.Key} of rule {plan.RuleCode} is not balanced: debit {j.Sum(x => x.Dr):#,##0.00}, credit {j.Sum(x => x.Cr):#,##0.00}. Check its GL lines.");
 
-        var ts = await tranSetIds.NextAsync(def.ModuleCode, doc.Date, ct);
-        var res = await gl.PostTranSetAsync(Payload(def, doc, ts, plan.SourceCode, plan.CategoryCode, plan.RuleCode, lines), ct);
+        var ts = await tranSetIds.NextAsync(moduleCode, doc.Date, ct);
+        var res = await gl.PostTranSetAsync(Payload(title, costCenter, businessLine, doc, ts, plan.SourceCode, plan.CategoryCode, plan.RuleCode, lines), ct);
         var r = JsonDocument.Parse(res).RootElement;
         if (Str(r, "status") != "OK")
             throw Fail(-20989, "GL refused the entries: " + Str(r, "message") + " " + FirstError(r));
         return ts;
     }
 
-    private static string Payload(ProductActionDefinition def, ProductActionDocument doc, string ts, string source, string category, string ruleCode,
-        IReadOnlyList<ProductEventPostingLine> lines)
+    private static string Payload(string title, string costCenter, string businessLine, ProductActionDocument doc, string ts, string source, string category,
+        string ruleCode, IReadOnlyList<ProductEventPostingLine> lines)
     {
         var o = new JsonObject
         {
@@ -67,7 +82,7 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
         };
         if (!string.IsNullOrWhiteSpace(doc.CurrencyCode))
             o["currency"] = doc.CurrencyCode.Trim();
-        o["batch_name"] = def.ActionNameEn + " - " + doc.DocumentNo;
+        o["batch_name"] = title + " - " + doc.DocumentNo;
         o["description"] = doc.Description;
         var js = new JsonArray();
         foreach (var j in lines.GroupBy(x => x.JournalNo).OrderBy(x => x.Key))
@@ -79,9 +94,9 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
                 {
                     ["company"] = Company,
                     ["branch"] = Branch,
-                    ["cost_center"] = def.CostCenter,
+                    ["cost_center"] = costCenter,
                     ["account"] = l.Account,
-                    ["business_line"] = def.BusinessLine,
+                    ["business_line"] = businessLine,
                     ["future1"] = Future,
                     ["future2"] = Future,
                     ["dr"] = l.Dr,
@@ -93,7 +108,7 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
 
             js.Add(new JsonObject
             {
-                ["name"] = doc.DocumentNo + " - " + def.ActionNameEn + (j.Key > 1 ? " " + j.Key.ToString(CultureInfo.InvariantCulture) : string.Empty),
+                ["name"] = doc.DocumentNo + " - " + title + (j.Key > 1 ? " " + j.Key.ToString(CultureInfo.InvariantCulture) : string.Empty),
                 ["description"] = doc.Description + " (rule " + ruleCode + ")",
                 ["reference_no"] = ts,
                 ["source_document_type"] = doc.DocumentType,

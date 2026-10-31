@@ -121,6 +121,9 @@ public class FctDisbursement : AuditableEntity
 
     public string? GlJournalRef { get; set; }
 
+    /// <summary>The GL transaction set ID Complete of the Invoice Upload step posted under, e.g. CAP-FRF-2026-00000001.</summary>
+    public string? GlTranSetId { get; set; }
+
     public string? ProcessedBy { get; set; }
 
     public string? AuthorizedBy { get; set; }
