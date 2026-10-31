@@ -5,14 +5,19 @@ using Capitra.Application.Modules.Gl;
 using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Crm;
 
-/// <summary>App 150722 page 750 "Disbursement Requests": one FCT_DISBURSEMENTS row with the client's name.</summary>
+/// <summary>
+/// App 150722 page 750 "Disbursement Requests": one FCT_DISBURSEMENTS row with the client's name, its limit and, once its workflow
+/// has started, the open step (null when the workflow has ended).
+/// </summary>
 public sealed record CrmDisbursementRequestListDto(
     long DisbursementId, string DisbursementNumber, DateOnly DisbursementDate, string? ClientName, decimal GrossAmount, decimal? NetAmount,
-    DateOnly? RepaymentStartDate, int? TenorMonth, string? DisbursementRef, string? DisbursementType, bool WorkflowStarted);
+    DateOnly? RepaymentStartDate, int? TenorMonth, string? DisbursementRef, string? DisbursementType, bool WorkflowStarted,
+    long? LimitId, string? LimitNumber, string? CurrencyCode, string? WorkflowStepName);
 
 /// <summary>App 150722 page 751 "Disbursement Request Detail".</summary>
 public sealed record CrmDisbursementRequestDto(
@@ -39,18 +44,52 @@ public sealed class CrmDisbursementRequestService(ICapitraDbContext db, ICurrent
 {
     public const string WorkflowCode = "DISBURSEMENT_REQUEST_WF";
 
-    /// <summary>Page 750 lists the requests not started (IS_ACTIVE N); this app lists them all, started ones marked.</summary>
-    public async Task<IReadOnlyList<CrmDisbursementRequestListDto>> ListAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Page 750 lists the requests not started (IS_ACTIVE N); this app lists them all, started ones marked. The Disbursements tab of
+    /// the Factoring Customer Workspace passes its customer.
+    /// </summary>
+    public async Task<IReadOnlyList<CrmDisbursementRequestListDto>> ListAsync(long? clientId, CancellationToken cancellationToken)
     {
-        return await (
+        var rows = await (
             from d in db.Set<FctDisbursement>().AsNoTracking()
+            where clientId == null || d.ClientId == clientId
             join c in db.Set<CrmClient>().AsNoTracking() on d.ClientId equals c.ClientId into cs
             from c in cs.DefaultIfEmpty()
+            join l in db.Set<FctCreditLimit>().AsNoTracking() on d.LimitId equals l.CreditLimitId into ls
+            from l in ls.DefaultIfEmpty()
+            join cu in db.Set<CrmLkpCurrency>().AsNoTracking() on d.CurrencyId equals cu.CurrencyId into cus
+            from cu in cus.DefaultIfEmpty()
             orderby d.DisbursementId descending
-            select new CrmDisbursementRequestListDto(
-                d.DisbursementId, d.DisbursementNumber, d.DisbursementDate, c != null ? c.ClientName : null, d.GrossAmount, d.NetAmount,
-                d.RepaymentStartDate, d.TenorMonth, d.DisbursementRef, d.DisbursementType, d.IsActive))
+            select new { d, ClientName = c != null ? c.ClientName : null, LimitNumber = l != null ? l.LimitNumber : null,
+                CurrencyCode = cu != null ? cu.CurrencyCode : null })
             .ToListAsync(cancellationToken);
+        var steps = await CurrentStepsAsync(rows.Where(x => x.d.IsActive).Select(x => Reference(x.d.DisbursementId)), cancellationToken);
+        return [.. rows.Select(x => new CrmDisbursementRequestListDto(
+            x.d.DisbursementId, x.d.DisbursementNumber, x.d.DisbursementDate, x.ClientName, x.d.GrossAmount, x.d.NetAmount,
+            x.d.RepaymentStartDate, x.d.TenorMonth, x.d.DisbursementRef, x.d.DisbursementType, x.d.IsActive,
+            x.d.LimitId, x.LimitNumber, x.CurrencyCode, steps.GetValueOrDefault(Reference(x.d.DisbursementId))))];
+    }
+
+    /// <summary>The workflow's business reference of a request, DISB-id.</summary>
+    private static string Reference(long disbursementId) => $"DISB-{disbursementId.ToString(CultureInfo.InvariantCulture)}";
+
+    /// <summary>Per business reference, the name of the newest step of its DISBURSEMENT_REQUEST_WF instance that is not completed yet.</summary>
+    private async Task<Dictionary<string, string?>> CurrentStepsAsync(IEnumerable<string> references, CancellationToken cancellationToken)
+    {
+        var refs = references.Distinct().ToList();
+        if (refs.Count == 0)
+            return [];
+
+        var open = await (
+            from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
+            join w in db.Set<WfeWorkflowDefinition>().AsNoTracking() on i.WorkflowDefinitionId equals w.WorkflowDefinitionId
+            join s in db.Set<WfeStepInstance>().AsNoTracking() on i.WorkflowInstanceId equals s.WorkflowInstanceId
+            where w.WorkflowCode == WorkflowCode && i.BusinessReference != null && refs.Contains(i.BusinessReference)
+                  && s.StepStatus != WfeRuntime.Completed && s.ElementType != "startEvent"
+            select new { Reference = i.BusinessReference!, s.StepInstanceId, s.StepName })
+            .ToListAsync(cancellationToken);
+        return open.GroupBy(x => x.Reference)
+            .ToDictionary(g => g.Key, g => (string?)g.OrderByDescending(x => x.StepInstanceId).First().StepName);
     }
 
     public async Task<CrmDisbursementRequestDto> GetAsync(long disbursementId, CancellationToken cancellationToken)
@@ -187,7 +226,7 @@ public sealed class CrmDisbursementRequestService(ICapitraDbContext db, ICurrent
         var clientName = await db.Set<CrmClient>().AsNoTracking()
             .Where(x => x.ClientId == d.ClientId).Select(x => x.ClientName).FirstOrDefaultAsync(cancellationToken);
         var id = d.DisbursementId.ToString(CultureInfo.InvariantCulture);
-        var reference = $"DISB-{id}";
+        var reference = Reference(d.DisbursementId);
         var variables = new Dictionary<string, string?>
         {
             ["entity_id"] = id,
@@ -212,6 +251,7 @@ public sealed class CrmDisbursementRequestService(ICapitraDbContext db, ICurrent
         var errors = new Dictionary<string, string[]>();
         if (dto.DisbursementDate is null) errors["disbursementDate"] = ["Disbursement Date must have some value."];
         if (dto.ClientId is null) errors["clientId"] = ["Client Id must have some value."];
+        if (dto.LimitId is null) errors["limitId"] = ["Limit must have some value."];
         if (dto.CurrencyId is null) errors["currencyId"] = ["Currency Id must have some value."];
         if (dto.GrossAmount is null) errors["grossAmount"] = ["Invoices Gross Amount must have some value."];
         if (errors.Count > 0) throw new BusinessValidationException(errors);
@@ -229,6 +269,10 @@ public sealed class CrmDisbursementRequestService(ICapitraDbContext db, ICurrent
     /// <summary>The form items, with the agreement values FetchDetails takes from a newly chosen limit.</summary>
     private async Task ApplyAsync(FctDisbursement d, CrmDisbursementRequestSaveDto dto, CancellationToken cancellationToken)
     {
+        // a request is made from one of the customer's active limits (Factoring Customer Workspace, Limits tab)
+        if (dto.LimitId != d.LimitId
+            && !await db.Set<FctCreditLimit>().AnyAsync(x => x.CreditLimitId == dto.LimitId && x.ClientId == dto.ClientId && x.IsActive, cancellationToken))
+            throw BusinessValidationException.For("limitId", "The limit is not an active limit of this customer.");
         if (dto.LimitId is { } limitId && limitId != d.LimitId)
         {
             var agreementId = await db.Set<FctCreditLimit>().AsNoTracking()

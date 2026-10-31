@@ -1,5 +1,5 @@
 <template>
-  <!-- Customer Workspace (Ahmed, 31 Oct 2026): the layer between Customers and a business line. Process on Customers opens it;
+  <!-- Customer Workspace (Ahmed, 31 Oct 2026): the layer between Customers and a business line. Workspaces on Customers opens it;
        it shows the customer once and a workspace card per business line. Mortgage stays disabled until it is built. -->
   <div class="fx fc">
     <div class="fx-head">
@@ -31,7 +31,7 @@
     </section>
 
     <div class="fm-grid fm-grid--1 cw-grid">
-      <component :is="w.to ? 'router-link' : 'div'" v-for="w in workspaces" :key="w.name" :to="w.to" class="fm-card fm-card--t1"
+      <component :is="w.to ? 'router-link' : 'div'" v-for="w in workspaces" :key="w.name" :to="w.to" class="fm-card fm-card--t2"
                  :class="{ 'is-off': !w.to }" :aria-disabled="w.to ? undefined : 'true'" :style="{ '--c': w.color, '--cl': w.tint }">
         <div class="fm-top">
           <span class="fm-ico"><span class="fa" :class="w.icon" aria-hidden="true"></span></span>
@@ -86,9 +86,10 @@ onMounted(async () => {
 
 <style scoped>
 .cw-customer { display: grid; grid-template-columns: minmax(260px, 1.6fr) repeat(3, minmax(110px, 1fr)); gap: 14px 18px; align-items: center; padding: 16px 18px; }
-.cw-grid { margin-block-start: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cw-grid { margin-block-start: 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .cw-grid a, .cw-grid a * { text-decoration: none; }
 .fm-ico .fa { font-size: 22px; }
 .fm-go .fa { margin-inline-start: 6px; }
-@media (max-width: 980px) { .cw-customer, .cw-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .cw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .cw-customer, .cw-grid { grid-template-columns: 1fr; } }
 </style>

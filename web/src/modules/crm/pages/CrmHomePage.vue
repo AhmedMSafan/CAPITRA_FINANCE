@@ -1,6 +1,6 @@
 <template>
   <!-- FINOVA_FINANCEING CrmHomePage "Customers": the same filters, sortable columns and paging, in this app's fx- theme.
-       Start Processing opens the customer's workspace; New Customer and Edit open the client dialog. -->
+       Workspaces opens the customer's workspaces; New Customer and Edit open the client dialog. -->
   <div class="fx fc">
     <div class="fx-head">
       <div class="fc-title">
@@ -63,8 +63,8 @@
               <td>{{ c.email || '-' }}</td>
               <td><span class="fx-chip" :class="c.isActive ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(c.isActive ? 'Active' : 'Inactive') }}</span></td>
               <td class="fx-r">
-                <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="workspace(c.clientId)" :title="tr('Start Processing')">
-                  <span class="fa fa-play-circle-o" aria-hidden="true"></span>{{ tr('Process') }}
+                <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="workspace(c.clientId)" :title="tr('Workspaces')">
+                  <span class="fa fa-th-large" aria-hidden="true"></span>{{ tr('Workspaces') }}
                 </RouterLink>
                 <button v-if="canEdit" type="button" class="fx-btn fx-btn--sm crm-edit" :title="tr('Edit')" @click="openClient(c.clientId)">
                   <span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Edit') }}
@@ -157,7 +157,7 @@ const paged = computed(() => filtered.value.slice((page.value - 1) * PAGE_SIZE, 
 const from = computed(() => (filtered.value.length ? (page.value - 1) * PAGE_SIZE + 1 : 0))
 const to = computed(() => Math.min(page.value * PAGE_SIZE, filtered.value.length))
 
-// Start Processing opens the Customer Workspace, which leads to each business line's workspace
+// Workspaces opens the Customer Workspace, which leads to each business line's workspace
 const workspace = (clientId: number) => ({ name: 'crm-customer-workspace', params: { clientId } })
 
 function changeSort(f: SortField) {
