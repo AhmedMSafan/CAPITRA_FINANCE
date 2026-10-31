@@ -303,93 +303,93 @@
         </div>
       </section>
 
-      <!-- the result of Process Disbursement Request: not a region of page 705, shown so the calculation can be checked -->
-      <template v-if="result && (result.charges.length || result.schedule.length)">
-        <section class="col-sec">
-          <h2>
-            <span class="fa fa-calculator" aria-hidden="true"></span>{{ tr('Disbursement Charges') }}
-            <span v-if="result.statusCode" class="fx-chip fx-chip--teal ie-chip">{{ result.statusCode }}</span>
-          </h2>
-          <div class="ie-totals">
-            <div><small>{{ tr('Approved Invoice Amount') }}</small><b>{{ formatAmount(result.approvedInvoiceAmount) }}</b></div>
-            <div><small>{{ tr('Approved Advance Amount') }}</small><b>{{ formatAmount(result.approvedAdvanceAmount) }}</b></div>
-            <div><small>{{ tr('Fee Deducted') }}</small><b>{{ formatAmount(result.feeDeducted) }}</b></div>
-            <div><small>{{ tr('Tax Deducted') }}</small><b>{{ formatAmount(result.taxDeducted) }}</b></div>
-            <div><small>{{ tr('Net Amount') }}</small><b class="ie-net">{{ formatAmount(result.netAmount) }}</b></div>
-          </div>
-          <div class="fx-table-wrap">
-            <table class="fx-table">
-              <thead>
-                <tr>
-                  <th>{{ tr('Charge') }}</th>
-                  <th>{{ tr('Calculation Method') }}</th>
-                  <th>{{ tr('Amount Base') }}</th>
-                  <th class="fx-r">{{ tr('Base Amount') }}</th>
-                  <th class="fx-r">{{ tr('Rate %') }}</th>
-                  <th class="fx-r">{{ tr('Charge Amount') }}</th>
-                  <th class="fx-r">{{ tr('Tax Amount') }}</th>
-                  <th class="fx-r">{{ tr('Total Amount') }}</th>
-                  <th>{{ tr('Charge Timing') }}</th>
-                  <th>{{ tr('Due Date') }}</th>
-                  <th>{{ tr('Status') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="c in result.charges" :key="c.disbursementChargeId">
-                  <td><b>{{ c.ruleCode }}</b><div class="ie-sub">{{ c.ruleName }}</div></td>
-                  <td>{{ c.calculationMethod }}</td>
-                  <td>{{ c.baseCode }}</td>
-                  <td class="fx-r">{{ c.baseAmount == null ? '' : formatAmount(c.baseAmount) }}</td>
-                  <td class="fx-r">{{ c.ratePercent ?? '' }}</td>
-                  <td class="fx-r">{{ formatAmount(c.chargeAmount) }}</td>
-                  <td class="fx-r">{{ formatAmount(c.taxAmount) }}</td>
-                  <td class="fx-r"><b>{{ formatAmount(c.totalAmount) }}</b></td>
-                  <td>{{ c.chargeTimingCode }}</td>
-                  <td>{{ formatDate(c.dueDate) }}</td>
-                  <td>{{ c.statusCode }}</td>
-                </tr>
-                <tr v-if="!result.charges.length"><td colspan="11" class="fx-empty">{{ tr('No data found') }}</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+      <!-- page 705 regions Calculated Disbursement Charges (FNV_DISBURSEMENT_CHARGES) and Repayment Schedule (FNV_REPAYMENTS, current
+           version): always shown, empty until Process Disbursement Request has run -->
+      <section class="col-sec">
+        <h2>
+          <span class="fa fa-calculator" aria-hidden="true"></span>{{ tr('Calculated Disbursement Charges') }}
+          <span v-if="result?.statusCode" class="fx-chip fx-chip--teal ie-chip">{{ result.statusCode }}</span>
+        </h2>
+        <div v-if="charges.length" class="ie-totals">
+          <div><small>{{ tr('Approved Invoice Amount') }}</small><b>{{ formatAmount(result!.approvedInvoiceAmount) }}</b></div>
+          <div><small>{{ tr('Approved Advance Amount') }}</small><b>{{ formatAmount(result!.approvedAdvanceAmount) }}</b></div>
+          <div><small>{{ tr('Fee Deducted') }}</small><b>{{ formatAmount(result!.feeDeducted) }}</b></div>
+          <div><small>{{ tr('Tax Deducted') }}</small><b>{{ formatAmount(result!.taxDeducted) }}</b></div>
+          <div><small>{{ tr('Net Amount') }}</small><b class="ie-net">{{ formatAmount(result!.netAmount) }}</b></div>
+        </div>
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead>
+              <tr>
+                <th>{{ tr('Rule Code') }}</th>
+                <th>{{ tr('Charge') }}</th>
+                <th>{{ tr('Method') }}</th>
+                <th class="fx-r">{{ tr('Base Amount') }}</th>
+                <th class="fx-r">{{ tr('Amount') }}</th>
+                <th class="fx-r">{{ tr('Rate') }}</th>
+                <th class="fx-r">{{ tr('Tax Amount') }}</th>
+                <th class="fx-r">{{ tr('Total') }}</th>
+                <th>{{ tr('Timing') }}</th>
+                <th>{{ tr('Due Date') }}</th>
+                <th>{{ tr('Status') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="c in charges" :key="c.disbursementChargeId">
+                <td><b>{{ c.ruleCode }}</b></td>
+                <td>{{ c.ruleName }}</td>
+                <td>{{ c.calculationMethod }}</td>
+                <td class="fx-r">{{ c.baseAmount == null ? '' : formatAmount(c.baseAmount) }}</td>
+                <td class="fx-r">{{ formatAmount(c.chargeAmount) }}</td>
+                <td class="fx-r">{{ c.ratePercent ?? '' }}</td>
+                <td class="fx-r">{{ formatAmount(c.taxAmount) }}</td>
+                <td class="fx-r"><b>{{ formatAmount(c.totalAmount) }}</b></td>
+                <td>{{ c.chargeTimingCode }}</td>
+                <td>{{ formatDate(c.dueDate) }}</td>
+                <td>{{ c.statusCode }}</td>
+              </tr>
+              <tr v-if="!charges.length"><td colspan="11" class="fx-empty">{{ tr('No data found') }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-        <section class="col-sec">
-          <h2><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Repayment Schedule') }} <span class="ie-count">{{ result.schedule.length }}</span></h2>
-          <div class="fx-table-wrap">
-            <table class="fx-table">
-              <thead>
-                <tr>
-                  <th class="fx-r">{{ tr('Installment No') }}</th>
-                  <th>{{ tr('Due Date') }}</th>
-                  <th class="fx-r">{{ tr('Opening Principal') }}</th>
-                  <th class="fx-r">{{ tr('Principal Due') }}</th>
-                  <th class="fx-r">{{ tr('Interest Due') }}</th>
-                  <th class="fx-r">{{ tr('Total Installment') }}</th>
-                  <th class="fx-r">{{ tr('Closing Principal') }}</th>
-                  <th class="fx-r">{{ tr('Interest Rate') }}</th>
-                  <th class="fx-r">{{ tr('Day Count') }}</th>
-                  <th>{{ tr('Status') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="r in result.schedule" :key="r.installmentNo">
-                  <td class="fx-r">{{ r.installmentNo }}</td>
-                  <td>{{ formatDate(r.dueDate) }}</td>
-                  <td class="fx-r">{{ formatAmount(r.openingPrincipal) }}</td>
-                  <td class="fx-r">{{ formatAmount(r.principalDue) }}</td>
-                  <td class="fx-r">{{ formatAmount(r.interestDue) }}</td>
-                  <td class="fx-r"><b>{{ formatAmount(r.totalInstallment) }}</b></td>
-                  <td class="fx-r">{{ formatAmount(r.closingPrincipal) }}</td>
-                  <td class="fx-r">{{ r.interestRate ?? '' }}</td>
-                  <td class="fx-r">{{ r.dayCount ?? '' }}</td>
-                  <td>{{ r.statusCode }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </template>
+      <section class="col-sec">
+        <h2><span class="fa fa-credit-card" aria-hidden="true"></span>{{ tr('Repayment Schedule') }} <span class="ie-count">{{ schedule.length }}</span></h2>
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead>
+              <tr>
+                <th class="fx-r">{{ tr('No.') }}</th>
+                <th>{{ tr('Due Date') }}</th>
+                <th class="fx-r">{{ tr('Days') }}</th>
+                <th class="fx-r">{{ tr('Opening Principal') }}</th>
+                <th class="fx-r">{{ tr('Principal') }}</th>
+                <th class="fx-r">{{ tr('Interest') }}</th>
+                <th class="fx-r">{{ tr('Total Due') }}</th>
+                <th class="fx-r">{{ tr('Closing Principal') }}</th>
+                <th class="fx-r">{{ tr('Rate %') }}</th>
+                <th>{{ tr('Status') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in schedule" :key="r.installmentNo">
+                <td class="fx-r">{{ r.installmentNo }}</td>
+                <td>{{ formatDate(r.dueDate) }}</td>
+                <td class="fx-r">{{ r.dayCount ?? '' }}</td>
+                <td class="fx-r">{{ formatAmount(r.openingPrincipal) }}</td>
+                <td class="fx-r">{{ formatAmount(r.principalDue) }}</td>
+                <td class="fx-r">{{ formatAmount(r.interestDue) }}</td>
+                <td class="fx-r"><b>{{ formatAmount(r.totalInstallment) }}</b></td>
+                <td class="fx-r">{{ formatAmount(r.closingPrincipal) }}</td>
+                <td class="fx-r">{{ r.interestRate ?? '' }}</td>
+                <td>{{ r.statusCode }}</td>
+              </tr>
+              <tr v-if="!schedule.length"><td colspan="10" class="fx-empty">{{ tr('No data found') }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <div v-if="!readOnly" class="col-actions ie-buttons">
         <RouterLink class="fx-btn" :to="back">{{ tr('Cancel') }}</RouterLink>
@@ -445,6 +445,8 @@ const terms = reactive({} as DisbursementTerms)
 const batch = reactive({} as InvoiceBatch)
 const summary = ref<InvoiceSummary | null>(null)
 const result = ref<DisbursementResult | null>(null)
+const charges = computed(() => result.value?.charges ?? [])
+const schedule = computed(() => result.value?.schedule ?? [])
 const options = reactive<InvoiceEntry['options']>({ clients: [], limits: [], currencies: [], products: [] })
 const invoices = ref<InvoiceRow[]>([])
 const cheques = ref<ChequeRow[]>([])
