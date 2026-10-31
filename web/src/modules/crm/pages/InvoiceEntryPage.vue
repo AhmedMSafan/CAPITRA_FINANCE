@@ -12,7 +12,7 @@
         </div>
       </div>
       <div class="col-actions">
-        <RouterLink class="fx-btn" :to="{ name: 'crm-disbursement-requests' }"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to list') }}</RouterLink>
+        <RouterLink class="fx-btn" :to="back"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to list') }}</RouterLink>
         <FctStepActions :save="saveForStep" :disabled="busy" />
       </div>
     </div>
@@ -392,7 +392,7 @@
       </template>
 
       <div v-if="!readOnly" class="col-actions ie-buttons">
-        <RouterLink class="fx-btn" :to="{ name: 'crm-disbursement-requests' }">{{ tr('Cancel') }}</RouterLink>
+        <RouterLink class="fx-btn" :to="back">{{ tr('Cancel') }}</RouterLink>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="apply"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Apply Changes') }}</button>
         <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="processRequest"><span class="fa fa-cogs" aria-hidden="true"></span>{{ tr('Process Disbursement Request') }}</button>
       </div>
@@ -420,6 +420,9 @@ import {
 } from '../api/invoiceEntry.api'
 
 const props = defineProps<{ disbursementId: number }>()
+// back to the customer's Factoring Customer Workspace, on its Disbursements tab
+const back = computed(() => terms.clientId == null ? { name: 'crm-customers' }
+  : { name: 'FactoringCustomerWorkspace', params: { clientId: terms.clientId }, query: { tab: 'disbursements', from: 'customer' } })
 
 // the page's static lists
 const dayCounts = ['30/360', 'ACTUAL/360']

@@ -1,6 +1,7 @@
 <template>
-  <!-- FINOVA_FINANCEING FactoringCustomerWorkspace: the customer card, the calculator and inbox cards and the five tabs,
-       in this app's fx- theme. Everything for a customer is done from here. -->
+  <!-- FINOVA_FINANCEING FactoringCustomerWorkspace: the customer card, the calculator card and the five tabs, in this app's fx-
+       theme. Everything for a customer is done from here: a disbursement request is made from a limit (Limits tab) and followed in
+       the Disbursements tab (Ahmed, 31 Oct 2026). -->
   <div class="fx fc">
     <div class="fx-head">
       <div>
@@ -43,18 +44,6 @@
       <RouterLink :to="{ name: 'FactoringCalculator', params: { clientId } }" class="fx-card fc-quick-card fc-quick-card--calc">
         <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-calculator"></span></span>
         <span class="fc-quick-copy"><b>{{ tr('Factoring Calculator') }}</b><small>{{ tr('Create a new application using the factoring calculator') }}</small></span>
-        <span class="fa fa-arrow-right" aria-hidden="true"></span>
-      </RouterLink>
-      <RouterLink to="/workflow/inbox" class="fx-card fc-quick-card">
-        <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-envelope-o"></span></span>
-        <span class="fc-quick-copy"><b>{{ tr('Workflow Inbox') }}</b><small>{{ tr('View and process your assigned workflow tasks') }}</small></span>
-        <em class="fc-count">{{ inboxCount }}</em>
-        <span class="fa fa-arrow-right" aria-hidden="true"></span>
-      </RouterLink>
-      <!-- Customer Disbursement Request (APEX App 150722 page 750), moved here from its CRM card -->
-      <RouterLink :to="{ name: 'crm-disbursement-requests' }" class="fx-card fc-quick-card">
-        <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-money"></span></span>
-        <span class="fc-quick-copy"><b>{{ tr('Disbursement Requests') }}</b><small>{{ tr('Request a disbursement against an active credit limit and start the disbursement workflow.') }}</small></span>
         <span class="fa fa-arrow-right" aria-hidden="true"></span>
       </RouterLink>
     </section>
@@ -145,6 +134,7 @@
               <th>{{ tr('Limit No.') }}</th><th>{{ tr('Level') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Currency') }}</th>
               <th class="fx-r">{{ tr('Approved Amount') }}</th><th class="fx-r">{{ tr('Utilized') }}</th><th class="fx-r">{{ tr('Available') }}</th>
               <th>{{ tr('Effective Date') }}</th><th>{{ tr('Expiry Date') }}</th><th>{{ tr('Status') }}</th>
+              <th v-if="canRequest" class="fx-r">{{ tr('Actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -159,16 +149,59 @@
               <td>{{ date(l.effectiveAt) }}</td>
               <td>{{ date(l.expiryAt) }}</td>
               <td><span class="fx-chip" :class="l.isActive ? 'fx-chip--ok' : 'fx-chip--warn'">{{ tr(l.isActive ? 'Active' : 'Inactive') }}</span></td>
+              <td v-if="canRequest" class="fx-r">
+                <RouterLink v-if="l.isActive" class="fx-btn fx-btn--teal fx-btn--sm" :title="tr('New Disbursement Request')"
+                            :to="{ name: 'crm-disbursement-request-new', params: { clientId, limitId: l.creditLimitId } }">
+                  <span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Disbursement') }}
+                </RouterLink>
+              </td>
             </tr>
           </tbody>
         </table>
         <div v-if="!limits.length" class="fx-empty"><span class="fa fa-database" aria-hidden="true"></span>{{ tr('Approved limits will be available here.') }}</div>
       </div>
 
-      <!-- FINOVA shows these two tabs as placeholders -->
+      <!-- the customer's disbursement requests (App 150722 page 750 for this customer): started from here, then followed by step -->
+      <div v-else-if="tab === 'disbursements'" class="fx-table-wrap">
+        <table class="fx-table">
+          <thead>
+            <tr>
+              <th>{{ tr('Disbursement No') }}</th><th>{{ tr('Date') }}</th><th>{{ tr('Limit No.') }}</th><th>{{ tr('Currency') }}</th>
+              <th class="fx-r">{{ tr('Gross Amount') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Workflow Step') }}</th>
+              <th class="fx-r">{{ tr('Actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="d in disbursements" :key="d.disbursementId">
+              <td><b class="fc-ref">{{ d.disbursementNumber }}</b></td>
+              <td>{{ date(d.disbursementDate) }}</td>
+              <td>{{ d.limitNumber || '-' }}</td>
+              <td>{{ d.currencyCode || '-' }}</td>
+              <td class="fx-r">{{ amount(d.grossAmount) }}</td>
+              <td><span class="fx-chip" :class="d.workflowStarted ? 'fx-chip--teal' : 'fx-chip--warn'">{{ tr(d.workflowStarted ? 'WF Started' : 'Workflow Not Started') }}</span></td>
+              <td>{{ d.workflowStepName || '-' }}</td>
+              <td class="fx-r">
+                <div class="fc-row-actions">
+                  <RouterLink class="fx-btn fx-btn--sm" :to="{ name: 'crm-disbursement-request', params: { disbursementId: d.disbursementId } }"
+                              :title="tr(d.workflowStarted || !canRequest ? 'View' : 'Edit')" :aria-label="`${tr(d.workflowStarted || !canRequest ? 'View' : 'Edit')} ${d.disbursementNumber}`">
+                    <span class="fa" :class="d.workflowStarted || !canRequest ? 'fa-eye' : 'fa-pencil'" aria-hidden="true"></span>
+                  </RouterLink>
+                  <button v-if="canRequest && !d.workflowStarted" type="button" class="fx-btn fx-btn--primary fx-btn--sm" :title="tr('Start Workflow')"
+                          :aria-label="`${tr('Start Workflow')} ${d.disbursementNumber}`" :disabled="startingId != null" @click="startDisbursement(d)">
+                    <span class="fa" :class="startingId === d.disbursementId ? 'fa-spinner fa-spin' : 'fa-play'" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-if="!disbursements.length" class="fx-empty"><span class="fa fa-exchange" aria-hidden="true"></span>{{ tr('Disbursement data will be available here.') }}</div>
+      </div>
+
+      <!-- FINOVA shows this tab as a placeholder -->
       <div v-else class="fx-empty">
         <span class="fa" :class="tabs.find((t) => t.key === tab)?.icon" aria-hidden="true"></span>
-        {{ tr(tab === 'disbursements' ? 'Disbursement data will be available here.' : 'Claims data will be available here.') }}
+        {{ tr('Claims data will be available here.') }}
       </div>
 
       <div class="fc-foot">
@@ -203,10 +236,10 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { dateLocale, tr } from '@/shared/layout/language'
 import { DISPLAY_TIME_ZONE } from '@/shared/format/datetime'
-import { workflowService } from '@/modules/wfe/services/workflowService'
-import { showError } from '@/shared/feedback/feedback'
+import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { useFeedback } from '@/shared/feedback/useFeedback'
 import { hasPermission } from '@/shared/auth/session'
+import { disbursementApi, type DisbursementRequestRow } from '@/modules/crm/api/disbursement.api'
 import { fctApi, fctApplicationsApi, type FctAgreement, type FctApplication, type FctCreditLimit, type FctCustomerDetails } from '../api/fct.api'
 
 const props = defineProps<{ clientId: string }>()
@@ -221,12 +254,16 @@ const client = ref<FctCustomerDetails | null>(null)
 const applications = ref<FctApplication[]>([])
 const agreements = ref<FctAgreement[]>([])
 const limits = ref<FctCreditLimit[]>([])
-const inboxCount = ref(0)
+const disbursements = ref<DisbursementRequestRow[]>([])
+const startingId = ref<number | null>(null)
 const loading = ref(false)
 const error = ref('')
 useFeedback({ errors: [error] })
-const tab = ref<Tab>('applications')
+// the request page comes back here on its Disbursements tab
+const tab = ref<Tab>(route.query.tab === 'disbursements' ? 'disbursements' : 'applications')
 const canEdit = computed(() => hasPermission('FCT.EDIT'))
+// disbursement requests are CRM's (api/crm/disbursement-requests)
+const canRequest = hasPermission('CRM.EDIT')
 
 // FINOVA's application actions: the status can be changed while it is one of these, and the agreement workflow starts
 // from a saved ACCEPTED application that has no agreement yet.
@@ -249,11 +286,12 @@ const tabs = computed(() => [
   { key: 'applications' as const, label: 'Factoring Applications', count: applications.value.length, icon: 'fa-file-text-o' },
   { key: 'agreements' as const, label: 'Agreements', count: agreements.value.length, icon: 'fa-handshake-o' },
   { key: 'limits' as const, label: 'Limits', count: limits.value.length, icon: 'fa-database' },
-  { key: 'disbursements' as const, label: 'Disbursements', count: 0, icon: 'fa-exchange' },
+  { key: 'disbursements' as const, label: 'Disbursements', count: disbursements.value.length, icon: 'fa-exchange' },
   { key: 'claims' as const, label: 'Claims', count: 0, icon: 'fa-flag-o' }
 ])
 const rows = computed(() =>
-  tab.value === 'applications' ? applications.value.length : tab.value === 'agreements' ? agreements.value.length : tab.value === 'limits' ? limits.value.length : 0)
+  tab.value === 'applications' ? applications.value.length : tab.value === 'agreements' ? agreements.value.length : tab.value === 'limits' ? limits.value.length
+    : tab.value === 'disbursements' ? disbursements.value.length : 0)
 
 const amount = (v: number | null | undefined) =>
   v == null ? '-' : new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(v)
@@ -273,17 +311,26 @@ function tone(status: string | null | undefined) {
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 async function loadData(id: number) {
-  ;[client.value, applications.value, agreements.value, limits.value] = await Promise.all([
-    fctApi.customer(id), fctApi.applications(id), fctApi.agreements(id), fctApi.creditLimits(id)
+  ;[client.value, applications.value, agreements.value, limits.value, disbursements.value] = await Promise.all([
+    fctApi.customer(id), fctApi.applications(id), fctApi.agreements(id), fctApi.creditLimits(id), disbursementApi.list(id)
   ])
   for (const a of applications.value) selected[a.offerId] = a.statusCode || ''
 }
 
-async function loadInbox() {
+// the play button: Initialize Workflow Cycle with the request as saved; the row then shows WF Started and the open step
+async function startDisbursement(d: DisbursementRequestRow) {
+  startingId.value = d.disbursementId
   try {
-    inboxCount.value = (await workflowService.getMyInbox()).length
-  } catch {
-    inboxCount.value = 0
+    const r = await disbursementApi.get(d.disbursementId)
+    const saved = await disbursementApi.startWorkflow(d.disbursementId, {
+      disbursementDate: r.disbursementDate, clientId: r.clientId, limitId: r.limitId, currencyId: r.currencyId, grossAmount: r.grossAmount, remarks: r.remarks
+    })
+    showSuccess(tr(saved.message))
+    disbursements.value = await disbursementApi.list(Number(props.clientId))
+  } catch (e) {
+    showError(errorText(e))
+  } finally {
+    startingId.value = null
   }
 }
 
@@ -308,7 +355,7 @@ async function startWorkflow(a: FctApplication) {
   try {
     await fctApplicationsApi.startWorkflow(a.offerId)
     progress.value = 'done'
-    await Promise.all([loadData(Number(props.clientId)), loadInbox()])
+    await loadData(Number(props.clientId))
     await new Promise((r) => setTimeout(r, 700))
   } catch (e) {
     showError(errorText(e))
@@ -332,6 +379,5 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-  await loadInbox()
 })
 </script>

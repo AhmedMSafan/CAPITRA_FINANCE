@@ -12,7 +12,8 @@ public sealed class CrmDisbursementRequestController(CrmDisbursementRequestServi
 {
     [HttpGet]
     [HasPermission(Permissions.Crm.View)]
-    public Task<IReadOnlyList<CrmDisbursementRequestListDto>> List(CancellationToken cancellationToken) => service.ListAsync(cancellationToken);
+    public Task<IReadOnlyList<CrmDisbursementRequestListDto>> List([FromQuery] long? clientId, CancellationToken cancellationToken) =>
+        service.ListAsync(clientId, cancellationToken);
 
     [HttpGet("{disbursementId:long}")]
     [HasPermission(Permissions.Crm.View)]

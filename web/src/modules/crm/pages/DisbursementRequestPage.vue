@@ -1,7 +1,8 @@
 <template>
-  <!-- APEX App 150722 page 751 "Disbursement Request Detail": the FCT_DISBURSEMENTS form. Choosing a limit shows its agreement in
-       the Application Summary; Initialize Workflow Cycle saves the request and starts DISBURSEMENT_REQUEST_WF, after which the
-       request only shows. Opened from a workflow task, the step's Complete button is here too. -->
+  <!-- APEX App 150722 page 751 "Disbursement Request Detail": the FCT_DISBURSEMENTS form, redesigned (Ahmed, 31 Oct 2026). A new
+       request is made from a limit of the Factoring Customer Workspace, so the customer, the limit and its currency come with it and
+       only show; the limit's agreement fills the Application Summary. The workflow is started from the workspace's Disbursements
+       tab, after which the request only shows. Opened from a workflow task, the step's Complete button is here too. -->
   <div class="fx fc">
     <div class="fx-head">
       <div class="fc-title">
@@ -12,7 +13,7 @@
         </div>
       </div>
       <div class="col-actions">
-        <RouterLink class="fx-btn" :to="{ name: 'crm-disbursement-requests' }"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to list') }}</RouterLink>
+        <RouterLink class="fx-btn" :to="back"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Customer Workspace') }}</RouterLink>
         <FctStepActions v-if="isSaved" :save="keep" :disabled="busy" />
       </div>
     </div>
@@ -46,26 +47,22 @@
             <span>{{ tr('Disbursement Date') }} <b v-if="!readOnly">*</b></span>
             <input v-model="form.disbursementDate" class="fx-search" type="date" :disabled="readOnly">
           </label>
-          <label class="fc-field" :class="{ 'col-bad': bad('clientId') }">
-            <span>{{ tr('Client Id') }} <b v-if="!readOnly">*</b></span>
-            <select v-model="form.clientId" class="fx-select" :disabled="readOnly" @change="clientChanged">
-              <option :value="null">{{ tr('- Select -') }}</option>
-              <option v-for="c in clientOptions" :key="c.value" :value="Number(c.value)">{{ c.label }}</option>
-            </select>
-          </label>
-          <label class="fc-field" :class="{ 'col-bad': bad('limitId') }">
+          <div class="fc-field">
+            <span>{{ tr('Customer') }}</span>
+            <div class="col-ro">{{ customer ? `${customer.clientName} -- ${customer.clientNumber}` : '-' }}</div>
+          </div>
+          <div class="fc-field" :class="{ 'col-bad': bad('limitId') }">
+            <span>{{ tr('Limit') }}</span>
+            <div class="col-ro">{{ limit?.limitNumber ?? '-' }}</div>
+          </div>
+          <div class="fc-field">
             <span>{{ tr('Available Limit') }}</span>
-            <select v-model="form.limitId" class="fx-select" :disabled="readOnly" @change="limitChanged">
-              <option :value="null">{{ tr('Select Limit') }}</option>
-              <option v-for="l in limits" :key="l.value" :value="Number(l.value)">{{ l.label }}</option>
-            </select>
-          </label>
-          <label class="fc-field" :class="{ 'col-bad': bad('currencyId') }">
-            <span>{{ tr('Currency Id') }} <b v-if="!readOnly">*</b></span>
-            <select v-model="form.currencyId" class="fx-select" :disabled="readOnly">
-              <option v-for="c in currencies" :key="c.value" :value="Number(c.value)">{{ c.label }}</option>
-            </select>
-          </label>
+            <div class="col-ro">{{ limit?.availableAmount == null ? '-' : formatAmount(limit.availableAmount) }}</div>
+          </div>
+          <div class="fc-field">
+            <span>{{ tr('Currency') }}</span>
+            <div class="col-ro">{{ limit?.currencyCode ?? '-' }}</div>
+          </div>
           <label class="fc-field" :class="{ 'col-bad': bad('grossAmount') }">
             <span>{{ tr('Invoices Gross Amount') }} <b v-if="!readOnly">*</b></span>
             <input v-model.number="form.grossAmount" class="fx-search" type="number" min="0" step="0.01" inputmode="decimal" :readonly="readOnly">
@@ -76,11 +73,10 @@
           </label>
         </div>
         <div v-if="!readOnly" class="col-actions dr-buttons">
-          <RouterLink class="fx-btn" :to="{ name: 'crm-disbursement-requests' }">{{ tr('Cancel') }}</RouterLink>
+          <RouterLink class="fx-btn" :to="back">{{ tr('Cancel') }}</RouterLink>
           <template v-if="isSaved">
             <button type="button" class="fx-btn fc-btn-reject" :disabled="busy" @click="remove"><span class="fa fa-trash-o" aria-hidden="true"></span>{{ tr('Delete') }}</button>
             <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="save"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Apply Changes') }}</button>
-            <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="startWorkflow"><span class="fa fa-play-circle" aria-hidden="true"></span>{{ tr('Initialize Workflow Cycle') }}</button>
           </template>
           <button v-else type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="create"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Create') }}</button>
         </div>
@@ -101,18 +97,19 @@ import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { todayInCairo } from '@/shared/format/datetime'
+import { formatAmount } from '@/shared/format/money'
 import { fieldErrors, messageOf } from '@/modules/collection/pages/collection'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
-import type { CrmOption } from '../api/crm.api'
+import { fctApi, type FctCreditLimit, type FctCustomerDetails } from '@/modules/fct/api/fct.api'
 import { disbursementApi, type AgreementSummary, type DisbursementRequestSave } from '../api/disbursement.api'
 
-const props = defineProps<{ disbursementId?: number }>()
+// a saved request comes by its id; a new one by the customer and the limit it is made from
+const props = defineProps<{ disbursementId?: number; clientId?: number; limitId?: number }>()
 
 const router = useRouter()
 const canEdit = hasPermission('CRM.EDIT')
-const clientOptions = ref<CrmOption[]>([])
-const limits = ref<CrmOption[]>([])
-const currencies = ref<CrmOption[]>([])
+const customer = ref<FctCustomerDetails | null>(null)
+const limit = ref<FctCreditLimit | null>(null)
 const summary = ref<AgreementSummary | null>(null)
 const ready = ref(false)
 const busy = ref(false)
@@ -127,11 +124,15 @@ const readOnly = computed(() => started.value || !canEdit)
 const tmpNumber = () => 'TMP-' + new Date().toTimeString().slice(0, 8).replace(/:/g, '')
 const number = ref(tmpNumber())
 
-// Disbursement Date defaults to today, Currency Id to 1
+// Disbursement Date defaults to today; the customer, the limit and its currency are set by load()
 const blank = (): DisbursementRequestSave => ({
-  disbursementDate: todayInCairo(), clientId: null, limitId: null, currencyId: 1, grossAmount: null, remarks: null
+  disbursementDate: todayInCairo(), clientId: null, limitId: null, currencyId: null, grossAmount: null, remarks: null
 })
 const form = reactive<DisbursementRequestSave>(blank())
+
+// back to the customer's Factoring Customer Workspace, on its Disbursements tab
+const back = computed(() => form.clientId == null ? { name: 'crm-customers' }
+  : { name: 'FactoringCustomerWorkspace', params: { clientId: form.clientId }, query: { tab: 'disbursements', from: 'customer' } })
 
 // the summary's numbers: TO_CHAR(FACILITY_LIMIT, 'FM999,999,999,999') and the application date as MM/DD/YYYY
 const wholeAmount = (n: number) => Math.round(n).toLocaleString('en-US')
@@ -141,56 +142,33 @@ function submitted(s: AgreementSummary): string {
   return `${date} · ${s.relationshipManager ?? ''}`
 }
 
-async function loadLimits() {
-  limits.value = form.clientId == null ? [] : await disbursementApi.limits(form.clientId)
-}
-
-// the limit list cascades from the client
-async function clientChanged() {
-  form.limitId = null
-  summary.value = null
-  try {
-    await loadLimits()
-  } catch (err) {
-    showError(messageOf(err))
-  }
-}
-
-// FetchDetails: the chosen limit's agreement fills the Application Summary
-async function limitChanged() {
-  try {
-    summary.value = form.limitId == null ? null : await disbursementApi.limitSummary(form.limitId)
-  } catch (err) {
-    summary.value = null
-    showError(messageOf(err))
-  }
+// the customer card and the limit row of the workspace the request belongs to
+async function loadParty(clientId: number, limitId: number | null) {
+  const [c, limits] = await Promise.all([fctApi.customer(clientId), fctApi.creditLimits(clientId)])
+  customer.value = c
+  limit.value = limits.find((l) => l.creditLimitId === limitId) ?? null
 }
 
 async function load() {
   ready.value = false
   errors.value = {}
   try {
-    ;[clientOptions.value, currencies.value] = await Promise.all([disbursementApi.clients(), disbursementApi.currencies()])
     if (props.disbursementId == null) {
-      Object.assign(form, blank())
+      Object.assign(form, blank(), { clientId: props.clientId ?? null, limitId: props.limitId ?? null })
       number.value = tmpNumber()
       started.value = false
-      limits.value = []
-      summary.value = null
+      if (form.clientId != null) await loadParty(form.clientId, form.limitId)
+      form.currencyId = limit.value?.currencyId ?? null
+      summary.value = form.limitId == null ? null : await disbursementApi.limitSummary(form.limitId)
     } else {
       const d = await disbursementApi.get(props.disbursementId)
       Object.assign(form, {
         disbursementDate: d.disbursementDate, clientId: d.clientId, limitId: d.limitId, currencyId: d.currencyId,
         grossAmount: d.grossAmount, remarks: d.remarks
       })
-      // a client outside the list (a prospect) still shows by name
-      if (!clientOptions.value.some((c) => Number(c.value) === d.clientId))
-        clientOptions.value = [...clientOptions.value, { value: String(d.clientId), label: `${d.clientName ?? ''} -- ${d.clientId}` }]
       number.value = d.disbursementNumber
       started.value = d.workflowStarted
-      await loadLimits()
-      if (d.limitId != null && !limits.value.some((l) => Number(l.value) === d.limitId))
-        limits.value = [...limits.value, { value: String(d.limitId), label: String(d.limitId) }]
+      await loadParty(d.clientId, d.limitId)
       summary.value = d.agreementId == null ? null : await disbursementApi.agreementSummary(d.agreementId)
     }
   } catch (err) {
@@ -204,8 +182,8 @@ async function load() {
 function check(): boolean {
   const e: Record<string, string[]> = {}
   if (!form.disbursementDate) e.disbursementDate = ['Disbursement Date must have some value.']
-  if (form.clientId == null) e.clientId = ['Client Id must have some value.']
-  if (form.currencyId == null) e.currencyId = ['Currency Id must have some value.']
+  if (form.clientId == null || form.limitId == null || form.currencyId == null)
+    e.limitId = ['Open a new disbursement request from a limit of the Factoring Customer Workspace.']
   if (form.grossAmount == null || (form.grossAmount as unknown) === '') e.grossAmount = ['Invoices Gross Amount must have some value.']
   errors.value = e
   if (Object.keys(e).length) showError(Object.values(e).flat().map((m) => tr(m)).join('\n'))
@@ -226,10 +204,11 @@ async function run(work: () => Promise<void>) {
   }
 }
 
+// Create: the request is saved and listed in the Disbursements tab with Workflow Not Started
 const create = () => check() && run(async () => {
   const saved = await disbursementApi.create(payload())
   showSuccess(tr(saved.message))
-  await router.replace({ name: 'crm-disbursement-request', params: { disbursementId: saved.disbursementId } })
+  await router.push(back.value)
 })
 
 const save = () => check() && run(async () => {
@@ -241,20 +220,13 @@ const save = () => check() && run(async () => {
 const remove = () => window.confirm(tr('Would you like to perform this delete action?')) && run(async () => {
   await disbursementApi.remove(props.disbursementId!)
   showSuccess(tr('Action Processed.'))
-  await router.push({ name: 'crm-disbursement-requests' })
-})
-
-// START: saves the request, starts the workflow, then goes back to the list with the message (branch BackToList)
-const startWorkflow = () => check() && run(async () => {
-  const saved = await disbursementApi.startWorkflow(props.disbursementId!, payload())
-  showSuccess(tr(saved.message))
-  await router.push({ name: 'crm-disbursement-requests' })
+  await router.push(back.value)
 })
 
 // a workflow step has nothing of its own to save: the request only shows
 const keep = async () => true
 
-watch(() => props.disbursementId, load, { immediate: true })
+watch(() => [props.disbursementId, props.clientId, props.limitId], load, { immediate: true })
 </script>
 
 <style scoped>

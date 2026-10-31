@@ -15,6 +15,11 @@ export type DisbursementRequestRow = {
   disbursementRef: string | null
   disbursementType: string | null
   workflowStarted: boolean
+  limitId: number | null
+  limitNumber: string | null
+  currencyCode: string | null
+  /** the open step of the started workflow; null before it starts and after it ends */
+  workflowStepName: string | null
 }
 
 /** Page 751 form */
@@ -59,7 +64,7 @@ export type DisbursementRequestSaved = { disbursementId: number; disbursementNum
 const API = '/api/crm/disbursement-requests'
 
 export const disbursementApi = {
-  list: () => http.get<DisbursementRequestRow[]>(API),
+  list: (clientId?: number) => http.get<DisbursementRequestRow[]>(clientId == null ? API : `${API}?clientId=${clientId}`),
   get: (id: number) => http.get<DisbursementRequest>(`${API}/${id}`),
   clients: () => http.get<CrmOption[]>(`${API}/clients`),
   limits: (clientId: number) => http.get<CrmOption[]>(`${API}/clients/${clientId}/limits`),
