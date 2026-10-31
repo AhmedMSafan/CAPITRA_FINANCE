@@ -27,6 +27,7 @@ const columns: CrudColumn<ProductRow>[] = [
   { field: 'productNameEn', label: 'Name' },
   { field: 'businessLineCode', label: 'Business Line', type: 'code' },
   { field: 'productTypeCode', label: 'Product Type', type: 'code' },
+  { field: 'glTranSetCode', label: 'Tran Set Code', type: 'code' },
   { field: 'defaultCurrencyCode', label: 'Currency', type: 'code' },
   { field: 'effectiveFromDate', label: 'Effective From', type: 'date' },
   { field: 'effectiveToDate', label: 'Effective To', type: 'date' }
@@ -43,6 +44,7 @@ const buildFields = () => {
     { name: 'defaultCurrencyCode', label: 'Default Currency', type: 'select', options: currencies.value },
     { name: 'factoringModeCode', label: 'Factoring Mode Code', type: 'text', maxLength: 20, uppercase: true },
     { name: 'recourse', label: 'Recourse', type: 'select', options: RECOURSE },
+    { name: 'glTranSetCode', label: 'GL Tran Set Code', type: 'text', maxLength: 3, uppercase: true, readOnly: true },
     { name: 'effectiveFromDate', label: 'Effective From', type: 'date', required: true },
     { name: 'effectiveToDate', label: 'Effective To', type: 'date' }
   ]
@@ -52,7 +54,9 @@ buildFields()
 const toRow = (p: Product): ProductRow => ({ ...p, recourseLabel: p.isRecourse == null ? '' : p.isRecourse ? 'Y' : 'N' })
 
 const toBody = (v: FormValues, rowVersion: number | null) => {
+  // the GL Tran Set Code is display only: it is set by script
   const { recourse, ...rest } = v
+  delete rest.glTranSetCode
   return { ...rest, isRecourse: recourse === 'Y' ? true : recourse === 'N' ? false : null, rowVersion }
 }
 

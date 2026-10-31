@@ -414,6 +414,7 @@ export const AR: Record<string, string> = {
   'Loading customers...': 'جارٍ تحميل العملاء...', 'No customers match the current filters.': 'لا يوجد عملاء مطابقون لعوامل التصفية الحالية.',
   Showing: 'عرض', to: 'إلى', entries: 'سجلات', Previous: 'السابق', Next: 'التالي',
   'Process Customer': 'معالجة العميل', 'Factoring Customer Workspace': 'مساحة عمل عميل التخصيم', 'Back to Factoring': 'العودة إلى التخصيم',
+  'GL Tran Set Code': 'رمز مجموعة القيود', 'Tran Set Code': 'رمز مجموعة القيود',
   'Customer Workspace': 'مساحة عمل العميل', 'Back to Customers': 'العودة إلى العملاء', 'Back to Customer Workspace': 'العودة إلى مساحة عمل العميل',
   'Factoring Workspace': 'مساحة عمل التخصيم', 'Mortgage Workspace': 'مساحة عمل التمويل العقاري', 'Open Mortgage Workspace': 'فتح مساحة عمل التمويل العقاري',
   'Factoring applications, agreements, limits, disbursements and claims of this customer.': 'طلبات التخصيم والاتفاقيات والحدود والصرف والمطالبات لهذا العميل.',

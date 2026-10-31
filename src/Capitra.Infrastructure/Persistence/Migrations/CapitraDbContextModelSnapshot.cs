@@ -1059,6 +1059,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("FACTORING_MODE_CODE");
 
+                    b.Property<string>("GlTranSetCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("GL_TRAN_SET_CODE");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_ACTIVE");
@@ -1132,6 +1137,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("DefaultCurrencyCode")
                         .HasDatabaseName("IX_ADM_PRODUCTS_DEFAULT_CURRENCY_CODE");
+
+                    b.HasIndex("GlTranSetCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_PRODUCTS_GL_TRAN_SET_CODE");
 
                     b.HasIndex("ProductCode")
                         .IsUnique()

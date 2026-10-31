@@ -22,6 +22,8 @@ public sealed class AdmProductConfiguration : IEntityTypeConfiguration<AdmProduc
         builder.Property(x => x.BusinessLineCode).HasMaxLength(30);
         builder.Property(x => x.ProductTypeCode).HasMaxLength(30);
         builder.Property(x => x.FactoringModeCode).HasMaxLength(20);
+        builder.Property(x => x.GlTranSetCode).HasMaxLength(3);
+        builder.HasIndex(x => x.GlTranSetCode).IsUnique();
         builder.Property(x => x.DefaultCurrencyCode).HasMaxLength(3);
 
         builder.HasOne<AdmLkpBusinessLine>().WithMany().HasForeignKey(x => x.BusinessLineCode).OnDelete(DeleteBehavior.Restrict);

@@ -7,7 +7,7 @@ namespace Capitra.Application.Modules.Adm.Products;
 
 public sealed record ProductDto(
     long ProductId, string ProductCode, string ProductNameEn, string? ProductNameAr, string BusinessLineCode, string ProductTypeCode,
-    string? FactoringModeCode, bool? IsRecourse, string? DefaultCurrencyCode, DateOnly EffectiveFromDate, DateOnly? EffectiveToDate,
+    string? FactoringModeCode, bool? IsRecourse, string? GlTranSetCode, string? DefaultCurrencyCode, DateOnly EffectiveFromDate, DateOnly? EffectiveToDate,
     bool IsActive, decimal MppPvRate, decimal MppLateFeeRate, decimal MppReservedAmountPct, decimal MppInvestorPaymentPct, int RowVersion);
 
 public sealed record SaveProductRequest(
@@ -151,7 +151,7 @@ public sealed class AdmProductService(ICapitraDbContext db)
     private static ConflictException ChangedByAnotherUser() => new("This product was changed by another user. Reload and try again.");
 
     private static ProductDto ToDto(AdmProduct x) =>
-        new(x.ProductId, x.ProductCode, x.ProductNameEn, x.ProductNameAr, x.BusinessLineCode, x.ProductTypeCode, x.FactoringModeCode, x.IsRecourse,
+        new(x.ProductId, x.ProductCode, x.ProductNameEn, x.ProductNameAr, x.BusinessLineCode, x.ProductTypeCode, x.FactoringModeCode, x.IsRecourse, x.GlTranSetCode,
             x.DefaultCurrencyCode, x.EffectiveFromDate, x.EffectiveToDate, x.IsActive, x.MppPvRate, x.MppLateFeeRate, x.MppReservedAmountPct,
             x.MppInvestorPaymentPct, x.RowVersion);
 }

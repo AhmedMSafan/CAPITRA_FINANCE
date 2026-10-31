@@ -31,6 +31,8 @@ export type Product = {
   productTypeCode: string
   factoringModeCode: string | null
   isRecourse: boolean | null
+  /** GL_TRAN_SET_CODE: the 3 letters of the product's GL transaction set IDs, CAP-{code}-{year}-{number}. */
+  glTranSetCode: string | null
   defaultCurrencyCode: string | null
   effectiveFromDate: string
   effectiveToDate: string | null
