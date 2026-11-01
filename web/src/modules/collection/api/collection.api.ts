@@ -16,6 +16,8 @@ export type RepaymentRow = {
   receiptAmount: number
   allocatedAmount: number
   statusCode: string
+  // the collection's GL transaction set (CAP-COL-...), none before posting
+  glTranSetId?: string | null
 }
 
 export type RepaymentSource = {
@@ -52,6 +54,7 @@ export type RepaymentForm = {
   notes: string | null
   sources: RepaymentSource[]
   allocations: RepaymentAllocation[]
+  glTranSetId?: string | null
 }
 
 export type RepaymentUpdate = Pick<RepaymentForm, 'transactionDate' | 'valueDate' | 'notes' | 'bankStatementReference' | 'externalReference' | 'reversalReason'>

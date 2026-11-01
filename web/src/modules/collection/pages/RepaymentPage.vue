@@ -28,6 +28,7 @@
           <div class="fc-field"><span>{{ tr('Receipt Amount') }}</span><div class="col-ro">{{ formatAmount(r.receiptAmount) }}</div></div>
           <div class="fc-field"><span>{{ tr('Status') }}</span><div class="col-ro"><span class="fx-chip" :class="statusChip(r.statusCode)">{{ r.statusCode }}</span></div></div>
           <div class="fc-field"><span>{{ tr('Repayment Method') }}</span><div class="col-ro">{{ r.repaymentMethod }}</div></div>
+          <div class="fc-field"><span>{{ tr('GL Tran Set ID') }}</span><div class="col-ro">{{ r.glTranSetId || tr('Not posted') }}</div></div>
           <label class="fc-field" :class="{ 'col-bad': bad('transactionDate') }">
             <span>{{ tr('Transaction Date') }} <b>*</b></span>
             <input v-model="form.transactionDate" class="fx-search" type="date" :disabled="readOnly">

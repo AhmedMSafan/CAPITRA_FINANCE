@@ -26,6 +26,7 @@ public sealed class FctRepaymentTransactionConfiguration : IEntityTypeConfigurat
         builder.Property(x => x.ReversalReason).HasMaxLength(1000);
         builder.Property(x => x.ReversedBy).HasMaxLength(100);
         builder.Property(x => x.Notes).HasMaxLength(2000);
+        builder.Property(x => x.GlTranSetId).HasMaxLength(40);
 
         builder.ConfigureAudit();
     }

@@ -25,7 +25,15 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
     private const string Future = "000";
 
     /// <summary>Returns the transaction set ID posted; any problem raises an error, so the caller's transaction rolls back.</summary>
-    public async Task<string> PostAsync(string actionCode, ProductActionDocument doc, Func<string, decimal?> amountOf, CancellationToken ct)
+    public Task<string> PostAsync(string actionCode, ProductActionDocument doc, Func<string, decimal?> amountOf, CancellationToken ct) =>
+        PostAsync(actionCode, doc, [(null, amountOf)], ct);
+
+    /// <summary>
+    /// The same with the rule's lines filled once per part, each with its own bank account for the rule's bank-account lines
+    /// (e.g. the collected cheques of each deposit bank account), all under one transaction set ID.
+    /// </summary>
+    public async Task<string> PostAsync(
+        string actionCode, ProductActionDocument doc, IReadOnlyList<(string? BankAccount, Func<string, decimal?> AmountOf)> parts, CancellationToken ct)
     {
         var def = ProductActions.Find(actionCode) ?? throw new InvalidOperationException($"Unknown product action {actionCode}.");
         var link = await (from a in db.Set<AdmProductAction>().AsNoTracking()
@@ -43,7 +51,9 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
         if (unknown.Count > 0)
             throw Fail(-20986, $"Rule {plan.RuleCode} posts {string.Join(", ", unknown)}, which the action \"{def.ActionNameEn}\" does not provide (it provides {string.Join(", ", def.AmountCodes)}).");
 
-        var lines = ProductEventPosting.Build(plan, l => amountOf(l.AmountCode) ?? 0, null);
+        if (parts.Any(p => p.BankAccount is null) && plan.Lines.Any(l => l.FromBankAccount))
+            throw Fail(-20990, $"Rule {plan.RuleCode} posts to a bank account, which the action \"{def.ActionNameEn}\" does not give.");
+        var lines = parts.SelectMany(p => ProductEventPosting.Build(plan, l => p.AmountOf(l.AmountCode) ?? 0, p.BankAccount)).ToList();
 
         return await PostLinesAsync(plan, lines, def.ModuleCode, def.ActionNameEn, def.CostCenter, def.BusinessLine, doc, ct);
     }

@@ -1,6 +1,8 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Application.Modules.Adm.Products;
+using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Gl;
 using Capitra.Domain.Modules.Chq;
 using Capitra.Domain.Modules.Crm;
@@ -13,7 +15,7 @@ namespace Capitra.Application.Modules.Fct;
 /// <summary>App 136 page 5: one row of FNV_REPAYMENT_TRANSACTIONS with the client's name.</summary>
 public sealed record FctRepaymentListDto(
     long RepaymentTxnId, string RepaymentNumber, long ClientId, string? ClientName, string RepaymentMethod, DateOnly TransactionDate,
-    DateOnly ValueDate, string? CurrencyCode, decimal ReceiptAmount, decimal AllocatedAmount, string StatusCode);
+    DateOnly ValueDate, string? CurrencyCode, decimal ReceiptAmount, decimal AllocatedAmount, string StatusCode, string? GlTranSetId = null);
 
 /// <summary>App 136 page 6 "RepaymentSources" grid.</summary>
 public sealed record FctRepaymentSourceDto(
@@ -27,7 +29,8 @@ public sealed record FctRepaymentAllocationDto(
 public sealed record FctRepaymentFormDto(
     long RepaymentTxnId, string RepaymentNumber, long ClientId, string? ClientName, string RepaymentMethod, DateOnly TransactionDate,
     DateOnly ValueDate, decimal ReceiptAmount, string StatusCode, string? BankStatementReference, string? ExternalReference,
-    string? ReversalReason, string? Notes, IReadOnlyList<FctRepaymentSourceDto> Sources, IReadOnlyList<FctRepaymentAllocationDto> Allocations);
+    string? ReversalReason, string? Notes, IReadOnlyList<FctRepaymentSourceDto> Sources, IReadOnlyList<FctRepaymentAllocationDto> Allocations,
+    string? GlTranSetId = null);
 
 /// <summary>The fields page 6 lets the user change (all read-only once the transaction is ALLOCATED).</summary>
 public sealed record FctRepaymentUpdateDto(
@@ -57,7 +60,7 @@ public sealed record FctChequeResultDto(
 /// (page 712). The rules are FNV_COLLECTION_REPAYMENT_PKG's save_repayment, update_cheque_status, apply_cheque_status and
 /// create_cheque_payment_sources.
 /// </summary>
-public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock)
+public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, ProductActionPosting posting)
 {
     // App 136 passes these fixed values to save_repayment (pages 7 and 712): legal entity 1, currency 1 / EGP. Its GL account (15)
     // is left empty: GL is built later (Ahmed, 29 Oct).
@@ -87,7 +90,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
                orderby r.RepaymentTxnId descending
                select new FctRepaymentListDto(r.RepaymentTxnId, r.RepaymentNumber, r.ClientId, c == null ? null : c.ClientName,
                    r.RepaymentMethod, r.TransactionDate, r.ValueDate, cur == null ? r.CurrencyCode : cur.CurrencyCode, r.ReceiptAmount,
-                   r.AllocatedAmount, r.StatusCode))
+                   r.AllocatedAmount, r.StatusCode, r.GlTranSetId))
             .ToListAsync(cancellationToken);
 
     // ---- page 6 ----
@@ -107,7 +110,8 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
             .Select(x => new FctRepaymentAllocationDto(x.AllocationId, x.RepaymentSourceId, x.ComponentCode, x.DisbursementId, x.AllocationAmount))
             .ToListAsync(cancellationToken);
         return new FctRepaymentFormDto(r.RepaymentTxnId, r.RepaymentNumber, r.ClientId, clientName, r.RepaymentMethod, r.TransactionDate,
-            r.ValueDate, r.ReceiptAmount, r.StatusCode, r.BankStatementReference, r.ExternalReference, r.ReversalReason, r.Notes, sources, allocations);
+            r.ValueDate, r.ReceiptAmount, r.StatusCode, r.BankStatementReference, r.ExternalReference, r.ReversalReason, r.Notes, sources, allocations,
+            r.GlTranSetId);
     }
 
     /// <summary>Page 6 Update (form DML); the button and the fields are off once the transaction is ALLOCATED.</summary>
@@ -250,13 +254,60 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
             txn.AgreementId = request.RepaymentRequestId;
             await db.SaveChangesAsync(cancellationToken);
 
-            foreach (var row in rows.Where(r => r.NewStatusCode?.Trim().ToUpperInvariant() == "COLLECTED" && r.CustomerId?.Trim() == key))
-                await CreateChequePaymentSourceAsync(txn, row.ChequeId!.Value, cancellationToken);
+            var collected = rows.Where(r => r.NewStatusCode?.Trim().ToUpperInvariant() == "COLLECTED" && r.CustomerId?.Trim() == key)
+                .Select(r => r.ChequeId!.Value).ToList();
+            foreach (var chequeId in collected)
+                await CreateChequePaymentSourceAsync(txn, chequeId, cancellationToken);
+            await PostCollectionGlAsync(txn, collected, today, cancellationToken);
 
         }
 
         await tx.CommitAsync(cancellationToken);
         return "Cheque bank results were applied successfully.";
+    }
+
+    /// <summary>
+    /// The collection's GL (agreed with Ahmed, 1 Nov 2026): the money of the collected cheques is in the bank, so the rule linked to
+    /// the action "Cheque collection" posts DR each deposit bank account (its GL account code) / CR customer liability, under one
+    /// CAP-COL-... transaction set ID kept on the repayment. The memo entry of the submission is not reversed here.
+    /// A GL refusal rolls back the whole Apply Bank Results.
+    /// </summary>
+    private async Task PostCollectionGlAsync(FctRepaymentTransaction txn, List<long> chequeIds, DateOnly today, CancellationToken cancellationToken)
+    {
+        var cheques = await db.Set<ChqCheque>().AsNoTracking().Where(x => chequeIds.Contains(x.ChequeId))
+            .Select(x => new { x.ChequeRef, x.DepositBankAccountId, x.ChequeAmount }).ToListAsync(cancellationToken);
+        if (cheques.FirstOrDefault(x => x.DepositBankAccountId is null) is { } none)
+            throw new BusinessRuleException($"Cheque {none.ChequeRef} has no deposit bank account, so its collection cannot be posted to GL.");
+        var accountIds = cheques.Select(x => x.DepositBankAccountId!.Value).Distinct().ToList();
+        var accounts = await db.Set<TrsBankAccount>().AsNoTracking().Where(x => accountIds.Contains(x.AccountId))
+            .ToDictionaryAsync(x => x.AccountId, x => new { x.AccountNo, x.ErpAccountCode }, cancellationToken);
+
+        var parts = new List<(string? BankAccount, Func<string, decimal?> AmountOf)>();
+        foreach (var g in cheques.GroupBy(x => x.DepositBankAccountId!.Value))
+        {
+            var gl = accounts.TryGetValue(g.Key, out var a) ? a.ErpAccountCode?.Trim() : null;
+            if (string.IsNullOrEmpty(gl))
+                throw new BusinessRuleException($"Bank account {(a is null ? g.Key.ToString(CultureInfo.InvariantCulture) : a.AccountNo)} has no GL account code. "
+                    + "Set its ERP account code in Treasury, then apply the results again.");
+            var amount = g.Sum(x => x.ChequeAmount);
+            parts.Add((gl, code => code == "CHEQUE_AMOUNT" ? amount : null));
+        }
+
+        var clientName = await db.Set<CrmClient>().AsNoTracking().Where(x => x.ClientId == txn.ClientId).Select(x => x.ClientName)
+            .FirstOrDefaultAsync(cancellationToken);
+        try
+        {
+            txn.GlTranSetId = await posting.PostAsync(ProductActions.ChequeCollection,
+                new ProductActionDocument("FCT_REPAYMENT", txn.RepaymentTxnId.ToString(CultureInfo.InvariantCulture), txn.RepaymentNumber, today,
+                    txn.CurrencyCode, $"Repayment {txn.RepaymentNumber}: {cheques.Count} cheque(s) collected for {clientName ?? txn.ClientId.ToString(CultureInfo.InvariantCulture)}"),
+                parts, cancellationToken);
+        }
+        catch (ApexProcessException ex)
+        {
+            throw new BusinessRuleException($"GL posting failed, no bank result was applied: {ex.Message}");
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     // ---- FNV_COLLECTION_REPAYMENT_PKG ----
