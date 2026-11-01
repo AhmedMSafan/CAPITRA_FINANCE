@@ -50,7 +50,8 @@ public sealed record CrmInvoiceEntryDto(
 /// <summary>Apply Changes: both forms and the changed or deleted grid rows.</summary>
 public sealed record CrmInvoiceEntrySaveDto(
     CrmDisbursementTermsDto Terms, CrmInvoiceBatchDto Batch, IReadOnlyList<CrmInvoiceRowDto>? Invoices, IReadOnlyList<long>? DeletedInvoiceIds,
-    IReadOnlyList<CrmChequeRowDto>? Cheques, IReadOnlyList<long>? DeletedChequeIds, IReadOnlyList<long>? ChargeSourceIds = null);
+    IReadOnlyList<CrmChequeRowDto>? Cheques, IReadOnlyList<long>? DeletedChequeIds, IReadOnlyList<long>? ChargeSourceIds = null,
+    bool InvoicesPreviewed = false, bool ChequesPreviewed = false);
 
 /// <summary>An uploaded file: its name, MIME type and bytes.</summary>
 public sealed record CrmUploadFile(string FileName, string? MimeType, byte[] Content);
@@ -161,35 +162,75 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
     }
 
     /// <summary>
-    /// Save Draft with files chosen: the page as Save Draft keeps it, SAVE_BATCH_HEADER_FOR_UPLOAD, then UPLOAD_CSV_FILES (the invoices
-    /// replace the request's invoices and take the advance rate; the cheques replace the request's draft cheques), and the batch totals.
-    /// Choosing a file saves nothing: the files are read only here (Ahmed, 1 Nov 2026).
+    /// The chosen files (Ahmed, 1 Nov 2026): choosing a file previews it, the page values and the file's rows shown inside a transaction
+    /// that is rolled back; Save Draft loads the files for good. The page as Save Draft keeps it, SAVE_BATCH_HEADER_FOR_UPLOAD, then
+    /// UPLOAD_CSV_FILES (the invoices replace the request's invoices and take the advance rate; the cheques replace its draft cheques),
+    /// the edits made on the previewed rows, and the batch totals.
     /// </summary>
     public async Task<CrmInvoiceUploadResultDto> UploadAsync(
-        long disbursementId, CrmInvoiceEntrySaveDto dto, CrmUploadFile? invoiceFile, CrmUploadFile? chequeFile, CancellationToken cancellationToken)
+        long disbursementId, CrmInvoiceEntrySaveDto dto, CrmUploadFile? invoiceFile, CrmUploadFile? chequeFile, bool preview,
+        CancellationToken cancellationToken)
     {
         if (invoiceFile is null && chequeFile is null)
             throw new BusinessRuleException("Select at least one invoice or cheque XLSX/CSV file.");
 
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
-        var (d, saved) = await SaveCoreAsync(disbursementId, dto, cancellationToken);
-        var batch = saved
-            ?? throw new BusinessRuleException("Batch ID and Disbursement ID are required before upload.");
+        var (d, batch) = await SaveWithFilesCoreAsync(disbursementId, dto, invoiceFile, chequeFile, cancellationToken);
+        var invoiceCount = await db.Set<FctInvoice>().CountAsync(x => x.BatchId == batch!.BatchId, cancellationToken);
+        var chequeCount = await Cheques(batch!.BatchId, disbursementId).CountAsync(cancellationToken);
+        var page = await GetAsync(disbursementId, cancellationToken);
+        if (preview)
+        {
+            await tx.RollbackAsync(cancellationToken);
+            return new CrmInvoiceUploadResultDto(page, $"Not saved yet. Invoices: {invoiceCount}, Cheques: {chequeCount}. Click Save Draft to keep them.");
+        }
+
+        await tx.CommitAsync(cancellationToken);
+        return new CrmInvoiceUploadResultDto(page, $"Draft saved. Invoices: {invoiceCount}, Cheques: {chequeCount}.");
+    }
+
+    /// <summary>Save Draft with the chosen files, inside the caller's transaction (also the charges preview while files are chosen).</summary>
+    internal async Task<(FctDisbursement Request, FctInvoiceBatch? Batch)> SaveWithFilesCoreAsync(
+        long disbursementId, CrmInvoiceEntrySaveDto dto, CrmUploadFile? invoiceFile, CrmUploadFile? chequeFile, CancellationToken cancellationToken)
+    {
+        var (d, batch) = await SaveCoreAsync(disbursementId, dto, cancellationToken);
+        if (invoiceFile is null && chequeFile is null) return (d, batch);
+        if (batch is null) throw new BusinessRuleException("Batch ID and Disbursement ID are required before upload.");
 
         if (invoiceFile is not null)
         {
             await ImportInvoicesAsync(d, batch, invoiceFile, cancellationToken);
             await db.SaveChangesAsync(cancellationToken);
             await SyncInvoiceAdvancesAsync(d, batch.BatchId, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+            if (dto.InvoicesPreviewed)
+            {
+                // the previewed rows were the file's rows in the same order: their edits and deletes go to the rows just imported
+                var map = await MapPreviewAsync(dto.Invoices, dto.DeletedInvoiceIds, x => x.InvoiceId,
+                    db.Set<FctInvoice>().Where(x => x.BatchId == batch.BatchId).OrderBy(x => x.InvoiceId).Select(x => x.InvoiceId), "invoices", cancellationToken);
+                await SaveInvoicesAsync(batch.BatchId, (dto.Invoices ?? []).Select(x => x with { InvoiceId = map[x.InvoiceId] }).ToList(),
+                    (dto.DeletedInvoiceIds ?? []).Where(map.ContainsKey).Select(x => map[x]).ToList(), cancellationToken);
+            }
         }
 
         if (chequeFile is not null)
+        {
             await ImportChequesAsync(d, batch.BatchId, chequeFile, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+            if (dto.ChequesPreviewed)
+            {
+                var drafts = (dto.Cheques ?? []).Where(x => x.StatusCode == "DRAFT").ToList();
+                var map = await MapPreviewAsync(drafts, dto.DeletedChequeIds, x => x.ChequeId,
+                    Cheques(batch.BatchId, disbursementId).Where(x => x.WalletChequeId == null).OrderBy(x => x.DisbursementChequeId)
+                        .Select(x => x.DisbursementChequeId), "cheques", cancellationToken);
+                await SaveChequesAsync(batch.BatchId, d.DisbursementId, drafts.Select(x => x with { ChequeId = map[x.ChequeId] }).ToList(),
+                    (dto.DeletedChequeIds ?? []).Where(map.ContainsKey).Select(x => map[x]).ToList(), cancellationToken);
+            }
+        }
 
+        await db.SaveChangesAsync(cancellationToken);
         var invoices = await db.Set<FctInvoice>().Where(x => x.BatchId == batch.BatchId).Select(x => new { x.GrossAmount, x.NetAmount })
             .ToListAsync(cancellationToken);
-        var chequeCount = await Cheques(batch.BatchId, disbursementId).CountAsync(cancellationToken);
         var files = new[] { invoiceFile, chequeFile }.Where(x => x is not null).Select(x => x!).ToList();
         batch.TotalInvoices = invoices.Count;
         batch.TotalGrossAmount = invoices.Sum(x => x.GrossAmount);
@@ -201,10 +242,18 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         await db.SaveChangesAsync(cancellationToken);
         await DeriveReverseTermsAsync(d, batch.BatchId, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
+        return (d, batch);
+    }
 
-        return new CrmInvoiceUploadResultDto(await GetAsync(disbursementId, cancellationToken),
-            $"Draft saved. Invoices: {invoices.Count}, Cheques: {chequeCount}.");
+    /// <summary>The previewed row IDs (kept and deleted, in their order) against the IDs of the rows imported again from the same file.</summary>
+    private static async Task<Dictionary<long, long>> MapPreviewAsync<T>(IReadOnlyList<T>? kept, IReadOnlyList<long>? deleted, Func<T, long> idOf,
+        IQueryable<long> imported, string what, CancellationToken cancellationToken)
+    {
+        var previewIds = (kept ?? []).Select(idOf).Concat(deleted ?? []).Distinct().OrderBy(x => x).ToList();
+        var newIds = await imported.ToListAsync(cancellationToken);
+        if (previewIds.Count != newIds.Count)
+            throw new BusinessRuleException($"The {what} file no longer matches the rows shown. Choose the file again.");
+        return previewIds.Zip(newIds).ToDictionary(x => x.First, x => x.Second);
     }
 
     private async Task<FctDisbursement> SaveFormsAsync(long disbursementId, CrmDisbursementTermsDto t, CrmInvoiceBatchDto b, CancellationToken cancellationToken)

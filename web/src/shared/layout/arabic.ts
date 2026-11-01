@@ -431,7 +431,7 @@ export const AR: Record<string, string> = {
   'Eligibility': 'الأهلية',
   'Why is this invoice not eligible?': 'لماذا هذه الفاتورة غير مؤهلة؟',
   'No invoices yet. Choose the invoices file above, then click Save Draft.': 'لا توجد فواتير بعد. اختر ملف الفواتير أعلاه ثم اضغط حفظ المسودة.',
-  'The chosen files are loaded when you click Save Draft. Until then nothing is saved.': 'يتم تحميل الملفات المختارة عند الضغط على حفظ المسودة. لا يُحفظ شيء قبل ذلك.',
+  'The rows below are a preview of the chosen files. They are saved only when you click Save Draft.': 'الصفوف أدناه معاينة للملفات المختارة، ولا تُحفظ إلا عند الضغط على حفظ المسودة.',
   'Cheques': 'الشيكات',
   'Cheques Amount': 'مبلغ الشيكات',
   'First Due Date': 'أول تاريخ استحقاق',

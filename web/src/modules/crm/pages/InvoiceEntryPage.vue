@@ -197,8 +197,8 @@
         </div>
 
         <template v-if="!readOnly">
-          <input ref="invoiceInput" type="file" hidden accept=".xlsx,.csv,.txt" @change="invoiceFile = pick($event)">
-          <input ref="chequeInput" type="file" hidden accept=".xlsx,.csv,.txt" @change="chequeFile = pick($event)">
+          <input ref="invoiceInput" type="file" hidden accept=".xlsx,.csv,.txt" @change="setFile('inv', pick($event))">
+          <input ref="chequeInput" type="file" hidden accept=".xlsx,.csv,.txt" @change="setFile('chq', pick($event))">
           <div class="ie-files">
             <div v-for="f in fileSlots" :key="f.key" class="fc-drop ie-drop" :class="{ 'is-set': !!f.file }" role="button" tabindex="0"
                  @click="f.browse()" @keydown.enter="f.browse()" @dragover.prevent @drop.prevent="f.drop($event)">
@@ -208,7 +208,7 @@
               <small v-else>{{ tr('Drop the file here or click to browse') }} · XLSX, CSV</small>
             </div>
           </div>
-          <p v-if="invoiceFile || chequeFile" class="ie-file-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('The chosen files are loaded when you click Save Draft. Until then nothing is saved.') }}</p>
+          <p v-if="invoiceFile || chequeFile" class="ie-file-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('The rows below are a preview of the chosen files. They are saved only when you click Save Draft.') }}</p>
         </template>
       </section>
 
@@ -655,6 +655,8 @@ const deletedInvoices = ref<number[]>([])
 const deletedCheques = ref<number[]>([])
 const invoiceFile = ref<File | null>(null)
 const chequeFile = ref<File | null>(null)
+const invoicesPreviewed = ref(false)
+const chequesPreviewed = ref(false)
 const invoiceInput = ref<HTMLInputElement | null>(null)
 const chequeInput = ref<HTMLInputElement | null>(null)
 
@@ -667,14 +669,14 @@ const fileSlots = computed(() => [
   {
     key: 'inv', title: 'Invoices File', icon: 'fa-file-text-o', file: invoiceFile.value,
     browse: () => invoiceInput.value?.click(),
-    drop: (e: DragEvent) => { invoiceFile.value = e.dataTransfer?.files?.[0] ?? invoiceFile.value },
-    clear: () => { invoiceFile.value = null; if (invoiceInput.value) invoiceInput.value.value = '' }
+    drop: (e: DragEvent) => { const f = e.dataTransfer?.files?.[0]; if (f) void setFile('inv', f) },
+    clear: () => { if (invoiceInput.value) invoiceInput.value.value = ''; void setFile('inv', null) }
   },
   {
     key: 'chq', title: 'Cheques File', icon: 'fa-credit-card', file: chequeFile.value,
     browse: () => chequeInput.value?.click(),
-    drop: (e: DragEvent) => { chequeFile.value = e.dataTransfer?.files?.[0] ?? chequeFile.value },
-    clear: () => { chequeFile.value = null; if (chequeInput.value) chequeInput.value.value = '' }
+    drop: (e: DragEvent) => { const f = e.dataTransfer?.files?.[0]; if (f) void setFile('chq', f) },
+    clear: () => { if (chequeInput.value) chequeInput.value.value = ''; void setFile('chq', null) }
   }
 ])
 
@@ -820,13 +822,15 @@ const payload = (): InvoiceEntrySave => ({
     spreadRate: num(terms.spreadRate), remarks: terms.remarks?.trim() || null
   },
   batch: { ...batch, batchNumber: batch.batchNumber?.trim() || null, remarks: batch.remarks?.trim() || null },
-  invoices: invoices.value.filter((r) => changedInvoices.has(r.invoiceId))
+  invoices: invoices.value.filter((r) => (invoiceFile.value && invoicesPreviewed.value) || changedInvoices.has(r.invoiceId))
     .map((r) => ({ ...r, grossAmount: Number(r.grossAmount), advanceRatePct: num(r.advanceRatePct), advanceAmount: num(r.advanceAmount) })),
   deletedInvoiceIds: deletedInvoices.value,
-  cheques: cheques.value.filter((c) => changedCheques.has(c.chequeId))
+  cheques: cheques.value.filter((c) => (chequeFile.value && chequesPreviewed.value && c.statusCode === 'DRAFT') || changedCheques.has(c.chequeId))
     .map((c) => ({ ...c, chequeAmount: Number(c.chequeAmount), depositBankAccountId: num(c.depositBankAccountId) })),
   deletedChequeIds: deletedCheques.value,
-  chargeSourceIds: chosen.value
+  chargeSourceIds: chosen.value,
+  invoicesPreviewed: !!invoiceFile.value && invoicesPreviewed.value,
+  chequesPreviewed: !!chequeFile.value && chequesPreviewed.value
 })
 
 async function run(work: () => Promise<void>): Promise<boolean> {
@@ -853,6 +857,8 @@ async function saveDraft(): Promise<string> {
   show(result.page)
   invoiceFile.value = null
   chequeFile.value = null
+  invoicesPreviewed.value = false
+  chequesPreviewed.value = false
   if (invoiceInput.value) invoiceInput.value.value = ''
   if (chequeInput.value) chequeInput.value.value = ''
   return tr(result.message)
@@ -863,6 +869,20 @@ const apply = () => check() && run(async () => {
   void previewCharges()
   showSuccess(message)
 })
+
+// choosing or removing a file shows the files' rows at once, as a preview: nothing is saved until Save Draft (Ahmed, 1 Nov 2026)
+async function setFile(kind: 'inv' | 'chq', file: File | null) {
+  if (kind === 'inv') { invoiceFile.value = file; invoicesPreviewed.value = false } else { chequeFile.value = file; chequesPreviewed.value = false }
+  if (!invoiceFile.value && !chequeFile.value) { await load(); return }
+  if (!check()) return
+  await run(async () => {
+    const result = await invoiceEntryApi.upload(props.disbursementId, payload(), invoiceFile.value, chequeFile.value, true)
+    show(result.page)
+    invoicesPreviewed.value = !!invoiceFile.value
+    chequesPreviewed.value = !!chequeFile.value
+    void previewCharges()
+  })
+}
 
 // the step's Complete saves the draft first, files included
 const saveForStep = async () => (readOnly.value ? true : check() && (await run(async () => {
@@ -880,7 +900,9 @@ async function previewCharges() {
   shownKey = previewKey.value
   previewing.value = true
   try {
-    const preview = await processApi.preview(props.disbursementId, payload())
+    const preview = invoiceFile.value || chequeFile.value
+      ? await processApi.previewFiles(props.disbursementId, payload(), invoiceFile.value, chequeFile.value)
+      : await processApi.preview(props.disbursementId, payload())
     if (seq !== previewSeq) return
     result.value = preview
     previewProblem.value = ''
