@@ -1,7 +1,6 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
-using Capitra.Application.Modules.Adm.Products;
 using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +8,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Capitra.Application.Modules.Crm;
 
 /// <summary>
-/// Complete of the Invoice Upload step of DISBURSEMENT_REQUEST_WF (business reference DISB-{id}): every charge must be paid,
-/// then the charges' GL is posted and its transaction set ID kept on the request (see <see cref="CrmDisbursementChargePaymentService"/>).
-/// It runs in the completion's transaction, so a refusal or a GL error leaves the task open and nothing posted.
+/// Complete of the Invoice Upload step of DISBURSEMENT_REQUEST_WF (business reference DISB-{id}): process, pay the charges, load the
+/// cheques into the wallet and post all their GL under one transaction set (see <see cref="CrmDisbursementCompletionService"/>).
+/// It runs in the completion's transaction, so a refusal or a GL error leaves the task open and only the draft saved.
 /// </summary>
-public sealed class CrmInvoiceUploadCompletionHandler(
-    ICapitraDbContext db, CrmDisbursementChargePaymentService payments, ProductActionPosting posting, AdmProductEventRuleService rules)
+public sealed class CrmInvoiceUploadCompletionHandler(ICapitraDbContext db, CrmDisbursementCompletionService completion)
     : IWfeTaskCompletionHandler
 {
     public bool CanHandle(WfeTaskContext context) =>
@@ -29,6 +27,6 @@ public sealed class CrmInvoiceUploadCompletionHandler(
         if (reference is null || !reference.StartsWith("DISB-", StringComparison.Ordinal)
             || !long.TryParse(reference[5..], NumberStyles.None, CultureInfo.InvariantCulture, out var disbursementId))
             throw new BusinessRuleException("The workflow is not linked to a disbursement request (business reference DISB-{id}).");
-        await payments.CompleteAsync(disbursementId, posting, rules, cancellationToken);
+        await completion.CompleteAsync(disbursementId, cancellationToken);
     }
 }

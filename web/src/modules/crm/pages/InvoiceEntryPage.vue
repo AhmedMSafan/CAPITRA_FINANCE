@@ -13,7 +13,7 @@
       </div>
       <div class="col-actions">
         <RouterLink class="fx-btn" :to="back"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Factoring Workspace') }}</RouterLink>
-        <FctStepActions :save="saveForStep" :disabled="busy" />
+        <FctStepActions :save="saveForStep" :disabled="busy" :complete-note="completeNote" />
       </div>
     </div>
 
@@ -319,7 +319,7 @@
                     <td><input v-model="c.issuerBankName" class="ie-in" type="text" @input="touchCheque(c)"></td>
                     <td><input v-model="c.drawerNameEn" class="ie-in" type="text" @input="touchCheque(c)"></td>
                     <td><input v-model.number="c.chequeAmount" class="ie-in fx-r" type="number" step="0.01" @input="touchCheque(c)" @blur="c.chequeAmount = round2(c.chequeAmount) ?? 0"></td>
-                    <td><input v-model="c.statusCode" class="ie-in ie-in--sm" type="text" @input="touchCheque(c)"></td>
+                    <td><span class="fx-chip">{{ tr(chequeStatus(c.statusCode)) }}</span></td>
                   </template>
                   <template v-else>
                     <td><b>{{ c.chequeNo }}</b></td>
@@ -328,13 +328,16 @@
                     <td>{{ c.issuerBankName }}</td>
                     <td>{{ c.drawerNameEn }}</td>
                     <td class="fx-r"><b>{{ formatAmount(c.chequeAmount) }}</b> <i class="ie-cur">{{ c.currencyCode }}</i></td>
-                    <td><span class="fx-chip" :class="c.statusCode === 'CANCELLED' || c.statusCode === 'REPLACED' ? 'fx-chip--warn' : 'fx-chip--teal'">{{ c.statusCode }}</span></td>
+                    <td><span class="fx-chip" :class="c.statusCode === 'IN_WALLET' ? 'fx-chip--teal' : c.statusCode === 'CANCELLED' ? 'fx-chip--warn' : ''">{{ tr(chequeStatus(c.statusCode)) }}</span></td>
                   </template>
                   <td v-if="!readOnly" class="fx-r ie-acts">
+                    <span v-if="c.statusCode === 'IN_WALLET'" class="ie-locked-tag" :title="tr('In the wallet: change it from the Cheques Wallet.')"><span class="fa fa-lock" aria-hidden="true"></span></span>
+                    <template v-else>
                     <button type="button" class="fx-btn fx-btn--sm" :title="tr(editCheque === c.chequeId ? 'Done' : 'Edit')" :disabled="busy"
                             @click="editCheque = editCheque === c.chequeId ? null : c.chequeId">
                       <span class="fa" :class="editCheque === c.chequeId ? 'fa-check' : 'fa-pencil'" aria-hidden="true"></span></button>
                     <button type="button" class="fx-btn fx-btn--sm" :title="tr('Delete')" :disabled="busy" @click="dropCheque(c)"><span class="fa fa-trash-o" aria-hidden="true"></span></button>
+                    </template>
                   </td>
                 </tr>
                 <tr v-if="editCheque === c.chequeId" class="ie-more">
@@ -449,81 +452,80 @@
         </details>
       </section>
 
-      <!-- Charges Payment (agreed with Ahmed, 31 Oct 2026): the charges are paid from the customer's payment sources; Complete needs
-           them all paid and then posts their GL under the product's transaction set ID; shown once the request has charges -->
-      <section v-if="payment && payment.statusCode !== 'NO_CHARGES'" class="col-sec">
+      <!-- Charges Payment (agreed with Ahmed, 1 Nov 2026): on the draft the user ticks the customer's payment sources that pay the charges;
+           Complete pays from them in that order, and the payments show here once it ran -->
+      <section v-if="charges.length || payment?.payments.length" class="col-sec">
         <h2>
           <span class="fa fa-money" aria-hidden="true"></span>{{ tr('Charges Payment') }}
-          <span v-if="payment" class="fx-chip ie-chip" :class="payChip">{{ tr(payLabel) }}</span>
+          <span v-if="posted" class="fx-chip fx-chip--teal ie-chip">{{ tr('Paid') }}</span>
+          <span v-else class="fx-chip ie-chip" :class="cover.short > 0 ? 'fx-chip--warn' : 'fx-chip--teal'">
+            {{ tr(cover.short > 0 ? 'Not Covered' : 'Covered') }}</span>
           <span v-if="payment?.glTranSetId" class="ie-ts"><span class="fa fa-book" aria-hidden="true"></span>{{ tr('GL Tran Set ID') }}
             <b>{{ payment.glTranSetId }}</b></span>
         </h2>
-        <div v-if="payment" class="ie-totals ie-totals--3">
-          <div><small>{{ tr('Total Charges') }}</small><b>{{ formatAmount(payment.totalCharges) }}</b></div>
-          <div><small>{{ tr('Paid') }}</small><b class="ie-net">{{ formatAmount(payment.paidAmount) }}</b></div>
-          <div><small>{{ tr('Outstanding') }}</small><b :class="{ 'ie-due': payment.outstandingAmount > 0 }">{{ formatAmount(payment.outstandingAmount) }}</b></div>
+        <div class="ie-totals ie-totals--3">
+          <div><small>{{ tr('Total Charges') }}</small><b>{{ formatAmount(posted ? payment!.totalCharges : chargeTotals.total) }}</b></div>
+          <div><small>{{ tr(posted ? 'Paid' : 'Chosen Sources Cover') }}</small><b class="ie-net">{{ formatAmount(posted ? payment!.paidAmount : cover.covered) }}</b></div>
+          <div><small>{{ tr(posted ? 'Outstanding' : 'Still to Cover') }}</small>
+            <b :class="{ 'ie-due': (posted ? payment!.outstandingAmount : cover.short) > 0 }">{{ formatAmount(posted ? payment!.outstandingAmount : cover.short) }}</b></div>
         </div>
 
-        <template v-if="canPay">
-          <h3 class="ie-subhead">{{ tr('Available Payment Sources') }}</h3>
+        <template v-if="!posted">
+          <p class="ie-hint"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Tick the sources that pay the charges. Complete pays from them in the order ticked.') }}</p>
           <div class="fx-table-wrap">
-            <table class="fx-table">
+            <table class="fx-table ie-tbl">
               <thead>
                 <tr>
+                  <th class="ie-tick"><span class="fx-sr">{{ tr('Use') }}</span></th>
                   <th>{{ tr('Repayment No.') }}</th><th>{{ tr('Source') }}</th><th>{{ tr('Reference') }}</th><th>{{ tr('Value Date') }}</th>
                   <th class="fx-r">{{ tr('Amount') }}</th><th class="fx-r">{{ tr('Used') }}</th><th class="fx-r">{{ tr('Available') }}</th>
-                  <th class="fx-r"><span class="fx-sr">{{ tr('Actions') }}</span></th>
+                  <th class="fx-r">{{ tr('Order') }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="src in payment!.sources" :key="src.repaymentSourceId">
-                  <td><b>{{ src.repaymentNumber }}</b></td>
+                <tr v-for="src in payment?.sources ?? []" :key="src.repaymentSourceId" :class="{ 'is-chosen': chosen.includes(src.repaymentSourceId) }">
+                  <td class="ie-tick"><input :id="`src-${src.repaymentSourceId}`" type="checkbox" :checked="chosen.includes(src.repaymentSourceId)"
+                                            :disabled="readOnly" @change="toggleSource(src.repaymentSourceId)"></td>
+                  <td><label :for="`src-${src.repaymentSourceId}`"><b>{{ src.repaymentNumber }}</b></label></td>
                   <td>{{ tr(sourceLabel(src.sourceType)) }}</td>
-                  <td>{{ src.reference || '-' }}</td>
+                  <td>{{ src.reference || '–' }}</td>
                   <td>{{ formatDate(src.valueDate) }}</td>
                   <td class="fx-r">{{ formatAmount(src.sourceAmount) }}</td>
                   <td class="fx-r">{{ formatAmount(src.usedAmount) }}</td>
                   <td class="fx-r"><b>{{ formatAmount(src.availableAmount) }}</b></td>
-                  <td class="fx-r">
-                    <button type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="payFrom(src)">
-                      <span class="fa fa-check" aria-hidden="true"></span>{{ tr('Pay Charges') }}</button>
-                  </td>
+                  <td class="fx-r">{{ chosen.includes(src.repaymentSourceId) ? chosen.indexOf(src.repaymentSourceId) + 1 : '' }}</td>
                 </tr>
-                <tr v-if="!payment!.sources.length">
-                  <td colspan="8" class="fx-empty">{{ tr('This customer has no payment source with balance. Record the customer\'s payment (collected cheque or bank transfer) first.') }}</td>
+                <tr v-if="!payment?.sources.length">
+                  <td colspan="9" class="fx-empty">{{ tr('This customer has no payment source with balance. Record the customer\'s payment (collected cheque or bank transfer) first.') }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </template>
 
-        <h3 class="ie-subhead">{{ tr('Payments') }}</h3>
-        <div class="fx-table-wrap">
-          <table class="fx-table">
-            <thead>
-              <tr>
-                <th>{{ tr('Charge') }}</th><th>{{ tr('Repayment No.') }}</th><th>{{ tr('Source') }}</th><th>{{ tr('Reference') }}</th>
-                <th>{{ tr('Date') }}</th><th class="fx-r">{{ tr('Amount') }}</th>
-                <th v-if="canReverse" class="fx-r"><span class="fx-sr">{{ tr('Actions') }}</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="p in payment?.payments ?? []" :key="p.allocationId">
-                <td><b>{{ p.ruleCode }}</b></td>
-                <td>{{ p.repaymentNumber }}</td>
-                <td>{{ tr(sourceLabel(p.sourceType)) }}</td>
-                <td>{{ p.reference || '-' }}</td>
-                <td>{{ formatDate(p.allocationDate) }}</td>
-                <td class="fx-r"><b>{{ formatAmount(p.amount) }}</b></td>
-                <td v-if="canReverse" class="fx-r">
-                  <button type="button" class="fx-btn fx-btn--sm" :disabled="busy" :title="tr('Reverse')" @click="reversePayment(p)">
-                    <span class="fa fa-undo" aria-hidden="true"></span>{{ tr('Reverse') }}</button>
-                </td>
-              </tr>
-              <tr v-if="!payment?.payments.length"><td :colspan="canReverse ? 7 : 6" class="fx-empty">{{ tr('No data found') }}</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <template v-if="payment?.payments.length">
+          <h3 class="ie-subhead">{{ tr('Payments') }}</h3>
+          <div class="fx-table-wrap">
+            <table class="fx-table ie-tbl">
+              <thead>
+                <tr>
+                  <th>{{ tr('Charge') }}</th><th>{{ tr('Repayment No.') }}</th><th>{{ tr('Source') }}</th><th>{{ tr('Reference') }}</th>
+                  <th>{{ tr('Date') }}</th><th class="fx-r">{{ tr('Amount') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in payment.payments" :key="p.allocationId">
+                  <td><b>{{ p.ruleCode }}</b></td>
+                  <td>{{ p.repaymentNumber }}</td>
+                  <td>{{ tr(sourceLabel(p.sourceType)) }}</td>
+                  <td>{{ p.reference || '–' }}</td>
+                  <td>{{ formatDate(p.allocationDate) }}</td>
+                  <td class="fx-r"><b>{{ formatAmount(p.amount) }}</b></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
       </section>
 
       <section class="col-sec">
@@ -563,10 +565,10 @@
         </div>
       </section>
 
-      <div v-if="!readOnly" class="col-actions ie-buttons">
-        <RouterLink class="fx-btn" :to="back">{{ tr('Cancel') }}</RouterLink>
-        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="apply"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Apply Changes') }}</button>
-        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="processRequest"><span class="fa fa-cogs" aria-hidden="true"></span>{{ tr('Process Disbursement Request') }}</button>
+      <!-- the page only saves a draft; the step's Complete (top of the page) does all the work (agreed with Ahmed, 1 Nov 2026) -->
+      <div v-if="!readOnly && !posted" class="col-actions ie-buttons">
+        <span class="ie-foot-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Save Draft keeps your work. Complete calculates, pays the charges, loads the cheques into the wallet and posts the GL.') }}</span>
+        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="apply"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save Draft') }}</button>
       </div>
     </div>
     <div v-else class="fx-card fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
@@ -587,7 +589,7 @@ import { formatDate } from '@/shared/format/datetime'
 import { fieldErrors, messageOf } from '@/modules/collection/pages/collection'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
 import {
-  chargePaymentApi, invoiceEntryApi, processApi, type ChargePayment, type ChargePaymentRow, type ChargeSource, type ChequeRow, type DisbursementResult, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry,
+  chargePaymentApi, invoiceEntryApi, processApi, type ChargePayment, type ChequeRow, type DisbursementResult, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry,
   type InvoiceEntrySave, type InvoiceRow, type InvoiceSummary
 } from '../api/invoiceEntry.api'
 
@@ -632,13 +634,16 @@ const charges = computed(() => result.value?.charges ?? [])
 const schedule = computed(() => result.value?.schedule ?? [])
 const payment = ref<ChargePayment | null>(null)
 const posted = computed(() => !!payment.value?.glTranSetId)
-const canPay = computed(() => !readOnly.value && !posted.value && (payment.value?.outstandingAmount ?? 0) > 0)
-const canReverse = computed(() => !readOnly.value && !posted.value)
-const PAY_LABELS: Record<string, string> = { NO_CHARGES: 'No Charges', NOT_PAID: 'Not Paid', PARTIALLY_PAID: 'Partially Paid', PAID: 'Paid' }
-const payLabel = computed(() => PAY_LABELS[payment.value?.statusCode ?? 'NO_CHARGES'] ?? '')
-const payChip = computed(() => (payment.value?.statusCode === 'PAID' ? 'fx-chip--teal' : payment.value?.statusCode === 'NO_CHARGES' ? '' : 'fx-chip--warn'))
+// the payment sources ticked for the charges, in the order ticked (saved with the draft)
+const chosen = ref<number[]>([])
+const toggleSource = (id: number) => {
+  chosen.value = chosen.value.includes(id) ? chosen.value.filter((x) => x !== id) : [...chosen.value, id]
+}
 const SOURCE_LABELS: Record<string, string> = { CHEQUE: 'Collected Cheque', BANK_TRANSFER: 'Bank Transfer', CREDIT_BALANCE: 'Credit Balance' }
 const sourceLabel = (t: string) => SOURCE_LABELS[t] ?? t
+const CHEQUE_STATUS: Record<string, string> = { DRAFT: 'Draft', IN_WALLET: 'In Wallet', CANCELLED: 'Cancelled' }
+const chequeStatus = (code: string) => CHEQUE_STATUS[code] ?? code
+const completeNote = 'Your draft is saved, then in one step: the charges and repayment schedule are calculated, the charges are paid from the ticked sources, the cheques are loaded into the wallet and all GL is posted under one GL Tran Set ID. If any step fails, nothing is posted and only the draft stays.'
 const options = reactive<InvoiceEntry['options']>({ clients: [], limits: [], currencies: [], products: [], reverseProductIds: [] })
 const invoices = ref<InvoiceRow[]>([])
 // Reverse factoring: Invoices Gross Amount follows the invoices grid, the total of the rows marked Eligible (0 when none are loaded)
@@ -702,6 +707,13 @@ const chargeTotals = computed(() => ({
   tax: round2(charges.value.reduce((t, c) => t + c.taxAmount, 0)) ?? 0,
   total: round2(charges.value.reduce((t, c) => t + c.totalAmount, 0)) ?? 0
 }))
+// what the ticked sources cover of the charges still owed
+const cover = computed(() => {
+  const owed = Math.max(chargeTotals.value.total - (payment.value?.paidAmount ?? 0), 0)
+  const available = (payment.value?.sources ?? []).filter((x) => chosen.value.includes(x.repaymentSourceId)).reduce((t, x) => t + x.availableAmount, 0)
+  const covered = round2(Math.min(owed, available)) ?? 0
+  return { covered, short: round2(owed - covered) ?? 0 }
+})
 const glEntries = computed(() => result.value?.glEntries ?? [])
 const glJournals = computed(() => [...new Set(glEntries.value.map((l) => l.journalNo))].sort((a, b) => a - b).map((no) => {
   const lines = glEntries.value.filter((l) => l.journalNo === no)
@@ -735,6 +747,8 @@ async function load() {
     show(page)
     result.value = processed
     payment.value = paid
+    chosen.value = [...paid.chosenSourceIds]
+    if (!paid.glTranSetId && !processed.charges.length && terms.productId != null) void nextTick(previewCharges)
   } catch (err) {
     showError(messageOf(err))
   } finally {
@@ -814,7 +828,8 @@ const payload = (): InvoiceEntrySave => ({
   deletedInvoiceIds: deletedInvoices.value,
   cheques: cheques.value.filter((c) => changedCheques.has(c.chequeId))
     .map((c) => ({ ...c, chequeAmount: Number(c.chequeAmount), depositBankAccountId: num(c.depositBankAccountId) })),
-  deletedChequeIds: deletedCheques.value
+  deletedChequeIds: deletedCheques.value,
+  chargeSourceIds: chosen.value
 })
 
 async function run(work: () => Promise<void>): Promise<boolean> {
@@ -834,7 +849,7 @@ async function run(work: () => Promise<void>): Promise<boolean> {
 const apply = () => check() && run(async () => {
   show(await invoiceEntryApi.save(props.disbursementId, payload()))
   void previewCharges()
-  showSuccess(tr('Action Processed.'))
+  showSuccess(tr('Draft saved.'))
 })
 
 // Upload Invoices: saves the forms, then imports whichever files are chosen
@@ -848,28 +863,6 @@ const upload = () => check() && run(async () => {
   if (invoiceInput.value) invoiceInput.value.value = ''
   if (chequeInput.value) chequeInput.value.value = ''
   showSuccess(tr(result.message))
-})
-
-// Process Disbursement Request: saves the page, then the charges and the repayment schedule
-const processRequest = () => check() && run(async () => {
-  const done = await processApi.process(props.disbursementId, payload())
-  show(done.page)
-  result.value = done.result
-  payment.value = await chargePaymentApi.get(props.disbursementId)
-  showSuccess(tr(done.message))
-})
-
-// Pay Charges: the source pays what it can of the outstanding charges
-const payFrom = (src: ChargeSource) => run(async () => {
-  payment.value = await chargePaymentApi.pay(props.disbursementId, src.repaymentSourceId)
-  result.value = await processApi.result(props.disbursementId)
-  showSuccess(tr('The charges were paid from the payment source.'))
-})
-
-const reversePayment = (p: ChargePaymentRow) => run(async () => {
-  payment.value = await chargePaymentApi.reverse(props.disbursementId, p.allocationId)
-  result.value = await processApi.result(props.disbursementId)
-  showSuccess(tr('The payment was reversed and its amount returned to the source.'))
 })
 
 // the step's Complete saves the page first
@@ -890,7 +883,7 @@ async function previewCharges() {
   try {
     const preview = await processApi.preview(props.disbursementId, payload())
     if (seq !== previewSeq) return
-    result.value = preview.isPreview ? { ...preview, schedule: result.value?.schedule ?? [] } : preview
+    result.value = preview
     previewProblem.value = ''
   } catch (err) {
     if (seq === previewSeq) previewProblem.value = messageOf(err)
@@ -997,6 +990,11 @@ watch(() => props.disbursementId, load, { immediate: true })
 .ie-code { display: block; font-size: 11px; color: #6b7c7b; font-family: monospace; }
 .ie-acct { font-family: monospace; color: #00636D; }
 .ie-cr { padding-inline-start: 24px; }
+.ie-tick { width: 36px; text-align: center; }
+.ie-tick input { width: 16px; height: 16px; accent-color: #00636D; cursor: pointer; }
+.ie-tbl tr.is-chosen > td { background: #EEF6F7; }
+.ie-locked-tag { color: #8a949c; padding: 0 8px; }
+.ie-foot-note { display: inline-flex; align-items: center; gap: 6px; margin-inline-end: auto; font-size: 12px; color: #6b7c7b; }
 .ie-hint { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 12px; color: #6b7c7b; }
 .ie-hint--warn { color: #c25a0a; }
 
