@@ -7,6 +7,7 @@ using Capitra.Application.Modules.Gl;
 using Capitra.Domain.Modules.Chq;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Gl;
 using Capitra.Domain.Modules.Trs;
 using Microsoft.EntityFrameworkCore;
 
@@ -289,6 +290,13 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
             if (string.IsNullOrEmpty(gl))
                 throw new BusinessRuleException($"Bank account {(a is null ? g.Key.ToString(CultureInfo.InvariantCulture) : a.AccountNo)} has no GL account code. "
                     + "Set its ERP account code in Treasury, then apply the results again.");
+            // the GL takes only an enabled posting value of the natural segment: say which bank account is wrong before posting
+            if (!await (from v in db.Set<GlCoaSegmentValue>()
+                        join sg in db.Set<GlCoaSegment>() on v.CoaSegmentId equals sg.CoaSegmentId
+                        where sg.SegmentCode == "NATURAL" && v.ValueCode == gl && v.IsEnabled && !v.IsSummary && v.IsPostingAllowed
+                        select v).AnyAsync(cancellationToken))
+                throw new BusinessRuleException($"Bank account {a!.AccountNo} has GL account code {gl}, which is not an enabled posting account "
+                    + "in the chart of accounts. Fix its ERP account code in Treasury or the account in GL, then apply the results again.");
             var amount = g.Sum(x => x.ChequeAmount);
             parts.Add((gl, code => code == "CHEQUE_AMOUNT" ? amount : null));
         }
