@@ -100,6 +100,17 @@ export type InvoiceEntrySave = {
   cheques?: ChequeRow[]
   deletedChequeIds?: number[]
   chargeSourceIds?: number[]
+  // the rows shown are a file's preview: Save Draft gives their edits to the rows it loads from the same file
+  invoicesPreviewed?: boolean
+  chequesPreviewed?: boolean
+}
+
+const filesForm = (body: InvoiceEntrySave, invoiceFile: File | null, chequeFile: File | null) => {
+  const form = new FormData()
+  form.append('payload', JSON.stringify(body))
+  if (invoiceFile) form.append('invoiceFile', invoiceFile)
+  if (chequeFile) form.append('chequeFile', chequeFile)
+  return form
 }
 
 const API = '/api/crm/disbursement-requests'
@@ -107,13 +118,10 @@ const API = '/api/crm/disbursement-requests'
 export const invoiceEntryApi = {
   get: (id: number) => http.get<InvoiceEntry>(`${API}/${id}/invoice-entry`),
   save: (id: number, body: InvoiceEntrySave) => http.put<InvoiceEntry>(`${API}/${id}/invoice-entry`, body),
-  upload: (id: number, body: InvoiceEntrySave, invoiceFile: File | null, chequeFile: File | null) => {
-    const form = new FormData()
-    form.append('payload', JSON.stringify(body))
-    if (invoiceFile) form.append('invoiceFile', invoiceFile)
-    if (chequeFile) form.append('chequeFile', chequeFile)
-    return http.upload<{ page: InvoiceEntry; message: string }>(`${API}/${id}/invoice-entry/upload`, form)
-  },
+  // preview: the files' rows are shown and nothing is saved; otherwise Save Draft loads them
+  upload: (id: number, body: InvoiceEntrySave, invoiceFile: File | null, chequeFile: File | null, preview = false) =>
+    http.upload<{ page: InvoiceEntry; message: string }>(`${API}/${id}/invoice-entry/upload${preview ? '?preview=true' : ''}`,
+      filesForm(body, invoiceFile, chequeFile)),
   summary: (id: number, clientId: number | null, limitId: number | null) => {
     const q = new URLSearchParams()
     if (clientId != null) q.set('clientId', String(clientId))
@@ -230,5 +238,8 @@ export const processApi = {
   result: (id: number) => http.get<DisbursementResult>(`/api/crm/disbursement-requests/${id}/invoice-entry/result`),
   // the charges of the page values as they stand, calculated and not kept
   preview: (id: number, body: InvoiceEntrySave) =>
-    http.post<DisbursementResult>(`/api/crm/disbursement-requests/${id}/invoice-entry/charges-preview`, body)
+    http.post<DisbursementResult>(`/api/crm/disbursement-requests/${id}/invoice-entry/charges-preview`, body),
+  // the same while files are chosen and not saved yet
+  previewFiles: (id: number, body: InvoiceEntrySave, invoiceFile: File | null, chequeFile: File | null) =>
+    http.upload<DisbursementResult>(`/api/crm/disbursement-requests/${id}/invoice-entry/charges-preview-files`, filesForm(body, invoiceFile, chequeFile))
 }

@@ -40,12 +40,26 @@ public sealed class CrmInvoiceEntryController(
     [HttpPost("{disbursementId:long}/invoice-entry/upload")]
     [HasPermission(Permissions.Crm.Edit)]
     [RequestSizeLimit(2 * MaxUploadBytes + 1024 * 1024)]
-    public async Task<CrmInvoiceUploadResultDto> Upload(long disbursementId, [FromForm] CrmInvoiceUploadRequest request, CancellationToken cancellationToken)
+    public async Task<CrmInvoiceUploadResultDto> Upload(
+        long disbursementId, [FromForm] CrmInvoiceUploadRequest request, [FromQuery] bool preview, CancellationToken cancellationToken)
     {
         var dto = JsonSerializer.Deserialize<CrmInvoiceEntrySaveDto>(request.Payload, JsonSerializerOptions.Web)
             ?? throw new BusinessRuleException("The page values are missing.");
-        return await service.UploadAsync(
-            disbursementId, dto, await FileOf(request.InvoiceFile, cancellationToken), await FileOf(request.ChequeFile, cancellationToken), cancellationToken);
+        return await service.UploadAsync(disbursementId, dto, await FileOf(request.InvoiceFile, cancellationToken),
+            await FileOf(request.ChequeFile, cancellationToken), preview, cancellationToken);
+    }
+
+    /// <summary>The charges preview while files are chosen and not saved yet: their rows count, nothing is saved.</summary>
+    [HttpPost("{disbursementId:long}/invoice-entry/charges-preview-files")]
+    [HasPermission(Permissions.Crm.View)]
+    [RequestSizeLimit(2 * MaxUploadBytes + 1024 * 1024)]
+    public async Task<CrmDisbursementResultDto> ChargesPreviewFiles(
+        long disbursementId, [FromForm] CrmInvoiceUploadRequest request, CancellationToken cancellationToken)
+    {
+        var dto = JsonSerializer.Deserialize<CrmInvoiceEntrySaveDto>(request.Payload, JsonSerializerOptions.Web)
+            ?? throw new BusinessRuleException("The page values are missing.");
+        return await process.PreviewAsync(disbursementId, dto, cancellationToken, await FileOf(request.InvoiceFile, cancellationToken),
+            await FileOf(request.ChequeFile, cancellationToken));
     }
 
     /// <summary>Process Disbursement Request: saves the page, then calculates the charges and the repayment schedule.</summary>

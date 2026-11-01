@@ -67,14 +67,16 @@ public sealed class CrmDisbursementProcessService(
     /// The charges as soon as the product is chosen (Ahmed, 1 Nov 2026): the page values are saved and the charges calculated as Process
     /// would, inside a transaction that is rolled back, so nothing is kept. Charges already paid or posted are shown as they are.
     /// </summary>
-    public async Task<CrmDisbursementResultDto> PreviewAsync(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken)
+    /// While files are chosen and not saved yet, their rows are part of the preview.
+    public async Task<CrmDisbursementResultDto> PreviewAsync(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken,
+        CrmUploadFile? invoiceFile = null, CrmUploadFile? chequeFile = null)
     {
         if (await db.Set<FctDisbursementCharge>().AnyAsync(x => x.DisbursementId == disbursementId && x.StatusCode != "CALCULATED", cancellationToken))
             return await ResultAsync(disbursementId, cancellationToken);
         if (dto.Terms.ProductId is null) return new CrmDisbursementResultDto(null, 0, 0, null, null, null, [], [], [], true);
 
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
-        var (d, batch) = await entry.SaveCoreAsync(disbursementId, dto, cancellationToken);
+        var (d, batch) = await entry.SaveWithFilesCoreAsync(disbursementId, dto, invoiceFile, chequeFile, cancellationToken);
         if (batch is not null) await entry.SyncInvoiceAdvancesAsync(d, batch.BatchId, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
