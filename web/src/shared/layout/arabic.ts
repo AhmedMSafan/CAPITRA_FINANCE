@@ -610,6 +610,14 @@ export const AR: Record<string, string> = {
   'Save Changes': 'حفظ التغييرات', User: 'المستخدم', 'Employee no.': 'الرقم الوظيفي', Department: 'الإدارة',
   'Reset password': 'إعادة تعيين كلمة المرور', 'No permission': 'لا توجد صلاحية', 'Portfolio Workspace': 'مساحة عمل المحافظ', 'Reference Data': 'البيانات المرجعية', Code: 'الرمز',
   'Name (EN)': 'الاسم (إنجليزي)', 'Name (AR)': 'الاسم (عربي)', 'Decimal Places': 'المنازل العشرية',
+  // Collection batches
+  'Collection Batches': 'دفعات التحصيل', 'Collection Batch': 'دفعة التحصيل', 'Batch No': 'رقم الدفعة', 'Batch Date': 'تاريخ الدفعة',
+  'Collected': 'المحصّل', 'Collected Amount': 'المبلغ المحصّل', 'Bounced': 'المرتد', 'Bounced Amount': 'المبلغ المرتد',
+  'Rejected Amount': 'المبلغ المرفوض', 'Repayments': 'عمليات السداد', 'Created By': 'أنشئ بواسطة', 'Cheque Ref': 'مرجع الشيك', 'Cheque No': 'رقم الشيك',
+  'Due Date': 'تاريخ الاستحقاق', 'GL Account': 'حساب الأستاذ العام', 'Cheque Amount': 'مبلغ الشيك', 'Bank Result': 'نتيجة البنك', 'Status Date': 'تاريخ الحالة',
+  'Reason Code': 'رمز السبب', 'Cheque bank results were applied successfully.': 'تم تطبيق نتائج البنك على الشيكات بنجاح.',
+  'Each Apply Bank Results run, its cheques and its GL Tran Set ID.': 'كل عملية تطبيق لنتائج البنك وشيكاتها ورقم مجموعة القيود.',
+  'Deposited Bank Account': 'حساب البنك المودع به', 'Bank Statement Reference': 'مرجع كشف الحساب البنكي',
 }
 
 /** Task and workflow statuses (added), keyed by the status code. */

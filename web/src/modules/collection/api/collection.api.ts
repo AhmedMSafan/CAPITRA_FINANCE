@@ -100,6 +100,50 @@ export type ChequeResult = {
   notes: string | null
 }
 
+/** The result of Apply Bank Results: the collection batch it made and its GL transaction set */
+export type CollectionApplied = { message: string; collectionBatchId: number; batchNo: string; glTranSetId: string | null }
+
+/** A collection batch: one run of Apply Bank Results (FCT_COLLECTION_BATCHES) */
+export type CollectionBatch = {
+  collectionBatchId: number
+  batchNo: string
+  batchDate: string
+  collectedCount: number
+  collectedAmount: number
+  bouncedCount: number
+  bouncedAmount: number
+  rejectedCount: number
+  rejectedAmount: number
+  repaymentsCount: number
+  glTranSetId: string | null
+  createdBy: string | null
+  createdAt: string | null
+}
+
+/** A cheque of a collection batch (FCT_COLLECTION_BATCH_LINES) */
+export type CollectionBatchLine = {
+  lineNo: number
+  chequeId: number
+  chequeRef: string | null
+  chequeNo: string
+  dueDate: string
+  customerId: string | null
+  clientName: string | null
+  bankName: string | null
+  accountNo: string | null
+  glAccount: string | null
+  chequeAmount: number
+  currencyCode: string | null
+  resultCode: string
+  statusDate: string
+  bankStatementReference: string | null
+  reasonCode: string | null
+  repaymentTxnId: number | null
+  repaymentNumber: string | null
+}
+
+export type CollectionBatchView = { batch: CollectionBatch; lines: CollectionBatchLine[] }
+
 const base = '/api/collection'
 
 export const collectionApi = {
@@ -116,5 +160,7 @@ export const collectionApi = {
     if (filter.dueTo) q.set('dueTo', filter.dueTo)
     return http.get<DueCheque[]>(`${base}/due-cheques?${q}`)
   },
-  applyResults: (rows: ChequeResult[]) => http.post<{ message: string }>(`${base}/due-cheques/results`, rows)
+  applyResults: (rows: ChequeResult[]) => http.post<CollectionApplied>(`${base}/due-cheques/results`, rows),
+  batches: () => http.get<CollectionBatch[]>(`${base}/batches`),
+  batch: (id: number) => http.get<CollectionBatchView>(`${base}/batches/${id}`)
 }

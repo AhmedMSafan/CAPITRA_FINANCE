@@ -44,6 +44,15 @@ public sealed class CollectionRepaymentController(FctCollectionRepaymentService 
 
     [HttpPost("due-cheques/results")]
     [HasPermission(Permissions.Collection.Edit)]
-    public async Task<object> ApplyResults(IReadOnlyList<FctChequeResultDto> rows, CancellationToken cancellationToken) =>
-        new { message = await service.ApplyChequeResultsAsync(rows, cancellationToken) };
+    public Task<FctCollectionAppliedDto> ApplyResults(IReadOnlyList<FctChequeResultDto> rows, CancellationToken cancellationToken) =>
+        service.ApplyChequeResultsAsync(rows, cancellationToken);
+
+    [HttpGet("batches")]
+    [HasPermission(Permissions.Collection.View)]
+    public Task<IReadOnlyList<FctCollectionBatchDto>> Batches(CancellationToken cancellationToken) => service.BatchesAsync(cancellationToken);
+
+    [HttpGet("batches/{collectionBatchId:long}")]
+    [HasPermission(Permissions.Collection.View)]
+    public Task<FctCollectionBatchViewDto> Batch(long collectionBatchId, CancellationToken cancellationToken) =>
+        service.BatchAsync(collectionBatchId, cancellationToken);
 }

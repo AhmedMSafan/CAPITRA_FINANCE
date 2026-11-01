@@ -14,6 +14,9 @@
           <p>{{ tr('Reconcile due factoring cheques against bank statements and record collected, bounced, or rejected results.') }}</p>
         </div>
       </div>
+      <RouterLink class="fx-btn" :to="{ name: 'collection-batches' }">
+        <span class="fa fa-list" aria-hidden="true"></span>{{ tr('Collection Batches') }}
+      </RouterLink>
     </div>
 
     <div class="col-stack">
@@ -187,7 +190,7 @@ async function apply() {
   applying.value = true
   try {
     const done = await collectionApi.applyResults(results)
-    showSuccess(tr(done.message))
+    showSuccess(`${tr('Cheque bank results were applied successfully.')}\n${tr('Collection Batch')}: ${done.batchNo}\n${tr('GL Tran Set ID')}: ${done.glTranSetId || tr('Not posted')}`)
     await load()
   } catch (err) {
     showError(messageOf(err))
