@@ -208,10 +208,7 @@
               <small v-else>{{ tr('Drop the file here or click to browse') }} · XLSX, CSV</small>
             </div>
           </div>
-          <div class="col-actions ie-buttons">
-            <button type="button" class="fx-btn fx-btn--teal" :disabled="busy || (!invoiceFile && !chequeFile)" @click="upload">
-              <span class="fa fa-cloud-upload" aria-hidden="true"></span>{{ tr('Upload Files') }}</button>
-          </div>
+          <p v-if="invoiceFile || chequeFile" class="ie-file-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('The chosen files are loaded when you click Save Draft. Until then nothing is saved.') }}</p>
         </template>
       </section>
 
@@ -280,7 +277,7 @@
                   </td>
                 </tr>
               </template>
-              <tr v-if="!invoices.length"><td :colspan="readOnly ? 7 : 8" class="fx-empty">{{ tr('No invoices yet. Upload the invoices file above.') }}</td></tr>
+              <tr v-if="!invoices.length"><td :colspan="readOnly ? 7 : 8" class="fx-empty">{{ tr('No invoices yet. Choose the invoices file above, then click Save Draft.') }}</td></tr>
             </tbody>
           </table>
         </div>
@@ -352,7 +349,7 @@
                   </td>
                 </tr>
               </template>
-              <tr v-if="!cheques.length"><td :colspan="readOnly ? 7 : 8" class="fx-empty">{{ tr('No cheques yet. Upload the cheques file above.') }}</td></tr>
+              <tr v-if="!cheques.length"><td :colspan="readOnly ? 7 : 8" class="fx-empty">{{ tr('No cheques yet. Choose the cheques file above, then click Save Draft.') }}</td></tr>
             </tbody>
           </table>
         </div>
@@ -665,7 +662,7 @@ const whole = (n: number) => Math.round(n).toLocaleString('en-US')
 const pick = (e: Event) => (e.target as HTMLInputElement).files?.[0] ?? null
 const fileSize = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`)
 
-// the two upload boxes: drop or browse an invoices file and a cheques file, then Upload Files sends both
+// the two file boxes: drop or browse an invoices file and a cheques file; Save Draft loads both
 const fileSlots = computed(() => [
   {
     key: 'inv', title: 'Invoices File', icon: 'fa-file-text-o', file: invoiceFile.value,
@@ -846,28 +843,30 @@ async function run(work: () => Promise<void>): Promise<boolean> {
   }
 }
 
-const apply = () => check() && run(async () => {
-  show(await invoiceEntryApi.save(props.disbursementId, payload()))
-  void previewCharges()
-  showSuccess(tr('Draft saved.'))
-})
-
-// Upload Invoices: saves the forms, then imports whichever files are chosen
-const upload = () => check() && run(async () => {
-  if (!invoiceFile.value && !chequeFile.value) throw new Error(tr('Select at least one invoice or cheque XLSX/CSV file.'))
+// Save Draft: the page, and the chosen files only now (choosing a file saves nothing; Ahmed, 1 Nov 2026)
+async function saveDraft(): Promise<string> {
+  if (!invoiceFile.value && !chequeFile.value) {
+    show(await invoiceEntryApi.save(props.disbursementId, payload()))
+    return tr('Draft saved.')
+  }
   const result = await invoiceEntryApi.upload(props.disbursementId, payload(), invoiceFile.value, chequeFile.value)
   show(result.page)
-  void previewCharges()
   invoiceFile.value = null
   chequeFile.value = null
   if (invoiceInput.value) invoiceInput.value.value = ''
   if (chequeInput.value) chequeInput.value.value = ''
-  showSuccess(tr(result.message))
+  return tr(result.message)
+}
+
+const apply = () => check() && run(async () => {
+  const message = await saveDraft()
+  void previewCharges()
+  showSuccess(message)
 })
 
-// the step's Complete saves the page first
+// the step's Complete saves the draft first, files included
 const saveForStep = async () => (readOnly.value ? true : check() && (await run(async () => {
-  show(await invoiceEntryApi.save(props.disbursementId, payload()))
+  await saveDraft()
 })))
 
 // the charges as soon as the product is chosen (Ahmed, 1 Nov 2026): recalculated, not kept, when the terms or the invoices change
@@ -994,6 +993,7 @@ watch(() => props.disbursementId, load, { immediate: true })
 .ie-tick input { width: 16px; height: 16px; accent-color: #00636D; cursor: pointer; }
 .ie-tbl tr.is-chosen > td { background: #EEF6F7; }
 .ie-locked-tag { color: #8a949c; padding: 0 8px; }
+.ie-file-note { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 12px; color: #00636D; }
 .ie-foot-note { display: inline-flex; align-items: center; gap: 6px; margin-inline-end: auto; font-size: 12px; color: #6b7c7b; }
 .ie-hint { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 12px; color: #6b7c7b; }
 .ie-hint--warn { color: #c25a0a; }
