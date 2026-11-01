@@ -53,7 +53,11 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
 
         if (parts.Any(p => p.BankAccount is null) && plan.Lines.Any(l => l.FromBankAccount))
             throw Fail(-20990, $"Rule {plan.RuleCode} posts to a bank account, which the action \"{def.ActionNameEn}\" does not give.");
-        var lines = parts.SelectMany(p => ProductEventPosting.Build(plan, l => p.AmountOf(l.AmountCode) ?? 0, p.BankAccount)).ToList();
+        // the parts' lines of one journal on the same account and side are added together (e.g. one credit to customer liability)
+        var lines = parts.SelectMany(p => ProductEventPosting.Build(plan, l => p.AmountOf(l.AmountCode) ?? 0, p.BankAccount))
+            .GroupBy(x => (x.JournalNo, x.Account, Debit: x.Dr != 0))
+            .Select(g => g.First() with { Dr = g.Sum(x => x.Dr), Cr = g.Sum(x => x.Cr) })
+            .OrderBy(x => x.JournalNo).ThenBy(x => x.Dr == 0).ThenBy(x => x.Account).ToList();
 
         return await PostLinesAsync(plan, lines, def.ModuleCode, def.ActionNameEn, def.CostCenter, def.BusinessLine, doc, ct);
     }

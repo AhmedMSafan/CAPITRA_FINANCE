@@ -7,6 +7,7 @@ using Capitra.Application.Modules.Gl;
 using Capitra.Domain.Modules.Chq;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Gl;
 using Capitra.Domain.Modules.Trs;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,6 +52,22 @@ public sealed record FctDueChequeDto(
     string ClientName, string BankNameEn, decimal ChequeAmount, string CurrencyCode, string StatusCode, string? RejectionReasonCode);
 
 /// <summary>One cheque's bank result, as page 712's applyBankResults() sends it.</summary>
+/// <summary>Apply Bank Results: the message and the collection batch it made.</summary>
+public sealed record FctCollectionAppliedDto(string Message, long CollectionBatchId, string BatchNo, string? GlTranSetId);
+
+/// <summary>A collection batch: one run of Apply Bank Results.</summary>
+public sealed record FctCollectionBatchDto(
+    long CollectionBatchId, string BatchNo, DateOnly BatchDate, int CollectedCount, decimal CollectedAmount, int BouncedCount, decimal BouncedAmount,
+    int RejectedCount, decimal RejectedAmount, int RepaymentsCount, string? GlTranSetId, string? CreatedBy, DateTime? CreatedAt);
+
+/// <summary>A cheque of a collection batch.</summary>
+public sealed record FctCollectionBatchLineDto(
+    int LineNo, long ChequeId, string? ChequeRef, string ChequeNo, DateOnly DueDate, string? CustomerId, string? ClientName, string? BankName,
+    string? AccountNo, string? GlAccount, decimal ChequeAmount, string? CurrencyCode, string ResultCode, DateOnly StatusDate,
+    string? BankStatementReference, string? ReasonCode, long? RepaymentTxnId, string? RepaymentNumber);
+
+public sealed record FctCollectionBatchViewDto(FctCollectionBatchDto Batch, IReadOnlyList<FctCollectionBatchLineDto> Lines);
+
 public sealed record FctChequeResultDto(
     long? ChequeId, string? CustomerId, decimal? ChequeAmount, string? NewStatusCode, DateOnly? StatusDate, string? BankStatementReference,
     string? ReasonCode, string? Notes);
@@ -202,15 +219,23 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
     /// Apply Bank Results (apply_cheque_status): sets every cheque's result, then for each client with collected cheques
     /// makes one CHEQUE repayment transaction and one repayment request, links the cheques as its sources. The repayment
     /// workflow (wfe_operations_pkg.submit_repayment_request) is not started: no workflow for now (Ahmed, 29 Oct).
+    /// The run is kept as a collection batch with its lines, and its collected cheques post one GL transaction set
+    /// (DR each deposit bank account / CR customer liability), kept on the batch and its repayments (Ahmed, 1 Nov 2026).
     /// All of it succeeds or fails together.
     /// </summary>
-    public async Task<string> ApplyChequeResultsAsync(IReadOnlyList<FctChequeResultDto>? rows, CancellationToken cancellationToken)
+    public async Task<FctCollectionAppliedDto> ApplyChequeResultsAsync(IReadOnlyList<FctChequeResultDto>? rows, CancellationToken cancellationToken)
     {
         if (rows is null) throw new BusinessRuleException("No cheque result rows were submitted.");
         if (rows.Count == 0) throw new BusinessRuleException("Select at least one cheque result.");
 
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
         var today = GlTime.Today(clock);
+        var batch = new FctCollectionBatch { BatchNo = "PENDING-" + Guid.NewGuid().ToString("N")[..20].ToUpperInvariant(), BatchDate = today };
+        db.Add(batch);
+        await db.SaveChangesAsync(cancellationToken);
+        batch.BatchNo = $"COL-{today:yyyyMMdd}-{batch.CollectionBatchId:D6}";
+
+        var lines = new List<FctCollectionBatchLine>();
         var customers = new SortedDictionary<string, (int Count, decimal Amount)>(StringComparer.Ordinal);
         for (var i = 0; i < rows.Count; i++)
         {
@@ -219,8 +244,30 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
             if (string.IsNullOrEmpty(status)) throw new BusinessRuleException($"New cheque status is NULL in JSON. Row={i}");
             if (row.ChequeId is null) throw new BusinessRuleException($"No data found while updating cheque. Row={i}, Cheque ID=NULL");
 
-            await UpdateChequeStatusAsync(row.ChequeId.Value, status, row.StatusDate ?? today, row.BankStatementReference, Trim(row.ReasonCode),
+            var statusDate = row.StatusDate ?? today;
+            await UpdateChequeStatusAsync(row.ChequeId.Value, status, statusDate, row.BankStatementReference, Trim(row.ReasonCode),
                 Trim(row.Notes), cancellationToken);
+            var c = await db.Set<ChqCheque>().AsNoTracking().FirstAsync(x => x.ChequeId == row.ChequeId.Value, cancellationToken);
+            var line = new FctCollectionBatchLine
+            {
+                CollectionBatchId = batch.CollectionBatchId,
+                LineNo = i + 1,
+                ChequeId = c.ChequeId,
+                ChequeRef = c.ChequeRef,
+                ChequeNo = c.ChequeNo,
+                DueDate = c.DueDate,
+                CustomerId = c.CustomerId,
+                DepositBankAccountId = c.DepositBankAccountId,
+                ChequeAmount = c.ChequeAmount,
+                CurrencyCode = c.CurrencyCode,
+                ResultCode = status,
+                StatusDate = statusDate,
+                BankStatementReference = Trim(row.BankStatementReference),
+                ReasonCode = Trim(row.ReasonCode),
+                Notes = Trim(row.Notes),
+            };
+            lines.Add(line);
+            db.Add(line);
 
             if (status != "COLLECTED") continue;
             if (!long.TryParse(row.CustomerId?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var customerId))
@@ -234,6 +281,8 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
                 : (1, row.ChequeAmount.Value);
         }
 
+        await db.SaveChangesAsync(cancellationToken);
+        var repayments = new List<FctRepaymentTransaction>();
         foreach (var (key, sum) in customers)
         {
             var clientId = long.Parse(key, CultureInfo.InvariantCulture);
@@ -254,60 +303,119 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
             txn.AgreementId = request.RepaymentRequestId;
             await db.SaveChangesAsync(cancellationToken);
 
-            var collected = rows.Where(r => r.NewStatusCode?.Trim().ToUpperInvariant() == "COLLECTED" && r.CustomerId?.Trim() == key)
-                .Select(r => r.ChequeId!.Value).ToList();
-            foreach (var chequeId in collected)
-                await CreateChequePaymentSourceAsync(txn, chequeId, cancellationToken);
-            await PostCollectionGlAsync(txn, collected, today, cancellationToken);
+            foreach (var row in rows.Where(r => r.NewStatusCode?.Trim().ToUpperInvariant() == "COLLECTED" && r.CustomerId?.Trim() == key))
+            {
+                await CreateChequePaymentSourceAsync(txn, row.ChequeId!.Value, cancellationToken);
+                foreach (var l in lines.Where(l => l.ChequeId == row.ChequeId))
+                    l.RepaymentTxnId = txn.RepaymentTxnId;
+            }
 
+            repayments.Add(txn);
+        }
+
+        var collected = lines.Where(l => l.ResultCode == "COLLECTED").ToList();
+        batch.CollectedCount = collected.Count;
+        batch.CollectedAmount = collected.Sum(l => l.ChequeAmount);
+        batch.BouncedCount = lines.Count(l => l.ResultCode == "BOUNCED");
+        batch.BouncedAmount = lines.Where(l => l.ResultCode == "BOUNCED").Sum(l => l.ChequeAmount);
+        batch.RejectedCount = lines.Count(l => l.ResultCode == "REJECTED");
+        batch.RejectedAmount = lines.Where(l => l.ResultCode == "REJECTED").Sum(l => l.ChequeAmount);
+        batch.RepaymentsCount = repayments.Count;
+        await db.SaveChangesAsync(cancellationToken);
+
+        if (collected.Count > 0)
+        {
+            batch.GlTranSetId = await PostCollectionGlAsync(batch, collected, repayments.Count, today, cancellationToken);
+            foreach (var r in repayments)
+                r.GlTranSetId = batch.GlTranSetId;
+            await db.SaveChangesAsync(cancellationToken);
         }
 
         await tx.CommitAsync(cancellationToken);
-        return "Cheque bank results were applied successfully.";
+        var message = $"Cheque bank results were applied successfully. Collection batch {batch.BatchNo}"
+                      + (batch.GlTranSetId is null ? "." : $", GL Tran Set ID {batch.GlTranSetId}.");
+        return new FctCollectionAppliedDto(message, batch.CollectionBatchId, batch.BatchNo, batch.GlTranSetId);
     }
 
     /// <summary>
     /// The collection's GL (agreed with Ahmed, 1 Nov 2026): the money of the collected cheques is in the bank, so the rule linked to
     /// the action "Cheque collection" posts DR each deposit bank account (its GL account code) / CR customer liability, under one
-    /// CAP-COL-... transaction set ID kept on the repayment. The memo entry of the submission is not reversed here.
+    /// CAP-COL-... transaction set ID for the whole batch. The memo entry of the submission is not reversed here.
     /// A GL refusal rolls back the whole Apply Bank Results.
     /// </summary>
-    private async Task PostCollectionGlAsync(FctRepaymentTransaction txn, List<long> chequeIds, DateOnly today, CancellationToken cancellationToken)
+    private async Task<string> PostCollectionGlAsync(
+        FctCollectionBatch batch, List<FctCollectionBatchLine> collected, int repayments, DateOnly today, CancellationToken cancellationToken)
     {
-        var cheques = await db.Set<ChqCheque>().AsNoTracking().Where(x => chequeIds.Contains(x.ChequeId))
-            .Select(x => new { x.ChequeRef, x.DepositBankAccountId, x.ChequeAmount }).ToListAsync(cancellationToken);
-        if (cheques.FirstOrDefault(x => x.DepositBankAccountId is null) is { } none)
+        if (collected.FirstOrDefault(x => x.DepositBankAccountId is null) is { } none)
             throw new BusinessRuleException($"Cheque {none.ChequeRef} has no deposit bank account, so its collection cannot be posted to GL.");
-        var accountIds = cheques.Select(x => x.DepositBankAccountId!.Value).Distinct().ToList();
+        var accountIds = collected.Select(x => x.DepositBankAccountId!.Value).Distinct().ToList();
         var accounts = await db.Set<TrsBankAccount>().AsNoTracking().Where(x => accountIds.Contains(x.AccountId))
             .ToDictionaryAsync(x => x.AccountId, x => new { x.AccountNo, x.ErpAccountCode }, cancellationToken);
 
         var parts = new List<(string? BankAccount, Func<string, decimal?> AmountOf)>();
-        foreach (var g in cheques.GroupBy(x => x.DepositBankAccountId!.Value))
+        foreach (var g in collected.GroupBy(x => x.DepositBankAccountId!.Value))
         {
-            var gl = accounts.TryGetValue(g.Key, out var a) ? a.ErpAccountCode?.Trim() : null;
+            var a = accounts.GetValueOrDefault(g.Key);
+            var gl = a?.ErpAccountCode?.Trim();
+            var name = a?.AccountNo ?? g.Key.ToString(CultureInfo.InvariantCulture);
             if (string.IsNullOrEmpty(gl))
-                throw new BusinessRuleException($"Bank account {(a is null ? g.Key.ToString(CultureInfo.InvariantCulture) : a.AccountNo)} has no GL account code. "
-                    + "Set its ERP account code in Treasury, then apply the results again.");
+                throw new BusinessRuleException($"Bank account {name} has no GL account code. Set it in Treasury (setup-bank-gl-accounts.sql), then apply the results again.");
+            // the GL takes only an enabled posting value of the natural segment: say which bank account is wrong before posting
+            if (!await (from v in db.Set<GlCoaSegmentValue>()
+                        join sg in db.Set<GlCoaSegment>() on v.CoaSegmentId equals sg.CoaSegmentId
+                        where sg.SegmentCode == "NATURAL" && v.ValueCode == gl && v.IsEnabled && !v.IsSummary && v.IsPostingAllowed
+                        select v).AnyAsync(cancellationToken))
+                throw new BusinessRuleException($"Bank account {name} has GL account code {gl}, which is not an enabled posting account "
+                    + "in the chart of accounts. Fix its ERP account code in Treasury or the account in GL, then apply the results again.");
             var amount = g.Sum(x => x.ChequeAmount);
             parts.Add((gl, code => code == "CHEQUE_AMOUNT" ? amount : null));
         }
 
-        var clientName = await db.Set<CrmClient>().AsNoTracking().Where(x => x.ClientId == txn.ClientId).Select(x => x.ClientName)
-            .FirstOrDefaultAsync(cancellationToken);
         try
         {
-            txn.GlTranSetId = await posting.PostAsync(ProductActions.ChequeCollection,
-                new ProductActionDocument("FCT_REPAYMENT", txn.RepaymentTxnId.ToString(CultureInfo.InvariantCulture), txn.RepaymentNumber, today,
-                    txn.CurrencyCode, $"Repayment {txn.RepaymentNumber}: {cheques.Count} cheque(s) collected for {clientName ?? txn.ClientId.ToString(CultureInfo.InvariantCulture)}"),
+            return await posting.PostAsync(ProductActions.ChequeCollection,
+                new ProductActionDocument("FCT_COLLECTION_BATCH", batch.CollectionBatchId.ToString(CultureInfo.InvariantCulture), batch.BatchNo, today,
+                    collected[0].CurrencyCode, $"Collection batch {batch.BatchNo}: {collected.Count} cheque(s) collected for {repayments} client(s)"),
                 parts, cancellationToken);
         }
         catch (ApexProcessException ex)
         {
             throw new BusinessRuleException($"GL posting failed, no bank result was applied: {ex.Message}");
         }
+    }
 
-        await db.SaveChangesAsync(cancellationToken);
+    // ---- collection batches ----
+
+    public async Task<IReadOnlyList<FctCollectionBatchDto>> BatchesAsync(CancellationToken cancellationToken) =>
+        await db.Set<FctCollectionBatch>().AsNoTracking().OrderByDescending(x => x.CollectionBatchId)
+            .Select(x => new FctCollectionBatchDto(x.CollectionBatchId, x.BatchNo, x.BatchDate, x.CollectedCount, x.CollectedAmount, x.BouncedCount,
+                x.BouncedAmount, x.RejectedCount, x.RejectedAmount, x.RepaymentsCount, x.GlTranSetId, x.CreatedBy, x.CreatedAt))
+            .ToListAsync(cancellationToken);
+
+    public async Task<FctCollectionBatchViewDto> BatchAsync(long collectionBatchId, CancellationToken cancellationToken)
+    {
+        var b = await db.Set<FctCollectionBatch>().AsNoTracking().Where(x => x.CollectionBatchId == collectionBatchId)
+            .Select(x => new FctCollectionBatchDto(x.CollectionBatchId, x.BatchNo, x.BatchDate, x.CollectedCount, x.CollectedAmount, x.BouncedCount,
+                x.BouncedAmount, x.RejectedCount, x.RejectedAmount, x.RepaymentsCount, x.GlTranSetId, x.CreatedBy, x.CreatedAt))
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException($"Collection batch {collectionBatchId} was not found.");
+        var lines = await (from l in db.Set<FctCollectionBatchLine>().AsNoTracking()
+                           where l.CollectionBatchId == collectionBatchId
+                           join c in db.Set<CrmClient>().AsNoTracking() on l.CustomerId equals c.ClientId.ToString() into cs
+                           from c in cs.DefaultIfEmpty()
+                           join a in db.Set<TrsBankAccount>().AsNoTracking() on l.DepositBankAccountId equals (long?)a.AccountId into accs
+                           from a in accs.DefaultIfEmpty()
+                           join k in db.Set<TrsBank>().AsNoTracking() on a.BankId equals k.BankId into ks
+                           from k in ks.DefaultIfEmpty()
+                           join r in db.Set<FctRepaymentTransaction>().AsNoTracking() on l.RepaymentTxnId equals (long?)r.RepaymentTxnId into rs
+                           from r in rs.DefaultIfEmpty()
+                           orderby l.LineNo
+                           select new FctCollectionBatchLineDto(l.LineNo, l.ChequeId, l.ChequeRef, l.ChequeNo, l.DueDate, l.CustomerId,
+                               c == null ? null : c.ClientName, k == null ? null : k.BankNameEn, a == null ? null : a.AccountNo,
+                               a == null ? null : a.ErpAccountCode, l.ChequeAmount, l.CurrencyCode, l.ResultCode, l.StatusDate,
+                               l.BankStatementReference, l.ReasonCode, l.RepaymentTxnId, r == null ? null : r.RepaymentNumber))
+            .ToListAsync(cancellationToken);
+        return new FctCollectionBatchViewDto(b, lines);
     }
 
     // ---- FNV_COLLECTION_REPAYMENT_PKG ----
