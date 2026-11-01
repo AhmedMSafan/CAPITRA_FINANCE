@@ -82,12 +82,25 @@ public sealed class CrmDisbursementProcessService(
         var dues = batch is null ? [] : await entry.Cheques(batch.BatchId, d.DisbursementId)
             .Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED").Select(x => x.DueDate).ToListAsync(cancellationToken);
         DateOnly? maturity = dues.Count > 0 && await entry.IsReverseAsync(d.ProductId, cancellationToken) ? dues.Max() : null;
-        await CalculateChargesAsync(d, invoices, dues.Count, clock.UtcNow, maturity, cancellationToken);
+        var financed = await CalculateChargesAsync(d, invoices, dues.Count, clock.UtcNow, maturity, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+        // the repayment schedule too, when the invoices and terms allow it (Complete builds it the same way)
+        if (invoices.Count > 0)
+        {
+            try
+            {
+                var cheques = batch is null ? [] : await entry.Cheques(batch.BatchId, d.DisbursementId)
+                    .Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED")
+                    .Select(x => new CrmScheduleSource(x.DueDate, x.ChequeAmount)).ToListAsync(cancellationToken);
+                await GenerateScheduleAsync(d, financed, invoices, cheques, maturity, cancellationToken);
+                await db.SaveChangesAsync(cancellationToken);
+            }
+            catch (BusinessRuleException) { }
+        }
 
         var result = await ResultAsync(disbursementId, cancellationToken);
         await tx.RollbackAsync(cancellationToken);
-        return result with { StatusCode = null, Schedule = [], IsPreview = true };
+        return result with { StatusCode = null, IsPreview = true };
     }
 
     /// <summary>The GL lines of the charges: the rule's lines of each charge with its amount (none when the rule has no GL set up).</summary>
@@ -115,11 +128,24 @@ public sealed class CrmDisbursementProcessService(
     /// <summary>Process Disbursement Request: the page is saved first, then processed, in one transaction.</summary>
     public async Task<CrmDisbursementProcessedDto> ProcessAsync(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken)
     {
-        var user = currentUser.UserName ?? "SYSTEM";
-        var now = clock.UtcNow;
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
         var (d, batch) = await entry.SaveCoreAsync(disbursementId, dto, cancellationToken);
-        if (batch is null) throw new BusinessRuleException("Disbursement ID and Batch ID are required to update invoice advances.");
+        await ProcessCoreAsync(d, batch, cancellationToken);
+        await tx.CommitAsync(cancellationToken);
+
+        return new CrmDisbursementProcessedDto(await entry.GetAsync(disbursementId, cancellationToken), await ResultAsync(disbursementId, cancellationToken),
+            "Disbursement processed. Charges and repayment schedule were calculated.");
+    }
+
+    /// <summary>
+    /// process_disbursement inside the caller's transaction (Process, and Complete of the Invoice Upload step): the invoices take the
+    /// advance rate and are checked, then the charges and the repayment schedule; the request becomes PROCESSED.
+    /// </summary>
+    internal async Task ProcessCoreAsync(FctDisbursement d, FctInvoiceBatch? batch, CancellationToken cancellationToken)
+    {
+        var user = currentUser.UserName ?? "SYSTEM";
+        var now = clock.UtcNow;
+        if (batch is null) throw new BusinessRuleException("Upload the invoices before completing: the request has no invoice batch yet.");
 
         await entry.SyncInvoiceAdvancesAsync(d, batch.BatchId, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
@@ -171,10 +197,6 @@ public sealed class CrmDisbursementProcessService(
         batch.ValidatedBy = user;
         batch.ValidationAt = now;
         await db.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
-
-        return new CrmDisbursementProcessedDto(await entry.GetAsync(disbursementId, cancellationToken), await ResultAsync(disbursementId, cancellationToken),
-            "Disbursement processed. Charges and repayment schedule were calculated.");
     }
 
     /// <summary>The request's ELIGIBLE invoices: due date and advance amount (the gross amount is read with them).</summary>
@@ -291,6 +313,9 @@ public sealed class CrmDisbursementProcessService(
             MidpointRounding.AwayFromZero);
         return financed;
     }
+
+    /// <summary>The product event rule the Invoice Upload step names, on the request's product and date.</summary>
+    internal Task<ProductEventPlan> PlanOfRequestAsync(FctDisbursement d, CancellationToken cancellationToken) => PlanAsync(d, cancellationToken);
 
     /// <summary>The product event rule the Invoice Upload step names, on the request's product and date.</summary>
     private async Task<ProductEventPlan> PlanAsync(FctDisbursement d, CancellationToken cancellationToken)

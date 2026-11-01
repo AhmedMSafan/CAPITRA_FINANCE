@@ -21,7 +21,7 @@ public sealed record CrmChargePaymentRowDto(
 /// <summary>The Charges Payment section of the Invoice Upload page.</summary>
 public sealed record CrmChargePaymentDto(
     decimal TotalCharges, decimal PaidAmount, decimal OutstandingAmount, string StatusCode, string? GlTranSetId, DateOnly? GlPostingDate,
-    IReadOnlyList<CrmChargeSourceDto> Sources, IReadOnlyList<CrmChargePaymentRowDto> Payments);
+    IReadOnlyList<CrmChargeSourceDto> Sources, IReadOnlyList<CrmChargePaymentRowDto> Payments, IReadOnlyList<long> ChosenSourceIds);
 
 /// <summary>
 /// Charges Payment (agreed with Ahmed, 31 Oct 2026), in place of FINOVA's client claim and page 713 for the disbursement charges:
@@ -75,7 +75,9 @@ public sealed class CrmDisbursementChargePaymentService(ICapitraDbContext db, IC
                                   c != null ? c.ChequeNo : s.SourceReference ?? t.BankStatementReference, a.AllocationDate, a.AllocationAmount))
             .ToListAsync(cancellationToken);
 
-        return new CrmChargePaymentDto(total, paid, outstanding, status, d.GlTranSetId, d.GlPostingDate, sources, payments);
+        var chosen = await db.Set<FctDisbursementChargeSource>().AsNoTracking().Where(x => x.DisbursementId == disbursementId)
+            .OrderBy(x => x.SortOrder).Select(x => x.RepaymentSourceId).ToListAsync(cancellationToken);
+        return new CrmChargePaymentDto(total, paid, outstanding, status, d.GlTranSetId, d.GlPostingDate, sources, payments, chosen);
     }
 
     /// <summary>Pay Charges: the smaller of the source's balance and the outstanding charges, paid charge by charge in order.</summary>
@@ -83,19 +85,33 @@ public sealed class CrmDisbursementChargePaymentService(ICapitraDbContext db, IC
     {
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
         var d = await OpenRequestAsync(disbursementId, cancellationToken);
+        await PayCoreAsync(d, repaymentSourceId, true, cancellationToken);
+        await tx.CommitAsync(cancellationToken);
+        return await GetAsync(disbursementId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Pays the outstanding charges from one source, inside the caller's transaction; returns the amount paid. With strict false a source
+    /// that is used up or no longer active pays nothing instead of refusing (Complete goes on to the next chosen source).
+    /// </summary>
+    internal async Task<decimal> PayCoreAsync(FctDisbursement d, long repaymentSourceId, bool strict, CancellationToken cancellationToken)
+    {
+        var disbursementId = d.DisbursementId;
         var source = await db.Set<FctRepaymentSource>().FirstOrDefaultAsync(x => x.RepaymentSourceId == repaymentSourceId, cancellationToken)
             ?? throw new NotFoundException($"Payment source {repaymentSourceId} was not found.");
         var txn = await db.Set<FctRepaymentTransaction>().FirstAsync(x => x.RepaymentTxnId == source.RepaymentTxnId, cancellationToken);
         if (txn.ClientId != d.ClientId)
             throw new BusinessRuleException("The payment source belongs to another customer.");
-        if (source.StatusCode != "ACTIVE" || txn.StatusCode is "REVERSED" or "CANCELLED")
-            throw new BusinessRuleException("The payment source is not active.");
-        var available = source.SourceAmount - source.AllocatedAmount;
-        if (available <= 0) throw new BusinessRuleException("The payment source has no balance left.");
+        var active = source.StatusCode == "ACTIVE" && txn.StatusCode is not ("REVERSED" or "CANCELLED");
+        if (!active && strict) throw new BusinessRuleException("The payment source is not active.");
+        var available = active ? source.SourceAmount - source.AllocatedAmount : 0;
+        if (available <= 0 && strict) throw new BusinessRuleException("The payment source has no balance left.");
 
         var charges = (await db.Set<FctDisbursementCharge>().Where(x => x.DisbursementId == disbursementId).OrderBy(x => x.DisbursementChargeId)
             .ToListAsync(cancellationToken)).Where(x => Owed(x) && Outstanding(x) > 0).ToList();
-        if (charges.Count == 0) throw new BusinessRuleException("The charges of this request are already paid.");
+        if (charges.Count == 0 && strict) throw new BusinessRuleException("The charges of this request are already paid.");
+        if (available <= 0 || charges.Count == 0) return 0;
+        var paidNow = 0m;
 
         var today = GlTime.Today(clock);
         foreach (var c in charges)
@@ -118,13 +134,13 @@ public sealed class CrmDisbursementChargePaymentService(ICapitraDbContext db, IC
             });
             Apply(c, source, txn, amount);
             available -= amount;
+            paidNow += amount;
         }
 
         await db.SaveChangesAsync(cancellationToken);
         await TxnStatusAsync(txn, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
-        return await GetAsync(disbursementId, cancellationToken);
+        return paidNow;
     }
 
     /// <summary>Reverse a payment: the amount goes back to its source and the charge is owed again.</summary>
@@ -150,59 +166,6 @@ public sealed class CrmDisbursementChargePaymentService(ICapitraDbContext db, IC
         await db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
         return await GetAsync(disbursementId, cancellationToken);
-    }
-
-    /// <summary>
-    /// Complete of the Invoice Upload step (run by the workflow completion, in its transaction): the request is processed, every
-    /// charge is paid, and the charges' GL is posted under the product's transaction set ID, which the request keeps.
-    /// </summary>
-    public async Task CompleteAsync(long disbursementId, ProductActionPosting posting, AdmProductEventRuleService rules, CancellationToken cancellationToken)
-    {
-        var d = await db.Set<FctDisbursement>().FirstOrDefaultAsync(x => x.DisbursementId == disbursementId, cancellationToken)
-            ?? throw new NotFoundException($"Disbursement request {disbursementId} was not found.");
-        if (d.IsGlPosted) return;
-        if (d.StatusCode != "PROCESSED")
-            throw new BusinessRuleException("Process the disbursement request before completing this step.");
-
-        var charges = (await db.Set<FctDisbursementCharge>().Where(x => x.DisbursementId == disbursementId).ToListAsync(cancellationToken))
-            .Where(Owed).ToList();
-        var outstanding = charges.Sum(Outstanding);
-        if (outstanding > 0)
-            throw new BusinessRuleException(
-                $"The charges are not fully paid: {outstanding:#,##0.00} is outstanding. Pay them from a payment source in Charges Payment first.");
-        if (charges.Count == 0) return;
-
-        var product = await db.Set<AdmProduct>().AsNoTracking().FirstAsync(x => x.ProductId == d.ProductId, cancellationToken);
-        if (string.IsNullOrWhiteSpace(product.GlTranSetCode))
-            throw new BusinessRuleException($"Product {product.ProductCode} has no GL Tran Set Code. Run setup-product-transet-codes.sql.");
-        var ruleId = charges[0].ProductEventRuleId;
-        var date = GlTime.Today(clock);
-        var plan = await rules.PlanOfRuleAsync(ruleId, date, cancellationToken)
-            ?? throw new BusinessRuleException($"The product rule of the charges is not in effect on {date:yyyy-MM-dd}.");
-        var byCharge = charges.GroupBy(x => x.RuleCode).ToDictionary(x => x.Key, x => x.Sum(c => c.ChargeAmount));
-        var missing = byCharge.Keys.Where(k => !plan.Lines.Any(l => l.ChargeCode == k)).ToList();
-        if (missing.Count > 0)
-            throw new BusinessRuleException($"Charges {string.Join(", ", missing)} have no GL lines on rule {plan.RuleCode}. Run setup-fct-charge-gl.sql.");
-
-        decimal AmountOf(ProductEventGlLine l) =>
-            l.ChargeCode is { } code && byCharge.TryGetValue(code, out var a) && l.AmountCode is "CHARGE_AMOUNT" or "CHARGE_IMMEDIATE" ? a : 0;
-        var lines = ProductEventPosting.Build(plan, AmountOf, null);
-        var no = d.DisbursementNumber;
-        var ts = await posting.PostLinesAsync(plan, lines, product.GlTranSetCode.Trim().ToUpperInvariant(), "Disbursement charges", "3100", "FACTORING",
-            new ProductActionDocument("FCT_DISBURSEMENT", d.DisbursementId.ToString(System.Globalization.CultureInfo.InvariantCulture), no, date,
-                null, $"Charges of disbursement request {no}"), cancellationToken);
-
-        d.GlTranSetId = ts;
-        d.IsGlPosted = true;
-        d.GlPostingDate = date;
-        d.GlJournalRef = ts;
-        foreach (var c in charges)
-        {
-            c.IsGlPosted = true;
-            c.GlJournalRef = ts;
-        }
-
-        await db.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<FctDisbursement> OpenRequestAsync(long disbursementId, CancellationToken cancellationToken)

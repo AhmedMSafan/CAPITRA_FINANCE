@@ -99,6 +99,7 @@ export type InvoiceEntrySave = {
   deletedInvoiceIds?: number[]
   cheques?: ChequeRow[]
   deletedChequeIds?: number[]
+  chargeSourceIds?: number[]
 }
 
 const API = '/api/crm/disbursement-requests'
@@ -212,6 +213,7 @@ export type ChargePayment = {
   glPostingDate: string | null
   sources: ChargeSource[]
   payments: ChargePaymentRow[]
+  chosenSourceIds: number[]
 }
 
 const paymentUrl = (id: number) => `/api/crm/disbursement-requests/${id}/invoice-entry/charge-payment`

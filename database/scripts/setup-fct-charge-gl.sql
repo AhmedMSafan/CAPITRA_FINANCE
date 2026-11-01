@@ -18,7 +18,8 @@
 --        OPENING_ACCOUNT_FIXED   410106 Factoring Opening Account Fee Income          (new)
 --      journal 2 (its payment from the customer's payment sources): DR 230104 Customer Unallocated Receipts / CR 120103
 --      amount CHARGE_AMOUNT. No tax line: these charges have no tax.
---   Complete of the Invoice Upload step posts both journals, once every charge is paid (agreed with Ahmed, 31 Oct 2026).
+--   3. journal 3 (the cheques, memo): DR 910101 / CR 910102 for the cheques' total, amount CHEQUE_AMOUNT (both accounts must exist).
+--   Complete of the Invoice Upload step posts all three journals under one GL transaction set (agreed with Ahmed, 1 Nov 2026).
 -- Applies to every product with rule DISBURSEMENT_APPROVED (Reverse and both Classic products).
 -- Safe to run again: an account that exists, or a charge's journal that has GL lines, is left as it is.
 -- One transaction: any error changes nothing.
@@ -35,7 +36,7 @@ DECLARE
 BEGIN
   -- the accounts that must exist already
   SELECT string_agg(code, ', ') INTO v_missing
-    FROM unnest(ARRAY['120103', '410101', '410103', '420000', '230101', '230000']) code
+    FROM unnest(ARRAY['120103', '410101', '410103', '420000', '230101', '230000', '910101', '910102']) code
    WHERE NOT EXISTS (SELECT 1 FROM "GL_ACCOUNTS" x WHERE x."ACCOUNT_CODE" = code AND x."IS_ACTIVE");
   IF v_missing IS NOT NULL THEN
     RAISE EXCEPTION 'These GL accounts are missing or inactive: %. Nothing changed.', v_missing;
@@ -125,15 +126,39 @@ BEGIN
     RAISE NOTICE '% / %: DR 120103, CR %', r.product, r.code, r.income;
   END LOOP;
   RAISE NOTICE '% charges got their GL lines', v_n;
+
+  -- 3. journal 3, the cheques' memo entry when Complete loads them into the wallet (agreed with Ahmed, 1 Nov 2026):
+  --    DR 910101 / CR 910102 for the cheques' total (amount CHEQUE_AMOUNT); collecting a cheque later reverses it
+  FOR r IN
+    SELECT er."PRODUCT_EVENT_RULE_ID" AS rule_id, p."PRODUCT_CODE" AS product
+      FROM "ADM_PRODUCT_EVENT_RULES" er
+      JOIN "ADM_PRODUCTS" p ON p."PRODUCT_ID" = er."PRODUCT_ID"
+     WHERE er."RULE_CODE" = 'DISBURSEMENT_APPROVED'
+  LOOP
+    IF EXISTS (SELECT 1 FROM "ADM_PRODUCT_EVENT_RULE_GL_LINES" WHERE "PRODUCT_EVENT_RULE_ID" = r.rule_id AND "RULE_CHARGE_ID" IS NULL
+                  AND "AMOUNT_CODE" = 'CHEQUE_AMOUNT') THEN
+      RAISE NOTICE '%: cheques memo journal has GL lines already, left as it is', r.product;
+      CONTINUE;
+    END IF;
+    INSERT INTO "ADM_PRODUCT_EVENT_RULE_GL_LINES" ("PRODUCT_EVENT_RULE_ID", "RULE_CHARGE_ID", "JOURNAL_NO", "LINE_NO", "DEBIT_CREDIT_CODE",
+                                                   "AMOUNT_CODE", "ACCOUNT_SOURCE_CODE", "ACCOUNT_ID", "DESCRIPTION_TEMPLATE", "IS_ACTIVE",
+                                                   "CREATED_BY", "CREATED_AT", "ROW_VERSION")
+    SELECT r.rule_id, NULL, 3, t.no, t.dc, 'CHEQUE_AMOUNT', 'ACCOUNT',
+           (SELECT "ACCOUNT_ID" FROM "GL_ACCOUNTS" WHERE "ACCOUNT_CODE" = t.acct AND "IS_ACTIVE" ORDER BY "ACCOUNT_ID" LIMIT 1),
+           t.descr, true, v_by, now(), 1
+      FROM (VALUES (10, 'D', '910101', 'Customer cheques received in the wallet'),
+                   (20, 'C', '910102', 'Customer cheques received in the wallet')) AS t(no, dc, acct, descr);
+    RAISE NOTICE '%: cheques memo journal DR 910101, CR 910102', r.product;
+  END LOOP;
 END $$;
 
 -- what is set up
-SELECT p."PRODUCT_CODE", ch."CHARGE_CODE", g."JOURNAL_NO", g."LINE_NO", g."DEBIT_CREDIT_CODE", a."ACCOUNT_CODE", a."ACCOUNT_NAME_EN", g."AMOUNT_CODE"
+SELECT p."PRODUCT_CODE", coalesce(ch."CHARGE_CODE", '(cheques)') AS "CHARGE_CODE", g."JOURNAL_NO", g."LINE_NO", g."DEBIT_CREDIT_CODE", a."ACCOUNT_CODE", a."ACCOUNT_NAME_EN", g."AMOUNT_CODE"
   FROM "ADM_PRODUCT_EVENT_RULE_GL_LINES" g
-  JOIN "ADM_PRODUCT_EVENT_RULE_CHARGES" rc ON rc."RULE_CHARGE_ID" = g."RULE_CHARGE_ID"
+  LEFT JOIN "ADM_PRODUCT_EVENT_RULE_CHARGES" rc ON rc."RULE_CHARGE_ID" = g."RULE_CHARGE_ID"
   JOIN "ADM_PRODUCT_EVENT_RULES" er ON er."PRODUCT_EVENT_RULE_ID" = g."PRODUCT_EVENT_RULE_ID"
   JOIN "ADM_PRODUCTS" p ON p."PRODUCT_ID" = er."PRODUCT_ID"
-  JOIN "ADM_CHARGES" ch ON ch."CHARGE_ID" = rc."CHARGE_ID"
+  LEFT JOIN "ADM_CHARGES" ch ON ch."CHARGE_ID" = rc."CHARGE_ID"
   LEFT JOIN "GL_ACCOUNTS" a ON a."ACCOUNT_ID" = g."ACCOUNT_ID"
  WHERE er."RULE_CODE" = 'DISBURSEMENT_APPROVED'
- ORDER BY p."PRODUCT_CODE", rc."SEQUENCE_NO", g."JOURNAL_NO", g."LINE_NO";
+ ORDER BY p."PRODUCT_CODE", g."JOURNAL_NO", rc."SEQUENCE_NO", g."LINE_NO";

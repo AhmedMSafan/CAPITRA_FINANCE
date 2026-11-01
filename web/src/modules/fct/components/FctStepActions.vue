@@ -43,6 +43,8 @@ const props = defineProps<{
   /** Saves the page; false when the save failed (the page has shown why). */
   save: () => Promise<boolean>
   disabled?: boolean
+  /** What Complete does on this page, shown in its confirmation (the default sentence otherwise). */
+  completeNote?: string
 }>()
 
 const route = useRoute()
@@ -78,6 +80,7 @@ function buttonClass(a: string) {
 function prompt(a: string) {
   if (a === 'REJECT') return 'Your changes are saved, then this step is rejected.'
   if (a === 'RETURN') return 'Your changes are saved, then this step is returned.'
+  if (a === 'COMPLETE' && props.completeNote) return props.completeNote
   return 'Your changes are saved, then this step is completed and the workflow moves to the next step.'
 }
 

@@ -28,7 +28,7 @@ public sealed record CrmInvoiceRowDto(
     long InvoiceId, string InvoiceNumber, DateOnly? ClientInvoiceDate, DateOnly? DueDate, decimal GrossAmount, decimal? AdvanceRatePct,
     decimal? AdvanceAmount, string? StatusCode, string? IneligibleReason);
 
-/// <summary>Page 705 "Cheques Entry" grid row (FND_CHEQUE of the batch, CHQ_CHEQUES here).</summary>
+/// <summary>Page 705 "Cheques Entry" grid row: a draft cheque of the request (FCT_DISBURSEMENT_CHEQUES), in the wallet once Complete ran.</summary>
 public sealed record CrmChequeRowDto(
     long ChequeId, string ChequeNo, DateOnly ChequeDate, DateOnly DueDate, string IssuerBankName, string DrawerNameEn, long? DepositBankAccountId,
     decimal ChequeAmount, string CurrencyCode, string? SourceModule, DateOnly ReceivedDate, DateOnly? DepositDate, string StatusCode);
@@ -50,7 +50,7 @@ public sealed record CrmInvoiceEntryDto(
 /// <summary>Apply Changes: both forms and the changed or deleted grid rows.</summary>
 public sealed record CrmInvoiceEntrySaveDto(
     CrmDisbursementTermsDto Terms, CrmInvoiceBatchDto Batch, IReadOnlyList<CrmInvoiceRowDto>? Invoices, IReadOnlyList<long>? DeletedInvoiceIds,
-    IReadOnlyList<CrmChequeRowDto>? Cheques, IReadOnlyList<long>? DeletedChequeIds);
+    IReadOnlyList<CrmChequeRowDto>? Cheques, IReadOnlyList<long>? DeletedChequeIds, IReadOnlyList<long>? ChargeSourceIds = null);
 
 /// <summary>An uploaded file: its name, MIME type and bytes.</summary>
 public sealed record CrmUploadFile(string FileName, string? MimeType, byte[] Content);
@@ -104,10 +104,10 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
             invoices = invoiceRows.Select(x => new CrmInvoiceRowDto(
                 x.InvoiceId, x.InvoiceNumber, DateOf(x.ClientInvoiceAt), DateOf(x.DueAt), x.GrossAmount, x.AdvanceRatePct, x.AdvanceAmount, x.StatusCode,
                 x.IneligibleReason)).ToList();
-            var chequeRows = await Cheques(batch.BatchId, disbursementId).AsNoTracking().OrderBy(x => x.ChequeId).ToListAsync(cancellationToken);
+            var chequeRows = await Cheques(batch.BatchId, disbursementId).AsNoTracking().OrderBy(x => x.DisbursementChequeId).ToListAsync(cancellationToken);
             cheques = chequeRows.Select(x => new CrmChequeRowDto(
-                x.ChequeId, x.ChequeNo, DateOnly.FromDateTime(x.ChequeAt), x.DueDate, x.IssuerBankName, x.DrawerNameEn, x.DepositBankAccountId, x.ChequeAmount,
-                x.CurrencyCode, x.SourceModule, DateOnly.FromDateTime(x.ReceivedAt), DateOf(x.DepositAt), x.StatusCode)).ToList();
+                x.DisbursementChequeId, x.ChequeNo, x.ChequeDate, x.DueDate, x.IssuerBankName, x.DrawerNameEn, x.DepositBankAccountId, x.ChequeAmount,
+                x.CurrencyCode, "FACTORING", x.ReceivedDate, x.DepositDate, x.StatusCode)).ToList();
         }
 
         return new CrmInvoiceEntryDto(disbursementId, terms, batchDto, await SummaryAsync(d, cancellationToken), invoices, cheques,
@@ -152,6 +152,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
             await SaveInvoicesAsync(batch.BatchId, dto.Invoices ?? [], dto.DeletedInvoiceIds ?? [], cancellationToken);
             await SaveChequesAsync(batch.BatchId, d.DisbursementId, dto.Cheques ?? [], dto.DeletedChequeIds ?? [], cancellationToken);
         }
+        if (dto.ChargeSourceIds is { } sourceIds) await SaveChargeSourcesAsync(d, sourceIds, cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
         await DeriveReverseTermsAsync(d, batch?.BatchId, cancellationToken);
@@ -292,32 +293,51 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         }
     }
 
+    /// <summary>The draft cheques' edits and deletes; a cheque already loaded into the wallet can no longer change here.</summary>
     private async Task SaveChequesAsync(long batchId, long disbursementId, IReadOnlyList<CrmChequeRowDto> rows, IReadOnlyList<long> deleted, CancellationToken cancellationToken)
     {
-        if (deleted.Count > 0)
-            db.Set<ChqCheque>().RemoveRange(await Cheques(batchId, disbursementId).Where(x => deleted.Contains(x.ChequeId)).ToListAsync(cancellationToken));
-        if (rows.Count == 0) return;
-        var ids = rows.Select(x => x.ChequeId).ToList();
-        var cheques = await Cheques(batchId, disbursementId).Where(x => ids.Contains(x.ChequeId)).ToDictionaryAsync(x => x.ChequeId, cancellationToken);
+        var touched = rows.Select(x => x.ChequeId).Concat(deleted).ToList();
+        if (touched.Count == 0) return;
+        var cheques = await Cheques(batchId, disbursementId).Where(x => touched.Contains(x.DisbursementChequeId))
+            .ToDictionaryAsync(x => x.DisbursementChequeId, cancellationToken);
+        if (cheques.Values.FirstOrDefault(x => x.WalletChequeId is not null) is { } loaded)
+            throw new BusinessRuleException($"Cheque {loaded.ChequeNo} is already in the wallet and cannot be changed here.");
+        db.Set<FctDisbursementCheque>().RemoveRange(cheques.Values.Where(x => deleted.Contains(x.DisbursementChequeId)));
         foreach (var r in rows)
         {
-            if (!cheques.TryGetValue(r.ChequeId, out var c)) continue;
+            if (deleted.Contains(r.ChequeId) || !cheques.TryGetValue(r.ChequeId, out var c)) continue;
             if (string.IsNullOrWhiteSpace(r.ChequeNo) || string.IsNullOrWhiteSpace(r.IssuerBankName) || string.IsNullOrWhiteSpace(r.DrawerNameEn)
-                || string.IsNullOrWhiteSpace(r.CurrencyCode) || string.IsNullOrWhiteSpace(r.StatusCode))
+                || string.IsNullOrWhiteSpace(r.CurrencyCode))
                 throw BusinessValidationException.For("cheques", $"Every required cheque value must be filled ({r.ChequeNo}).");
+            if (r.DueDate < r.ChequeDate) throw BusinessValidationException.For("cheques", $"Cheque {r.ChequeNo}: the due date is before the cheque date.");
+            if (r.ChequeAmount <= 0) throw BusinessValidationException.For("cheques", $"Cheque {r.ChequeNo}: the amount must be greater than zero.");
             c.ChequeNo = r.ChequeNo.Trim();
-            c.ChequeAt = At(r.ChequeDate)!.Value;
+            c.ChequeDate = r.ChequeDate;
             c.DueDate = r.DueDate;
             c.IssuerBankName = r.IssuerBankName.Trim();
             c.DrawerNameEn = r.DrawerNameEn.Trim();
             c.DepositBankAccountId = r.DepositBankAccountId;
-            c.ChequeAmount = r.ChequeAmount;
+            c.ChequeAmount = Math.Round(r.ChequeAmount, 2, MidpointRounding.AwayFromZero);
             c.CurrencyCode = r.CurrencyCode.Trim().ToUpperInvariant();
-            c.SourceModule = Blank(r.SourceModule);
-            c.ReceivedAt = At(r.ReceivedDate)!.Value;
-            c.DepositAt = At(r.DepositDate);
-            c.StatusCode = r.StatusCode.Trim().ToUpperInvariant();
+            c.ReceivedDate = r.ReceivedDate;
+            c.DepositDate = r.DepositDate;
         }
+    }
+
+    /// <summary>The payment sources chosen for the charges, in the order given (the customer's active sources only).</summary>
+    private async Task SaveChargeSourcesAsync(FctDisbursement d, IReadOnlyList<long> sourceIds, CancellationToken cancellationToken)
+    {
+        var ids = sourceIds.Distinct().ToList();
+        var valid = await (from x in db.Set<FctRepaymentSource>()
+                           join t in db.Set<FctRepaymentTransaction>() on x.RepaymentTxnId equals t.RepaymentTxnId
+                           where ids.Contains(x.RepaymentSourceId) && t.ClientId == d.ClientId
+                           select x.RepaymentSourceId).ToListAsync(cancellationToken);
+        db.Set<FctDisbursementChargeSource>().RemoveRange(
+            await db.Set<FctDisbursementChargeSource>().Where(x => x.DisbursementId == d.DisbursementId).ToListAsync(cancellationToken));
+        await db.SaveChangesAsync(cancellationToken);
+        var order = 0;
+        foreach (var id in ids.Where(valid.Contains))
+            db.Add(new FctDisbursementChargeSource { DisbursementId = d.DisbursementId, RepaymentSourceId = id, SortOrder = ++order });
     }
 
     /// <summary>
@@ -383,7 +403,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         }
     }
 
-    /// <summary>import_cheques: the CHEQUE_NO, CHEQUE_DATE, DUE_DATE, ISSUER_BANK_NAME ... template, each row a new RECEIVED cheque of the batch.</summary>
+    /// <summary>import_cheques: the CHEQUE_NO, CHEQUE_DATE, DUE_DATE, ISSUER_BANK_NAME ... template, each row a new draft cheque of the request.</summary>
     private async Task ImportChequesAsync(FctDisbursement d, long batchId, CrmUploadFile file, CancellationToken cancellationToken)
     {
         if (file.Content.Length == 0) throw new BusinessRuleException("The cheque upload file is empty.");
@@ -393,8 +413,8 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         if (H(0) != "CHEQUE_NO" || H(1) != "CHEQUE_DATE" || H(2) != "DUE_DATE" || H(3) != "ISSUER_BANK_NAME")
             throw new BusinessRuleException("Invalid cheque template. The first columns must be CHEQUE_NO, CHEQUE_DATE, DUE_DATE, ISSUER_BANK_NAME.");
 
-        var legalEntityId = d.LegalEntityId ?? LegalEntityId;
-        var added = new List<ChqCheque>();
+        // the cheques stay a draft of the request; Complete loads them into the wallet (agreed with Ahmed, 1 Nov 2026)
+        var added = new List<FctDisbursementCheque>();
         foreach (var r in rows.Where(r => r.RowNumber > 1 && !string.IsNullOrWhiteSpace(r[0])))
         {
             string? C(int c) => string.IsNullOrWhiteSpace(r[c]) ? null : r[c]!.Trim();
@@ -415,14 +435,17 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
             var chequeNo = C(0)!;
             var bankCode = C(4);
             if (await db.Set<ChqCheque>().AnyAsync(x => x.ChequeNo == chequeNo && (x.IssuerBankCode ?? "#") == (bankCode ?? "#"), cancellationToken)
+                || await db.Set<FctDisbursementCheque>().AnyAsync(x => x.ChequeNo == chequeNo && (x.IssuerBankCode ?? "#") == (bankCode ?? "#")
+                    && x.StatusCode != "CANCELLED" && x.WalletChequeId == null, cancellationToken)
                 || added.Any(x => x.ChequeNo == chequeNo && x.IssuerBankCode == bankCode))
                 throw new BusinessRuleException($"Duplicate cheque number/bank on upload row {line}: {chequeNo}.");
 
-            var cheque = new ChqCheque
+            var cheque = new FctDisbursementCheque
             {
-                ChequeRef = $"CHQ-{d.DisbursementId}-TMP-{Guid.NewGuid():N}",
+                DisbursementId = d.DisbursementId,
+                BatchId = batchId,
                 ChequeNo = chequeNo,
-                ChequeAt = At(chequeDate)!.Value,
+                ChequeDate = chequeDate.Value,
                 DueDate = dueDate.Value,
                 IssuerBankName = C(3)!,
                 IssuerBankCode = bankCode,
@@ -431,28 +454,20 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
                 DrawerNameAr = C(7),
                 DrawerNationalId = C(8),
                 DrawerAccountNo = C(9),
-                ChequeAmount = amount,
+                ChequeAmount = Math.Round(amount, 2, MidpointRounding.AwayFromZero),
                 CurrencyCode = C(11)!.ToUpperInvariant(),
                 CustomerId = C(12),
                 CustomerNameEn = C(13),
                 CustomerNameAr = C(14),
-                SourceModule = "FACTORING",
-                SourceRefType = "DISBURSEMENT",
-                SourceRefId = d.DisbursementId.ToString(CultureInfo.InvariantCulture),
-                ReceivedAt = At(received)!.Value,
-                StatusCode = C(16)?.ToUpperInvariant() ?? "RECEIVED",
-                LegalEntityId = legalEntityId,
+                ReceivedDate = received,
+                StatusCode = "DRAFT",
                 Notes = C(17),
-                BatchId = batchId,
             };
             db.Add(cheque);
             added.Add(cheque);
         }
 
         if (added.Count == 0) throw new BusinessRuleException("The cheque upload contains no data rows.");
-        await db.SaveChangesAsync(cancellationToken);
-        foreach (var c in added)
-            c.ChequeRef = $"CHQ-{d.DisbursementId}-{c.ChequeId}";
     }
 
     private async Task<CrmInvoiceSummaryDto> SummaryAsync(FctDisbursement d, CancellationToken cancellationToken)
@@ -557,12 +572,9 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         return set.Where(x => x.DisbursementId == disbursementId).OrderByDescending(x => x.BatchId).FirstOrDefaultAsync(cancellationToken);
     }
 
-    /// <summary>The batch's cheques (FND_CHEQUE.BATCH_ID), only those uploaded for this request: CHQ_CHEQUES.BATCH_ID is shared with other batches.</summary>
-    internal IQueryable<ChqCheque> Cheques(long batchId, long disbursementId)
-    {
-        var id = disbursementId.ToString(CultureInfo.InvariantCulture);
-        return db.Set<ChqCheque>().Where(x => x.BatchId == batchId && x.SourceRefType == "DISBURSEMENT" && x.SourceRefId == id);
-    }
+    /// <summary>The request's cheques of the batch (the drafts and those Complete loaded into the wallet).</summary>
+    internal IQueryable<FctDisbursementCheque> Cheques(long batchId, long disbursementId) =>
+        db.Set<FctDisbursementCheque>().Where(x => x.DisbursementId == disbursementId && x.BatchId == batchId);
 
     /// <summary>APEX_DATA_PARSER.parse: the first sheet of an .xlsx file, or the lines of a .csv file, with their line numbers.</summary>
     private IReadOnlyList<WorkbookRow> Rows(CrmUploadFile file, int columns)

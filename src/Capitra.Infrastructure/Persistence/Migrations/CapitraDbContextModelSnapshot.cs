@@ -6721,6 +6721,221 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("FCT_DISBURSEMENT_CHARGES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursementChargeSource", b =>
+                {
+                    b.Property<long>("DisbursementChargeSourceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_CHARGE_SOURCE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DisbursementChargeSourceId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<long>("RepaymentSourceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_SOURCE_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("SORT_ORDER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DisbursementChargeSourceId")
+                        .HasName("PK_FCT_DISBURSEMENT_CHARGE_SOURCES");
+
+                    b.HasIndex("RepaymentSourceId")
+                        .HasDatabaseName("IX_FCT_DISBURSEMENT_CHARGE_SOURCES_REPAYMENT_SOURCE_ID");
+
+                    b.HasIndex("DisbursementId", "RepaymentSourceId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_FCT_DISBURSEMENT_CHARGE_SOURCES_DISBURSEMENT_ID");
+
+                    b.ToTable("FCT_DISBURSEMENT_CHARGE_SOURCES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursementCheque", b =>
+                {
+                    b.Property<long>("DisbursementChequeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_CHEQUE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DisbursementChequeId"));
+
+                    b.Property<long?>("BatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BATCH_ID");
+
+                    b.Property<decimal>("ChequeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHEQUE_AMOUNT");
+
+                    b.Property<DateOnly>("ChequeDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CHEQUE_DATE");
+
+                    b.Property<string>("ChequeNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHEQUE_NO");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<string>("CustomerId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CUSTOMER_ID");
+
+                    b.Property<string>("CustomerNameAr")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("CUSTOMER_NAME_AR");
+
+                    b.Property<string>("CustomerNameEn")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("CUSTOMER_NAME_EN");
+
+                    b.Property<long?>("DepositBankAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEPOSIT_BANK_ACCOUNT_ID");
+
+                    b.Property<DateOnly?>("DepositDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DEPOSIT_DATE");
+
+                    b.Property<long>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<string>("DrawerAccountNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DRAWER_ACCOUNT_NO");
+
+                    b.Property<string>("DrawerNameAr")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("DRAWER_NAME_AR");
+
+                    b.Property<string>("DrawerNameEn")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("DRAWER_NAME_EN");
+
+                    b.Property<string>("DrawerNationalId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("DRAWER_NATIONAL_ID");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DUE_DATE");
+
+                    b.Property<string>("IssuerBankBranch")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("ISSUER_BANK_BRANCH");
+
+                    b.Property<string>("IssuerBankCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ISSUER_BANK_CODE");
+
+                    b.Property<string>("IssuerBankName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("ISSUER_BANK_NAME");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<DateOnly>("ReceivedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RECEIVED_DATE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long?>("WalletChequeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WALLET_CHEQUE_ID");
+
+                    b.HasKey("DisbursementChequeId")
+                        .HasName("PK_FCT_DISBURSEMENT_CHEQUES");
+
+                    b.HasIndex("WalletChequeId")
+                        .HasDatabaseName("IX_FCT_DISBURSEMENT_CHEQUES_WALLET_CHEQUE_ID");
+
+                    b.HasIndex("DisbursementId", "StatusCode")
+                        .HasDatabaseName("IX_FCT_DISBURSEMENT_CHEQUES_DISBURSEMENT_ID_STATUS_CODE");
+
+                    b.ToTable("FCT_DISBURSEMENT_CHEQUES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctInvoice", b =>
                 {
                     b.Property<long>("InvoiceId")
@@ -37973,6 +38188,39 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_FCT_DISBURSEMENT_CHARGES_ADM_PRODUCT_EVENT_RULE_CHARGES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursementChargeSource", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctDisbursement", null)
+                        .WithMany()
+                        .HasForeignKey("DisbursementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_DISBURSEMENT_CHARGE_SOURCES_FCT_DISBURSEMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentSource", null)
+                        .WithMany()
+                        .HasForeignKey("RepaymentSourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_DISBURSEMENT_CHARGE_SOURCES_FCT_REPAYMENT_SOURCES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursementCheque", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctDisbursement", null)
+                        .WithMany()
+                        .HasForeignKey("DisbursementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_DISBURSEMENT_CHEQUES_FCT_DISBURSEMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Chq.ChqCheque", null)
+                        .WithMany()
+                        .HasForeignKey("WalletChequeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FCT_DISBURSEMENT_CHEQUES_CHQ_CHEQUES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctInvoiceBatch", b =>
