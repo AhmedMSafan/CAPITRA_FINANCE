@@ -432,6 +432,7 @@ export const AR: Record<string, string> = {
   'Eligibility': 'الأهلية',
   'Why is this invoice not eligible?': 'لماذا هذه الفاتورة غير مؤهلة؟',
   'No invoices yet. Choose the invoices file above, then click Save Draft.': 'لا توجد فواتير بعد. اختر ملف الفواتير أعلاه ثم اضغط حفظ المسودة.',
+  'The schedule shows once there are eligible invoices.': 'يظهر الجدول عند وجود فواتير مؤهلة.',
   'The rows below are a preview of the chosen files. They are saved only when you click Save Draft.': 'الصفوف أدناه معاينة للملفات المختارة، ولا تُحفظ إلا عند الضغط على حفظ المسودة.',
   'Cheques': 'الشيكات',
   'Cheques Amount': 'مبلغ الشيكات',

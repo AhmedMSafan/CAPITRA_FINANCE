@@ -184,6 +184,8 @@ export type DisbursementResult = {
   schedule: RepaymentRow[]
   glEntries: GlEntry[]
   isPreview: boolean
+  // why the preview has no repayment schedule
+  scheduleNote?: string | null
 }
 
 /** A GL line the charges post: journal 1 the charge, journal 2 its payment */

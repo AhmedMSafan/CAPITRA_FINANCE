@@ -28,7 +28,7 @@ public sealed record CrmGlEntryDto(
 public sealed record CrmDisbursementResultDto(
     string? StatusCode, decimal ApprovedInvoiceAmount, decimal ApprovedAdvanceAmount, decimal? FeeDeducted, decimal? TaxDeducted, decimal? NetAmount,
     IReadOnlyList<CrmDisbursementChargeDto> Charges, IReadOnlyList<CrmRepaymentRowDto> Schedule, IReadOnlyList<CrmGlEntryDto> GlEntries,
-    bool IsPreview = false);
+    bool IsPreview = false, string? ScheduleNote = null);
 
 public sealed record CrmDisbursementProcessedDto(CrmInvoiceEntryDto Page, CrmDisbursementResultDto Result, string Message);
 
@@ -86,20 +86,22 @@ public sealed class CrmDisbursementProcessService(
         var custom = await entry.CustomScheduleAsync(d.DisbursementId, cancellationToken);
         var financed = await CalculateChargesAsync(d, invoices, chequeCount, clock.UtcNow, CrmRepaymentSchedule.Maturity(d, custom), cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
-        // the repayment schedule too, when the invoices and terms allow it (Complete builds it the same way)
-        if (invoices.Count > 0)
+        // the repayment schedule too, when the invoices and terms allow it (Complete builds it the same way); else why not
+        string? scheduleNote = null;
+        if (invoices.Count == 0) scheduleNote = "The schedule shows once there are eligible invoices.";
+        else
         {
             try
             {
                 await GenerateScheduleAsync(d, financed, invoices, custom, cancellationToken);
                 await db.SaveChangesAsync(cancellationToken);
             }
-            catch (BusinessRuleException) { }
+            catch (BusinessRuleException ex) { scheduleNote = $"No schedule yet: {ex.Message}"; }
         }
 
         var result = await ResultAsync(disbursementId, cancellationToken);
         await tx.RollbackAsync(cancellationToken);
-        return result with { StatusCode = null, IsPreview = true };
+        return result with { StatusCode = null, IsPreview = true, ScheduleNote = scheduleNote };
     }
 
     /// <summary>
