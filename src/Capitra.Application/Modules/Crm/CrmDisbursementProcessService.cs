@@ -4,6 +4,7 @@ using Capitra.Application.Modules.Adm.Products;
 using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Gl;
 using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,10 +20,15 @@ public sealed record CrmRepaymentRowDto(
     int InstallmentNo, DateOnly DueDate, decimal? OpeningPrincipal, decimal? PrincipalDue, decimal? InterestDue, decimal? TotalInstallment,
     decimal? ClosingPrincipal, decimal? InterestRate, int? DayCount, string StatusCode);
 
-/// <summary>The processed figures of the request with its charges and current schedule.</summary>
+/// <summary>A GL line the request's charges post (journal 1 the charge, journal 2 its payment), from the product event rule.</summary>
+public sealed record CrmGlEntryDto(
+    int JournalNo, int LineNo, string ChargeCode, string DebitCreditCode, string? AccountCode, string? AccountName, decimal Amount, string? Description);
+
+/// <summary>The processed figures of the request with its charges and current schedule; IsPreview when nothing is saved yet.</summary>
 public sealed record CrmDisbursementResultDto(
     string? StatusCode, decimal ApprovedInvoiceAmount, decimal ApprovedAdvanceAmount, decimal? FeeDeducted, decimal? TaxDeducted, decimal? NetAmount,
-    IReadOnlyList<CrmDisbursementChargeDto> Charges, IReadOnlyList<CrmRepaymentRowDto> Schedule);
+    IReadOnlyList<CrmDisbursementChargeDto> Charges, IReadOnlyList<CrmRepaymentRowDto> Schedule, IReadOnlyList<CrmGlEntryDto> GlEntries,
+    bool IsPreview = false);
 
 public sealed record CrmDisbursementProcessedDto(CrmInvoiceEntryDto Page, CrmDisbursementResultDto Result, string Message);
 
@@ -54,7 +60,56 @@ public sealed class CrmDisbursementProcessService(
                 x.ClosingPrincipal, x.InterestRate, x.DayCount, x.StatusCode))
             .ToListAsync(cancellationToken);
         return new CrmDisbursementResultDto(d.StatusCode, d.ApprovedInvoiceAmount, d.ApprovedAdvanceAmount, d.FeeDeducted, d.TaxDeducted, d.NetAmount,
-            charges, schedule);
+            charges, schedule, await GlEntriesAsync(d, charges, cancellationToken));
+    }
+
+    /// <summary>
+    /// The charges as soon as the product is chosen (Ahmed, 1 Nov 2026): the page values are saved and the charges calculated as Process
+    /// would, inside a transaction that is rolled back, so nothing is kept. Charges already paid or posted are shown as they are.
+    /// </summary>
+    public async Task<CrmDisbursementResultDto> PreviewAsync(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken)
+    {
+        if (await db.Set<FctDisbursementCharge>().AnyAsync(x => x.DisbursementId == disbursementId && x.StatusCode != "CALCULATED", cancellationToken))
+            return await ResultAsync(disbursementId, cancellationToken);
+        if (dto.Terms.ProductId is null) return new CrmDisbursementResultDto(null, 0, 0, null, null, null, [], [], [], true);
+
+        await using var tx = await db.BeginTransactionAsync(cancellationToken);
+        var (d, batch) = await entry.SaveCoreAsync(disbursementId, dto, cancellationToken);
+        if (batch is not null) await entry.SyncInvoiceAdvancesAsync(d, batch.BatchId, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+
+        var invoices = await EligibleInvoicesAsync(d.DisbursementId, cancellationToken);
+        var dues = batch is null ? [] : await entry.Cheques(batch.BatchId, d.DisbursementId)
+            .Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED").Select(x => x.DueDate).ToListAsync(cancellationToken);
+        DateOnly? maturity = dues.Count > 0 && await entry.IsReverseAsync(d.ProductId, cancellationToken) ? dues.Max() : null;
+        await CalculateChargesAsync(d, invoices, dues.Count, clock.UtcNow, maturity, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+
+        var result = await ResultAsync(disbursementId, cancellationToken);
+        await tx.RollbackAsync(cancellationToken);
+        return result with { StatusCode = null, Schedule = [], IsPreview = true };
+    }
+
+    /// <summary>The GL lines of the charges: the rule's lines of each charge with its amount (none when the rule has no GL set up).</summary>
+    private async Task<IReadOnlyList<CrmGlEntryDto>> GlEntriesAsync(
+        FctDisbursement d, List<CrmDisbursementChargeDto> charges, CancellationToken cancellationToken)
+    {
+        if (charges.Count == 0 || d.ProductId is null) return [];
+        ProductEventPlan plan;
+        try { plan = await PlanAsync(d, cancellationToken); }
+        catch (BusinessRuleException) { return []; }
+
+        var amounts = charges.GroupBy(x => x.RuleCode).ToDictionary(x => x.Key, x => x.Sum(c => c.ChargeAmount));
+        var lines = plan.Lines.Where(x => x.ChargeCode is not null && amounts.ContainsKey(x.ChargeCode)
+                && x.AmountCode is "CHARGE_AMOUNT" or "CHARGE_IMMEDIATE").ToList();
+        var codes = lines.Select(x => x.AccountCode).OfType<string>().Distinct().ToList();
+        var names = await db.Set<GlAccount>().AsNoTracking().Where(x => codes.Contains(x.AccountCode))
+            .Select(x => new { x.AccountCode, x.AccountNameEn }).ToListAsync(cancellationToken);
+        var nameOf = names.GroupBy(x => x.AccountCode).ToDictionary(x => x.Key, x => x.First().AccountNameEn);
+        var order = charges.Select((c, i) => (c.RuleCode, i)).GroupBy(x => x.RuleCode).ToDictionary(x => x.Key, x => x.First().i);
+        return [.. lines.OrderBy(x => x.JournalNo).ThenBy(x => order[x.ChargeCode!]).ThenBy(x => x.LineNo)
+            .Select(x => new CrmGlEntryDto(x.JournalNo, x.LineNo, x.ChargeCode!, x.DebitCreditCode, x.AccountCode,
+                x.AccountCode is null ? null : nameOf.GetValueOrDefault(x.AccountCode), amounts[x.ChargeCode!], x.Description))];
     }
 
     /// <summary>Process Disbursement Request: the page is saved first, then processed, in one transaction.</summary>

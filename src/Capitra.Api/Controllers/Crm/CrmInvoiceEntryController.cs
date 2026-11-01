@@ -54,6 +54,12 @@ public sealed class CrmInvoiceEntryController(
     public Task<CrmDisbursementProcessedDto> Process(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken) =>
         process.ProcessAsync(disbursementId, dto, cancellationToken);
 
+    /// <summary>The charges of the page values as they stand, calculated and not kept (nothing is saved).</summary>
+    [HttpPost("{disbursementId:long}/invoice-entry/charges-preview")]
+    [HasPermission(Permissions.Crm.View)]
+    public Task<CrmDisbursementResultDto> ChargesPreview(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken) =>
+        process.PreviewAsync(disbursementId, dto, cancellationToken);
+
     /// <summary>The request's processed figures, charges and current repayment schedule.</summary>
     [HttpGet("{disbursementId:long}/invoice-entry/charge-payment")]
     [HasPermission(Permissions.Crm.View)]
