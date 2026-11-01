@@ -163,6 +163,20 @@ export type DisbursementResult = {
   netAmount: number | null
   charges: DisbursementCharge[]
   schedule: RepaymentRow[]
+  glEntries: GlEntry[]
+  isPreview: boolean
+}
+
+/** A GL line the charges post: journal 1 the charge, journal 2 its payment */
+export type GlEntry = {
+  journalNo: number
+  lineNo: number
+  chargeCode: string
+  debitCreditCode: string
+  accountCode: string | null
+  accountName: string | null
+  amount: number
+  description: string | null
 }
 
 /** A payment source of the customer with balance left */
@@ -211,5 +225,8 @@ export const chargePaymentApi = {
 export const processApi = {
   process: (id: number, body: InvoiceEntrySave) =>
     http.post<{ page: InvoiceEntry; result: DisbursementResult; message: string }>(`/api/crm/disbursement-requests/${id}/invoice-entry/process`, body),
-  result: (id: number) => http.get<DisbursementResult>(`/api/crm/disbursement-requests/${id}/invoice-entry/result`)
+  result: (id: number) => http.get<DisbursementResult>(`/api/crm/disbursement-requests/${id}/invoice-entry/result`),
+  // the charges of the page values as they stand, calculated and not kept
+  preview: (id: number, body: InvoiceEntrySave) =>
+    http.post<DisbursementResult>(`/api/crm/disbursement-requests/${id}/invoice-entry/charges-preview`, body)
 }
