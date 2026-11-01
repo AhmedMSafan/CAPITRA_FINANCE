@@ -46,10 +46,6 @@
       <!-- Disbursement Request Detail -->
       <section class="col-sec">
         <h2><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Disbursement Request Detail') }}</h2>
-        <p v-if="isReverse" class="ie-note">
-          <span class="fa fa-info-circle" aria-hidden="true"></span>
-          {{ tr('Reverse factoring: the rates come from the agreement, and the tenor, start date and repayment methods come from the cheques. They are filled in when you save or upload.') }}
-        </p>
         <div class="col-grid">
           <div class="fc-field">
             <span>{{ tr('Disbursement Number') }}</span>
@@ -543,6 +539,11 @@ const SOURCE_LABELS: Record<string, string> = { CHEQUE: 'Collected Cheque', BANK
 const sourceLabel = (t: string) => SOURCE_LABELS[t] ?? t
 const options = reactive<InvoiceEntry['options']>({ clients: [], limits: [], currencies: [], products: [], reverseProductIds: [] })
 const invoices = ref<InvoiceRow[]>([])
+// Reverse factoring: Invoices Gross Amount follows the invoices grid, the total of the rows marked Eligible (0 when none are loaded)
+watch([isReverse, invoices], () => {
+  if (!isReverse.value) return
+  terms.grossAmount = invoices.value.filter((r) => r.statusCode === 'ELIGIBLE').reduce((t, r) => t + (Number(r.grossAmount) || 0), 0)
+}, { deep: true, immediate: true })
 const cheques = ref<ChequeRow[]>([])
 const changedInvoices = new Set<number>()
 const changedCheques = new Set<number>()
@@ -756,8 +757,6 @@ watch(() => props.disbursementId, load, { immediate: true })
 .ie-util-foot i { color: rgba(255, 255, 255, .4); }
 
 .ie-wide { grid-column: span 2; }
-.ie-note { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; padding: 9px 12px; border-radius: 8px; background: #E6F3F4; color: #00636D; font-size: 13px; }
-.ie-note .fa { margin-block-start: 2px; }
 .ie-locked { background: #F1F4F6; color: #3D4A55; cursor: default; }
 .ie-totals.ie-totals--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ie-due { color: #E87722; }
