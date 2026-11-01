@@ -422,8 +422,6 @@ export const AR: Record<string, string> = {
   'Mortgage applications and finance of this customer.': 'طلبات التمويل العقاري وتمويل هذا العميل.',
   'Disbursement Requests': 'طلبات الصرف',
   'Total of eligible invoices': 'إجمالي الفواتير المؤهلة', 'From agreement': 'من العقد', 'From cheques': 'من الشيكات', 'First cheque': 'أول شيك',
-  'Reverse factoring: the rates come from the agreement, and the tenor, start date and repayment methods come from the cheques. They are filled in when you save or upload.':
-    'التخصيم العكسي: الأسعار من العقد، والمدة وتاريخ البدء وطرق السداد من الشيكات. تُملأ عند الحفظ أو التحميل.',
   'Calculated Disbursement Charges': 'رسوم الصرف المحتسبة', 'Rule Code': 'رمز القاعدة', Method: 'الطريقة', Amount: 'المبلغ', Rate: 'المعدل',
   Total: 'الإجمالي', Timing: 'التوقيت', Days: 'الأيام', Principal: 'أصل المبلغ', 'Total Due': 'إجمالي المستحق',
   'Recent Customers': 'العملاء الأحدث نشاطًا', 'latest application, agreement or disbursement': 'آخر طلب أو اتفاقية أو صرف', 'Last Activity': 'آخر نشاط',
