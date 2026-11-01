@@ -161,8 +161,9 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
     }
 
     /// <summary>
-    /// Upload Invoices: the forms, SAVE_BATCH_HEADER_FOR_UPLOAD, then UPLOAD_CSV_FILES (the invoices replace the request's invoices and take
-    /// the advance rate; the cheques are added to the batch), and the batch totals.
+    /// Save Draft with files chosen: the page as Save Draft keeps it, SAVE_BATCH_HEADER_FOR_UPLOAD, then UPLOAD_CSV_FILES (the invoices
+    /// replace the request's invoices and take the advance rate; the cheques replace the request's draft cheques), and the batch totals.
+    /// Choosing a file saves nothing: the files are read only here (Ahmed, 1 Nov 2026).
     /// </summary>
     public async Task<CrmInvoiceUploadResultDto> UploadAsync(
         long disbursementId, CrmInvoiceEntrySaveDto dto, CrmUploadFile? invoiceFile, CrmUploadFile? chequeFile, CancellationToken cancellationToken)
@@ -171,8 +172,8 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
             throw new BusinessRuleException("Select at least one invoice or cheque XLSX/CSV file.");
 
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
-        var d = await SaveFormsAsync(disbursementId, dto.Terms, dto.Batch, cancellationToken);
-        var batch = await BatchOfAsync(disbursementId, false, cancellationToken)
+        var (d, saved) = await SaveCoreAsync(disbursementId, dto, cancellationToken);
+        var batch = saved
             ?? throw new BusinessRuleException("Batch ID and Disbursement ID are required before upload.");
 
         if (invoiceFile is not null)
@@ -203,7 +204,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         await tx.CommitAsync(cancellationToken);
 
         return new CrmInvoiceUploadResultDto(await GetAsync(disbursementId, cancellationToken),
-            $"Upload completed. Invoices: {invoices.Count}, Cheques: {chequeCount}.");
+            $"Draft saved. Invoices: {invoices.Count}, Cheques: {chequeCount}.");
     }
 
     private async Task<FctDisbursement> SaveFormsAsync(long disbursementId, CrmDisbursementTermsDto t, CrmInvoiceBatchDto b, CancellationToken cancellationToken)
@@ -403,7 +404,10 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         }
     }
 
-    /// <summary>import_cheques: the CHEQUE_NO, CHEQUE_DATE, DUE_DATE, ISSUER_BANK_NAME ... template, each row a new draft cheque of the request.</summary>
+    /// <summary>
+    /// import_cheques: the CHEQUE_NO, CHEQUE_DATE, DUE_DATE, ISSUER_BANK_NAME ... template; the rows replace the request's draft cheques
+    /// (cheques already in the wallet stay), as the invoices file replaces its invoices.
+    /// </summary>
     private async Task ImportChequesAsync(FctDisbursement d, long batchId, CrmUploadFile file, CancellationToken cancellationToken)
     {
         if (file.Content.Length == 0) throw new BusinessRuleException("The cheque upload file is empty.");
@@ -414,6 +418,9 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
             throw new BusinessRuleException("Invalid cheque template. The first columns must be CHEQUE_NO, CHEQUE_DATE, DUE_DATE, ISSUER_BANK_NAME.");
 
         // the cheques stay a draft of the request; Complete loads them into the wallet (agreed with Ahmed, 1 Nov 2026)
+        db.Set<FctDisbursementCheque>().RemoveRange(await db.Set<FctDisbursementCheque>()
+            .Where(x => x.DisbursementId == d.DisbursementId && x.WalletChequeId == null).ToListAsync(cancellationToken));
+        await db.SaveChangesAsync(cancellationToken);
         var added = new List<FctDisbursementCheque>();
         foreach (var r in rows.Where(r => r.RowNumber > 1 && !string.IsNullOrWhiteSpace(r[0])))
         {
