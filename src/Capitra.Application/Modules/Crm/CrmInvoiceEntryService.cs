@@ -513,8 +513,10 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         {
             string? C(int c) => string.IsNullOrWhiteSpace(r[c]) ? null : r[c]!.Trim();
             var line = r.RowNumber;
-            if (C(0) is null || C(3) is null || C(6) is null || C(10) is null || C(11) is null)
-                throw new BusinessRuleException($"Missing mandatory cheque value on upload row {line}.");
+            var missing = new[] { (0, "CHEQUE_NO"), (3, "ISSUER_BANK_NAME"), (6, "DRAWER_NAME_EN"), (10, "CHEQUE_AMOUNT"), (11, "CURRENCY_CODE") }
+                .Where(x => C(x.Item1) is null).Select(x => x.Item2).ToList();
+            if (missing.Count > 0)
+                throw new BusinessRuleException($"Upload row {line} has no value in {string.Join(", ", missing)}. These columns are required.");
             var chequeDate = ChequeDate(C(1));
             var dueDate = ChequeDate(C(2));
             var received = ChequeDate(C(15)) ?? GlTime.Today(clock);
