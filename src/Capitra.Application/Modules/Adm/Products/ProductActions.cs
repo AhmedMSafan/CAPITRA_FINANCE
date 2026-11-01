@@ -13,12 +13,16 @@ public sealed record ProductActionDefinition(
 public static class ProductActions
 {
     public const string ChequeBatchSubmit = "CHW_BATCH_SUBMIT";
+    public const string ChequeCollection = "CHQ_COLLECTION";
 
     public static readonly IReadOnlyList<ProductActionDefinition> All =
     [
         new(ChequeBatchSubmit, "CHEQUE_WALLET", "Cheque batch submission", "إرسال دفعة الشيكات إلى المحفظة",
             "Cheques Wallet, Cheque Batch page: Submit to wallet. The batch's cheques enter the client wallet.", "CHW",
             ["CHEQUE_AMOUNT"], "3100", "FACTORING"),
+        new(ChequeCollection, "CHEQUE_WALLET", "Cheque collection", "تحصيل الشيكات",
+            "Collection and Repayments, Cheques Collection page: Apply Bank Results. The collected cheques' money is in the deposit bank account.",
+            "COL", ["CHEQUE_AMOUNT"], "3100", "FACTORING"),
     ];
 
     public static ProductActionDefinition? Find(string? actionCode) => All.FirstOrDefault(x => x.ActionCode == actionCode);

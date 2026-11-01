@@ -8669,6 +8669,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("GL_JOURNAL_REF");
 
+                    b.Property<string>("GlTranSetId")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("GL_TRAN_SET_ID");
+
                     b.Property<bool>("IsGlPosted")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_GL_POSTED");

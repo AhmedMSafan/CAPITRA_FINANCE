@@ -54,4 +54,7 @@ public class FctRepaymentTransaction : AuditableEntity
     public DateTime? ReversedAt { get; set; }
 
     public string? Notes { get; set; }
+
+    /// <summary>The GL transaction set of the collection (DR the deposit bank account / CR customer liability), CAP-COL-...</summary>
+    public string? GlTranSetId { get; set; }
 }

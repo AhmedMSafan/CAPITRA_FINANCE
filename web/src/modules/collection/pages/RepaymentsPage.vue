@@ -33,6 +33,7 @@
               <th class="fx-r">{{ tr('Receipt Amount') }}</th>
               <th class="fx-r">{{ tr('Allocated Amount') }}</th>
               <th>{{ tr('Status Code') }}</th>
+              <th>{{ tr('GL Tran Set ID') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -50,6 +51,7 @@
               <td class="fx-r">{{ formatAmount(r.receiptAmount) }}</td>
               <td class="fx-r">{{ formatAmount(r.allocatedAmount) }}</td>
               <td><span class="fx-chip" :class="statusChip(r.statusCode)">{{ r.statusCode }}</span></td>
+              <td>{{ r.glTranSetId || '-' }}</td>
             </tr>
           </tbody>
         </table>
@@ -95,7 +97,7 @@ const page = ref(1)
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
   if (!q) return rows.value
-  return rows.value.filter((r) => [r.repaymentNumber, r.clientName, r.repaymentMethod, r.statusCode, r.transactionDate, r.valueDate,
+  return rows.value.filter((r) => [r.repaymentNumber, r.clientName, r.repaymentMethod, r.statusCode, r.glTranSetId, r.transactionDate, r.valueDate,
     String(r.receiptAmount), String(r.allocatedAmount)].some((v) => (v ?? '').toLowerCase().includes(q)))
 })
 const pageCount = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
