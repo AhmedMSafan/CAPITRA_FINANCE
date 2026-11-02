@@ -99,7 +99,6 @@ export type InvoiceEntrySave = {
   deletedInvoiceIds?: number[]
   cheques?: ChequeRow[]
   deletedChequeIds?: number[]
-  chargeSourceIds?: number[]
   // the rows shown are a file's preview: Save Draft gives their edits to the rows it loads from the same file
   invoicesPreviewed?: boolean
   chequesPreviewed?: boolean
@@ -188,48 +187,63 @@ export type GlEntry = {
   description: string | null
 }
 
-/** A payment source of the customer with balance left */
-export type ChargeSource = {
-  repaymentSourceId: number
-  repaymentNumber: string
-  sourceType: string
-  reference: string | null
-  valueDate: string
-  sourceAmount: number
-  usedAmount: number
-  availableAmount: number
-}
-
-/** One payment of a charge from a source */
-export type ChargePaymentRow = {
-  allocationId: number
-  ruleCode: string
-  repaymentNumber: string
-  sourceType: string
-  reference: string | null
-  allocationDate: string
-  amount: number
-}
-
-/** The Charges Payment section */
-export type ChargePayment = {
-  totalCharges: number
+/** A line of a customer claim: one charge */
+export type ClaimLine = {
+  claimLineId: number
+  lineNo: number
+  chargeCode: string
+  chargeName: string | null
+  chargeAmount: number
+  taxAmount: number
+  totalAmount: number
   paidAmount: number
   outstandingAmount: number
-  statusCode: 'NO_CHARGES' | 'NOT_PAID' | 'PARTIALLY_PAID' | 'PAID'
-  glTranSetId: string | null
-  glPostingDate: string | null
-  sources: ChargeSource[]
-  payments: ChargePaymentRow[]
-  chosenSourceIds: number[]
 }
 
-const paymentUrl = (id: number) => `/api/crm/disbursement-requests/${id}/invoice-entry/charge-payment`
+/** One payment of a claim, under its own GL tran set */
+export type ClaimPayment = {
+  claimPaymentId: number
+  repaymentNumber: string
+  sourceType: string
+  reference: string | null
+  paymentDate: string
+  paymentAmount: number
+  glTranSetId: string | null
+}
 
-export const chargePaymentApi = {
-  get: (id: number) => http.get<ChargePayment>(paymentUrl(id)),
-  pay: (id: number, sourceId: number) => http.post<ChargePayment>(`${paymentUrl(id)}/sources/${sourceId}`, {}),
-  reverse: (id: number, allocationId: number) => http.post<ChargePayment>(`${paymentUrl(id)}/payments/${allocationId}/reverse`, {})
+export type ClaimStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED'
+
+/** A customer claim (FCT_CUSTOMER_CLAIMS) as the lists show it */
+export type ClaimRow = {
+  claimId: number
+  claimNumber: string
+  clientId: number
+  clientName: string | null
+  disbursementId: number
+  disbursementNumber: string
+  claimDate: string
+  currencyCode: string | null
+  totalAmount: number
+  paidAmount: number
+  outstandingAmount: number
+  statusCode: ClaimStatus
+}
+
+export type Claim = { claim: ClaimRow; lines: ClaimLine[]; payments: ClaimPayment[] }
+
+/** FCT_DISBURSEMENTS.CLAIM_STATUS_CODE */
+export type DisbursementClaimStatus = 'NOT_CREATED' | 'CREATED_UNPAID' | 'PARTIALLY_PAID' | 'PAID'
+
+/** The Claim section of the Invoice Upload page */
+export type DisbursementClaim = { claimStatusCode: DisbursementClaimStatus; chargesTotal: number; isCompleted: boolean; claim: Claim | null }
+
+const claimUrl = (id: number) => `/api/crm/disbursement-requests/${id}/invoice-entry/claim`
+
+export const disbursementClaimApi = {
+  get: (id: number) => http.get<DisbursementClaim>(claimUrl(id)),
+  // Create Claim: the page is saved and processed, then its charges are claimed from the customer
+  create: (id: number, body: InvoiceEntrySave) => http.post<DisbursementClaim>(claimUrl(id), body),
+  cancel: (id: number, claimId: number) => http.post<DisbursementClaim>(`${claimUrl(id)}/${claimId}/cancel`, {})
 }
 
 export const processApi = {

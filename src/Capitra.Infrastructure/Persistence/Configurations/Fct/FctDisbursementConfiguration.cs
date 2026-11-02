@@ -77,6 +77,7 @@ public sealed class FctDisbursementConfiguration : IEntityTypeConfiguration<FctD
         builder.Property(x => x.ReversalRef).HasMaxLength(100);
         builder.Property(x => x.GlJournalRef).HasMaxLength(50);
         builder.Property(x => x.GlTranSetId).HasMaxLength(40);
+        builder.Property(x => x.ClaimStatusCode).HasMaxLength(20).HasDefaultValue("NOT_CREATED");
         builder.Property(x => x.ProcessedBy).HasMaxLength(200);
         builder.Property(x => x.AuthorizedBy).HasMaxLength(200);
         builder.Property(x => x.SecondAuthorizedBy).HasMaxLength(200);

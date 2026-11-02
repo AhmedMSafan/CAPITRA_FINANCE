@@ -2,6 +2,7 @@ using System.Text.Json;
 using Capitra.Api.Security;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Crm;
+using Capitra.Application.Modules.Fct;
 using Capitra.Application.Security;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,7 +25,7 @@ public sealed class CrmInvoiceUploadRequest
 [ApiController]
 [Route("api/crm/disbursement-requests")]
 public sealed class CrmInvoiceEntryController(
-    CrmInvoiceEntryService service, CrmDisbursementProcessService process, CrmDisbursementChargePaymentService payments) : ControllerBase
+    CrmInvoiceEntryService service, CrmDisbursementProcessService process, FctCustomerClaimService claims) : ControllerBase
 {
     private const long MaxUploadBytes = 20 * 1024 * 1024;
 
@@ -74,22 +75,29 @@ public sealed class CrmInvoiceEntryController(
     public Task<CrmDisbursementResultDto> ChargesPreview(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken) =>
         process.PreviewAsync(disbursementId, dto, cancellationToken);
 
-    /// <summary>The request's processed figures, charges and current repayment schedule.</summary>
-    [HttpGet("{disbursementId:long}/invoice-entry/charge-payment")]
+    /// <summary>The request's claim status and its claim of the charges.</summary>
+    [HttpGet("{disbursementId:long}/invoice-entry/claim")]
     [HasPermission(Permissions.Crm.View)]
-    public Task<CrmChargePaymentDto> ChargePayment(long disbursementId, CancellationToken cancellationToken) =>
-        payments.GetAsync(disbursementId, cancellationToken);
+    public Task<FctDisbursementClaimDto> Claim(long disbursementId, CancellationToken cancellationToken) =>
+        claims.ForDisbursementAsync(disbursementId, cancellationToken);
 
-    [HttpPost("{disbursementId:long}/invoice-entry/charge-payment/sources/{repaymentSourceId:long}")]
+    /// <summary>Create Claim: saves and processes the page, then claims the charges from the customer.</summary>
+    [HttpPost("{disbursementId:long}/invoice-entry/claim")]
     [HasPermission(Permissions.Crm.Edit)]
-    public Task<CrmChargePaymentDto> PayCharges(long disbursementId, long repaymentSourceId, CancellationToken cancellationToken) =>
-        payments.PayAsync(disbursementId, repaymentSourceId, cancellationToken);
+    public Task<FctDisbursementClaimDto> CreateClaim(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken) =>
+        claims.CreateAsync(disbursementId, dto, cancellationToken);
 
-    [HttpPost("{disbursementId:long}/invoice-entry/charge-payment/payments/{allocationId:long}/reverse")]
+    /// <summary>Cancel Claim, while nothing of it is paid.</summary>
+    [HttpPost("{disbursementId:long}/invoice-entry/claim/{claimId:long}/cancel")]
     [HasPermission(Permissions.Crm.Edit)]
-    public Task<CrmChargePaymentDto> ReversePayment(long disbursementId, long allocationId, CancellationToken cancellationToken) =>
-        payments.ReverseAsync(disbursementId, allocationId, cancellationToken);
+    public async Task<FctDisbursementClaimDto> CancelClaim(long disbursementId, long claimId, CancellationToken cancellationToken)
+    {
+        var claim = await claims.GetAsync(claimId, cancellationToken);
+        if (claim.Claim.DisbursementId != disbursementId) throw new NotFoundException($"Claim {claimId} of this request was not found.");
+        return await claims.CancelAsync(claimId, cancellationToken);
+    }
 
+    /// <summary>The request's processed figures, charges and current repayment schedule.</summary>
     [HttpGet("{disbursementId:long}/invoice-entry/result")]
     [HasPermission(Permissions.Crm.View)]
     public Task<CrmDisbursementResultDto> Result(long disbursementId, CancellationToken cancellationToken) => process.ResultAsync(disbursementId, cancellationToken);

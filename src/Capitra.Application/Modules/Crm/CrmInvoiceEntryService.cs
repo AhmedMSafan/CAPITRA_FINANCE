@@ -50,7 +50,7 @@ public sealed record CrmInvoiceEntryDto(
 /// <summary>Apply Changes: both forms and the changed or deleted grid rows.</summary>
 public sealed record CrmInvoiceEntrySaveDto(
     CrmDisbursementTermsDto Terms, CrmInvoiceBatchDto Batch, IReadOnlyList<CrmInvoiceRowDto>? Invoices, IReadOnlyList<long>? DeletedInvoiceIds,
-    IReadOnlyList<CrmChequeRowDto>? Cheques, IReadOnlyList<long>? DeletedChequeIds, IReadOnlyList<long>? ChargeSourceIds = null,
+    IReadOnlyList<CrmChequeRowDto>? Cheques, IReadOnlyList<long>? DeletedChequeIds,
     bool InvoicesPreviewed = false, bool ChequesPreviewed = false);
 
 /// <summary>An uploaded file: its name, MIME type and bytes.</summary>
@@ -153,7 +153,6 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
             await SaveInvoicesAsync(batch.BatchId, dto.Invoices ?? [], dto.DeletedInvoiceIds ?? [], cancellationToken);
             await SaveChequesAsync(batch.BatchId, d.DisbursementId, dto.Cheques ?? [], dto.DeletedChequeIds ?? [], cancellationToken);
         }
-        if (dto.ChargeSourceIds is { } sourceIds) await SaveChargeSourcesAsync(d, sourceIds, cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
         await DeriveReverseTermsAsync(d, batch?.BatchId, cancellationToken);
@@ -372,22 +371,6 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
             c.ReceivedDate = r.ReceivedDate;
             c.DepositDate = r.DepositDate;
         }
-    }
-
-    /// <summary>The payment sources chosen for the charges, in the order given (the customer's active sources only).</summary>
-    private async Task SaveChargeSourcesAsync(FctDisbursement d, IReadOnlyList<long> sourceIds, CancellationToken cancellationToken)
-    {
-        var ids = sourceIds.Distinct().ToList();
-        var valid = await (from x in db.Set<FctRepaymentSource>()
-                           join t in db.Set<FctRepaymentTransaction>() on x.RepaymentTxnId equals t.RepaymentTxnId
-                           where ids.Contains(x.RepaymentSourceId) && t.ClientId == d.ClientId
-                           select x.RepaymentSourceId).ToListAsync(cancellationToken);
-        db.Set<FctDisbursementChargeSource>().RemoveRange(
-            await db.Set<FctDisbursementChargeSource>().Where(x => x.DisbursementId == d.DisbursementId).ToListAsync(cancellationToken));
-        await db.SaveChangesAsync(cancellationToken);
-        var order = 0;
-        foreach (var id in ids.Where(valid.Contains))
-            db.Add(new FctDisbursementChargeSource { DisbursementId = d.DisbursementId, RepaymentSourceId = id, SortOrder = ++order });
     }
 
     /// <summary>

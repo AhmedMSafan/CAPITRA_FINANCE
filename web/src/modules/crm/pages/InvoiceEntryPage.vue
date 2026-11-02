@@ -356,7 +356,7 @@
       </section>
 
       <!-- page 705 region Calculated Disbursement Charges (FNV_DISBURSEMENT_CHARGES): a preview as soon as the product is chosen
-           (Ahmed, 1 Nov 2026), kept when Process Disbursement Request runs; and the GL entries they post, collapsed -->
+           (Ahmed, 1 Nov 2026), kept when Process Disbursement Request runs. No GL is posted for them here (Ahmed, 2 Nov 2026). -->
       <section class="col-sec">
         <h2>
           <span class="fa fa-calculator" aria-hidden="true"></span>{{ tr('Disbursement Charges') }}
@@ -415,114 +415,54 @@
           </table>
         </div>
 
-        <details v-if="charges.length" class="ie-gl">
-          <summary>
-            <span class="fa fa-book" aria-hidden="true"></span>{{ tr('GL Entries') }}
-            <span class="ie-count">{{ glEntries.length }}</span>
-            <span v-if="payment?.glTranSetId" class="ie-ts">{{ tr('GL Tran Set ID') }} <b>{{ payment.glTranSetId }}</b></span>
-            <span v-else class="ie-ts">{{ tr('Posted when the step is completed') }}</span>
-          </summary>
-          <div v-if="!glEntries.length" class="fx-empty">{{ tr('No GL lines are set up for these charges. Run the charges GL setup script.') }}</div>
-          <div v-for="j in glJournals" :key="j.no" class="ie-journal">
-            <h3 class="ie-subhead">{{ tr('Journal') }} {{ j.no }} · {{ tr(j.no === 1 ? 'Charges' : j.no === 2 ? 'Charges Payment' : 'Other') }}</h3>
-            <div class="fx-table-wrap">
-              <table class="fx-table ie-tbl">
-                <thead>
-                  <tr><th>{{ tr('Account') }}</th><th>{{ tr('Account Name') }}</th><th>{{ tr('Charge') }}</th>
-                    <th class="fx-r">{{ tr('Debit') }}</th><th class="fx-r">{{ tr('Credit') }}</th></tr>
-                </thead>
-                <tbody>
-                  <tr v-for="l in j.lines" :key="`${l.chargeCode}-${l.lineNo}`">
-                    <td><b class="ie-acct">{{ l.accountCode ?? '–' }}</b></td>
-                    <td :class="{ 'ie-cr': l.debitCreditCode === 'C' }">{{ l.accountName ?? '–' }}</td>
-                    <td><span class="ie-code">{{ l.chargeCode }}</span></td>
-                    <td class="fx-r">{{ l.debitCreditCode === 'D' ? formatAmount(l.amount) : '' }}</td>
-                    <td class="fx-r">{{ l.debitCreditCode === 'C' ? formatAmount(l.amount) : '' }}</td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr><td colspan="3">{{ tr('Total') }}</td><td class="fx-r"><b>{{ formatAmount(j.debit) }}</b></td><td class="fx-r"><b>{{ formatAmount(j.credit) }}</b></td></tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        </details>
       </section>
 
-      <!-- Charges Payment (agreed with Ahmed, 1 Nov 2026): on the draft the user ticks the customer's payment sources that pay the charges;
-           Complete pays from them in that order, and the payments show here once it ran -->
-      <section v-if="charges.length || payment?.payments.length" class="col-sec">
+      <!-- Customer Claim (Ahmed, 2 Nov 2026): the charges are not paid here. Create Claim claims them from the customer; Collection
+           (Customer Payments) pays the claim and posts its GL. CLAIM_STATUS_CODE is kept on the request; Complete needs it Paid. -->
+      <section v-if="charges.length || claim?.claim" class="col-sec">
         <h2>
-          <span class="fa fa-money" aria-hidden="true"></span>{{ tr('Charges Payment') }}
-          <span v-if="posted" class="fx-chip fx-chip--teal ie-chip">{{ tr('Paid') }}</span>
-          <span v-else class="fx-chip ie-chip" :class="cover.short > 0 ? 'fx-chip--warn' : 'fx-chip--teal'">
-            {{ tr(cover.short > 0 ? 'Not Covered' : 'Covered') }}</span>
-          <span v-if="payment?.glTranSetId" class="ie-ts"><span class="fa fa-book" aria-hidden="true"></span>{{ tr('GL Tran Set ID') }}
-            <b>{{ payment.glTranSetId }}</b></span>
+          <span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Customer Claim') }}
+          <span class="fx-chip ie-chip" :class="claimTone">{{ tr(claimLabel) }}</span>
+          <b v-if="claim?.claim" class="ie-ts">{{ claim.claim.claim.claimNumber }}</b>
         </h2>
         <div class="ie-totals ie-totals--3">
-          <div><small>{{ tr('Total Charges') }}</small><b>{{ formatAmount(posted ? payment!.totalCharges : chargeTotals.total) }}</b></div>
-          <div><small>{{ tr(posted ? 'Paid' : 'Chosen Sources Cover') }}</small><b class="ie-net">{{ formatAmount(posted ? payment!.paidAmount : cover.covered) }}</b></div>
-          <div><small>{{ tr(posted ? 'Outstanding' : 'Still to Cover') }}</small>
-            <b :class="{ 'ie-due': (posted ? payment!.outstandingAmount : cover.short) > 0 }">{{ formatAmount(posted ? payment!.outstandingAmount : cover.short) }}</b></div>
+          <div><small>{{ tr('Claim Total') }}</small><b>{{ formatAmount(claim?.claim ? claim.claim.claim.totalAmount : chargeTotals.total) }}</b></div>
+          <div><small>{{ tr('Paid') }}</small><b class="ie-net">{{ formatAmount(claim?.claim?.claim.paidAmount ?? 0) }}</b></div>
+          <div><small>{{ tr('Outstanding') }}</small>
+            <b :class="{ 'ie-due': claimOutstanding > 0 }">{{ formatAmount(claimOutstanding) }}</b></div>
         </div>
+        <p class="ie-hint"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr(claimHint) }}</p>
 
-        <template v-if="!posted">
-          <p class="ie-hint"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Tick the sources that pay the charges. Complete pays from them in the order ticked.') }}</p>
-          <div class="fx-table-wrap">
-            <table class="fx-table ie-tbl">
-              <thead>
-                <tr>
-                  <th class="ie-tick"><span class="fx-sr">{{ tr('Use') }}</span></th>
-                  <th>{{ tr('Repayment No.') }}</th><th>{{ tr('Source') }}</th><th>{{ tr('Reference') }}</th><th>{{ tr('Value Date') }}</th>
-                  <th class="fx-r">{{ tr('Amount') }}</th><th class="fx-r">{{ tr('Used') }}</th><th class="fx-r">{{ tr('Available') }}</th>
-                  <th class="fx-r">{{ tr('Order') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="src in payment?.sources ?? []" :key="src.repaymentSourceId" :class="{ 'is-chosen': chosen.includes(src.repaymentSourceId) }">
-                  <td class="ie-tick"><input :id="`src-${src.repaymentSourceId}`" type="checkbox" :checked="chosen.includes(src.repaymentSourceId)"
-                                            :disabled="readOnly" @change="toggleSource(src.repaymentSourceId)"></td>
-                  <td><label :for="`src-${src.repaymentSourceId}`"><b>{{ src.repaymentNumber }}</b></label></td>
-                  <td>{{ tr(sourceLabel(src.sourceType)) }}</td>
-                  <td>{{ src.reference || '–' }}</td>
-                  <td>{{ formatDate(src.valueDate) }}</td>
-                  <td class="fx-r">{{ formatAmount(src.sourceAmount) }}</td>
-                  <td class="fx-r">{{ formatAmount(src.usedAmount) }}</td>
-                  <td class="fx-r"><b>{{ formatAmount(src.availableAmount) }}</b></td>
-                  <td class="fx-r">{{ chosen.includes(src.repaymentSourceId) ? chosen.indexOf(src.repaymentSourceId) + 1 : '' }}</td>
-                </tr>
-                <tr v-if="!payment?.sources.length">
-                  <td colspan="9" class="fx-empty">{{ tr('This customer has no payment source with balance. Record the customer\'s payment (collected cheque or bank transfer) first.') }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </template>
-
-        <template v-if="payment?.payments.length">
+        <template v-if="claim?.claim?.payments.length">
           <h3 class="ie-subhead">{{ tr('Payments') }}</h3>
           <div class="fx-table-wrap">
             <table class="fx-table ie-tbl">
               <thead>
                 <tr>
-                  <th>{{ tr('Charge') }}</th><th>{{ tr('Repayment No.') }}</th><th>{{ tr('Source') }}</th><th>{{ tr('Reference') }}</th>
-                  <th>{{ tr('Date') }}</th><th class="fx-r">{{ tr('Amount') }}</th>
+                  <th>{{ tr('Date') }}</th><th>{{ tr('Repayment No.') }}</th><th>{{ tr('Source') }}</th><th>{{ tr('Reference') }}</th>
+                  <th class="fx-r">{{ tr('Amount') }}</th><th>{{ tr('GL Tran Set ID') }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="p in payment.payments" :key="p.allocationId">
-                  <td><b>{{ p.ruleCode }}</b></td>
+                <tr v-for="p in claim.claim.payments" :key="p.claimPaymentId">
+                  <td>{{ formatDate(p.paymentDate) }}</td>
                   <td>{{ p.repaymentNumber }}</td>
                   <td>{{ tr(sourceLabel(p.sourceType)) }}</td>
                   <td>{{ p.reference || '–' }}</td>
-                  <td>{{ formatDate(p.allocationDate) }}</td>
-                  <td class="fx-r"><b>{{ formatAmount(p.amount) }}</b></td>
+                  <td class="fx-r"><b>{{ formatAmount(p.paymentAmount) }}</b></td>
+                  <td><b class="ie-acct">{{ p.glTranSetId || '–' }}</b></td>
                 </tr>
               </tbody>
             </table>
           </div>
         </template>
+
+        <div v-if="!readOnly && !posted" class="col-actions ie-buttons">
+          <button v-if="!claim?.claim" type="button" class="fx-btn fx-btn--primary" :disabled="busy || previewing || !charges.length" @click="createClaim">
+            <span class="fa fa-flag" aria-hidden="true"></span>{{ tr('Create Claim') }}</button>
+          <button v-else-if="claim.claim.claim.paidAmount === 0" type="button" class="fx-btn" :disabled="busy" @click="cancelClaim">
+            <span class="fa fa-times" aria-hidden="true"></span>{{ tr('Cancel Claim') }}</button>
+        </div>
       </section>
 
       <section class="col-sec">
@@ -564,7 +504,7 @@
 
       <!-- the page only saves a draft; the step's Complete (top of the page) does all the work (agreed with Ahmed, 1 Nov 2026) -->
       <div v-if="!readOnly && !posted" class="col-actions ie-buttons">
-        <span class="ie-foot-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Save Draft keeps your work. Complete calculates, pays the charges, loads the cheques into the wallet and posts the GL.') }}</span>
+        <span class="ie-foot-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Save Draft keeps your work. Complete needs the charges\' claim paid; it then loads the cheques into the wallet.') }}</span>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="apply"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save Draft') }}</button>
       </div>
     </div>
@@ -586,7 +526,7 @@ import { formatDate } from '@/shared/format/datetime'
 import { fieldErrors, messageOf } from '@/modules/collection/pages/collection'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
 import {
-  chargePaymentApi, invoiceEntryApi, processApi, type ChargePayment, type ChequeRow, type DisbursementResult, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry,
+  disbursementClaimApi, invoiceEntryApi, processApi, type ChequeRow, type DisbursementClaim, type DisbursementResult, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry,
   type InvoiceEntrySave, type InvoiceRow, type InvoiceSummary
 } from '../api/invoiceEntry.api'
 
@@ -629,18 +569,27 @@ const summary = ref<InvoiceSummary | null>(null)
 const result = ref<DisbursementResult | null>(null)
 const charges = computed(() => result.value?.charges ?? [])
 const schedule = computed(() => result.value?.schedule ?? [])
-const payment = ref<ChargePayment | null>(null)
-const posted = computed(() => !!payment.value?.glTranSetId)
-// the payment sources ticked for the charges, in the order ticked (saved with the draft)
-const chosen = ref<number[]>([])
-const toggleSource = (id: number) => {
-  chosen.value = chosen.value.includes(id) ? chosen.value.filter((x) => x !== id) : [...chosen.value, id]
+// the request's claim of its charges (CLAIM_STATUS_CODE and the claim); Complete needs it Paid
+const claim = ref<DisbursementClaim | null>(null)
+const posted = computed(() => !!claim.value?.isCompleted)
+const CLAIM_LABELS: Record<string, string> = {
+  NOT_CREATED: 'Claim Not Created', CREATED_UNPAID: 'Claim Created (Unpaid)', PARTIALLY_PAID: 'Claim Partially Paid', PAID: 'Claim Paid'
 }
+const claimStatus = computed(() => claim.value?.claimStatusCode ?? 'NOT_CREATED')
+const claimLabel = computed(() => CLAIM_LABELS[claimStatus.value] ?? claimStatus.value)
+const claimTone = computed(() => claimStatus.value === 'PAID' ? 'fx-chip--teal' : claimStatus.value === 'NOT_CREATED' ? '' : 'fx-chip--warn')
+const claimOutstanding = computed(() => claim.value?.claim ? claim.value.claim.claim.outstandingAmount : chargeTotals.value.total)
+const claimHint = computed(() => ({
+  NOT_CREATED: 'The charges are paid by the customer through a claim. Create Claim saves and processes the request, then claims its charges.',
+  CREATED_UNPAID: 'The claim is paid in Collection and Repayments (Customer Payments), or from the Claims tab of the Factoring Workspace. Charges are locked; cancel the claim to change them.',
+  PARTIALLY_PAID: 'The claim is partly paid. Complete is possible once it is fully paid in Collection and Repayments.',
+  PAID: 'The claim is paid. The step can be completed.'
+} as Record<string, string>)[claimStatus.value] ?? '')
 const SOURCE_LABELS: Record<string, string> = { CHEQUE: 'Collected Cheque', BANK_TRANSFER: 'Bank Transfer', CREDIT_BALANCE: 'Credit Balance' }
 const sourceLabel = (t: string) => SOURCE_LABELS[t] ?? t
 const CHEQUE_STATUS: Record<string, string> = { DRAFT: 'Draft', IN_WALLET: 'In Wallet', CANCELLED: 'Cancelled' }
 const chequeStatus = (code: string) => CHEQUE_STATUS[code] ?? code
-const completeNote = 'Your draft is saved, then in one step: the charges and repayment schedule are calculated, the charges are paid from the ticked sources, the cheques are loaded into the wallet and all GL is posted under one GL Tran Set ID. If any step fails, nothing is posted and only the draft stays.'
+const completeNote = 'Your draft is saved, then in one step: the request is processed, the charges\' claim must be paid, and the cheques are loaded into the wallet with their memo GL entry. If any step fails, only the draft stays.'
 const options = reactive<InvoiceEntry['options']>({ clients: [], limits: [], currencies: [], products: [], reverseProductIds: [] })
 const invoices = ref<InvoiceRow[]>([])
 // Reverse factoring: Invoices Gross Amount follows the invoices grid, the total of the rows marked Eligible (0 when none are loaded)
@@ -706,20 +655,6 @@ const chargeTotals = computed(() => ({
   tax: round2(charges.value.reduce((t, c) => t + c.taxAmount, 0)) ?? 0,
   total: round2(charges.value.reduce((t, c) => t + c.totalAmount, 0)) ?? 0
 }))
-// what the ticked sources cover of the charges still owed
-const cover = computed(() => {
-  const owed = Math.max(chargeTotals.value.total - (payment.value?.paidAmount ?? 0), 0)
-  const available = (payment.value?.sources ?? []).filter((x) => chosen.value.includes(x.repaymentSourceId)).reduce((t, x) => t + x.availableAmount, 0)
-  const covered = round2(Math.min(owed, available)) ?? 0
-  return { covered, short: round2(owed - covered) ?? 0 }
-})
-const glEntries = computed(() => result.value?.glEntries ?? [])
-const glJournals = computed(() => [...new Set(glEntries.value.map((l) => l.journalNo))].sort((a, b) => a - b).map((no) => {
-  const lines = glEntries.value.filter((l) => l.journalNo === no)
-  const side = (dc: string) => round2(lines.filter((l) => l.debitCreditCode === dc).reduce((t, l) => t + l.amount, 0)) ?? 0
-  return { no, lines, debit: side('D'), credit: side('C') }
-}))
-
 // show() fills the page from the server: the values it shows are the base, and only a change from them starts a charges preview
 let shownKey = ''
 function show(page: InvoiceEntry) {
@@ -740,14 +675,13 @@ async function load() {
   ready.value = false
   errors.value = {}
   try {
-    const [page, processed, paid] = await Promise.all([
-      invoiceEntryApi.get(props.disbursementId), processApi.result(props.disbursementId), chargePaymentApi.get(props.disbursementId)
+    const [page, processed, claimed] = await Promise.all([
+      invoiceEntryApi.get(props.disbursementId), processApi.result(props.disbursementId), disbursementClaimApi.get(props.disbursementId)
     ])
     show(page)
     result.value = processed
-    payment.value = paid
-    chosen.value = [...paid.chosenSourceIds]
-    if (!paid.glTranSetId && !processed.charges.length && terms.productId != null) void nextTick(previewCharges)
+    claim.value = claimed
+    if (!claimed.isCompleted && !processed.charges.length && terms.productId != null) void nextTick(previewCharges)
   } catch (err) {
     showError(messageOf(err))
   } finally {
@@ -828,7 +762,6 @@ const payload = (): InvoiceEntrySave => ({
   cheques: cheques.value.filter((c) => (chequeFile.value && chequesPreviewed.value && c.statusCode === 'DRAFT') || changedCheques.has(c.chequeId))
     .map((c) => ({ ...c, chequeAmount: Number(c.chequeAmount), depositBankAccountId: num(c.depositBankAccountId) })),
   deletedChequeIds: deletedCheques.value,
-  chargeSourceIds: chosen.value,
   invoicesPreviewed: !!invoiceFile.value && invoicesPreviewed.value,
   chequesPreviewed: !!chequeFile.value && chequesPreviewed.value
 })
@@ -883,6 +816,24 @@ async function setFile(kind: 'inv' | 'chq', file: File | null) {
     void previewCharges()
   })
 }
+
+// Create Claim: the page is saved and processed, then its charges are claimed from the customer (Ahmed, 2 Nov 2026)
+const createClaim = () => check() && run(async () => {
+  if (invoiceFile.value || chequeFile.value) await saveDraft()
+  claim.value = await disbursementClaimApi.create(props.disbursementId, payload())
+  const [page, processed] = await Promise.all([invoiceEntryApi.get(props.disbursementId), processApi.result(props.disbursementId)])
+  show(page)
+  result.value = processed
+  showSuccess(tr('Claim {0} created.').replace('{0}', claim.value.claim?.claim.claimNumber ?? ''))
+})
+
+// Cancel Claim, while nothing of it is paid: the charges can change again
+const cancelClaim = () => claim.value?.claim && run(async () => {
+  const no = claim.value!.claim!.claim.claimNumber
+  if (!window.confirm(tr('Cancel claim {0}?').replace('{0}', no))) return
+  claim.value = await disbursementClaimApi.cancel(props.disbursementId, claim.value!.claim!.claim.claimId)
+  showSuccess(tr('Claim {0} cancelled.').replace('{0}', no))
+})
 
 // the step's Complete saves the draft first, files included
 const saveForStep = async () => (readOnly.value ? true : check() && (await run(async () => {

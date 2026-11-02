@@ -4,6 +4,7 @@ using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Adm.Products;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Chq.Packages;
+using Capitra.Application.Modules.Fct;
 using Capitra.Application.Modules.Gl;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Chq;
@@ -13,18 +14,17 @@ using Microsoft.EntityFrameworkCore;
 namespace Capitra.Application.Modules.Crm;
 
 /// <summary>
-/// Complete of the Invoice Upload step (agreed with Ahmed, 1 Nov 2026): until then the page only saves a draft; Complete does all the
-/// work in the completion's one transaction, so a failure anywhere leaves only the draft:
-/// 1. the request is processed (invoices checked, charges and repayment schedule calculated);
-/// 2. the charges are paid from the payment sources chosen on the draft, in their order, and must be fully paid;
+/// Complete of the Invoice Upload step (agreed with Ahmed, 1 Nov 2026; the charges by claim, 2 Nov 2026): until then the page only saves a
+/// draft; Complete does all the work in the completion's one transaction, so a failure anywhere leaves only the draft:
+/// 1. the request is processed (invoices checked, charges and repayment schedule calculated; claimed charges are kept);
+/// 2. when there are charges, their claim must be PAID (Create Claim on this page, paid in Collection, which posts the charges' GL);
 /// 3. the draft cheques are loaded into the cheques wallet (CHQ_CHEQUES, a RECEIVED event each);
-/// 4. one GL transaction set holds every journal: the charges (journal 1 DR customer receivable / CR fee income), their payment
-///    (journal 2 DR customer unallocated receipts / CR customer receivable) and the cheques' memo entry (the rule's CHEQUE_AMOUNT lines);
-/// 5. the request, its charges and its cheques keep the transaction set ID.
+/// 4. the cheques' memo entry (the rule's CHEQUE_AMOUNT lines) is posted under one GL transaction set of the product, kept on the
+///    request and its cheques.
 /// </summary>
 public sealed class CrmDisbursementCompletionService(
     ICapitraDbContext db, ICurrentUser currentUser, IClock clock, CrmInvoiceEntryService entry, CrmDisbursementProcessService process,
-    CrmDisbursementChargePaymentService payments, ProductActionPosting posting, AdmProductEventRuleService rules, ChqEventPackage events)
+    ProductActionPosting posting, AdmProductEventRuleService rules, ChqEventPackage events)
 {
     private const long LegalEntityId = 1;
 
@@ -36,27 +36,21 @@ public sealed class CrmDisbursementCompletionService(
         var batch = await db.Set<FctInvoiceBatch>().Where(x => x.DisbursementId == disbursementId).OrderByDescending(x => x.BatchId)
             .FirstOrDefaultAsync(cancellationToken);
 
-        // 1. process, unless an earlier Process already paid charges (those are kept as they are)
+        // 1. process (charges of a claim are kept; charges paid before claims existed are kept as they are)
+        var claim = await db.Set<FctCustomerClaim>().AsNoTracking()
+            .Where(x => x.DisbursementId == disbursementId && x.StatusCode != FctCustomerClaim.Cancelled)
+            .OrderByDescending(x => x.ClaimId).FirstOrDefaultAsync(cancellationToken);
         var actioned = await db.Set<FctDisbursementCharge>().AnyAsync(x => x.DisbursementId == disbursementId && x.StatusCode != "CALCULATED"
             && x.StatusCode != "CANCELLED" && x.StatusCode != "REVERSED", cancellationToken);
-        if (!(actioned && d.StatusCode == "PROCESSED")) await process.ProcessCoreAsync(d, batch, cancellationToken);
+        if (!(claim is null && actioned && d.StatusCode == "PROCESSED")) await process.ProcessCoreAsync(d, batch, cancellationToken);
 
-        // 2. pay the charges from the chosen sources
-        var charges = (await db.Set<FctDisbursementCharge>().Where(x => x.DisbursementId == disbursementId).OrderBy(x => x.DisbursementChargeId)
-            .ToListAsync(cancellationToken)).Where(CrmDisbursementChargePaymentService.Owed).ToList();
-        var chosen = await db.Set<FctDisbursementChargeSource>().AsNoTracking().Where(x => x.DisbursementId == disbursementId)
-            .OrderBy(x => x.SortOrder).Select(x => x.RepaymentSourceId).ToListAsync(cancellationToken);
-        foreach (var sourceId in chosen)
-        {
-            if (charges.Sum(CrmDisbursementChargePaymentService.Outstanding) <= 0) break;
-            await payments.PayCoreAsync(d, sourceId, false, cancellationToken);
-        }
-
-        var outstanding = charges.Sum(CrmDisbursementChargePaymentService.Outstanding);
-        if (outstanding > 0)
-            throw new BusinessRuleException(chosen.Count == 0
-                ? $"Choose the payment sources for the charges: {outstanding:#,##0.00} is to be paid."
-                : $"The chosen payment sources do not cover the charges: {outstanding:#,##0.00} is still to be paid. Choose another source.");
+        // 2. the charges must be claimed and the claim paid
+        var owed = (await db.Set<FctDisbursementCharge>().Where(x => x.DisbursementId == disbursementId).ToListAsync(cancellationToken))
+            .Where(FctCustomerClaimService.Owed).ToList();
+        if (owed.Sum(FctCustomerClaimService.Outstanding) > 0)
+            throw new BusinessRuleException(claim is null
+                ? $"The charges ({owed.Sum(x => x.TotalAmount):#,##0.00}) are not claimed yet. Create the claim; Complete is possible once it is paid."
+                : $"Claim {claim.ClaimNumber} is not fully paid: {claim.TotalAmount - claim.PaidAmount:#,##0.00} is still to be paid in Collection.");
 
         // 3. the draft cheques into the wallet
         var drafts = batch is null ? [] : await entry.Cheques(batch.BatchId, disbursementId)
@@ -64,37 +58,29 @@ public sealed class CrmDisbursementCompletionService(
         var loaded = await LoadToWalletAsync(d, drafts, cancellationToken);
         var chequeTotal = drafts.Sum(x => x.ChequeAmount);
 
-        // 4. one GL transaction set for the charges, their payment and the cheques' memo entry
-        var ruleId = charges.FirstOrDefault()?.ProductEventRuleId;
-        if (ruleId is null && chequeTotal == 0) return;
+        // 4. the cheques' memo entry
+        if (chequeTotal == 0) return;
+
         var product = await db.Set<AdmProduct>().AsNoTracking().FirstAsync(x => x.ProductId == d.ProductId, cancellationToken);
         if (string.IsNullOrWhiteSpace(product.GlTranSetCode))
-            throw new BusinessRuleException($"Product {product.ProductCode} has no GL Tran Set Code. Run setup-product-transet-codes.sql.");
+            throw new BusinessRuleException($"Product {product.ProductCode} has no GL Tran Set Code.");
         var date = GlTime.Today(clock);
+        var ruleId = owed.FirstOrDefault()?.ProductEventRuleId ?? claim?.ProductEventRuleId;
         var plan = ruleId is { } id
             ? await rules.PlanOfRuleAsync(id, date, cancellationToken)
             : await process.PlanOfRequestAsync(d, cancellationToken);
-        if (plan is null) throw new BusinessRuleException($"The product rule of the charges is not in effect on {date:yyyy-MM-dd}.");
-
-        var byCharge = charges.GroupBy(x => x.RuleCode).ToDictionary(x => x.Key, x => x.Sum(c => c.ChargeAmount));
-        var missing = byCharge.Where(x => x.Value != 0 && !plan.Lines.Any(l => l.ChargeCode == x.Key)).Select(x => x.Key).ToList();
-        if (missing.Count > 0)
-            throw new BusinessRuleException($"Charges {string.Join(", ", missing)} have no GL lines on rule {plan.RuleCode}. Run setup-charges-payment.sql.");
-        if (chequeTotal > 0 && !plan.Lines.Any(l => l.ChargeCode is null && l.AmountCode == "CHEQUE_AMOUNT"))
+        if (plan is null) throw new BusinessRuleException($"The product rule of the request is not in effect on {date:yyyy-MM-dd}.");
+        if (!plan.Lines.Any(l => l.ChargeCode is null && l.AmountCode == "CHEQUE_AMOUNT"))
             throw new BusinessRuleException($"Rule {plan.RuleCode} has no memo GL lines for the cheques (amount CHEQUE_AMOUNT). Run setup-charges-payment.sql.");
 
-        decimal AmountOf(ProductEventGlLine l) =>
-            l.ChargeCode is { } code ? (byCharge.TryGetValue(code, out var a) && l.AmountCode is "CHARGE_AMOUNT" or "CHARGE_IMMEDIATE" ? a : 0)
-            : l.AmountCode == "CHEQUE_AMOUNT" ? chequeTotal : 0;
-        var lines = ProductEventPosting.Build(plan, AmountOf, null);
-        if (lines.Count == 0) return;
+        var lines = ProductEventPosting.Build(plan, l => l.ChargeCode is null && l.AmountCode == "CHEQUE_AMOUNT" ? chequeTotal : 0, null);
         var no = d.DisbursementNumber;
         string ts;
         try
         {
-            ts = await posting.PostLinesAsync(plan, lines, product.GlTranSetCode.Trim().ToUpperInvariant(), "Disbursement charges and cheques", "3100",
+            ts = await posting.PostLinesAsync(plan, lines, product.GlTranSetCode.Trim().ToUpperInvariant(), "Disbursement cheques", "3100",
                 "FACTORING", new ProductActionDocument("FCT_DISBURSEMENT", d.DisbursementId.ToString(CultureInfo.InvariantCulture), no, date, null,
-                    $"Disbursement request {no}: charges, their payment and {drafts.Count} cheque(s) received in the wallet"), cancellationToken);
+                    $"Disbursement request {no}: {drafts.Count} cheque(s) received in the wallet"), cancellationToken);
         }
         catch (ApexProcessException ex)
         {
@@ -102,18 +88,12 @@ public sealed class CrmDisbursementCompletionService(
             throw new BusinessRuleException($"GL posting failed, nothing was completed: {ex.Message}");
         }
 
-        // 5. the transaction set ID on the request, its charges and its cheques
+        // the transaction set ID on the request and its cheques
         var now = clock.UtcNow;
         d.GlTranSetId = ts;
         d.IsGlPosted = true;
         d.GlPostingDate = date;
         d.GlJournalRef = ts;
-        foreach (var c in charges)
-        {
-            c.IsGlPosted = true;
-            c.GlJournalRef = ts;
-        }
-
         foreach (var c in loaded)
         {
             c.IsGlPosted = true;

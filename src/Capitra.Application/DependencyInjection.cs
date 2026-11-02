@@ -25,7 +25,7 @@ public static class DependencyInjection
         services.AddScoped<Modules.Crm.CrmDisbursementRequestService>();
         services.AddScoped<Modules.Crm.CrmInvoiceEntryService>();
         services.AddScoped<Modules.Crm.CrmDisbursementProcessService>();
-        services.AddScoped<Modules.Crm.CrmDisbursementChargePaymentService>();
+        services.AddScoped<Modules.Fct.FctCustomerClaimService>();
         services.AddScoped<Modules.Crm.CrmDisbursementCompletionService>();
         services.AddScoped<Modules.Wfe.IWfeTaskCompletionHandler, Modules.Crm.CrmInvoiceUploadCompletionHandler>();
         services.AddScoped<Modules.Fct.FctCollectionRepaymentService>();

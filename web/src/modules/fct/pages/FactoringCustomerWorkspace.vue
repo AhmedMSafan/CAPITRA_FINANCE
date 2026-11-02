@@ -199,10 +199,39 @@
         <div v-if="!disbursements.length" class="fx-empty"><span class="fa fa-exchange" aria-hidden="true"></span>{{ tr('Disbursement data will be available here.') }}</div>
       </div>
 
-      <!-- FINOVA shows this tab as a placeholder -->
-      <div v-else class="fx-empty">
-        <span class="fa" :class="tabs.find((t) => t.key === tab)?.icon" aria-hidden="true"></span>
-        {{ tr('Claims data will be available here.') }}
+      <!-- the customer's claims of disbursement charges (Ahmed, 2 Nov 2026): Pay opens Customer Payments in Collection for the claim -->
+      <div v-else class="fx-table-wrap">
+        <table class="fx-table">
+          <thead>
+            <tr>
+              <th>{{ tr('Claim No') }}</th><th>{{ tr('Date') }}</th><th>{{ tr('Disbursement No') }}</th><th>{{ tr('Currency') }}</th>
+              <th class="fx-r">{{ tr('Claim Total') }}</th><th class="fx-r">{{ tr('Paid') }}</th><th class="fx-r">{{ tr('Outstanding') }}</th>
+              <th>{{ tr('Status') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="c in claims" :key="c.claimId">
+              <td><b class="fc-ref">{{ c.claimNumber }}</b></td>
+              <td>{{ date(c.claimDate) }}</td>
+              <td>
+                <RouterLink :to="{ name: 'crm-disbursement-request', params: { disbursementId: c.disbursementId } }">{{ c.disbursementNumber }}</RouterLink>
+              </td>
+              <td>{{ c.currencyCode || '-' }}</td>
+              <td class="fx-r">{{ amount(c.totalAmount) }}</td>
+              <td class="fx-r">{{ amount(c.paidAmount) }}</td>
+              <td class="fx-r"><b>{{ c.statusCode === 'CANCELLED' ? '-' : amount(c.outstandingAmount) }}</b></td>
+              <td><span class="fx-chip" :class="claimTone(c.statusCode)">{{ tr(claimLabel(c.statusCode)) }}</span></td>
+              <td class="fx-r">
+                <RouterLink v-if="canPay && (c.statusCode === 'OPEN' || c.statusCode === 'PARTIALLY_PAID')" class="fx-btn fx-btn--primary fx-btn--sm"
+                            :to="{ name: 'collection-customer-payments', query: { clientId: c.clientId, claimId: c.claimId } }"
+                            :title="tr('Pay')" :aria-label="`${tr('Pay')} ${c.claimNumber}`">
+                  <span class="fa fa-money" aria-hidden="true"></span>{{ tr('Pay') }}
+                </RouterLink>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-if="!claims.length" class="fx-empty"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Claims data will be available here.') }}</div>
       </div>
 
       <div class="fc-foot">
@@ -241,6 +270,7 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { useFeedback } from '@/shared/feedback/useFeedback'
 import { hasPermission } from '@/shared/auth/session'
 import { disbursementApi, type DisbursementRequestRow } from '@/modules/crm/api/disbursement.api'
+import type { ClaimRow } from '@/modules/crm/api/invoiceEntry.api'
 import { fctApi, fctApplicationsApi, type FctAgreement, type FctApplication, type FctCreditLimit, type FctCustomerDetails } from '../api/fct.api'
 
 const props = defineProps<{ clientId: string }>()
@@ -261,7 +291,13 @@ const loading = ref(false)
 const error = ref('')
 useFeedback({ errors: [error] })
 // the request page comes back here on its Disbursements tab
-const tab = ref<Tab>(route.query.tab === 'disbursements' ? 'disbursements' : 'applications')
+const tab = ref<Tab>(route.query.tab === 'disbursements' || route.query.tab === 'claims' ? route.query.tab : 'applications')
+const claims = ref<ClaimRow[]>([])
+// claims are paid in Collection and Repayments
+const canPay = hasPermission('COLLECTION.EDIT')
+const CLAIM_LABELS: Record<string, string> = { OPEN: 'Unpaid', PARTIALLY_PAID: 'Partially Paid', PAID: 'Paid', CANCELLED: 'Cancelled' }
+const claimLabel = (s: string) => CLAIM_LABELS[s] ?? s
+const claimTone = (s: string) => (s === 'PAID' ? 'fx-chip--ok' : s === 'CANCELLED' ? 'fx-chip--bad' : 'fx-chip--warn')
 const canEdit = computed(() => hasPermission('FCT.EDIT'))
 // disbursement requests are CRM's (api/crm/disbursement-requests)
 const canRequest = hasPermission('CRM.EDIT')
@@ -288,11 +324,11 @@ const tabs = computed(() => [
   { key: 'agreements' as const, label: 'Agreements', count: agreements.value.length, icon: 'fa-handshake-o' },
   { key: 'limits' as const, label: 'Limits', count: limits.value.length, icon: 'fa-database' },
   { key: 'disbursements' as const, label: 'Disbursements', count: disbursements.value.length, icon: 'fa-exchange' },
-  { key: 'claims' as const, label: 'Claims', count: 0, icon: 'fa-flag-o' }
+  { key: 'claims' as const, label: 'Claims', count: claims.value.length, icon: 'fa-flag-o' }
 ])
 const rows = computed(() =>
   tab.value === 'applications' ? applications.value.length : tab.value === 'agreements' ? agreements.value.length : tab.value === 'limits' ? limits.value.length
-    : tab.value === 'disbursements' ? disbursements.value.length : 0)
+    : tab.value === 'disbursements' ? disbursements.value.length : claims.value.length)
 
 const amount = (v: number | null | undefined) =>
   v == null ? '-' : new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(v)
@@ -312,8 +348,8 @@ function tone(status: string | null | undefined) {
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 async function loadData(id: number) {
-  ;[client.value, applications.value, agreements.value, limits.value, disbursements.value] = await Promise.all([
-    fctApi.customer(id), fctApi.applications(id), fctApi.agreements(id), fctApi.creditLimits(id), disbursementApi.list(id)
+  ;[client.value, applications.value, agreements.value, limits.value, disbursements.value, claims.value] = await Promise.all([
+    fctApi.customer(id), fctApi.applications(id), fctApi.agreements(id), fctApi.creditLimits(id), disbursementApi.list(id), fctApi.claims(id)
   ])
   for (const a of applications.value) selected[a.offerId] = a.statusCode || ''
 }

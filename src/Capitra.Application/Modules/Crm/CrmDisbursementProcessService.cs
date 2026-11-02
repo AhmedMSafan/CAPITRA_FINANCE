@@ -37,7 +37,7 @@ public sealed record CrmDisbursementProcessedDto(CrmInvoiceEntryDto Page, CrmDis
 /// advance rate, every invoice must be ELIGIBLE or NOT_ELIGIBLE (with a reason) and one at least ELIGIBLE; then the charges
 /// (calculate_charges) and the repayment schedule (generate_repayment_schedule), and the request becomes PROCESSED. The charges
 /// come from the Capitra product event rule that the workflow's Invoice Upload step names (finova:ruleCode) on the request's
-/// product. The charge claim and its GL entries (FNV_GL_CHARGE_CLAIM_PKG) come later, with GL.
+/// product. The charges are claimed from the customer with Create Claim (FctCustomerClaimService) and paid in Collection.
 /// </summary>
 public sealed class CrmDisbursementProcessService(
     ICapitraDbContext db, ICurrentUser currentUser, IClock clock, CrmInvoiceEntryService entry, AdmProductEventRuleService rules)
@@ -71,7 +71,8 @@ public sealed class CrmDisbursementProcessService(
     public async Task<CrmDisbursementResultDto> PreviewAsync(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken,
         CrmUploadFile? invoiceFile = null, CrmUploadFile? chequeFile = null)
     {
-        if (await db.Set<FctDisbursementCharge>().AnyAsync(x => x.DisbursementId == disbursementId && x.StatusCode != "CALCULATED", cancellationToken))
+        if (await db.Set<FctDisbursementCharge>().AnyAsync(x => x.DisbursementId == disbursementId && x.StatusCode != "CALCULATED", cancellationToken)
+            || await LiveClaimAsync(disbursementId, cancellationToken) is not null)
             return await ResultAsync(disbursementId, cancellationToken);
         if (dto.Terms.ProductId is null) return new CrmDisbursementResultDto(null, 0, 0, null, null, null, [], [], [], true);
 
@@ -230,10 +231,12 @@ public sealed class CrmDisbursementProcessService(
         var tenorDays = Math.Max(maturity.DayNumber - d.DisbursementDate.DayNumber, 0);
         var net = approvedAdvance - (d.InterestDeducted ?? 0) - (d.OtherDeductions ?? 0);
 
-        if (await db.Set<FctDisbursementCharge>().AnyAsync(x => x.DisbursementId == d.DisbursementId
+        // once the charges are claimed from the customer they are kept: a new calculation must give the claim's amounts
+        var claim = await LiveClaimAsync(d.DisbursementId, cancellationToken);
+        if (claim is null && await db.Set<FctDisbursementCharge>().AnyAsync(x => x.DisbursementId == d.DisbursementId
                 && x.StatusCode != "CALCULATED" && x.StatusCode != "CANCELLED" && x.StatusCode != "REVERSED", cancellationToken))
             throw new BusinessRuleException("Charges already collected, waived or otherwise actioned cannot be recalculated.");
-        db.Set<FctDisbursementCharge>().RemoveRange(await db.Set<FctDisbursementCharge>().Where(x => x.DisbursementId == d.DisbursementId).ToListAsync(cancellationToken));
+        var fresh = new List<FctDisbursementCharge>();
 
         decimal? BaseOf(string code) => code switch
         {
@@ -270,7 +273,7 @@ public sealed class CrmDisbursementProcessService(
             var scale = Math.Clamp(c.RoundingScale, 0, 6);
             var tax = Math.Round(priced.Amount * c.TaxRate / 100, scale, MidpointRounding.AwayFromZero);
             var x = extras[c.RuleChargeId];
-            db.Add(new FctDisbursementCharge
+            fresh.Add(new FctDisbursementCharge
             {
                 DisbursementId = d.DisbursementId,
                 ProductEventRuleId = plan.ProductEventRuleId,
@@ -307,6 +310,22 @@ public sealed class CrmDisbursementProcessService(
                 financed += priced.Amount + tax;
         }
 
+        if (claim is null)
+        {
+            db.Set<FctDisbursementCharge>().RemoveRange(
+                await db.Set<FctDisbursementCharge>().Where(x => x.DisbursementId == d.DisbursementId).ToListAsync(cancellationToken));
+            db.Set<FctDisbursementCharge>().AddRange(fresh);
+        }
+        else
+        {
+            var claimed = await db.Set<FctCustomerClaimLine>().AsNoTracking().Where(x => x.ClaimId == claim.ClaimId)
+                .ToDictionaryAsync(x => x.ChargeCode, x => x.TotalAmount, cancellationToken);
+            var now2 = fresh.Where(x => x.TotalAmount > 0).GroupBy(x => x.RuleCode).ToDictionary(x => x.Key, x => x.Sum(c => c.TotalAmount));
+            if (claimed.Count != now2.Count || claimed.Any(x => now2.GetValueOrDefault(x.Key) != x.Value))
+                throw new BusinessRuleException(
+                    $"The charges are claimed from the customer (claim {claim.ClaimNumber}) and these changes would change them. Cancel the claim first.");
+        }
+
         d.ApprovedInvoiceAmount = approvedInvoice;
         d.ApprovedAdvanceAmount = approvedAdvance;
         d.FeeDeducted = Math.Round(deductedCharge, 3, MidpointRounding.AwayFromZero);
@@ -315,6 +334,11 @@ public sealed class CrmDisbursementProcessService(
             MidpointRounding.AwayFromZero);
         return financed;
     }
+
+    /// <summary>The request's claim of its charges that is not cancelled, if any.</summary>
+    private Task<FctCustomerClaim?> LiveClaimAsync(long disbursementId, CancellationToken cancellationToken) =>
+        db.Set<FctCustomerClaim>().AsNoTracking().Where(x => x.DisbursementId == disbursementId && x.StatusCode != FctCustomerClaim.Cancelled)
+            .OrderByDescending(x => x.ClaimId).FirstOrDefaultAsync(cancellationToken);
 
     /// <summary>The product event rule the Invoice Upload step names, on the request's product and date.</summary>
     internal Task<ProductEventPlan> PlanOfRequestAsync(FctDisbursement d, CancellationToken cancellationToken) => PlanAsync(d, cancellationToken);

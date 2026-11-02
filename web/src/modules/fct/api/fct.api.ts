@@ -1,5 +1,6 @@
 // Factoring customers and the Factoring Customer Workspace (api/fct/customers), from FINOVA_FINANCEING.
 import { http } from '@/shared/api/http'
+import type { ClaimRow } from '@/modules/crm/api/invoiceEntry.api'
 
 /** CRM_CLIENTS, as the Factoring home lists them */
 export type FctCustomer = {
@@ -78,7 +79,9 @@ export const fctApi = {
   customer: (id: number) => http.get<FctCustomerDetails>(`${API}/${id}`),
   applications: (id: number) => http.get<FctApplication[]>(`${API}/${id}/applications`),
   agreements: (id: number) => http.get<FctAgreement[]>(`${API}/${id}/agreements`),
-  creditLimits: (id: number) => http.get<FctCreditLimit[]>(`${API}/${id}/credit-limits`)
+  creditLimits: (id: number) => http.get<FctCreditLimit[]>(`${API}/${id}/credit-limits`),
+  // the Claims tab: the customer's claims of disbursement charges
+  claims: (id: number) => http.get<ClaimRow[]>(`${API}/${id}/claims`)
 }
 
 /** Calculator inputs; percentages as entered (90 means 90%) */

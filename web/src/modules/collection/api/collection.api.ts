@@ -1,5 +1,6 @@
 // Collection and Repayments (api/collection), from APEX App 136: repayment transactions (pages 5, 6, 7) and cheques collection (page 712).
 import { http } from '@/shared/api/http'
+import type { Claim, ClaimRow } from '@/modules/crm/api/invoiceEntry.api'
 
 export type Option = { value: string; label: string }
 
@@ -163,4 +164,26 @@ export const collectionApi = {
   applyResults: (rows: ChequeResult[]) => http.post<CollectionApplied>(`${base}/due-cheques/results`, rows),
   batches: () => http.get<CollectionBatch[]>(`${base}/batches`),
   batch: (id: number) => http.get<CollectionBatchView>(`${base}/batches/${id}`)
+}
+
+/** A payment source of the customer with balance left */
+export type ClaimSource = {
+  repaymentSourceId: number
+  repaymentNumber: string
+  sourceType: string
+  reference: string | null
+  valueDate: string
+  sourceAmount: number
+  usedAmount: number
+  availableAmount: number
+}
+
+/** Customer Payments: customer claims paid from the customer's payment sources */
+export const claimPaymentApi = {
+  customers: () => http.get<Option[]>(`${base}/claims/customers`),
+  claims: (clientId: number, openOnly = true) => http.get<ClaimRow[]>(`${base}/claims?clientId=${clientId}&openOnly=${openOnly}`),
+  claim: (claimId: number) => http.get<Claim>(`${base}/claims/${claimId}`),
+  sources: (clientId: number) => http.get<ClaimSource[]>(`${base}/claims/sources/${clientId}`),
+  pay: (claimId: number, repaymentSourceId: number, amount: number | null) =>
+    http.post<{ claim: Claim; message: string }>(`${base}/claims/${claimId}/pay`, { repaymentSourceId, amount })
 }

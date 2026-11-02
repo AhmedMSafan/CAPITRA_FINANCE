@@ -8,7 +8,7 @@ namespace Capitra.Api.Controllers.Fct;
 /// <summary>The Factoring customers and the Factoring Customer Workspace. Reading needs FCT.VIEW.</summary>
 [ApiController]
 [Route("api/fct/customers")]
-public sealed class FctWorkspaceController(FctWorkspaceService workspace) : ControllerBase
+public sealed class FctWorkspaceController(FctWorkspaceService workspace, FctCustomerClaimService claims) : ControllerBase
 {
     [HttpGet]
     [HasPermission(Permissions.Fct.View)]
@@ -32,4 +32,10 @@ public sealed class FctWorkspaceController(FctWorkspaceService workspace) : Cont
     [HasPermission(Permissions.Fct.View)]
     public Task<IReadOnlyList<FctCreditLimitDto>> CreditLimits(long clientId, CancellationToken cancellationToken) =>
         workspace.ListCreditLimitsAsync(clientId, cancellationToken);
+
+    /// <summary>The customer's claims (the Claims tab), newest first.</summary>
+    [HttpGet("{clientId:long}/claims")]
+    [HasPermission(Permissions.Fct.View)]
+    public Task<IReadOnlyList<FctClaimRowDto>> Claims(long clientId, CancellationToken cancellationToken) =>
+        claims.ListAsync(clientId, false, cancellationToken);
 }

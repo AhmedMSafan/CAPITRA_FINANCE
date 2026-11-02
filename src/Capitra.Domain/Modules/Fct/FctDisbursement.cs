@@ -124,6 +124,12 @@ public class FctDisbursement : AuditableEntity
     /// <summary>The GL transaction set ID Complete of the Invoice Upload step posted under, e.g. CAP-FRF-2026-00000001.</summary>
     public string? GlTranSetId { get; set; }
 
+    /// <summary>
+    /// The claim of the charges (Ahmed, 2 Nov 2026): NOT_CREATED, CREATED_UNPAID, PARTIALLY_PAID or PAID. Create Claim sets it and Collection
+    /// updates it as the claim is paid; Complete of the Invoice Upload step needs PAID when there are charges.
+    /// </summary>
+    public string ClaimStatusCode { get; set; } = "NOT_CREATED";
+
     public string? ProcessedBy { get; set; }
 
     public string? AuthorizedBy { get; set; }
