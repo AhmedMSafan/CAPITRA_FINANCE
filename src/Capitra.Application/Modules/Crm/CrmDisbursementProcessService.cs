@@ -184,16 +184,13 @@ public sealed class CrmDisbursementProcessService(
             .Select(x => new { x.ChequeNo, x.DueDate, x.ChequeAmount }).ToListAsync(cancellationToken);
         var cheques = chequeRows.Select(x => new CrmScheduleSource(x.DueDate, x.ChequeAmount)).ToList();
 
-        // reverse factoring: the schedule is the cheques, so every cheque must fall on an eligible invoice's due date
+        // reverse factoring: the schedule is the cheques' due dates and amounts
         var reverse = await entry.IsReverseAsync(d.ProductId, cancellationToken);
         DateOnly? maturity = null;
         if (reverse)
         {
+            // the invoices' dates play no part (Ahmed, 2 Nov 2026): the suppliers are paid now and the customer repays on its cheques' dates
             if (chequeRows.Count == 0) throw new BusinessRuleException("Reverse factoring: upload the cheques before processing. The repayment schedule is built from them.");
-            var invoiceDues = invoices.Select(x => x.Source.DueDate).ToHashSet();
-            var unmatched = chequeRows.Where(x => !invoiceDues.Contains(x.DueDate)).Select(x => $"{x.ChequeNo} ({x.DueDate:yyyy-MM-dd})").ToList();
-            if (unmatched.Count > 0)
-                throw new BusinessRuleException($"Reverse factoring: no eligible invoice is due on the date of cheque {string.Join(", ", unmatched)}.");
             maturity = chequeRows.Max(x => x.DueDate);
         }
 
