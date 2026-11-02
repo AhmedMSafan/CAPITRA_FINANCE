@@ -44,7 +44,7 @@ const buildFields = () => {
     { name: 'defaultCurrencyCode', label: 'Default Currency', type: 'select', options: currencies.value },
     { name: 'factoringModeCode', label: 'Factoring Mode Code', type: 'text', maxLength: 20, uppercase: true },
     { name: 'recourse', label: 'Recourse', type: 'select', options: RECOURSE },
-    { name: 'glTranSetCode', label: 'GL Tran Set Code', type: 'text', maxLength: 3, uppercase: true, readOnly: true },
+    { name: 'glTranSetCode', label: 'GL Tran Set Code', type: 'text', required: true, maxLength: 3, uppercase: true, lockedOnEdit: true },
     { name: 'effectiveFromDate', label: 'Effective From', type: 'date', required: true },
     { name: 'effectiveToDate', label: 'Effective To', type: 'date' }
   ]
@@ -54,9 +54,8 @@ buildFields()
 const toRow = (p: Product): ProductRow => ({ ...p, recourseLabel: p.isRecourse == null ? '' : p.isRecourse ? 'Y' : 'N' })
 
 const toBody = (v: FormValues, rowVersion: number | null) => {
-  // the GL Tran Set Code is display only: it is set by script
+  // the GL Tran Set Code is given once, with the new product; the server creates its counter and never changes it
   const { recourse, ...rest } = v
-  delete rest.glTranSetCode
   return { ...rest, isRecourse: recourse === 'Y' ? true : recourse === 'N' ? false : null, rowVersion }
 }
 

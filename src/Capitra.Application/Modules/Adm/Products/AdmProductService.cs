@@ -1,6 +1,7 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Domain.Modules.Adm;
+using Capitra.Domain.Modules.Gl;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Adm.Products;
@@ -13,7 +14,7 @@ public sealed record ProductDto(
 public sealed record SaveProductRequest(
     string? ProductCode, string? ProductNameEn, string? ProductNameAr, string? BusinessLineCode, string? ProductTypeCode,
     string? FactoringModeCode, bool? IsRecourse, string? DefaultCurrencyCode, DateOnly? EffectiveFromDate, DateOnly? EffectiveToDate,
-    bool IsActive, int? RowVersion);
+    bool IsActive, int? RowVersion, string? GlTranSetCode = null);
 
 public sealed record SaveMppParametersRequest(
     decimal? MppPvRate, decimal? MppLateFeeRate, decimal? MppReservedAmountPct, decimal? MppInvestorPaymentPct, int? RowVersion);
@@ -117,7 +118,37 @@ public sealed class AdmProductService(ICapitraDbContext db)
             e.Add(nameof(r.BusinessLineCode), "The selected business line does not exist.");
         if (currency is not null && !await db.Set<AdmLkpCurrency>().AnyAsync(x => x.CurrencyCode == currency, cancellationToken))
             e.Add(nameof(r.DefaultCurrencyCode), "The selected default currency does not exist.");
+
+        // the GL Tran Set Code is given once, when the product gets it, and never changes afterwards
+        string? tranSetCode = null;
+        if (entity.GlTranSetCode is null)
+        {
+            tranSetCode = e.Required(nameof(r.GlTranSetCode), "GL Tran Set Code", r.GlTranSetCode, 3, upper: true);
+            if (tranSetCode.Length > 0 && (tranSetCode.Length != 3 || !tranSetCode.All(c => c is >= 'A' and <= 'Z')))
+                e.Add(nameof(r.GlTranSetCode), "GL Tran Set Code must be 3 letters (A-Z).");
+            else if (tranSetCode.Length > 0
+                     && (await db.Set<AdmProduct>().AnyAsync(x => x.GlTranSetCode == tranSetCode && x.ProductId != entity.ProductId, cancellationToken)
+                         || await db.Set<GlTranSetSequence>().AnyAsync(x => x.ModuleCode == tranSetCode, cancellationToken)))
+                e.Add(nameof(r.GlTranSetCode), $"GL Tran Set Code '{tranSetCode}' is already used.");
+        }
         e.ThrowIfAny();
+
+        if (tranSetCode is not null)
+        {
+            // its counter, so the first posting is CAP-{code}-{year}-00000001 with no setup by hand
+            entity.GlTranSetCode = tranSetCode;
+            db.Add(new GlTranSetSequence
+            {
+                ModuleCode = tranSetCode,
+                YearNo = DateTime.UtcNow.Year,
+                AppCode = line.Length > 10 ? line[..10] : line,
+                ModuleNameEn = nameEn,
+                ModuleNameAr = nameAr,
+                LastNo = 0,
+                Digits = 8,
+                IsActive = true,
+            });
+        }
 
         entity.ProductCode = code;
         entity.ProductNameEn = nameEn;

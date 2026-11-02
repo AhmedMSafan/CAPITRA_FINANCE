@@ -24,7 +24,7 @@ public class AdmProduct : AuditableEntity
 
     /// <summary>
     /// GL_TRAN_SET_CODE: 3 letters, unique, naming the product's GL transaction set IDs CAP-{code}-{year}-{number}
-    /// (GL_TRAN_SET_SEQUENCES.MODULE_CODE). Set by script; the Product Catalog shows it read-only.
+    /// (GL_TRAN_SET_SEQUENCES.MODULE_CODE). Entered once with a new product, which also creates its counter; it never changes.
     /// </summary>
     public string? GlTranSetCode { get; set; }
 
