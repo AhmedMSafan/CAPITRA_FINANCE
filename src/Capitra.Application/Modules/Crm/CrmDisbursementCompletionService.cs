@@ -52,6 +52,16 @@ public sealed class CrmDisbursementCompletionService(
                 ? $"The charges ({owed.Sum(x => x.TotalAmount):#,##0.00}) are not claimed yet. Create the claim; Complete is possible once it is paid."
                 : $"Claim {claim.ClaimNumber} is not fully paid: {claim.TotalAmount - claim.PaidAmount:#,##0.00} is still to be paid in Collection.");
 
+        // the cheques made from the schedule need their real bank (Ahmed, 2 Nov 2026)
+        if (batch is not null)
+        {
+            var noBank = await entry.Cheques(batch.BatchId, disbursementId)
+                .Where(x => x.WalletChequeId == null && x.StatusCode == "DRAFT" && x.IssuerBankName == CrmInvoiceEntryService.BankNamePlaceholder)
+                .OrderBy(x => x.DueDate).Select(x => x.ChequeNo).ToListAsync(cancellationToken);
+            if (noBank.Count > 0)
+                throw new BusinessRuleException($"Enter the bank name of cheque {string.Join(", ", noBank)}: edit each cheque and replace \"{CrmInvoiceEntryService.BankNamePlaceholder}\".");
+        }
+
         // reverse factoring: the customer's cheques must match the schedule, each due date's cheques its total (Ahmed, 2 Nov 2026)
         if (batch is not null && await entry.IsReverseAsync(d.ProductId, cancellationToken))
             await CheckChequesMatchScheduleAsync(d, batch, cancellationToken);

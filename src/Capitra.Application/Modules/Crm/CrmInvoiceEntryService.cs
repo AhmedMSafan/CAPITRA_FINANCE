@@ -69,6 +69,9 @@ public sealed record CrmInvoiceUploadResultDto(CrmInvoiceEntryDto Page, string M
 /// </summary>
 public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, IWorkbookReader workbooks)
 {
+    /// <summary>The bank of the cheques made from the schedule until the user enters the real one; Complete refuses it (Ahmed, 2 Nov 2026).</summary>
+    public const string BankNamePlaceholder = "Enter Bank Name";
+
     private const long LegalEntityId = 1;
 
     internal const string ReverseMode = "REVERSE";
@@ -389,7 +392,19 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
     /// <summary>The draft cheques' edits and deletes; a cheque already loaded into the wallet can no longer change here.</summary>
     private async Task SaveChequesAsync(long batchId, long disbursementId, IReadOnlyList<CrmChequeRowDto> rows, IReadOnlyList<long> deleted, CancellationToken cancellationToken)
     {
-        var touched = rows.Select(x => x.ChequeId).Concat(deleted).ToList();
+        // the cheques made from the schedule on the page (a negative ID): added now, by Save Draft (Ahmed, 2 Nov 2026)
+        foreach (var r in rows.Where(x => x.ChequeId <= 0 && !deleted.Contains(x.ChequeId)))
+        {
+            CheckCheque(r);
+            db.Add(new FctDisbursementCheque
+            {
+                DisbursementId = disbursementId, BatchId = batchId, ChequeNo = r.ChequeNo.Trim(), ChequeDate = r.ChequeDate, DueDate = r.DueDate,
+                IssuerBankName = r.IssuerBankName.Trim(), DrawerNameEn = r.DrawerNameEn.Trim(), DepositBankAccountId = r.DepositBankAccountId,
+                ChequeAmount = Math.Round(r.ChequeAmount, 2, MidpointRounding.AwayFromZero), CurrencyCode = r.CurrencyCode.Trim().ToUpperInvariant(),
+                ReceivedDate = r.ReceivedDate, DepositDate = r.DepositDate, StatusCode = "DRAFT",
+            });
+        }
+        var touched = rows.Select(x => x.ChequeId).Where(x => x > 0).Concat(deleted.Where(x => x > 0)).ToList();
         if (touched.Count == 0) return;
         var cheques = await Cheques(batchId, disbursementId).Where(x => touched.Contains(x.DisbursementChequeId))
             .ToDictionaryAsync(x => x.DisbursementChequeId, cancellationToken);
@@ -399,11 +414,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         foreach (var r in rows)
         {
             if (deleted.Contains(r.ChequeId) || !cheques.TryGetValue(r.ChequeId, out var c)) continue;
-            if (string.IsNullOrWhiteSpace(r.ChequeNo) || string.IsNullOrWhiteSpace(r.IssuerBankName) || string.IsNullOrWhiteSpace(r.DrawerNameEn)
-                || string.IsNullOrWhiteSpace(r.CurrencyCode))
-                throw BusinessValidationException.For("cheques", $"Every required cheque value must be filled ({r.ChequeNo}).");
-            if (r.DueDate < r.ChequeDate) throw BusinessValidationException.For("cheques", $"Cheque {r.ChequeNo}: the due date is before the cheque date.");
-            if (r.ChequeAmount <= 0) throw BusinessValidationException.For("cheques", $"Cheque {r.ChequeNo}: the amount must be greater than zero.");
+            CheckCheque(r);
             c.ChequeNo = r.ChequeNo.Trim();
             c.ChequeDate = r.ChequeDate;
             c.DueDate = r.DueDate;
@@ -732,4 +743,13 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
 
     private static string FirstDue(string? code) =>
         code == CrmRepaymentSchedule.SameMonth ? CrmRepaymentSchedule.SameMonth : CrmRepaymentSchedule.NextMonth;
+
+    private static void CheckCheque(CrmChequeRowDto r)
+    {
+        if (string.IsNullOrWhiteSpace(r.ChequeNo) || string.IsNullOrWhiteSpace(r.IssuerBankName) || string.IsNullOrWhiteSpace(r.DrawerNameEn)
+            || string.IsNullOrWhiteSpace(r.CurrencyCode))
+            throw BusinessValidationException.For("cheques", $"Every required cheque value must be filled ({r.ChequeNo}).");
+        if (r.DueDate < r.ChequeDate) throw BusinessValidationException.For("cheques", $"Cheque {r.ChequeNo}: the due date is before the cheque date.");
+        if (r.ChequeAmount <= 0) throw BusinessValidationException.For("cheques", $"Cheque {r.ChequeNo}: the amount must be greater than zero.");
+    }
 }

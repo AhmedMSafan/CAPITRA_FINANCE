@@ -383,7 +383,7 @@
                     <td><b>{{ c.chequeNo }}</b></td>
                     <td>{{ formatDate(c.chequeDate) }}</td>
                     <td>{{ formatDate(c.dueDate) }}</td>
-                    <td>{{ c.issuerBankName }}</td>
+                    <td :class="{ 'ie-placeholder': c.issuerBankName === BANK_PLACEHOLDER }">{{ c.issuerBankName }}</td>
                     <td>{{ c.drawerNameEn }}</td>
                     <td class="fx-r"><b>{{ formatAmount(c.chequeAmount) }}</b> <i class="ie-cur">{{ c.currencyCode }}</i></td>
                     <td><span class="fx-chip" :class="c.statusCode === 'IN_WALLET' ? 'fx-chip--teal' : c.statusCode === 'CANCELLED' ? 'fx-chip--warn' : ''">{{ tr(chequeStatus(c.statusCode)) }}</span></td>
@@ -527,7 +527,12 @@
       </section>
 
       <section class="col-sec">
-        <h2><span class="fa fa-credit-card" aria-hidden="true"></span>{{ tr('Repayment Schedule') }} <span class="ie-count">{{ schedule.length }}</span></h2>
+        <h2>
+          <span class="fa fa-credit-card" aria-hidden="true"></span>{{ tr('Repayment Schedule') }} <span class="ie-count">{{ schedule.length }}</span>
+          <button v-if="!readOnly" type="button" class="fx-btn fx-btn--sm ie-h-btn" :disabled="busy || !schedule.length"
+                  :title="tr(schedule.length ? 'One cheque per due date, for its total due' : 'Available once the schedule is created')" @click="chequesFromSchedule">
+            <span class="fa fa-money" aria-hidden="true"></span>{{ tr('Create Cheques from Schedule') }}</button>
+        </h2>
         <div class="fx-table-wrap">
           <table class="fx-table">
             <thead>
@@ -759,6 +764,7 @@ async function load() {
       invoiceEntryApi.get(props.disbursementId), processApi.result(props.disbursementId), disbursementClaimApi.get(props.disbursementId)
     ])
     show(page)
+    markSaved()
     result.value = processed
     claim.value = claimed
     if (!claimed.isCompleted && !processed.charges.length && terms.productId != null) void nextTick(previewCharges)
@@ -768,6 +774,12 @@ async function load() {
     ready.value = true
   }
 }
+
+// the page as last loaded or saved: Create Claim needs Save Draft first when anything changed (Ahmed, 2 Nov 2026)
+let savedKey = ''
+const pageKey = () => JSON.stringify(payload())
+const markSaved = () => { void nextTick(() => { savedKey = pageKey() }) }
+const unsaved = () => !!invoiceFile.value || !!chequeFile.value || pageKey() !== savedKey
 
 async function refreshSummary() {
   summary.value = await invoiceEntryApi.summary(props.disbursementId, terms.clientId, terms.limitId)
@@ -810,6 +822,30 @@ function dropCheque(c: ChequeRow) {
   cheques.value = cheques.value.filter((x) => x !== c)
   changedCheques.delete(c.chequeId)
   deletedCheques.value.push(c.chequeId)
+}
+
+// Create Cheques from Schedule (Ahmed, 2 Nov 2026): one draft cheque per due date for its total due, numbered 1, 2, 3; the user
+// edits the numbers and enters the bank (Complete refuses "Enter Bank Name"). Nothing is saved until Save Draft.
+const BANK_PLACEHOLDER = 'Enter Bank Name'
+function chequesFromSchedule() {
+  const open = cheques.value.filter((c) => c.statusCode !== 'IN_WALLET' && c.statusCode !== 'CANCELLED')
+  if (open.length && !window.confirm(tr('Replace the {0} cheques with cheques from the schedule?').replace('{0}', String(open.length)))) return
+  open.forEach(dropCheque)
+  if (chequeFile.value) { chequeFile.value = null; chequesPreviewed.value = false; if (chequeInput.value) chequeInput.value.value = '' }
+  const dues = new Map<string, number>()
+  for (const r of schedule.value) dues.set(r.dueDate, (dues.get(r.dueDate) ?? 0) + (Number(r.totalInstallment) || 0))
+  const today = new Date().toISOString().slice(0, 10)
+  const drawer = options.clients.find((o) => o.value === String(terms.clientId))?.label ?? ''
+  const currency = options.currencies.find((o) => o.value === String(terms.currencyId))?.label ?? ''
+  let id = Math.min(0, ...cheques.value.map((c) => c.chequeId))
+  const made: ChequeRow[] = [...dues.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([dueDate, amount], i) => ({
+    chequeId: --id, chequeNo: String(i + 1), chequeDate: terms.disbursementDate ?? today, dueDate, issuerBankName: BANK_PLACEHOLDER,
+    drawerNameEn: drawer, depositBankAccountId: null, chequeAmount: round2(amount) ?? 0, currencyCode: currency, sourceModule: null,
+    receivedDate: today, depositDate: null, statusCode: 'DRAFT'
+  }))
+  made.forEach((c) => changedCheques.add(c.chequeId))
+  cheques.value = [...cheques.value, ...made]
+  showSuccess(tr('{0} cheques created from the schedule. Enter each bank name, then click Save Draft.').replace('{0}', String(made.length)))
 }
 
 // the page's required items, checked before the submit as APEX does
@@ -865,10 +901,12 @@ async function run(work: () => Promise<void>): Promise<boolean> {
 async function saveDraft(): Promise<string> {
   if (!invoiceFile.value && !chequeFile.value) {
     show(await invoiceEntryApi.save(props.disbursementId, payload()))
+    markSaved()
     return tr('Draft saved.')
   }
   const result = await invoiceEntryApi.upload(props.disbursementId, payload(), invoiceFile.value, chequeFile.value)
   show(result.page)
+  markSaved()
   invoiceFile.value = null
   chequeFile.value = null
   invoicesPreviewed.value = false
@@ -898,12 +936,16 @@ async function setFile(kind: 'inv' | 'chq', file: File | null) {
   })
 }
 
-// Create Claim: the page is saved and its charges calculated and claimed from the customer (Ahmed, 2 Nov 2026)
-const createClaim = () => check() && run(async () => {
-  if (invoiceFile.value || chequeFile.value) await saveDraft()
+// Create Claim: the saved page's charges are calculated and claimed from the customer; unsaved changes need Save Draft first (Ahmed, 2 Nov 2026)
+const createClaim = () => {
+  if (unsaved()) { showError(tr('Click Save Draft first: the page has changes that are not saved.')); return }
+  return check() && createClaimRun()
+}
+const createClaimRun = () => run(async () => {
   claim.value = await disbursementClaimApi.create(props.disbursementId, payload())
   const [page, processed] = await Promise.all([invoiceEntryApi.get(props.disbursementId), processApi.result(props.disbursementId)])
   show(page)
+  markSaved()
   result.value = processed
   showSuccess(tr('Claim {0} created.').replace('{0}', claim.value.claim?.claim.claimNumber ?? ''))
 })
@@ -1014,6 +1056,8 @@ watch(() => props.disbursementId, load, { immediate: true })
 .ie-buttons { justify-content: flex-end; margin-top: 16px; }
 .ie-count { margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; background: #E6F3F4; color: #00636D; font-size: 12px; }
 
+.ie-h-btn { margin-inline-start: auto; }
+.ie-placeholder { color: var(--fx-warn, #b45309); font-style: italic; }
 /* upload boxes */
 .ie-files { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
 .ie-drop { padding: 16px; }

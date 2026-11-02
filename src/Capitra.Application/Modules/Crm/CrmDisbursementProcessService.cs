@@ -112,9 +112,17 @@ public sealed class CrmDisbursementProcessService(
         await db.SaveChangesAsync(cancellationToken);
         var invoices = await EligibleInvoicesAsync(d.DisbursementId, cancellationToken);
         var custom = await entry.CustomScheduleAsync(d.DisbursementId, cancellationToken);
-        await CalculateChargesAsync(d, invoices, await ChequeCountAsync(d, batch, cancellationToken), clock.UtcNow,
+        var financed = await CalculateChargesAsync(d, invoices, await ChequeCountAsync(d, batch, cancellationToken), clock.UtcNow,
             CrmRepaymentSchedule.Maturity(d, custom), cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+        // the schedule stays shown (and Create Cheques from Schedule available) when the terms allow it; Complete builds it again
+        if (invoices.Count == 0) return;
+        try
+        {
+            await GenerateScheduleAsync(d, financed, invoices, custom, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (BusinessRuleException) { }
     }
 
     private async Task<int> ChequeCountAsync(FctDisbursement d, FctInvoiceBatch? batch, CancellationToken cancellationToken) =>
@@ -363,9 +371,11 @@ public sealed class CrmDisbursementProcessService(
     {
         var current = await db.Set<FctRepayment>().Where(x => x.DisbursementId == d.DisbursementId).ToListAsync(cancellationToken);
         var version = (current.Max(x => x.ScheduleVersion) ?? 0) + 1;
+        // built first: when the terms do not allow a schedule, the current one is left as it is
+        var rows = CrmRepaymentSchedule.Build(d, financed, [.. invoices.Select(x => x.Source)], custom, version).ToList();
         foreach (var r in current.Where(x => x.IsCurrentVersion))
             r.IsCurrentVersion = false;
-        foreach (var row in CrmRepaymentSchedule.Build(d, financed, [.. invoices.Select(x => x.Source)], custom, version))
+        foreach (var row in rows)
             db.Add(row);
     }
 }
