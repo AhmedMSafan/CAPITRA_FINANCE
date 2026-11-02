@@ -92,6 +92,8 @@ public sealed class FctDisbursementConfiguration : IEntityTypeConfiguration<FctD
         builder.Property(x => x.PrincipalRepaymentMethod).HasMaxLength(20);
         builder.Property(x => x.PrincipalDistributionMethod).HasMaxLength(20);
         builder.Property(x => x.InterestRepaymentMethod).HasMaxLength(20);
+        builder.Property(x => x.PrincipalFirstDueCode).HasMaxLength(20);
+        builder.Property(x => x.InterestFirstDueCode).HasMaxLength(20);
         builder.Property(x => x.StatusCode).HasMaxLength(30);
         builder.Property(x => x.AdvanceRatePct).HasPrecision(9, 6);
         builder.Property(x => x.ApprovedInvoiceAmount).HasPrecision(18, 2);

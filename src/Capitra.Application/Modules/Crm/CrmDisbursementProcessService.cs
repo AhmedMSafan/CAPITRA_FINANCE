@@ -82,20 +82,16 @@ public sealed class CrmDisbursementProcessService(
         await db.SaveChangesAsync(cancellationToken);
 
         var invoices = await EligibleInvoicesAsync(d.DisbursementId, cancellationToken);
-        var dues = batch is null ? [] : await entry.Cheques(batch.BatchId, d.DisbursementId)
-            .Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED").Select(x => x.DueDate).ToListAsync(cancellationToken);
-        DateOnly? maturity = dues.Count > 0 && await entry.IsReverseAsync(d.ProductId, cancellationToken) ? dues.Max() : null;
-        var financed = await CalculateChargesAsync(d, invoices, dues.Count, clock.UtcNow, maturity, cancellationToken);
+        var chequeCount = await ChequeCountAsync(d, batch, cancellationToken);
+        var custom = await entry.CustomScheduleAsync(d.DisbursementId, cancellationToken);
+        var financed = await CalculateChargesAsync(d, invoices, chequeCount, clock.UtcNow, CrmRepaymentSchedule.Maturity(d, custom), cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         // the repayment schedule too, when the invoices and terms allow it (Complete builds it the same way)
         if (invoices.Count > 0)
         {
             try
             {
-                var cheques = batch is null ? [] : await entry.Cheques(batch.BatchId, d.DisbursementId)
-                    .Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED")
-                    .Select(x => new CrmScheduleSource(x.DueDate, x.ChequeAmount)).ToListAsync(cancellationToken);
-                await GenerateScheduleAsync(d, financed, invoices, cheques, maturity, cancellationToken);
+                await GenerateScheduleAsync(d, financed, invoices, custom, cancellationToken);
                 await db.SaveChangesAsync(cancellationToken);
             }
             catch (BusinessRuleException) { }
@@ -115,12 +111,15 @@ public sealed class CrmDisbursementProcessService(
         if (batch is not null) await entry.SyncInvoiceAdvancesAsync(d, batch.BatchId, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         var invoices = await EligibleInvoicesAsync(d.DisbursementId, cancellationToken);
-        var dues = batch is null ? [] : await entry.Cheques(batch.BatchId, d.DisbursementId)
-            .Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED").Select(x => x.DueDate).ToListAsync(cancellationToken);
-        DateOnly? maturity = dues.Count > 0 && await entry.IsReverseAsync(d.ProductId, cancellationToken) ? dues.Max() : null;
-        await CalculateChargesAsync(d, invoices, dues.Count, clock.UtcNow, maturity, cancellationToken);
+        var custom = await entry.CustomScheduleAsync(d.DisbursementId, cancellationToken);
+        await CalculateChargesAsync(d, invoices, await ChequeCountAsync(d, batch, cancellationToken), clock.UtcNow,
+            CrmRepaymentSchedule.Maturity(d, custom), cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    private async Task<int> ChequeCountAsync(FctDisbursement d, FctInvoiceBatch? batch, CancellationToken cancellationToken) =>
+        batch is null ? 0 : await entry.Cheques(batch.BatchId, d.DisbursementId)
+            .CountAsync(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED", cancellationToken);
 
     /// <summary>The GL lines of the charges: the rule's lines of each charge with its amount (none when the rule has no GL set up).</summary>
     private async Task<IReadOnlyList<CrmGlEntryDto>> GlEntriesAsync(
@@ -180,32 +179,12 @@ public sealed class CrmDisbursementProcessService(
         if (!codes.Any(x => x.Code == "ELIGIBLE")) throw new BusinessRuleException("At least one invoice must be ELIGIBLE.");
 
         var invoices = await EligibleInvoicesAsync(d.DisbursementId, cancellationToken);
-        var chequeRows = await entry.Cheques(batch.BatchId, d.DisbursementId).Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED")
-            .Select(x => new { x.ChequeNo, x.DueDate, x.ChequeAmount }).ToListAsync(cancellationToken);
-        var cheques = chequeRows.Select(x => new CrmScheduleSource(x.DueDate, x.ChequeAmount)).ToList();
-
-        // reverse factoring: the schedule is the cheques' due dates and amounts
-        var reverse = await entry.IsReverseAsync(d.ProductId, cancellationToken);
-        DateOnly? maturity = null;
-        if (reverse)
-        {
-            // the invoices' dates play no part (Ahmed, 2 Nov 2026): the suppliers are paid now and the customer repays on its cheques' dates
-            if (chequeRows.Count == 0) throw new BusinessRuleException("Reverse factoring: upload the cheques before processing. The repayment schedule is built from them.");
-            maturity = chequeRows.Max(x => x.DueDate);
-        }
-
-        var financed = await CalculateChargesAsync(d, invoices, cheques.Count, now, maturity, cancellationToken);
-        if (reverse)
-        {
-            var principal = d.ApprovedAdvanceAmount + financed;
-            var covered = cheques.Sum(x => x.Amount);
-            if (covered < principal)
-                throw new BusinessRuleException(
-                    $"Reverse factoring: the cheques total {covered:#,##0.00}, less than the amount financed {principal:#,##0.00}.");
-        }
-
+        // the schedule comes from the terms (Ahmed, 2 Nov 2026); the customer's cheques must then match it, which Complete checks
+        var custom = await entry.CustomScheduleAsync(d.DisbursementId, cancellationToken);
+        var financed = await CalculateChargesAsync(d, invoices, await ChequeCountAsync(d, batch, cancellationToken), now,
+            CrmRepaymentSchedule.Maturity(d, custom), cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
-        await GenerateScheduleAsync(d, financed, invoices, cheques, maturity, cancellationToken);
+        await GenerateScheduleAsync(d, financed, invoices, custom, cancellationToken);
 
         d.StatusCode = "PROCESSED";
         d.ProcessedBy = user;
@@ -379,14 +358,14 @@ public sealed class CrmDisbursementProcessService(
 
     /// <summary>generate_repayment_schedule: the earlier versions stop being current and the new one is added.</summary>
     private async Task GenerateScheduleAsync(
-        FctDisbursement d, decimal financed, List<(CrmScheduleSource Source, decimal Gross)> invoices, List<CrmScheduleSource> cheques,
-        DateOnly? maturity, CancellationToken cancellationToken)
+        FctDisbursement d, decimal financed, List<(CrmScheduleSource Source, decimal Gross)> invoices, IReadOnlyList<CrmScheduleSource> custom,
+        CancellationToken cancellationToken)
     {
         var current = await db.Set<FctRepayment>().Where(x => x.DisbursementId == d.DisbursementId).ToListAsync(cancellationToken);
         var version = (current.Max(x => x.ScheduleVersion) ?? 0) + 1;
         foreach (var r in current.Where(x => x.IsCurrentVersion))
             r.IsCurrentVersion = false;
-        foreach (var row in CrmRepaymentSchedule.Build(d, financed, [.. invoices.Select(x => x.Source)], cheques, version, maturity))
+        foreach (var row in CrmRepaymentSchedule.Build(d, financed, [.. invoices.Select(x => x.Source)], custom, version))
             db.Add(row);
     }
 }

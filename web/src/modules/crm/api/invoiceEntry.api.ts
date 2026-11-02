@@ -23,7 +23,16 @@ export type DisbursementTerms = {
   interestRepaymentMethod: string | null
   paymentMethod: string | null
   remarks: string | null
+  // the repayment terms (Ahmed, 2 Nov 2026): every N months from the start dates (the principal's is repaymentStartDate)
+  principalFrequencyMonths: number | null
+  interestFrequencyMonths: number | null
+  interestStartDate: string | null
+  principalFirstDueCode: string | null
+  interestFirstDueCode: string | null
 }
+
+/** A principal payment of a custom (irregular) schedule */
+export type CustomScheduleRow = { dueDate: string | null; principalAmount: number | null }
 
 /** "Invoice Batch Details" region */
 export type InvoiceBatch = {
@@ -90,6 +99,7 @@ export type InvoiceEntry = {
   invoices: InvoiceRow[]
   cheques: ChequeRow[]
   options: { clients: CrmOption[]; limits: CrmOption[]; currencies: CrmOption[]; products: CrmOption[]; reverseProductIds: number[] }
+  customSchedule: CustomScheduleRow[]
 }
 
 export type InvoiceEntrySave = {
@@ -99,6 +109,7 @@ export type InvoiceEntrySave = {
   deletedInvoiceIds?: number[]
   cheques?: ChequeRow[]
   deletedChequeIds?: number[]
+  customSchedule?: CustomScheduleRow[]
   // the rows shown are a file's preview: Save Draft gives their edits to the rows it loads from the same file
   invoicesPreviewed?: boolean
   chequesPreviewed?: boolean

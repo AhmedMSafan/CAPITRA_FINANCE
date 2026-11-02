@@ -180,6 +180,24 @@ public class FctDisbursement : AuditableEntity
 
     public string? InterestRepaymentMethod { get; set; }
 
+    /// <summary>Principal every N months (method EVERY_N_MONTHS), counted from REPAYMENT_START_DATE (the principal start date).</summary>
+    public int? PrincipalFrequencyMonths { get; set; }
+
+    /// <summary>Interest every N months (EVERY_N_MONTHS, or every N month ends for END_OF_MONTH_30 and END_OF_MONTH_ACTUAL).</summary>
+    public int? InterestFrequencyMonths { get; set; }
+
+    /// <summary>The date the interest frequency counts from; the disbursement date when empty.</summary>
+    public DateOnly? InterestStartDate { get; set; }
+
+    /// <summary>
+    /// End of month principal: the first due date is the start month's end (SAME_MONTH) or the next month's (NEXT_MONTH, the default):
+    /// start 15 Apr gives 30 Apr or 31 May.
+    /// </summary>
+    public string? PrincipalFirstDueCode { get; set; }
+
+    /// <summary>The same choice for end of month interest.</summary>
+    public string? InterestFirstDueCode { get; set; }
+
     public string? StatusCode { get; set; }
 
     public decimal? AdvanceRatePct { get; set; }

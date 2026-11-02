@@ -6646,10 +6646,23 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,3)")
                         .HasColumnName("INTEREST_DEDUCTED");
 
+                    b.Property<string>("InterestFirstDueCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("INTEREST_FIRST_DUE_CODE");
+
+                    b.Property<int?>("InterestFrequencyMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("INTEREST_FREQUENCY_MONTHS");
+
                     b.Property<string>("InterestRepaymentMethod")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("INTEREST_REPAYMENT_METHOD");
+
+                    b.Property<DateOnly?>("InterestStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("INTEREST_START_DATE");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
@@ -6760,6 +6773,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("PRINCIPAL_DISTRIBUTION_METHOD");
+
+                    b.Property<string>("PrincipalFirstDueCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PRINCIPAL_FIRST_DUE_CODE");
+
+                    b.Property<int?>("PrincipalFrequencyMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("PRINCIPAL_FREQUENCY_MONTHS");
 
                     b.Property<string>("PrincipalRepaymentMethod")
                         .HasMaxLength(20)
@@ -7369,6 +7391,66 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_FCT_DISBURSEMENT_CHEQUES_DISBURSEMENT_ID_STATUS_CODE");
 
                     b.ToTable("FCT_DISBURSEMENT_CHEQUES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursementCustomSchedule", b =>
+                {
+                    b.Property<long>("CustomScheduleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CUSTOM_SCHEDULE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CustomScheduleId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DUE_DATE");
+
+                    b.Property<int>("LineNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("LINE_NO");
+
+                    b.Property<decimal>("PrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PRINCIPAL_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("CustomScheduleId")
+                        .HasName("PK_FCT_DISBURSEMENT_CUSTOM_SCHEDULES");
+
+                    b.HasIndex("DisbursementId", "DueDate")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_FCT_DISBURSEMENT_CUSTOM_SCHEDULES_DISBURSEMENT_ID_DUE_DATE");
+
+                    b.ToTable("FCT_DISBURSEMENT_CUSTOM_SCHEDULES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctInvoice", b =>
@@ -38711,6 +38793,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("WalletChequeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_FCT_DISBURSEMENT_CHEQUES_CHQ_CHEQUES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursementCustomSchedule", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctDisbursement", null)
+                        .WithMany()
+                        .HasForeignKey("DisbursementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FCT_DISBURSEMENT_CUSTOM_SCHEDULES_FCT_DISBURSEMENTS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctInvoiceBatch", b =>

@@ -52,6 +52,10 @@ public sealed class CrmDisbursementCompletionService(
                 ? $"The charges ({owed.Sum(x => x.TotalAmount):#,##0.00}) are not claimed yet. Create the claim; Complete is possible once it is paid."
                 : $"Claim {claim.ClaimNumber} is not fully paid: {claim.TotalAmount - claim.PaidAmount:#,##0.00} is still to be paid in Collection.");
 
+        // reverse factoring: the customer's cheques must match the schedule, each due date's cheques its total (Ahmed, 2 Nov 2026)
+        if (batch is not null && await entry.IsReverseAsync(d.ProductId, cancellationToken))
+            await CheckChequesMatchScheduleAsync(d, batch, cancellationToken);
+
         // 3. the draft cheques into the wallet
         var drafts = batch is null ? [] : await entry.Cheques(batch.BatchId, disbursementId)
             .Where(x => x.WalletChequeId == null && x.StatusCode == "DRAFT").OrderBy(x => x.DisbursementChequeId).ToListAsync(cancellationToken);
@@ -102,6 +106,40 @@ public sealed class CrmDisbursementCompletionService(
         }
 
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>A due date's cheques may differ from its total by this much (rounding).</summary>
+    public const decimal ChequeTolerance = 1m;
+
+    /// <summary>
+    /// Every due date of the current schedule needs cheques that add up to its total (principal plus interest, give or take 1.00), and
+    /// every cheque must fall on a due date. The problems are listed together.
+    /// </summary>
+    private async Task CheckChequesMatchScheduleAsync(FctDisbursement d, FctInvoiceBatch batch, CancellationToken cancellationToken)
+    {
+        var dues = await db.Set<FctRepayment>().AsNoTracking().Where(x => x.DisbursementId == d.DisbursementId && x.IsCurrentVersion)
+            .GroupBy(x => x.DueDate).Select(g => new { DueDate = g.Key, Total = g.Sum(x => x.TotalInstallment ?? 0) })
+            .ToListAsync(cancellationToken);
+        var cheques = await entry.Cheques(batch.BatchId, d.DisbursementId).AsNoTracking()
+            .Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED")
+            .GroupBy(x => x.DueDate).Select(g => new { DueDate = g.Key, Total = g.Sum(x => x.ChequeAmount) })
+            .ToListAsync(cancellationToken);
+        var have = cheques.ToDictionary(x => x.DueDate, x => x.Total);
+        var problems = new List<string>();
+        foreach (var due in dues.OrderBy(x => x.DueDate))
+        {
+            var got = have.GetValueOrDefault(due.DueDate);
+            if (Math.Abs(got - due.Total) > ChequeTolerance)
+                problems.Add(got == 0
+                    ? $"{due.DueDate:yyyy-MM-dd}: no cheque for {due.Total:#,##0.00}"
+                    : $"{due.DueDate:yyyy-MM-dd}: cheques {got:#,##0.00}, due {due.Total:#,##0.00}");
+        }
+
+        var dates = dues.Select(x => x.DueDate).ToHashSet();
+        foreach (var c in cheques.Where(x => !dates.Contains(x.DueDate)).OrderBy(x => x.DueDate))
+            problems.Add($"{c.DueDate:yyyy-MM-dd}: cheques {c.Total:#,##0.00} on a date that is not in the schedule");
+        if (problems.Count > 0)
+            throw new BusinessRuleException("The cheques do not match the repayment schedule. " + string.Join("; ", problems) + ".");
     }
 
     /// <summary>Each draft cheque becomes a wallet cheque of the client, received in the company vault (as a wallet batch submission does).</summary>

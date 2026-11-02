@@ -92,8 +92,8 @@
             <input v-model.number="terms.advanceRatePct" class="fx-search" type="number" min="0" max="100" step="0.01" inputmode="decimal" :readonly="locked" :class="{ 'ie-locked': isReverse }">
           </label>
           <label class="fc-field">
-            <span>{{ tr('Tenor Months') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
-            <input v-model.number="terms.tenorMonth" class="fx-search" type="number" min="0" step="1" inputmode="numeric" :readonly="locked" :class="{ 'ie-locked': isReverse }">
+            <span>{{ tr('Tenor Months') }}<em v-if="isCustom" class="ie-src">{{ tr('Last principal date') }}</em></span>
+            <input v-model.number="terms.tenorMonth" class="fx-search" type="number" min="0" step="1" inputmode="numeric" :readonly="readOnly || isCustom" :class="{ 'ie-locked': isCustom }">
           </label>
           <div class="fc-field">
             <span>{{ tr('Index Rate') }}</span>
@@ -109,32 +109,61 @@
               <option v-for="o in dayCountOptions" :key="o" :value="o">{{ o }}</option>
             </select>
           </label>
+          <!-- the repayment terms (Ahmed, 2 Nov 2026): the schedule is built from them, then the customer's cheques must match it -->
           <label class="fc-field">
-            <span>{{ tr('Repayment Start Date') }}<em v-if="isReverse" class="ie-src">{{ tr('First cheque') }}</em></span>
-            <input v-model="terms.repaymentStartDate" class="fx-search" type="date" :disabled="locked" :class="{ 'ie-locked': isReverse }">
-          </label>
-          <label class="fc-field">
-            <span>{{ tr('Principal Repayment Schedule Type') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
-            <select v-model="terms.principalRepaymentScheduleType" class="fx-select" :disabled="locked" :class="{ 'ie-locked': isReverse }">
-              <option v-for="o in scheduleTypes" :key="o" :value="o">{{ o }}</option>
+            <span>{{ tr('Schedule Type') }}</span>
+            <select v-model="terms.principalRepaymentScheduleType" class="fx-select" :disabled="readOnly">
+              <option v-for="o in scheduleTypes" :key="o.value" :value="o.value">{{ tr(o.label) }}</option>
             </select>
           </label>
+          <template v-if="!isCustom">
+            <label class="fc-field">
+              <span>{{ tr('Principal Repayment') }}</span>
+              <select v-model="terms.principalRepaymentMethod" class="fx-select" :disabled="readOnly">
+                <option v-for="o in principalMethods" :key="o.value" :value="o.value">{{ tr(o.label) }}</option>
+              </select>
+            </label>
+            <label v-if="periodic(terms.principalRepaymentMethod)" class="fc-field">
+              <span>{{ tr('Principal Every (Months)') }}</span>
+              <input v-model.number="terms.principalFrequencyMonths" class="fx-search" type="number" min="1" step="1" inputmode="numeric" :readonly="readOnly"
+                     @blur="terms.principalFrequencyMonths = wholeMonths(terms.principalFrequencyMonths)">
+            </label>
+            <label v-if="periodic(terms.principalRepaymentMethod)" class="fc-field">
+              <span>{{ tr('Principal Start Date') }}</span>
+              <input v-model="terms.repaymentStartDate" class="fx-search" type="date" :disabled="readOnly">
+            </label>
+            <label v-if="monthEnd(terms.principalRepaymentMethod)" class="fc-field">
+              <span>{{ tr('Principal First Due') }}</span>
+              <select v-model="terms.principalFirstDueCode" class="fx-select" :disabled="readOnly">
+                <option v-for="o in firstDueOptions" :key="o.value" :value="o.value">{{ tr(o.label) }}</option>
+              </select>
+            </label>
+            <label v-if="terms.principalRepaymentMethod === 'INVOICE_DUE_DATE'" class="fc-field">
+              <span>{{ tr('Principal Distribution') }}</span>
+              <select v-model="terms.principalDistributionMethod" class="fx-select" :disabled="readOnly">
+                <option v-for="o in distributionMethods" :key="o.value" :value="o.value">{{ tr(o.label) }}</option>
+              </select>
+            </label>
+          </template>
           <label class="fc-field">
-            <span>{{ tr('Principal Repayment Method') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
-            <select v-model="terms.principalRepaymentMethod" class="fx-select" :disabled="locked" :class="{ 'ie-locked': isReverse }">
-              <option v-for="o in principalMethods" :key="o" :value="o">{{ o }}</option>
+            <span>{{ tr('Interest Repayment') }}</span>
+            <select v-model="terms.interestRepaymentMethod" class="fx-select" :disabled="readOnly">
+              <option v-for="o in interestMethods" :key="o.value" :value="o.value">{{ tr(o.label) }}</option>
             </select>
           </label>
-          <label class="fc-field">
-            <span>{{ tr('Principal Distribution Method') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
-            <select v-model="terms.principalDistributionMethod" class="fx-select" :disabled="locked" :class="{ 'ie-locked': isReverse }">
-              <option v-for="o in distributionMethods" :key="o" :value="o">{{ o }}</option>
-            </select>
+          <label v-if="periodic(terms.interestRepaymentMethod)" class="fc-field">
+            <span>{{ tr('Interest Every (Months)') }}</span>
+            <input v-model.number="terms.interestFrequencyMonths" class="fx-search" type="number" min="1" step="1" inputmode="numeric" :readonly="readOnly"
+                   @blur="terms.interestFrequencyMonths = wholeMonths(terms.interestFrequencyMonths)">
           </label>
-          <label class="fc-field">
-            <span>{{ tr('Interest Repayment Method') }}<em v-if="isReverse" class="ie-src">{{ tr('From cheques') }}</em></span>
-            <select v-model="terms.interestRepaymentMethod" class="fx-select" :disabled="locked" :class="{ 'ie-locked': isReverse }">
-              <option v-for="o in interestMethods" :key="o.value" :value="o.value">{{ o.label }}</option>
+          <label v-if="periodic(terms.interestRepaymentMethod)" class="fc-field">
+            <span>{{ tr('Interest Start Date') }}</span>
+            <input v-model="terms.interestStartDate" class="fx-search" type="date" :disabled="readOnly">
+          </label>
+          <label v-if="monthEnd(terms.interestRepaymentMethod)" class="fc-field">
+            <span>{{ tr('Interest First Due') }}</span>
+            <select v-model="terms.interestFirstDueCode" class="fx-select" :disabled="readOnly">
+              <option v-for="o in firstDueOptions" :key="o.value" :value="o.value">{{ tr(o.label) }}</option>
             </select>
           </label>
           <label class="fc-field">
@@ -147,6 +176,38 @@
             <span>{{ tr('Remarks') }}</span>
             <input v-model="terms.remarks" class="fx-search" type="text" maxlength="2000" :readonly="readOnly">
           </label>
+        </div>
+
+        <!-- Custom (irregular) schedule: the principal payments the customer agreed, by date; they must add up to the amount financed -->
+        <div v-if="isCustom" class="ie-custom">
+          <h3 class="ie-subhead">
+            {{ tr('Principal Payments') }}
+            <span class="ie-ts">{{ tr('Total') }} <b>{{ formatAmount(customTotal) }}</b>
+              <template v-if="financedAmount != null"> · {{ tr('Amount Financed') }} <b>{{ formatAmount(financedAmount) }}</b>
+                <b v-if="Math.abs(customTotal - financedAmount) > 0.01" class="ie-due"> · {{ tr('Difference') }} {{ formatAmount(round2(financedAmount - customTotal)) }}</b>
+              </template>
+            </span>
+          </h3>
+          <div class="fx-table-wrap">
+            <table class="fx-table ie-tbl">
+              <thead><tr><th>{{ tr('No.') }}</th><th>{{ tr('Due Date') }}</th><th class="fx-r">{{ tr('Principal Amount') }}</th><th class="fx-r"><span class="fx-sr">{{ tr('Actions') }}</span></th></tr></thead>
+              <tbody>
+                <tr v-for="(r, n) in customSchedule" :key="n">
+                  <td>{{ n + 1 }}</td>
+                  <td><input v-model="r.dueDate" class="fx-search" type="date" :disabled="readOnly" :aria-label="`${tr('Due Date')} ${n + 1}`"></td>
+                  <td class="fx-r"><input v-model.number="r.principalAmount" class="fx-search ie-num" type="number" min="0" step="0.01" inputmode="decimal" :readonly="readOnly"
+                                          :aria-label="`${tr('Principal Amount')} ${n + 1}`" @blur="r.principalAmount = round2(r.principalAmount)"></td>
+                  <td class="fx-r">
+                    <button v-if="!readOnly" type="button" class="fx-btn fx-btn--sm" :title="tr('Delete')" :aria-label="`${tr('Delete')} ${n + 1}`" @click="customSchedule.splice(n, 1)">
+                      <span class="fa fa-trash-o" aria-hidden="true"></span></button>
+                  </td>
+                </tr>
+                <tr v-if="!customSchedule.length"><td colspan="4" class="fx-empty">{{ tr('Add the principal payments: a date and an amount each.') }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <button v-if="!readOnly" type="button" class="fx-btn fx-btn--sm ie-add" @click="customSchedule.push({ dueDate: null, principalAmount: null })">
+            <span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Add Payment') }}</button>
         </div>
       </section>
 
@@ -527,7 +588,7 @@ import { fieldErrors, messageOf } from '@/modules/collection/pages/collection'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
 import {
   disbursementClaimApi, invoiceEntryApi, processApi, type ChequeRow, type DisbursementClaim, type DisbursementResult, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry,
-  type InvoiceEntrySave, type InvoiceRow, type InvoiceSummary
+  type InvoiceEntrySave, type InvoiceRow, type CustomScheduleRow, type InvoiceSummary
 } from '../api/invoiceEntry.api'
 
 const props = defineProps<{ disbursementId: number }>()
@@ -544,17 +605,28 @@ const back = computed(() => terms.clientId == null ? { name: 'crm-customers' }
 
 // the page's static lists
 const dayCounts = ['30/360', 'ACTUAL/360']
-const scheduleTypes = ['NORMAL_SCHEDULE', 'CUSTOM_SCHEDULE']
-const principalMethods = ['MONTHLY', 'QUARTERLY', 'SEMI-ANNUAL', 'INVOICE_DUE_DATE', 'CHEQUE_DUE_DATE', 'AT_MATURITY']
-const distributionMethods = ['EQUAL_AMOUNT', 'INVOICE_AMOUNT', 'CHEQUE_AMOUNT']
-const interestMethods = [
-  { value: 'MONTHLY', label: 'MONTHLY (EOM)' }, { value: 'AT_MATURITY', label: 'AT_MATURITY' }, { value: 'SAME_AS_PRINCIPAL', label: 'SAME_AS_PRINCIPAL' }
+// the repayment terms (Ahmed, 2 Nov 2026): regular (frequencies) or custom (principal payments entered); the cheques then match the schedule
+const scheduleTypes = [{ value: 'NORMAL_SCHEDULE', label: 'Regular' }, { value: 'CUSTOM_SCHEDULE', label: 'Irregular (custom)' }]
+const FREQUENCIES = [
+  { value: 'EVERY_N_MONTHS', label: 'Every N Months' }, { value: 'END_OF_MONTH_30', label: 'End of Month (30)' },
+  { value: 'END_OF_MONTH_ACTUAL', label: 'End of Month (Actual)' }
 ]
+const principalMethods = computed(() => [
+  ...FREQUENCIES, ...(isReverse.value ? [] : [{ value: 'INVOICE_DUE_DATE', label: 'Invoice Due Dates' }]), { value: 'AT_MATURITY', label: 'At Maturity' }
+])
+const distributionMethods = [{ value: 'EQUAL_AMOUNT', label: 'Equal Amounts' }, { value: 'INVOICE_AMOUNT', label: 'Invoice Amounts' }]
+const interestMethods = [...FREQUENCIES, { value: 'WITH_PRINCIPAL', label: 'With Principal' }, { value: 'AT_MATURITY', label: 'At Maturity' }]
+const periodic = (m: string | null) => FREQUENCIES.some((f) => f.value === m)
+// End of Month: the first due date is this month's end or the next one's (default next)
+const monthEnd = (m: string | null) => m === 'END_OF_MONTH_30' || m === 'END_OF_MONTH_ACTUAL'
+const firstDueOptions = [{ value: 'NEXT_MONTH', label: 'Next Month' }, { value: 'SAME_MONTH', label: 'Same Month' }]
+// N is a whole number of 1 or more
+const wholeMonths = (v: unknown) => { const n = num(v); return n == null || Number.isNaN(n) ? null : Math.max(1, Math.round(n)) }
 const paymentMethods = ['CHEQUE', 'TRANSFER', 'INTERNAL']
 
 const canEdit = hasPermission('CRM.EDIT')
 const readOnly = computed(() => !canEdit)
-// reverse factoring (agreed with Ahmed, 31 Oct 2026): the rates are the agreement's and the repayment terms the cheques', set by the server
+// reverse factoring (agreed with Ahmed, 31 Oct 2026): the rates are the agreement's; the repayment terms are entered (2 Nov 2026)
 const isReverse = computed(() => terms.productId != null && options.reverseProductIds.includes(terms.productId))
 const locked = computed(() => readOnly.value || isReverse.value)
 const dayCountOptions = computed(() => !terms.baseDayCount || dayCounts.includes(terms.baseDayCount) ? dayCounts : [...dayCounts, terms.baseDayCount])
@@ -564,6 +636,9 @@ const errors = ref<Record<string, string[]>>({})
 const bad = (field: string) => !!errors.value[field]
 
 const terms = reactive({} as DisbursementTerms)
+const isCustom = computed(() => terms.principalRepaymentScheduleType === 'CUSTOM_SCHEDULE')
+const customSchedule = ref<CustomScheduleRow[]>([])
+const customTotal = computed(() => round2(customSchedule.value.reduce((t, r) => t + (Number(r.principalAmount) || 0), 0)) ?? 0)
 const batch = reactive({} as InvoiceBatch)
 const summary = ref<InvoiceSummary | null>(null)
 const result = ref<DisbursementResult | null>(null)
@@ -650,6 +725,10 @@ const chequeTotals = computed(() => {
     first: dues[0] ?? null, last: dues[dues.length - 1] ?? null, drawers: new Set(live.map((c) => c.drawerNameEn)).size
   }
 })
+// what the custom schedule must add up to: the approved advance plus the charges financed with the principal
+const financedAmount = computed(() => result.value && result.value.approvedAdvanceAmount
+  ? round2(result.value.approvedAdvanceAmount + charges.value.filter((c) => c.chargeTimingCode === 'FINANCE_WITH_PRINCIPAL').reduce((t, c) => t + c.totalAmount, 0))
+  : null)
 const chargeTotals = computed(() => ({
   amount: round2(charges.value.reduce((t, c) => t + c.chargeAmount, 0)) ?? 0,
   tax: round2(charges.value.reduce((t, c) => t + c.taxAmount, 0)) ?? 0,
@@ -665,6 +744,7 @@ function show(page: InvoiceEntry) {
   summary.value = page.summary
   invoices.value = page.invoices
   cheques.value = page.cheques
+  customSchedule.value = page.customSchedule.map((r) => ({ ...r }))
   changedInvoices.clear()
   changedCheques.clear()
   deletedInvoices.value = []
@@ -762,6 +842,7 @@ const payload = (): InvoiceEntrySave => ({
   cheques: cheques.value.filter((c) => (chequeFile.value && chequesPreviewed.value && c.statusCode === 'DRAFT') || changedCheques.has(c.chequeId))
     .map((c) => ({ ...c, chequeAmount: Number(c.chequeAmount), depositBankAccountId: num(c.depositBankAccountId) })),
   deletedChequeIds: deletedCheques.value,
+  customSchedule: isCustom.value ? customSchedule.value.map((r) => ({ dueDate: r.dueDate || null, principalAmount: num(r.principalAmount) })) : undefined,
   invoicesPreviewed: !!invoiceFile.value && invoicesPreviewed.value,
   chequesPreviewed: !!chequeFile.value && chequesPreviewed.value
 })
@@ -865,7 +946,12 @@ async function previewCharges() {
 }
 const previewKey = computed(() => JSON.stringify([
   terms.productId, terms.limitId, terms.disbursementDate, terms.grossAmount, terms.advanceRatePct, terms.tenorMonth,
-  invoices.value.map((r) => `${r.statusCode}|${r.grossAmount}|${r.advanceAmount}`)
+  invoices.value.map((r) => `${r.statusCode}|${r.grossAmount}|${r.advanceAmount}`),
+  // the repayment terms rebuild the schedule shown
+  terms.spreadRate, terms.baseDayCount, terms.principalRepaymentScheduleType, terms.principalRepaymentMethod, terms.principalFrequencyMonths,
+  terms.repaymentStartDate, terms.principalDistributionMethod, terms.interestRepaymentMethod, terms.interestFrequencyMonths, terms.interestStartDate,
+  terms.principalFirstDueCode, terms.interestFirstDueCode,
+  isCustom.value ? customSchedule.value.map((r) => `${r.dueDate}|${r.principalAmount}`) : []
 ]))
 watch(previewKey, () => {
   clearTimeout(previewTimer)
@@ -908,6 +994,10 @@ watch(() => props.disbursementId, load, { immediate: true })
 
 .ie-wide { grid-column: span 2; }
 .ie-locked { background: #F1F4F6; color: #3D4A55; cursor: default; }
+.ie-custom { margin-top: 16px; }
+.ie-custom .fx-search { width: 100%; max-width: 220px; }
+.ie-custom .ie-num { text-align: right; margin-inline-start: auto; display: block; }
+.ie-add { margin-top: 10px; }
 .ie-totals.ie-totals--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ie-due { color: #E87722; }
 .ie-subhead { margin: 16px 0 8px; font-size: 13px; font-weight: 700; color: var(--fin-ink, #1d2a33); }

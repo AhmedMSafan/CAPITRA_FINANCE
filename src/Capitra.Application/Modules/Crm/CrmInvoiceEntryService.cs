@@ -16,7 +16,11 @@ public sealed record CrmDisbursementTermsDto(
     string DisbursementNumber, DateOnly? DisbursementDate, long? ClientId, long? LimitId, long? CurrencyId, long? ProductId, decimal? GrossAmount,
     decimal? AdvanceRatePct, int? TenorMonth, decimal? IndexRate, decimal? SpreadRate, string? BaseDayCount, DateOnly? RepaymentStartDate,
     string? PrincipalRepaymentScheduleType, string? PrincipalRepaymentMethod, string? PrincipalDistributionMethod, string? InterestRepaymentMethod,
-    string? PaymentMethod, string? Remarks);
+    string? PaymentMethod, string? Remarks, int? PrincipalFrequencyMonths = null, int? InterestFrequencyMonths = null, DateOnly? InterestStartDate = null,
+    string? PrincipalFirstDueCode = null, string? InterestFirstDueCode = null);
+
+/// <summary>A principal payment of a custom (irregular) schedule.</summary>
+public sealed record CrmCustomScheduleRowDto(DateOnly? DueDate, decimal? PrincipalAmount);
 
 /// <summary>Page 705 "Invoice Batch Details" region.</summary>
 public sealed record CrmInvoiceBatchDto(
@@ -38,20 +42,20 @@ public sealed record CrmInvoiceSummaryDto(
     string LimitNumber, string ClientName, decimal ApprovedLimit, decimal AvailableAmount, string CurrencyCode, decimal TotalInvoices,
     decimal ApprovedInvoiced, decimal AdvanceRate, decimal UtilizationAmount, int UtilizationPercent);
 
-/// <param name="ReverseProductIds">The products of factoring mode REVERSE: their rates come from the agreement and their repayment terms from the cheques.</param>
+/// <param name="ReverseProductIds">The products of factoring mode REVERSE: their rates come from the agreement; the cheques must match the schedule of the entered terms.</param>
 public sealed record CrmInvoiceEntryOptionsDto(
     IReadOnlyList<CrmOptionDto> Clients, IReadOnlyList<CrmOptionDto> Limits, IReadOnlyList<CrmOptionDto> Currencies, IReadOnlyList<CrmOptionDto> Products,
     IReadOnlyList<long> ReverseProductIds);
 
 public sealed record CrmInvoiceEntryDto(
     long DisbursementId, CrmDisbursementTermsDto Terms, CrmInvoiceBatchDto Batch, CrmInvoiceSummaryDto Summary, IReadOnlyList<CrmInvoiceRowDto> Invoices,
-    IReadOnlyList<CrmChequeRowDto> Cheques, CrmInvoiceEntryOptionsDto Options);
+    IReadOnlyList<CrmChequeRowDto> Cheques, CrmInvoiceEntryOptionsDto Options, IReadOnlyList<CrmCustomScheduleRowDto> CustomSchedule);
 
 /// <summary>Apply Changes: both forms and the changed or deleted grid rows.</summary>
 public sealed record CrmInvoiceEntrySaveDto(
     CrmDisbursementTermsDto Terms, CrmInvoiceBatchDto Batch, IReadOnlyList<CrmInvoiceRowDto>? Invoices, IReadOnlyList<long>? DeletedInvoiceIds,
     IReadOnlyList<CrmChequeRowDto>? Cheques, IReadOnlyList<long>? DeletedChequeIds,
-    bool InvoicesPreviewed = false, bool ChequesPreviewed = false);
+    bool InvoicesPreviewed = false, bool ChequesPreviewed = false, IReadOnlyList<CrmCustomScheduleRowDto>? CustomSchedule = null);
 
 /// <summary>An uploaded file: its name, MIME type and bytes.</summary>
 public sealed record CrmUploadFile(string FileName, string? MimeType, byte[] Content);
@@ -83,13 +87,16 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         var indexRate = await db.Set<AdmRateIndexValue>().AsNoTracking()
             .Where(x => x.RateIndexId == 1 && x.EffectiveFromDate <= today).OrderByDescending(x => x.EffectiveFromDate)
             .Select(x => (decimal?)x.AnnualRatePct).FirstOrDefaultAsync(cancellationToken);
+        // older method codes are shown as the new ones (MONTHLY principal: every 1 month; MONTHLY interest: End of Month Actual)
+        var (principalMethod, principalMonths) = CrmRepaymentSchedule.PrincipalMethod(d);
         var terms = new CrmDisbursementTermsDto(
             d.DisbursementNumber, d.DisbursementDate, d.ClientId, d.LimitId, d.CurrencyId, d.ProductId ?? 1, d.GrossAmount, d.AdvanceRatePct, d.TenorMonth,
-            indexRate ?? d.IndexRate, d.SpreadRate, d.BaseDayCountBasis ?? "ACTUAL/360", d.RepaymentStartDate ?? today,
-            d.PrincipalRepaymentScheduleType ?? "NORMAL_SCHEDULE", d.PrincipalRepaymentMethod ?? "AT_MATURITY",
-            d.PrincipalDistributionMethod ?? "INVOICE_AMOUNT", d.InterestRepaymentMethod ?? "MONTHLY",
+            indexRate ?? d.IndexRate, d.SpreadRate, d.BaseDayCountBasis ?? "ACTUAL/360", d.RepaymentStartDate ?? d.DisbursementDate,
+            d.PrincipalRepaymentScheduleType ?? CrmRepaymentSchedule.Normal, principalMethod,
+            d.PrincipalDistributionMethod ?? "EQUAL_AMOUNT", CrmRepaymentSchedule.InterestMethod(d),
             d.PaymentMethod ?? "TRANSFER",
-            d.Remarks);
+            d.Remarks, principalMonths > 0 ? principalMonths : null, d.InterestFrequencyMonths ?? 1, d.InterestStartDate ?? d.DisbursementDate,
+            d.PrincipalFirstDueCode ?? CrmRepaymentSchedule.NextMonth, d.InterestFirstDueCode ?? CrmRepaymentSchedule.NextMonth);
 
         var batchDto = batch is null
             ? new CrmInvoiceBatchDto(null, null, null, d.ClientId, today, "BULK", d.CurrencyId, null, null)
@@ -111,8 +118,37 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
                 x.CurrencyCode, "FACTORING", x.ReceivedDate, x.DepositDate, x.StatusCode)).ToList();
         }
 
+        var custom = (await CustomScheduleAsync(disbursementId, cancellationToken)).Select(x => new CrmCustomScheduleRowDto(x.DueDate, x.Amount)).ToList();
         return new CrmInvoiceEntryDto(disbursementId, terms, batchDto, await SummaryAsync(d, cancellationToken), invoices, cheques,
-            await OptionsAsync(d.ClientId, cancellationToken));
+            await OptionsAsync(d.ClientId, cancellationToken), custom);
+    }
+
+    /// <summary>The principal payments of the request's custom schedule, by date.</summary>
+    internal async Task<IReadOnlyList<CrmScheduleSource>> CustomScheduleAsync(long disbursementId, CancellationToken cancellationToken) =>
+        await db.Set<FctDisbursementCustomSchedule>().AsNoTracking().Where(x => x.DisbursementId == disbursementId).OrderBy(x => x.DueDate)
+            .Select(x => new CrmScheduleSource(x.DueDate, x.PrincipalAmount)).ToListAsync(cancellationToken);
+
+    /// <summary>The custom schedule's grid as entered: it replaces the saved rows (a date once, an amount above zero each).</summary>
+    private async Task SaveCustomScheduleAsync(FctDisbursement d, IReadOnlyList<CrmCustomScheduleRowDto> rows, CancellationToken cancellationToken)
+    {
+        var lines = rows.Where(x => x.DueDate is not null || x.PrincipalAmount is not null).ToList();
+        if (lines.Any(x => x.DueDate is null || x.PrincipalAmount is null))
+            throw BusinessValidationException.For("customSchedule", "Every principal payment needs a date and an amount.");
+        if (lines.Any(x => x.PrincipalAmount <= 0))
+            throw BusinessValidationException.For("customSchedule", "Every principal amount must be more than zero.");
+        if (lines.GroupBy(x => x.DueDate).Any(g => g.Count() > 1))
+            throw BusinessValidationException.For("customSchedule", "A date appears twice in the principal payments: enter one amount per date.");
+        db.Set<FctDisbursementCustomSchedule>().RemoveRange(
+            await db.Set<FctDisbursementCustomSchedule>().Where(x => x.DisbursementId == d.DisbursementId).ToListAsync(cancellationToken));
+        var no = 0;
+        foreach (var x in lines.OrderBy(x => x.DueDate))
+            db.Add(new FctDisbursementCustomSchedule
+            {
+                DisbursementId = d.DisbursementId,
+                LineNo = ++no,
+                DueDate = x.DueDate!.Value,
+                PrincipalAmount = Math.Round(x.PrincipalAmount!.Value, 2, MidpointRounding.AwayFromZero),
+            });
     }
 
     /// <summary>The Summary of the client chosen in the terms form (Refresh Summary), before it is saved.</summary>
@@ -147,6 +183,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken)
     {
         var d = await SaveFormsAsync(disbursementId, dto.Terms, dto.Batch, cancellationToken);
+        if (dto.CustomSchedule is { } customRows) await SaveCustomScheduleAsync(d, customRows, cancellationToken);
         var batch = await BatchOfAsync(disbursementId, false, cancellationToken);
         if (batch is not null)
         {
@@ -291,6 +328,13 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         d.PrincipalRepaymentMethod = t.PrincipalRepaymentMethod;
         d.PrincipalDistributionMethod = t.PrincipalDistributionMethod;
         d.InterestRepaymentMethod = t.InterestRepaymentMethod;
+        d.PrincipalFrequencyMonths = t.PrincipalFrequencyMonths;
+        d.InterestFrequencyMonths = t.InterestFrequencyMonths;
+        d.InterestStartDate = t.InterestStartDate;
+        d.PrincipalFirstDueCode = FirstDue(t.PrincipalFirstDueCode);
+        d.InterestFirstDueCode = FirstDue(t.InterestFirstDueCode);
+        if (t.PrincipalFrequencyMonths is <= 0 || t.InterestFrequencyMonths is <= 0)
+            throw BusinessValidationException.For("terms.principalFrequencyMonths", "Every N months: N must be a whole number of 1 or more.");
         d.PaymentMethod = t.PaymentMethod;
         d.Remarks = Blank(t.Remarks);
         if (reverse)
@@ -550,8 +594,8 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         productId is { } id && await db.Set<AdmProduct>().AsNoTracking().AnyAsync(x => x.ProductId == id && x.FactoringModeCode == ReverseMode, cancellationToken);
 
     /// <summary>
-    /// Reverse factoring (agreed with Ahmed, 31 Oct 2026): the rates are the agreement's, the limit's where the agreement has none, and the
-    /// four repayment methods follow the cheques: each cheque is an installment of principal and interest, in proportion to its amount.
+    /// Reverse factoring (agreed with Ahmed, 31 Oct 2026): the rates are the agreement's, the limit's where the agreement has none. The repayment
+    /// terms are the user's (2 Nov 2026): the schedule comes first and the customer's cheques must match it.
     /// </summary>
     private async Task ReverseRatesAsync(FctDisbursement d, CancellationToken cancellationToken)
     {
@@ -562,10 +606,6 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         d.AdvanceRatePct = agreement?.AdvanceRatePct is > 0 ? agreement.AdvanceRatePct : limit?.AdvanceRatePct ?? d.AdvanceRatePct;
         d.SpreadRate = agreement?.SpreadPct ?? limit?.SpreadRate ?? d.SpreadRate;
         d.BaseDayCountBasis = DayCountOf(agreement?.DayCountConvention) ?? d.BaseDayCountBasis;
-        d.PrincipalRepaymentScheduleType = "NORMAL_SCHEDULE";
-        d.PrincipalRepaymentMethod = "CHEQUE_DUE_DATE";
-        d.PrincipalDistributionMethod = "CHEQUE_AMOUNT";
-        d.InterestRepaymentMethod = "SAME_AS_PRINCIPAL";
     }
 
     /// <summary>The agreement's day count convention (ACT/360) as page 705 names it (ACTUAL/360).</summary>
@@ -589,19 +629,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
         // only the ELIGIBLE invoices (Ahmed, 31 Oct 2026): a rejected invoice is not financed and takes no commission
         var invoices = await db.Set<FctInvoice>().Where(x => x.BatchId == b).Select(x => new { x.StatusCode, x.GrossAmount }).ToListAsync(cancellationToken);
         d.GrossAmount = invoices.Where(x => CrmRepaymentSchedule.Normalize(x.StatusCode) == "ELIGIBLE").Sum(x => x.GrossAmount);
-        var dues = await Cheques(b, d.DisbursementId).Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED")
-            .Select(x => x.DueDate).ToListAsync(cancellationToken);
-        if (dues.Count == 0) return;
-        d.RepaymentStartDate = dues.Min();
-        d.TenorMonth = TenorMonths(d.DisbursementDate, dues.Max());
-    }
-
-    /// <summary>The fewest whole months from the disbursement date that reach the date (at least 1).</summary>
-    public static int TenorMonths(DateOnly from, DateOnly to)
-    {
-        var months = 1;
-        while (CrmRepaymentSchedule.AddMonths(from, months) < to) months++;
-        return months;
+        // the repayment terms are entered, no longer taken from the cheques (Ahmed, 2 Nov 2026): the cheques must match the schedule
     }
 
     /// <summary>Resolve Disbursement Context: the request's latest batch.</summary>
@@ -701,4 +729,7 @@ public sealed class CrmInvoiceEntryService(ICapitraDbContext db, ICurrentUser cu
     private static DateOnly? DateOf(DateTime? value) => value is { } v ? DateOnly.FromDateTime(v) : null;
 
     private static DateTime? At(DateOnly? value) => value?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+    private static string FirstDue(string? code) =>
+        code == CrmRepaymentSchedule.SameMonth ? CrmRepaymentSchedule.SameMonth : CrmRepaymentSchedule.NextMonth;
 }
