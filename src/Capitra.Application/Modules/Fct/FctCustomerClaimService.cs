@@ -82,7 +82,7 @@ public sealed class FctCustomerClaimService(
         return new FctDisbursementClaimDto(d.ClaimStatusCode, total, d.IsGlPosted, claim is null ? null : await GetAsync(claim.ClaimId, cancellationToken));
     }
 
-    /// <summary>Create Claim: the page is saved and processed, then the owed charges are claimed from the customer, in one transaction.</summary>
+    /// <summary>Create Claim: the page is saved and its charges calculated (no invoice or cheque checks), then the owed charges are claimed, in one transaction.</summary>
     public async Task<FctDisbursementClaimDto> CreateAsync(long disbursementId, CrmInvoiceEntrySaveDto dto, CancellationToken cancellationToken)
     {
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
@@ -90,7 +90,7 @@ public sealed class FctCustomerClaimService(
             throw new BusinessRuleException($"Claim {existing.ClaimNumber} already exists for this request.");
         var (d, batch) = await entry.SaveCoreAsync(disbursementId, dto, cancellationToken);
         if (d.IsGlPosted) throw new BusinessRuleException("This request is already completed.");
-        await process.ProcessCoreAsync(d, batch, cancellationToken);
+        await process.CalculateChargesOnlyAsync(d, batch, cancellationToken);
 
         var charges = (await db.Set<FctDisbursementCharge>().Where(x => x.DisbursementId == disbursementId).OrderBy(x => x.DisbursementChargeId)
             .ToListAsync(cancellationToken)).Where(Owed).ToList();

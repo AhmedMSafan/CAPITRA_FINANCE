@@ -241,7 +241,7 @@ const claimUrl = (id: number) => `/api/crm/disbursement-requests/${id}/invoice-e
 
 export const disbursementClaimApi = {
   get: (id: number) => http.get<DisbursementClaim>(claimUrl(id)),
-  // Create Claim: the page is saved and processed, then its charges are claimed from the customer
+  // Create Claim: the page is saved, its charges calculated and claimed from the customer
   create: (id: number, body: InvoiceEntrySave) => http.post<DisbursementClaim>(claimUrl(id), body),
   cancel: (id: number, claimId: number) => http.post<DisbursementClaim>(`${claimUrl(id)}/${claimId}/cancel`, {})
 }

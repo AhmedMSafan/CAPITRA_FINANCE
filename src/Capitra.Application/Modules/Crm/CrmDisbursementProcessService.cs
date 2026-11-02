@@ -106,6 +106,22 @@ public sealed class CrmDisbursementProcessService(
         return result with { StatusCode = null, IsPreview = true };
     }
 
+    /// <summary>
+    /// The charges only, kept (Create Claim, Ahmed 2 Nov 2026): calculated from the values as they stand, as the preview does, without
+    /// Process's checks of the invoices and cheques; those run at Complete, which refuses when they would change the claimed charges.
+    /// </summary>
+    internal async Task CalculateChargesOnlyAsync(FctDisbursement d, FctInvoiceBatch? batch, CancellationToken cancellationToken)
+    {
+        if (batch is not null) await entry.SyncInvoiceAdvancesAsync(d, batch.BatchId, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+        var invoices = await EligibleInvoicesAsync(d.DisbursementId, cancellationToken);
+        var dues = batch is null ? [] : await entry.Cheques(batch.BatchId, d.DisbursementId)
+            .Where(x => x.StatusCode != "CANCELLED" && x.StatusCode != "REPLACED").Select(x => x.DueDate).ToListAsync(cancellationToken);
+        DateOnly? maturity = dues.Count > 0 && await entry.IsReverseAsync(d.ProductId, cancellationToken) ? dues.Max() : null;
+        await CalculateChargesAsync(d, invoices, dues.Count, clock.UtcNow, maturity, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
     /// <summary>The GL lines of the charges: the rule's lines of each charge with its amount (none when the rule has no GL set up).</summary>
     private async Task<IReadOnlyList<CrmGlEntryDto>> GlEntriesAsync(
         FctDisbursement d, List<CrmDisbursementChargeDto> charges, CancellationToken cancellationToken)

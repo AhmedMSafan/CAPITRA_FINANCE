@@ -580,7 +580,7 @@ const claimLabel = computed(() => CLAIM_LABELS[claimStatus.value] ?? claimStatus
 const claimTone = computed(() => claimStatus.value === 'PAID' ? 'fx-chip--teal' : claimStatus.value === 'NOT_CREATED' ? '' : 'fx-chip--warn')
 const claimOutstanding = computed(() => claim.value?.claim ? claim.value.claim.claim.outstandingAmount : chargeTotals.value.total)
 const claimHint = computed(() => ({
-  NOT_CREATED: 'The charges are paid by the customer through a claim. Create Claim saves and processes the request, then claims its charges.',
+  NOT_CREATED: 'The charges are paid by the customer through a claim. Create Claim saves the request and claims the charges shown. Invoices and cheques are checked at Complete.',
   CREATED_UNPAID: 'The claim is paid in Collection and Repayments (Customer Payments), or from the Claims tab of the Factoring Workspace. Charges are locked; cancel the claim to change them.',
   PARTIALLY_PAID: 'The claim is partly paid. Complete is possible once it is fully paid in Collection and Repayments.',
   PAID: 'The claim is paid. The step can be completed.'
@@ -817,7 +817,7 @@ async function setFile(kind: 'inv' | 'chq', file: File | null) {
   })
 }
 
-// Create Claim: the page is saved and processed, then its charges are claimed from the customer (Ahmed, 2 Nov 2026)
+// Create Claim: the page is saved and its charges calculated and claimed from the customer (Ahmed, 2 Nov 2026)
 const createClaim = () => check() && run(async () => {
   if (invoiceFile.value || chequeFile.value) await saveDraft()
   claim.value = await disbursementClaimApi.create(props.disbursementId, payload())
