@@ -38,6 +38,7 @@ export type FctApplication = {
   statusCode: string | null
   agreementNo: string | null
   workflowStepName: string | null
+  track: FctTrack | null
 }
 
 /** FCT_AGREEMENTS */
@@ -50,6 +51,7 @@ export type FctAgreement = {
   factoringType: string
   statusCode: string | null
   workflowStepName: string | null
+  track: FctTrack | null
 }
 
 /** FCT_CREDIT_LIMITS: a customer's credit limit */
@@ -144,13 +146,17 @@ export type FctCreateOfferRequest = {
 
 export type FctCreateOfferResult = { offerId: number; offerRef: string; statusCode: string; existingDraft: boolean; message: string }
 
-export type FctStartWorkflowResult = { agreementId: number; agreementNumber: string; offerId: number; offerRef: string; offerStatusCode: string; message: string }
+/** The approval track a factoring agreement runs: NORMAL = FACTORING_LIMIT_APPROVAL, FAST = FACTORING_FAST_TRACK. */
+export type FctTrack = 'NORMAL' | 'FAST'
+export type FctStartWorkflowResult = {
+  agreementId: number; agreementNumber: string; offerId: number; offerRef: string; offerStatusCode: string; track: FctTrack; workflowCode: string; message: string
+}
 
 export const fctApplicationsApi = {
   calculate: (body: FctCalculationRequest) => http.post<FctCalculationResult>('/api/fct/calculator/calculate', body),
   createFromCalculator: (body: FctCreateOfferRequest) => http.post<FctCreateOfferResult>('/api/fct/applications/from-calculator', body),
   setStatus: (offerId: number, statusCode: string) => http.put<void>(`/api/fct/applications/${offerId}/status`, { statusCode }),
-  startWorkflow: (offerId: number) => http.post<FctStartWorkflowResult>(`/api/fct/applications/${offerId}/start-workflow`)
+  startWorkflow: (offerId: number, track: FctTrack) => http.post<FctStartWorkflowResult>(`/api/fct/applications/${offerId}/start-workflow`, { track })
 }
 
 /** FINOVA AgreementReviewSummaryDto: the agreement header every factoring workflow step page shows */
@@ -220,6 +226,7 @@ export type FctStepSummary = {
   relationshipManager: string | null
   statusCode: string | null
   currentStep: string | null
+  track: FctTrack | null
 }
 
 export type FctLovOption = { value: number; label: string }

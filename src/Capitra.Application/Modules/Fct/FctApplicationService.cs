@@ -31,7 +31,40 @@ public sealed record FctCreateOfferResult(long OfferId, string OfferRef, string 
 
 public sealed record FctOfferStatusRequest(string? StatusCode);
 
-public sealed record FctStartWorkflowResult(long AgreementId, string AgreementNumber, long OfferId, string OfferRef, string OfferStatusCode, string Message);
+/// <summary>"Start Agreement Workflow": Track is NORMAL (FACTORING_LIMIT_APPROVAL, the default) or FAST (FACTORING_FAST_TRACK).</summary>
+public sealed record FctStartWorkflowRequest(string? Track);
+
+public sealed record FctStartWorkflowResult(
+    long AgreementId, string AgreementNumber, long OfferId, string OfferRef, string OfferStatusCode, string Track, string WorkflowCode, string Message);
+
+/// <summary>
+/// The two approval tracks a factoring agreement can run (Ahmed, 3 Nov): the user picks one for every deal when starting
+/// the workflow. The track is the agreement's workflow instance's definition, so it is never stored twice.
+/// </summary>
+public static class FctTracks
+{
+    public const string Normal = "NORMAL";
+    public const string Fast = "FAST";
+    public const string NormalWorkflowCode = "FACTORING_LIMIT_APPROVAL";
+    public const string FastWorkflowCode = "FACTORING_FAST_TRACK";
+
+    public static string WorkflowCode(string track) => track == Fast ? FastWorkflowCode : NormalWorkflowCode;
+
+    /// <summary>NORMAL or FAST from a workflow code; null when the code is not a factoring track (or no workflow started).</summary>
+    public static string? FromWorkflowCode(string? workflowCode) => workflowCode switch
+    {
+        FastWorkflowCode => Fast,
+        NormalWorkflowCode => Normal,
+        _ => null,
+    };
+
+    /// <summary>NORMAL when empty; anything other than NORMAL or FAST is refused.</summary>
+    public static string Parse(string? track)
+    {
+        var value = string.IsNullOrWhiteSpace(track) ? Normal : track.Trim().ToUpperInvariant();
+        return value is Normal or Fast ? value : throw new BusinessRuleException("Choose the Normal track or the Fast track.");
+    }
+}
 
 /// <summary>
 /// Factoring applications (FCT_OFFERS), from FINOVA_FINANCEING: FactoringPricingService (the calculator), FactoringOfferService
@@ -39,9 +72,6 @@ public sealed record FctStartWorkflowResult(long AgreementId, string AgreementNu
 /// </summary>
 public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime)
 {
-    /// <summary>The workflow an agreement starts (FINOVA_FINANCEING workflow definition 1).</summary>
-    public const string WorkflowCode = "FACTORING_LIMIT_APPROVAL";
-
     /// <summary>The statuses the workspace can give an application; APPLICATION is set when the workflow starts.</summary>
     public static readonly string[] Statuses = ["DRAFT", "ACCEPTED", "REJECTED", "SUBMITTED"];
 
@@ -168,10 +198,14 @@ public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser cur
 
     /// <summary>
     /// "Start Agreement Workflow": creates the agreement (APP-{id}) from an ACCEPTED application and starts
-    /// FACTORING_LIMIT_APPROVAL for it, all or nothing; the application becomes APPLICATION.
+    /// the chosen track's workflow for it (FACTORING_LIMIT_APPROVAL or FACTORING_FAST_TRACK), all or nothing; the application
+    /// becomes APPLICATION.
     /// </summary>
-    public async Task<FctStartWorkflowResult> StartWorkflowAsync(long offerId, CancellationToken cancellationToken)
+    public async Task<FctStartWorkflowResult> StartWorkflowAsync(long offerId, FctStartWorkflowRequest request, CancellationToken cancellationToken)
     {
+        var track = FctTracks.Parse(request.Track);
+        var workflowCode = FctTracks.WorkflowCode(track);
+
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
 
         var offer = await db.Set<FctOffer>().FirstOrDefaultAsync(x => x.OfferId == offerId, cancellationToken)
@@ -235,12 +269,12 @@ public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser cur
             ["application_reference"] = reference,
             ["module_code"] = "FACTORING",
         };
-        var instance = await runtime.StartAsync(WorkflowCode, reference, variables, user, cancellationToken);
+        var instance = await runtime.StartAsync(workflowCode, reference, variables, user, cancellationToken);
         agreement.InstanceId = instance.WorkflowInstanceId;
         await db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
 
-        return new FctStartWorkflowResult(agreement.AgreementId, agreement.AgreementNumber, offer.OfferId, offer.OfferRef, offer.StatusCode,
-            $"Factoring application {agreement.AgreementNumber} generated successfully and workflow {WorkflowCode} started successfully.");
+        return new FctStartWorkflowResult(agreement.AgreementId, agreement.AgreementNumber, offer.OfferId, offer.OfferRef, offer.StatusCode, track, workflowCode,
+            $"Factoring application {agreement.AgreementNumber} generated successfully and workflow {workflowCode} started successfully.");
     }
 }

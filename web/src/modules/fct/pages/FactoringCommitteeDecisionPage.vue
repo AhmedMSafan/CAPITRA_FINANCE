@@ -1,9 +1,10 @@
 <template>
   <!-- FINOVA_FINANCEING FactoringCommitteeDecisionPage (APEX page 640): the Committee Approval step. The committee-approved
        terms are saved on the agreement; ACCEPT or REJECT (which ends the workflow) is on the workflow task. -->
-  <FctStepShell :agreement-id="Number(agreementId)" title="Committee Decision" icon="fa-gavel"
-                subtitle="Record the committee-approved facility terms before client acceptance."
-                summary-note="Factoring application under committee review" loading-text="Loading committee decision..."
+  <FctStepShell :agreement-id="Number(agreementId)" :title="fast ? 'Fast Track Approval' : 'Committee Decision'" icon="fa-gavel"
+                :subtitle="fast ? 'Record the approved facility terms; Accept sends the deal to Contract and Limit Creation.'
+                  : 'Record the committee-approved facility terms before client acceptance.'"
+                :summary-note="fast ? 'Factoring application on the fast track, waiting for approval' : 'Factoring application under committee review'" loading-text="Loading committee decision..."
                 :summary="page?.summary ?? null" :loading="loading">
     <template #actions>
       <button type="button" class="fx-btn" :disabled="!page" @click="printDecision">
@@ -11,12 +12,13 @@
     </template>
 
     <template v-if="page">
-      <FctProcessStrip :current="5" />
+      <FctProcessStrip :current="fast ? 2 : 5" :track="page.summary.track" />
 
       <section class="fx-card fc-step-card">
         <header class="fc-sec-head">
           <span class="fc-sec-ic" aria-hidden="true"><span class="fa fa-check-square-o"></span></span>
-          <div><h2>{{ tr('Committee Decision') }}</h2><p>{{ tr('Enter the approved terms agreed by the committee.') }}</p></div>
+          <div><h2>{{ tr(fast ? 'Approval Decision' : 'Committee Decision') }}</h2>
+            <p>{{ tr(fast ? 'Enter the approved terms; they become the credit limit.' : 'Enter the approved terms agreed by the committee.') }}</p></div>
         </header>
         <div class="fc-grid fc-grid--4">
           <label class="fc-field"><span>{{ tr('Approval Date') }}</span>
@@ -30,7 +32,7 @@
         </div>
         <div class="fc-form-actions">
           <button type="button" class="fx-btn fx-btn--primary" :disabled="saving" @click="save">
-            <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-o'" aria-hidden="true"></span>{{ tr(saving ? 'Saving...' : 'Save Committee Decision') }}</button>
+            <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-o'" aria-hidden="true"></span>{{ tr(saving ? 'Saving...' : fast ? 'Save Approval Decision' : 'Save Committee Decision') }}</button>
           <FctStepActions :save="persist" :disabled="saving" />
         </div>
       </section>
@@ -58,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
 import { useFeedback } from '@/shared/feedback/useFeedback'
 import FctStepShell from '../components/FctStepShell.vue'
@@ -76,6 +78,8 @@ const conditions = reactive([
 ])
 
 const page = ref<FctCommitteeDecision | null>(null)
+// on the fast track this page is the Approval step: one approver instead of the committee
+const fast = computed(() => page.value?.summary.track === 'FAST')
 const form = reactive<FctCommitteeDecisionTerms>({ approvalDate: null, approvedLimit: null, approvedAdvRate: null, approvedTenorMth: null })
 const loading = ref(false)
 const saving = ref(false)

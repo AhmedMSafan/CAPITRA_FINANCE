@@ -110,6 +110,17 @@
 .fc-modal li.is-active .fa{color:var(--fin-orange)}
 .fc-modal li.is-done{color:var(--fin-ink)}
 .fc-modal li.is-done .fa{color:var(--fin-ok)}
+.fc-track-modal{width:min(520px,calc(100vw - 32px))}
+.fc-track-modal > p{margin:0 0 14px;font-size:var(--fs-sm)}
+.fc-track-options{display:flex;flex-direction:column;gap:10px}
+.fc-track-option{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--fin-line);border-radius:var(--fin-radius);cursor:pointer}
+.fc-track-option input{margin-top:4px;accent-color:var(--fin-teal)}
+.fc-track-option.is-selected{border-color:var(--fin-teal);box-shadow:0 0 0 1px var(--fin-teal)}
+.fc-track-ic{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:8px;background:var(--fin-orange-50);color:var(--fin-orange)}
+.fc-track-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fc-track-text b{font-size:var(--fs-sm)}
+.fc-track-text small{color:var(--fin-muted);font-size:var(--fs-xs, 12px);line-height:1.4}
+.fc-track-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 .fc-modal li.is-failed .fa{color:var(--fin-bad)}
 .fc-modal p{margin:14px 0 0;font-size:var(--fs-sm)}
 .fc-modal .fc-modal-err{color:var(--fin-bad)}

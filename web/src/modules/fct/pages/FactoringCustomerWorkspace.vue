@@ -62,7 +62,7 @@
           <thead>
             <tr>
               <th>{{ tr('Application No.') }}</th><th>{{ tr('Application Date') }}</th><th class="fx-r">{{ tr('Requested Limit') }}</th>
-              <th>{{ tr('Currency') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Workflow Step') }}</th>
+              <th>{{ tr('Currency') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Track') }}</th><th>{{ tr('Workflow Step') }}</th>
               <th class="fc-c">{{ tr('WF Started') }}</th>
               <th v-if="canEdit" class="fx-r">{{ tr('Actions') }}</th>
             </tr>
@@ -81,6 +81,7 @@
                 </select>
                 <span v-else class="fx-chip" :class="tone(a.statusCode)">{{ a.statusCode || '-' }}</span>
               </td>
+              <td><span v-if="a.track" class="fx-chip" :class="trackTone(a.track)">{{ tr(trackLabel(a.track)) }}</span><template v-else>-</template></td>
               <td>{{ a.workflowStepName || '-' }}</td>
               <td class="fc-c">
                 <span v-if="a.workflowStepName || a.agreementNo" class="fc-wf fc-wf--yes" :title="tr('Workflow Started')"><span class="fa fa-check" aria-hidden="true"></span></span>
@@ -93,7 +94,7 @@
                     <span class="fa fa-floppy-o" aria-hidden="true"></span>
                   </button>
                   <button type="button" class="fx-btn fx-btn--primary fx-btn--sm" :title="tr(startHint(a))" :aria-label="`${tr('Start Agreement Workflow')} ${a.offerRef}`"
-                          :disabled="!canStart(a)" @click="startWorkflow(a)">
+                          :disabled="!canStart(a)" @click="chooseTrack(a)">
                     <span class="fa fa-play" aria-hidden="true"></span>
                   </button>
                 </div>
@@ -109,7 +110,7 @@
           <thead>
             <tr>
               <th>{{ tr('Agreement No.') }}</th><th>{{ tr('Application Date') }}</th><th class="fx-r">{{ tr('Facility Limit') }}</th>
-              <th>{{ tr('Currency') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Workflow Step') }}</th>
+              <th>{{ tr('Currency') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Track') }}</th><th>{{ tr('Workflow Step') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -120,6 +121,7 @@
               <td>{{ g.currencyCode || '-' }}</td>
               <td>{{ g.factoringType || '-' }}</td>
               <td><span class="fx-chip" :class="tone(g.statusCode)">{{ g.statusCode || '-' }}</span></td>
+              <td><span v-if="g.track" class="fx-chip" :class="trackTone(g.track)">{{ tr(trackLabel(g.track)) }}</span><template v-else>-</template></td>
               <td>{{ g.workflowStepName || '-' }}</td>
             </tr>
           </tbody>
@@ -239,6 +241,29 @@
       </div>
     </section>
 
+    <!-- Start Agreement Workflow: the user picks the track for this deal (Ahmed, 3 Nov). Normal is preselected. -->
+    <div v-if="choosing" class="fc-modal-back" role="presentation" @click.self="choosing = null">
+      <section class="fc-modal fc-track-modal" role="dialog" aria-modal="true" aria-labelledby="fc-track-title" @keydown.esc="choosing = null">
+        <h2 id="fc-track-title">{{ tr('Start Agreement Workflow') }}</h2>
+        <p class="fc-muted">{{ tr('Application') }} <b>{{ choosing.offerRef }}</b>. {{ tr('Choose the approval track for this deal.') }}</p>
+        <div class="fc-track-options" role="radiogroup" :aria-label="tr('Approval Track')">
+          <label v-for="t in TRACKS" :key="t.value" class="fc-track-option" :class="{ 'is-selected': track === t.value }">
+            <input v-model="track" type="radio" name="fc-track" :value="t.value">
+            <span class="fc-track-ic" aria-hidden="true"><span class="fa" :class="t.icon"></span></span>
+            <span class="fc-track-text">
+              <b>{{ tr(t.label) }}</b>
+              <small>{{ tr(t.steps) }}</small>
+            </span>
+          </label>
+        </div>
+        <div class="fc-track-actions">
+          <button type="button" class="fx-btn" @click="choosing = null">{{ tr('Cancel') }}</button>
+          <button type="button" class="fx-btn fx-btn--primary" @click="startWorkflow(choosing, track)">
+            <span class="fa fa-play" aria-hidden="true"></span>{{ tr('Start Workflow') }}</button>
+        </div>
+      </section>
+    </div>
+
     <!-- FINOVA's "Starting Workflow" modal. Capitra creates the agreement and starts the workflow in one call,
          so both steps complete together when it returns. -->
     <div v-if="progress" class="fc-modal-back" role="presentation">
@@ -271,7 +296,7 @@ import { useFeedback } from '@/shared/feedback/useFeedback'
 import { hasPermission } from '@/shared/auth/session'
 import { disbursementApi, type DisbursementRequestRow } from '@/modules/crm/api/disbursement.api'
 import type { ClaimRow } from '@/modules/crm/api/invoiceEntry.api'
-import { fctApi, fctApplicationsApi, type FctAgreement, type FctApplication, type FctCreditLimit, type FctCustomerDetails } from '../api/fct.api'
+import { fctApi, fctApplicationsApi, type FctAgreement, type FctApplication, type FctCreditLimit, type FctCustomerDetails, type FctTrack } from '../api/fct.api'
 
 const props = defineProps<{ clientId: string }>()
 const route = useRoute()
@@ -308,6 +333,22 @@ const STATUS_OPTIONS = ['DRAFT', 'ACCEPTED', 'REJECTED', 'SUBMITTED']
 const selected = reactive<Record<number, string>>({})
 const busy = reactive<Record<number, boolean>>({})
 const progress = ref<'' | 'working' | 'done'>('')
+
+// the two approval tracks; the start dialog always opens on Normal
+const TRACKS: { value: FctTrack; label: string; steps: string; icon: string }[] = [
+  { value: 'NORMAL', label: 'Normal Track', icon: 'fa-sitemap',
+    steps: 'Operation Received, Sales Review, Investigation, Credit Analysis, Risk Review, Committee, Client Acceptance, Contract, Legal Review and Limit Creation' },
+  { value: 'FAST', label: 'Fast Track', icon: 'fa-bolt', steps: 'Approval by one approver, then Contract and Limit Creation' }
+]
+const choosing = ref<FctApplication | null>(null)
+const track = ref<FctTrack>('NORMAL')
+const trackLabel = (t: FctTrack) => (t === 'FAST' ? 'Fast Track' : 'Normal Track')
+const trackTone = (t: FctTrack) => (t === 'FAST' ? 'fx-chip--warn' : 'fx-chip--teal')
+function chooseTrack(a: FctApplication) {
+  if (!canStart(a)) return
+  track.value = 'NORMAL'
+  choosing.value = a
+}
 
 const editable = (a: FctApplication) => STATUS_OPTIONS.includes(a.statusCode || '')
 const dirty = (a: FctApplication) => editable(a) && selected[a.offerId] !== a.statusCode
@@ -385,12 +426,13 @@ async function saveStatus(a: FctApplication) {
   }
 }
 
-async function startWorkflow(a: FctApplication) {
+async function startWorkflow(a: FctApplication, chosen: FctTrack) {
+  choosing.value = null
   if (!canStart(a)) return
   busy[a.offerId] = true
   progress.value = 'working'
   try {
-    await fctApplicationsApi.startWorkflow(a.offerId)
+    await fctApplicationsApi.startWorkflow(a.offerId, chosen)
     progress.value = 'done'
     await loadData(Number(props.clientId))
     await new Promise((r) => setTimeout(r, 700))

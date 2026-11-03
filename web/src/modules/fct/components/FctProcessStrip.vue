@@ -18,7 +18,17 @@
 import { computed } from 'vue'
 import { tr } from '@/shared/layout/language'
 
-const props = defineProps<{ current: number; withLegalReview?: boolean }>()
+import type { FctTrack } from '../api/fct.api'
+
+// track FAST shows the fast track (Ahmed, 3 Nov): Approval by one approver, then Contract and Limit Creation
+const props = defineProps<{ current: number; withLegalReview?: boolean; track?: FctTrack | null }>()
+
+const FAST = [
+  { label: 'Application', owner: 'BD Officer' },
+  { label: 'Approval', owner: 'Fast Track Approver' },
+  { label: 'Contract and Limit Creation', owner: 'Legal Officer' },
+  { label: 'Activation', owner: 'Operations' }
+]
 
 const BASE = [
   { label: 'Application', owner: 'BD Officer' },
@@ -31,7 +41,7 @@ const BASE = [
 ]
 
 // the Legal Review page shows the cycle with its own step before Activation
-const steps = computed(() => [
+const steps = computed(() => props.track === 'FAST' ? FAST : [
   ...BASE,
   ...(props.withLegalReview ? [{ label: 'Legal Review', owner: 'Legal Officer' }] : []),
   { label: 'Activation', owner: 'Operations' }

@@ -1,12 +1,13 @@
 <template>
   <!-- FINOVA_FINANCEING FactoringLegalReviewPage: the Legal Review and Limit Creation step. The legal opinion is saved on the
        agreement; ACCEPT on the workflow task creates the customer's credit limit. -->
-  <FctStepShell :agreement-id="Number(agreementId)" title="Legal Review" icon="fa-balance-scale"
-                subtitle="Review the final contract, record the legal opinion and complete the legal decision."
+  <FctStepShell :agreement-id="Number(agreementId)" :title="fast ? 'Contract and Limit Creation' : 'Legal Review'" icon="fa-balance-scale"
+                :subtitle="fast ? 'Fast track: upload and review the contract, record the legal opinion; Accept creates the credit limit.'
+                  : 'Review the final contract, record the legal opinion and complete the legal decision.'"
                 summary-note="Factoring agreement currently under legal review" loading-text="Loading legal review..."
                 :summary="page?.summary ?? null" :loading="loading" @uploaded="loadDocuments">
     <template v-if="page">
-      <FctProcessStrip :current="8" with-legal-review />
+      <FctProcessStrip :current="fast ? 3 : 8" with-legal-review :track="page.summary.track" />
 
       <section class="fx-card fc-step-card">
         <header class="fc-sec-head">
@@ -65,6 +66,8 @@ import { fctDocumentsApi, fctStepsApi, type FctAgreementDocument, type FctLegalR
 const props = defineProps<{ agreementId: string }>()
 
 const page = ref<FctLegalReview | null>(null)
+// on the fast track this step is Contract and Limit Creation (no Generate Contract step before it)
+const fast = computed(() => page.value?.summary.track === 'FAST')
 const documents = ref<FctAgreementDocument[]>([])
 const form = reactive<FctLegalReviewDetails>({ legalReviewDate: null, legalOpinionNotes: null })
 const loading = ref(false)

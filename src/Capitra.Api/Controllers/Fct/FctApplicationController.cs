@@ -2,6 +2,7 @@ using Capitra.Api.Security;
 using Capitra.Application.Modules.Fct;
 using Capitra.Application.Security;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Capitra.Api.Controllers.Fct;
 
@@ -29,6 +30,6 @@ public sealed class FctApplicationController(FctApplicationService applications)
 
     [HttpPost("applications/{offerId:long}/start-workflow")]
     [HasPermission(Permissions.Fct.Edit)]
-    public Task<FctStartWorkflowResult> StartWorkflow(long offerId, CancellationToken cancellationToken) =>
-        applications.StartWorkflowAsync(offerId, cancellationToken);
+    public Task<FctStartWorkflowResult> StartWorkflow(long offerId, [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] FctStartWorkflowRequest? request, CancellationToken cancellationToken) =>
+        applications.StartWorkflowAsync(offerId, request ?? new FctStartWorkflowRequest(null), cancellationToken);
 }
