@@ -2,6 +2,7 @@ using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Fct;
@@ -9,7 +10,8 @@ namespace Capitra.Application.Modules.Fct;
 /// <summary>The agreement header the factoring step pages show (FINOVA Factoring*SummaryResult, one shape for all of them).</summary>
 public sealed record FctStepSummaryDto(
     long AgreementId, string AgreementNumber, long ClientId, string? ClientName, long CurrencyId, string? CurrencyCode,
-    decimal FacilityLimit, decimal? ApprovedLimit, DateTime? ApplicationDate, string? RelationshipManager, string? StatusCode, string? CurrentStep);
+    decimal FacilityLimit, decimal? ApprovedLimit, DateTime? ApplicationDate, string? RelationshipManager, string? StatusCode, string? CurrentStep,
+    string? Track);
 
 public sealed record FctLovOption(long Value, string Label);
 
@@ -352,8 +354,13 @@ public sealed class FctStepService(ICapitraDbContext db)
             .FirstOrDefaultAsync(cancellationToken);
         var currencyCode = await db.Set<CrmLkpCurrency>().AsNoTracking().Where(x => x.CurrencyId == a.CurrencyId).Select(x => x.CurrencyCode)
             .FirstOrDefaultAsync(cancellationToken);
+        var workflowCode = await (from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
+                                  where i.WorkflowInstanceId == a.InstanceId
+                                  join d in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals d.WorkflowDefinitionId
+                                  select d.WorkflowCode)
+            .FirstOrDefaultAsync(cancellationToken);
         return new FctStepSummaryDto(a.AgreementId, a.AgreementNumber, a.ClientId, clientName, a.CurrencyId, currencyCode, a.FacilityLimit,
-            a.ApprovedLimit, a.ApplicationAt, a.RelationshipManager, a.StatusCode, a.CurrentStep);
+            a.ApprovedLimit, a.ApplicationAt, a.RelationshipManager, a.StatusCode, a.CurrentStep, FctTracks.FromWorkflowCode(workflowCode));
     }
 
     private static FctApprovedTermsDto Terms(FctAgreement a) => new(a.ApprovedLimit, a.ApprovedAdvRate, a.ApprovedTenorMth, a.EffectiveRatePct);

@@ -17,11 +17,11 @@ public sealed record FctCustomerDetailsDto(
 
 public sealed record FctApplicationDto(
     long OfferId, string OfferRef, DateTime? OfferAt, decimal RequestedLimit, string? CurrencyCode, string FactoringType,
-    string? StatusCode, string? AgreementNo, string? WorkflowStepName);
+    string? StatusCode, string? AgreementNo, string? WorkflowStepName, string? Track);
 
 public sealed record FctAgreementDto(
     long AgreementId, string AgreementNumber, DateTime? ApplicationAt, decimal FacilityLimit, string? CurrencyCode, string FactoringType,
-    string? StatusCode, string? WorkflowStepName);
+    string? StatusCode, string? WorkflowStepName, string? Track);
 
 /// <summary>FCT_CREDIT_LIMITS, as FINOVA's credit-limits/by-client returns it (with the currency code).</summary>
 public sealed record FctCreditLimitDto(
@@ -70,12 +70,14 @@ public sealed class FctWorkspaceService(ICapitraDbContext db)
             .Select(x => new { x.AgreementNumber, x.InstanceId })
             .ToListAsync(cancellationToken);
         var steps = await CurrentStepsAsync(agreements.Select(x => x.InstanceId), cancellationToken);
+        var tracks = await TracksAsync(agreements.Select(x => x.InstanceId), cancellationToken);
 
         return [.. offers.Select(x =>
         {
             var instanceId = agreements.FirstOrDefault(a => string.Equals(a.AgreementNumber, x.o.AgreementNo, StringComparison.OrdinalIgnoreCase))?.InstanceId;
             return new FctApplicationDto(x.o.OfferId, x.o.OfferRef, x.o.OfferAt, x.o.RequestedLimit, x.CurrencyCode, x.o.FactoringType,
-                x.o.StatusCode, x.o.AgreementNo, instanceId is { } id ? steps.GetValueOrDefault(id) : null);
+                x.o.StatusCode, x.o.AgreementNo, instanceId is { } id ? steps.GetValueOrDefault(id) : null,
+                instanceId is { } i ? tracks.GetValueOrDefault(i) : null);
         })];
     }
 
@@ -89,9 +91,10 @@ public sealed class FctWorkspaceService(ICapitraDbContext db)
                           select new { a, CurrencyCode = cu == null ? null : cu.CurrencyCode })
             .ToListAsync(cancellationToken);
         var steps = await CurrentStepsAsync(rows.Select(x => x.a.InstanceId), cancellationToken);
+        var tracks = await TracksAsync(rows.Select(x => x.a.InstanceId), cancellationToken);
 
         return [.. rows.Select(x => new FctAgreementDto(x.a.AgreementId, x.a.AgreementNumber, x.a.ApplicationAt, x.a.FacilityLimit,
-            x.CurrencyCode, x.a.FactoringType, x.a.StatusCode, steps.GetValueOrDefault(x.a.InstanceId)))];
+            x.CurrencyCode, x.a.FactoringType, x.a.StatusCode, steps.GetValueOrDefault(x.a.InstanceId), tracks.GetValueOrDefault(x.a.InstanceId)))];
     }
 
     /// <summary>The customer's credit limits, newest first; Legal Review ACCEPT creates the agreement-level one.</summary>
@@ -105,6 +108,21 @@ public sealed class FctWorkspaceService(ICapitraDbContext db)
                    x.CurrencyId, cu == null ? null : cu.CurrencyCode, x.ApprovedAmount, x.CurrentLimit, x.UtilizedAmount, x.AvailableAmount,
                    x.EffectiveAt, x.ExpiryAt, x.IsActive))
             .ToListAsync(cancellationToken);
+
+    /// <summary>Per workflow instance, its track (NORMAL or FAST) from the workflow definition it runs.</summary>
+    private async Task<Dictionary<long, string?>> TracksAsync(IEnumerable<long> instanceIds, CancellationToken cancellationToken)
+    {
+        var ids = instanceIds.Where(x => x > 0).Distinct().ToList();
+        if (ids.Count == 0)
+            return [];
+
+        var codes = await (from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
+                           where ids.Contains(i.WorkflowInstanceId)
+                           join d in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals d.WorkflowDefinitionId
+                           select new { i.WorkflowInstanceId, d.WorkflowCode })
+            .ToListAsync(cancellationToken);
+        return codes.ToDictionary(x => x.WorkflowInstanceId, x => FctTracks.FromWorkflowCode(x.WorkflowCode));
+    }
 
     /// <summary>Per workflow instance, the name of its newest step that is not completed yet.</summary>
     private async Task<Dictionary<long, string?>> CurrentStepsAsync(IEnumerable<long> instanceIds, CancellationToken cancellationToken)
