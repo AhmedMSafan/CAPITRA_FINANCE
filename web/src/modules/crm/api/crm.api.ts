@@ -38,6 +38,8 @@ export type CrmClientForm = {
   isActive: boolean
   isSupplier: boolean
   isRelatedParty: boolean
+  /** only when a customer is created: its first role, which starts as Onboarding */
+  initialRoleCode?: string | null
 }
 
 export type CrmOption = { value: string; label: string }

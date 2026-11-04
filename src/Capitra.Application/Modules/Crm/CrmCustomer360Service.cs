@@ -129,7 +129,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
             [.. complianceHistory.Select(h => new CrmComplianceHistoryDto(h.ComplianceHistoryId, h.ActionCode, h.KycStatus, h.KycExpiryDate,
                 h.AmlStatus, h.SanctionsStatus, h.IsPep, h.IsBlacklisted, h.RiskGrade, h.NextReviewDate, h.Notes, h.CreatedBy, h.CreatedAt))],
             [.. roles.Select(r => new CrmRoleDto(r.ClientRoleId, r.RoleCode, RoleLabel(r.RoleCode), r.StatusCode, r.ActiveSinceDate, r.Notes,
-                r.StatusCode == CrmClientRole.Active ? [] : RoleBlockers(r.RoleCode, c, compliance, accounts)))],
+                r.StatusCode == CrmClientRole.Active ? [] : RoleBlockers(r.RoleCode, c, compliance)))],
             [.. accounts.Select(a => ToDto(a, currencies, now))],
             [.. bankHistory.Select(h => new CrmBankAccountHistoryDto(h.BankAccountHistoryId, h.BankAccountId, h.ActionCode, h.BankName,
                 h.AccountNumber, h.Iban, currencies.GetValueOrDefault(h.CurrencyId) ?? "", h.IsPrimary, h.StatusCode, h.VerificationMethodCode,
@@ -212,8 +212,11 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         return reasons.Count == 0 ? new("YES", "Ready to pay", []) : new("NO", "Not ready to pay", reasons);
     }
 
-    /// <summary>What still stops a role from becoming ACTIVE (onboarding depth by role, agreed with Ahmed 4 Nov 2026).</summary>
-    private static List<string> RoleBlockers(string role, CrmClient c, CrmBadgeDto compliance, List<CrmClientBankAccount> accounts)
+    /// <summary>
+    /// What still stops a role from becoming ACTIVE (onboarding depth by role, agreed with Ahmed 4 Nov 2026). No role needs a bank
+    /// account: only the party we pay needs one, and that is checked when it is paid (Ready to Pay, Treasury Disburse).
+    /// </summary>
+    private static List<string> RoleBlockers(string role, CrmClient c, CrmBadgeDto compliance)
     {
         var r = new List<string>();
         if (!c.IsActive) r.Add("The customer is inactive.");
@@ -223,7 +226,6 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
             case "CLIENT":
             case "SUPPLIER":
                 if (!ComplianceOk(compliance)) r.Add($"Compliance must be clear (now {compliance.Label.ToLowerInvariant()}).");
-                if (!accounts.Any(x => x.StatusCode == CrmClientBankAccount.Verified)) r.Add("A verified bank account is required.");
                 break;
             case "DEBTOR":
                 if (string.IsNullOrWhiteSpace(c.TaxNumber) && string.IsNullOrWhiteSpace(c.RegistrationNumber))
@@ -341,8 +343,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         var role = await RoleAsync(clientId, roleId, cancellationToken);
         if (role.StatusCode == CrmClientRole.Active) return;
         var c = await ClientAsync(clientId, cancellationToken);
-        var accounts = await db.Set<CrmClientBankAccount>().AsNoTracking().Where(x => x.ClientId == clientId).ToListAsync(cancellationToken);
-        var blockers = RoleBlockers(role.RoleCode, c, ComplianceBadge(c), accounts);
+        var blockers = RoleBlockers(role.RoleCode, c, ComplianceBadge(c));
         if (blockers.Count > 0)
             throw new BusinessRuleException($"The {RoleLabel(role.RoleCode)} role cannot be activated: {string.Join(" ", blockers)}");
         role.StatusCode = CrmClientRole.Active;

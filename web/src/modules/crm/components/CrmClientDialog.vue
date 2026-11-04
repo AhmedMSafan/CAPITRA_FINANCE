@@ -41,6 +41,12 @@
                   <option v-for="t in withCurrent(CLIENT_TYPES, form.clientType)" :key="t" :value="t">{{ t }}</option>
                 </select>
               </label>
+              <label v-if="!clientId" class="fc-field" :class="bad('initialRoleCode')">
+                <span>{{ tr('First Role') }}<b> *</b></span>
+                <select v-model="form.initialRoleCode" class="fx-select">
+                  <option v-for="r in ROLES" :key="r.value" :value="r.value">{{ tr(r.label) }}</option>
+                </select>
+              </label>
               <label class="fc-field" :class="bad('legalStructure')">
                 <span>{{ tr('Legal Structure') }}<b> *</b></span>
                 <select v-model="form.legalStructure" class="fx-select">
@@ -137,6 +143,7 @@ import { ApiError } from '@/shared/api/http'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { crmApi, type CrmClientForm, type CrmClientOptions } from '../api/crm.api'
+import { ROLES } from './crm360'
 
 // clientId null = Add Client
 const props = defineProps<{ clientId: number | null }>()
@@ -150,7 +157,7 @@ const LEGAL_STRUCTURES = ['LLC', 'JSC', 'PARTNERSHIP', 'SOLE']
 const empty = (): CrmClientForm => ({
   clientId: null, clientNumber: '', clientName: '', clientNameAr: '', shortName: null, clientType: '', clientRoleCode: null,
   legalStructure: '', registrationNumber: null, taxNumber: null, email: null, phoneNumber: null, mobileNumber: null, website: null,
-  countryId: 0, baseCurrencyId: 0, statusId: 0, isActive: true, isSupplier: false, isRelatedParty: false
+  countryId: 0, baseCurrencyId: 0, statusId: 0, isActive: true, isSupplier: false, isRelatedParty: false, initialRoleCode: 'CLIENT'
 })
 
 const form = reactive<CrmClientForm>(empty())
@@ -171,6 +178,7 @@ function check(): Record<string, string[]> {
   if (!form.clientNameAr.trim()) e.clientNameAr = ['Arabic Client Name is required.']
   if (!form.clientType.trim()) e.clientType = ['Client Type is required.']
   if (!form.legalStructure.trim()) e.legalStructure = ['Legal Structure is required.']
+  if (!props.clientId && !form.initialRoleCode) e.initialRoleCode = ["Choose the customer's first role."]
   return e
 }
 

@@ -89,16 +89,11 @@ import { formatAmount } from '@/shared/format/money'
 import { tr } from '@/shared/layout/language'
 import { crm360Api, type CrmProgram, type CrmRole } from '../api/crm.api'
 import Crm360Dialog from './Crm360Dialog.vue'
-import { chip, label } from './crm360'
+import { chip, label, ROLES } from './crm360'
 
 const props = defineProps<{ clientId: number; roles: CrmRole[]; programs: CrmProgram[]; canEdit: boolean }>()
 const emit = defineEmits<{ changed: [] }>()
 
-// The same list as CrmCustomer360Service.Roles on the server
-const ROLES = [
-  { value: 'CLIENT', label: 'Client' }, { value: 'SUPPLIER', label: 'Supplier' }, { value: 'DEBTOR', label: 'Debtor' },
-  { value: 'GUARANTOR', label: 'Guarantor' }, { value: 'REAL_ESTATE_DEVELOPER', label: 'Real Estate Developer' }, { value: 'INVESTOR', label: 'Investor' }
-]
 const free = computed(() => ROLES.filter((o) => !props.roles.some((r) => r.roleCode === o.value)))
 
 const adding = ref(false)
