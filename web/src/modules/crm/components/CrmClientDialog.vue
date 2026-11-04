@@ -1,6 +1,6 @@
 <template>
-  <!-- FINOVA_FINANCEING ClientFormDialog "Add Client" / "Edit Client": Basic Information, Contact Information and
-       Classification, with the same fields, lists and required marks. Errors open a pop-up and mark their fields. -->
+  <!-- Add Client / Edit Client: Basic Information, Contact Information and Classification. Roles (Client, Supplier, Debtor, Payee)
+       are kept on the Customer 360 Roles tab, so this dialog no longer has a role or a supplier field. Errors open a pop-up and mark their fields. -->
   <Teleport to="body">
     <div v-if="visible" class="fx fc fc-modal-back" role="presentation" @click.self="close">
       <section class="fc-modal crm-dlg" role="dialog" aria-modal="true" aria-labelledby="crm-dlg-title">
@@ -41,11 +41,10 @@
                   <option v-for="t in withCurrent(CLIENT_TYPES, form.clientType)" :key="t" :value="t">{{ t }}</option>
                 </select>
               </label>
-              <label class="fc-field" :class="bad('clientRoleCode')">
-                <span>{{ tr('Client Role') }}</span>
-                <select v-model="form.clientRoleCode" class="fx-select">
-                  <option :value="null">{{ tr('Select client role') }}</option>
-                  <option v-for="r in options.clientRoles" :key="r.value" :value="r.value">{{ r.label }}</option>
+              <label v-if="!clientId" class="fc-field" :class="bad('initialRoleCode')">
+                <span>{{ tr('First Role') }}<b> *</b></span>
+                <select v-model="form.initialRoleCode" class="fx-select">
+                  <option v-for="r in ROLES" :key="r.value" :value="r.value">{{ tr(r.label) }}</option>
                 </select>
               </label>
               <label class="fc-field" :class="bad('legalStructure')">
@@ -117,13 +116,6 @@
                 </select>
               </label>
               <label class="fc-field">
-                <span>{{ tr('Supplier') }}</span>
-                <select v-model="form.isSupplier" class="fx-select">
-                  <option :value="true">{{ tr('Yes') }}</option>
-                  <option :value="false">{{ tr('No') }}</option>
-                </select>
-              </label>
-              <label class="fc-field">
                 <span>{{ tr('Related Party') }}</span>
                 <select v-model="form.isRelatedParty" class="fx-select">
                   <option :value="true">{{ tr('Yes') }}</option>
@@ -151,6 +143,7 @@ import { ApiError } from '@/shared/api/http'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { crmApi, type CrmClientForm, type CrmClientOptions } from '../api/crm.api'
+import { ROLES } from './crm360'
 
 // clientId null = Add Client
 const props = defineProps<{ clientId: number | null }>()
@@ -164,7 +157,7 @@ const LEGAL_STRUCTURES = ['LLC', 'JSC', 'PARTNERSHIP', 'SOLE']
 const empty = (): CrmClientForm => ({
   clientId: null, clientNumber: '', clientName: '', clientNameAr: '', shortName: null, clientType: '', clientRoleCode: null,
   legalStructure: '', registrationNumber: null, taxNumber: null, email: null, phoneNumber: null, mobileNumber: null, website: null,
-  countryId: 0, baseCurrencyId: 0, statusId: 0, isActive: true, isSupplier: false, isRelatedParty: false
+  countryId: 0, baseCurrencyId: 0, statusId: 0, isActive: true, isSupplier: false, isRelatedParty: false, initialRoleCode: 'CLIENT'
 })
 
 const form = reactive<CrmClientForm>(empty())
@@ -185,6 +178,7 @@ function check(): Record<string, string[]> {
   if (!form.clientNameAr.trim()) e.clientNameAr = ['Arabic Client Name is required.']
   if (!form.clientType.trim()) e.clientType = ['Client Type is required.']
   if (!form.legalStructure.trim()) e.legalStructure = ['Legal Structure is required.']
+  if (!props.clientId && !form.initialRoleCode) e.initialRoleCode = ["Choose the customer's first role."]
   return e
 }
 

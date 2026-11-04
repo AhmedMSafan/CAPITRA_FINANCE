@@ -14,11 +14,15 @@ public sealed record CrmClientListDto(
     long ClientId, string ClientNumber, string ClientName, string ClientType, string? PhoneNumber, string? Email, bool IsActive,
     DateTime? LastActivityAt, string? LastActivityType, string? LastActivityRef);
 
-/// <summary>The fields of FINOVA's client dialog (Basic Information, Contact Information, Classification).</summary>
+/// <summary>
+/// The fields of the client dialog (Basic Information, Contact Information, Classification). InitialRoleCode is asked only when a
+/// customer is created: its first Customer 360 role (CRM_CLIENT_ROLES), which starts as ONBOARDING.
+/// </summary>
 public sealed record CrmClientFormDto(
     long? ClientId, string ClientNumber, string ClientName, string ClientNameAr, string? ShortName, string ClientType, string? ClientRoleCode,
     string LegalStructure, string? RegistrationNumber, string? TaxNumber, string? Email, string? PhoneNumber, string? MobileNumber,
-    string? Website, long CountryId, long BaseCurrencyId, long StatusId, bool IsActive, bool IsSupplier, bool IsRelatedParty);
+    string? Website, long CountryId, long BaseCurrencyId, long StatusId, bool IsActive, bool IsSupplier, bool IsRelatedParty,
+    string? InitialRoleCode = null);
 
 public sealed record CrmOptionDto(string Value, string Label);
 
@@ -71,7 +75,7 @@ public sealed class CrmClientService(ICapitraDbContext db)
             .Where(x => x.ClientId == clientId)
             .Select(x => new CrmClientFormDto(x.ClientId, x.ClientNumber, x.ClientName, x.ClientNameAr, x.ShortName, x.ClientType, x.ClientRoleCode,
                 x.LegalStructure, x.RegistrationNumber, x.TaxNumber, x.Email, x.PhoneNumber, x.MobileNumber, x.Website,
-                x.CountryId, x.BaseCurrencyId, x.StatusId, x.IsActive, x.IsSupplier, x.IsRelatedParty))
+                x.CountryId, x.BaseCurrencyId, x.StatusId, x.IsActive, x.IsSupplier, x.IsRelatedParty, null))
             .SingleOrDefaultAsync(cancellationToken)
         ?? throw new NotFoundException($"Client with ID {clientId} was not found.");
 
@@ -91,11 +95,15 @@ public sealed class CrmClientService(ICapitraDbContext db)
         await ValidateAsync(dto, requireNumber: true, cancellationToken);
         if (await db.Set<CrmClient>().AnyAsync(x => x.ClientNumber == number, cancellationToken))
             throw BusinessValidationException.For("clientNumber", $"Client Number {number} already exists.");
+        var firstRole = dto.InitialRoleCode?.Trim().ToUpperInvariant() ?? "";
+        if (CrmCustomer360Service.Roles.All(x => x.Value != firstRole)) throw BusinessValidationException.For("initialRoleCode", "Choose the customer's first role.");
 
         // FINOVA's defaults: active, not blacklisted, not a related party, not a supplier unless chosen
         var client = new CrmClient { ClientNumber = number };
         Apply(client, dto);
         db.Set<CrmClient>().Add(client);
+        await db.SaveChangesAsync(cancellationToken);
+        db.Set<CrmClientRole>().Add(new CrmClientRole { ClientId = client.ClientId, RoleCode = firstRole, StatusCode = CrmClientRole.Onboarding });
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(client.ClientId, cancellationToken);
     }
@@ -147,6 +155,11 @@ public sealed class CrmClientService(ICapitraDbContext db)
         if (!await db.Set<CrmLkpCountry>().AnyAsync(x => x.CountryId == dto.CountryId, cancellationToken)) errors["countryId"] = ["Country is required."];
         if (!await db.Set<CrmLkpCurrency>().AnyAsync(x => x.CurrencyId == dto.BaseCurrencyId, cancellationToken)) errors["baseCurrencyId"] = ["Base Currency is required."];
         if (!await db.Set<CrmLkpStatusCode>().AnyAsync(x => x.StatusId == dto.StatusId, cancellationToken)) errors["statusId"] = [$"Status ID {dto.StatusId} does not exist."];
+        // the upload files find a customer by its tax number, so it is unique within a country
+        var tax = Blank(dto.TaxNumber);
+        if (tax is not null && await db.Set<CrmClient>().AnyAsync(x => x.TaxNumber == tax && x.CountryId == dto.CountryId
+                && x.ClientId != (dto.ClientId ?? 0), cancellationToken))
+            errors["taxNumber"] = [$"Another customer in this country already has tax number {tax}."];
         var role = Blank(dto.ClientRoleCode)?.ToUpperInvariant();
         if (role is not null && ClientRoles.All(x => x.Value != role)) errors["clientRoleCode"] = [$"Client Role {role} does not exist."];
         if (errors.Count > 0) throw new BusinessValidationException(errors);

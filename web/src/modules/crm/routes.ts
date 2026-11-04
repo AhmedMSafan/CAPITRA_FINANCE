@@ -9,7 +9,7 @@ export const crmRoutes: RouteRecordRaw[] = [
   { path: 'crm/customers', name: 'crm-customers', component: () => import('./pages/CrmHomePage.vue'), meta: meta('Customer Workspace') },
   {
     path: 'crm/customers/:clientId(\\d+)', name: 'crm-customer-workspace', component: () => import('./pages/CustomerWorkspacePage.vue'),
-    props: (r) => ({ clientId: Number(r.params.clientId) }), meta: meta('Customer Workspace')
+    props: (r) => ({ clientId: Number(r.params.clientId) }), meta: meta('Customer 360')
   },
   // a new request is made from a limit of the Factoring Customer Workspace, which passes the customer and the limit
   {

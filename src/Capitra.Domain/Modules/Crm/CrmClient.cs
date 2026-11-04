@@ -147,4 +147,22 @@ public class CrmClient : AuditableEntity
     public string? SupplierBankAccount { get; set; }
 
     public bool IsSupplier { get; set; }
+
+    // Customer 360 compliance (agreed with Ahmed, 4 Nov 2026): the profile is checked once per customer, by a second person.
+
+    /// <summary>PENDING, CLEAR, MATCH or BLOCKED.</summary>
+    public string? SanctionsStatus { get; set; } = "PENDING";
+
+    /// <summary>Politically exposed person.</summary>
+    public bool IsPep { get; set; }
+
+    /// <summary>Who last changed the compliance profile; the verifier must be someone else.</summary>
+    public string? ComplianceChangedBy { get; set; }
+
+    public DateTime? ComplianceChangedAt { get; set; }
+
+    /// <summary>Set by Verify; cleared by any later change of the profile.</summary>
+    public string? ComplianceVerifiedBy { get; set; }
+
+    public DateTime? ComplianceVerifiedAt { get; set; }
 }
