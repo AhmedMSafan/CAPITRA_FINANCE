@@ -87,6 +87,9 @@ public static class Permissions
 
         /// <summary>Create and change CRM clients.</summary>
         public const string Edit = "CRM.EDIT";
+
+        /// <summary>Verify a customer's compliance profile and bank accounts (four eyes: never one's own change).</summary>
+        public const string Verify = "CRM.VERIFY";
     }
 
     public static class Collection

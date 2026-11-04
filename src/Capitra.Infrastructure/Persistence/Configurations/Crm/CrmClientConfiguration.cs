@@ -56,6 +56,9 @@ public sealed class CrmClientConfiguration : IEntityTypeConfiguration<CrmClient>
         builder.Property(x => x.KycStatus).HasMaxLength(30);
         builder.Property(x => x.AmlStatus).HasMaxLength(30);
         builder.Property(x => x.BlacklistReason).HasMaxLength(1000);
+        builder.Property(x => x.SanctionsStatus).HasMaxLength(30);
+        builder.Property(x => x.ComplianceChangedBy).HasMaxLength(255);
+        builder.Property(x => x.ComplianceVerifiedBy).HasMaxLength(255);
         builder.Property(x => x.BlacklistReasonAr).HasMaxLength(1000);
         builder.Property(x => x.GroupCode).HasMaxLength(30);
         builder.Property(x => x.GroupName).HasMaxLength(300);

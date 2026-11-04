@@ -7,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCapitraInfrastructure(builder.Configuration);
 builder.Services.AddCapitraApplication();
+// Customer 360: days a bank account waits after its last change before it can be paid (Ahmed, 4 Nov 2026: 2)
+builder.Services.AddSingleton(new Capitra.Application.Modules.Crm.CrmSettings(builder.Configuration.GetValue("Crm:BankAccountWaitingDays", 2)));
 builder.Services.AddCapitraSecurity(builder.Configuration);
 
 builder.Services.AddControllers();

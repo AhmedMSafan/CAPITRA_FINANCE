@@ -1,6 +1,6 @@
 <template>
-  <!-- FINOVA_FINANCEING ClientFormDialog "Add Client" / "Edit Client": Basic Information, Contact Information and
-       Classification, with the same fields, lists and required marks. Errors open a pop-up and mark their fields. -->
+  <!-- Add Client / Edit Client: Basic Information, Contact Information and Classification. Roles (Client, Supplier, Debtor, Payee)
+       are kept on the Customer 360 Roles tab, so this dialog no longer has a role or a supplier field. Errors open a pop-up and mark their fields. -->
   <Teleport to="body">
     <div v-if="visible" class="fx fc fc-modal-back" role="presentation" @click.self="close">
       <section class="fc-modal crm-dlg" role="dialog" aria-modal="true" aria-labelledby="crm-dlg-title">
@@ -39,13 +39,6 @@
                 <select v-model="form.clientType" class="fx-select">
                   <option value="" disabled></option>
                   <option v-for="t in withCurrent(CLIENT_TYPES, form.clientType)" :key="t" :value="t">{{ t }}</option>
-                </select>
-              </label>
-              <label class="fc-field" :class="bad('clientRoleCode')">
-                <span>{{ tr('Client Role') }}</span>
-                <select v-model="form.clientRoleCode" class="fx-select">
-                  <option :value="null">{{ tr('Select client role') }}</option>
-                  <option v-for="r in options.clientRoles" :key="r.value" :value="r.value">{{ r.label }}</option>
                 </select>
               </label>
               <label class="fc-field" :class="bad('legalStructure')">
@@ -114,13 +107,6 @@
                 <select v-model="form.isActive" class="fx-select">
                   <option :value="true">{{ tr('Active') }}</option>
                   <option :value="false">{{ tr('Inactive') }}</option>
-                </select>
-              </label>
-              <label class="fc-field">
-                <span>{{ tr('Supplier') }}</span>
-                <select v-model="form.isSupplier" class="fx-select">
-                  <option :value="true">{{ tr('Yes') }}</option>
-                  <option :value="false">{{ tr('No') }}</option>
                 </select>
               </label>
               <label class="fc-field">

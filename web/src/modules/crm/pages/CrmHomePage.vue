@@ -22,7 +22,7 @@
         <small>· {{ tr('latest application, agreement or disbursement') }}</small>
       </div>
       <div class="crm-recent-grid">
-        <RouterLink v-for="c in recent" :key="c.clientId" :to="workspace(c.clientId)" class="crm-recent-card" :title="tr('Workspaces')">
+        <RouterLink v-for="c in recent" :key="c.clientId" :to="workspace(c.clientId)" class="crm-recent-card" :title="tr('Customer 360')">
           <span class="crm-recent-ic" aria-hidden="true"><span class="fa" :class="ACTIVITY_ICON[c.lastActivityType!]"></span></span>
           <span class="crm-recent-copy">
             <span class="crm-recent-no">{{ c.clientNumber }}</span>
@@ -86,8 +86,8 @@
                 <span v-else class="fc-muted">-</span>
               </td>
               <td class="fx-r">
-                <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="workspace(c.clientId)" :title="tr('Workspaces')">
-                  <span class="fa fa-th-large" aria-hidden="true"></span>{{ tr('Workspaces') }}
+                <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="workspace(c.clientId)" :title="tr('Customer 360')">
+                  <span class="fa fa-th-large" aria-hidden="true"></span>{{ tr('Customer 360') }}
                 </RouterLink>
                 <button v-if="canEdit" type="button" class="fx-btn fx-btn--sm crm-edit" :title="tr('Edit')" @click="openClient(c.clientId)">
                   <span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Edit') }}

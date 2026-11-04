@@ -9,7 +9,7 @@
           <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span>
           <template v-if="fromCustomer">
             <RouterLink :to="{ name: 'crm-customers' }">{{ tr('Customers') }}</RouterLink><span aria-hidden="true">›</span>
-            <RouterLink :to="customerWorkspace">{{ tr('Customer Workspace') }}</RouterLink><span aria-hidden="true">›</span>
+            <RouterLink :to="customerWorkspace">{{ tr('Customer 360') }}</RouterLink><span aria-hidden="true">›</span>
           </template>
           <template v-else><RouterLink :to="{ name: 'factoring-home' }">{{ tr('Factoring') }}</RouterLink><span aria-hidden="true">›</span></template>
           <b>{{ tr('Process Customer') }}</b>
@@ -17,7 +17,7 @@
         <h1>{{ tr('Factoring Customer Workspace') }}</h1>
       </div>
       <div class="fx-actions">
-        <RouterLink v-if="fromCustomer" :to="customerWorkspace" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Customer Workspace') }}</RouterLink>
+        <RouterLink v-if="fromCustomer" :to="customerWorkspace" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Customer 360') }}</RouterLink>
         <RouterLink v-else :to="{ name: 'factoring-home' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Factoring') }}</RouterLink>
       </div>
     </div>

@@ -147,6 +147,11 @@ public sealed class CrmClientService(ICapitraDbContext db)
         if (!await db.Set<CrmLkpCountry>().AnyAsync(x => x.CountryId == dto.CountryId, cancellationToken)) errors["countryId"] = ["Country is required."];
         if (!await db.Set<CrmLkpCurrency>().AnyAsync(x => x.CurrencyId == dto.BaseCurrencyId, cancellationToken)) errors["baseCurrencyId"] = ["Base Currency is required."];
         if (!await db.Set<CrmLkpStatusCode>().AnyAsync(x => x.StatusId == dto.StatusId, cancellationToken)) errors["statusId"] = [$"Status ID {dto.StatusId} does not exist."];
+        // the upload files find a customer by its tax number, so it is unique within a country
+        var tax = Blank(dto.TaxNumber);
+        if (tax is not null && await db.Set<CrmClient>().AnyAsync(x => x.TaxNumber == tax && x.CountryId == dto.CountryId
+                && x.ClientId != (dto.ClientId ?? 0), cancellationToken))
+            errors["taxNumber"] = [$"Another customer in this country already has tax number {tax}."];
         var role = Blank(dto.ClientRoleCode)?.ToUpperInvariant();
         if (role is not null && ClientRoles.All(x => x.Value != role)) errors["clientRoleCode"] = [$"Client Role {role} does not exist."];
         if (errors.Count > 0) throw new BusinessValidationException(errors);
