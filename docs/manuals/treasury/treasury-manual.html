@@ -72,6 +72,7 @@ section.sec{scroll-margin-top:84px;background:var(--paper);border:1px solid var(
 h3{font-size:18px;font-weight:600;color:var(--fg);margin-top:8px;display:flex;align-items:center;gap:10px}
 h3::before{content:"";width:14px;height:3px;background:var(--orange);border-radius:2px;flex:none}
 .prose{max-width:72ch;display:grid;gap:12px}
+p.prose{display:block}
 ul.b,ol.b{margin:0;padding-inline-start:1.3em;display:grid;gap:8px;max-width:72ch}
 ul.b li::marker{color:var(--orange)}
 ol.b li::marker{color:var(--teal);font-weight:700}
@@ -174,7 +175,10 @@ figcaption b{color:var(--teal-ink)}
   .bar,nav.toc{display:none}
   .layout{display:block;padding:0}
   section.sec{border:0;border-radius:0;padding:0 0 24px;break-before:page}
-  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;min-height:100vh}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:265mm;break-after:page}
+  .cover::after{display:none}
+  .cover .wrap{height:100%;align-content:center}
+  .cover .rings{display:block}
   .track,.pill,.sec-h .n,th,tr.total td,.note,.gate.bank{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   figure,table,.tree,.step,.gate{break-inside:avoid}
 }
@@ -205,7 +209,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">User manual · Treasury module</div>
       <h1>Bank limits and source of funds</h1>
       <p class="lede">How much bank money Capitra can use today, on what conditions, and which money pays each disbursement. Written for Treasury, Finance and Credit staff, and the checkers who verify their work.</p>
-      <div class="meta"><span><b>Version</b>1.0</span><span><b>Date</b>5 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Step 2 Treasury Disburse</span></div>
+      <div class="meta"><span><b>Version</b>1.1</span><span><b>Date</b>5 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Step 2 Treasury Disburse</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -406,7 +410,7 @@ figcaption b{color:var(--teal-ink)}
   <section class="sec" id="en-6">
     <div class="sec-h"><span class="n">6</span><h2>Step 2: Treasury Disburse</h2></div>
     <p class="prose">Treasury Disburse is the last step of a disbursement. Treasury chooses which money pays the net amount, and Capitra checks each choice against the limits and bank rules before anything is paid.</p>
-    <div class="note warn"><span class="ic">In build</span><p>This screen is being built now. The layout may change slightly before release; screenshots will be added then.</p></div>
+    <figure><img src="img/6-disburse-suggest.jpg" alt="Treasury Disburse with the sources filled by Suggest" loading="lazy"><figcaption><b>Figure 6.</b> Net amount, covered and remaining at the top; each source with its available amount, bank rule badge, amount and Max; the rule checks on the right.</figcaption></figure>
     <h3>What the screen shows</h3>
     <ul class="b">
       <li><b>Header</b>: the disbursement, the client, the debtor (or the buyer in reverse factoring), the business line and the <b>net amount to fund</b>.</li>
@@ -414,12 +418,16 @@ figcaption b{color:var(--teal-ink)}
       <li><b>Each line</b>: available amount, an amount box, a <b>Max</b> button and a live badge for each bank rule that applies.</li>
       <li><b>Checks and total</b>: covered against net, and any line that is blocked or needs an override.</li>
     </ul>
+    <div class="shots">
+      <figure><img src="img/7-disburse-override.jpg" alt="A line that needs an override, with the reason box" loading="lazy"><figcaption><b>Figure 7.</b> A line above an override rule turns orange. Enter the reason and press Save and reserve.</figcaption></figure>
+      <figure><img src="img/8-disburse-approve.jpg" alt="A checker sees Approve override" loading="lazy"><figcaption><b>Figure 8.</b> A second user with TRS.VERIFY opens the same page and presses Approve override.</figcaption></figure>
+    </div>
     <h3>Worked example</h3>
     <p class="prose">Disbursement for ABC, debtor LG, business line Factoring, net <b>12M</b>.</p>
     <div class="tbl"><table>
       <tr><th>Source</th><th class="num">Available</th><th>Bank rule result</th><th class="num">Amount</th></tr>
       <tr><td>Own funds</td><td class="num">6M</td><td>No bank rules</td><td class="num">0</td></tr>
-      <tr><td>Bank A › Tranche 1 › Factoring</td><td class="num">8M</td><td>LG holds 28M of a 30M cap: up to 2M passes <span class="pill bad">more blocked</span></td><td class="num"><b>2M</b></td></tr>
+      <tr><td>Bank A › Tranche 1 › Factoring</td><td class="num">8M</td><td>LG holds 28M of a 30M cap: up to about 2.3M passes (the pool grows with the drawing) <span class="pill bad">more blocked</span></td><td class="num"><b>2M</b></td></tr>
       <tr><td>Bank B › Tranche 1 › Factoring</td><td class="num">18M</td><td>LG at 6% of a 20% cap <span class="pill ok">pass</span></td><td class="num"><b>10M</b></td></tr>
       <tr class="total"><td>Total</td><td></td><td></td><td class="num">12M = net ✓</td></tr>
     </table></div>
@@ -432,6 +440,7 @@ figcaption b{color:var(--teal-ink)}
       <li>When the total equals the net amount and nothing is red, <b>Execute</b> becomes active.</li>
       <li><b>Execute</b> records a drawdown on each chosen sublimit with the debtor and seller, so Bank Limits and "Highest now" update at once. Then <b>Complete</b> the step.</li>
     </ol>
+    <figure><img src="img/9-disburse-executed.jpg" alt="An executed disbursement" loading="lazy"><figcaption><b>Figure 9.</b> Executed: who executed it and when. The choice can no longer be changed.</figcaption></figure>
     <h3>Rules to remember</h3>
     <ul class="b">
       <li>One disbursement may be split across several sources.</li>
@@ -492,7 +501,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Tenor</td><td>Days from the invoice date to its due date</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · Treasury User Manual · v1.0 · November 2026</p>
+  <p class="foot">CAPITRA · Treasury User Manual · v1.1 · November 2026</p>
   </main>
 </div>
 </div>
@@ -506,7 +515,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">دليل المستخدم · وحدة الخزينة</div>
       <h1>حدود البنوك ومصدر التمويل</h1>
       <p class="lede">كم من أموال البنوك يمكن لـ CAPITRA استخدامه اليوم، وبأي شروط، ومن أي مصدر تُموَّل كل عملية صرف. لموظفي الخزينة والمالية والائتمان، وللمراجعين الذين يعتمدون أعمالهم.</p>
-      <div class="meta"><span><b>الإصدار</b>١٫٠</span><span><b>التاريخ</b>٥ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · الخطوة ٢ صرف الخزينة</span></div>
+      <div class="meta"><span><b>الإصدار</b>١٫١</span><span><b>التاريخ</b>٥ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · الخطوة ٢ صرف الخزينة</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -707,7 +716,7 @@ figcaption b{color:var(--teal-ink)}
   <section class="sec" id="ar-6">
     <div class="sec-h"><span class="n">٦</span><h2>الخطوة ٢: صرف الخزينة</h2></div>
     <p class="prose">صرف الخزينة هو آخر خطوة في عملية الصرف. تختار الخزينة الأموال التي تدفع صافي المبلغ، ويفحص CAPITRA كل اختيار مقابل الحدود وشروط البنوك قبل أي دفع.</p>
-    <div class="note warn"><span class="ic">قيد التطوير</span><p>هذه الشاشة قيد التطوير الآن، وقد تتغير قليلًا قبل الإطلاق، وستُضاف الصور عندها.</p></div>
+    <figure><img src="img/6-disburse-suggest.jpg" alt="شاشة صرف الخزينة بعد الاقتراح" loading="lazy"><figcaption><b>شكل ٦.</b> الصافي والمغطى والمتبقي في الأعلى، ولكل مصدر المتاح وشارة شروط البنك والمبلغ وزر الحد الأقصى، وفحوصات الشروط على الجانب.</figcaption></figure>
     <h3>ما تعرضه الشاشة</h3>
     <ul class="b">
       <li><b>الرأس</b>: عملية الصرف، والعميل، والمدين (أو المشتري في التخصيم العكسي)، والنشاط، و<b>صافي المبلغ المطلوب تمويله</b>.</li>
@@ -715,12 +724,16 @@ figcaption b{color:var(--teal-ink)}
       <li><b>في كل سطر</b>: المتاح، وخانة المبلغ، وزر <b>الحد الأقصى</b>، وشارة لحظية لكل شرط بنك ينطبق.</li>
       <li><b>الفحوصات والإجمالي</b>: المغطى مقابل الصافي، وأي سطر ممنوع أو يحتاج استثناء.</li>
     </ul>
+    <div class="shots">
+      <figure><img src="img/7-disburse-override.jpg" alt="سطر يحتاج استثناء مع خانة السبب" loading="lazy"><figcaption><b>شكل ٧.</b> السطر الذي يتجاوز شرط استثناء يصبح برتقاليًا. اكتب السبب واضغط حفظ وحجز.</figcaption></figure>
+      <figure><img src="img/8-disburse-approve.jpg" alt="المراجع يرى زر اعتماد الاستثناء" loading="lazy"><figcaption><b>شكل ٨.</b> مستخدم ثانٍ لديه TRS.VERIFY يفتح نفس الصفحة ويضغط اعتماد الاستثناء.</figcaption></figure>
+    </div>
     <h3>مثال عملي</h3>
     <p class="prose">صرف لـ ABC، المدين LG، النشاط تخصيم، الصافي <b>١٢ مليون</b>.</p>
     <div class="tbl"><table>
       <tr><th>المصدر</th><th class="num">المتاح</th><th>نتيجة شرط البنك</th><th class="num">المبلغ</th></tr>
       <tr><td>أموالنا الذاتية</td><td class="num">٦ م</td><td>لا توجد شروط بنك</td><td class="num">٠</td></tr>
-      <tr><td>البنك أ › الشريحة ١ › التخصيم</td><td class="num">٨ م</td><td>LG لديه ٢٨ من سقف ٣٠: حتى ٢ م مقبول <span class="pill bad">الزيادة ممنوعة</span></td><td class="num"><b>٢ م</b></td></tr>
+      <tr><td>البنك أ › الشريحة ١ › التخصيم</td><td class="num">٨ م</td><td>LG لديه ٢٨ من سقف ٣٠: حتى نحو ٢٫٣ م مقبول (المحفظة تكبر مع السحب) <span class="pill bad">الزيادة ممنوعة</span></td><td class="num"><b>٢ م</b></td></tr>
       <tr><td>البنك ب › الشريحة ١ › التخصيم</td><td class="num">١٨ م</td><td>LG عند ٦٪ من سقف ٢٠٪ <span class="pill ok">مقبول</span></td><td class="num"><b>١٠ م</b></td></tr>
       <tr class="total"><td>الإجمالي</td><td></td><td></td><td class="num">١٢ م = الصافي ✓</td></tr>
     </table></div>
@@ -733,6 +746,7 @@ figcaption b{color:var(--teal-ink)}
       <li>عندما يساوي الإجمالي الصافي ولا يوجد سطر أحمر يصبح زر <b>تنفيذ</b> متاحًا.</li>
       <li><b>تنفيذ</b> يسجل سحبًا على كل حد فرعي مختار مع المدين والبائع، فتتحدث حدود البنوك و«الأعلى الآن» فورًا. ثم <b>أكمل</b> الخطوة.</li>
     </ol>
+    <figure><img src="img/9-disburse-executed.jpg" alt="عملية صرف منفذة" loading="lazy"><figcaption><b>شكل ٩.</b> بعد التنفيذ: من نفّذ ومتى، ولا يمكن تغيير الاختيار.</figcaption></figure>
     <h3>قواعد يجب تذكرها</h3>
     <ul class="b">
       <li>يمكن تقسيم عملية الصرف الواحدة على أكثر من مصدر.</li>
@@ -793,7 +807,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>المدة</td><td>عدد الأيام من تاريخ الفاتورة حتى استحقاقها</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫٠ · نوفمبر ٢٠٢٦</p>
+  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫١ · نوفمبر ٢٠٢٦</p>
   </main>
 </div>
 </div>

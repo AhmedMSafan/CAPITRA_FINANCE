@@ -138,7 +138,7 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
         return new TrsLimitsDto(result);
     }
 
-    private static TrsFacilityNodeDto FacilityNode(TrsCreditFacility f, List<TrsFacilityTranche> tranches, List<TrsFacilitySublimit> sublimits,
+    internal static TrsFacilityNodeDto FacilityNode(TrsCreditFacility f, List<TrsFacilityTranche> tranches, List<TrsFacilitySublimit> sublimits,
         ILookup<long, string> scopes, Dictionary<long, (decimal Out, decimal Res)> usage)
     {
         var fSubs = sublimits.Where(x => x.FacilityId == f.FacilityId).ToList();

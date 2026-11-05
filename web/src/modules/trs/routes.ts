@@ -6,5 +6,10 @@ const meta = (functionName: string) => ({ moduleName: 'TREASURY', functionName }
 
 export const trsRoutes: RouteRecordRaw[] = [
   { path: 'trs', redirect: { name: 'trs-bank-limits' } },
-  { path: 'trs/bank-limits', name: 'trs-bank-limits', component: () => import('./pages/TrsBankLimitsPage.vue'), meta: meta('Bank Limits') }
+  { path: 'trs/bank-limits', name: 'trs-bank-limits', component: () => import('./pages/TrsBankLimitsPage.vue'), meta: meta('Bank Limits') },
+  // the Treasury Disburse step of DISBURSEMENT_REQUEST_WF opens here (BPMN route trs-disburse, disbursementId = ENTITY_ID)
+  {
+    path: 'trs/disbursements/:disbursementId(\\d+)/funding', name: 'trs-disburse', component: () => import('./pages/TrsDisbursePage.vue'),
+    meta: meta('Treasury Disburse')
+  }
 ]

@@ -1,4 +1,5 @@
 using Capitra.Domain.Modules.Crm;
+using Capitra.Domain.Modules.Fct;
 using Capitra.Domain.Modules.Trs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -101,6 +102,8 @@ public sealed class TrsSublimitMovementConfiguration : IEntityTypeConfiguration<
         builder.HasKey(x => x.MovementId);
         builder.HasIndex(x => x.SublimitId);
         builder.HasIndex(x => x.DisbursementId);
+        // no foreign key: resetting the portfolios truncates the fundings with the disbursements, and must not cascade into the opening balances
+        builder.HasIndex(x => x.FundingId);
         builder.HasIndex(x => x.DebtorClientId);
         builder.HasIndex(x => x.SellerClientId);
 
@@ -113,6 +116,32 @@ public sealed class TrsSublimitMovementConfiguration : IEntityTypeConfiguration<
         builder.HasOne<TrsFacilitySublimit>().WithMany().HasForeignKey(x => x.SublimitId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<CrmClient>().WithMany().HasForeignKey(x => x.DebtorClientId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<CrmClient>().WithMany().HasForeignKey(x => x.SellerClientId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class TrsDisbursementFundingConfiguration : IEntityTypeConfiguration<TrsDisbursementFunding>
+{
+    public void Configure(EntityTypeBuilder<TrsDisbursementFunding> builder)
+    {
+        builder.ToTable("TRS_DISBURSEMENT_FUNDINGS");
+        builder.HasKey(x => x.FundingId);
+        builder.HasIndex(x => new { x.DisbursementId, x.StatusCode });
+        builder.HasIndex(x => x.SublimitId);
+
+        builder.Property(x => x.FundingId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.SourceTypeCode).HasMaxLength(20);
+        builder.Property(x => x.FundedAmount).HasPrecision(18, 3);
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.Property(x => x.OverrideReason).HasMaxLength(1000);
+        builder.Property(x => x.OverrideApprovedBy).HasMaxLength(100);
+        builder.Property(x => x.ChangedBy).HasMaxLength(100);
+        builder.Property(x => x.ExecutedBy).HasMaxLength(100);
+
+        builder.HasOne<FctDisbursement>().WithMany().HasForeignKey(x => x.DisbursementId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<TrsFacilitySublimit>().WithMany().HasForeignKey(x => x.SublimitId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<TrsCreditFacility>().WithMany().HasForeignKey(x => x.FacilityId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<TrsBank>().WithMany().HasForeignKey(x => x.BankId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }

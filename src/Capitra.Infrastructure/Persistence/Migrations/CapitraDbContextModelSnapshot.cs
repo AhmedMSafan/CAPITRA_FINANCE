@@ -37454,6 +37454,127 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("TRS_CREDIT_FACILITIES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsDisbursementFunding", b =>
+                {
+                    b.Property<long>("FundingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("FUNDING_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("FundingId"));
+
+                    b.Property<long?>("BankId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BANK_ID");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CHANGED_AT");
+
+                    b.Property<string>("ChangedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHANGED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<DateTime?>("ExecutedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("EXECUTED_AT");
+
+                    b.Property<string>("ExecutedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("EXECUTED_BY");
+
+                    b.Property<long?>("FacilityId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FACILITY_ID");
+
+                    b.Property<decimal>("FundedAmount")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("FUNDED_AMOUNT");
+
+                    b.Property<bool>("IsOverrideRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_OVERRIDE_REQUIRED");
+
+                    b.Property<DateTime?>("OverrideApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("OVERRIDE_APPROVED_AT");
+
+                    b.Property<string>("OverrideApprovedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("OVERRIDE_APPROVED_BY");
+
+                    b.Property<string>("OverrideReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("OVERRIDE_REASON");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("SOURCE_TYPE_CODE");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<long?>("SublimitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBLIMIT_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("FundingId")
+                        .HasName("PK_TRS_DISBURSEMENT_FUNDINGS");
+
+                    b.HasIndex("BankId")
+                        .HasDatabaseName("IX_TRS_DISBURSEMENT_FUNDINGS_BANK_ID");
+
+                    b.HasIndex("FacilityId")
+                        .HasDatabaseName("IX_TRS_DISBURSEMENT_FUNDINGS_FACILITY_ID");
+
+                    b.HasIndex("SublimitId")
+                        .HasDatabaseName("IX_TRS_DISBURSEMENT_FUNDINGS_SUBLIMIT_ID");
+
+                    b.HasIndex("DisbursementId", "StatusCode")
+                        .HasDatabaseName("IX_TRS_DISBURSEMENT_FUNDINGS_DISBURSEMENT_ID_STATUS_CODE");
+
+                    b.ToTable("TRS_DISBURSEMENT_FUNDINGS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsFacilityCalendarDay", b =>
                 {
                     b.Property<long>("CalendarDayId")
@@ -37987,6 +38108,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("DISBURSEMENT_ID");
 
+                    b.Property<long?>("FundingId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FUNDING_ID");
+
                     b.Property<DateOnly>("MovementDate")
                         .HasColumnType("date")
                         .HasColumnName("MOVEMENT_DATE");
@@ -38042,6 +38167,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("DisbursementId")
                         .HasDatabaseName("IX_TRS_SUBLIMIT_MOVEMENTS_DISBURSEMENT_ID");
+
+                    b.HasIndex("FundingId")
+                        .HasDatabaseName("IX_TRS_SUBLIMIT_MOVEMENTS_FUNDING_ID");
 
                     b.HasIndex("SellerClientId")
                         .HasDatabaseName("IX_TRS_SUBLIMIT_MOVEMENTS_SELLER_CLIENT_ID");
@@ -44229,6 +44357,34 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_TRS_CREDIT_FACILITIES_TRS_BANKS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsDisbursementFunding", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsBank", null)
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_DISBURSEMENT_FUNDINGS_TRS_BANKS");
+
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctDisbursement", null)
+                        .WithMany()
+                        .HasForeignKey("DisbursementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_DISBURSEMENT_FUNDINGS_FCT_DISBURSEMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsCreditFacility", null)
+                        .WithMany()
+                        .HasForeignKey("FacilityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_DISBURSEMENT_FUNDINGS_TRS_CREDIT_FACILITIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsFacilitySublimit", null)
+                        .WithMany()
+                        .HasForeignKey("SublimitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_DISBURSEMENT_FUNDINGS_TRS_FACILITY_SUBLIMITS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsFacilityCalendarDay", b =>

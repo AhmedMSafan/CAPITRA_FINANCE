@@ -14,6 +14,7 @@
         <p class="trs-lead">{{ tr("Each bank's facilities as a tree: facility, released tranches, and the sublimits that fund our business lines.") }}</p>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openManual(5)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button type="button" class="fx-btn" :disabled="loading" @click="load"><span class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'" aria-hidden="true"></span>{{ tr('Refresh') }}</button>
         <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" :disabled="!banks.length" @click="openFacility(null)">
           <span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New Facility') }}</button>
@@ -149,7 +150,7 @@ import TrsFacilityDialog from '../components/TrsFacilityDialog.vue'
 import TrsRuleDialog from '../components/TrsRuleDialog.vue'
 import TrsSublimitDialog from '../components/TrsSublimitDialog.vue'
 import TrsTrancheDialog from '../components/TrsTrancheDialog.vue'
-import { label, money, pct, save, statusChip } from '../components/trs'
+import { label, money, openManual, pct, save, statusChip } from '../components/trs'
 
 const canEdit = hasPermission('TRS.EDIT')
 const canVerify = hasPermission('TRS.VERIFY')
