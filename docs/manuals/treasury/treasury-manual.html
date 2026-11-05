@@ -209,7 +209,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">User manual · Treasury module</div>
       <h1>Bank limits and source of funds</h1>
       <p class="lede">How much bank money Capitra can use today, on what conditions, and which money pays each disbursement. Written for Treasury, Finance and Credit staff, and the checkers who verify their work.</p>
-      <div class="meta"><span><b>Version</b>1.1</span><span><b>Date</b>5 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Step 2 Treasury Disburse</span></div>
+      <div class="meta"><span><b>Version</b>1.2</span><span><b>Date</b>5 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Step 2 Treasury Disburse · Payment and GL</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -438,9 +438,27 @@ figcaption b{color:var(--teal-ink)}
       <li>Press <b>Suggest</b> to fill the lines within every rule, or type amounts. <b>Max</b> fills a line with the most it allows.</li>
       <li>Watch the badges: green passes, orange warns, red blocks. A line that needs an override shows who must approve it.</li>
       <li>When the total equals the net amount and nothing is red, <b>Execute</b> becomes active.</li>
-      <li><b>Execute</b> records a drawdown on each chosen sublimit with the debtor and seller, so Bank Limits and "Highest now" update at once. Then <b>Complete</b> the step.</li>
+      <li><b>Execute</b> records a drawdown on each chosen sublimit with the debtor and seller, so Bank Limits and "Highest now" update at once. In the same moment it pays the client and posts the GL (see below). Then <b>Complete</b> the step.</li>
     </ol>
     <figure><img src="img/9-disburse-executed.jpg" alt="An executed disbursement" loading="lazy"><figcaption><b>Figure 9.</b> Executed: who executed it and when. The choice can no longer be changed.</figcaption></figure>
+    <h3>Payment and GL on Execute</h3>
+    <p class="prose">Execute does everything at once, or nothing. Each bank puts its money in <b>our account at that bank</b>, and the client is paid from there. Own funds are paid from the main operating account. The <b>Payment</b> panel shows the account for each line before you press Execute.</p>
+    <figure style="max-width:320px;margin-inline:auto"><img src="img/10-payment-gl.jpg" alt="The Payment panel after Execute" loading="lazy"><figcaption><b>Figure 10.</b> The Payment panel: the account that pays each line and its GL account; after Execute, the date and the GL transaction set.</figcaption></figure>
+    <p class="prose">For the 12M example above (Bank A 2M, Bank B 10M) the GL entries, under one number CAP-TRS-…, are:</p>
+    <div class="tbl"><table>
+      <tr><th>Journal</th><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr>
+      <tr><td rowspan="3">1 · Bank drawdown</td><td>Bank A account</td><td class="num">2M</td><td></td></tr>
+      <tr><td>Bank B account</td><td class="num">10M</td><td></td></tr>
+      <tr><td>220101 Bank Facilities - Short Term</td><td></td><td class="num">12M</td></tr>
+      <tr><td rowspan="3">2 · Payment to the client</td><td>120101 Factoring Receivable - Principal</td><td class="num">12M</td><td></td></tr>
+      <tr><td>Bank A account</td><td></td><td class="num">2M</td></tr>
+      <tr><td>Bank B account</td><td></td><td class="num">10M</td></tr>
+    </table></div>
+    <ul class="b">
+      <li>Own funds appear only in journal 2: we pay from our own account, with no bank borrowing.</li>
+      <li>The invoices become <b>FUNDED</b> with their funded amount and date, and the disbursement becomes <b>DISBURSED</b>.</li>
+      <li>The accounts come from the rule <b>TRS_DISBURSE</b> in Admin Setup › Product Catalog › TREASURY_FUNDING. If no rule is linked, or the GL refuses (for example a closed period), Execute shows the reason and saves nothing.</li>
+    </ul>
     <h3>Rules to remember</h3>
     <ul class="b">
       <li>One disbursement may be split across several sources.</li>
@@ -501,7 +519,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Tenor</td><td>Days from the invoice date to its due date</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · Treasury User Manual · v1.1 · November 2026</p>
+  <p class="foot">CAPITRA · Treasury User Manual · v1.2 · November 2026</p>
   </main>
 </div>
 </div>
@@ -515,7 +533,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">دليل المستخدم · وحدة الخزينة</div>
       <h1>حدود البنوك ومصدر التمويل</h1>
       <p class="lede">كم من أموال البنوك يمكن لـ CAPITRA استخدامه اليوم، وبأي شروط، ومن أي مصدر تُموَّل كل عملية صرف. لموظفي الخزينة والمالية والائتمان، وللمراجعين الذين يعتمدون أعمالهم.</p>
-      <div class="meta"><span><b>الإصدار</b>١٫١</span><span><b>التاريخ</b>٥ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · الخطوة ٢ صرف الخزينة</span></div>
+      <div class="meta"><span><b>الإصدار</b>١٫٢</span><span><b>التاريخ</b>٥ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -744,9 +762,27 @@ figcaption b{color:var(--teal-ink)}
       <li>اضغط <b>اقتراح</b> لتعبئة الأسطر في حدود كل الشروط، أو أدخل المبالغ بنفسك. زر <b>الحد الأقصى</b> يملأ السطر بأكبر مبلغ مسموح.</li>
       <li>راقب الشارات: الأخضر مقبول، والبرتقالي تنبيه، والأحمر منع. السطر الذي يحتاج استثناءً يوضح من يعتمده.</li>
       <li>عندما يساوي الإجمالي الصافي ولا يوجد سطر أحمر يصبح زر <b>تنفيذ</b> متاحًا.</li>
-      <li><b>تنفيذ</b> يسجل سحبًا على كل حد فرعي مختار مع المدين والبائع، فتتحدث حدود البنوك و«الأعلى الآن» فورًا. ثم <b>أكمل</b> الخطوة.</li>
+      <li><b>تنفيذ</b> يسجل سحبًا على كل حد فرعي مختار مع المدين والبائع، فتتحدث حدود البنوك و«الأعلى الآن» فورًا، وفي نفس اللحظة يُدفع للعميل وتُرحّل القيود (انظر أدناه). ثم <b>أكمل</b> الخطوة.</li>
     </ol>
     <figure><img src="img/9-disburse-executed.jpg" alt="عملية صرف منفذة" loading="lazy"><figcaption><b>شكل ٩.</b> بعد التنفيذ: من نفّذ ومتى، ولا يمكن تغيير الاختيار.</figcaption></figure>
+    <h3>الدفع والقيود عند التنفيذ</h3>
+    <p class="prose">التنفيذ يتم كله مرة واحدة أو لا يتم. يضع كل بنك أمواله في <b>حسابنا لدى نفس البنك</b>، ويُدفع للعميل منه. أما أموالنا الذاتية فتُدفع من الحساب التشغيلي الرئيسي. لوحة <b>الدفع</b> تعرض حساب كل سطر قبل الضغط على تنفيذ.</p>
+    <figure style="max-width:320px;margin-inline:auto"><img src="img/10-payment-gl.jpg" alt="لوحة الدفع بعد التنفيذ" loading="lazy"><figcaption><b>شكل ١٠.</b> لوحة الدفع: الحساب الذي يدفع كل سطر وحسابه في الأستاذ العام، وبعد التنفيذ التاريخ ورقم مجموعة القيود.</figcaption></figure>
+    <p class="prose">في مثال ١٢ مليون أعلاه (البنك أ ٢ م، البنك ب ١٠ م) تكون القيود، تحت رقم واحد CAP-TRS-…، كالتالي:</p>
+    <div class="tbl"><table>
+      <tr><th>القيد</th><th>الحساب</th><th class="num">مدين</th><th class="num">دائن</th></tr>
+      <tr><td rowspan="3">١ · سحب من البنك</td><td>حساب البنك أ</td><td class="num">٢ م</td><td></td></tr>
+      <tr><td>حساب البنك ب</td><td class="num">١٠ م</td><td></td></tr>
+      <tr><td>220101 تسهيلات بنكية قصيرة الأجل</td><td></td><td class="num">١٢ م</td></tr>
+      <tr><td rowspan="3">٢ · الدفع للعميل</td><td>120101 مديونية التخصيم - أصل</td><td class="num">١٢ م</td><td></td></tr>
+      <tr><td>حساب البنك أ</td><td></td><td class="num">٢ م</td></tr>
+      <tr><td>حساب البنك ب</td><td></td><td class="num">١٠ م</td></tr>
+    </table></div>
+    <ul class="b">
+      <li>الأموال الذاتية تظهر في القيد ٢ فقط: ندفع من حسابنا بدون اقتراض من بنك.</li>
+      <li>تصبح الفواتير <b>ممولة</b> (FUNDED) بمبلغها وتاريخ تمويلها، وتصبح عملية الصرف <b>مصروفة</b> (DISBURSED).</li>
+      <li>الحسابات تأتي من القاعدة <b>TRS_DISBURSE</b> في الإعدادات › كتالوج المنتجات › TREASURY_FUNDING. إذا لم تُربط قاعدة أو رفض الأستاذ العام (مثل فترة مغلقة) يظهر السبب ولا يُحفظ شيء.</li>
+    </ul>
     <h3>قواعد يجب تذكرها</h3>
     <ul class="b">
       <li>يمكن تقسيم عملية الصرف الواحدة على أكثر من مصدر.</li>
@@ -807,7 +843,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>المدة</td><td>عدد الأيام من تاريخ الفاتورة حتى استحقاقها</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫١ · نوفمبر ٢٠٢٦</p>
+  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫٢ · نوفمبر ٢٠٢٦</p>
   </main>
 </div>
 </div>

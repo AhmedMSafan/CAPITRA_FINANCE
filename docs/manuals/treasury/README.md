@@ -8,4 +8,4 @@ English and Arabic user manual for the Treasury module.
 - **Covers:** quick start, key concepts (facility, tranche, sublimit), bank rules, debtor and supplier concentration, Step 1 Bank Limits, Step 2 Treasury Disburse, common messages, permissions, statuses and glossary.
 - **Screenshots:** `img/`.
 
-Version 1.1, November 2026: Treasury Disburse screens added.
+Version 1.2, November 2026: payment and GL on Execute added (section 6). Version 1.1: Treasury Disburse screens.
