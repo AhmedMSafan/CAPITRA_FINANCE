@@ -14,6 +14,7 @@ public static class ProductActions
 {
     public const string ChequeBatchSubmit = "CHW_BATCH_SUBMIT";
     public const string ChequeCollection = "CHQ_COLLECTION";
+    public const string TreasuryDisburse = "TRS_DISBURSE_EXECUTE";
 
     public static readonly IReadOnlyList<ProductActionDefinition> All =
     [
@@ -23,6 +24,10 @@ public static class ProductActions
         new(ChequeCollection, "CHEQUE_WALLET", "Cheque collection", "تحصيل الشيكات",
             "Collection and Repayments, Cheques Collection page: Apply Bank Results. The collected cheques' money is in the deposit bank account.",
             "COL", ["CHEQUE_AMOUNT"], "3100", "FACTORING"),
+        new(TreasuryDisburse, "TREASURY_FUNDING", "Treasury disbursement", "صرف الخزينة",
+            "Treasury, Treasury Disburse page: Execute. BANK_DRAWDOWN is each bank line (the bank puts it in our account at that bank); "
+            + "PAYMENT_AMOUNT is each line, own funds included, paid to the client from that account (the rule's bank-account lines).",
+            "TRS", ["BANK_DRAWDOWN", "PAYMENT_AMOUNT"], "3100", "FACTORING"),
     ];
 
     public static ProductActionDefinition? Find(string? actionCode) => All.FirstOrDefault(x => x.ActionCode == actionCode);

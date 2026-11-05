@@ -42,4 +42,13 @@ public class TrsDisbursementFunding : AuditableEntity
     public string? ExecutedBy { get; set; }
 
     public DateTime? ExecutedAt { get; set; }
+
+    /// <summary>
+    /// Our bank account the client is paid from (Execute): for a bank line our account at that bank, where the bank puts the drawdown;
+    /// for own funds the main operating account.
+    /// </summary>
+    public long? PaidFromAccountId { get; set; }
+
+    /// <summary>The GL transaction set ID Execute posted the drawdown and the payment under, e.g. CAP-TRS-2026-00000001.</summary>
+    public string? GlTranSetId { get; set; }
 }

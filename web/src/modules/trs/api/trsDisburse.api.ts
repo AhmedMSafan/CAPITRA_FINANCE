@@ -49,6 +49,21 @@ export type TrsDisburseRule = {
   detail: string
 }
 
+/** How a saved line is paid: from our account at that bank, or the main operating account for own funds. */
+export type TrsDisbursePayment = {
+  sourceKey: string
+  sourceTypeCode: 'OWN_FUNDS' | 'BANK'
+  bankName: string | null
+  amount: number
+  accountId: number | null
+  accountRef: string | null
+  accountNo: string | null
+  accountBankName: string | null
+  glAccountCode: string | null
+  glTranSetId: string | null
+  problem: string | null
+}
+
 export type TrsDisburse = {
   header: TrsDisburseHeader
   parties: TrsDisburseParty[]
@@ -60,6 +75,9 @@ export type TrsDisburse = {
   overrideApprovedBy: string | null
   canApproveOverride: boolean
   approveBlockedReason: string | null
+  payments: TrsDisbursePayment[]
+  paymentStatus: string | null
+  executionDate: string | null
 }
 
 export type TrsDisburseForm = { lines: { sublimitId: number | null; amount: number }[]; overrideReason: string | null }

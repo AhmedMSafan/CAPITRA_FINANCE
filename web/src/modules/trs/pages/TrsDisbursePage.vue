@@ -106,6 +106,21 @@
           <div v-if="!data.rules.length" class="trs-muted">{{ tr('No active bank rule applies to these sources.') }}</div>
         </div>
 
+        <div v-if="data.payments.length && !dirty">
+          <span class="trs-k">{{ executed ? tr('Payment') : tr('Payment on Execute') }}</span>
+          <div v-for="p in data.payments" :key="p.sourceKey" class="trs-rule">
+            <div class="trs-rule-top"><span class="trs-rule-subject">{{ p.bankName ?? tr('Own funds') }}</span>
+              <span class="num">{{ formatAmount(p.amount) }}</span></div>
+            <small v-if="p.accountRef" class="trs-muted">{{ p.sourceTypeCode === 'BANK' ? tr('Drawn into and paid from') : tr('Paid from') }}
+              {{ p.accountBankName }} · {{ p.accountRef }}<template v-if="p.glAccountCode"> · GL {{ p.glAccountCode }}</template></small>
+            <small v-if="p.problem" class="is-bad">{{ tr(p.problem) }}</small>
+          </div>
+          <div v-if="executed && glTranSet" class="trs-note trs-note--ok">
+            <span class="fa fa-check-circle" aria-hidden="true"></span>
+            <span>{{ tr('Paid') }} {{ formatDate(data.executionDate) }} · {{ tr('GL posted under') }} <b>{{ glTranSet }}</b></span>
+          </div>
+        </div>
+
         <label v-if="needsOverride && editable" class="fc-field"><span>{{ tr('Override reason (a second user approves it)') }}</span>
           <textarea v-model="overrideReason" class="fx-search fc-textarea" rows="2" @input="dirty = true"></textarea></label>
         <div v-if="data.overrideRequestedBy && !dirty" class="trs-note">
@@ -217,9 +232,13 @@ const executeHint = computed(() => {
   if (anyBlocked.value) return 'A line is blocked by a limit or a bank rule.'
   if (needsOverride.value && !dirty.value && pendingOverride.value) return 'A second user must approve the override.'
   if (needsOverride.value && (dirty.value || !data.value?.overrideApprovedBy)) return 'Save, then a second user approves the override.'
+  const problem = dirty.value ? null : data.value?.payments.find((p) => p.problem)?.problem
+  if (problem) return problem
   return 'Records the drawdowns on the chosen sublimits.'
 })
 const canExecute = computed(() => executeHint.value === 'Records the drawdowns on the chosen sublimits.')
+
+const glTranSet = computed(() => data.value?.payments.find((p) => p.glTranSetId)?.glTranSetId ?? null)
 
 const statusText = computed(() => (executed.value ? 'Executed' : data.value?.header.fundingStatus === 'RESERVED' ? 'Reserved' : 'Not chosen'))
 const statusClass = computed(() => (executed.value ? 'fx-chip--ok' : data.value?.header.fundingStatus === 'RESERVED' ? 'fx-chip--warn' : 'fx-chip--plain'))
@@ -299,7 +318,7 @@ async function execute() {
   if (dirty.value && !(await saveLines('Sources of funds saved.'))) return
   busy.value = true
   try {
-    await save(async () => apply(await trsDisburseApi.execute(id.value)), 'Executed: the drawdowns are recorded.')
+    await save(async () => apply(await trsDisburseApi.execute(id.value)), 'Executed: the drawdowns are recorded, the client is paid and the GL is posted.')
   } finally {
     busy.value = false
   }
@@ -360,6 +379,8 @@ onMounted(load)
 .trs-rule-subject { font-weight: 600; }
 .trs-note { display: flex; gap: 8px; padding: 10px 12px; border-radius: 8px; background: #FDF0E5; color: var(--fin-ink); font-size: var(--fs-sm); }
 .trs-note .fa { color: var(--fin-orange); margin-top: 3px; }
+.trs-note--ok { background: var(--fin-teal-50); }
+.trs-note--ok .fa { color: var(--fin-teal-600); }
 .trs-side-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .fc .trs-side .fc-field { flex: none; }
 

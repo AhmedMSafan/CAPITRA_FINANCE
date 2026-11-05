@@ -1,6 +1,11 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Application.Modules.Adm.Products;
+using Capitra.Application.Modules.Crm;
+using Capitra.Application.Modules.Apex;
+using Capitra.Application.Modules.Gl;
+using Capitra.Application.Modules.Gl.Journals;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
 using Capitra.Domain.Modules.Trs;
@@ -28,10 +33,23 @@ public sealed record TrsDisburseRuleDto(
     long RuleId, long BankId, string BankName, long? FacilityId, string RuleTypeCode, string Label, string BreachActionCode, decimal? LimitAbove,
     decimal? WarnAbove, string Detail);
 
+/// <summary>
+/// How a source line is paid to the client: from our account at that bank (a bank line) or from the main operating account (own funds).
+/// Before Execute it is the account Execute will use; after, the account it used and the GL transaction set it posted.
+/// </summary>
+public sealed record TrsDisbursePaymentDto(
+    string SourceKey, string SourceTypeCode, string? BankName, decimal Amount, long? AccountId, string? AccountRef, string? AccountNo, string? AccountBankName,
+    string? GlAccountCode, string? GlTranSetId, string? Problem);
+
 public sealed record TrsDisburseDto(
     TrsDisburseHeaderDto Header, IReadOnlyList<TrsDisbursePartyDto> Parties, IReadOnlyList<TrsDisburseSourceDto> Sources,
     IReadOnlyList<TrsDisburseRuleDto> Rules, bool CanEdit, string? OverrideReason, string? OverrideRequestedBy, string? OverrideApprovedBy,
-    bool CanApproveOverride, string? ApproveBlockedReason);
+    bool CanApproveOverride, string? ApproveBlockedReason, IReadOnlyList<TrsDisbursePaymentDto> Payments, string? PaymentStatus,
+    DateOnly? ExecutionDate);
+
+/// <summary>One of our bank accounts that can pay a disbursement.</summary>
+public sealed record TrsPayingAccount(long AccountId, long BankId, string BankName, string AccountRef, string AccountNo, string AccountTypeCode,
+    string CurrencyCode, string? ErpAccountCode);
 
 public sealed record TrsDisburseLineFormDto(long? SublimitId, decimal Amount);
 
@@ -44,7 +62,7 @@ public sealed record TrsDisburseFormDto(IReadOnlyList<TrsDisburseLineFormDto> Li
 /// against the lines it covers: BLOCK refuses, OVERRIDE needs a second user's approval, WARN only warns. Our own concentration
 /// (agreement limit and debtor or supplier share) was checked before this step.
 /// </summary>
-public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock)
+public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, ProductActionPosting posting)
 {
     private const decimal Tolerance = 0.001m;
     private string User => currentUser.UserName ?? currentUser.UserId ?? "SYSTEM";
@@ -66,9 +84,62 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         var waiting = pending.Count > 0 && approvedBy is null && c.Header.FundingStatus != "EXECUTED";
         string? blocked = !waiting ? null
             : string.Equals(requestedBy, User, StringComparison.OrdinalIgnoreCase) ? "You chose these sources; another user must approve the override." : null;
+        var accounts = await PayingAccountsAsync(c.Header.CurrencyCode, cancellationToken);
+        var banks = c.Sources.Where(x => x.BankId is not null).GroupBy(x => x.BankId!.Value).ToDictionary(g => g.Key, g => g.First().BankName);
+        var payments = c.Fundings.Select(f =>
+        {
+            var key = f.SublimitId is long sid ? "S" + sid.ToString(CultureInfo.InvariantCulture) : "OWN";
+            var a = f.PaidFromAccountId is long pid ? accounts.FirstOrDefault(x => x.AccountId == pid) : PickAccount(accounts, f.BankId);
+            var problem = a is null ? NoAccountMessage(f.BankId is long b && banks.TryGetValue(b, out var n) ? n : null, c.Header.CurrencyCode)
+                : string.IsNullOrWhiteSpace(a.ErpAccountCode) ? $"Bank account {a.AccountRef} has no GL account code. Set it in Treasury (setup-bank-gl-accounts.sql)." : null;
+            return new TrsDisbursePaymentDto(key, f.SourceTypeCode, f.BankId is long bid && banks.TryGetValue(bid, out var bn) ? bn : null, f.FundedAmount,
+                a?.AccountId, a?.AccountRef, a?.AccountNo, a?.BankName, a?.ErpAccountCode, f.GlTranSetId, f.StatusCode == "EXECUTED" ? null : problem);
+        }).ToList();
         return new TrsDisburseDto(c.Header, c.Parties, c.Sources, c.Rules, c.Header.FundingStatus != "EXECUTED",
-            pending.Select(x => x.OverrideReason).FirstOrDefault(x => x is not null), requestedBy, approvedBy, waiting && blocked is null, blocked);
+            pending.Select(x => x.OverrideReason).FirstOrDefault(x => x is not null), requestedBy, approvedBy, waiting && blocked is null, blocked,
+            payments, c.Disbursement.PaymentStatus, c.Disbursement.ExecutionDate);
     }
+
+    // ---------------------------------------------------------------- paying accounts
+
+    /// <summary>Our active bank accounts in the currency, by bank.</summary>
+    private async Task<List<TrsPayingAccount>> PayingAccountsAsync(string currencyCode, CancellationToken cancellationToken) =>
+        await (from a in db.Set<TrsBankAccount>().AsNoTracking()
+               join b in db.Set<TrsBank>() on a.BankId equals b.BankId
+               where a.IsActive && a.CurrencyCode == currencyCode
+               orderby a.AccountId
+               select new TrsPayingAccount(a.AccountId, a.BankId, b.BankNameEn, a.AccountRef, a.AccountNo, a.AccountTypeCode, a.CurrencyCode, a.ErpAccountCode))
+            .ToListAsync(cancellationToken);
+
+    /// <summary>
+    /// The account a line is paid from (agreed with Ahmed, 5 Nov 2026: the bank puts the drawdown in our account at that bank and we pay
+    /// the client from it): for a bank line our account at that bank, for own funds (no bank) the main operating account. An operating
+    /// account comes first, then one with a GL account, then the oldest; an escrow account only when the bank has nothing else.
+    /// </summary>
+    public static TrsPayingAccount? PickAccount(IReadOnlyList<TrsPayingAccount> accounts, long? bankId) =>
+        accounts.Where(x => bankId is null || x.BankId == bankId)
+            .Where(x => bankId is not null || x.AccountTypeCode == "OPERATIONAL")
+            .OrderBy(x => x.AccountTypeCode switch { "OPERATIONAL" => 0, "ESCROW" => 2, _ => 1 })
+            .ThenBy(x => string.IsNullOrWhiteSpace(x.ErpAccountCode) ? 1 : 0)
+            .ThenBy(x => x.AccountId)
+            .FirstOrDefault();
+
+    private static string NoAccountMessage(string? bankName, string currencyCode) => bankName is null
+        ? $"There is no active {currencyCode} operating account to pay own funds from. Add one to TRS_BANK_ACCOUNTS (type OPERATIONAL)."
+        : $"We have no active {currencyCode} account at {bankName} to receive the drawdown. Add one to TRS_BANK_ACCOUNTS, or fund from another bank.";
+
+    /// <summary>
+    /// The figures of each line for the rule of the Treasury disbursement action: BANK_DRAWDOWN (a bank line only) and PAYMENT_AMOUNT
+    /// (every line), with the line's paying GL account for the rule's bank-account lines.
+    /// </summary>
+    public static IReadOnlyList<(string? BankAccount, Func<string, decimal?> AmountOf)> PostingParts(
+        IEnumerable<(bool IsBank, decimal Amount, string GlAccountCode)> lines) =>
+        [.. lines.Where(x => x.Amount != 0).Select(x => ((string?)x.GlAccountCode, (Func<string, decimal?>)(code => code switch
+        {
+            "BANK_DRAWDOWN" => x.IsBank ? x.Amount : 0,
+            "PAYMENT_AMOUNT" => x.Amount,
+            _ => null,
+        })))];
 
     private async Task<Context> LoadAsync(long disbursementId, CancellationToken cancellationToken)
     {
@@ -459,9 +530,79 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
                 fac.AvailableBalance = Math.Max(0, fac.ApprovedLimit - fac.OutstandingBalance - fac.ReservedBalance);
             }
         }
+        await PayAsync(c, fundings, now, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
         return await GetAsync(disbursementId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Execute's payment (Treasury step 3, agreed with Ahmed, 5 Nov 2026): each line is paid from its account; the GL entries come from the
+    /// rule linked to the action Treasury disbursement (the drawdown into our account at the bank, and the payment to the client); the
+    /// invoices become FUNDED and the disbursement DISBURSED. It runs in Execute's transaction: no rule or a GL error saves nothing.
+    /// </summary>
+    private async Task PayAsync(Context c, List<TrsDisbursementFunding> fundings, DateTime now, CancellationToken cancellationToken)
+    {
+        var h = c.Header;
+        var accounts = await PayingAccountsAsync(h.CurrencyCode, cancellationToken);
+        var bankNames = c.Sources.Where(x => x.BankId is not null).GroupBy(x => x.BankId!.Value).ToDictionary(g => g.Key, g => g.First().BankName);
+        var paid = new List<(TrsDisbursementFunding Funding, TrsPayingAccount Account)>();
+        foreach (var f in fundings.Where(x => x.FundedAmount != 0))
+        {
+            var a = PickAccount(accounts, f.BankId)
+                ?? throw new BusinessRuleException(NoAccountMessage(f.BankId is long b && bankNames.TryGetValue(b, out var n) ? n : null, h.CurrencyCode));
+            if (string.IsNullOrWhiteSpace(a.ErpAccountCode))
+                throw new BusinessRuleException($"Bank account {a.AccountRef} has no GL account code. Set it in Treasury (setup-bank-gl-accounts.sql).");
+            paid.Add((f, a));
+        }
+
+        var today = GlTime.Today(clock);
+        var doc = new ProductActionDocument("DISBURSEMENT", h.DisbursementId.ToString(CultureInfo.InvariantCulture), h.DisbursementNumber, today,
+            h.CurrencyCode, $"Treasury disbursement {h.DisbursementNumber} to {h.ClientName}");
+        string ts;
+        try
+        {
+            ts = await posting.PostAsync(ProductActions.TreasuryDisburse, doc,
+                PostingParts(paid.Select(x => (x.Funding.SourceTypeCode == "BANK", x.Funding.FundedAmount, x.Account.ErpAccountCode!.Trim()))), cancellationToken);
+        }
+        catch (ApexProcessException ex)
+        {
+            // no rule, a closed period, an unknown account...: shown as it is; nothing of Execute is kept
+            throw new BusinessRuleException($"GL posting failed, nothing was executed: {GlPostingApi.CleanMessage(ex.Message)}");
+        }
+        foreach (var (f, a) in paid)
+        {
+            f.PaidFromAccountId = a.AccountId;
+            f.GlTranSetId = ts;
+        }
+
+        // the disbursement is paid: the account that pays most is the remitting account
+        var d = await db.Set<FctDisbursement>().SingleAsync(x => x.DisbursementId == h.DisbursementId, cancellationToken);
+        var main = paid.OrderByDescending(x => x.Funding.FundedAmount).Select(x => x.Account).FirstOrDefault();
+        d.StatusCode = "DISBURSED";
+        d.PaymentStatus = "EXECUTED";
+        d.ValueDate ??= today;
+        d.ExecutionDate = today;
+        d.ExecutionTimeAt = now;
+        if (main is not null)
+        {
+            d.RemittingBank = string.Join(", ", paid.Select(x => x.Account.BankName).Distinct());
+            d.RemittingAccount = main.AccountNo.Length > 50 ? main.AccountNo[..50] : main.AccountNo;
+        }
+
+        // the invoices the disbursement finances (all but the rejected ones) are funded with their advance
+        var batchIds = db.Set<FctInvoiceBatch>().Where(x => x.DisbursementId == h.DisbursementId).Select(x => x.BatchId);
+        var invoices = await db.Set<FctInvoice>()
+            .Where(x => x.DisbursementId == h.DisbursementId || (x.BatchId != null && batchIds.Contains(x.BatchId.Value)))
+            .ToListAsync(cancellationToken);
+        foreach (var i in invoices.Where(x => CrmRepaymentSchedule.Normalize(x.StatusCode) != "NOT_ELIGIBLE"))
+        {
+            var funded = i.AdvanceAmount ?? i.FundedAmount ?? i.NetAmount ?? i.GrossAmount;
+            i.StatusCode = "FUNDED";
+            i.FundedAmount = funded;
+            i.UnfundedAmount = Math.Max(0, i.GrossAmount - funded);
+            i.FundingDate = today;
+        }
     }
 
     /// <summary>True when the disbursement's source of funds is executed (the Treasury Disburse step may be completed).</summary>
