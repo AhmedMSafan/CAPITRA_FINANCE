@@ -563,7 +563,7 @@
                 <td class="fx-r">{{ formatPct(r.interestRate) }}</td>
                 <td>{{ r.statusCode }}</td>
               </tr>
-              <tr v-if="!schedule.length"><td colspan="10" class="fx-empty">{{ tr('No data found') }}</td></tr>
+              <tr v-if="!schedule.length"><td colspan="10" class="fx-empty">{{ result?.scheduleNote ? tr(result.scheduleNote) : tr('No data found') }}</td></tr>
             </tbody>
           </table>
         </div>
