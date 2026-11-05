@@ -46,6 +46,11 @@ export const appMenu: MenuGroup[] = [
     ]
   },
   {
+    title: 'Treasury',
+    icon: 'pi pi-building-columns',
+    links: [{ label: 'Bank Limits', to: { name: 'trs-bank-limits' } }]
+  },
+  {
     title: 'Cheques Wallet',
     icon: 'pi pi-wallet',
     links: [

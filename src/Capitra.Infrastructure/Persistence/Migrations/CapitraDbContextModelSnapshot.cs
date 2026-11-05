@@ -37027,6 +37027,144 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("TRS_BANK_ACCOUNTS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsBankRule", b =>
+                {
+                    b.Property<long>("RuleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("RULE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RuleId"));
+
+                    b.Property<long>("BankId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BANK_ID");
+
+                    b.Property<string>("BasisCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BASIS_CODE");
+
+                    b.Property<string>("BreachActionCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("BREACH_ACTION_CODE");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CHANGED_AT");
+
+                    b.Property<string>("ChangedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CHANGED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long?>("FacilityId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FACILITY_ID");
+
+                    b.Property<decimal?>("LimitAmount")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("LIMIT_AMOUNT");
+
+                    b.Property<decimal?>("LimitPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("LIMIT_PCT");
+
+                    b.Property<int?>("MaxTenorDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("MAX_TENOR_DAYS");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("RuleTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RULE_TYPE_CODE");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<long?>("SubjectClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBJECT_CLIENT_ID");
+
+                    b.Property<string>("SubjectTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SUBJECT_TYPE_CODE");
+
+                    b.Property<string>("SubjectValue")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("SUBJECT_VALUE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("VERIFIED_AT");
+
+                    b.Property<string>("VerifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("VERIFIED_BY");
+
+                    b.Property<decimal?>("WarningPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("WARNING_PCT");
+
+                    b.HasKey("RuleId")
+                        .HasName("PK_TRS_BANK_RULES");
+
+                    b.HasIndex("FacilityId")
+                        .HasDatabaseName("IX_TRS_BANK_RULES_FACILITY_ID");
+
+                    b.HasIndex("SubjectClientId")
+                        .HasDatabaseName("IX_TRS_BANK_RULES_SUBJECT_CLIENT_ID");
+
+                    b.HasIndex("BankId", "StatusCode")
+                        .HasDatabaseName("IX_TRS_BANK_RULES_BANK_ID_STATUS_CODE");
+
+                    b.ToTable("TRS_BANK_RULES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsCalendar", b =>
                 {
                     b.Property<long>("CalendarId")
@@ -37661,6 +37799,316 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_TRS_FACILITY_RUNOFF_OPTIONS_RUNOFF_CASE_ID");
 
                     b.ToTable("TRS_FACILITY_RUNOFF_OPTIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsFacilitySublimit", b =>
+                {
+                    b.Property<long>("SublimitId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBLIMIT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SublimitId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("FacilityId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FACILITY_ID");
+
+                    b.Property<decimal>("LimitAmount")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("LIMIT_AMOUNT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("PoolTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("POOL_TYPE_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<string>("SublimitName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("SUBLIMIT_NAME");
+
+                    b.Property<long>("TrancheId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("TRANCHE_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("SublimitId")
+                        .HasName("PK_TRS_FACILITY_SUBLIMITS");
+
+                    b.HasIndex("FacilityId")
+                        .HasDatabaseName("IX_TRS_FACILITY_SUBLIMITS_FACILITY_ID");
+
+                    b.HasIndex("TrancheId", "SublimitName")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_TRS_FACILITY_SUBLIMITS_TRANCHE_ID_SUBLIMIT_NAME");
+
+                    b.ToTable("TRS_FACILITY_SUBLIMITS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsFacilityTranche", b =>
+                {
+                    b.Property<long>("TrancheId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("TRANCHE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("TrancheId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("FacilityId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FACILITY_ID");
+
+                    b.Property<DateOnly?>("MaturityDate")
+                        .HasColumnType("date")
+                        .HasColumnName("MATURITY_DATE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<DateOnly?>("ReleasedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RELEASED_DATE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<decimal>("TrancheAmount")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("TRANCHE_AMOUNT");
+
+                    b.Property<string>("TrancheName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("TRANCHE_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("TrancheId")
+                        .HasName("PK_TRS_FACILITY_TRANCHES");
+
+                    b.HasIndex("FacilityId", "TrancheName")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_TRS_FACILITY_TRANCHES_FACILITY_ID_TRANCHE_NAME");
+
+                    b.ToTable("TRS_FACILITY_TRANCHES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsSublimitMovement", b =>
+                {
+                    b.Property<long>("MovementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("MOVEMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MovementId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long?>("DebtorClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEBTOR_CLIENT_ID");
+
+                    b.Property<long?>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<DateOnly>("MovementDate")
+                        .HasColumnType("date")
+                        .HasColumnName("MOVEMENT_DATE");
+
+                    b.Property<string>("MovementTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("MOVEMENT_TYPE_CODE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<decimal>("OutstandingChange")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("OUTSTANDING_CHANGE");
+
+                    b.Property<decimal>("ReservedChange")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("RESERVED_CHANGE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long?>("SellerClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SELLER_CLIENT_ID");
+
+                    b.Property<long>("SublimitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBLIMIT_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("MovementId")
+                        .HasName("PK_TRS_SUBLIMIT_MOVEMENTS");
+
+                    b.HasIndex("DebtorClientId")
+                        .HasDatabaseName("IX_TRS_SUBLIMIT_MOVEMENTS_DEBTOR_CLIENT_ID");
+
+                    b.HasIndex("DisbursementId")
+                        .HasDatabaseName("IX_TRS_SUBLIMIT_MOVEMENTS_DISBURSEMENT_ID");
+
+                    b.HasIndex("SellerClientId")
+                        .HasDatabaseName("IX_TRS_SUBLIMIT_MOVEMENTS_SELLER_CLIENT_ID");
+
+                    b.HasIndex("SublimitId")
+                        .HasDatabaseName("IX_TRS_SUBLIMIT_MOVEMENTS_SUBLIMIT_ID");
+
+                    b.ToTable("TRS_SUBLIMIT_MOVEMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsSublimitScope", b =>
+                {
+                    b.Property<long>("ScopeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SCOPE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ScopeId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("ScopeTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SCOPE_TYPE_CODE");
+
+                    b.Property<string>("ScopeValue")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("SCOPE_VALUE");
+
+                    b.Property<long>("SublimitId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUBLIMIT_ID");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ScopeId")
+                        .HasName("PK_TRS_SUBLIMIT_SCOPES");
+
+                    b.HasIndex("SublimitId", "ScopeTypeCode", "ScopeValue")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_TRS_SUBLIMIT_SCOPES_SUBLIMIT_ID_SCOPE_TYPE_CODE_SCOPE_VALUE");
+
+                    b.ToTable("TRS_SUBLIMIT_SCOPES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInboxItem", b =>
@@ -43751,6 +44199,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_TRS_BANK_ACCOUNTS_TRS_BANK_ACCOUNTS");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsBankRule", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsBank", null)
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_BANK_RULES_TRS_BANKS");
+
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsCreditFacility", null)
+                        .WithMany()
+                        .HasForeignKey("FacilityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_BANK_RULES_TRS_CREDIT_FACILITIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("SubjectClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_BANK_RULES_CRM_CLIENTS");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsCreditFacility", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Trs.TrsBank", null)
@@ -43778,6 +44248,65 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_TRS_FACILITY_REPAYMENT_PLANS_TRS_CREDIT_FACILITIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsFacilitySublimit", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsCreditFacility", null)
+                        .WithMany()
+                        .HasForeignKey("FacilityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_FACILITY_SUBLIMITS_TRS_CREDIT_FACILITIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsFacilityTranche", null)
+                        .WithMany()
+                        .HasForeignKey("TrancheId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_FACILITY_SUBLIMITS_TRS_FACILITY_TRANCHES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsFacilityTranche", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsCreditFacility", null)
+                        .WithMany()
+                        .HasForeignKey("FacilityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_FACILITY_TRANCHES_TRS_CREDIT_FACILITIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsSublimitMovement", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("DebtorClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_SUBLIMIT_MOVEMENTS_CRM_CLIENTS_DEBTOR_CLIENT_ID");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("SellerClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_SUBLIMIT_MOVEMENTS_CRM_CLIENTS_SELLER_CLIENT_ID");
+
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsFacilitySublimit", null)
+                        .WithMany()
+                        .HasForeignKey("SublimitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_SUBLIMIT_MOVEMENTS_TRS_FACILITY_SUBLIMITS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsSublimitScope", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsFacilitySublimit", null)
+                        .WithMany()
+                        .HasForeignKey("SublimitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_SUBLIMIT_SCOPES_TRS_FACILITY_SUBLIMITS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInboxItem", b =>

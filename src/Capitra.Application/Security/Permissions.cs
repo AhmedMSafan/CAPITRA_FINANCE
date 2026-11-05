@@ -92,6 +92,18 @@ public static class Permissions
         public const string Verify = "CRM.VERIFY";
     }
 
+    public static class Trs
+    {
+        /// <summary>Read the Treasury bank limits, tranches, sublimits and bank rules.</summary>
+        public const string View = "TRS.VIEW";
+
+        /// <summary>Create and change facilities, tranches, sublimits and bank rules.</summary>
+        public const string Edit = "TRS.EDIT";
+
+        /// <summary>Verify a bank rule (four eyes: never one's own change).</summary>
+        public const string Verify = "TRS.VERIFY";
+    }
+
     public static class Collection
     {
         /// <summary>Read the customer repayment transactions and the due factoring cheques (App 136).</summary>

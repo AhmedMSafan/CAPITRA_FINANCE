@@ -7,6 +7,7 @@ import { chqRoutes } from '@/modules/chq/routes'
 import { crmRoutes } from '@/modules/crm/routes'
 import { fctRoutes } from '@/modules/fct/routes'
 import { collectionRoutes } from '@/modules/collection/routes'
+import { trsRoutes } from '@/modules/trs/routes'
 
 // Every page lives under AppLayout and needs a signed-in user, except the login page.
 // Module routes are added here as each module is built (src/modules/{module}).
@@ -57,6 +58,8 @@ const router = createRouter({
         ...fctRoutes,
         // Collection and Repayments (APEX App 136).
         ...collectionRoutes,
+        // Treasury: bank limits.
+        ...trsRoutes,
         // General ledger (APEX App 120).
         {
           path: 'gl',
