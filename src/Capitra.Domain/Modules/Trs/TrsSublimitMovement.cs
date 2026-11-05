@@ -27,6 +27,9 @@ public class TrsSublimitMovement : AuditableEntity
 
     public long? DisbursementId { get; set; }
 
+    /// <summary>The Treasury Disburse line (TRS_DISBURSEMENT_FUNDINGS) that made the movement.</summary>
+    public long? FundingId { get; set; }
+
     public long? DebtorClientId { get; set; }
 
     public long? SellerClientId { get; set; }
