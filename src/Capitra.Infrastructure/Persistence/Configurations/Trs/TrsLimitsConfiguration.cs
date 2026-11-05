@@ -137,11 +137,13 @@ public sealed class TrsDisbursementFundingConfiguration : IEntityTypeConfigurati
         builder.Property(x => x.OverrideApprovedBy).HasMaxLength(100);
         builder.Property(x => x.ChangedBy).HasMaxLength(100);
         builder.Property(x => x.ExecutedBy).HasMaxLength(100);
+        builder.Property(x => x.GlTranSetId).HasMaxLength(40);
 
         builder.HasOne<FctDisbursement>().WithMany().HasForeignKey(x => x.DisbursementId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<TrsFacilitySublimit>().WithMany().HasForeignKey(x => x.SublimitId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<TrsCreditFacility>().WithMany().HasForeignKey(x => x.FacilityId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<TrsBank>().WithMany().HasForeignKey(x => x.BankId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<TrsBankAccount>().WithMany().HasForeignKey(x => x.PaidFromAccountId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }

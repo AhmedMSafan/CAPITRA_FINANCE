@@ -317,9 +317,10 @@
                     <td class="fx-r"><b>{{ formatAmount(r.advanceAmount) }}</b></td>
                   </template>
                   <td>
-                    <select v-model="r.statusCode" class="ie-pill" :class="r.statusCode === 'ELIGIBLE' ? 'is-ok' : 'is-bad'" :disabled="readOnly" @change="touchInvoice(r)">
+                    <select v-model="r.statusCode" class="ie-pill" :class="r.statusCode === 'NOT_ELIGIBLE' ? 'is-bad' : 'is-ok'" :disabled="readOnly || r.statusCode === 'FUNDED'" @change="touchInvoice(r)">
                       <option value="ELIGIBLE">{{ tr('Eligible') }}</option>
                       <option value="NOT_ELIGIBLE">{{ tr('Not Eligible') }}</option>
+                      <option v-if="r.statusCode === 'FUNDED'" value="FUNDED" disabled>{{ tr('Funded') }}</option>
                     </select>
                   </td>
                   <td v-if="!readOnly" class="fx-r ie-acts">

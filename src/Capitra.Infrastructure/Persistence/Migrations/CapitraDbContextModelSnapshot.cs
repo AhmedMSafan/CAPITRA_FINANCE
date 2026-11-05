@@ -37509,6 +37509,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,3)")
                         .HasColumnName("FUNDED_AMOUNT");
 
+                    b.Property<string>("GlTranSetId")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("GL_TRAN_SET_ID");
+
                     b.Property<bool>("IsOverrideRequired")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_OVERRIDE_REQUIRED");
@@ -37526,6 +37531,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("OVERRIDE_REASON");
+
+                    b.Property<long?>("PaidFromAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PAID_FROM_ACCOUNT_ID");
 
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
@@ -37565,6 +37574,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("FacilityId")
                         .HasDatabaseName("IX_TRS_DISBURSEMENT_FUNDINGS_FACILITY_ID");
+
+                    b.HasIndex("PaidFromAccountId")
+                        .HasDatabaseName("IX_TRS_DISBURSEMENT_FUNDINGS_PAID_FROM_ACCOUNT_ID");
 
                     b.HasIndex("SublimitId")
                         .HasDatabaseName("IX_TRS_DISBURSEMENT_FUNDINGS_SUBLIMIT_ID");
@@ -44379,6 +44391,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("FacilityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_TRS_DISBURSEMENT_FUNDINGS_TRS_CREDIT_FACILITIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsBankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("PaidFromAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_DISBURSEMENT_FUNDINGS_TRS_BANK_ACCOUNTS");
 
                     b.HasOne("Capitra.Domain.Modules.Trs.TrsFacilitySublimit", null)
                         .WithMany()
