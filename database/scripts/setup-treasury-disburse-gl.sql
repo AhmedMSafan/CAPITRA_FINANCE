@@ -3,7 +3,8 @@
 -- Run in pgAdmin > Query Tool on CAPITRA_DB. Press F5. Safe to run again: what exists is kept.
 -- Needs: migrate-treasury-payment.sql (or the API started with the latest develop).
 --
--- FILL IN THE TWO ACCOUNT CODES BELOW FIRST (v_receivable_code and v_borrowings_code). Both must exist in GL_ACCOUNTS.
+-- The two account codes (Ahmed's chart, 5 Nov 2026) are at the top: 120101 Factoring Receivable - Principal and
+-- 220101 Bank Facilities - Short Term. Change them there before running if needed; both must exist in GL_ACCOUNTS.
 --
 -- It sets up:
 --   1. the GL transaction set counter TRS: postings are numbered CAP-TRS-<year>-<number>
@@ -23,9 +24,9 @@
 -- =====================================================================================================================
 DO $$
 DECLARE
-  -- >>> settings: the GL account codes (Ahmed to give them) <<<
-  v_receivable_code text := '';   -- Factoring receivable (debited with the amount paid to the client)
-  v_borrowings_code text := '';   -- Bank borrowings (credited with the bank drawdown)
+  -- >>> settings: the GL account codes <<<
+  v_receivable_code text := '120101';   -- Factoring Receivable - Principal (debited with the amount paid to the client)
+  v_borrowings_code text := '220101';   -- Bank Facilities - Short Term (credited with the bank drawdown)
   -- >>> end of settings <<<
   v_by      text := 'SETUP';
   v_from    date := DATE '2020-01-01';
