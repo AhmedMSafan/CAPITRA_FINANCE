@@ -104,7 +104,7 @@ export type TrsLimitsOptions = {
   subjectTypes: TrsOption[]
   bases: TrsOption[]
   breachActions: TrsOption[]
-  subjects: { clients: { clientId: number; clientNumber: string; clientName: string }[]; groups: string[] }
+  subjects: { clients: { clientId: number; clientNumber: string; clientName: string }[]; groups: string[]; products: TrsOption[]; segments: TrsOption[] }
 }
 
 export type TrsFacilityForm = {

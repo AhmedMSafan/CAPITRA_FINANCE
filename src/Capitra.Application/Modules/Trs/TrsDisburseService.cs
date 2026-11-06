@@ -2,6 +2,7 @@ using System.Globalization;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Adm.Products;
+using Capitra.Domain.Modules.Adm;
 using Capitra.Application.Modules.Crm;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Gl;
@@ -20,10 +21,15 @@ public sealed record TrsDisburseHeaderDto(
 /// <summary>Who the disbursement exposes a bank to. Role is DEBTOR or SELLER; Weight is its share of the amount (0 to 1).</summary>
 public sealed record TrsDisbursePartyDto(long? ClientId, string Name, string Role, decimal Weight, string? GroupName);
 
-/// <summary>One possible source of funds: own funds (no sublimit, no limit) or a bank sublimit that may fund this business line.</summary>
+/// <summary>
+/// One possible source of funds: own funds (no sublimit, no limit) or a bank sublimit. Every open sublimit in the currency is listed:
+/// Fit says why it may fund this disbursement, Unavailable why it cannot (facility, tranche or sublimit status, business line, nothing
+/// left, or a bank rule that blocks it).
+/// </summary>
 public sealed record TrsDisburseSourceDto(
     string SourceKey, string SourceTypeCode, long? BankId, string? BankName, long? FacilityId, string? FacilityRef, string? TrancheName,
-    long? SublimitId, string? SublimitName, decimal? Available, decimal Amount, bool IsOverrideRequired, IReadOnlyList<long> RuleIds);
+    long? SublimitId, string? SublimitName, decimal? Available, decimal Amount, bool IsOverrideRequired, IReadOnlyList<long> RuleIds,
+    string? Fit = null, string? Unavailable = null);
 
 /// <summary>
 /// A bank rule as it applies to this disbursement: the most that may come from the lines it covers (the bank's sublimits, or one
@@ -151,8 +157,10 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             ? await db.Set<FctAgreement>().AsNoTracking().Where(x => x.AgreementId == aid).Select(x => new { x.AgreementNumber, x.FactoringType })
                 .SingleOrDefaultAsync(cancellationToken)
             : null;
-        var reverse = agreement?.FactoringType?.Contains("REVERSE", StringComparison.OrdinalIgnoreCase) == true;
-        var businessLine = reverse ? "REVERSE_FACTORING" : "FACTORING";
+        var businessLine = TrsFundingProfiles.BusinessLineOf(agreement?.FactoringType);
+        var reverse = businessLine == "REVERSE_FACTORING";
+        var profile = (await TrsFundingProfiles.LoadAsync(db, [disbursementId], cancellationToken)).GetValueOrDefault(disbursementId)
+            ?? new TrsFundingProfile(businessLine, null, null);
         var currency = await db.Set<CrmLkpCurrency>().AsNoTracking().Where(x => x.CurrencyId == d.CurrencyId).Select(x => x.CurrencyCode)
             .FirstOrDefaultAsync(cancellationToken) ?? "EGP";
         var net = d.NetAmount ?? d.GrossAmount;
@@ -224,29 +232,52 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         {
             new("OWN", "OWN_FUNDS", null, null, null, null, null, null, null, null, own.Sum(x => x.FundedAmount), own.Any(x => x.IsOverrideRequired), []),
         };
-        foreach (var f in facilities.Where(x => x.FacilityStatus == "ACTIVE" && string.Equals(x.CurrencyCode, currency, StringComparison.OrdinalIgnoreCase))
+        foreach (var f in facilities.Where(x => string.Equals(x.CurrencyCode, currency, StringComparison.OrdinalIgnoreCase))
                      .OrderBy(x => banks.GetValueOrDefault(x.BankId)).ThenBy(x => x.FacilityRef))
         {
             var node = TrsLimitsService.FacilityNode(f, tranches, sublimits, scopes, usage);
             var ruleIds = rules.Where(r => r.BankId == f.BankId && (r.FacilityId is null || r.FacilityId == f.FacilityId)).Select(r => r.RuleId).ToList();
-            foreach (var t in node.Tranches.Where(x => x.StatusCode == "ACTIVE"))
-            foreach (var s in t.Sublimits.Where(x => x.StatusCode == "ACTIVE" && (x.BusinessLines.Count == 0 || x.BusinessLines.Contains(businessLine))))
+            foreach (var t in node.Tranches.Where(x => x.StatusCode != "CLOSED"))
+            foreach (var s in t.Sublimits.Where(x => x.StatusCode != "CLOSED"))
             {
                 var mine = chosen.GetValueOrDefault(s.SublimitId) ?? [];
+                var (fit, unavailable) = Availability(f.FacilityStatus, t.StatusCode, s.StatusCode, s.BusinessLines, businessLine, s.Available);
                 sources.Add(new($"S{s.SublimitId}", "BANK", f.BankId, banks.GetValueOrDefault(f.BankId), f.FacilityId, f.FacilityRef, t.TrancheName,
-                    s.SublimitId, s.SublimitName, s.Available, mine.Sum(x => x.FundedAmount), mine.Any(x => x.IsOverrideRequired), ruleIds));
+                    s.SublimitId, s.SublimitName, s.Available, mine.Sum(x => x.FundedAmount), mine.Any(x => x.IsOverrideRequired), ruleIds, fit, unavailable));
             }
         }
 
         var bankIds = sources.Where(x => x.BankId is not null).Select(x => x.BankId!.Value).ToHashSet();
-        var ruleDtos = await RulesAsync([.. rules.Where(r => bankIds.Contains(r.BankId))], banks, facilities, sublimits, parties, maxTenor, disbursementId,
-            cancellationToken);
+        var ruleDtos = await RulesAsync([.. rules.Where(r => bankIds.Contains(r.BankId))], banks, facilities, sublimits, parties, maxTenor, profile,
+            disbursementId, cancellationToken);
+
+        // a rule that blocks the bank's money outright for this disbursement makes its lines unavailable, with the rule as the reason
+        sources = [.. sources.Select(x => x.Unavailable is null && ruleDtos.FirstOrDefault(r => r.BreachActionCode == "BLOCK" && r.LimitAbove <= 0
+                && x.RuleIds.Contains(r.RuleId)) is { } block
+            ? x with { Unavailable = block.RuleTypeCode == "EXCLUDE" ? $"Bank rule: {block.Label}." : $"Bank rule: {block.Label}. {block.Detail}" }
+            : x)];
         return new Context(d, header, parties, pairs, sources, ruleDtos, fundings);
+    }
+
+    /// <summary>
+    /// Why a sublimit may or may not fund a disbursement of a business line (agreed with Ahmed, 6 Nov 2026: every sublimit is shown with
+    /// its reason). Fit is the reason it may; Unavailable the first thing that stops it.
+    /// </summary>
+    public static (string? Fit, string? Unavailable) Availability(string facilityStatus, string trancheStatus, string sublimitStatus,
+        IReadOnlyList<string> businessLines, string businessLine, decimal available)
+    {
+        string Lines(IEnumerable<string> codes) => string.Join(", ", codes.Select(c => TrsLimitsService.BusinessLines.FirstOrDefault(x => x.Value == c)?.Label ?? c));
+        if (facilityStatus != "ACTIVE") return (null, $"The facility is {facilityStatus.Replace('_', ' ').ToLowerInvariant()}.");
+        if (trancheStatus != "ACTIVE") return (null, "The bank has not released this tranche yet.");
+        if (sublimitStatus != "ACTIVE") return (null, $"The sublimit is {sublimitStatus.ToLowerInvariant()}.");
+        if (businessLines.Count > 0 && !businessLines.Contains(businessLine)) return (null, $"It funds {Lines(businessLines)} only.");
+        if (available <= 0) return (null, "Nothing is left to draw.");
+        return (businessLines.Count == 0 ? "Funds every business line." : $"Funds {Lines(businessLines)}.", null);
     }
 
     private async Task<List<TrsDisburseRuleDto>> RulesAsync(
         List<TrsBankRule> rules, Dictionary<long, string> banks, List<TrsCreditFacility> facilities, List<TrsFacilitySublimit> sublimits,
-        List<TrsDisbursePartyDto> parties, int? maxTenor, long disbursementId, CancellationToken cancellationToken)
+        List<TrsDisbursePartyDto> parties, int? maxTenor, TrsFundingProfile profile, long disbursementId, CancellationToken cancellationToken)
     {
         if (rules.Count == 0) return [];
         var subFacility = sublimits.ToDictionary(x => x.SublimitId, x => x.FacilityId);
@@ -261,6 +292,16 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         var subjectNames = await db.Set<CrmClient>().AsNoTracking().Where(x => subjectIds.Contains(x.ClientId))
             .ToDictionaryAsync(x => x.ClientId, x => x.ClientName, cancellationToken);
 
+        // business line, product and client segment rules: what the bank holds of each other disbursement, and what each one is
+        var productNames = await db.Set<AdmProduct>().AsNoTracking().ToDictionaryAsync(x => x.ProductCode, x => x.ProductNameEn, cancellationToken);
+        var byDisbursement = rules.Any(x => TrsFundingProfiles.IsDimension(x.SubjectTypeCode))
+            ? await db.Set<TrsSublimitMovement>().AsNoTracking().Where(x => x.DisbursementId != null && x.DisbursementId != disbursementId)
+                .GroupBy(x => new { x.SublimitId, x.DisbursementId })
+                .Select(g => new { g.Key.SublimitId, DisbursementId = g.Key.DisbursementId!.Value, Amount = g.Sum(x => x.OutstandingChange + x.ReservedChange) })
+                .ToListAsync(cancellationToken)
+            : [];
+        var profiles = await TrsFundingProfiles.LoadAsync(db, byDisbursement.Select(x => x.DisbursementId), cancellationToken);
+
         var result = new List<TrsDisburseRuleDto>();
         foreach (var r in rules)
         {
@@ -268,8 +309,10 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             var inScope = facilities.Where(f => f.BankId == r.BankId && (r.FacilityId is null || f.FacilityId == r.FacilityId)).Select(f => f.FacilityId).ToHashSet();
             var scoped = rows.Where(x => subFacility.TryGetValue(x.SublimitId, out var fid) && inScope.Contains(fid)).ToList();
             var role = r.SubjectTypeCode == "SELLER" ? "SELLER" : "DEBTOR";
+            var dimension = TrsFundingProfiles.IsDimension(r.SubjectTypeCode);
             string Who() => r.SubjectTypeCode switch
             {
+                "BUSINESS_LINE" or "PRODUCT" or "CLIENT_SEGMENT" => TrsFundingProfiles.Describe(r.SubjectTypeCode, r.SubjectValue, productNames),
                 "DEBTOR_GROUP" => r.SubjectValue is null ? "any debtor group" : $"debtor group {r.SubjectValue}",
                 _ => r.SubjectClientId is long id ? subjectNames.GetValueOrDefault(id) ?? $"client {id}" : role == "SELLER" ? "any seller" : "any debtor",
             };
@@ -284,6 +327,17 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
                         Held: scoped.Where(x => (role == "SELLER" ? x.SellerClientId : x.DebtorClientId) == g.Key).Sum(x => x.Amount))).ToList();
             if (r.SubjectClientId is long sid) subjects = [.. subjects.Where(x => x.Key == sid.ToString(CultureInfo.InvariantCulture))];
             if (r.SubjectTypeCode == "DEBTOR_GROUP" && r.SubjectValue is string sv) subjects = [.. subjects.Where(x => x.Key == sv)];
+            var mine = dimension ? profile.Member(r.SubjectTypeCode) : null;
+            if (dimension)
+            {
+                // the whole disbursement is the one business line, product or segment: weight 1 when it is the rule's, else not covered
+                var held = byDisbursement.Where(x => subFacility.TryGetValue(x.SublimitId, out var fid) && inScope.Contains(fid)
+                    && profiles.TryGetValue(x.DisbursementId, out var p) && p.Member(r.SubjectTypeCode) == r.SubjectValue).Sum(x => x.Amount);
+                subjects = r.SubjectValue is not null && mine == r.SubjectValue ? [(r.SubjectValue, Who(), 1m, held)] : [];
+            }
+            var notThis = !dimension ? null
+                : mine is null ? $"This disbursement has no {TrsLimitsService.SubjectTypes.First(x => x.Value == r.SubjectTypeCode).Label.ToLowerInvariant()} set; the rule does not apply."
+                : $"This disbursement is {TrsFundingProfiles.Describe(r.SubjectTypeCode, mine, productNames)}, not {Who()}.";
 
             string label;
             decimal? limit = null, warn = null;
@@ -293,8 +347,9 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
                 case "EXCLUDE":
                     label = $"Exclude {Who()}";
                     var hit = r.SubjectClientId is null && r.SubjectValue is null ? [] : subjects;
-                    if (hit.Count > 0) { limit = 0; detail = $"{hit[0].Name} may not be financed with {bankName}'s money."; }
-                    else detail = "No excluded party in this disbursement.";
+                    if (dimension && hit.Count > 0) { limit = 0; detail = $"{bankName} does not fund {Who()}; this disbursement is {Who()}."; }
+                    else if (hit.Count > 0) { limit = 0; detail = $"{hit[0].Name} may not be financed with {bankName}'s money."; }
+                    else detail = notThis ?? "No excluded party in this disbursement.";
                     break;
                 case "MAX_TENOR":
                     label = $"Invoice tenor at most {r.MaxTenorDays} days";
@@ -321,9 +376,11 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
                     {
                         limit = Whole(tt.Cap);
                         var pct = denominator > 0 ? $" ({tt.Held / denominator * 100:0.0}%)" : "";
-                        detail = $"{tt.Name} holds {tt.Held:N0}{pct} of {bankName}'s money now.";
+                        detail = dimension
+                            ? $"{Cap(Who())} holds {tt.Held:N0}{pct} of {bankName}'s money now; this disbursement is {Who()} too."
+                            : $"{tt.Name} holds {tt.Held:N0}{pct} of {bankName}'s money now.";
                     }
-                    else detail = subjects.Count == 0 ? "No party of this disbursement is covered." : "This disbursement cannot breach it.";
+                    else detail = notThis ?? (subjects.Count == 0 ? "No party of this disbursement is covered." : "This disbursement cannot breach it.");
                     break;
             }
             result.Add(new TrsDisburseRuleDto(r.RuleId, r.BankId, bankName, r.FacilityId, r.RuleTypeCode, label, r.BreachActionCode, limit, warn, detail));
@@ -370,7 +427,8 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         foreach (var (sublimitId, amount) in lines)
         {
             var s = c.Sources.FirstOrDefault(x => x.SublimitId == sublimitId)
-                ?? throw new BusinessRuleException("A chosen sublimit cannot fund this disbursement (another business line, currency or status).");
+                ?? throw new BusinessRuleException("A chosen sublimit cannot fund this disbursement (another currency, or it is closed).");
+            if (s.Unavailable is string why) throw new BusinessRuleException($"{Path(s)} cannot fund this disbursement. {why}");
             if (s.Available is decimal av && amount > av + Tolerance)
                 throw new BusinessRuleException($"{Path(s)}: at most {av:N2} is available.");
             picked.Add((s, amount));

@@ -182,8 +182,8 @@ figcaption b{color:var(--teal-ink)}
   .track,.pill,.sec-h .n,th,tr.total td,.note,.gate.bank{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   figure,table,.tree,.step,.gate{break-inside:avoid}
 }
-</style>
-</head><body>
+</style></head><body>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#134E4A"/><path d="M44 20.5A16 16 0 1 0 44 43.5" fill="none" stroke="#E0B04A" stroke-width="7" stroke-linecap="round"/><circle cx="32" cy="32" r="4.5" fill="#ffffff"/></symbol>
 </svg>
@@ -209,7 +209,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">User manual · Treasury module</div>
       <h1>Bank limits and source of funds</h1>
       <p class="lede">How much bank money Capitra can use today, on what conditions, and which money pays each disbursement. Written for Treasury, Finance and Credit staff, and the checkers who verify their work.</p>
-      <div class="meta"><span><b>Version</b>1.2</span><span><b>Date</b>5 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Step 2 Treasury Disburse · Payment and GL</span></div>
+      <div class="meta"><span><b>Version</b>1.3</span><span><b>Date</b>6 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Bank rules · Step 2 Treasury Disburse · Payment and GL</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -246,7 +246,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="card"><div class="k">Once per facility</div><h4>Set up a bank's limits</h4>
         <ol><li>Home → Treasury → Bank Limits</li><li><b>New Facility</b>: limit, currency, dates</li><li><b>+ Tranche</b> for what the bank released</li><li><b>+ Sublimit</b>, tick its business lines</li></ol></div>
       <div class="card"><div class="k">From the term sheet</div><h4>Add a bank rule</h4>
-        <ol><li>Select the facility → <b>+ Rule</b></li><li>Choose the type, the subject and the limit</li><li>Choose what a breach does</li><li>Ask a checker to <b>Verify</b></li></ol></div>
+        <ol><li>Select the facility → <b>+ Rule</b></li><li>Choose the rule, what it is on, and the limit</li><li>Read the sentence at the top: it says what the rule will do</li><li>Ask a checker to <b>Verify</b></li></ol></div>
       <div class="card"><div class="k">When the bank releases money</div><h4>Release a tranche</h4>
         <ol><li>Select the Draft tranche → <b>Edit</b></li><li>Status <b>Active</b></li><li>Enter the release date</li><li>Save: Available goes up at once</li></ol></div>
       <div class="card"><div class="k">Every disbursement</div><h4>Choose the source of funds</h4>
@@ -315,10 +315,20 @@ figcaption b{color:var(--teal-ink)}
     <p class="prose">A bank rule is a condition from the bank's term sheet on how its money may be used. Capitra checks every active rule each time money is drawn from that bank. A rule covers all of the bank's facilities, or one facility.</p>
     <div class="tbl"><table>
       <tr><th>Rule</th><th>Meaning</th><th>Bank A example</th></tr>
-      <tr><td><b>Concentration</b></td><td>One debtor, seller or debtor group may not take more than a percent or an amount of the bank's money.</td><td>Any debtor at most <b>15%</b> of the funded pool, warn at <b>12%</b></td></tr>
-      <tr><td><b>Exclude</b></td><td>A named debtor, seller or debtor group may not be financed with this bank's money.</td><td>Debtor group <i>Government entities</i></td></tr>
-      <tr><td><b>Maximum tenor</b></td><td>The invoice may not be longer than a number of days.</td><td>At most <b>120 days</b></td></tr>
+      <tr><td><b>Maximum share</b> (concentration)</td><td>One debtor, seller, debtor group, business line, product or client segment may not take more than a percent or an amount of the bank's money.</td><td>Any debtor at most <b>15%</b> of the funded pool, warn at <b>12%</b></td></tr>
+      <tr><td><b>Exclude</b></td><td>A named debtor, seller, debtor group, business line, product or client segment may not be financed with this bank's money.</td><td>Debtor group <i>Government entities</i></td></tr>
+      <tr><td><b>Maximum invoice tenor</b></td><td>The invoice may not be longer than a number of days.</td><td>At most <b>120 days</b></td></tr>
     </table></div>
+
+    <h3>What a rule can be on</h3>
+    <div class="tbl"><table>
+      <tr><th>Rule on</th><th>Taken from the disbursement</th><th>Example from a term sheet</th></tr>
+      <tr><td><b>Debtor</b>, <b>Seller</b>, <b>Debtor group</b></td><td>The invoices' debtors and the client</td><td>Any debtor at most 15%</td></tr>
+      <tr><td><b>Business line</b></td><td>The agreement: Factoring or Reverse Factoring</td><td>On one facility: Leasing at most <b>70%</b>, Factoring at most <b>30%</b> of the facility limit (two rules)</td></tr>
+      <tr><td><b>Product</b></td><td>The disbursement's product</td><td>The bank does not fund product <i>Reverse Factoring</i></td></tr>
+      <tr><td><b>Client segment</b></td><td>The client's segment: SME, Corporate, Large corporate</td><td>The bank does not fund <i>Corporate</i> clients</td></tr>
+    </table></div>
+    <p class="prose">For a business line, product or client segment the whole disbursement counts, because the whole disbursement is one business line, one product and one client. Activity (industry) and asset rules will follow when those lists are added to Capitra.</p>
 
     <h3>Percent of what?</h3>
     <div class="two">
@@ -338,7 +348,7 @@ figcaption b{color:var(--teal-ink)}
 
     <div class="note"><span class="ic">Four eyes</span><p>A new or changed rule is <b>Waiting for verification</b> and is not checked until a second user verifies it. The person who made the change cannot verify it. To end a rule, use <b>Stop</b> and give the reason. Stopped rules stay in history.</p></div>
     <div class="note"><span class="ic">Highest now</span><p>Under each concentration rule the screen shows who is closest to the limit today, for example "Highest now: LG Electronics 11.4%". <span class="pill ok">within</span> <span class="pill warn">above warning</span> <span class="pill bad">breach</span></p></div>
-    <figure><img src="img/4-add-rule.jpg" alt="The Add bank rule dialog" loading="lazy"><figcaption><b>Figure 2.</b> Adding a concentration rule: subject, percent or amount, basis, warning level and breach action.</figcaption></figure>
+    <figure><img src="img/4-add-rule.jpg" alt="The Add bank rule dialog" loading="lazy"><figcaption><b>Figure 2.</b> Add Bank Rule shows only the fields the rule needs. The line at the top says what the rule will do, here "funds at most 70% of its funded pool for Business line: Leasing. If broken: Block."</figcaption></figure>
   </section>
 
   <section class="sec" id="en-4">
@@ -410,12 +420,13 @@ figcaption b{color:var(--teal-ink)}
   <section class="sec" id="en-6">
     <div class="sec-h"><span class="n">6</span><h2>Step 2: Treasury Disburse</h2></div>
     <p class="prose">Treasury Disburse is the last step of a disbursement. Treasury chooses which money pays the net amount, and Capitra checks each choice against the limits and bank rules before anything is paid.</p>
-    <figure><img src="img/6-disburse-suggest.jpg" alt="Treasury Disburse with the sources filled by Suggest" loading="lazy"><figcaption><b>Figure 6.</b> Net amount, covered and remaining at the top; each source with its available amount, bank rule badge, amount and Max; the rule checks on the right.</figcaption></figure>
+    <figure><img src="img/6-disburse-suggest.jpg" alt="Treasury Disburse with the sources filled by Suggest" loading="lazy"><figcaption><b>Figure 6.</b> The limits as a tree: bank › facility › tranche › sublimit. Each sublimit says whether it can be used and why. The rule checks are on the right.</figcaption></figure>
     <h3>What the screen shows</h3>
     <ul class="b">
       <li><b>Header</b>: the disbursement, the client, the debtor (or the buyer in reverse factoring), the business line and the <b>net amount to fund</b>.</li>
-      <li><b>Source tree</b>: <b>Own funds</b> first, then each bank → facility → sublimit that may fund this business line. Draft tranches, other lines' sublimits and suspended lines are not shown.</li>
-      <li><b>Each line</b>: available amount, an amount box, a <b>Max</b> button and a live badge for each bank rule that applies.</li>
+      <li><b>Limits tree</b>: <b>Own funds</b> first, then each bank → facility → tranche → sublimit in the disbursement's currency. Each bank and facility shows how many of its sublimits can be used, and the total you chose under it.</li>
+      <li><b>Each sublimit</b> says why in one line: <span class="pill ok">✓ Can be used</span> with what it funds, or <span class="pill bad">⊘ Cannot be used</span> with the reason. A sublimit that cannot be used is grey and has no amount box.</li>
+      <li><b>A usable line</b>: available amount, an amount box, a <b>Max</b> button and a live badge for each bank rule that applies.</li>
       <li><b>Checks and total</b>: covered against net, and any line that is blocked or needs an override.</li>
     </ul>
     <div class="shots">
@@ -431,12 +442,22 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Bank B › Tranche 1 › Factoring</td><td class="num">18M</td><td>LG at 6% of a 20% cap <span class="pill ok">pass</span></td><td class="num"><b>10M</b></td></tr>
       <tr class="total"><td>Total</td><td></td><td></td><td class="num">12M = net ✓</td></tr>
     </table></div>
-    <p class="prose">Bank A's Leasing sublimit is not offered, because its scope is Leasing only.</p>
+    <p class="prose">Bank A's Leasing sublimit is shown in grey: <i>Cannot be used: It funds Leasing only.</i></p>
+    <h3>Why a sublimit cannot be used</h3>
+    <div class="tbl"><table>
+      <tr><th>Reason on the line</th><th>What to do</th></tr>
+      <tr><td>The facility is suspended (or under renewal, expired …)</td><td>Use another facility, or make the facility Active in Bank Limits.</td></tr>
+      <tr><td>The bank has not released this tranche yet</td><td>When the bank's letter arrives, make the tranche Active with its release date.</td></tr>
+      <tr><td>The sublimit is suspended</td><td>Use another sublimit, or make it Active again.</td></tr>
+      <tr><td>It funds Leasing only (or other business lines)</td><td>The sublimit is for another business line. Use one that funds this one.</td></tr>
+      <tr><td>Nothing is left to draw</td><td>The sublimit, tranche or facility is fully used or reserved.</td></tr>
+      <tr><td>Bank rule: Exclude …</td><td>The bank does not fund this debtor, group, business line, product or client segment. Use another bank or own funds.</td></tr>
+    </table></div>
     <h3>How to fund a disbursement</h3>
     <ol class="b">
       <li>Open the disbursement at its Treasury Disburse step from the inbox.</li>
       <li>Press <b>Suggest</b> to fill the lines within every rule, or type amounts. <b>Max</b> fills a line with the most it allows.</li>
-      <li>Watch the badges: green passes, orange warns, red blocks. A line that needs an override shows who must approve it.</li>
+      <li>Read the line under each sublimit: ✓ can be used, ⊘ cannot be used and why. Then watch the badges: green passes, orange warns, red blocks. A line that needs an override shows who must approve it.</li>
       <li>When the total equals the net amount and nothing is red, <b>Execute</b> becomes active.</li>
       <li><b>Execute</b> records a drawdown on each chosen sublimit with the debtor and seller, so Bank Limits and "Highest now" update at once. In the same moment it pays the client and posts the GL (see below). Then <b>Complete</b> the step.</li>
     </ol>
@@ -485,6 +506,8 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>You made the last change; another user must verify it</td><td>Ask a colleague with TRS.VERIFY to verify the rule.</td></tr>
       <tr><td>Enter why the rule no longer applies</td><td>Stopping a rule needs a reason, kept in history.</td></tr>
       <tr><td>Another facility has this reference</td><td>Facility references are unique. Check for a duplicate entry.</td></tr>
+      <tr><td>Choose what is excluded / Choose which one the limit is for</td><td>A business line, product or client segment rule needs the one it is for.</td></tr>
+      <tr><td>… cannot fund this disbursement. (reason)</td><td>The sublimit cannot be used, for the reason given. Choose another source.</td></tr>
     </table></div>
   </section>
 
@@ -519,7 +542,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Tenor</td><td>Days from the invoice date to its due date</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · Treasury User Manual · v1.2 · November 2026</p>
+  <p class="foot">CAPITRA · Treasury User Manual · v1.3 · November 2026</p>
   </main>
 </div>
 </div>
@@ -533,7 +556,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">دليل المستخدم · وحدة الخزينة</div>
       <h1>حدود البنوك ومصدر التمويل</h1>
       <p class="lede">كم من أموال البنوك يمكن لـ CAPITRA استخدامه اليوم، وبأي شروط، ومن أي مصدر تُموَّل كل عملية صرف. لموظفي الخزينة والمالية والائتمان، وللمراجعين الذين يعتمدون أعمالهم.</p>
-      <div class="meta"><span><b>الإصدار</b>١٫٢</span><span><b>التاريخ</b>٥ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
+      <div class="meta"><span><b>الإصدار</b>١٫٣</span><span><b>التاريخ</b>٦ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · شروط البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -570,7 +593,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="card"><div class="k">مرة لكل تسهيل</div><h4>إعداد حدود بنك</h4>
         <ol><li>الرئيسية ← الخزينة ← حدود البنوك</li><li><b>تسهيل جديد</b>: الحد والعملة والتواريخ</li><li><b>+ شريحة</b> لما أفرج عنه البنك</li><li><b>+ حد فرعي</b> واختر أنشطته</li></ol></div>
       <div class="card"><div class="k">من خطاب الشروط</div><h4>إضافة شرط بنك</h4>
-        <ol><li>اختر التسهيل ← <b>+ شرط</b></li><li>النوع والجهة والحد</li><li>ماذا يحدث عند المخالفة</li><li>اطلب من مراجع <b>الاعتماد</b></li></ol></div>
+        <ol><li>اختر التسهيل ← <b>+ شرط</b></li><li>الشرط وعلى ماذا يكون والحد</li><li>اقرأ الجملة في الأعلى: تقول ما سيفعله الشرط</li><li>اطلب من مراجع <b>الاعتماد</b></li></ol></div>
       <div class="card"><div class="k">عند إفراج البنك عن أموال</div><h4>الإفراج عن شريحة</h4>
         <ol><li>اختر الشريحة المسودة ← <b>تعديل</b></li><li>الحالة <b>نشطة</b></li><li>أدخل تاريخ الإفراج</li><li>احفظ فيرتفع المتاح فورًا</li></ol></div>
       <div class="card"><div class="k">كل عملية صرف</div><h4>اختيار مصدر التمويل</h4>
@@ -639,10 +662,20 @@ figcaption b{color:var(--teal-ink)}
     <p class="prose">شرط البنك قيد من خطاب الشروط على طريقة استخدام أمواله. يفحص CAPITRA كل شرط نشط في كل مرة نسحب فيها من هذا البنك. يسري الشرط على كل تسهيلات البنك أو على تسهيل واحد.</p>
     <div class="tbl"><table>
       <tr><th>الشرط</th><th>المعنى</th><th>مثال البنك أ</th></tr>
-      <tr><td><b>تركز</b></td><td>لا يأخذ مدين واحد أو بائع واحد أو مجموعة مدينين أكثر من نسبة أو مبلغ من أموال البنك.</td><td>أي مدين بحد أقصى <b>١٥٪</b> من المحفظة الممولة، وتنبيه عند <b>١٢٪</b></td></tr>
-      <tr><td><b>استبعاد</b></td><td>مدين أو بائع أو مجموعة محددة لا تُموَّل من أموال هذا البنك.</td><td>مجموعة <i>الجهات الحكومية</i></td></tr>
-      <tr><td><b>أقصى مدة</b></td><td>لا تزيد مدة الفاتورة عن عدد أيام محدد.</td><td>بحد أقصى <b>١٢٠ يومًا</b></td></tr>
+      <tr><td><b>أقصى حصة</b> (تركز)</td><td>لا يأخذ مدين أو بائع أو مجموعة مدينين أو نشاط أو منتج أو شريحة عملاء أكثر من نسبة أو مبلغ من أموال البنك.</td><td>أي مدين بحد أقصى <b>١٥٪</b> من المحفظة الممولة، وتنبيه عند <b>١٢٪</b></td></tr>
+      <tr><td><b>استبعاد</b></td><td>مدين أو بائع أو مجموعة أو نشاط أو منتج أو شريحة عملاء محددة لا تُموَّل من أموال هذا البنك.</td><td>مجموعة <i>الجهات الحكومية</i></td></tr>
+      <tr><td><b>أقصى مدة للفاتورة</b></td><td>لا تزيد مدة الفاتورة عن عدد أيام محدد.</td><td>بحد أقصى <b>١٢٠ يومًا</b></td></tr>
     </table></div>
+
+    <h3>على ماذا يكون الشرط</h3>
+    <div class="tbl"><table>
+      <tr><th>الشرط على</th><th>يؤخذ من عملية الصرف</th><th>مثال من خطاب الشروط</th></tr>
+      <tr><td><b>مدين</b>، <b>بائع</b>، <b>مجموعة مدينين</b></td><td>مدينو الفواتير والعميل</td><td>أي مدين بحد أقصى ١٥٪</td></tr>
+      <tr><td><b>النشاط</b></td><td>العقد: تخصيم أو تخصيم عكسي</td><td>على تسهيل واحد: التأجير بحد أقصى <b>٧٠٪</b> والتخصيم بحد أقصى <b>٣٠٪</b> من حد التسهيل (شرطان)</td></tr>
+      <tr><td><b>المنتج</b></td><td>منتج عملية الصرف</td><td>البنك لا يمول منتج <i>التخصيم العكسي</i></td></tr>
+      <tr><td><b>شريحة العملاء</b></td><td>شريحة العميل: صغيرة ومتوسطة، شركات، شركات كبرى</td><td>البنك لا يمول عملاء <i>الشركات</i></td></tr>
+    </table></div>
+    <p class="prose">في شروط النشاط والمنتج وشريحة العملاء تُحسب عملية الصرف كلها، لأنها نشاط واحد ومنتج واحد وعميل واحد. شروط النشاط الاقتصادي (القطاع) والأصل تأتي لاحقًا عند إضافة قوائمها إلى CAPITRA.</p>
 
     <h3>النسبة من ماذا؟</h3>
     <div class="two">
@@ -662,7 +695,7 @@ figcaption b{color:var(--teal-ink)}
 
     <div class="note"><span class="ic">العينان الأربع</span><p>الشرط الجديد أو المعدَّل حالته <b>بانتظار الاعتماد</b> ولا يُفحص حتى يعتمده مستخدم ثانٍ. من أجرى التغيير لا يعتمده. لإنهاء شرط استخدم <b>إيقاف</b> واذكر السبب، ويبقى في السجل.</p></div>
     <div class="note"><span class="ic">الأعلى الآن</span><p>تحت كل شرط تركز تعرض الشاشة الأقرب إلى الحد اليوم، مثل «الأعلى الآن: LG Electronics ‏١١٫٤٪». <span class="pill ok">داخل الحد</span> <span class="pill warn">فوق التنبيه</span> <span class="pill bad">مخالفة</span></p></div>
-    <figure><img src="img/4-add-rule.jpg" alt="نافذة إضافة شرط بنك" loading="lazy"><figcaption><b>شكل ٢.</b> إضافة شرط تركز: الجهة، النسبة أو المبلغ، الأساس، مستوى التنبيه، والإجراء عند المخالفة.</figcaption></figure>
+    <figure><img src="img/4-add-rule.jpg" alt="نافذة إضافة شرط بنك" loading="lazy"><figcaption><b>شكل ٢.</b> نافذة إضافة شرط البنك تعرض الحقول التي يحتاجها الشرط فقط، والسطر في الأعلى يقول ما سيفعله الشرط بجملة واحدة.</figcaption></figure>
   </section>
 
   <section class="sec" id="ar-4">
@@ -734,12 +767,13 @@ figcaption b{color:var(--teal-ink)}
   <section class="sec" id="ar-6">
     <div class="sec-h"><span class="n">٦</span><h2>الخطوة ٢: صرف الخزينة</h2></div>
     <p class="prose">صرف الخزينة هو آخر خطوة في عملية الصرف. تختار الخزينة الأموال التي تدفع صافي المبلغ، ويفحص CAPITRA كل اختيار مقابل الحدود وشروط البنوك قبل أي دفع.</p>
-    <figure><img src="img/6-disburse-suggest.jpg" alt="شاشة صرف الخزينة بعد الاقتراح" loading="lazy"><figcaption><b>شكل ٦.</b> الصافي والمغطى والمتبقي في الأعلى، ولكل مصدر المتاح وشارة شروط البنك والمبلغ وزر الحد الأقصى، وفحوصات الشروط على الجانب.</figcaption></figure>
+    <figure><img src="img/6-disburse-suggest.jpg" alt="شاشة صرف الخزينة بعد الاقتراح" loading="lazy"><figcaption><b>شكل ٦.</b> الحدود كشجرة: بنك › تسهيل › شريحة › حد فرعي. كل حد فرعي يقول هل يمكن استخدامه ولماذا، وفحوصات الشروط على الجانب.</figcaption></figure>
     <h3>ما تعرضه الشاشة</h3>
     <ul class="b">
       <li><b>الرأس</b>: عملية الصرف، والعميل، والمدين (أو المشتري في التخصيم العكسي)، والنشاط، و<b>صافي المبلغ المطلوب تمويله</b>.</li>
-      <li><b>شجرة المصادر</b>: <b>أموالنا الذاتية</b> أولًا، ثم كل بنك ← تسهيل ← حد فرعي يسمح بتمويل هذا النشاط. لا تظهر الشرائح المسودة ولا حدود الأنشطة الأخرى ولا الموقوفة.</li>
-      <li><b>في كل سطر</b>: المتاح، وخانة المبلغ، وزر <b>الحد الأقصى</b>، وشارة لحظية لكل شرط بنك ينطبق.</li>
+      <li><b>شجرة الحدود</b>: <b>أموالنا الذاتية</b> أولًا، ثم كل بنك ← تسهيل ← شريحة ← حد فرعي بعملة الصرف. يعرض كل بنك وتسهيل عدد الحدود الفرعية القابلة للاستخدام وإجمالي ما اخترته تحته.</li>
+      <li><b>كل حد فرعي</b> يذكر السبب في سطر واحد: <span class="pill ok">✓ يمكن استخدامه</span> مع ما يموله، أو <span class="pill bad">⊘ لا يمكن استخدامه</span> مع السبب. الحد الذي لا يمكن استخدامه رمادي وبلا خانة مبلغ.</li>
+      <li><b>السطر القابل للاستخدام</b>: المتاح، وخانة المبلغ، وزر <b>الحد الأقصى</b>، وشارة لحظية لكل شرط بنك ينطبق.</li>
       <li><b>الفحوصات والإجمالي</b>: المغطى مقابل الصافي، وأي سطر ممنوع أو يحتاج استثناء.</li>
     </ul>
     <div class="shots">
@@ -755,12 +789,22 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>البنك ب › الشريحة ١ › التخصيم</td><td class="num">١٨ م</td><td>LG عند ٦٪ من سقف ٢٠٪ <span class="pill ok">مقبول</span></td><td class="num"><b>١٠ م</b></td></tr>
       <tr class="total"><td>الإجمالي</td><td></td><td></td><td class="num">١٢ م = الصافي ✓</td></tr>
     </table></div>
-    <p class="prose">لا يظهر حد التأجير في البنك أ لأن نطاقه التأجير فقط.</p>
+    <p class="prose">يظهر حد التأجير في البنك أ رماديًا: <i>لا يمكن استخدامه: يموّل التأجير فقط.</i></p>
+    <h3>لماذا لا يمكن استخدام حد فرعي</h3>
+    <div class="tbl"><table>
+      <tr><th>السبب على السطر</th><th>ماذا تفعل</th></tr>
+      <tr><td>التسهيل موقوف (أو قيد التجديد أو منتهٍ …)</td><td>استخدم تسهيلًا آخر، أو اجعل التسهيل نشطًا في حدود البنوك.</td></tr>
+      <tr><td>البنك لم يُفرج عن هذه الشريحة بعد</td><td>عند وصول خطاب البنك اجعل الشريحة نشطة مع تاريخ الإفراج.</td></tr>
+      <tr><td>الحد الفرعي موقوف</td><td>استخدم حدًا آخر أو أعد تنشيطه.</td></tr>
+      <tr><td>يموّل التأجير فقط (أو أنشطة أخرى)</td><td>الحد لنشاط آخر. استخدم حدًا يموّل هذا النشاط.</td></tr>
+      <tr><td>لم يتبقَّ شيء للسحب</td><td>الحد الفرعي أو الشريحة أو التسهيل مستخدم أو محجوز بالكامل.</td></tr>
+      <tr><td>شرط البنك: استبعاد …</td><td>البنك لا يموّل هذا المدين أو المجموعة أو النشاط أو المنتج أو شريحة العملاء. استخدم بنكًا آخر أو أموالنا الذاتية.</td></tr>
+    </table></div>
     <h3>طريقة تمويل عملية صرف</h3>
     <ol class="b">
       <li>افتح عملية الصرف على خطوة صرف الخزينة من صندوق المهام.</li>
       <li>اضغط <b>اقتراح</b> لتعبئة الأسطر في حدود كل الشروط، أو أدخل المبالغ بنفسك. زر <b>الحد الأقصى</b> يملأ السطر بأكبر مبلغ مسموح.</li>
-      <li>راقب الشارات: الأخضر مقبول، والبرتقالي تنبيه، والأحمر منع. السطر الذي يحتاج استثناءً يوضح من يعتمده.</li>
+      <li>اقرأ السطر تحت كل حد فرعي: ✓ يمكن استخدامه، ⊘ لا يمكن ولماذا. ثم راقب الشارات: الأخضر مقبول، والبرتقالي تنبيه، والأحمر منع. السطر الذي يحتاج استثناءً يوضح من يعتمده.</li>
       <li>عندما يساوي الإجمالي الصافي ولا يوجد سطر أحمر يصبح زر <b>تنفيذ</b> متاحًا.</li>
       <li><b>تنفيذ</b> يسجل سحبًا على كل حد فرعي مختار مع المدين والبائع، فتتحدث حدود البنوك و«الأعلى الآن» فورًا، وفي نفس اللحظة يُدفع للعميل وتُرحّل القيود (انظر أدناه). ثم <b>أكمل</b> الخطوة.</li>
     </ol>
@@ -809,6 +853,8 @@ figcaption b{color:var(--teal-ink)}
       <tr><td dir="ltr">You made the last change; another user must verify it</td><td>اطلب من زميل لديه TRS.VERIFY اعتماد الشرط.</td></tr>
       <tr><td dir="ltr">Enter why the rule no longer applies</td><td>إيقاف الشرط يحتاج سببًا يُحفظ في السجل.</td></tr>
       <tr><td dir="ltr">Another facility has this reference</td><td>مرجع التسهيل لا يتكرر. تحقق من وجود إدخال مكرر.</td></tr>
+      <tr><td dir="ltr">Choose what is excluded / Choose which one the limit is for</td><td>شرط النشاط أو المنتج أو شريحة العملاء يحتاج تحديد الجهة.</td></tr>
+      <tr><td dir="ltr">… cannot fund this disbursement. (reason)</td><td>لا يمكن استخدام الحد الفرعي للسبب المذكور. اختر مصدرًا آخر.</td></tr>
     </table></div>
   </section>
 
@@ -843,7 +889,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>المدة</td><td>عدد الأيام من تاريخ الفاتورة حتى استحقاقها</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫٢ · نوفمبر ٢٠٢٦</p>
+  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫٣ · نوفمبر ٢٠٢٦</p>
   </main>
 </div>
 </div>
