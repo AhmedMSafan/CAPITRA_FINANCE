@@ -46,31 +46,41 @@
           <span class="trs-k">{{ tr('Source') }}</span><span class="trs-k num">{{ tr('Available') }}</span>
           <span class="trs-k">{{ tr('Bank rules') }}</span><span class="trs-k num">{{ tr('Amount') }}</span><span></span>
         </div>
-        <template v-for="g in groups" :key="g.key">
-          <div v-if="g.bankName" class="trs-group"><span class="fa fa-university" aria-hidden="true"></span>{{ g.bankName }}</div>
-          <div v-for="s in g.sources" :key="s.sourceKey" class="trs-line" :class="'lvl-' + lineLevel(s)">
+        <!-- the limits as a tree: bank › facility › tranche › sublimit; an amount is entered on a sublimit (or own funds) -->
+        <template v-for="row in tree" :key="row.key">
+          <div v-if="row.kind !== 'LINE'" class="trs-node" :class="'trs-node--' + row.kind">
+            <span class="fa" :class="row.kind === 'BANK' ? 'fa-university' : row.kind === 'FACILITY' ? 'fa-file-text-o' : 'fa-folder-open-o'" aria-hidden="true"></span>
+            <span class="trs-node-name">{{ row.label }}</span>
+            <small class="trs-muted">{{ row.usable }} / {{ row.count }} {{ tr('usable') }}</small>
+            <span class="num trs-node-sum">{{ row.chosen ? formatAmount(row.chosen) : '' }}</span>
+          </div>
+          <div v-else class="trs-line" :class="[row.source.unavailable ? 'is-off' : 'lvl-' + lineLevel(row.source), row.source.sublimitId ? 'trs-leaf' : '', row.deep ? 'trs-leaf--deep' : '']">
+            <template v-for="s in [row.source]" :key="s.sourceKey">
             <span class="trs-name">
               <b>{{ s.sublimitId ? s.sublimitName : tr('Own funds') }}</b>
-              <small v-if="s.sublimitId">{{ s.facilityRef }} › {{ s.trancheName }}</small>
-              <small v-else>{{ tr('Our own money; no bank rules apply') }}</small>
+              <small v-if="!s.sublimitId">{{ tr('Our own money; no bank rules apply') }}</small>
+              <small v-if="s.unavailable" class="trs-why trs-why--no"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cannot be used') }}: {{ tr(s.unavailable) }}</small>
+              <small v-else-if="s.fit" class="trs-why"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Can be used') }}: {{ tr(s.fit) }}</small>
             </span>
             <span class="num">{{ s.available === null ? '—' : formatAmount(s.available) }}</span>
-            <span class="trs-badges">
+            <span v-if="s.unavailable && !amt(s.sourceKey)" class="trs-off-cells"></span>
+            <span v-else class="trs-badges">
               <template v-if="rulesOf(s).length">
                 <span class="fx-chip" :class="chip(lineRules(s))" :title="rulesOf(s).map((r) => tr(badge(r)) + ': ' + r.label).join('\n')">{{ lineBadge(s) }}</span>
                 <small v-if="worst(s)" class="trs-muted">{{ worst(s)!.label }}</small>
               </template>
               <span v-else-if="s.sublimitId" class="trs-muted">{{ tr('No rules') }}</span>
             </span>
-            <span class="num">
+            <span v-if="!s.unavailable || amt(s.sourceKey)" class="num">
               <input v-model.number="amounts[s.sourceKey]" type="number" min="0" step="0.001" class="fx-search trs-amt" :disabled="!editable"
                      :aria-label="tr('Amount') + ' ' + (s.sublimitName ?? tr('Own funds'))" @input="dirty = true" />
             </span>
-            <button v-if="editable" type="button" class="fx-btn trs-max" :title="tr('Fill with the most this line allows')" @click="fillMax(s)">{{ tr('Max') }}</button>
+            <button v-if="editable && !s.unavailable" type="button" class="fx-btn trs-max" :title="tr('Fill with the most this line allows')" @click="fillMax(s)">{{ tr('Max') }}</button>
             <span v-else></span>
+            </template>
           </div>
         </template>
-        <div v-if="sources.length === 1" class="fx-empty">{{ tr('No bank sublimit can fund this business line and currency. Use own funds, or add a sublimit in Bank Limits.') }}</div>
+        <div v-if="!sources.some((s) => s.sublimitId && !s.unavailable)" class="fx-empty">{{ tr('No bank sublimit can fund this disbursement now. Use own funds, or see the reasons above.') }}</div>
       </section>
 
       <aside class="fx-card trs-side">
@@ -180,15 +190,29 @@ const remaining = computed(() => net.value - total.value)
 const executed = computed(() => data.value?.header.fundingStatus === 'EXECUTED')
 const editable = computed(() => canEdit && !!data.value?.canEdit)
 
-const groups = computed(() => {
-  const out: { key: string; bankName: string | null; sources: TrsDisburseSource[] }[] = []
-  for (const s of sources.value) {
-    const key = s.bankId ? `B${s.bankId}` : 'OWN'
-    let g = out.find((x) => x.key === key)
-    if (!g) out.push((g = { key, bankName: s.bankName, sources: [] }))
-    g.sources.push(s)
+type TreeRow =
+  | { kind: 'BANK' | 'FACILITY' | 'TRANCHE'; key: string; label: string; count: number; usable: number; chosen: number }
+  | { kind: 'LINE'; key: string; source: TrsDisburseSource; deep?: boolean }
+/** Own funds, then each bank › facility › tranche with its sublimits (usable ones first), as flat rows for the grid. */
+const tree = computed<TreeRow[]>(() => {
+  const rows: TreeRow[] = []
+  const node = (kind: 'BANK' | 'FACILITY' | 'TRANCHE', key: string, label: string, xs: TrsDisburseSource[]) =>
+    rows.push({ kind, key, label, count: xs.length, usable: xs.filter((x) => !x.unavailable).length, chosen: xs.reduce((t, x) => t + amt(x.sourceKey), 0) })
+  const by = <T,>(xs: TrsDisburseSource[], f: (s: TrsDisburseSource) => T) => [...new Set(xs.map(f))].map((k) => [k, xs.filter((x) => f(x) === k)] as const)
+  for (const s of sources.value.filter((x) => !x.sublimitId)) rows.push({ kind: 'LINE', key: s.sourceKey, source: s })
+  for (const [bankId, bs] of by(sources.value.filter((x) => x.sublimitId), (x) => x.bankId)) {
+    node('BANK', `B${bankId}`, bs[0]?.bankName ?? '', bs)
+    for (const [fid, fs] of by(bs, (x) => x.facilityId)) {
+      const tranches = by(fs, (x) => x.trancheName)
+      // one tranche: shown on the facility row, to keep the tree short
+      node('FACILITY', `F${fid}`, (fs[0]?.facilityRef ?? '') + (tranches.length === 1 ? ` › ${tranches[0]?.[0] ?? ''}` : ''), fs)
+      for (const [tn, ts] of tranches) {
+        if (tranches.length > 1) node('TRANCHE', `F${fid}T${tn}`, tn ?? '', ts)
+        for (const s of [...ts].sort((a, b) => Number(!!a.unavailable) - Number(!!b.unavailable))) rows.push({ kind: 'LINE', key: s.sourceKey, source: s, deep: tranches.length > 1 })
+      }
+    }
   }
-  return out
+  return rows
 })
 
 const rulesOf = (s: TrsDisburseSource) => (data.value?.rules ?? []).filter((r) => s.ruleIds.includes(r.ruleId))
@@ -197,6 +221,7 @@ const covered = (r: TrsDisburseRule) => sources.value.filter((s) => s.ruleIds.in
 /** OK, WARN (above the warning level, or a WARN rule breached), OVERRIDE (needs a second user), BLOCK. */
 function level(r: TrsDisburseRule): 'OK' | 'WARN' | 'OVERRIDE' | 'BLOCK' {
   const sum = covered(r)
+  if (r.limitAbove !== null && r.limitAbove <= 0 && r.breachActionCode === 'BLOCK') return 'BLOCK'
   if (r.limitAbove !== null && sum > r.limitAbove + 0.001) return r.breachActionCode === 'WARN' ? 'WARN' : r.breachActionCode
   if (r.warnAbove !== null && sum > r.warnAbove + 0.001) return 'WARN'
   return 'OK'
@@ -204,6 +229,7 @@ function level(r: TrsDisburseRule): 'OK' | 'WARN' | 'OVERRIDE' | 'BLOCK' {
 const rank = { OK: 0, WARN: 1, OVERRIDE: 2, BLOCK: 3 } as const
 function lineLevel(s: TrsDisburseSource) {
   if (!amt(s.sourceKey)) return 'OK'
+  if (s.unavailable) return 'BLOCK'
   if (s.available !== null && amt(s.sourceKey) > s.available + 0.001) return 'BLOCK'
   return rulesOf(s).map(level).reduce<keyof typeof rank>((a, b) => (rank[b] > rank[a] ? b : a), 'OK')
 }
@@ -245,6 +271,7 @@ const statusClass = computed(() => (executed.value ? 'fx-chip--ok' : data.value?
 
 /** The most a line may take: its availability, the room every blocking or override rule leaves, and what is still to cover. */
 function maxFor(s: TrsDisburseSource) {
+  if (s.unavailable) return 0
   const others = total.value - amt(s.sourceKey)
   let m = Math.max(0, net.value - others)
   if (s.available !== null) m = Math.min(m, s.available)
@@ -265,7 +292,7 @@ function clearAll() {
 /** Fills the bank lines first (most available first), each within every rule, then own funds with the rest. */
 function suggest() {
   clearAll()
-  const banks = sources.value.filter((s) => s.sublimitId).sort((a, b) => (b.available ?? 0) - (a.available ?? 0))
+  const banks = sources.value.filter((s) => s.sublimitId && !s.unavailable).sort((a, b) => (b.available ?? 0) - (a.available ?? 0))
   for (const s of banks) if (remaining.value > 0.001) amounts[s.sourceKey] = maxFor(s)
   const own = sources.value.find((s) => !s.sublimitId)
   if (own && remaining.value > 0.001) amounts[own.sourceKey] = Math.round(remaining.value * 1000) / 1000
@@ -366,6 +393,22 @@ onMounted(load)
 .trs-badges { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
 .trs-amt { width: 100%; min-width: 0; padding-inline: 10px; text-align: end; font-variant-numeric: tabular-nums; }
 .trs-max { padding-inline: 10px; }
+.trs-why { display: flex; gap: 6px; align-items: baseline; color: var(--fin-teal-600) !important; }
+.trs-why--no { color: var(--fin-ink) !important; }
+.trs-why--no .fa { color: #B42318; }
+.trs-line.is-off { background: #F7F8F8; }
+.trs-node { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-block-end: 1px solid var(--fin-line-soft); }
+.trs-node .fa { color: var(--fin-teal-600); width: 16px; }
+.trs-node-name { font-weight: 700; }
+.trs-node-sum { margin-inline-start: auto; font-weight: 700; }
+.trs-node--BANK { background: #FAFCFC; color: var(--fin-teal-600); }
+.trs-node--FACILITY { padding-inline-start: 36px; }
+.trs-node--TRANCHE { padding-inline-start: 56px; }
+.trs-node--TRANCHE .trs-node-name { font-weight: 600; }
+.trs-leaf { padding-inline-start: 56px; }
+.trs-leaf--deep { padding-inline-start: 76px; }
+.trs-line.is-off .trs-name b, .trs-line.is-off .num { color: var(--fin-muted); }
+.trs-off-cells { grid-column: span 2; }
 
 .trs-side { flex: 1 1 320px; max-width: 400px; align-self: flex-start; display: flex; flex-direction: column; gap: 16px; padding: 16px 18px; }
 .trs-side h2 { margin: 4px 0 8px; font-size: var(--fs-lg); color: var(--fin-ink); }

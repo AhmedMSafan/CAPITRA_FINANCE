@@ -34,6 +34,10 @@ export type TrsDisburseSource = {
   amount: number
   isOverrideRequired: boolean
   ruleIds: number[]
+  /** Why this sublimit may fund the disbursement. */
+  fit: string | null
+  /** Why it cannot (status, business line, nothing left, or a bank rule that blocks it); null when it can. */
+  unavailable: string | null
 }
 
 export type TrsDisburseRule = {

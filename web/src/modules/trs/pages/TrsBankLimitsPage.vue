@@ -93,7 +93,7 @@
             <small class="trs-muted">{{ ruleLimit(u) }} · {{ tr('on breach:') }} {{ tr(actionName(u.breachActionCode)) }}</small>
             <small v-if="u.highest" :class="'trs-lvl-' + u.highest.level">
               {{ tr('Highest now:') }} {{ u.highest.subjectName }} {{ u.highest.pct !== null ? u.highest.pct + '%' : money(u.highest.exposure) }}</small>
-            <small v-else-if="u.ruleTypeCode === 'CONCENTRATION'" class="trs-muted">{{ tr('No debtor or seller exposure recorded yet.') }}</small>
+            <small v-else-if="u.ruleTypeCode === 'CONCENTRATION'" class="trs-muted">{{ tr(['BUSINESS_LINE', 'PRODUCT', 'CLIENT_SEGMENT'].includes(u.subjectTypeCode) ? 'Nothing funded for it yet.' : 'No debtor or seller exposure recorded yet.') }}</small>
             <div class="trs-rule-foot">
               <span v-if="u.statusCode === 'PENDING'" class="fx-chip fx-chip--warn">{{ tr('Waiting for verification') }}</span>
               <span v-else class="trs-muted">{{ tr('Verified by') }} {{ u.verifiedBy }}</span>

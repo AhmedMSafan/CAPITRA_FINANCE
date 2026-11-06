@@ -1,5 +1,6 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Trs;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,8 @@ public sealed record TrsBankNodeDto(
 
 public sealed record TrsLimitsDto(IReadOnlyList<TrsBankNodeDto> Banks);
 
-public sealed record TrsSubjectOptionsDto(IReadOnlyList<TrsClientOptionDto> Clients, IReadOnlyList<string> Groups);
+public sealed record TrsSubjectOptionsDto(
+    IReadOnlyList<TrsClientOptionDto> Clients, IReadOnlyList<string> Groups, IReadOnlyList<TrsOptionDto> Products, IReadOnlyList<TrsOptionDto> Segments);
 
 public sealed record TrsClientOptionDto(long ClientId, string ClientNumber, string ClientName);
 
@@ -85,7 +87,13 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
         [new("CONCENTRATION", "Concentration"), new("EXCLUDE", "Exclude"), new("MAX_TENOR", "Maximum tenor")];
 
     public static readonly IReadOnlyList<TrsOptionDto> SubjectTypes =
-        [new("DEBTOR", "Debtor"), new("SELLER", "Seller"), new("DEBTOR_GROUP", "Debtor group"), new("INVOICE", "Invoice")];
+    [
+        new("DEBTOR", "Debtor"), new("SELLER", "Seller"), new("DEBTOR_GROUP", "Debtor group"), new("BUSINESS_LINE", "Business line"),
+        new("PRODUCT", "Product"), new("CLIENT_SEGMENT", "Client segment"), new("INVOICE", "Invoice"),
+    ];
+
+    public static readonly IReadOnlyList<TrsOptionDto> DefaultSegments =
+        [new("SME", "SME"), new("CORPORATE", "Corporate"), new("LARGE_CORPORATE", "Large corporate")];
 
     public static readonly IReadOnlyList<TrsOptionDto> Bases = [new("FUNDED_POOL", "Funded pool"), new("FACILITY_LIMIT", "Facility limit")];
 
@@ -110,7 +118,14 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
             .Select(x => new TrsClientOptionDto(x.ClientId, x.ClientNumber, x.ClientName)).ToListAsync(cancellationToken);
         var groups = await db.Set<CrmClient>().AsNoTracking().Where(x => x.GroupName != null && x.GroupName != "").Select(x => x.GroupName!)
             .Distinct().OrderBy(x => x).ToListAsync(cancellationToken);
-        return new TrsLimitsOptionsDto(BusinessLines, FacilityTypes, RuleTypes, SubjectTypes, Bases, BreachActions, new TrsSubjectOptionsDto(clients, groups));
+        var products = await db.Set<AdmProduct>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.ProductNameEn)
+            .Select(x => new TrsOptionDto(x.ProductCode, x.ProductNameEn)).ToListAsync(cancellationToken);
+        var segments = await db.Set<CrmClient>().AsNoTracking().Where(x => x.ClientSegment != null && x.ClientSegment != "").Select(x => x.ClientSegment!)
+            .Distinct().ToListAsync(cancellationToken);
+        var segmentOptions = DefaultSegments.Concat(segments.Where(x => DefaultSegments.All(d => d.Value != x)).Order()
+            .Select(x => new TrsOptionDto(x, TrsFundingProfiles.Segment(x)))).ToList();
+        return new TrsLimitsOptionsDto(BusinessLines, FacilityTypes, RuleTypes, SubjectTypes, Bases, BreachActions,
+            new TrsSubjectOptionsDto(clients, groups, products, segmentOptions));
     }
 
     public async Task<TrsLimitsDto> GetAsync(CancellationToken cancellationToken)
@@ -195,12 +210,23 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
             .Select(x => new { x.ClientId, x.ClientName, x.GroupName }).ToDictionaryAsync(x => x.ClientId, cancellationToken);
         var subFacility = sublimits.ToDictionary(x => x.SublimitId, x => x.FacilityId);
 
+        // business line, product and client segment rules: what the bank holds of each disbursement, and what each disbursement is
+        var productNames = await db.Set<AdmProduct>().AsNoTracking().ToDictionaryAsync(x => x.ProductCode, x => x.ProductNameEn, cancellationToken);
+        var dimensional = rules.Any(x => TrsFundingProfiles.IsDimension(x.SubjectTypeCode) && x.RuleTypeCode == "CONCENTRATION");
+        var byDisbursement = dimensional
+            ? await db.Set<TrsSublimitMovement>().AsNoTracking().Where(x => x.DisbursementId != null).GroupBy(x => new { x.SublimitId, x.DisbursementId })
+                .Select(g => new { g.Key.SublimitId, DisbursementId = g.Key.DisbursementId!.Value, Amount = g.Sum(x => x.OutstandingChange + x.ReservedChange) })
+                .ToListAsync(cancellationToken)
+            : [];
+        var profiles = await TrsFundingProfiles.LoadAsync(db, byDisbursement.Select(x => x.DisbursementId), cancellationToken);
+
         return [.. rules.Select(r =>
         {
             var inScope = facilities.Where(f => f.BankId == r.BankId && (r.FacilityId is null || f.FacilityId == r.FacilityId)).Select(f => f.FacilityId).ToHashSet();
             var subject = r.SubjectTypeCode switch
             {
                 "INVOICE" => "Invoice tenor",
+                "BUSINESS_LINE" or "PRODUCT" or "CLIENT_SEGMENT" => Cap(TrsFundingProfiles.Describe(r.SubjectTypeCode, r.SubjectValue, productNames)),
                 "DEBTOR_GROUP" => r.SubjectValue is null ? "Any single debtor group" : $"Debtor group: {r.SubjectValue}",
                 _ => r.SubjectClientId is long id
                     ? $"{(r.SubjectTypeCode == "SELLER" ? "Seller" : "Debtor")}: {(clients.TryGetValue(id, out var c) ? c.ClientName : id.ToString())}"
@@ -213,6 +239,10 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
                 var rows = exposures.Where(x => subFacility.TryGetValue(x.SublimitId, out var fid) && inScope.Contains(fid));
                 IEnumerable<(string Key, string Name, decimal Amount)> bySubject = r.SubjectTypeCode switch
                 {
+                    "BUSINESS_LINE" or "PRODUCT" or "CLIENT_SEGMENT" => byDisbursement
+                        .Where(x => subFacility.TryGetValue(x.SublimitId, out var fid) && inScope.Contains(fid)
+                            && profiles.TryGetValue(x.DisbursementId, out var pr) && pr.Member(r.SubjectTypeCode) == r.SubjectValue)
+                        .GroupBy(_ => r.SubjectValue!).Select(g => (g.Key, Cap(TrsFundingProfiles.Describe(r.SubjectTypeCode, g.Key, productNames)), g.Sum(x => x.Amount))),
                     "SELLER" => rows.Where(x => x.SellerClientId is not null).GroupBy(x => x.SellerClientId!.Value)
                         .Select(g => (g.Key.ToString(), clients.TryGetValue(g.Key, out var c) ? c.ClientName : g.Key.ToString(), g.Sum(x => x.Amount))),
                     "DEBTOR_GROUP" => rows.Where(x => x.DebtorClientId is not null && clients.TryGetValue(x.DebtorClientId.Value, out var c) && c.GroupName != null)
@@ -436,6 +466,7 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
         if (BreachActions.All(x => x.Value != dto.BreachActionCode)) Err("breachActionCode", "Choose what happens on a breach.");
 
         var subjectValue = Blank(dto.SubjectValue);
+        var dimension = TrsFundingProfiles.IsDimension(dto.SubjectTypeCode);
         long? subjectClient = dto.SubjectClientId;
         switch (dto.RuleTypeCode)
         {
@@ -443,6 +474,7 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
                 if (dto.MaxTenorDays is not > 0) Err("maxTenorDays", "Enter the maximum tenor in days.");
                 break;
             case "CONCENTRATION":
+                if (dimension && subjectValue is null) Err("subjectValue", "Choose which one the limit is for.");
                 if (dto.LimitPct is null && dto.LimitAmount is null) Err("limitPct", "Enter the limit as a percent or as an amount.");
                 if (dto.LimitPct is decimal p && (p <= 0 || p > 100)) Err("limitPct", "The percent must be above 0 and at most 100.");
                 if (dto.LimitAmount is decimal a && a <= 0) Err("limitAmount", "The amount must be above 0.");
@@ -452,13 +484,24 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
                 break;
             case "EXCLUDE":
                 if (dto.SubjectTypeCode == "INVOICE") Err("subjectTypeCode", "An exclusion applies to a debtor, a seller or a debtor group.");
-                if (dto.SubjectTypeCode == "DEBTOR_GROUP" ? subjectValue is null : subjectClient is null)
-                    Err(dto.SubjectTypeCode == "DEBTOR_GROUP" ? "subjectValue" : "subjectClientId", "Choose who is excluded.");
+                if (dto.SubjectTypeCode == "DEBTOR_GROUP" || dimension ? subjectValue is null : subjectClient is null)
+                    Err(dto.SubjectTypeCode == "DEBTOR_GROUP" || dimension ? "subjectValue" : "subjectClientId",
+                        dimension ? "Choose what is excluded." : "Choose who is excluded.");
                 break;
         }
         if (dto.RuleTypeCode == "MAX_TENOR") { subjectClient = null; subjectValue = null; }
-        else if (dto.SubjectTypeCode == "DEBTOR_GROUP") subjectClient = null;
+        else if (dto.SubjectTypeCode == "DEBTOR_GROUP" || dimension) subjectClient = null;
         else subjectValue = null;
+        if (dto.RuleTypeCode != "MAX_TENOR" && subjectValue is string member)
+        {
+            var known = dto.SubjectTypeCode switch
+            {
+                "BUSINESS_LINE" => BusinessLines.Any(x => x.Value == member),
+                "PRODUCT" => await db.Set<AdmProduct>().AnyAsync(x => x.ProductCode == member, cancellationToken),
+                _ => true,
+            };
+            if (!known) Err("subjectValue", "Choose from the list.");
+        }
         if (subjectClient is long cid && !await db.Set<CrmClient>().AnyAsync(x => x.ClientId == cid, cancellationToken))
             Err("subjectClientId", "Choose the customer.");
         if (errors.Count > 0) throw new BusinessValidationException(errors);
@@ -520,6 +563,8 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
         r.ChangedAt = clock.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
