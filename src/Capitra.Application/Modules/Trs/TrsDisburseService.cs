@@ -208,14 +208,18 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             .Select(x => new { x.ClientId, x.ClientName, x.GroupName, x.TaxNumber }).ToListAsync(cancellationToken);
         var byTax = counterparties.GroupBy(x => x.TaxNumber!).ToDictionary(g => g.Key, g => g.First());
         var total = invoices.Sum(x => Math.Max(0, x.Amount));
-        var groups = invoices.GroupBy(x => x.DebtorId is long t && byTax.TryGetValue(t.ToString(CultureInfo.InvariantCulture), out var cp) ? cp.ClientId : (long?)null)
+        // one party per customer; a tax number that is not a customer yet is its own party, not merged with the other unknown ones
+        long? CustomerOf(string? tax) => tax is not null && byTax.TryGetValue(tax, out var cp) ? cp.ClientId : null;
+        var groups = invoices.Select(x => (Invoice: x, Tax: x.DebtorId?.ToString(CultureInfo.InvariantCulture)))
+            .GroupBy(x => CustomerOf(x.Tax) is long id ? $"C{id}" : $"T{x.Tax}")
             .Select(g =>
             {
-                var cp = counterparties.FirstOrDefault(x => x.ClientId == g.Key);
-                var tax = g.Select(x => x.DebtorId).FirstOrDefault(x => x is not null);
-                var name = cp?.ClientName ?? (tax is long tn ? $"Tax no. {tn}" : "Unknown counterparty");
-                var w = total > 0 ? g.Sum(x => Math.Max(0, x.Amount)) / total : 1m / Math.Max(1, invoices.Count);
-                return (ClientId: g.Key, Name: name, cp?.GroupName, Weight: w, Tax: cp?.TaxNumber ?? tax?.ToString(CultureInfo.InvariantCulture));
+                var tax = g.First().Tax;
+                var clientId = CustomerOf(tax);
+                var cp = clientId is long cid ? counterparties.First(x => x.ClientId == cid) : null;
+                var name = cp?.ClientName ?? (tax is not null ? $"Tax no. {tax}" : "Unknown counterparty");
+                var w = total > 0 ? g.Sum(x => Math.Max(0, x.Invoice.Amount)) / total : (decimal)g.Count() / Math.Max(1, invoices.Count);
+                return (ClientId: clientId, Name: name, cp?.GroupName, Weight: w, Tax: cp?.TaxNumber ?? tax);
             }).ToList();
         if (groups.Count == 0) groups.Add((null, reverse ? "Supplier not known yet" : "Debtor not known yet", null, 1m, null));
 
