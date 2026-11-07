@@ -422,6 +422,8 @@ COMMIT;
 --Treasury Disburse: the sources of funds go with the disbursements; their reserve and drawdown movements are removed, the opening balances stay
 DELETE FROM "TRS_SUBLIMIT_MOVEMENTS" WHERE "DISBURSEMENT_ID" IS NOT NULL;
 TRUNCATE TABLE "TRS_DISBURSEMENT_FUNDINGS" RESTART IDENTITY CASCADE;
+--Reverse factoring: the transfers to the suppliers go with their disbursements
+TRUNCATE TABLE "TRS_SUPPLIER_TRANSFERS" RESTART IDENTITY CASCADE;
 --Treasury bank limits: tranches, sublimits, scopes, bank rules and sublimit movements (kept: the movements hold the opening balances)
 --TRUNCATE TABLE "TRS_BANK_RULES" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "TRS_FACILITY_SUBLIMITS" RESTART IDENTITY CASCADE;
