@@ -17,7 +17,7 @@
         <FctStepActions v-if="!viewOnly" :save="saveForStep" :disabled="busy" :complete-note="completeNote" />
       </div>
     </div>
-    <FctViewOnlyNote v-if="viewOnly" />
+    <FctViewOnlyNote v-if="viewOnly" :disbursement-id="props.disbursementId" step="INVOICE_UPLOAD" />
 
     <!-- the Cycle region -->
     <div class="ie-cycle" :aria-label="tr('Cycle')">

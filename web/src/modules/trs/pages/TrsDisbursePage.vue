@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <FctViewOnlyNote v-if="viewOnly" />
+    <FctViewOnlyNote v-if="viewOnly" :disbursement-id="id" step="TREASURY_DISBURSE" />
     <div v-if="data" class="trs-kpis">
       <div class="fx-card trs-kpi"><span class="trs-k">{{ tr('Net amount to fund') }}</span><b>{{ formatAmount(net) }}</b><small>{{ data.header.currencyCode }}</small></div>
       <div class="fx-card trs-kpi"><span class="trs-k">{{ tr('Covered') }}</span><b>{{ formatAmount(total) }}</b>
@@ -155,7 +155,54 @@
         <small v-if="data.approveBlockedReason" class="trs-muted">{{ tr(data.approveBlockedReason) }}</small>
       </aside>
     </div>
-    <div v-else-if="!loading" class="fx-empty">{{ tr('Open this page from a disbursement task.') }}</div>
+    <!-- reverse factoring (Ahmed, 7 Nov 2026): Execute sends one transfer per supplier; each is ticked Confirmed when the bank confirms it,
+         which posts DR reverse factoring receivable / CR our bank. The step completes once every supplier is confirmed. -->
+    <section v-if="data?.header.isReverse && data.transfers?.length" class="fx-card trs-tr">
+      <header class="trs-tr-head">
+        <div><h2>{{ tr('Supplier transfers') }}</h2>
+          <small class="trs-muted">{{ executed ? tr('Tick Confirmed when the bank confirms a transfer. Each tick posts its GL entry. The step completes when every supplier is confirmed.')
+            : tr('What Execute will send to each supplier. Execute posts only the bank drawdown.') }}</small></div>
+        <span v-if="executed" class="fx-chip" :class="openTransfers.length ? 'fx-chip--warn' : 'fx-chip--teal'">
+          {{ openTransfers.length ? `${data.transfers.length - openTransfers.length} / ${data.transfers.length} ${tr('confirmed')}` : tr('All confirmed') }}</span>
+      </header>
+      <div class="fx-table-wrap">
+        <table class="fx-table">
+          <thead><tr>
+            <th v-if="executed" class="trs-tr-check">
+              <input v-if="canConfirm && openTransfers.length" type="checkbox" :checked="allTicked" :aria-label="tr('Confirm all')" :title="tr('Confirm all')"
+                     @change="tickAll(($event.target as HTMLInputElement).checked)" /></th>
+            <th>{{ tr('Supplier') }}</th><th>{{ tr('Bank / IBAN') }}</th><th>{{ tr('Paid from') }}</th>
+            <th class="num">{{ tr('Amount') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('GL Tran Set ID') }}</th>
+          </tr></thead>
+          <tbody>
+            <tr v-for="t in data.transfers" :key="t.transferId || t.supplierName">
+              <td v-if="executed" class="trs-tr-check">
+                <input type="checkbox" :checked="t.statusCode === 'CONFIRMED' || ticked.has(t.transferId)"
+                       :disabled="t.statusCode === 'CONFIRMED' || !canConfirm" :aria-label="`${tr('Confirmed')} ${t.supplierName}`"
+                       @change="tick(t.transferId, ($event.target as HTMLInputElement).checked)" /></td>
+              <td><b>{{ t.supplierName }}</b><small v-if="t.taxNumber" class="trs-muted"> · {{ tr('Tax No.') }} {{ t.taxNumber }}</small></td>
+              <td><template v-if="t.supplierIban || t.supplierAccountNo">{{ t.supplierBankName }}<br /><small class="trs-muted">{{ t.supplierIban ?? t.supplierAccountNo }}</small></template>
+                <small v-else-if="t.problem" class="is-bad">{{ tr(t.problem) }}</small><span v-else>—</span></td>
+              <td>{{ t.paidFromBankName ?? '—' }}<br v-if="t.paidFromAccountRef" /><small class="trs-muted">{{ t.paidFromAccountRef }}</small></td>
+              <td class="num"><b>{{ formatAmount(t.amount) }}</b></td>
+              <td><span class="fx-chip" :class="t.statusCode === 'CONFIRMED' ? 'fx-chip--teal' : t.statusCode === 'SENT' ? 'fx-chip--warn' : 'fx-chip--plain'">{{ tr(statusLabel(t.statusCode)) }}</span>
+                <br v-if="t.confirmedBy || t.sentBy" /><small class="trs-muted">{{ t.statusCode === 'CONFIRMED' ? `${t.confirmedBy} · ${formatDate(t.confirmedAt)}${t.bankReference ? ' · ' + t.bankReference : ''}`
+                  : t.sentBy ? `${t.sentBy} · ${formatDate(t.sentAt)}` : '' }}</small></td>
+              <td><b v-if="t.glTranSetId" class="fc-ref">{{ t.glTranSetId }}</b><span v-else>—</span></td>
+            </tr>
+          </tbody>
+          <tfoot><tr><th :colspan="executed ? 4 : 3">{{ tr('Total') }}</th><th class="num">{{ formatAmount(data.transfers.reduce((a, t) => a + t.amount, 0)) }}</th><th colspan="2"></th></tr></tfoot>
+        </table>
+      </div>
+      <div v-if="canConfirm && ticked.size" class="trs-tr-confirm">
+        <label class="fc-field"><span>{{ tr('Bank confirmation reference (optional)') }}</span>
+          <input v-model="bankReference" class="fx-search" maxlength="100" /></label>
+        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="confirmTicked">
+          <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-check-square-o'" aria-hidden="true"></span>{{ tr('Confirm') }} {{ ticked.size }} {{ tr(ticked.size === 1 ? 'transfer' : 'transfers') }}</button>
+      </div>
+    </section>
+
+    <div v-else-if="!loading && !data" class="fx-empty">{{ tr('Open this page from a disbursement task.') }}</div>
     <TrsPartyDialog v-if="data" v-model:visible="partyOpen" :disbursement-id="data.header.disbursementId" :party="party"
                     :reverse="data.header.isReverse" />
   </div>
@@ -190,7 +237,9 @@ const overrideReason = ref('')
 const loading = ref(false)
 const busy = ref(false)
 const dirty = ref(false)
-const completeNote = 'Your choices are saved, then this step is completed. The source of funds must be executed first.'
+const completeNote = computed(() => data.value?.header.isReverse
+  ? 'Your choices are saved, then this step is completed. The source of funds must be executed and every supplier transfer confirmed first.'
+  : 'Your choices are saved, then this step is completed. The source of funds must be executed first.')
 
 const sources = computed(() => data.value?.sources ?? [])
 const net = computed(() => data.value?.header.netAmount ?? 0)
@@ -371,7 +420,35 @@ async function execute() {
   if (dirty.value && !(await saveLines('Sources of funds saved.'))) return
   busy.value = true
   try {
-    await save(async () => apply(await trsDisburseApi.execute(id.value)), 'Executed: the drawdowns are recorded, the client is paid and the GL is posted.')
+    await save(async () => apply(await trsDisburseApi.execute(id.value)), data.value?.header.isReverse
+      ? 'Executed: the bank drawdown is posted and the supplier transfers are sent. Tick Confirmed for each one when the bank confirms it.'
+      : 'Executed: the drawdowns are recorded, the client is paid and the GL is posted.')
+  } finally {
+    busy.value = false
+  }
+}
+
+// reverse factoring: the supplier transfers ticked as confirmed, posted together with Confirm
+const ticked = ref(new Set<number>())
+const bankReference = ref('')
+const openTransfers = computed(() => (data.value?.transfers ?? []).filter((t) => t.statusCode === 'SENT'))
+const canConfirm = computed(() => canEdit && !viewOnly.value && executed.value)
+const allTicked = computed(() => openTransfers.value.length > 0 && openTransfers.value.every((t) => ticked.value.has(t.transferId)))
+const statusLabel = (s: string) => (s === 'CONFIRMED' ? 'Confirmed' : s === 'SENT' ? 'Sent, waiting for the bank' : 'Planned')
+function tick(transferId: number, on: boolean) {
+  const next = new Set(ticked.value)
+  if (on) next.add(transferId)
+  else next.delete(transferId)
+  ticked.value = next
+}
+const tickAll = (on: boolean) => { ticked.value = new Set(on ? openTransfers.value.map((t) => t.transferId) : []) }
+
+async function confirmTicked() {
+  busy.value = true
+  try {
+    const ok = await save(async () => apply(await trsDisburseApi.confirmTransfers(id.value, [...ticked.value], bankReference.value.trim() || null)),
+      'Transfers confirmed and the GL is posted.')
+    if (ok) { ticked.value = new Set(); bankReference.value = '' }
   } finally {
     busy.value = false
   }
@@ -379,6 +456,10 @@ async function execute() {
 
 /** The step's Complete: once executed nothing is left to save; before that, the step cannot be completed. */
 async function saveForStep() {
+  if (executed.value && openTransfers.value.length) {
+    showError(`${tr('Tick Confirmed for every supplier transfer before completing this step. Not confirmed yet:')} ${openTransfers.value.map((t) => t.supplierName).join(', ')}`)
+    return false
+  }
   if (executed.value) return true
   if (dirty.value) await saveLines()
   showError(tr('Execute the source of funds before completing this step.'))
@@ -396,6 +477,13 @@ onMounted(load)
 .num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .is-bad { color: var(--fin-bad, #B42318); }
 
+.trs-tr { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.trs-tr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.trs-tr-head h2 { margin: 0 0 4px; font-size: var(--fs-md, 14px); color: var(--fin-teal-700); }
+.trs-tr-check { width: 34px; text-align: center; }
+.trs-tr-check input { width: 16px; height: 16px; accent-color: var(--fin-teal-600); cursor: pointer; }
+.trs-tr-confirm { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.trs-tr-confirm .fc-field { min-width: 260px; }
 .trs-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .trs-kpi { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; }
 .trs-kpi b { font-size: 22px; font-variant-numeric: tabular-nums; color: var(--fin-ink); }

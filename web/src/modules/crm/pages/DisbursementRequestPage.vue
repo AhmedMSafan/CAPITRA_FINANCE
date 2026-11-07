@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <FctViewOnlyNote v-if="viewOnly" />
+    <FctViewOnlyNote v-if="viewOnly" :disbursement-id="props.disbursementId" step="INITIATION" />
     <template v-if="ready">
       <!-- the customer, the limit and its agreement (page 751's Application Summary) in one strip -->
       <section class="fx-card dr-strip">
