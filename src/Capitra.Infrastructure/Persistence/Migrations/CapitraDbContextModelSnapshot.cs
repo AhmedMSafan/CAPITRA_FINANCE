@@ -1016,6 +1016,173 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("ADM_LKP_RISK_LEVELS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmModuleSetting", b =>
+                {
+                    b.Property<long>("SettingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SETTING_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SettingId"));
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("APPROVED_AT");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<DateTime?>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CHANGED_AT");
+
+                    b.Property<string>("ChangedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("CHANGED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("MODULE_CODE");
+
+                    b.Property<string>("PendingReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("PENDING_REASON");
+
+                    b.Property<string>("PendingValue")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("PENDING_VALUE");
+
+                    b.Property<DateTime?>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REQUESTED_AT");
+
+                    b.Property<string>("RequestedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("REQUESTED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SettingCode")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("SETTING_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("ValueText")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("VALUE_TEXT");
+
+                    b.HasKey("SettingId")
+                        .HasName("PK_ADM_MODULE_SETTINGS");
+
+                    b.HasIndex("SettingCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ADM_MODULE_SETTINGS_SETTING_CODE");
+
+                    b.ToTable("ADM_MODULE_SETTINGS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmModuleSettingHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("HISTORY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<string>("ActionCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ACTION_CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NEW_VALUE");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("OLD_VALUE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SettingCode")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("SETTING_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("HistoryId")
+                        .HasName("PK_ADM_MODULE_SETTING_HISTORY");
+
+                    b.HasIndex("SettingCode")
+                        .HasDatabaseName("IX_ADM_MODULE_SETTING_HISTORY_SETTING_CODE");
+
+                    b.ToTable("ADM_MODULE_SETTING_HISTORY", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Adm.AdmProduct", b =>
                 {
                     b.Property<long>("ProductId")

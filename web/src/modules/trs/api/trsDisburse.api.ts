@@ -82,6 +82,8 @@ export type TrsDisburse = {
   payments: TrsDisbursePayment[]
   paymentStatus: string | null
   executionDate: string | null
+  /** Module setting TRS.SUGGEST_ORDER: what Suggest fills first. */
+  suggestOrder: 'BANK_FIRST' | 'OWN_FIRST'
 }
 
 export type TrsDisburseForm = { lines: { sublimitId: number | null; amount: number }[]; overrideReason: string | null }

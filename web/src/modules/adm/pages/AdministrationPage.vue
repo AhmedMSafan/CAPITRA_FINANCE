@@ -56,12 +56,20 @@ const icon = (paths: string, size = 24) =>
 
 const ar = language.value === 'AR'
 
-type SetupItem = { title: string; description: string; icon: string; route?: string; perm?: string }
+type SetupItem = { title: string; description: string; icon: string; route?: string | { path: string; query?: Record<string, string> }; perm?: string }
 type SetupSection = { title: string; description: string; icon: string; color: string; tint: string; items: SetupItem[]; viewAll?: string }
 
 // FINOVA_FINANCEING AdminHomePage: its sections and items in its order. An item opens this app's page when it has one;
 // the rest are marked Coming soon.
 const sections: SetupSection[] = [
+  {
+    title: 'Module Setup', description: 'The rules of each module. A change takes effect once another user approves it.', icon: 'pi pi-sliders-v', color: '#E87722', tint: '#FFF1E6',
+    items: [
+      { title: 'CRM Settings', description: 'Maker-checker, bank account waiting days, KYC warning and review cycles.', icon: 'pi pi-users', route: { path: '/admin/module-settings', query: { tab: 'CRM' } }, perm: 'ADM.SETTINGS.VIEW' },
+      { title: 'Treasury Settings', description: 'Bank rule maker-checker, overrides, Suggest order and escrow accounts.', icon: 'pi pi-building-columns', route: { path: '/admin/module-settings', query: { tab: 'TRS' } }, perm: 'ADM.SETTINGS.VIEW' },
+      { title: 'Factoring Settings', description: 'Minimum advance rate and open offers per client.', icon: 'pi pi-file', route: { path: '/admin/module-settings', query: { tab: 'FCT' } }, perm: 'ADM.SETTINGS.VIEW' }
+    ]
+  },
   {
     title: 'Product Setup', description: 'Configure products and their processing rules.', icon: 'pi pi-box', color: '#1D5BBF', tint: '#E8F1FF',
     items: [

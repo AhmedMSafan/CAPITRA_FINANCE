@@ -1,5 +1,6 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Application.Modules.Adm.Settings;
 using Capitra.Application.Modules.Gl;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Crm;
 
-/// <summary>Customer 360 settings: how many days a bank account must wait after its last change before it can be paid.</summary>
+/// <summary>From appsettings Crm:BankAccountWaitingDays: the default of the module setting CRM.BANK_ACCOUNT_WAITING_DAYS.</summary>
 public sealed record CrmSettings(int BankAccountWaitingDays);
 
 public sealed record CrmBadgeDto(string Code, string Label, IReadOnlyList<string> Reasons);
@@ -49,7 +50,8 @@ public sealed record CrmProgramDto(
 public sealed record CrmCustomer360Dto(
     CrmProfileDto Profile, CrmBadgeDto ComplianceBadge, CrmBadgeDto BankBadge, CrmBadgeDto ReadyToPay, CrmComplianceStateDto Compliance,
     IReadOnlyList<CrmComplianceHistoryDto> ComplianceHistory, IReadOnlyList<CrmRoleDto> Roles, IReadOnlyList<CrmBankAccountDto> BankAccounts,
-    IReadOnlyList<CrmBankAccountHistoryDto> BankAccountHistory, IReadOnlyList<CrmProgramDto> Programs, int BankAccountWaitingDays);
+    IReadOnlyList<CrmBankAccountHistoryDto> BankAccountHistory, IReadOnlyList<CrmProgramDto> Programs, int BankAccountWaitingDays,
+    bool BankAccountMakerChecker, bool ComplianceMakerChecker);
 
 public sealed record CrmBankAccountFormDto(
     string BankName, string? BranchName, string? SwiftCode, string? AccountNumber, string? Iban, string AccountHolderName,
@@ -62,9 +64,10 @@ public sealed record CrmAddRoleDto(string RoleCode, string? Notes);
 /// <summary>
 /// Customer 360 (agreed with Ahmed, 4 Nov 2026): one customer record with its roles, its compliance profile and its bank accounts.
 /// Compliance and bank accounts are verified by a second person (four eyes); a role becomes ACTIVE only when its checks pass; a bank
-/// account can be paid only when VERIFIED and the waiting period after its last change has passed.
+/// account can be paid only when VERIFIED and the waiting period after its last change has passed. Administration > Module Settings
+/// decides whether the second person is needed, the waiting period, the KYC warning and the review cycle (7 Nov 2026).
 /// </summary>
-public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, CrmSettings settings)
+public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, IModuleSettings moduleSettings)
 {
     public static readonly IReadOnlyList<CrmOptionDto> Roles =
     [
@@ -83,8 +86,17 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
     public static readonly string[] AccountTypes = ["CURRENT", "SAVINGS", "OTHER"];
     public static readonly string[] VerificationMethods = ["BANK_LETTER", "CALL_BACK", "BANK_STATEMENT"];
 
-    /// <summary>KYC expiring within this many days makes the customer due for review.</summary>
-    private const int ReviewWarningDays = 30;
+    /// <summary>The module settings this service uses, read once per request (<see cref="LoadSettingsAsync"/>).</summary>
+    private sealed record Rules(bool ComplianceMakerChecker, bool BankAccountMakerChecker, int WaitingDays, int ReviewWarningDays);
+
+    private Rules rules = new(true, true, 2, 30);
+
+    private async Task LoadSettingsAsync(CancellationToken cancellationToken) =>
+        rules = new(
+            await moduleSettings.BoolAsync(ModuleSettingCatalog.Codes.CrmComplianceMakerChecker, cancellationToken),
+            await moduleSettings.BoolAsync(ModuleSettingCatalog.Codes.CrmBankAccountMakerChecker, cancellationToken),
+            await moduleSettings.BankAccountWaitingDaysAsync(cancellationToken),
+            await moduleSettings.IntAsync(ModuleSettingCatalog.Codes.CrmKycExpiryWarningDays, cancellationToken));
 
     private string User => currentUser.UserName ?? currentUser.UserId ?? "SYSTEM";
 
@@ -92,6 +104,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     public async Task<CrmCustomer360Dto> GetAsync(long clientId, CancellationToken cancellationToken)
     {
+        await LoadSettingsAsync(cancellationToken);
         var c = await db.Set<CrmClient>().AsNoTracking().SingleOrDefaultAsync(x => x.ClientId == clientId, cancellationToken)
             ?? throw new NotFoundException($"Customer {clientId} was not found.");
         var currencies = await db.Set<CrmLkpCurrency>().AsNoTracking().ToDictionaryAsync(x => x.CurrencyId, x => x.CurrencyCode, cancellationToken);
@@ -117,7 +130,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
         var (canVerify, blocked) = c.ComplianceVerifiedAt is not null
             ? (false, "The compliance profile is already verified.")
-            : SameUser(c.ComplianceChangedBy) ? (false, "You made the last change; another user must verify it.") : (true, (string?)null);
+            : rules.ComplianceMakerChecker && SameUser(c.ComplianceChangedBy) ? (false, "You made the last change; another user must verify it.") : (true, (string?)null);
 
         return new CrmCustomer360Dto(
             new CrmProfileDto(c.ClientId, c.ClientNumber, c.ClientName, c.ClientNameAr, c.ShortName, c.ClientType, c.LegalStructure, c.TaxNumber,
@@ -134,7 +147,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
             [.. bankHistory.Select(h => new CrmBankAccountHistoryDto(h.BankAccountHistoryId, h.BankAccountId, h.ActionCode, h.BankName,
                 h.AccountNumber, h.Iban, currencies.GetValueOrDefault(h.CurrencyId) ?? "", h.IsPrimary, h.StatusCode, h.VerificationMethodCode,
                 h.Notes, h.CreatedBy, h.CreatedAt))],
-            programs, settings.BankAccountWaitingDays);
+            programs, rules.WaitingDays, rules.BankAccountMakerChecker, rules.ComplianceMakerChecker);
     }
 
     /// <summary>The factoring agreements (programs) where the customer is the client, with the agreement-level limit.</summary>
@@ -180,13 +193,13 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
         var due = new List<string>();
         if (c.NextReviewDate is { } review && review <= today) due.Add($"Review was due on {review:dd-MMM-yyyy}.");
-        if (c.KycExpiryDate is { } e && e <= today.AddDays(ReviewWarningDays)) due.Add($"KYC expires on {e:dd-MMM-yyyy}.");
+        if (c.KycExpiryDate is { } e && e <= today.AddDays(rules.ReviewWarningDays)) due.Add($"KYC expires on {e:dd-MMM-yyyy}.");
         return due.Count > 0 ? new("DUE", "Due for review", due) : new("CLEAR", "Clear", []);
     }
 
     private static bool ComplianceOk(CrmBadgeDto b) => b.Code is "CLEAR" or "DUE";
 
-    private DateTime PayableFrom(CrmClientBankAccount a) => a.ChangedAt.AddDays(settings.BankAccountWaitingDays);
+    private DateTime PayableFrom(CrmClientBankAccount a) => a.ChangedAt.AddDays(rules.WaitingDays);
 
     private bool Payable(CrmClientBankAccount a, DateTime now) => a.StatusCode == CrmClientBankAccount.Verified && PayableFrom(a) <= now;
 
@@ -253,6 +266,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     public async Task SaveComplianceAsync(long clientId, CrmComplianceDto dto, CancellationToken cancellationToken)
     {
+        await LoadSettingsAsync(cancellationToken);
         var c = await ClientAsync(clientId, cancellationToken);
         var errors = new Dictionary<string, string[]>();
         void In(string field, string? value, string[] list, string label)
@@ -294,13 +308,16 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     public async Task VerifyComplianceAsync(long clientId, CrmVerifyDto dto, CancellationToken cancellationToken)
     {
+        await LoadSettingsAsync(cancellationToken);
         var c = await ClientAsync(clientId, cancellationToken);
         if (c.ComplianceVerifiedAt is not null) throw new BusinessRuleException("The compliance profile is already verified.");
-        if (SameUser(c.ComplianceChangedBy))
+        if (rules.ComplianceMakerChecker && SameUser(c.ComplianceChangedBy))
             throw new BusinessRuleException("You made the last change to this compliance profile. Another user must verify it.");
         c.ComplianceVerifiedBy = User;
         c.ComplianceVerifiedAt = clock.UtcNow;
         c.LastReviewDate = Today;
+        // no next review date yet: the review cycle of the customer's risk grade (Module Settings)
+        c.NextReviewDate ??= Today.AddMonths(await moduleSettings.ReviewMonthsAsync(c.RiskGrade, cancellationToken));
         AddHistory(c, "VERIFY", dto.Notes);
         await db.SaveChangesAsync(cancellationToken);
     }
@@ -340,6 +357,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     public async Task ActivateRoleAsync(long clientId, long roleId, CancellationToken cancellationToken)
     {
+        await LoadSettingsAsync(cancellationToken);
         var role = await RoleAsync(clientId, roleId, cancellationToken);
         if (role.StatusCode == CrmClientRole.Active) return;
         var c = await ClientAsync(clientId, cancellationToken);
@@ -450,7 +468,9 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
     {
         var a = await AccountAsync(clientId, bankAccountId, cancellationToken);
         if (a.StatusCode != CrmClientBankAccount.Pending) throw new BusinessRuleException("Only a pending bank account can be verified.");
-        if (SameUser(a.ChangedBy)) throw new BusinessRuleException("You made the last change to this bank account. Another user must verify it.");
+        await LoadSettingsAsync(cancellationToken);
+        if (rules.BankAccountMakerChecker && SameUser(a.ChangedBy))
+            throw new BusinessRuleException("You made the last change to this bank account. Another user must verify it.");
         var method = dto.VerificationMethodCode?.Trim().ToUpperInvariant();
         if (method is null || !VerificationMethods.Contains(method))
             throw BusinessValidationException.For("verificationMethodCode", "Choose how the account was confirmed.");

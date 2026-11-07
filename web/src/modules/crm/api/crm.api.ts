@@ -109,6 +109,8 @@ export type CrmCustomer360 = {
   profile: CrmProfile; complianceBadge: CrmBadge; bankBadge: CrmBadge; readyToPay: CrmBadge; compliance: CrmComplianceState
   complianceHistory: CrmComplianceHistory[]; roles: CrmRole[]; bankAccounts: CrmBankAccount[]; bankAccountHistory: CrmBankAccountHistory[]
   programs: CrmProgram[]; bankAccountWaitingDays: number
+  /** Module Settings: whether a second user must verify a bank account change / a compliance change. */
+  bankAccountMakerChecker: boolean; complianceMakerChecker: boolean
 }
 
 export type CrmBankAccountForm = {
