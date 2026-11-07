@@ -156,6 +156,16 @@ export type TrsDisburse = {
   suggestOrder: 'BANK_FIRST' | 'OWN_FIRST'
   /** Reverse factoring only: the transfers to the suppliers. */
   transfers: TrsSupplierTransfer[] | null
+  /** The GL of the Treasury step, one Tran Set ID: a preview from the saved sources, or what was posted. */
+  gl: TrsGlPreview | null
+}
+
+export type TrsGlPreview = {
+  status: 'NONE' | 'PREVIEW' | 'POSTED'
+  tranSetId: string | null
+  problem: string | null
+  postsWhen: string | null
+  lines: { journalNo: number; account: string; accountName: string | null; dr: number; cr: number; description: string }[]
 }
 
 export type TrsDisburseForm = { lines: { sublimitId: number | null; amount: number }[]; overrideReason: string | null }

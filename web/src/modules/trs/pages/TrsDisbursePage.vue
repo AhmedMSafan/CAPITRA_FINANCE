@@ -160,8 +160,8 @@
     <section v-if="data?.header.isReverse && data.transfers?.length" class="fx-card trs-tr">
       <header class="trs-tr-head">
         <div><h2>{{ tr('Supplier transfers') }}</h2>
-          <small class="trs-muted">{{ executed ? tr('Tick Confirmed when the bank confirms a transfer. Each tick posts its GL entry. The step completes when every supplier is confirmed.')
-            : tr('What Execute will send to each supplier. Execute posts only the bank drawdown.') }}</small></div>
+          <small class="trs-muted">{{ executed ? tr('Tick Confirmed when the bank confirms a transfer. When the last supplier is confirmed, the whole GL posts under one Tran Set ID and the step can be completed.')
+            : tr('What Execute will send to each supplier. Nothing posts to the GL until the last supplier is confirmed.') }}</small></div>
         <span v-if="executed" class="fx-chip" :class="openTransfers.length ? 'fx-chip--warn' : 'fx-chip--teal'">
           {{ openTransfers.length ? `${data.transfers.length - openTransfers.length} / ${data.transfers.length} ${tr('confirmed')}` : tr('All confirmed') }}</span>
       </header>
@@ -199,6 +199,35 @@
           <input v-model="bankReference" class="fx-search" maxlength="100" /></label>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="confirmTicked">
           <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-check-square-o'" aria-hidden="true"></span>{{ tr('Confirm') }} {{ ticked.size }} {{ tr(ticked.size === 1 ? 'transfer' : 'transfers') }}</button>
+      </div>
+    </section>
+
+    <!-- what the GL gets, one transaction set (Ahmed, 7 Nov 2026): a preview from the saved sources, then the posted Tran Set ID -->
+    <section v-if="data?.gl && data.gl.status !== 'NONE' || data?.gl?.problem" class="fx-card trs-tr">
+      <header class="trs-tr-head">
+        <div><h2>{{ data!.gl!.status === 'POSTED' ? tr('GL posted') : tr('GL to be posted') }}</h2>
+          <small class="trs-muted">{{ data!.gl!.status === 'POSTED' ? tr('All entries of this disbursement, under one Tran Set ID.')
+            : `${tr('One Tran Set ID, from the saved sources.')} ${tr('Posts')}: ${tr(data!.gl!.postsWhen ?? '')}.` }}<template v-if="dirty"> {{ tr('Save to see your changes here.') }}</template></small></div>
+        <span v-if="data!.gl!.tranSetId" class="fx-chip fx-chip--teal">{{ tr('GL Tran Set ID') }} <b class="trs-ts">{{ data!.gl!.tranSetId }}</b></span>
+        <span v-else-if="!data!.gl!.problem" class="fx-chip fx-chip--warn">{{ tr('Not posted yet') }}</span>
+      </header>
+      <p v-if="data!.gl!.problem" class="is-bad trs-gl-problem"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span> {{ tr(data!.gl!.problem) }}</p>
+      <div v-else class="fx-table-wrap">
+        <table class="fx-table trs-gl">
+          <thead><tr><th>{{ tr('Journal') }}</th><th>{{ tr('Account') }}</th><th>{{ tr('Description') }}</th>
+            <th class="num">{{ tr('Debit') }}</th><th class="num">{{ tr('Credit') }}</th></tr></thead>
+          <tbody>
+            <tr v-for="(l, i) in data!.gl!.lines" :key="i" :class="{ 'trs-gl-first': newJournal(i) }">
+              <td><b v-if="newJournal(i)">{{ l.journalNo }}</b></td>
+              <td><b>{{ l.account }}</b><small v-if="l.accountName" class="trs-muted"> · {{ l.accountName }}</small></td>
+              <td>{{ l.description }}</td>
+              <td class="num">{{ l.dr ? formatAmount(l.dr) : '' }}</td><td class="num">{{ l.cr ? formatAmount(l.cr) : '' }}</td>
+            </tr>
+          </tbody>
+          <tfoot><tr><th colspan="3">{{ tr('Total') }}</th>
+            <th class="num">{{ formatAmount(data!.gl!.lines.reduce((a, l) => a + l.dr, 0)) }}</th>
+            <th class="num">{{ formatAmount(data!.gl!.lines.reduce((a, l) => a + l.cr, 0)) }}</th></tr></tfoot>
+        </table>
       </div>
     </section>
 
@@ -421,12 +450,14 @@ async function execute() {
   busy.value = true
   try {
     await save(async () => apply(await trsDisburseApi.execute(id.value)), data.value?.header.isReverse
-      ? 'Executed: the bank drawdown is posted and the supplier transfers are sent. Tick Confirmed for each one when the bank confirms it.'
+      ? 'Executed: the supplier transfers are sent. Tick Confirmed for each one when the bank confirms it; the GL posts with the last one.'
       : 'Executed: the drawdowns are recorded, the client is paid and the GL is posted.')
   } finally {
     busy.value = false
   }
 }
+
+const newJournal = (i: number) => i === 0 || data.value?.gl?.lines[i - 1]?.journalNo !== data.value?.gl?.lines[i]?.journalNo
 
 // reverse factoring: the supplier transfers ticked as confirmed, posted together with Confirm
 const ticked = ref(new Set<number>())
@@ -447,7 +478,7 @@ async function confirmTicked() {
   busy.value = true
   try {
     const ok = await save(async () => apply(await trsDisburseApi.confirmTransfers(id.value, [...ticked.value], bankReference.value.trim() || null)),
-      'Transfers confirmed and the GL is posted.')
+      openTransfers.value.length === ticked.value.size ? 'All transfers confirmed. The GL is posted under one Tran Set ID.' : 'Transfers confirmed.')
     if (ok) { ticked.value = new Set(); bankReference.value = '' }
   } finally {
     busy.value = false
@@ -482,6 +513,11 @@ onMounted(load)
 .trs-tr-head h2 { margin: 0 0 4px; font-size: var(--fs-md, 14px); color: var(--fin-teal-700); }
 .trs-tr-check { width: 34px; text-align: center; }
 .trs-tr-check input { width: 16px; height: 16px; accent-color: var(--fin-teal-600); cursor: pointer; }
+.trs-gl tr.trs-gl-first td { border-top: 2px solid var(--fin-line); }
+.trs-gl td:first-child { width: 70px; color: var(--fin-teal-700); }
+.trs-gl th.num, .trs-gl td.num { text-align: end; }
+.trs-gl-problem { margin: 0; display: flex; gap: 8px; align-items: center; }
+.trs-ts { margin-inline-start: 4px; font-variant-numeric: tabular-nums; }
 .trs-tr-confirm { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
 .trs-tr-confirm .fc-field { flex: 0 1 340px; min-width: 0; }
 .trs-tr .fc-ref { white-space: nowrap; }

@@ -37,14 +37,30 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
         string actionCode, ProductActionDocument doc, IReadOnlyList<(string? BankAccount, Func<string, decimal?> AmountOf)> parts, CancellationToken ct,
         string? ruleCode = null)
     {
-        var def = ProductActions.Find(actionCode) ?? throw new InvalidOperationException($"Unknown product action {actionCode}.");
-        var plan = string.IsNullOrWhiteSpace(ruleCode) ? await LinkedPlanAsync(def, doc, ct)
-            : await rules.PlanByCodeAsync(def.ProductCode, ruleCode.Trim(), doc.Date, ct)
-              ?? throw Fail(-20984, $"The workflow step names rule {ruleCode.Trim()}, which is not an active rule of product {def.ProductCode} on {D(doc.Date)}.");
-        return await PostPlanAsync(def, plan, doc, parts, ct);
+        var (def, plan) = await PlanAsync(actionCode, doc.Date, ct, ruleCode);
+        return await PostLinesAsync(plan, Lines(def, plan, parts), def.ModuleCode, def.ActionNameEn, def.CostCenter, def.BusinessLine, doc, ct);
     }
 
-    private async Task<ProductEventPlan> LinkedPlanAsync(ProductActionDefinition def, ProductActionDocument doc, CancellationToken ct)
+    /// <summary>
+    /// The rule an action posts on a date (the rule a workflow step names when ruleCode is given, else the one linked to the action),
+    /// checked against what the action provides. Any problem raises an error.
+    /// </summary>
+    public async Task<(ProductActionDefinition Def, ProductEventPlan Plan)> PlanAsync(string actionCode, DateOnly date, CancellationToken ct,
+        string? ruleCode = null)
+    {
+        var def = ProductActions.Find(actionCode) ?? throw new InvalidOperationException($"Unknown product action {actionCode}.");
+        var plan = string.IsNullOrWhiteSpace(ruleCode) ? await LinkedPlanAsync(def, date, ct)
+            : await rules.PlanByCodeAsync(def.ProductCode, ruleCode.Trim(), date, ct)
+              ?? throw Fail(-20984, $"The workflow step names rule {ruleCode.Trim()}, which is not an active rule of product {def.ProductCode} on {D(date)}.");
+        if (plan.Charges.Count > 0)
+            throw Fail(-20985, $"Rule {plan.RuleCode} has charge components; the action \"{def.ActionNameEn}\" posts only the rule's own GL entries.");
+        var unknown = plan.Lines.Select(x => x.AmountCode).Where(x => !def.AmountCodes.Contains(x)).Distinct().ToList();
+        if (unknown.Count > 0)
+            throw Fail(-20986, $"Rule {plan.RuleCode} posts {string.Join(", ", unknown)}, which the action \"{def.ActionNameEn}\" does not provide (it provides {string.Join(", ", def.AmountCodes)}).");
+        return (def, plan);
+    }
+
+    private async Task<ProductEventPlan> LinkedPlanAsync(ProductActionDefinition def, DateOnly date, CancellationToken ct)
     {
         var link = await (from a in db.Set<AdmProductAction>().AsNoTracking()
                           join p in db.Set<AdmProduct>() on a.ProductId equals p.ProductId
@@ -53,28 +69,23 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
         if (link?.ProductEventRuleId is not { } ruleId || !link.IsActive)
             throw Fail(-20983, $"No product rule is linked to the action \"{def.ActionNameEn}\". Link one in Admin Setup > Product Catalog > {def.ProductCode} > Actions.");
 
-        return await rules.PlanOfRuleAsync(ruleId, doc.Date, ct)
-            ?? throw Fail(-20984, $"The rule linked to \"{def.ActionNameEn}\" on product {link.ProductCode} is inactive or not in effect on {D(doc.Date)}.");
+        return await rules.PlanOfRuleAsync(ruleId, date, ct)
+            ?? throw Fail(-20984, $"The rule linked to \"{def.ActionNameEn}\" on product {link.ProductCode} is inactive or not in effect on {D(date)}.");
     }
 
-    private async Task<string> PostPlanAsync(ProductActionDefinition def, ProductEventPlan plan, ProductActionDocument doc,
-        IReadOnlyList<(string? BankAccount, Func<string, decimal?> AmountOf)> parts, CancellationToken ct)
+    /// <summary>
+    /// The rule's lines filled once per part, each part with its own bank account for the rule's bank-account lines; the lines of one
+    /// journal on the same account and side are added together (e.g. one credit to customer liability).
+    /// </summary>
+    public static List<ProductEventPostingLine> Lines(ProductActionDefinition def, ProductEventPlan plan,
+        IReadOnlyList<(string? BankAccount, Func<string, decimal?> AmountOf)> parts)
     {
-        if (plan.Charges.Count > 0)
-            throw Fail(-20985, $"Rule {plan.RuleCode} has charge components; the action \"{def.ActionNameEn}\" posts only the rule's own GL entries.");
-        var unknown = plan.Lines.Select(x => x.AmountCode).Where(x => !def.AmountCodes.Contains(x)).Distinct().ToList();
-        if (unknown.Count > 0)
-            throw Fail(-20986, $"Rule {plan.RuleCode} posts {string.Join(", ", unknown)}, which the action \"{def.ActionNameEn}\" does not provide (it provides {string.Join(", ", def.AmountCodes)}).");
-
         if (parts.Any(p => p.BankAccount is null) && plan.Lines.Any(l => l.FromBankAccount))
             throw Fail(-20990, $"Rule {plan.RuleCode} posts to a bank account, which the action \"{def.ActionNameEn}\" does not give.");
-        // the parts' lines of one journal on the same account and side are added together (e.g. one credit to customer liability)
-        var lines = parts.SelectMany(p => ProductEventPosting.Build(plan, l => p.AmountOf(l.AmountCode) ?? 0, p.BankAccount))
+        return [.. parts.SelectMany(p => ProductEventPosting.Build(plan, l => p.AmountOf(l.AmountCode) ?? 0, p.BankAccount))
             .GroupBy(x => (x.JournalNo, x.Account, Debit: x.Dr != 0))
             .Select(g => g.First() with { Dr = g.Sum(x => x.Dr), Cr = g.Sum(x => x.Cr) })
-            .OrderBy(x => x.JournalNo).ThenBy(x => x.Dr == 0).ThenBy(x => x.Account).ToList();
-
-        return await PostLinesAsync(plan, lines, def.ModuleCode, def.ActionNameEn, def.CostCenter, def.BusinessLine, doc, ct);
+            .OrderBy(x => x.JournalNo).ThenBy(x => x.Dr == 0).ThenBy(x => x.Account)];
     }
 
     /// <summary>
