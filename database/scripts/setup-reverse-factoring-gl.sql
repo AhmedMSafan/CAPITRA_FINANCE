@@ -3,11 +3,17 @@
 -- Run in pgAdmin > Query Tool on CAPITRA_DB. Press F5. Safe to run again: what exists is kept.
 -- Needs: setup-treasury-disburse-gl.sql (product TREASURY_FUNDING) and migrate-reverse-supplier-transfers.sql.
 --
--- FILL IN the two account codes at the top first (both must exist in GL_ACCOUNTS):
---   v_rf_borrowings_code  reverse factoring bank borrowings (credited with the bank drawdown at Execute)
---   v_rf_receivable_code  reverse factoring receivable from the buyer (debited when a supplier transfer is confirmed)
+-- HOW TO RUN
+--   a) Leave v_apply = false and run: the Messages tab shows the two GL accounts it will create and use. Nothing changes.
+--   b) If it looks right, set v_apply = true and run again.
 --
--- It sets up, under product TREASURY_FUNDING:
+-- The two GL accounts (leave the codes empty to have them created):
+--   reverse factoring receivable    the first free code after 120101 (Factoring Receivable - Principal), same parent and settings
+--   reverse factoring borrowings    the first free code after 220101 (Bank Facilities - Short Term), same parent and settings
+--   Each gets its NATURAL segment value too, so it can be posted to. To use accounts that already exist, type their codes instead.
+--   The business line segment value REVERSE_FACTORING is added (copied from FACTORING) when it is missing.
+--
+-- It then sets up, under product TREASURY_FUNDING:
 --   1. journal category TRS_RF "Reverse Factoring Treasury" under the journal source FACTORING
 --   2. rule TRS_RF_DRAWDOWN, posted at Execute (bank lines only), amount BANK_DRAWDOWN:
 --        DR our account at that bank (its GL account in Bank Limits) / CR reverse factoring bank borrowings
@@ -22,10 +28,18 @@
 -- =====================================================================================================================
 DO $$
 DECLARE
-  -- >>> settings: the GL account codes (fill in) <<<
-  v_rf_borrowings_code text := '';   -- reverse factoring bank borrowings
-  v_rf_receivable_code text := '';   -- reverse factoring receivable from the buyer
+  -- >>> settings <<<
+  v_rf_borrowings_code text    := '';      -- reverse factoring bank borrowings ('' = create it after 220101)
+  v_rf_receivable_code text    := '';      -- reverse factoring receivable from the buyer ('' = create it after 120101)
+  v_apply              boolean := false;   -- false = preview only, true = change the data
   -- >>> end of settings <<<
+  v_tpl     record;
+  v_seg     bigint;
+  v_sv      bigint;
+  v_n       bigint;
+  v_code    text;
+  v_k       int;
+  v_bl      record;
   v_by      text := 'SETUP';
   v_from    date := DATE '2020-01-01';
   v_source  bigint;
@@ -38,17 +52,93 @@ BEGIN
   IF to_regclass('"TRS_SUPPLIER_TRANSFERS"') IS NULL THEN
     RAISE EXCEPTION 'TRS_SUPPLIER_TRANSFERS is missing. Run migrate-reverse-supplier-transfers.sql first. Nothing changed.';
   END IF;
-  IF coalesce(trim(v_rf_borrowings_code), '') = '' OR coalesce(trim(v_rf_receivable_code), '') = '' THEN
-    RAISE EXCEPTION 'Fill in v_rf_borrowings_code and v_rf_receivable_code at the top of the script first. Nothing changed.';
+  -- 0. the two GL accounts: given, or created after their factoring templates
+  FOR v_k IN 1..2 LOOP
+    v_code := trim(CASE v_k WHEN 1 THEN v_rf_receivable_code ELSE v_rf_borrowings_code END);
+    IF v_code <> '' THEN
+      IF NOT EXISTS (SELECT 1 FROM "GL_ACCOUNTS" WHERE "ACCOUNT_CODE" = v_code) THEN
+        RAISE EXCEPTION 'GL account % was not found. Leave the code empty to have it created. Nothing changed.', v_code;
+      END IF;
+      RAISE NOTICE '% account: % (existing)', CASE v_k WHEN 1 THEN 'Receivable' ELSE 'Borrowings' END, v_code;
+      CONTINUE;
+    END IF;
+    SELECT * INTO v_tpl FROM "GL_ACCOUNTS" WHERE "ACCOUNT_CODE" = CASE v_k WHEN 1 THEN '120101' ELSE '220101' END ORDER BY "ACCOUNT_ID" LIMIT 1;
+    IF v_tpl."ACCOUNT_ID" IS NULL THEN
+      RAISE EXCEPTION 'GL account % (the template) was not found. Type the account codes at the top instead. Nothing changed.',
+        CASE v_k WHEN 1 THEN '120101' ELSE '220101' END;
+    END IF;
+    -- created by an earlier run of this script: use it
+    SELECT "ACCOUNT_CODE" INTO v_code FROM "GL_ACCOUNTS" WHERE "COA_ID" = v_tpl."COA_ID"
+       AND "ACCOUNT_NAME_EN" = CASE v_k WHEN 1 THEN 'Reverse Factoring Receivable' ELSE 'Reverse Factoring Bank Borrowings' END ORDER BY "ACCOUNT_ID" LIMIT 1;
+    IF v_code IS NOT NULL THEN
+      RAISE NOTICE '% account: % (created earlier)', CASE v_k WHEN 1 THEN 'Receivable' ELSE 'Borrowings' END, v_code;
+      IF v_k = 1 THEN v_rf_receivable_code := v_code; ELSE v_rf_borrowings_code := v_code; END IF;
+      CONTINUE;
+    END IF;
+    SELECT "COA_SEGMENT_ID" INTO v_seg FROM "GL_COA_SEGMENTS" WHERE "COA_ID" = v_tpl."COA_ID" AND "SEGMENT_CODE" = 'NATURAL';
+    -- the first free code after the template, in the same block of 100 (1201xx / 2201xx)
+    v_code := NULL;
+    FOR v_n IN (v_tpl."ACCOUNT_CODE"::bigint + 1)..((v_tpl."ACCOUNT_CODE"::bigint / 100) * 100 + 99) LOOP
+      IF NOT EXISTS (SELECT 1 FROM "GL_ACCOUNTS" WHERE "COA_ID" = v_tpl."COA_ID" AND "ACCOUNT_CODE" = v_n::text)
+         AND NOT EXISTS (SELECT 1 FROM "GL_COA_SEGMENT_VALUES" WHERE "COA_SEGMENT_ID" = v_seg AND "VALUE_CODE" = v_n::text) THEN
+        v_code := v_n::text; EXIT;
+      END IF;
+    END LOOP;
+    IF v_code IS NULL THEN
+      RAISE EXCEPTION 'No free code after %. Type the account codes at the top instead. Nothing changed.', v_tpl."ACCOUNT_CODE";
+    END IF;
+    RAISE NOTICE '% account: % "%" will be created (copy of % %, same parent)',
+      CASE v_k WHEN 1 THEN 'Receivable' ELSE 'Borrowings' END, v_code,
+      CASE v_k WHEN 1 THEN 'Reverse Factoring Receivable' ELSE 'Reverse Factoring Bank Borrowings' END, v_tpl."ACCOUNT_CODE", v_tpl."ACCOUNT_NAME_EN";
+    IF v_apply THEN
+      v_sv := NULL;
+      IF v_seg IS NOT NULL THEN
+        INSERT INTO "GL_COA_SEGMENT_VALUES" ("COA_SEGMENT_ID", "VALUE_CODE", "VALUE_NAME_EN", "VALUE_NAME_AR", "DESCRIPTION", "PARENT_VALUE_ID", "IS_SUMMARY",
+                                             "IS_POSTING_ALLOWED", "IS_ENABLED", "EFFECTIVE_START_DATE", "SORT_ORDER", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
+        SELECT v_seg, v_code, CASE v_k WHEN 1 THEN 'Reverse Factoring Receivable' ELSE 'Reverse Factoring Bank Borrowings' END,
+               CASE v_k WHEN 1 THEN 'مديونية التخصيم العكسي' ELSE 'اقتراض بنكي - تخصيم عكسي' END, 'Reverse factoring (Treasury Disburse)',
+               sv."PARENT_VALUE_ID", false, true, true, coalesce(sv."EFFECTIVE_START_DATE", v_from), coalesce(sv."SORT_ORDER", 10), v_by, now(), 1
+          FROM (SELECT 1) x LEFT JOIN "GL_COA_SEGMENT_VALUES" sv ON sv."SEGMENT_VALUE_ID" = v_tpl."ACCOUNT_SEGMENT_VALUE_ID"
+        RETURNING "SEGMENT_VALUE_ID" INTO v_sv;
+      END IF;
+      INSERT INTO "GL_ACCOUNTS" ("COA_ID", "ACCOUNT_CODE", "ACCOUNT_NAME_EN", "ACCOUNT_NAME_AR", "DESCRIPTION", "PARENT_ACCOUNT_ID", "ACCOUNT_SEGMENT_VALUE_ID",
+                                 "ACCOUNT_TYPE", "NORMAL_BALANCE", "FINANCIAL_STATEMENT_CLASS", "CASH_FLOW_CLASS", "IS_SUMMARY", "IS_POSTING_ALLOWED",
+                                 "IS_CONTROL_ACCOUNT", "IS_RECONCILIATION", "IS_BRANCH_REQUIRED", "IS_COST_CENTER_REQUIRED", "IS_BUSINESS_LINE_REQUIRED",
+                                 "IS_MANUAL_JOURNAL_ALLOWED", "IS_SUBLEDGER_POSTING_ALLOWED", "IS_CURRENCY_REVALUATION", "IS_RETAINED_EARNINGS", "IS_ACTIVE",
+                                 "EFFECTIVE_START_DATE", "SORT_ORDER", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
+      VALUES (v_tpl."COA_ID", v_code, CASE v_k WHEN 1 THEN 'Reverse Factoring Receivable' ELSE 'Reverse Factoring Bank Borrowings' END,
+              CASE v_k WHEN 1 THEN 'مديونية التخصيم العكسي' ELSE 'اقتراض بنكي - تخصيم عكسي' END, 'Reverse factoring (Treasury Disburse)',
+              v_tpl."PARENT_ACCOUNT_ID", v_sv, v_tpl."ACCOUNT_TYPE", v_tpl."NORMAL_BALANCE", v_tpl."FINANCIAL_STATEMENT_CLASS", v_tpl."CASH_FLOW_CLASS",
+              false, true, v_tpl."IS_CONTROL_ACCOUNT", v_tpl."IS_RECONCILIATION", v_tpl."IS_BRANCH_REQUIRED", v_tpl."IS_COST_CENTER_REQUIRED",
+              v_tpl."IS_BUSINESS_LINE_REQUIRED", v_tpl."IS_MANUAL_JOURNAL_ALLOWED", v_tpl."IS_SUBLEDGER_POSTING_ALLOWED", v_tpl."IS_CURRENCY_REVALUATION",
+              false, true, v_tpl."EFFECTIVE_START_DATE", v_tpl."SORT_ORDER", v_by, now(), 1);
+    END IF;
+    IF v_k = 1 THEN v_rf_receivable_code := v_code; ELSE v_rf_borrowings_code := v_code; END IF;
+  END LOOP;
+
+  -- the business line the reverse factoring postings carry
+  FOR v_bl IN SELECT s."COA_SEGMENT_ID", f.* FROM "GL_COA_SEGMENTS" s
+                JOIN "GL_COA_SEGMENT_VALUES" f ON f."COA_SEGMENT_ID" = s."COA_SEGMENT_ID" AND f."VALUE_CODE" = 'FACTORING'
+               WHERE s."SEGMENT_CODE" = 'BUSINESS_LINE'
+                 AND NOT EXISTS (SELECT 1 FROM "GL_COA_SEGMENT_VALUES" r WHERE r."COA_SEGMENT_ID" = s."COA_SEGMENT_ID" AND r."VALUE_CODE" = 'REVERSE_FACTORING')
+  LOOP
+    RAISE NOTICE 'Business line segment value REVERSE_FACTORING will be added (copy of FACTORING)';
+    IF v_apply THEN
+      INSERT INTO "GL_COA_SEGMENT_VALUES" ("COA_SEGMENT_ID", "VALUE_CODE", "VALUE_NAME_EN", "VALUE_NAME_AR", "DESCRIPTION", "PARENT_VALUE_ID", "IS_SUMMARY",
+                                           "IS_POSTING_ALLOWED", "IS_ENABLED", "EFFECTIVE_START_DATE", "SORT_ORDER", "REFERENCE_BUSINESS_LINE_CODE",
+                                           "CREATED_BY", "CREATED_AT", "ROW_VERSION")
+      VALUES (v_bl."COA_SEGMENT_ID", 'REVERSE_FACTORING', 'Reverse Factoring', 'التخصيم العكسي', 'Reverse factoring', v_bl."PARENT_VALUE_ID", false, true, true,
+              v_bl."EFFECTIVE_START_DATE", v_bl."SORT_ORDER" + 1, 'REVERSE_FACTORING', v_by, now(), 1);
+    END IF;
+  END LOOP;
+
+  IF NOT v_apply THEN
+    RAISE NOTICE 'Preview only. Nothing was changed. Set v_apply := true and run again to create the accounts and the rules.';
+    RETURN;
   END IF;
-  SELECT "ACCOUNT_ID" INTO v_borr FROM "GL_ACCOUNTS" WHERE "ACCOUNT_CODE" = trim(v_rf_borrowings_code) ORDER BY "ACCOUNT_ID" LIMIT 1;
-  IF v_borr IS NULL THEN
-    RAISE EXCEPTION 'GL account % (reverse factoring bank borrowings) was not found. Nothing changed.', v_rf_borrowings_code;
-  END IF;
-  SELECT "ACCOUNT_ID" INTO v_recv FROM "GL_ACCOUNTS" WHERE "ACCOUNT_CODE" = trim(v_rf_receivable_code) ORDER BY "ACCOUNT_ID" LIMIT 1;
-  IF v_recv IS NULL THEN
-    RAISE EXCEPTION 'GL account % (reverse factoring receivable) was not found. Nothing changed.', v_rf_receivable_code;
-  END IF;
+  SELECT "ACCOUNT_ID" INTO v_recv FROM "GL_ACCOUNTS" WHERE "ACCOUNT_CODE" = v_rf_receivable_code ORDER BY "ACCOUNT_ID" LIMIT 1;
+  SELECT "ACCOUNT_ID" INTO v_borr FROM "GL_ACCOUNTS" WHERE "ACCOUNT_CODE" = v_rf_borrowings_code ORDER BY "ACCOUNT_ID" LIMIT 1;
+
   SELECT "SOURCE_ID" INTO v_source FROM "GL_JOURNAL_SOURCES" WHERE "SOURCE_CODE" = 'FACTORING';
   IF v_source IS NULL THEN
     RAISE EXCEPTION 'GL journal source FACTORING is missing. Nothing changed.';
