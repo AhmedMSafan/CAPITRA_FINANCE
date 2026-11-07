@@ -40,4 +40,10 @@ public sealed class TrsDisburseController(TrsDisburseService service, FctDisburs
     [HttpPost("execute")]
     [HasPermission(Permissions.Trs.Edit)]
     public Task<TrsDisburseDto> Execute(long disbursementId, CancellationToken cancellationToken) => service.ExecuteAsync(disbursementId, cancellationToken);
+
+    /// <summary>Reverse factoring: the bank confirmed the ticked supplier transfers; each posts its own GL entry.</summary>
+    [HttpPost("transfers/confirm")]
+    [HasPermission(Permissions.Trs.Edit)]
+    public Task<TrsDisburseDto> ConfirmTransfers(long disbursementId, TrsConfirmTransfersDto dto, CancellationToken cancellationToken) =>
+        service.ConfirmTransfersAsync(disbursementId, dto.TransferIds ?? [], dto.BankReference, cancellationToken);
 }

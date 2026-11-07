@@ -5,6 +5,7 @@ using Capitra.Application.Modules.Gl;
 using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Trs;
 using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,8 +21,11 @@ public sealed record CrmDisbursementRequestListDto(
     long? LimitId, string? LimitNumber, string? CurrencyCode, string? WorkflowStepName, string? GlTranSetId,
     IReadOnlyList<CrmCompletedStepDto>? CompletedSteps = null);
 
-/// <summary>A completed human step of the request's workflow: its page (the task's route), opened view-only from the customer's list.</summary>
-public sealed record CrmCompletedStepDto(string? StepCode, string? StepName, string? Route, DateTime? CompletedAt, string? CompletedBy);
+/// <summary>A completed human step of the request's workflow: its page (the task's route), opened view-only from the customer's list.
+/// GlTranSetIds: the GL transaction sets the step posted (Invoice Upload: charges and claim payments; Treasury Disburse: drawdown,
+/// payment and supplier transfers).</summary>
+public sealed record CrmCompletedStepDto(string? StepCode, string? StepName, string? Route, DateTime? CompletedAt, string? CompletedBy,
+    IReadOnlyList<string>? GlTranSetIds = null);
 
 /// <summary>App 150722 page 751 "Disbursement Request Detail".</summary>
 public sealed record CrmDisbursementRequestDto(
@@ -69,6 +73,12 @@ public sealed class CrmDisbursementRequestService(ICapitraDbContext db, ICurrent
             .ToListAsync(cancellationToken);
         var steps = await CurrentStepsAsync(rows.Where(x => x.d.IsActive).Select(x => Reference(x.d.DisbursementId)), cancellationToken);
         var done = await CompletedStepsAsync(rows.Where(x => x.d.IsActive).Select(x => Reference(x.d.DisbursementId)), cancellationToken);
+        var sets = await StepTranSetsAsync([.. rows.Where(x => x.d.IsActive).Select(x => x.d.DisbursementId)], cancellationToken);
+        foreach (var (reference, list) in done.ToList())
+        {
+            var id = long.Parse(reference[5..], CultureInfo.InvariantCulture);
+            done[reference] = [.. list.Select(x => x with { GlTranSetIds = sets.GetValueOrDefault((id, x.StepCode ?? string.Empty)) ?? [] })];
+        }
         return [.. rows.Select(x => new CrmDisbursementRequestListDto(
             x.d.DisbursementId, x.d.DisbursementNumber, x.d.DisbursementDate, x.ClientName, x.d.GrossAmount, x.d.NetAmount,
             x.d.RepaymentStartDate, x.d.TenorMonth, x.d.DisbursementRef, x.d.DisbursementType, x.d.IsActive,
@@ -97,6 +107,44 @@ public sealed class CrmDisbursementRequestService(ICapitraDbContext db, ICurrent
         return rows.GroupBy(x => x.Reference).ToDictionary(g => g.Key, g => (IReadOnlyList<CrmCompletedStepDto>)[.. g
             .GroupBy(x => x.StepCode ?? x.StepName).Select(x => x.OrderByDescending(y => y.StepInstanceId).First())
             .OrderBy(x => x.StepInstanceId).Select(x => new CrmCompletedStepDto(x.StepCode, x.StepName, x.Route, x.CompletedAt, x.CompletedBy))]);
+    }
+
+    /// <summary>The GL transaction sets one step of a request posted (shown on its view-only page).</summary>
+    public async Task<IReadOnlyList<string>> StepTranSetIdsAsync(long disbursementId, string stepCode, CancellationToken cancellationToken) =>
+        (await StepTranSetsAsync([disbursementId], cancellationToken)).GetValueOrDefault((disbursementId, stepCode.Trim().ToUpperInvariant())) ?? [];
+
+    /// <summary>
+    /// Per disbursement and step code, the GL transaction sets the step posted: INVOICE_UPLOAD the charges posting and the claim
+    /// payments; TREASURY_DISBURSE the funding lines (drawdown, payment) and the reverse factoring supplier transfers.
+    /// </summary>
+    private async Task<Dictionary<(long, string), List<string>>> StepTranSetsAsync(IReadOnlyCollection<long> ids, CancellationToken cancellationToken)
+    {
+        var result = new Dictionary<(long, string), List<string>>();
+        if (ids.Count == 0)
+            return result;
+        void Add(long id, string step, string? set)
+        {
+            if (string.IsNullOrWhiteSpace(set)) return;
+            if (!result.TryGetValue((id, step), out var list)) result[(id, step)] = list = [];
+            if (!list.Contains(set)) list.Add(set);
+        }
+        const string upload = "INVOICE_UPLOAD", treasury = "TREASURY_DISBURSE";
+        foreach (var x in await db.Set<FctDisbursement>().AsNoTracking().Where(x => ids.Contains(x.DisbursementId) && x.GlTranSetId != null)
+                     .Select(x => new { x.DisbursementId, x.GlTranSetId }).ToListAsync(cancellationToken))
+            Add(x.DisbursementId, upload, x.GlTranSetId);
+        foreach (var x in await (from p in db.Set<FctCustomerClaimPayment>().AsNoTracking()
+                                 join c in db.Set<FctCustomerClaim>() on p.ClaimId equals c.ClaimId
+                                 where ids.Contains(c.DisbursementId) && p.GlTranSetId != null
+                                 orderby p.ClaimPaymentId
+                                 select new { c.DisbursementId, p.GlTranSetId }).ToListAsync(cancellationToken))
+            Add(x.DisbursementId, upload, x.GlTranSetId);
+        foreach (var x in await db.Set<TrsDisbursementFunding>().AsNoTracking().Where(x => ids.Contains(x.DisbursementId) && x.GlTranSetId != null)
+                     .OrderBy(x => x.FundingId).Select(x => new { x.DisbursementId, x.GlTranSetId }).ToListAsync(cancellationToken))
+            Add(x.DisbursementId, treasury, x.GlTranSetId);
+        foreach (var x in await db.Set<TrsSupplierTransfer>().AsNoTracking().Where(x => ids.Contains(x.DisbursementId) && x.GlTranSetId != null)
+                     .OrderBy(x => x.TransferId).Select(x => new { x.DisbursementId, x.GlTranSetId }).ToListAsync(cancellationToken))
+            Add(x.DisbursementId, treasury, x.GlTranSetId);
+        return result;
     }
 
     /// <summary>The workflow's business reference of a request, DISB-id.</summary>

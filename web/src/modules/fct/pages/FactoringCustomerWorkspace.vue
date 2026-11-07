@@ -188,7 +188,8 @@
                   <RouterLink v-for="s in d.completedSteps" :key="s.stepCode ?? s.stepName ?? ''" class="fc-done-step"
                               :to="{ name: s.route!, params: { disbursementId: d.disbursementId }, query: { view: '1' } }"
                               :title="`${tr('Open the completed step, view only')}${s.completedBy ? ' · ' + s.completedBy : ''}${s.completedAt ? ' · ' + date(s.completedAt) : ''}`">
-                    <span class="fa fa-check" aria-hidden="true"></span>{{ tr(s.stepName ?? s.stepCode ?? '') }}</RouterLink>
+                    <span class="fa fa-check" aria-hidden="true"></span>{{ tr(s.stepName ?? s.stepCode ?? '') }}
+                    <small v-if="s.glTranSetIds?.length" class="fc-done-gl" :title="tr('GL Tran Set ID')">GL {{ s.glTranSetIds.join(', ') }}</small></RouterLink>
                 </div>
               </td>
               <td><b v-if="d.glTranSetId" class="fc-ref">{{ d.glTranSetId }}</b><span v-else>-</span></td>

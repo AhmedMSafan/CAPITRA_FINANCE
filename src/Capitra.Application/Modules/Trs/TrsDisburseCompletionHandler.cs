@@ -30,5 +30,8 @@ public sealed class TrsDisburseCompletionHandler(ICapitraDbContext db, TrsDisbur
             throw new BusinessRuleException("The workflow is not linked to a disbursement request (business reference DISB-{id}).");
         if (!await disburse.IsExecutedAsync(disbursementId, cancellationToken))
             throw new BusinessRuleException("Execute the source of funds before completing this step.");
+        var open = await disburse.UnconfirmedTransfersAsync(disbursementId, cancellationToken);
+        if (open.Count > 0)
+            throw new BusinessRuleException($"Tick Confirmed for every supplier transfer before completing this step. Not confirmed yet: {string.Join(", ", open)}.");
     }
 }

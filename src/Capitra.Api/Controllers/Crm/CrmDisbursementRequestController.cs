@@ -17,6 +17,12 @@ public sealed class CrmDisbursementRequestController(CrmDisbursementRequestServi
     public Task<FctDisbursementSummaryDto> Summary(long disbursementId, CancellationToken cancellationToken) =>
         summary.GetAsync(disbursementId, cancellationToken);
 
+    /// <summary>The GL transaction sets one workflow step of the request posted (shown on the step's view-only page).</summary>
+    [HttpGet("{disbursementId:long}/steps/{stepCode}/gl-tran-sets")]
+    [HasPermission(Permissions.Crm.View)]
+    public Task<IReadOnlyList<string>> StepTranSets(long disbursementId, string stepCode, CancellationToken cancellationToken) =>
+        service.StepTranSetIdsAsync(disbursementId, stepCode, cancellationToken);
+
     [HttpGet]
     [HasPermission(Permissions.Crm.View)]
     public Task<IReadOnlyList<CrmDisbursementRequestListDto>> List([FromQuery] long? clientId, CancellationToken cancellationToken) =>

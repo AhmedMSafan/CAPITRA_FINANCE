@@ -147,3 +147,34 @@ public sealed class TrsDisbursementFundingConfiguration : IEntityTypeConfigurati
         builder.ConfigureAudit();
     }
 }
+
+public sealed class TrsSupplierTransferConfiguration : IEntityTypeConfiguration<TrsSupplierTransfer>
+{
+    public void Configure(EntityTypeBuilder<TrsSupplierTransfer> builder)
+    {
+        builder.ToTable("TRS_SUPPLIER_TRANSFERS");
+        builder.HasKey(x => x.TransferId);
+        builder.HasIndex(x => new { x.DisbursementId, x.StatusCode });
+
+        builder.Property(x => x.TransferId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.SupplierName).HasMaxLength(300);
+        builder.Property(x => x.TaxNumber).HasMaxLength(50);
+        builder.Property(x => x.SupplierBankName).HasMaxLength(200);
+        builder.Property(x => x.SupplierIban).HasMaxLength(50);
+        builder.Property(x => x.SupplierAccountNo).HasMaxLength(50);
+        builder.Property(x => x.Amount).HasPrecision(18, 3);
+        builder.Property(x => x.CurrencyCode).HasMaxLength(3);
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.Property(x => x.SentBy).HasMaxLength(100);
+        builder.Property(x => x.BankReference).HasMaxLength(100);
+        builder.Property(x => x.ConfirmedBy).HasMaxLength(100);
+        builder.Property(x => x.GlTranSetId).HasMaxLength(40);
+
+        builder.HasOne<FctDisbursement>().WithMany().HasForeignKey(x => x.DisbursementId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<TrsDisbursementFunding>().WithMany().HasForeignKey(x => x.FundingId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<CrmClient>().WithMany().HasForeignKey(x => x.SupplierClientId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<CrmClientBankAccount>().WithMany().HasForeignKey(x => x.SupplierBankAccountId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<TrsBankAccount>().WithMany().HasForeignKey(x => x.PaidFromAccountId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}

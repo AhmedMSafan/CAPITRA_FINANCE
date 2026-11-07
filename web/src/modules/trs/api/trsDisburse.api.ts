@@ -115,6 +115,29 @@ export type TrsDisbursePayment = {
   problem: string | null
 }
 
+/** Reverse factoring: one transfer to a supplier. PLANNED before Execute, SENT by Execute, CONFIRMED when its box is ticked. */
+export type TrsSupplierTransfer = {
+  transferId: number
+  supplierClientId: number | null
+  supplierName: string
+  taxNumber: string | null
+  supplierBankName: string | null
+  supplierIban: string | null
+  supplierAccountNo: string | null
+  amount: number
+  currencyCode: string
+  paidFromAccountRef: string | null
+  paidFromBankName: string | null
+  statusCode: 'PLANNED' | 'SENT' | 'CONFIRMED'
+  sentAt: string | null
+  sentBy: string | null
+  bankReference: string | null
+  confirmedAt: string | null
+  confirmedBy: string | null
+  glTranSetId: string | null
+  problem: string | null
+}
+
 export type TrsDisburse = {
   header: TrsDisburseHeader
   parties: TrsDisburseParty[]
@@ -131,6 +154,8 @@ export type TrsDisburse = {
   executionDate: string | null
   /** Module setting TRS.SUGGEST_ORDER: what Suggest fills first. */
   suggestOrder: 'BANK_FIRST' | 'OWN_FIRST'
+  /** Reverse factoring only: the transfers to the suppliers. */
+  transfers: TrsSupplierTransfer[] | null
 }
 
 export type TrsDisburseForm = { lines: { sublimitId: number | null; amount: number }[]; overrideReason: string | null }
@@ -142,6 +167,8 @@ export const trsDisburseApi = {
   save: (id: number, form: TrsDisburseForm) => http.put<TrsDisburse>(base(id), form),
   approveOverride: (id: number) => http.post<TrsDisburse>(`${base(id)}/approve-override`, {}),
   execute: (id: number) => http.post<TrsDisburse>(`${base(id)}/execute`, {}),
+  confirmTransfers: (id: number, transferIds: number[], bankReference: string | null) =>
+    http.post<TrsDisburse>(`${base(id)}/transfers/confirm`, { transferIds, bankReference }),
   party: (id: number, p: { clientId: number | null; taxNumber: string | null }) =>
     http.get<TrsDisbursePartyDetail>(
       `${base(id)}/party?${p.clientId !== null ? `clientId=${p.clientId}` : `taxNumber=${encodeURIComponent(p.taxNumber ?? '')}`}`)

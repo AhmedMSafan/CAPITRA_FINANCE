@@ -15,6 +15,8 @@ public static class ProductActions
     public const string ChequeBatchSubmit = "CHW_BATCH_SUBMIT";
     public const string ChequeCollection = "CHQ_COLLECTION";
     public const string TreasuryDisburse = "TRS_DISBURSE_EXECUTE";
+    public const string ReverseDrawdown = "TRS_RF_DRAWDOWN";
+    public const string ReverseTransferConfirm = "TRS_RF_TRANSFER_CONFIRM";
 
     public static readonly IReadOnlyList<ProductActionDefinition> All =
     [
@@ -28,6 +30,15 @@ public static class ProductActions
             "Treasury, Treasury Disburse page: Execute. BANK_DRAWDOWN is each bank line (the bank puts it in our account at that bank); "
             + "PAYMENT_AMOUNT is each line, own funds included, paid to the client from that account (the rule's bank-account lines).",
             "TRS", ["BANK_DRAWDOWN", "PAYMENT_AMOUNT"], "3100", "FACTORING"),
+        // reverse factoring has its own rules and accounts (Ahmed, 7 Nov 2026): the drawdown at Execute, each supplier's transfer when the bank confirms it
+        new(ReverseDrawdown, "TREASURY_FUNDING", "Reverse factoring drawdown", "سحب التخصيم العكسي",
+            "Treasury, Treasury Disburse page: Execute of a reverse factoring disbursement. BANK_DRAWDOWN is each bank line: the bank puts it in our "
+            + "account at that bank (the rule's bank-account lines). Own funds post nothing here.",
+            "TRS", ["BANK_DRAWDOWN"], "3100", "REVERSE_FACTORING"),
+        new(ReverseTransferConfirm, "TREASURY_FUNDING", "Reverse factoring supplier transfer", "تحويل مورد التخصيم العكسي",
+            "Treasury, Treasury Disburse page: Confirm transfer. PAYMENT_AMOUNT is the supplier's transfer, paid from our account (the rule's "
+            + "bank-account lines); the buyer owes it at maturity.",
+            "TRS", ["PAYMENT_AMOUNT"], "3100", "REVERSE_FACTORING"),
     ];
 
     public static ProductActionDefinition? Find(string? actionCode) => All.FirstOrDefault(x => x.ActionCode == actionCode);

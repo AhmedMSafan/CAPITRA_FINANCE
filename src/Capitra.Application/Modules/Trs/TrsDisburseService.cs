@@ -8,9 +8,11 @@ using Capitra.Application.Modules.Crm;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Gl;
 using Capitra.Application.Modules.Gl.Journals;
+using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
 using Capitra.Domain.Modules.Trs;
+using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Trs;
@@ -69,7 +71,19 @@ public sealed record TrsDisburseDto(
     TrsDisburseHeaderDto Header, IReadOnlyList<TrsDisbursePartyDto> Parties, IReadOnlyList<TrsDisburseSourceDto> Sources,
     IReadOnlyList<TrsDisburseRuleDto> Rules, bool CanEdit, string? OverrideReason, string? OverrideRequestedBy, string? OverrideApprovedBy,
     bool CanApproveOverride, string? ApproveBlockedReason, IReadOnlyList<TrsDisbursePaymentDto> Payments, string? PaymentStatus,
-    DateOnly? ExecutionDate, string SuggestOrder);
+    DateOnly? ExecutionDate, string SuggestOrder, IReadOnlyList<TrsSupplierTransferDto>? Transfers = null);
+
+/// <summary>
+/// A supplier transfer of a reverse factoring disbursement: PLANNED before Execute (what Execute will send, TransferId 0), then SENT,
+/// then CONFIRMED with its GL transaction set. Problem says why Execute cannot send it yet (no payable bank account).
+/// </summary>
+/// <summary>The transfers ticked as confirmed on Treasury Disburse, with the bank reference of the confirmation (optional).</summary>
+public sealed record TrsConfirmTransfersDto(IReadOnlyList<long>? TransferIds, string? BankReference);
+
+public sealed record TrsSupplierTransferDto(
+    long TransferId, long? SupplierClientId, string SupplierName, string? TaxNumber, string? SupplierBankName, string? SupplierIban,
+    string? SupplierAccountNo, decimal Amount, string CurrencyCode, string? PaidFromAccountRef, string? PaidFromBankName, string StatusCode,
+    DateTime? SentAt, string? SentBy, string? BankReference, DateTime? ConfirmedAt, string? ConfirmedBy, string? GlTranSetId, string? Problem);
 
 /// <summary>One of our bank accounts that can pay a disbursement.</summary>
 public sealed record TrsPayingAccount(long AccountId, long BankId, string BankName, string AccountRef, string AccountNo, string AccountTypeCode,
@@ -126,7 +140,132 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         return new TrsDisburseDto(c.Header, c.Parties, c.Sources, c.Rules, c.Header.FundingStatus != "EXECUTED",
             pending.Select(x => x.OverrideReason).FirstOrDefault(x => x is not null), requestedBy, approvedBy, waiting && blocked is null, blocked,
             payments, c.Disbursement.PaymentStatus, c.Disbursement.ExecutionDate,
-            await moduleSettings.TextAsync(ModuleSettingCatalog.Codes.TrsSuggestOrder, cancellationToken));
+            await moduleSettings.TextAsync(ModuleSettingCatalog.Codes.TrsSuggestOrder, cancellationToken),
+            c.Header.IsReverse ? await TransfersAsync(c, accounts, cancellationToken) : null);
+    }
+
+    // ---------------------------------------------------------------- reverse factoring: supplier transfers
+
+    /// <summary>A supplier's account the money can go to: verified, its waiting period passed, in the currency (primary first).</summary>
+    private sealed record Payee(long BankAccountId, string BankName, string? Iban, string? AccountNo);
+
+    private async Task<Dictionary<long, Payee>> PayeesAsync(IEnumerable<long> clientIds, string currencyCode, CancellationToken cancellationToken)
+    {
+        var ids = clientIds.Distinct().ToList();
+        if (ids.Count == 0) return [];
+        var waitingDays = await moduleSettings.BankAccountWaitingDaysAsync(cancellationToken);
+        var now = clock.UtcNow;
+        var rows = await (from a in db.Set<CrmClientBankAccount>().AsNoTracking()
+                          join cu in db.Set<CrmLkpCurrency>() on a.CurrencyId equals cu.CurrencyId
+                          where ids.Contains(a.ClientId) && a.StatusCode == CrmClientBankAccount.Verified && cu.CurrencyCode == currencyCode
+                          select a).ToListAsync(cancellationToken);
+        return rows.Where(a => a.ChangedAt.AddDays(waitingDays) <= now)
+            .GroupBy(a => a.ClientId)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.IsPrimary).ThenBy(a => a.BankAccountId)
+                .Select(a => new Payee(a.BankAccountId, a.BankName, a.Iban, a.AccountNumber)).First());
+    }
+
+    /// <summary>
+    /// Each line's amount split between the suppliers by their share of the eligible invoices; the last supplier of a line takes the rounding,
+    /// so the transfers of a line add up to it exactly.
+    /// </summary>
+    public static List<(int Line, int Supplier, decimal Amount)> Split(IReadOnlyList<decimal> lines, IReadOnlyList<decimal> weights)
+    {
+        var result = new List<(int, int, decimal)>();
+        var total = weights.Sum();
+        for (var l = 0; l < lines.Count; l++)
+        {
+            var left = lines[l];
+            for (var s = 0; s < weights.Count; s++)
+            {
+                var amount = s == weights.Count - 1 ? left : Math.Round(lines[l] * (total > 0 ? weights[s] / total : 1m / weights.Count), 2);
+                left -= amount;
+                if (amount != 0) result.Add((l, s, amount));
+            }
+        }
+        return result;
+    }
+
+    private async Task<List<TrsSupplierTransferDto>> TransfersAsync(Context c, List<TrsPayingAccount> accounts, CancellationToken cancellationToken)
+    {
+        var saved = await db.Set<TrsSupplierTransfer>().AsNoTracking().Where(x => x.DisbursementId == c.Header.DisbursementId)
+            .OrderBy(x => x.TransferId).ToListAsync(cancellationToken);
+        var allAccounts = await (from a in db.Set<TrsBankAccount>().AsNoTracking()
+                                 join b in db.Set<TrsBank>() on a.BankId equals b.BankId
+                                 select new { a.AccountId, a.AccountRef, b.BankNameEn }).ToListAsync(cancellationToken);
+        if (saved.Count > 0)
+            return [.. saved.Select(t =>
+            {
+                var a = allAccounts.FirstOrDefault(x => x.AccountId == t.PaidFromAccountId);
+                return new TrsSupplierTransferDto(t.TransferId, t.SupplierClientId, t.SupplierName, t.TaxNumber, t.SupplierBankName, t.SupplierIban,
+                    t.SupplierAccountNo, t.Amount, t.CurrencyCode, a?.AccountRef, a?.BankNameEn, t.StatusCode, t.SentAt, t.SentBy, t.BankReference,
+                    t.ConfirmedAt, t.ConfirmedBy, t.GlTranSetId, null);
+            })];
+
+        // before Execute: what it will send, from the saved lines (or one line for the whole net amount when none is saved yet)
+        var sellers = c.Parties.Where(x => x.Role == "SELLER").ToList();
+        var payees = await PayeesAsync(sellers.Where(x => x.ClientId is not null).Select(x => x.ClientId!.Value), c.Header.CurrencyCode, cancellationToken);
+        var lines = c.Fundings.Where(x => x.StatusCode == "RESERVED" && x.FundedAmount != 0).ToList();
+        var amounts = lines.Count > 0 ? lines.Select(x => x.FundedAmount).ToList() : [c.Header.NetAmount];
+        return [.. Split(amounts, [.. sellers.Select(x => x.Weight)]).Select(x =>
+        {
+            var p = sellers[x.Supplier];
+            var payee = p.ClientId is long id ? payees.GetValueOrDefault(id) : null;
+            var from = lines.Count > 0 ? PickAccount(accounts, lines[x.Line].BankId) : null;
+            var problem = payee is not null ? null : p.ClientId is null
+                ? $"Tax no. {p.TaxNumber} is not a customer yet: add it in Customer 360 with its bank account."
+                : $"{p.Name} has no verified {c.Header.CurrencyCode} bank account that can be paid yet (Customer 360).";
+            return new TrsSupplierTransferDto(0, p.ClientId, p.Name, p.TaxNumber, payee?.BankName, payee?.Iban, payee?.AccountNo, x.Amount,
+                c.Header.CurrencyCode, from?.AccountRef, from?.BankName, "PLANNED", null, null, null, null, null, null, problem);
+        })];
+    }
+
+    /// <summary>
+    /// Confirm transfers (reverse factoring): our bank confirmed the transfers ticked on the page. Each one posts the rule linked to the
+    /// action Reverse factoring supplier transfer (DR reverse factoring receivable / CR the paying bank account) under its own GL
+    /// transaction set. All or none: if one posting fails nothing is confirmed. When every transfer is confirmed the payment is EXECUTED.
+    /// </summary>
+    public async Task<TrsDisburseDto> ConfirmTransfersAsync(long disbursementId, IReadOnlyList<long> transferIds, string? bankReference,
+        CancellationToken cancellationToken)
+    {
+        if (transferIds.Count == 0) throw new BusinessRuleException("Tick at least one transfer to confirm.");
+        await using var tx = await db.BeginTransactionAsync(cancellationToken);
+        var transfers = await db.Set<TrsSupplierTransfer>().Where(x => x.DisbursementId == disbursementId && transferIds.Contains(x.TransferId))
+            .OrderBy(x => x.TransferId).ToListAsync(cancellationToken);
+        if (transfers.Count != transferIds.Distinct().Count()) throw new NotFoundException("A ticked transfer was not found on this disbursement.");
+        if (transfers.Any(x => x.StatusCode != TrsSupplierTransfer.Sent)) throw new BusinessRuleException("A ticked transfer is already confirmed. Refresh the page.");
+        var d = await db.Set<FctDisbursement>().SingleAsync(x => x.DisbursementId == disbursementId, cancellationToken);
+        var reference = string.IsNullOrWhiteSpace(bankReference) ? null : bankReference.Trim()[..Math.Min(100, bankReference.Trim().Length)];
+        var now = clock.UtcNow;
+        foreach (var t in transfers)
+        {
+            var account = await db.Set<TrsBankAccount>().AsNoTracking().SingleAsync(x => x.AccountId == t.PaidFromAccountId, cancellationToken);
+            if (string.IsNullOrWhiteSpace(account.ErpAccountCode))
+                throw new BusinessRuleException($"Bank account {account.AccountRef} has no GL account code. Set it in Treasury (setup-bank-gl-accounts.sql).");
+            var doc = new ProductActionDocument("DISBURSEMENT", disbursementId.ToString(CultureInfo.InvariantCulture), d.DisbursementNumber, GlTime.Today(clock),
+                t.CurrencyCode, $"Reverse factoring {d.DisbursementNumber}: transfer to {t.SupplierName}");
+            try
+            {
+                t.GlTranSetId = await posting.PostAsync(ProductActions.ReverseTransferConfirm, doc,
+                    [(account.ErpAccountCode!.Trim(), code => code == "PAYMENT_AMOUNT" ? t.Amount : null)], cancellationToken);
+            }
+            catch (ApexProcessException ex)
+            {
+                throw new BusinessRuleException($"GL posting failed for {t.SupplierName}, nothing was confirmed: {GlPostingApi.CleanMessage(ex.Message)}");
+            }
+            t.StatusCode = TrsSupplierTransfer.Confirmed;
+            t.ConfirmedBy = User;
+            t.ConfirmedAt = now;
+            t.BankReference = reference;
+        }
+        await db.SaveChangesAsync(cancellationToken);
+        if (!await db.Set<TrsSupplierTransfer>().AnyAsync(x => x.DisbursementId == disbursementId && x.StatusCode == TrsSupplierTransfer.Sent, cancellationToken))
+        {
+            d.PaymentStatus = "EXECUTED";
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        await tx.CommitAsync(cancellationToken);
+        return await GetAsync(disbursementId, cancellationToken);
     }
 
     // ---------------------------------------------------------------- paying accounts
@@ -695,6 +834,11 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
     /// </summary>
     private async Task PayAsync(Context c, List<TrsDisbursementFunding> fundings, DateTime now, CancellationToken cancellationToken)
     {
+        if (c.Header.IsReverse)
+        {
+            await SendTransfersAsync(c, fundings, now, cancellationToken);
+            return;
+        }
         var h = c.Header;
         var accounts = await PayingAccountsAsync(h.CurrencyCode, cancellationToken);
         var bankNames = c.Sources.Where(x => x.BankId is not null).GroupBy(x => x.BankId!.Value).ToDictionary(g => g.Key, g => g.First().BankName);
@@ -714,8 +858,10 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         string ts;
         try
         {
+            // the rule the Treasury Disburse step names in the workflow (finova:ruleCode), else the rule linked to the action
             ts = await posting.PostAsync(ProductActions.TreasuryDisburse, doc,
-                PostingParts(paid.Select(x => (x.Funding.SourceTypeCode == "BANK", x.Funding.FundedAmount, x.Account.ErpAccountCode!.Trim()))), cancellationToken);
+                PostingParts(paid.Select(x => (x.Funding.SourceTypeCode == "BANK", x.Funding.FundedAmount, x.Account.ErpAccountCode!.Trim()))), cancellationToken,
+                await StepRuleCodeAsync(h.DisbursementId, cancellationToken));
         }
         catch (ApexProcessException ex)
         {
@@ -728,11 +874,19 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             f.GlTranSetId = ts;
         }
 
-        // the disbursement is paid: the account that pays most is the remitting account
+        await DisbursedAsync(h, paid, "EXECUTED", now, cancellationToken);
+    }
+
+    /// <summary>The disbursement is paid (or, in reverse factoring, its transfers are sent) and its invoices are funded.</summary>
+    private async Task DisbursedAsync(TrsDisburseHeaderDto h, List<(TrsDisbursementFunding Funding, TrsPayingAccount Account)> paid, string paymentStatus,
+        DateTime now, CancellationToken cancellationToken)
+    {
+        var today = GlTime.Today(clock);
+        // the account that pays most is the remitting account
         var d = await db.Set<FctDisbursement>().SingleAsync(x => x.DisbursementId == h.DisbursementId, cancellationToken);
         var main = paid.OrderByDescending(x => x.Funding.FundedAmount).Select(x => x.Account).FirstOrDefault();
         d.StatusCode = "DISBURSED";
-        d.PaymentStatus = "EXECUTED";
+        d.PaymentStatus = paymentStatus;
         d.ValueDate ??= today;
         d.ExecutionDate = today;
         d.ExecutionTimeAt = now;
@@ -757,7 +911,94 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         }
     }
 
+    /// <summary>
+    /// Execute in reverse factoring (agreed with Ahmed, 7 Nov 2026): the bank lines' drawdown is posted with the reverse factoring rule
+    /// (DR our account at the bank / CR bank borrowings); each line is then sent to the suppliers by their share, one SENT transfer per
+    /// supplier and line, to the supplier's payable bank account. The payment to the suppliers is posted when each transfer is confirmed.
+    /// </summary>
+    private async Task SendTransfersAsync(Context c, List<TrsDisbursementFunding> fundings, DateTime now, CancellationToken cancellationToken)
+    {
+        var h = c.Header;
+        var accounts = await PayingAccountsAsync(h.CurrencyCode, cancellationToken);
+        var bankNames = c.Sources.Where(x => x.BankId is not null).GroupBy(x => x.BankId!.Value).ToDictionary(g => g.Key, g => g.First().BankName);
+        var paid = new List<(TrsDisbursementFunding Funding, TrsPayingAccount Account)>();
+        foreach (var f in fundings.Where(x => x.FundedAmount != 0))
+        {
+            var a = PickAccount(accounts, f.BankId)
+                ?? throw new BusinessRuleException(NoAccountMessage(f.BankId is long b && bankNames.TryGetValue(b, out var n) ? n : null, h.CurrencyCode));
+            if (string.IsNullOrWhiteSpace(a.ErpAccountCode))
+                throw new BusinessRuleException($"Bank account {a.AccountRef} has no GL account code. Set it in Treasury (setup-bank-gl-accounts.sql).");
+            paid.Add((f, a));
+        }
+
+        // every supplier needs an account the money can go to
+        var sellers = c.Parties.Where(x => x.Role == "SELLER").ToList();
+        var payees = await PayeesAsync(sellers.Where(x => x.ClientId is not null).Select(x => x.ClientId!.Value), h.CurrencyCode, cancellationToken);
+        var missing = sellers.Where(x => x.ClientId is not long id || !payees.ContainsKey(id)).Select(x => x.Name).ToList();
+        if (missing.Count > 0)
+            throw new BusinessRuleException($"No verified {h.CurrencyCode} bank account that can be paid for: {string.Join(", ", missing)}. "
+                + "Add and verify it in Customer 360, then Execute again.");
+
+        string? ts = null;
+        var bankLines = paid.Where(x => x.Funding.SourceTypeCode == "BANK").ToList();
+        if (bankLines.Count > 0)
+        {
+            var doc = new ProductActionDocument("DISBURSEMENT", h.DisbursementId.ToString(CultureInfo.InvariantCulture), h.DisbursementNumber,
+                GlTime.Today(clock), h.CurrencyCode, $"Reverse factoring drawdown {h.DisbursementNumber} for {h.ClientName}");
+            try
+            {
+                ts = await posting.PostAsync(ProductActions.ReverseDrawdown, doc,
+                    [.. bankLines.Select(x => ((string?)x.Account.ErpAccountCode!.Trim(),
+                        (Func<string, decimal?>)(code => code == "BANK_DRAWDOWN" ? x.Funding.FundedAmount : null)))], cancellationToken);
+            }
+            catch (ApexProcessException ex)
+            {
+                throw new BusinessRuleException($"GL posting failed, nothing was executed: {GlPostingApi.CleanMessage(ex.Message)}");
+            }
+        }
+        foreach (var (f, a) in paid)
+        {
+            f.PaidFromAccountId = a.AccountId;
+            f.GlTranSetId = f.SourceTypeCode == "BANK" ? ts : null;
+        }
+
+        foreach (var x in Split([.. paid.Select(p => p.Funding.FundedAmount)], [.. sellers.Select(p => p.Weight)]))
+        {
+            var (f, a) = paid[x.Line];
+            var p = sellers[x.Supplier];
+            var payee = payees[p.ClientId!.Value];
+            db.Set<TrsSupplierTransfer>().Add(new TrsSupplierTransfer
+            {
+                DisbursementId = h.DisbursementId, FundingId = f.FundingId, SupplierClientId = p.ClientId, SupplierName = p.Name, TaxNumber = p.TaxNumber,
+                SupplierBankAccountId = payee.BankAccountId, SupplierBankName = payee.BankName, SupplierIban = payee.Iban, SupplierAccountNo = payee.AccountNo,
+                PaidFromAccountId = a.AccountId, Amount = x.Amount, CurrencyCode = h.CurrencyCode, StatusCode = TrsSupplierTransfer.Sent,
+                SentBy = User, SentAt = now,
+            });
+        }
+        await DisbursedAsync(h, paid, "SENT", now, cancellationToken);
+    }
+
+    /// <summary>The product event rule the Treasury Disburse step of the request's workflow names (finova:ruleCode), null when none.</summary>
+    private async Task<string?> StepRuleCodeAsync(long disbursementId, CancellationToken cancellationToken)
+    {
+        var reference = $"DISB-{disbursementId.ToString(CultureInfo.InvariantCulture)}";
+        var xml = await (from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
+                         join w in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals w.WorkflowDefinitionId
+                         where w.WorkflowCode == CrmDisbursementProcessService.WorkflowCode && i.BusinessReference == reference
+                         orderby i.WorkflowInstanceId descending
+                         select w.BpmnXml).FirstOrDefaultAsync(cancellationToken)
+            ?? await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.WorkflowCode == CrmDisbursementProcessService.WorkflowCode)
+                .Select(x => x.BpmnXml).FirstOrDefaultAsync(cancellationToken);
+        var code = xml is null ? null : BpmnModel.StepByCode(xml, TrsDisburseCompletionHandler.TreasuryDisburseStep)?.RuleCode?.Trim();
+        return string.IsNullOrEmpty(code) ? null : code;
+    }
+
     /// <summary>True when the disbursement's source of funds is executed (the Treasury Disburse step may be completed).</summary>
     public Task<bool> IsExecutedAsync(long disbursementId, CancellationToken cancellationToken) =>
         db.Set<TrsDisbursementFunding>().AnyAsync(x => x.DisbursementId == disbursementId && x.StatusCode == "EXECUTED", cancellationToken);
+
+    /// <summary>The suppliers whose transfer is sent but not confirmed yet (reverse factoring: the step waits for all of them).</summary>
+    public Task<List<string>> UnconfirmedTransfersAsync(long disbursementId, CancellationToken cancellationToken) =>
+        db.Set<TrsSupplierTransfer>().AsNoTracking().Where(x => x.DisbursementId == disbursementId && x.StatusCode == TrsSupplierTransfer.Sent)
+            .OrderBy(x => x.TransferId).Select(x => x.SupplierName).ToListAsync(cancellationToken);
 }
