@@ -38418,6 +38418,152 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("TRS_SUBLIMIT_SCOPES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsSupplierTransfer", b =>
+                {
+                    b.Property<long>("TransferId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("TRANSFER_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("TransferId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("AMOUNT");
+
+                    b.Property<string>("BankReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BANK_REFERENCE");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CONFIRMED_AT");
+
+                    b.Property<string>("ConfirmedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CONFIRMED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<long>("DisbursementId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DISBURSEMENT_ID");
+
+                    b.Property<long>("FundingId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FUNDING_ID");
+
+                    b.Property<string>("GlTranSetId")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("GL_TRAN_SET_ID");
+
+                    b.Property<long>("PaidFromAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PAID_FROM_ACCOUNT_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SENT_AT");
+
+                    b.Property<string>("SentBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("SENT_BY");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<string>("SupplierAccountNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("SUPPLIER_ACCOUNT_NO");
+
+                    b.Property<long?>("SupplierBankAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUPPLIER_BANK_ACCOUNT_ID");
+
+                    b.Property<string>("SupplierBankName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("SUPPLIER_BANK_NAME");
+
+                    b.Property<long?>("SupplierClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUPPLIER_CLIENT_ID");
+
+                    b.Property<string>("SupplierIban")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("SUPPLIER_IBAN");
+
+                    b.Property<string>("SupplierName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("SUPPLIER_NAME");
+
+                    b.Property<string>("TaxNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("TAX_NUMBER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("TransferId")
+                        .HasName("PK_TRS_SUPPLIER_TRANSFERS");
+
+                    b.HasIndex("FundingId")
+                        .HasDatabaseName("IX_TRS_SUPPLIER_TRANSFERS_FUNDING_ID");
+
+                    b.HasIndex("PaidFromAccountId")
+                        .HasDatabaseName("IX_TRS_SUPPLIER_TRANSFERS_PAID_FROM_ACCOUNT_ID");
+
+                    b.HasIndex("SupplierBankAccountId")
+                        .HasDatabaseName("IX_TRS_SUPPLIER_TRANSFERS_SUPPLIER_BANK_ACCOUNT_ID");
+
+                    b.HasIndex("SupplierClientId")
+                        .HasDatabaseName("IX_TRS_SUPPLIER_TRANSFERS_SUPPLIER_CLIENT_ID");
+
+                    b.HasIndex("DisbursementId", "StatusCode")
+                        .HasDatabaseName("IX_TRS_SUPPLIER_TRANSFERS_DISBURSEMENT_ID_STATUS_CODE");
+
+                    b.ToTable("TRS_SUPPLIER_TRANSFERS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInboxItem", b =>
                 {
                     b.Property<long>("InboxItemId")
@@ -44648,6 +44794,42 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_TRS_SUBLIMIT_SCOPES_TRS_FACILITY_SUBLIMITS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Trs.TrsSupplierTransfer", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Fct.FctDisbursement", null)
+                        .WithMany()
+                        .HasForeignKey("DisbursementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_SUPPLIER_TRANSFERS_FCT_DISBURSEMENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsDisbursementFunding", null)
+                        .WithMany()
+                        .HasForeignKey("FundingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_SUPPLIER_TRANSFERS_TRS_DISBURSEMENT_FUNDINGS");
+
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsBankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("PaidFromAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_TRS_SUPPLIER_TRANSFERS_TRS_BANK_ACCOUNTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClientBankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("SupplierBankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_SUPPLIER_TRANSFERS_CRM_CLIENT_BANK_ACCOUNTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("SupplierClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_TRS_SUPPLIER_TRANSFERS_CRM_CLIENTS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInboxItem", b =>
