@@ -235,3 +235,10 @@
 .fc-act-head p{margin:0;color:var(--fin-muted);font-size:var(--fs-sm)}
 .fc-act-ic{display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:50%;background:var(--fin-teal-50);color:var(--fin-teal-600);font-size:18px}
 .fc-act-ic.is-bad{background:var(--fin-bad-50);color:var(--fin-bad)}
+
+/* Disbursements tab: the completed workflow steps, each opens its page view-only */
+.fc-done-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.fc-done-step { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 999px; border: 1px solid var(--fin-teal-600);
+  color: var(--fin-teal-700); background: #fff; font-size: var(--fs-xs, 12px); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.fc-done-step .fa { color: var(--fin-teal-600); font-size: 10px; }
+.fc-done-step:hover { background: var(--fin-teal-50); }

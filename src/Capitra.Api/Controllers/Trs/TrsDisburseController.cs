@@ -1,4 +1,5 @@
 using Capitra.Api.Security;
+using Capitra.Application.Modules.Fct;
 using Capitra.Application.Modules.Trs;
 using Capitra.Application.Security;
 using Microsoft.AspNetCore.Mvc;
@@ -8,8 +9,14 @@ namespace Capitra.Api.Controllers.Trs;
 /// <summary>Treasury Disburse: choose, reserve and execute the source of funds of a disbursement, checked against limits and bank rules.</summary>
 [ApiController]
 [Route("api/trs/disbursements/{disbursementId:long}/funding")]
-public sealed class TrsDisburseController(TrsDisburseService service) : ControllerBase
+public sealed class TrsDisburseController(TrsDisburseService service, FctDisbursementSummaryService summary) : ControllerBase
 {
+    /// <summary>The invoice summary of the disbursement (the same one the disbursement request shows).</summary>
+    [HttpGet("summary")]
+    [HasPermission(Permissions.Trs.View)]
+    public Task<FctDisbursementSummaryDto> Summary(long disbursementId, CancellationToken cancellationToken) =>
+        summary.GetAsync(disbursementId, cancellationToken);
+
     [HttpGet]
     [HasPermission(Permissions.Trs.View)]
     public Task<TrsDisburseDto> Get(long disbursementId, CancellationToken cancellationToken) => service.GetAsync(disbursementId, cancellationToken);

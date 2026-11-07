@@ -181,7 +181,16 @@
               <td>{{ d.currencyCode || '-' }}</td>
               <td class="fx-r">{{ amount(d.grossAmount) }}</td>
               <td><span class="fx-chip" :class="d.workflowStarted ? 'fx-chip--teal' : 'fx-chip--warn'">{{ tr(d.workflowStarted ? 'WF Started' : 'Workflow Not Started') }}</span></td>
-              <td>{{ d.workflowStepName || '-' }}</td>
+              <td>
+                <span>{{ d.workflowStepName || (d.completedSteps?.length ? tr('Workflow completed') : '-') }}</span>
+                <!-- each completed step opens its page view-only (Ahmed, 7 Nov 2026) -->
+                <div v-if="d.completedSteps?.length" class="fc-done-steps">
+                  <RouterLink v-for="s in d.completedSteps" :key="s.stepCode ?? s.stepName ?? ''" class="fc-done-step"
+                              :to="{ name: s.route!, params: { disbursementId: d.disbursementId }, query: { view: '1' } }"
+                              :title="`${tr('Open the completed step, view only')}${s.completedBy ? ' · ' + s.completedBy : ''}${s.completedAt ? ' · ' + date(s.completedAt) : ''}`">
+                    <span class="fa fa-check" aria-hidden="true"></span>{{ tr(s.stepName ?? s.stepCode ?? '') }}</RouterLink>
+                </div>
+              </td>
               <td><b v-if="d.glTranSetId" class="fc-ref">{{ d.glTranSetId }}</b><span v-else>-</span></td>
               <td class="fx-r">
                 <div class="fc-row-actions">

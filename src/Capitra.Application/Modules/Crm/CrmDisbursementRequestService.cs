@@ -17,7 +17,11 @@ namespace Capitra.Application.Modules.Crm;
 public sealed record CrmDisbursementRequestListDto(
     long DisbursementId, string DisbursementNumber, DateOnly DisbursementDate, string? ClientName, decimal GrossAmount, decimal? NetAmount,
     DateOnly? RepaymentStartDate, int? TenorMonth, string? DisbursementRef, string? DisbursementType, bool WorkflowStarted,
-    long? LimitId, string? LimitNumber, string? CurrencyCode, string? WorkflowStepName, string? GlTranSetId);
+    long? LimitId, string? LimitNumber, string? CurrencyCode, string? WorkflowStepName, string? GlTranSetId,
+    IReadOnlyList<CrmCompletedStepDto>? CompletedSteps = null);
+
+/// <summary>A completed human step of the request's workflow: its page (the task's route), opened view-only from the customer's list.</summary>
+public sealed record CrmCompletedStepDto(string? StepCode, string? StepName, string? Route, DateTime? CompletedAt, string? CompletedBy);
 
 /// <summary>App 150722 page 751 "Disbursement Request Detail".</summary>
 public sealed record CrmDisbursementRequestDto(
@@ -64,10 +68,35 @@ public sealed class CrmDisbursementRequestService(ICapitraDbContext db, ICurrent
                 CurrencyCode = cu != null ? cu.CurrencyCode : null })
             .ToListAsync(cancellationToken);
         var steps = await CurrentStepsAsync(rows.Where(x => x.d.IsActive).Select(x => Reference(x.d.DisbursementId)), cancellationToken);
+        var done = await CompletedStepsAsync(rows.Where(x => x.d.IsActive).Select(x => Reference(x.d.DisbursementId)), cancellationToken);
         return [.. rows.Select(x => new CrmDisbursementRequestListDto(
             x.d.DisbursementId, x.d.DisbursementNumber, x.d.DisbursementDate, x.ClientName, x.d.GrossAmount, x.d.NetAmount,
             x.d.RepaymentStartDate, x.d.TenorMonth, x.d.DisbursementRef, x.d.DisbursementType, x.d.IsActive,
-            x.d.LimitId, x.LimitNumber, x.CurrencyCode, steps.GetValueOrDefault(Reference(x.d.DisbursementId)), x.d.GlTranSetId))];
+            x.d.LimitId, x.LimitNumber, x.CurrencyCode, steps.GetValueOrDefault(Reference(x.d.DisbursementId)), x.d.GlTranSetId,
+            done.GetValueOrDefault(Reference(x.d.DisbursementId)) ?? []))];
+    }
+
+    /// <summary>Per business reference, the completed human steps of its DISBURSEMENT_REQUEST_WF instances that have a page, in order.</summary>
+    private async Task<Dictionary<string, IReadOnlyList<CrmCompletedStepDto>>> CompletedStepsAsync(IEnumerable<string> references,
+        CancellationToken cancellationToken)
+    {
+        var refs = references.Distinct().ToList();
+        if (refs.Count == 0)
+            return [];
+
+        var rows = await (
+            from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
+            join w in db.Set<WfeWorkflowDefinition>().AsNoTracking() on i.WorkflowDefinitionId equals w.WorkflowDefinitionId
+            join s in db.Set<WfeStepInstance>().AsNoTracking() on i.WorkflowInstanceId equals s.WorkflowInstanceId
+            join t in db.Set<WfeTask>().AsNoTracking() on s.StepInstanceId equals t.StepInstanceId
+            where w.WorkflowCode == WorkflowCode && i.BusinessReference != null && refs.Contains(i.BusinessReference)
+                  && s.StepStatus == WfeRuntime.Completed && t.Route != null
+            select new { Reference = i.BusinessReference!, s.StepInstanceId, s.StepCode, s.StepName, t.Route, s.CompletedAt, s.CompletedBy })
+            .ToListAsync(cancellationToken);
+        // a step done twice (returned and done again) shows once, at its last completion
+        return rows.GroupBy(x => x.Reference).ToDictionary(g => g.Key, g => (IReadOnlyList<CrmCompletedStepDto>)[.. g
+            .GroupBy(x => x.StepCode ?? x.StepName).Select(x => x.OrderByDescending(y => y.StepInstanceId).First())
+            .OrderBy(x => x.StepInstanceId).Select(x => new CrmCompletedStepDto(x.StepCode, x.StepName, x.Route, x.CompletedAt, x.CompletedBy))]);
     }
 
     /// <summary>The workflow's business reference of a request, DISB-id.</summary>

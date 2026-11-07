@@ -22,6 +22,8 @@ export type DisbursementRequestRow = {
   workflowStepName: string | null
   /** FCT_DISBURSEMENTS.GL_TRAN_SET_ID: the charges' GL posting of Complete on Invoice Upload */
   glTranSetId: string | null
+  /** the completed steps with a page, in order: each opens its page view-only */
+  completedSteps: { stepCode: string | null; stepName: string | null; route: string | null; completedAt: string | null; completedBy: string | null }[]
 }
 
 /** Page 751 form */

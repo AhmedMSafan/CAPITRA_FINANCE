@@ -13,9 +13,11 @@
       </div>
       <div class="col-actions">
         <RouterLink class="fx-btn" :to="back"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Factoring Workspace') }}</RouterLink>
-        <FctStepActions :save="saveForStep" :disabled="busy" :complete-note="completeNote" />
+        <FctDisbursementSummary :disbursement-id="props.disbursementId" from="crm" />
+        <FctStepActions v-if="!viewOnly" :save="saveForStep" :disabled="busy" :complete-note="completeNote" />
       </div>
     </div>
+    <FctViewOnlyNote v-if="viewOnly" />
 
     <!-- the Cycle region -->
     <div class="ie-cycle" :aria-label="tr('Cycle')">
@@ -591,6 +593,9 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatAmount, formatPct } from '@/shared/format/money'
 import { formatDate } from '@/shared/format/datetime'
 import { fieldErrors, messageOf } from '@/modules/collection/pages/collection'
+import FctDisbursementSummary from '@/modules/fct/components/FctDisbursementSummary.vue'
+import FctViewOnlyNote from '@/modules/fct/components/FctViewOnlyNote.vue'
+import { useViewOnly } from '@/modules/fct/components/viewOnly'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
 import {
   disbursementClaimApi, invoiceEntryApi, processApi, type ChequeRow, type DisbursementClaim, type DisbursementResult, type DisbursementTerms, type InvoiceBatch, type InvoiceEntry,
@@ -631,7 +636,8 @@ const wholeMonths = (v: unknown) => { const n = num(v); return n == null || Numb
 const paymentMethods = ['CHEQUE', 'TRANSFER', 'INTERNAL']
 
 const canEdit = hasPermission('CRM.EDIT')
-const readOnly = computed(() => !canEdit)
+const viewOnly = useViewOnly()
+const readOnly = computed(() => !canEdit || viewOnly.value)
 // reverse factoring (agreed with Ahmed, 31 Oct 2026): the rates are the agreement's; the repayment terms are entered (2 Nov 2026)
 const isReverse = computed(() => terms.productId != null && options.reverseProductIds.includes(terms.productId))
 const locked = computed(() => readOnly.value || isReverse.value)

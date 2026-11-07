@@ -15,12 +15,14 @@
         <p class="trs-lead">{{ tr('Choose which money pays this disbursement. Every choice is checked against the limits and the bank rules.') }}</p>
       </div>
       <div class="fx-actions">
+        <FctDisbursementSummary v-if="id > 0" :disbursement-id="id" from="trs" />
         <button type="button" class="fx-btn" @click="openManual(6)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button type="button" class="fx-btn" :disabled="loading || busy" @click="load"><span class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'" aria-hidden="true"></span>{{ tr('Refresh') }}</button>
-        <FctStepActions :save="saveForStep" :disabled="busy || loading" :complete-note="completeNote" />
+        <FctStepActions v-if="!viewOnly" :save="saveForStep" :disabled="busy || loading" :complete-note="completeNote" />
       </div>
     </div>
 
+    <FctViewOnlyNote v-if="viewOnly" />
     <div v-if="data" class="trs-kpis">
       <div class="fx-card trs-kpi"><span class="trs-k">{{ tr('Net amount to fund') }}</span><b>{{ formatAmount(net) }}</b><small>{{ data.header.currencyCode }}</small></div>
       <div class="fx-card trs-kpi"><span class="trs-k">{{ tr('Covered') }}</span><b>{{ formatAmount(total) }}</b>
@@ -144,7 +146,7 @@
         <div class="trs-side-actions">
           <button v-if="editable" type="button" class="fx-btn" :disabled="busy" @click="saveLines()">
             <span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save and reserve') }}</button>
-          <button v-if="canVerify && data.canApproveOverride && !dirty" type="button" class="fx-btn" :disabled="busy" @click="approve">
+          <button v-if="canVerify && data.canApproveOverride && !dirty && !viewOnly" type="button" class="fx-btn" :disabled="busy" @click="approve">
             <span class="fa fa-check" aria-hidden="true"></span>{{ tr('Approve override') }}</button>
           <button v-if="editable" type="button" class="fx-btn fx-btn--teal" :disabled="busy || !canExecute" :title="executeHint" @click="execute">
             <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-bolt'" aria-hidden="true"></span>{{ tr('Execute') }}</button>
@@ -171,6 +173,9 @@ import { formatDate } from '@/shared/format/datetime'
 import { formatAmount } from '@/shared/format/money'
 import { tr } from '@/shared/layout/language'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
+import FctDisbursementSummary from '@/modules/fct/components/FctDisbursementSummary.vue'
+import FctViewOnlyNote from '@/modules/fct/components/FctViewOnlyNote.vue'
+import { useViewOnly } from '@/modules/fct/components/viewOnly'
 import TrsPartyDialog from '../components/TrsPartyDialog.vue'
 import { trsDisburseApi, type TrsDisburse, type TrsDisburseParty, type TrsDisburseRule, type TrsDisburseSource } from '../api/trsDisburse.api'
 import { label, openManual, pct, save } from '../components/trs'
@@ -193,7 +198,8 @@ const amt = (key: string) => Number(amounts[key]) || 0
 const total = computed(() => sources.value.reduce((t, s) => t + amt(s.sourceKey), 0))
 const remaining = computed(() => net.value - total.value)
 const executed = computed(() => data.value?.header.fundingStatus === 'EXECUTED')
-const editable = computed(() => canEdit && !!data.value?.canEdit)
+const viewOnly = useViewOnly()
+const editable = computed(() => canEdit && !!data.value?.canEdit && !viewOnly.value)
 
 type TreeRow =
   | { kind: 'BANK' | 'FACILITY' | 'TRANCHE'; key: string; label: string; count: number; usable: number; chosen: number }
