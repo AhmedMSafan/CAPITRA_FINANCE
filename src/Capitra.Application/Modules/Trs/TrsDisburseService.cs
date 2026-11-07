@@ -8,9 +8,11 @@ using Capitra.Application.Modules.Crm;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Gl;
 using Capitra.Application.Modules.Gl.Journals;
+using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
 using Capitra.Domain.Modules.Trs;
+using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Trs;
@@ -856,8 +858,10 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         string ts;
         try
         {
+            // the rule the Treasury Disburse step names in the workflow (finova:ruleCode), else the rule linked to the action
             ts = await posting.PostAsync(ProductActions.TreasuryDisburse, doc,
-                PostingParts(paid.Select(x => (x.Funding.SourceTypeCode == "BANK", x.Funding.FundedAmount, x.Account.ErpAccountCode!.Trim()))), cancellationToken);
+                PostingParts(paid.Select(x => (x.Funding.SourceTypeCode == "BANK", x.Funding.FundedAmount, x.Account.ErpAccountCode!.Trim()))), cancellationToken,
+                await StepRuleCodeAsync(h.DisbursementId, cancellationToken));
         }
         catch (ApexProcessException ex)
         {
@@ -972,6 +976,21 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             });
         }
         await DisbursedAsync(h, paid, "SENT", now, cancellationToken);
+    }
+
+    /// <summary>The product event rule the Treasury Disburse step of the request's workflow names (finova:ruleCode), null when none.</summary>
+    private async Task<string?> StepRuleCodeAsync(long disbursementId, CancellationToken cancellationToken)
+    {
+        var reference = $"DISB-{disbursementId.ToString(CultureInfo.InvariantCulture)}";
+        var xml = await (from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
+                         join w in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals w.WorkflowDefinitionId
+                         where w.WorkflowCode == CrmDisbursementProcessService.WorkflowCode && i.BusinessReference == reference
+                         orderby i.WorkflowInstanceId descending
+                         select w.BpmnXml).FirstOrDefaultAsync(cancellationToken)
+            ?? await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.WorkflowCode == CrmDisbursementProcessService.WorkflowCode)
+                .Select(x => x.BpmnXml).FirstOrDefaultAsync(cancellationToken);
+        var code = xml is null ? null : BpmnModel.StepByCode(xml, TrsDisburseCompletionHandler.TreasuryDisburseStep)?.RuleCode?.Trim();
+        return string.IsNullOrEmpty(code) ? null : code;
     }
 
     /// <summary>True when the disbursement's source of funds is executed (the Treasury Disburse step may be completed).</summary>

@@ -30,12 +30,22 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
 
     /// <summary>
     /// The same with the rule's lines filled once per part, each with its own bank account for the rule's bank-account lines
-    /// (e.g. the collected cheques of each deposit bank account), all under one transaction set ID.
+    /// (e.g. the collected cheques of each deposit bank account), all under one transaction set ID. ruleCode: the rule a workflow step
+    /// names (finova:ruleCode) on the action's product, used instead of the rule linked to the action.
     /// </summary>
     public async Task<string> PostAsync(
-        string actionCode, ProductActionDocument doc, IReadOnlyList<(string? BankAccount, Func<string, decimal?> AmountOf)> parts, CancellationToken ct)
+        string actionCode, ProductActionDocument doc, IReadOnlyList<(string? BankAccount, Func<string, decimal?> AmountOf)> parts, CancellationToken ct,
+        string? ruleCode = null)
     {
         var def = ProductActions.Find(actionCode) ?? throw new InvalidOperationException($"Unknown product action {actionCode}.");
+        var plan = string.IsNullOrWhiteSpace(ruleCode) ? await LinkedPlanAsync(def, doc, ct)
+            : await rules.PlanByCodeAsync(def.ProductCode, ruleCode.Trim(), doc.Date, ct)
+              ?? throw Fail(-20984, $"The workflow step names rule {ruleCode.Trim()}, which is not an active rule of product {def.ProductCode} on {D(doc.Date)}.");
+        return await PostPlanAsync(def, plan, doc, parts, ct);
+    }
+
+    private async Task<ProductEventPlan> LinkedPlanAsync(ProductActionDefinition def, ProductActionDocument doc, CancellationToken ct)
+    {
         var link = await (from a in db.Set<AdmProductAction>().AsNoTracking()
                           join p in db.Set<AdmProduct>() on a.ProductId equals p.ProductId
                           where a.ActionCode == def.ActionCode
@@ -43,8 +53,13 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
         if (link?.ProductEventRuleId is not { } ruleId || !link.IsActive)
             throw Fail(-20983, $"No product rule is linked to the action \"{def.ActionNameEn}\". Link one in Admin Setup > Product Catalog > {def.ProductCode} > Actions.");
 
-        var plan = await rules.PlanOfRuleAsync(ruleId, doc.Date, ct)
+        return await rules.PlanOfRuleAsync(ruleId, doc.Date, ct)
             ?? throw Fail(-20984, $"The rule linked to \"{def.ActionNameEn}\" on product {link.ProductCode} is inactive or not in effect on {D(doc.Date)}.");
+    }
+
+    private async Task<string> PostPlanAsync(ProductActionDefinition def, ProductEventPlan plan, ProductActionDocument doc,
+        IReadOnlyList<(string? BankAccount, Func<string, decimal?> AmountOf)> parts, CancellationToken ct)
+    {
         if (plan.Charges.Count > 0)
             throw Fail(-20985, $"Rule {plan.RuleCode} has charge components; the action \"{def.ActionNameEn}\" posts only the rule's own GL entries.");
         var unknown = plan.Lines.Select(x => x.AmountCode).Where(x => !def.AmountCodes.Contains(x)).Distinct().ToList();
