@@ -209,7 +209,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">User manual · Treasury module</div>
       <h1>Bank limits and source of funds</h1>
       <p class="lede">How much bank money Capitra can use today, on what conditions, and which money pays each disbursement. Written for Treasury, Finance and Credit staff, and the checkers who verify their work.</p>
-      <div class="meta"><span><b>Version</b>1.5</span><span><b>Date</b>7 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Bank rules · Step 2 Treasury Disburse · Payment and GL</span></div>
+      <div class="meta"><span><b>Version</b>1.6</span><span><b>Date</b>7 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Bank rules · Step 2 Treasury Disburse · Payment and GL</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -439,6 +439,17 @@ figcaption b{color:var(--teal-ink)}
       <li><b>Bank accounts</b>: every account of the supplier. <span class="pill ok">Can be paid</span> means verified and the waiting days have passed.</li>
     </ul>
     <figure><img src="img/6b-supplier-popup.jpg" alt="The supplier popup with bills, amount to receive and bank account" loading="lazy"><figcaption><b>Figure 6b.</b> A supplier in reverse factoring: what it receives, where it is paid, and the bills behind it.</figcaption></figure>
+    <h3>Invoice summary</h3>
+    <p class="prose">Press <b>Invoice summary</b> at the top of Treasury Disburse, the Disbursement Request or Invoice Upload. It shows, read only:</p>
+    <ul class="b">
+      <li><b>Four boxes</b>: invoices received, minus not eligible, equals eligible, and the <b>value we finance</b> after the advance rate (for example 88% of the eligible amount). The disbursement net amount is shown under them, with any difference.</li>
+      <li><b>Eligible bills by supplier</b> (by debtor in factoring): one line per supplier with its number of bills and totals; click it to show or hide its bills. The last line is the total eligible.</li>
+      <li><b>Not eligible</b>: each invoice left out, with its reason and the total.</li>
+    </ul>
+    <figure><img src="img/6c-invoice-summary.jpg" alt="The invoice summary popup" loading="lazy"><figcaption><b>Figure 6c.</b> Invoice summary: from invoices received to the value we finance, then the eligible bills by supplier.</figcaption></figure>
+    <h3>Completed steps, view only</h3>
+    <p class="prose">In the Factoring Customer Workspace, the <b>Disbursements</b> tab shows the open step and, under it, a button for each <b>completed step</b> (Initiation, Invoice Upload, Treasury Disburse). The button opens that step's page in <b>view-only</b> mode: a teal strip says so, every field is locked and the step's buttons are hidden.</p>
+    <figure><img src="img/6d-completed-steps.jpg" alt="Completed step buttons on the Disbursements tab" loading="lazy"><figcaption><b>Figure 6d.</b> The completed steps of each disbursement; each one opens view only.</figcaption></figure>
     <div class="shots">
       <figure><img src="img/7-disburse-override.jpg" alt="A line that needs an override, with the reason box" loading="lazy"><figcaption><b>Figure 7.</b> A line above an override rule turns orange. Enter the reason and press Save and reserve.</figcaption></figure>
       <figure><img src="img/8-disburse-approve.jpg" alt="A checker sees Approve override" loading="lazy"><figcaption><b>Figure 8.</b> A second user with TRS.VERIFY opens the same page and presses Approve override.</figcaption></figure>
@@ -553,7 +564,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Tenor</td><td>Days from the invoice date to its due date</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · Treasury User Manual · v1.5 · November 2026</p>
+  <p class="foot">CAPITRA · Treasury User Manual · v1.6 · November 2026</p>
   </main>
 </div>
 </div>
@@ -567,7 +578,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">دليل المستخدم · وحدة الخزينة</div>
       <h1>حدود البنوك ومصدر التمويل</h1>
       <p class="lede">كم من أموال البنوك يمكن لـ CAPITRA استخدامه اليوم، وبأي شروط، ومن أي مصدر تُموَّل كل عملية صرف. لموظفي الخزينة والمالية والائتمان، وللمراجعين الذين يعتمدون أعمالهم.</p>
-      <div class="meta"><span><b>الإصدار</b>١٫٥</span><span><b>التاريخ</b>٧ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · شروط البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
+      <div class="meta"><span><b>الإصدار</b>١٫٦</span><span><b>التاريخ</b>٧ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · شروط البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -797,6 +808,17 @@ figcaption b{color:var(--teal-ink)}
       <li><b>الحسابات البنكية</b>: كل حسابات المورد. <span class="pill ok">يمكن الدفع</span> تعني معتمد ومرت أيام الانتظار.</li>
     </ul>
     <figure><img src="img/6b-supplier-popup.jpg" alt="نافذة المورد بالفواتير والمبلغ والحساب البنكي" loading="lazy"><figcaption><b>شكل ٦ب.</b> مورد في التخصيم العكسي: ما يستحقه، وأين يُدفع، والفواتير التي وراءه.</figcaption></figure>
+    <h3>ملخص الفواتير</h3>
+    <p class="prose">اضغط <b>ملخص الفواتير</b> أعلى شاشة صرف الخزينة أو طلب الصرف أو رفع الفواتير. يعرض للقراءة فقط:</p>
+    <ul class="b">
+      <li><b>أربعة مربعات</b>: الفواتير المستلمة، ناقص غير المؤهلة، يساوي المؤهلة، ثم <b>القيمة التي نمولها</b> بعد نسبة التمويل (مثل ٨٨٪ من المبلغ المؤهل). ويظهر صافي مبلغ الصرف تحتها مع أي فرق.</li>
+      <li><b>الفواتير المؤهلة حسب المورد</b> (حسب المدين في التخصيم): سطر لكل مورد بعدد فواتيره وإجمالياتها؛ اضغطه لإظهار أو إخفاء فواتيره. والسطر الأخير هو إجمالي المؤهل.</li>
+      <li><b>غير المؤهلة</b>: كل فاتورة مستبعدة مع السبب والإجمالي.</li>
+    </ul>
+    <figure><img src="img/6c-invoice-summary.jpg" alt="نافذة ملخص الفواتير" loading="lazy"><figcaption><b>شكل ٦ج.</b> ملخص الفواتير: من الفواتير المستلمة إلى القيمة التي نمولها، ثم الفواتير المؤهلة حسب المورد.</figcaption></figure>
+    <h3>الخطوات المكتملة للعرض فقط</h3>
+    <p class="prose">في مساحة عمل عميل التخصيم، يعرض تبويب <b>الصرف</b> الخطوة المفتوحة وتحتها زر لكل <b>خطوة مكتملة</b> (البدء، رفع الفواتير، صرف الخزينة). يفتح الزر صفحة الخطوة <b>للعرض فقط</b>: شريط أخضر يوضح ذلك، وكل الحقول مقفلة وأزرار الخطوة مخفية.</p>
+    <figure><img src="img/6d-completed-steps.jpg" alt="أزرار الخطوات المكتملة في تبويب الصرف" loading="lazy"><figcaption><b>شكل ٦د.</b> الخطوات المكتملة لكل عملية صرف؛ كل واحدة تفتح للعرض فقط.</figcaption></figure>
     <div class="shots">
       <figure><img src="img/7-disburse-override.jpg" alt="سطر يحتاج استثناء مع خانة السبب" loading="lazy"><figcaption><b>شكل ٧.</b> السطر الذي يتجاوز شرط استثناء يصبح برتقاليًا. اكتب السبب واضغط حفظ وحجز.</figcaption></figure>
       <figure><img src="img/8-disburse-approve.jpg" alt="المراجع يرى زر اعتماد الاستثناء" loading="lazy"><figcaption><b>شكل ٨.</b> مستخدم ثانٍ لديه TRS.VERIFY يفتح نفس الصفحة ويضغط اعتماد الاستثناء.</figcaption></figure>
@@ -911,7 +933,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>المدة</td><td>عدد الأيام من تاريخ الفاتورة حتى استحقاقها</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫٥ · نوفمبر ٢٠٢٦</p>
+  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫٦ · نوفمبر ٢٠٢٦</p>
   </main>
 </div>
 </div>

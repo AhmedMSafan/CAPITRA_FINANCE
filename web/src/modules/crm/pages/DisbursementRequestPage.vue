@@ -23,10 +23,12 @@
       </div>
       <div class="fx-actions">
         <RouterLink class="fx-btn" :to="back"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Factoring Workspace') }}</RouterLink>
-        <FctStepActions v-if="isSaved" :save="keep" :disabled="busy" />
+        <FctDisbursementSummary v-if="props.disbursementId != null" :disbursement-id="props.disbursementId" from="crm" />
+        <FctStepActions v-if="isSaved && !viewOnly" :save="keep" :disabled="busy" />
       </div>
     </div>
 
+    <FctViewOnlyNote v-if="viewOnly" />
     <template v-if="ready">
       <!-- the customer, the limit and its agreement (page 751's Application Summary) in one strip -->
       <section class="fx-card dr-strip">
@@ -117,6 +119,9 @@ import { formatDate, todayInCairo } from '@/shared/format/datetime'
 import { formatAmount } from '@/shared/format/money'
 import { fieldErrors, messageOf } from '@/modules/collection/pages/collection'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
+import FctDisbursementSummary from '@/modules/fct/components/FctDisbursementSummary.vue'
+import FctViewOnlyNote from '@/modules/fct/components/FctViewOnlyNote.vue'
+import { useViewOnly } from '@/modules/fct/components/viewOnly'
 import { fctApi, type FctCreditLimit, type FctCustomerDetails } from '@/modules/fct/api/fct.api'
 import { disbursementApi, type AgreementSummary, type DisbursementRequestSave } from '../api/disbursement.api'
 
@@ -139,7 +144,8 @@ const errors = ref<Record<string, string[]>>({})
 const bad = (field: string) => !!errors.value[field]
 
 const isSaved = computed(() => props.disbursementId != null)
-const readOnly = computed(() => started.value || !canEdit)
+const viewOnly = useViewOnly()
+const readOnly = computed(() => started.value || !canEdit || viewOnly.value)
 
 // P751_DISBURSEMENT_NUMBER defaults to 'TMP-' || TO_CHAR(SYSDATE, 'HHMMSS') until the request is saved
 const tmpNumber = () => 'TMP-' + new Date().toTimeString().slice(0, 8).replace(/:/g, '')

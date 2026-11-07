@@ -1,5 +1,6 @@
 using Capitra.Api.Security;
 using Capitra.Application.Modules.Crm;
+using Capitra.Application.Modules.Fct;
 using Capitra.Application.Security;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,8 +9,14 @@ namespace Capitra.Api.Controllers.Crm;
 /// <summary>Customer Disbursement Request (APEX App 150722 pages 750 and 751). Reading needs CRM.VIEW; saving needs CRM.EDIT.</summary>
 [ApiController]
 [Route("api/crm/disbursement-requests")]
-public sealed class CrmDisbursementRequestController(CrmDisbursementRequestService service) : ControllerBase
+public sealed class CrmDisbursementRequestController(CrmDisbursementRequestService service, FctDisbursementSummaryService summary) : ControllerBase
 {
+    /// <summary>The invoice summary: every invoice received, the eligible bills by counterparty and the value after the advance rate.</summary>
+    [HttpGet("{disbursementId:long}/summary")]
+    [HasPermission(Permissions.Crm.View)]
+    public Task<FctDisbursementSummaryDto> Summary(long disbursementId, CancellationToken cancellationToken) =>
+        summary.GetAsync(disbursementId, cancellationToken);
+
     [HttpGet]
     [HasPermission(Permissions.Crm.View)]
     public Task<IReadOnlyList<CrmDisbursementRequestListDto>> List([FromQuery] long? clientId, CancellationToken cancellationToken) =>
