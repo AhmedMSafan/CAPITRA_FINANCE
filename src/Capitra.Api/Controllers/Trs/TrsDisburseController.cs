@@ -14,6 +14,12 @@ public sealed class TrsDisburseController(TrsDisburseService service) : Controll
     [HasPermission(Permissions.Trs.View)]
     public Task<TrsDisburseDto> Get(long disbursementId, CancellationToken cancellationToken) => service.GetAsync(disbursementId, cancellationToken);
 
+    /// <summary>One party's invoices, bank accounts and amount to receive (by customer, or by tax number when not a customer yet).</summary>
+    [HttpGet("party")]
+    [HasPermission(Permissions.Trs.View)]
+    public Task<TrsDisbursePartyDetailDto> Party(long disbursementId, [FromQuery] long? clientId, [FromQuery] string? taxNumber,
+        CancellationToken cancellationToken) => service.PartyAsync(disbursementId, clientId, taxNumber, cancellationToken);
+
     [HttpPut]
     [HasPermission(Permissions.Trs.Edit)]
     public Task<TrsDisburseDto> Save(long disbursementId, TrsDisburseFormDto dto, CancellationToken cancellationToken) =>

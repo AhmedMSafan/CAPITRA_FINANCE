@@ -209,7 +209,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">User manual · Treasury module</div>
       <h1>Bank limits and source of funds</h1>
       <p class="lede">How much bank money Capitra can use today, on what conditions, and which money pays each disbursement. Written for Treasury, Finance and Credit staff, and the checkers who verify their work.</p>
-      <div class="meta"><span><b>Version</b>1.3</span><span><b>Date</b>6 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Bank rules · Step 2 Treasury Disburse · Payment and GL</span></div>
+      <div class="meta"><span><b>Version</b>1.5</span><span><b>Date</b>7 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Bank rules · Step 2 Treasury Disburse · Payment and GL</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -347,6 +347,7 @@ figcaption b{color:var(--teal-ink)}
     </table></div>
 
     <div class="note"><span class="ic">Four eyes</span><p>A new or changed rule is <b>Waiting for verification</b> and is not checked until a second user verifies it. The person who made the change cannot verify it. To end a rule, use <b>Stop</b> and give the reason. Stopped rules stay in history.</p></div>
+    <div class="note"><span class="ic">Module Settings</span><p>Administration → Module Settings → Treasury decides two of these controls: <b>Bank rule needs a maker and a checker</b> (No lets the person who saved a rule verify it) and <b>Override needs a second user</b> (No lets the person who chose the sources approve the override). Both are Yes unless an administrator changes them, and changing them needs a second administrator's approval.</p></div>
     <div class="note"><span class="ic">Highest now</span><p>Under each concentration rule the screen shows who is closest to the limit today, for example "Highest now: LG Electronics 11.4%". <span class="pill ok">within</span> <span class="pill warn">above warning</span> <span class="pill bad">breach</span></p></div>
     <figure><img src="img/4-add-rule.jpg" alt="The Add bank rule dialog" loading="lazy"><figcaption><b>Figure 2.</b> Add Bank Rule shows only the fields the rule needs. The line at the top says what the rule will do, here "funds at most 70% of its funded pool for Business line: Leasing. If broken: Block."</figcaption></figure>
   </section>
@@ -430,6 +431,14 @@ figcaption b{color:var(--teal-ink)}
       <li><b>A usable line</b>: available amount, an amount box, a <b>Max</b> button and a live badge for each bank rule that applies.</li>
       <li><b>Checks and total</b>: covered against net, and any line that is blocked or needs an override.</li>
     </ul>
+    <h3>Who is paid: the party popup</h3>
+    <p class="prose">Click any name under <b>Buyer and suppliers</b> (or <b>Debtors and seller</b>) to open its details. In reverse factoring this is how you check each supplier before Execute.</p>
+    <ul class="b">
+      <li><b>Amount to receive</b>: the supplier's share of the net amount, and the bank account it will be paid into. An orange box means the supplier has no verified bank account that can be paid yet: add and verify one in Customer 360 first.</li>
+      <li><b>Bills to be paid</b>: the supplier's invoices in this disbursement, with invoice date, due date, invoice amount and amount financed. Not-eligible invoices are grey with their reason, and are not paid.</li>
+      <li><b>Bank accounts</b>: every account of the supplier. <span class="pill ok">Can be paid</span> means verified and the waiting days have passed.</li>
+    </ul>
+    <figure><img src="img/6b-supplier-popup.jpg" alt="The supplier popup with bills, amount to receive and bank account" loading="lazy"><figcaption><b>Figure 6b.</b> A supplier in reverse factoring: what it receives, where it is paid, and the bills behind it.</figcaption></figure>
     <div class="shots">
       <figure><img src="img/7-disburse-override.jpg" alt="A line that needs an override, with the reason box" loading="lazy"><figcaption><b>Figure 7.</b> A line above an override rule turns orange. Enter the reason and press Save and reserve.</figcaption></figure>
       <figure><img src="img/8-disburse-approve.jpg" alt="A checker sees Approve override" loading="lazy"><figcaption><b>Figure 8.</b> A second user with TRS.VERIFY opens the same page and presses Approve override.</figcaption></figure>
@@ -457,7 +466,7 @@ figcaption b{color:var(--teal-ink)}
     <h3>How to fund a disbursement</h3>
     <ol class="b">
       <li>Open the disbursement at its Treasury Disburse step from the inbox.</li>
-      <li>Press <b>Suggest</b> to fill the lines within every rule, or type amounts. <b>Max</b> fills a line with the most it allows.</li>
+      <li>Press <b>Suggest</b> to fill the lines within every rule, or type amounts. <b>Max</b> fills a line with the most it allows. Suggest fills the bank lines first (most available first) and puts the rest on own funds; when Module Settings says <b>Own funds first</b>, it puts the whole amount on own funds.</li>
       <li>Read the line under each sublimit: ✓ can be used, ⊘ cannot be used and why. Then watch the badges: green passes, orange warns, red blocks. A line that needs an override shows who must approve it.</li>
       <li>When the total equals the net amount and nothing is red, <b>Execute</b> becomes active.</li>
       <li><b>Execute</b> records a drawdown on each chosen sublimit with the debtor and seller, so Bank Limits and "Highest now" update at once. In the same moment it pays the client and posts the GL (see below). Then <b>Complete</b> the step.</li>
@@ -465,6 +474,7 @@ figcaption b{color:var(--teal-ink)}
     <figure><img src="img/9-disburse-executed.jpg" alt="An executed disbursement" loading="lazy"><figcaption><b>Figure 9.</b> Executed: who executed it and when. The choice can no longer be changed.</figcaption></figure>
     <h3>Payment and GL on Execute</h3>
     <p class="prose">Execute does everything at once, or nothing. Each bank puts its money in <b>our account at that bank</b>, and the client is paid from there. Own funds are paid from the main operating account. The <b>Payment</b> panel shows the account for each line before you press Execute.</p>
+    <div class="note"><span class="ic">Escrow</span><p>An escrow account pays only when we have no other account at that bank. Module Settings → Treasury → <b>Escrow accounts may pay</b> set to No stops escrow accounts paying at all; the Payment panel then asks for another account.</p></div>
     <figure style="max-width:320px;margin-inline:auto"><img src="img/10-payment-gl.jpg" alt="The Payment panel after Execute" loading="lazy"><figcaption><b>Figure 10.</b> The Payment panel: the account that pays each line and its GL account; after Execute, the date and the GL transaction set.</figcaption></figure>
     <p class="prose">For the 12M example above (Bank A 2M, Bank B 10M) the GL entries, under one number CAP-TRS-…, are:</p>
     <div class="tbl"><table>
@@ -543,7 +553,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Tenor</td><td>Days from the invoice date to its due date</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · Treasury User Manual · v1.3 · November 2026</p>
+  <p class="foot">CAPITRA · Treasury User Manual · v1.5 · November 2026</p>
   </main>
 </div>
 </div>
@@ -557,7 +567,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">دليل المستخدم · وحدة الخزينة</div>
       <h1>حدود البنوك ومصدر التمويل</h1>
       <p class="lede">كم من أموال البنوك يمكن لـ CAPITRA استخدامه اليوم، وبأي شروط، ومن أي مصدر تُموَّل كل عملية صرف. لموظفي الخزينة والمالية والائتمان، وللمراجعين الذين يعتمدون أعمالهم.</p>
-      <div class="meta"><span><b>الإصدار</b>١٫٣</span><span><b>التاريخ</b>٦ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · شروط البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
+      <div class="meta"><span><b>الإصدار</b>١٫٥</span><span><b>التاريخ</b>٧ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · شروط البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -695,6 +705,7 @@ figcaption b{color:var(--teal-ink)}
     </table></div>
 
     <div class="note"><span class="ic">العينان الأربع</span><p>الشرط الجديد أو المعدَّل حالته <b>بانتظار الاعتماد</b> ولا يُفحص حتى يعتمده مستخدم ثانٍ. من أجرى التغيير لا يعتمده. لإنهاء شرط استخدم <b>إيقاف</b> واذكر السبب، ويبقى في السجل.</p></div>
+    <div class="note"><span class="ic">إعدادات الوحدات</span><p>تحدد شاشة الإدارة ← إعدادات الوحدات ← الخزينة اثنين من هذه الضوابط: <b>قاعدة البنك تحتاج مُدخلًا ومُراجعًا</b> (لا: يمكن لمن حفظ الشرط أن يعتمده) و<b>التجاوز يحتاج مستخدمًا ثانيًا</b> (لا: يمكن لمن اختار المصادر أن يعتمد الاستثناء). كلاهما نعم ما لم يغيرهما مسؤول النظام، وتغييرهما يحتاج اعتماد مسؤول ثانٍ.</p></div>
     <div class="note"><span class="ic">الأعلى الآن</span><p>تحت كل شرط تركز تعرض الشاشة الأقرب إلى الحد اليوم، مثل «الأعلى الآن: LG Electronics ‏١١٫٤٪». <span class="pill ok">داخل الحد</span> <span class="pill warn">فوق التنبيه</span> <span class="pill bad">مخالفة</span></p></div>
     <figure><img src="img/4-add-rule.jpg" alt="نافذة إضافة شرط بنك" loading="lazy"><figcaption><b>شكل ٢.</b> نافذة إضافة شرط البنك تعرض الحقول التي يحتاجها الشرط فقط، والسطر في الأعلى يقول ما سيفعله الشرط بجملة واحدة.</figcaption></figure>
   </section>
@@ -778,6 +789,14 @@ figcaption b{color:var(--teal-ink)}
       <li><b>السطر القابل للاستخدام</b>: المتاح، وخانة المبلغ، وزر <b>الحد الأقصى</b>، وشارة لحظية لكل شرط بنك ينطبق.</li>
       <li><b>الفحوصات والإجمالي</b>: المغطى مقابل الصافي، وأي سطر ممنوع أو يحتاج استثناء.</li>
     </ul>
+    <h3>من يُدفع له: نافذة الطرف</h3>
+    <p class="prose">اضغط أي اسم تحت <b>المشتري والموردون</b> (أو <b>المدينون والبائع</b>) لفتح تفاصيله. في التخصيم العكسي هكذا تراجع كل مورد قبل التنفيذ.</p>
+    <ul class="b">
+      <li><b>المبلغ المستحق له</b>: نصيب المورد من صافي المبلغ، والحساب البنكي الذي سيُدفع إليه. المربع البرتقالي يعني أن المورد ليس له حساب معتمد يمكن الدفع إليه بعد: أضف حسابًا واعتمده في Customer 360 أولًا.</li>
+      <li><b>الفواتير المطلوب سدادها</b>: فواتير المورد في هذه العملية، مع تاريخ الفاتورة وتاريخ الاستحقاق ومبلغ الفاتورة والمبلغ الممول. الفواتير غير المؤهلة رمادية مع السبب ولا تُدفع.</li>
+      <li><b>الحسابات البنكية</b>: كل حسابات المورد. <span class="pill ok">يمكن الدفع</span> تعني معتمد ومرت أيام الانتظار.</li>
+    </ul>
+    <figure><img src="img/6b-supplier-popup.jpg" alt="نافذة المورد بالفواتير والمبلغ والحساب البنكي" loading="lazy"><figcaption><b>شكل ٦ب.</b> مورد في التخصيم العكسي: ما يستحقه، وأين يُدفع، والفواتير التي وراءه.</figcaption></figure>
     <div class="shots">
       <figure><img src="img/7-disburse-override.jpg" alt="سطر يحتاج استثناء مع خانة السبب" loading="lazy"><figcaption><b>شكل ٧.</b> السطر الذي يتجاوز شرط استثناء يصبح برتقاليًا. اكتب السبب واضغط حفظ وحجز.</figcaption></figure>
       <figure><img src="img/8-disburse-approve.jpg" alt="المراجع يرى زر اعتماد الاستثناء" loading="lazy"><figcaption><b>شكل ٨.</b> مستخدم ثانٍ لديه TRS.VERIFY يفتح نفس الصفحة ويضغط اعتماد الاستثناء.</figcaption></figure>
@@ -805,7 +824,7 @@ figcaption b{color:var(--teal-ink)}
     <h3>طريقة تمويل عملية صرف</h3>
     <ol class="b">
       <li>افتح عملية الصرف على خطوة صرف الخزينة من صندوق المهام.</li>
-      <li>اضغط <b>اقتراح</b> لتعبئة الأسطر في حدود كل الشروط، أو أدخل المبالغ بنفسك. زر <b>الحد الأقصى</b> يملأ السطر بأكبر مبلغ مسموح.</li>
+      <li>اضغط <b>اقتراح</b> لتعبئة الأسطر في حدود كل الشروط، أو أدخل المبالغ بنفسك. زر <b>الحد الأقصى</b> يملأ السطر بأكبر مبلغ مسموح. يملأ الاقتراح خطوط البنوك أولًا (الأكثر إتاحة أولًا) ويضع الباقي على الأموال الذاتية؛ وإذا كانت إعدادات الوحدات <b>الأموال الذاتية أولًا</b> يضع المبلغ كله على الأموال الذاتية.</li>
       <li>اقرأ السطر تحت كل حد فرعي: ✓ يمكن استخدامه، ⊘ لا يمكن ولماذا. ثم راقب الشارات: الأخضر مقبول، والبرتقالي تنبيه، والأحمر منع. السطر الذي يحتاج استثناءً يوضح من يعتمده.</li>
       <li>عندما يساوي الإجمالي الصافي ولا يوجد سطر أحمر يصبح زر <b>تنفيذ</b> متاحًا.</li>
       <li><b>تنفيذ</b> يسجل سحبًا على كل حد فرعي مختار مع المدين والبائع، فتتحدث حدود البنوك و«الأعلى الآن» فورًا، وفي نفس اللحظة يُدفع للعميل وتُرحّل القيود (انظر أدناه). ثم <b>أكمل</b> الخطوة.</li>
@@ -813,6 +832,7 @@ figcaption b{color:var(--teal-ink)}
     <figure><img src="img/9-disburse-executed.jpg" alt="عملية صرف منفذة" loading="lazy"><figcaption><b>شكل ٩.</b> بعد التنفيذ: من نفّذ ومتى، ولا يمكن تغيير الاختيار.</figcaption></figure>
     <h3>الدفع والقيود عند التنفيذ</h3>
     <p class="prose">التنفيذ يتم كله مرة واحدة أو لا يتم. يضع كل بنك أمواله في <b>حسابنا لدى نفس البنك</b>، ويُدفع للعميل منه. أما أموالنا الذاتية فتُدفع من الحساب التشغيلي الرئيسي. لوحة <b>الدفع</b> تعرض حساب كل سطر قبل الضغط على تنفيذ.</p>
+    <div class="note"><span class="ic">حساب الضمان</span><p>لا يدفع حساب الضمان إلا عندما لا يكون لدينا حساب آخر لدى ذلك البنك. وإذا ضُبط إعداد <b>يمكن الدفع من حسابات الضمان</b> في إعدادات الوحدات ← الخزينة على لا، فلا يدفع حساب الضمان أبدًا، وتطلب لوحة الدفع حسابًا آخر.</p></div>
     <figure style="max-width:320px;margin-inline:auto"><img src="img/10-payment-gl.jpg" alt="لوحة الدفع بعد التنفيذ" loading="lazy"><figcaption><b>شكل ١٠.</b> لوحة الدفع: الحساب الذي يدفع كل سطر وحسابه في الأستاذ العام، وبعد التنفيذ التاريخ ورقم مجموعة القيود.</figcaption></figure>
     <p class="prose">في مثال ١٢ مليون أعلاه (البنك أ ٢ م، البنك ب ١٠ م) تكون القيود، تحت رقم واحد CAP-TRS-…، كالتالي:</p>
     <div class="tbl"><table>
@@ -891,7 +911,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>المدة</td><td>عدد الأيام من تاريخ الفاتورة حتى استحقاقها</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫٣ · نوفمبر ٢٠٢٦</p>
+  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫٥ · نوفمبر ٢٠٢٦</p>
   </main>
 </div>
 </div>

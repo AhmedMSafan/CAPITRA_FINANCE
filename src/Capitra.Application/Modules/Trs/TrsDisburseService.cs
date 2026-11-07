@@ -20,7 +20,24 @@ public sealed record TrsDisburseHeaderDto(
     string CurrencyCode, decimal NetAmount, int InvoiceCount, int? MaxTenorDays, string FundingStatus, string? ExecutedBy, DateTime? ExecutedAt);
 
 /// <summary>Who the disbursement exposes a bank to. Role is DEBTOR or SELLER; Weight is its share of the amount (0 to 1).</summary>
-public sealed record TrsDisbursePartyDto(long? ClientId, string Name, string Role, decimal Weight, string? GroupName);
+public sealed record TrsDisbursePartyDto(long? ClientId, string Name, string Role, decimal Weight, string? GroupName, string? TaxNumber = null);
+
+/// <summary>One invoice of a party in this disbursement (the bills to be paid to a supplier in reverse factoring).</summary>
+public sealed record TrsPartyInvoiceDto(long InvoiceId, string InvoiceNumber, string? ClientInvoiceNumber, DateTime? InvoiceAt, DateTime? DueAt,
+    decimal GrossAmount, decimal Amount, string? StatusCode, string? IneligibleReason);
+
+/// <summary>A bank account of the party; IsPayable when verified and its waiting period has passed.</summary>
+public sealed record TrsPartyBankAccountDto(long BankAccountId, string BankName, string? BranchName, string? AccountNumber, string? Iban,
+    string AccountHolderName, string CurrencyCode, bool IsPrimary, string StatusCode, bool IsPayable, DateTime PayableFromAt);
+
+/// <summary>
+/// The details of one party of the disbursement (the popup on Treasury Disburse): its invoices, its bank accounts and, for the seller
+/// (the supplier in reverse factoring, the client in factoring), the amount it receives: its share of the net amount.
+/// </summary>
+public sealed record TrsDisbursePartyDetailDto(
+    long? ClientId, string Name, string Role, string? TaxNumber, string? ClientCode, string CurrencyCode, decimal Weight,
+    IReadOnlyList<TrsPartyInvoiceDto> Invoices, decimal InvoiceTotal, decimal EligibleTotal, decimal? AmountToReceive,
+    IReadOnlyList<TrsPartyBankAccountDto> BankAccounts, string? PayTo);
 
 /// <summary>
 /// One possible source of funds: own funds (no sublimit, no limit) or a bank sublimit. Every open sublimit in the currency is listed:
@@ -165,7 +182,7 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         var d = await db.Set<FctDisbursement>().AsNoTracking().SingleOrDefaultAsync(x => x.DisbursementId == disbursementId, cancellationToken)
             ?? throw new NotFoundException($"Disbursement {disbursementId} was not found.");
         var client = await db.Set<CrmClient>().AsNoTracking().Where(x => x.ClientId == d.ClientId)
-            .Select(x => new { x.ClientId, x.ClientName, x.GroupName }).SingleOrDefaultAsync(cancellationToken);
+            .Select(x => new { x.ClientId, x.ClientName, x.GroupName, x.TaxNumber }).SingleOrDefaultAsync(cancellationToken);
         var agreement = d.AgreementId is long aid
             ? await db.Set<FctAgreement>().AsNoTracking().Where(x => x.AgreementId == aid).Select(x => new { x.AgreementNumber, x.FactoringType })
                 .SingleOrDefaultAsync(cancellationToken)
@@ -180,8 +197,10 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
 
         // the invoices of the disbursement: their counterparty (tax number → customer) and the share of the advance each one takes
         var batchIds = db.Set<FctInvoiceBatch>().Where(x => x.DisbursementId == disbursementId).Select(x => x.BatchId);
+        // a not-eligible invoice is not financed, so it gives no exposure and no share of the payment
         var invoices = await db.Set<FctInvoice>().AsNoTracking()
             .Where(x => x.DisbursementId == disbursementId || (x.BatchId != null && batchIds.Contains(x.BatchId.Value)))
+            .Where(x => x.StatusCode == null || x.StatusCode != "NOT_ELIGIBLE")
             .Select(x => new { x.DebtorId, Amount = x.AdvanceAmount ?? x.FundedAmount ?? x.NetAmount ?? x.GrossAmount, x.ClientInvoiceAt, x.DueAt })
             .ToListAsync(cancellationToken);
         var taxNumbers = invoices.Where(x => x.DebtorId is not null).Select(x => x.DebtorId!.Value.ToString(CultureInfo.InvariantCulture)).Distinct().ToList();
@@ -196,23 +215,23 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
                 var tax = g.Select(x => x.DebtorId).FirstOrDefault(x => x is not null);
                 var name = cp?.ClientName ?? (tax is long tn ? $"Tax no. {tn}" : "Unknown counterparty");
                 var w = total > 0 ? g.Sum(x => Math.Max(0, x.Amount)) / total : 1m / Math.Max(1, invoices.Count);
-                return (ClientId: g.Key, Name: name, cp?.GroupName, Weight: w);
+                return (ClientId: g.Key, Name: name, cp?.GroupName, Weight: w, Tax: cp?.TaxNumber ?? tax?.ToString(CultureInfo.InvariantCulture));
             }).ToList();
-        if (groups.Count == 0) groups.Add((null, reverse ? "Supplier not known yet" : "Debtor not known yet", null, 1m));
+        if (groups.Count == 0) groups.Add((null, reverse ? "Supplier not known yet" : "Debtor not known yet", null, 1m, null));
 
         var clientName = client?.ClientName ?? $"Client {d.ClientId}";
         var parties = new List<TrsDisbursePartyDto>();
         List<Pair> pairs;
         if (reverse)
         {
-            parties.Add(new(d.ClientId, clientName, "DEBTOR", 1m, client?.GroupName));
-            parties.AddRange(groups.Select(g => new TrsDisbursePartyDto(g.ClientId, g.Name, "SELLER", g.Weight, g.GroupName)));
+            parties.Add(new(d.ClientId, clientName, "DEBTOR", 1m, client?.GroupName, client?.TaxNumber));
+            parties.AddRange(groups.Select(g => new TrsDisbursePartyDto(g.ClientId, g.Name, "SELLER", g.Weight, g.GroupName, g.Tax)));
             pairs = [.. groups.Select(g => new Pair(d.ClientId, g.ClientId, g.Weight))];
         }
         else
         {
-            parties.AddRange(groups.Select(g => new TrsDisbursePartyDto(g.ClientId, g.Name, "DEBTOR", g.Weight, g.GroupName)));
-            parties.Add(new(d.ClientId, clientName, "SELLER", 1m, client?.GroupName));
+            parties.AddRange(groups.Select(g => new TrsDisbursePartyDto(g.ClientId, g.Name, "DEBTOR", g.Weight, g.GroupName, g.Tax)));
+            parties.Add(new(d.ClientId, clientName, "SELLER", 1m, client?.GroupName, client?.TaxNumber));
             pairs = [.. groups.Select(g => new Pair(g.ClientId, d.ClientId, g.Weight))];
         }
         int? maxTenor = invoices.Where(x => x.ClientInvoiceAt is not null && x.DueAt is not null)
@@ -422,6 +441,61 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
     // ---------------------------------------------------------------- save (reserve)
+
+    /// <summary>
+    /// One party's details for the popup: the client by <paramref name="clientId"/>, or a counterparty not yet a customer by its
+    /// <paramref name="taxNumber"/>. The client's own popup lists every invoice; a counterparty's lists the invoices on its tax number.
+    /// </summary>
+    public async Task<TrsDisbursePartyDetailDto> PartyAsync(long disbursementId, long? clientId, string? taxNumber, CancellationToken cancellationToken)
+    {
+        var c = await LoadAsync(disbursementId, cancellationToken);
+        var party = c.Parties.FirstOrDefault(p => clientId is long id ? p.ClientId == id : p.ClientId is null && p.TaxNumber == taxNumber)
+            ?? throw new NotFoundException("This party is not on the disbursement.");
+        var isClient = party.ClientId == c.Header.ClientId;
+        var customer = party.ClientId is long pid
+            ? await db.Set<CrmClient>().AsNoTracking().Where(x => x.ClientId == pid).Select(x => new { ClientCode = x.ClientNumber, x.TaxNumber })
+                .SingleOrDefaultAsync(cancellationToken)
+            : null;
+        var tax = customer?.TaxNumber ?? party.TaxNumber;
+
+        var batchIds = db.Set<FctInvoiceBatch>().Where(x => x.DisbursementId == disbursementId).Select(x => x.BatchId);
+        var q = db.Set<FctInvoice>().AsNoTracking()
+            .Where(x => x.DisbursementId == disbursementId || (x.BatchId != null && batchIds.Contains(x.BatchId.Value)));
+        if (!isClient)
+        {
+            long? t = long.TryParse(tax, NumberStyles.None, CultureInfo.InvariantCulture, out var tn) ? tn : null;
+            q = t is null ? q.Where(x => x.DebtorId == null) : q.Where(x => x.DebtorId == t);
+        }
+        var invoices = await q.OrderBy(x => x.DueAt).ThenBy(x => x.InvoiceId)
+            .Select(x => new TrsPartyInvoiceDto(x.InvoiceId, x.InvoiceNumber, x.ClientInvoiceNumber, x.ClientInvoiceAt, x.DueAt, x.GrossAmount,
+                x.AdvanceAmount ?? x.FundedAmount ?? x.NetAmount ?? x.GrossAmount, x.StatusCode, x.IneligibleReason))
+            .ToListAsync(cancellationToken);
+
+        var accounts = new List<TrsPartyBankAccountDto>();
+        if (party.ClientId is long cid)
+        {
+            var waitingDays = await moduleSettings.BankAccountWaitingDaysAsync(cancellationToken);
+            var now = clock.UtcNow;
+            var currencies = await db.Set<CrmLkpCurrency>().AsNoTracking().ToDictionaryAsync(x => x.CurrencyId, x => x.CurrencyCode, cancellationToken);
+            var rows = await db.Set<CrmClientBankAccount>().AsNoTracking().Where(x => x.ClientId == cid)
+                .OrderByDescending(x => x.IsPrimary).ThenBy(x => x.BankAccountId).ToListAsync(cancellationToken);
+            accounts.AddRange(rows.Select(a =>
+            {
+                var from = a.ChangedAt.AddDays(waitingDays);
+                return new TrsPartyBankAccountDto(a.BankAccountId, a.BankName, a.BranchName, a.AccountNumber, a.Iban, a.AccountHolderName,
+                    currencies.GetValueOrDefault(a.CurrencyId, "?"), a.IsPrimary, a.StatusCode,
+                    a.StatusCode == CrmClientBankAccount.Verified && from <= now, from);
+            }));
+        }
+        var payTo = accounts.Where(x => x.IsPayable && x.CurrencyCode == c.Header.CurrencyCode).OrderByDescending(x => x.IsPrimary).FirstOrDefault();
+
+        // the seller receives the money: the supplier in reverse factoring, the client in factoring
+        decimal? receive = party.Role == "SELLER" ? Math.Round(c.Header.NetAmount * party.Weight, 2) : null;
+        return new TrsDisbursePartyDetailDto(party.ClientId, party.Name, party.Role, tax, customer?.ClientCode, c.Header.CurrencyCode, party.Weight,
+            invoices, invoices.Sum(x => x.Amount),
+            invoices.Where(x => !string.Equals(x.StatusCode, "NOT_ELIGIBLE", StringComparison.OrdinalIgnoreCase)).Sum(x => x.Amount), receive,
+            accounts, payTo is null ? null : payTo.Iban ?? payTo.AccountNumber);
+    }
 
     public async Task<TrsDisburseDto> SaveAsync(long disbursementId, TrsDisburseFormDto dto, CancellationToken cancellationToken)
     {
