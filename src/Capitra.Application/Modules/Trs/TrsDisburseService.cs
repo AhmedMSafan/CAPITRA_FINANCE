@@ -11,6 +11,7 @@ using Capitra.Application.Modules.Gl.Journals;
 using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Gl;
 using Capitra.Domain.Modules.Trs;
 using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
@@ -71,7 +72,16 @@ public sealed record TrsDisburseDto(
     TrsDisburseHeaderDto Header, IReadOnlyList<TrsDisbursePartyDto> Parties, IReadOnlyList<TrsDisburseSourceDto> Sources,
     IReadOnlyList<TrsDisburseRuleDto> Rules, bool CanEdit, string? OverrideReason, string? OverrideRequestedBy, string? OverrideApprovedBy,
     bool CanApproveOverride, string? ApproveBlockedReason, IReadOnlyList<TrsDisbursePaymentDto> Payments, string? PaymentStatus,
-    DateOnly? ExecutionDate, string SuggestOrder, IReadOnlyList<TrsSupplierTransferDto>? Transfers = null);
+    DateOnly? ExecutionDate, string SuggestOrder, IReadOnlyList<TrsSupplierTransferDto>? Transfers = null, TrsGlPreviewDto? Gl = null);
+
+/// <summary>One GL line Treasury Disburse posts (or will post), with the account's name.</summary>
+public sealed record TrsGlLineDto(int JournalNo, string Account, string? AccountName, decimal Dr, decimal Cr, string Description);
+
+/// <summary>
+/// The GL of the disbursement's Treasury step, one transaction set: Status NONE (no source saved yet), PREVIEW (what will post) or
+/// POSTED (with its TranSetId). Problem says why it cannot be built (no rule linked, an account without GL code...).
+/// </summary>
+public sealed record TrsGlPreviewDto(string Status, string? TranSetId, string? Problem, string? PostsWhen, IReadOnlyList<TrsGlLineDto> Lines);
 
 /// <summary>
 /// A supplier transfer of a reverse factoring disbursement: PLANNED before Execute (what Execute will send, TransferId 0), then SENT,
@@ -141,8 +151,99 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             pending.Select(x => x.OverrideReason).FirstOrDefault(x => x is not null), requestedBy, approvedBy, waiting && blocked is null, blocked,
             payments, c.Disbursement.PaymentStatus, c.Disbursement.ExecutionDate,
             await moduleSettings.TextAsync(ModuleSettingCatalog.Codes.TrsSuggestOrder, cancellationToken),
-            c.Header.IsReverse ? await TransfersAsync(c, accounts, cancellationToken) : null);
+            c.Header.IsReverse ? await TransfersAsync(c, accounts, cancellationToken) : null,
+            await GlPreviewAsync(c, accounts, cancellationToken));
     }
+
+    // ---------------------------------------------------------------- GL preview
+
+    /// <summary>
+    /// The GL the Treasury step posts, from the saved sources: factoring posts it at Execute (the step's rule, else the action's);
+    /// reverse factoring posts it when the last supplier transfer is confirmed: journal 1 the bank drawdown, then one journal per supplier.
+    /// </summary>
+    private async Task<TrsGlPreviewDto> GlPreviewAsync(Context c, List<TrsPayingAccount> accounts, CancellationToken cancellationToken)
+    {
+        var h = c.Header;
+        var postsWhen = h.IsReverse ? "When the last supplier transfer is confirmed" : "At Execute";
+        var lines = c.Fundings.Where(x => x.StatusCode is "RESERVED" or "EXECUTED" && x.FundedAmount != 0).ToList();
+        if (lines.Count == 0) return new TrsGlPreviewDto("NONE", null, null, postsWhen, []);
+        var gl = await db.Set<TrsBankAccount>().AsNoTracking().ToDictionaryAsync(x => x.AccountId, x => x, cancellationToken);
+        string? Gl(TrsDisbursementFunding f) =>
+            f.PaidFromAccountId is long pid ? gl.GetValueOrDefault(pid)?.ErpAccountCode?.Trim() : PickAccount(accounts, f.BankId)?.ErpAccountCode?.Trim();
+        var missing = lines.Where(f => string.IsNullOrWhiteSpace(Gl(f))).ToList();
+        if (missing.Count > 0)
+            return new TrsGlPreviewDto("NONE", null, "A paying bank account has no GL account code (see Payment). Set it in Treasury (setup-bank-gl-accounts.sql).", postsWhen, []);
+
+        var today = GlTime.Today(clock);
+        string? tranSet;
+        List<ProductEventPostingLine> posting1;
+        try
+        {
+            if (!h.IsReverse)
+            {
+                var (def, plan) = await posting.PlanAsync(ProductActions.TreasuryDisburse, today, cancellationToken,
+                    await StepRuleCodeAsync(h.DisbursementId, cancellationToken));
+                posting1 = ProductActionPosting.Lines(def, plan, PostingParts(lines.Select(f => (f.SourceTypeCode == "BANK", f.FundedAmount, Gl(f)!))));
+                tranSet = lines.Select(x => x.GlTranSetId).FirstOrDefault(x => x is not null);
+            }
+            else
+            {
+                var saved = await db.Set<TrsSupplierTransfer>().AsNoTracking().Where(x => x.DisbursementId == h.DisbursementId)
+                    .OrderBy(x => x.TransferId).ToListAsync(cancellationToken);
+                List<(string Supplier, string Gl, decimal Amount)> transfers;
+                if (saved.Count > 0)
+                    transfers = [.. saved.Select(t => (t.SupplierName, gl.GetValueOrDefault(t.PaidFromAccountId)?.ErpAccountCode?.Trim() ?? "", t.Amount))];
+                else
+                {
+                    var sellers = c.Parties.Where(x => x.Role == "SELLER").ToList();
+                    transfers = [.. Split([.. lines.Select(x => x.FundedAmount)], [.. sellers.Select(x => x.Weight)])
+                        .Select(x => (sellers[x.Supplier].Name, Gl(lines[x.Line])!, x.Amount))];
+                }
+                posting1 = (await ReverseLinesAsync(
+                    [.. lines.Where(x => x.SourceTypeCode == "BANK").Select(x => (Gl(x)!, x.FundedAmount))], transfers, today, cancellationToken)).Lines;
+                tranSet = saved.Count > 0 && saved.All(x => x.GlTranSetId is not null) ? saved[0].GlTranSetId : null;
+            }
+        }
+        catch (ApexProcessException ex)
+        {
+            return new TrsGlPreviewDto("NONE", null, GlPostingApi.CleanMessage(ex.Message), postsWhen, []);
+        }
+        var codes = posting1.Select(x => x.Account).Distinct().ToList();
+        var names = await db.Set<GlAccount>().AsNoTracking().Where(x => codes.Contains(x.AccountCode))
+            .GroupBy(x => x.AccountCode).Select(g => new { g.Key, Name = g.Min(x => x.AccountNameEn) }).ToDictionaryAsync(x => x.Key, x => x.Name, cancellationToken);
+        return new TrsGlPreviewDto(tranSet is null ? "PREVIEW" : "POSTED", tranSet, null, postsWhen,
+            [.. posting1.Select(x => new TrsGlLineDto(x.JournalNo, x.Account, names.GetValueOrDefault(x.Account), x.Dr, x.Cr, x.Description))]);
+    }
+
+    /// <summary>
+    /// Reverse factoring's GL, one transaction set (Ahmed, 7 Nov 2026): journal 1 the bank drawdown (the rule of the action Reverse factoring
+    /// bank drawdown: DR our account at the bank / CR reverse factoring borrowings), then one journal per supplier transfer (the rule of the
+    /// action Reverse factoring supplier transfer: DR reverse factoring receivable / CR the paying account), named after the supplier.
+    /// </summary>
+    private async Task<(ProductActionDefinition Def, ProductEventPlan Plan, List<ProductEventPostingLine> Lines)> ReverseLinesAsync(
+        IReadOnlyList<(string Gl, decimal Amount)> drawdowns, IReadOnlyList<(string Supplier, string Gl, decimal Amount)> transfers, DateOnly date,
+        CancellationToken cancellationToken)
+    {
+        var (dDef, dPlan) = await posting.PlanAsync(ProductActions.ReverseDrawdown, date, cancellationToken);
+        var (tDef, tPlan) = await posting.PlanAsync(ProductActions.ReverseTransferConfirm, date, cancellationToken);
+        var lines = new List<ProductEventPostingLine>();
+        var j = 0;
+        if (drawdowns.Count > 0)
+        {
+            var jn = ++j;
+            lines.AddRange(ProductActionPosting.Lines(dDef, dPlan, [.. drawdowns.Select(x => ((string?)x.Gl,
+                (Func<string, decimal?>)(code => code == "BANK_DRAWDOWN" ? x.Amount : null)))]).Select(l => l with { JournalNo = jn }));
+        }
+        foreach (var t in transfers.Where(x => x.Amount != 0))
+        {
+            var jn = ++j;
+            lines.AddRange(ProductActionPosting.Lines(tDef, tPlan, [((string?)t.Gl, code => code == "PAYMENT_AMOUNT" ? t.Amount : null)])
+                .Select(l => l with { JournalNo = jn, Description = Cut($"{l.Description} - {t.Supplier}", 240) }));
+        }
+        return (dDef, dPlan, lines);
+    }
+
+    private static string Cut(string s, int n) => s.Length <= n ? s : s[..n];
 
     // ---------------------------------------------------------------- reverse factoring: supplier transfers
 
@@ -239,28 +340,41 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         var now = clock.UtcNow;
         foreach (var t in transfers)
         {
-            var account = await db.Set<TrsBankAccount>().AsNoTracking().SingleAsync(x => x.AccountId == t.PaidFromAccountId, cancellationToken);
-            if (string.IsNullOrWhiteSpace(account.ErpAccountCode))
-                throw new BusinessRuleException($"Bank account {account.AccountRef} has no GL account code. Set it in Treasury (setup-bank-gl-accounts.sql).");
-            var doc = new ProductActionDocument("DISBURSEMENT", disbursementId.ToString(CultureInfo.InvariantCulture), d.DisbursementNumber, GlTime.Today(clock),
-                t.CurrencyCode, $"Reverse factoring {d.DisbursementNumber}: transfer to {t.SupplierName}");
-            try
-            {
-                t.GlTranSetId = await posting.PostAsync(ProductActions.ReverseTransferConfirm, doc,
-                    [(account.ErpAccountCode!.Trim(), code => code == "PAYMENT_AMOUNT" ? t.Amount : null)], cancellationToken);
-            }
-            catch (ApexProcessException ex)
-            {
-                throw new BusinessRuleException($"GL posting failed for {t.SupplierName}, nothing was confirmed: {GlPostingApi.CleanMessage(ex.Message)}");
-            }
             t.StatusCode = TrsSupplierTransfer.Confirmed;
             t.ConfirmedBy = User;
             t.ConfirmedAt = now;
             t.BankReference = reference;
         }
         await db.SaveChangesAsync(cancellationToken);
+
+        // the last one confirmed: the whole GL of the disbursement posts under one transaction set
         if (!await db.Set<TrsSupplierTransfer>().AnyAsync(x => x.DisbursementId == disbursementId && x.StatusCode == TrsSupplierTransfer.Sent, cancellationToken))
         {
+            var all = await db.Set<TrsSupplierTransfer>().Where(x => x.DisbursementId == disbursementId).OrderBy(x => x.TransferId).ToListAsync(cancellationToken);
+            var fundings = await db.Set<TrsDisbursementFunding>()
+                .Where(x => x.DisbursementId == disbursementId && x.StatusCode == "EXECUTED" && x.FundedAmount != 0).OrderBy(x => x.FundingId).ToListAsync(cancellationToken);
+            var ids = all.Select(x => x.PaidFromAccountId).Concat(fundings.Where(x => x.PaidFromAccountId is not null).Select(x => x.PaidFromAccountId!.Value)).ToHashSet();
+            var gl = await db.Set<TrsBankAccount>().AsNoTracking().Where(x => ids.Contains(x.AccountId)).ToDictionaryAsync(x => x.AccountId, cancellationToken);
+            string Gl(long id) => gl.TryGetValue(id, out var a) && !string.IsNullOrWhiteSpace(a.ErpAccountCode) ? a.ErpAccountCode.Trim()
+                : throw new BusinessRuleException($"Bank account {(gl.TryGetValue(id, out var b) ? b.AccountRef : id.ToString(CultureInfo.InvariantCulture))} has no GL account code. Set it in Treasury (setup-bank-gl-accounts.sql).");
+            var bank = fundings.Where(x => x.SourceTypeCode == "BANK" && x.PaidFromAccountId is not null).ToList();
+            var today = GlTime.Today(clock);
+            var doc = new ProductActionDocument("DISBURSEMENT", disbursementId.ToString(CultureInfo.InvariantCulture), d.DisbursementNumber, today,
+                all[0].CurrencyCode, $"Reverse factoring {d.DisbursementNumber}: drawdown and transfers to {all.Select(x => x.SupplierName).Distinct().Count()} suppliers");
+            string ts;
+            try
+            {
+                var (def, plan, lines) = await ReverseLinesAsync([.. bank.Select(x => (Gl(x.PaidFromAccountId!.Value), x.FundedAmount))],
+                    [.. all.Select(x => (x.SupplierName, Gl(x.PaidFromAccountId), x.Amount))], today, cancellationToken);
+                ts = await posting.PostLinesAsync(plan, lines, def.ModuleCode, "Reverse factoring disbursement", def.CostCenter, def.BusinessLine, doc,
+                    cancellationToken);
+            }
+            catch (ApexProcessException ex)
+            {
+                throw new BusinessRuleException($"GL posting failed, nothing was confirmed: {GlPostingApi.CleanMessage(ex.Message)}");
+            }
+            foreach (var t in all) t.GlTranSetId = ts;
+            foreach (var f in bank) f.GlTranSetId = ts;
             d.PaymentStatus = "EXECUTED";
             await db.SaveChangesAsync(cancellationToken);
         }
@@ -912,9 +1026,9 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
     }
 
     /// <summary>
-    /// Execute in reverse factoring (agreed with Ahmed, 7 Nov 2026): the bank lines' drawdown is posted with the reverse factoring rule
-    /// (DR our account at the bank / CR bank borrowings); each line is then sent to the suppliers by their share, one SENT transfer per
-    /// supplier and line, to the supplier's payable bank account. The payment to the suppliers is posted when each transfer is confirmed.
+    /// Execute in reverse factoring (agreed with Ahmed, 7 Nov 2026): each line is sent to the suppliers by their share, one SENT transfer
+    /// per supplier and line, to the supplier's payable bank account. No GL posts yet: the drawdown and every supplier's payment post
+    /// together, under one transaction set, when the last transfer is confirmed.
     /// </summary>
     private async Task SendTransfersAsync(Context c, List<TrsDisbursementFunding> fundings, DateTime now, CancellationToken cancellationToken)
     {
@@ -939,28 +1053,18 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             throw new BusinessRuleException($"No verified {h.CurrencyCode} bank account that can be paid for: {string.Join(", ", missing)}. "
                 + "Add and verify it in Customer 360, then Execute again.");
 
-        string? ts = null;
-        var bankLines = paid.Where(x => x.Funding.SourceTypeCode == "BANK").ToList();
-        if (bankLines.Count > 0)
+        // nothing posts yet; the GL must be ready for the last confirmation, so a missing rule stops Execute now
+        try
         {
-            var doc = new ProductActionDocument("DISBURSEMENT", h.DisbursementId.ToString(CultureInfo.InvariantCulture), h.DisbursementNumber,
-                GlTime.Today(clock), h.CurrencyCode, $"Reverse factoring drawdown {h.DisbursementNumber} for {h.ClientName}");
-            try
-            {
-                ts = await posting.PostAsync(ProductActions.ReverseDrawdown, doc,
-                    [.. bankLines.Select(x => ((string?)x.Account.ErpAccountCode!.Trim(),
-                        (Func<string, decimal?>)(code => code == "BANK_DRAWDOWN" ? x.Funding.FundedAmount : null)))], cancellationToken);
-            }
-            catch (ApexProcessException ex)
-            {
-                throw new BusinessRuleException($"GL posting failed, nothing was executed: {GlPostingApi.CleanMessage(ex.Message)}");
-            }
+            var split = Split([.. paid.Select(p => p.Funding.FundedAmount)], [.. sellers.Select(p => p.Weight)]);
+            await ReverseLinesAsync([.. paid.Where(x => x.Funding.SourceTypeCode == "BANK").Select(x => (x.Account.ErpAccountCode!.Trim(), x.Funding.FundedAmount))],
+                [.. split.Select(x => (sellers[x.Supplier].Name, paid[x.Line].Account.ErpAccountCode!.Trim(), x.Amount))], GlTime.Today(clock), cancellationToken);
         }
-        foreach (var (f, a) in paid)
+        catch (ApexProcessException ex)
         {
-            f.PaidFromAccountId = a.AccountId;
-            f.GlTranSetId = f.SourceTypeCode == "BANK" ? ts : null;
+            throw new BusinessRuleException($"The GL of reverse factoring is not ready, nothing was executed: {GlPostingApi.CleanMessage(ex.Message)}");
         }
+        foreach (var (f, a) in paid) f.PaidFromAccountId = a.AccountId;
 
         foreach (var x in Split([.. paid.Select(p => p.Funding.FundedAmount)], [.. sellers.Select(p => p.Weight)]))
         {

@@ -35,6 +35,22 @@
         <small v-else-if="dirty">{{ tr('Changes not saved yet') }}</small></div>
     </div>
 
+    <!-- the step guide (Ahmed, 8 Nov 2026): the steps of this page in order, where the user is, and what to do now -->
+    <section v-if="data && !viewOnly" class="fx-card trs-guide" :aria-label="tr('What to do now')">
+      <ol class="trs-guide-steps">
+        <li v-for="(g, i) in guide.steps" :key="g.key" :class="{ 'is-done': i < guide.at, 'is-now': i === guide.at }">
+          <span class="trs-guide-n"><span v-if="i < guide.at" class="fa fa-check" aria-hidden="true"></span><template v-else>{{ i + 1 }}</template></span>
+          <span>{{ tr(g.label) }}</span>
+        </li>
+      </ol>
+      <div class="trs-guide-now" :class="{ 'is-blocked': guide.blocked }">
+        <span class="fa" :class="guide.blocked ? 'fa-exclamation-triangle' : 'fa-hand-o-right'" aria-hidden="true"></span>
+        <div><b>{{ tr(guide.blocked ? 'Blocked' : 'What to do now') }}:</b> {{ tr(guide.text) }}</div>
+        <button v-if="guide.action && editable || guide.action === 'transfers'" type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="runGuide">
+          {{ tr(guide.actionLabel ?? '') }}</button>
+      </div>
+    </section>
+
     <div v-if="data" class="trs-body">
       <section class="fx-card trs-src">
         <header class="trs-tree-head">
@@ -160,8 +176,8 @@
     <section v-if="data?.header.isReverse && data.transfers?.length" class="fx-card trs-tr">
       <header class="trs-tr-head">
         <div><h2>{{ tr('Supplier transfers') }}</h2>
-          <small class="trs-muted">{{ executed ? tr('Tick Confirmed when the bank confirms a transfer. Each tick posts its GL entry. The step completes when every supplier is confirmed.')
-            : tr('What Execute will send to each supplier. Execute posts only the bank drawdown.') }}</small></div>
+          <small class="trs-muted">{{ executed ? tr('Tick Confirmed when the bank confirms a transfer. When the last supplier is confirmed, the whole GL posts under one Tran Set ID and the step can be completed.')
+            : tr('What Execute will send to each supplier. Nothing posts to the GL until the last supplier is confirmed.') }}</small></div>
         <span v-if="executed" class="fx-chip" :class="openTransfers.length ? 'fx-chip--warn' : 'fx-chip--teal'">
           {{ openTransfers.length ? `${data.transfers.length - openTransfers.length} / ${data.transfers.length} ${tr('confirmed')}` : tr('All confirmed') }}</span>
       </header>
@@ -199,6 +215,35 @@
           <input v-model="bankReference" class="fx-search" maxlength="100" /></label>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="confirmTicked">
           <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-check-square-o'" aria-hidden="true"></span>{{ tr('Confirm') }} {{ ticked.size }} {{ tr(ticked.size === 1 ? 'transfer' : 'transfers') }}</button>
+      </div>
+    </section>
+
+    <!-- what the GL gets, one transaction set (Ahmed, 7 Nov 2026): a preview from the saved sources, then the posted Tran Set ID -->
+    <section v-if="data?.gl && data.gl.status !== 'NONE' || data?.gl?.problem" class="fx-card trs-tr">
+      <header class="trs-tr-head">
+        <div><h2>{{ data!.gl!.status === 'POSTED' ? tr('GL posted') : tr('GL to be posted') }}</h2>
+          <small class="trs-muted">{{ data!.gl!.status === 'POSTED' ? tr('All entries of this disbursement, under one Tran Set ID.')
+            : `${tr('One Tran Set ID, from the saved sources.')} ${tr('Posts')}: ${tr(data!.gl!.postsWhen ?? '')}.` }}<template v-if="dirty"> {{ tr('Save to see your changes here.') }}</template></small></div>
+        <span v-if="data!.gl!.tranSetId" class="fx-chip fx-chip--teal">{{ tr('GL Tran Set ID') }} <b class="trs-ts">{{ data!.gl!.tranSetId }}</b></span>
+        <span v-else-if="!data!.gl!.problem" class="fx-chip fx-chip--warn">{{ tr('Not posted yet') }}</span>
+      </header>
+      <p v-if="data!.gl!.problem" class="is-bad trs-gl-problem"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span> {{ tr(data!.gl!.problem) }}</p>
+      <div v-else class="fx-table-wrap">
+        <table class="fx-table trs-gl">
+          <thead><tr><th>{{ tr('Journal') }}</th><th>{{ tr('Account') }}</th><th>{{ tr('Description') }}</th>
+            <th class="num">{{ tr('Debit') }}</th><th class="num">{{ tr('Credit') }}</th></tr></thead>
+          <tbody>
+            <tr v-for="(l, i) in data!.gl!.lines" :key="i" :class="{ 'trs-gl-first': newJournal(i) }">
+              <td><b v-if="newJournal(i)">{{ l.journalNo }}</b></td>
+              <td><b>{{ l.account }}</b><small v-if="l.accountName" class="trs-muted"> · {{ l.accountName }}</small></td>
+              <td>{{ l.description }}</td>
+              <td class="num">{{ l.dr ? formatAmount(l.dr) : '' }}</td><td class="num">{{ l.cr ? formatAmount(l.cr) : '' }}</td>
+            </tr>
+          </tbody>
+          <tfoot><tr><th colspan="3">{{ tr('Total') }}</th>
+            <th class="num">{{ formatAmount(data!.gl!.lines.reduce((a, l) => a + l.dr, 0)) }}</th>
+            <th class="num">{{ formatAmount(data!.gl!.lines.reduce((a, l) => a + l.cr, 0)) }}</th></tr></tfoot>
+        </table>
       </div>
     </section>
 
@@ -328,6 +373,7 @@ const executeHint = computed(() => {
   if (needsOverride.value && (dirty.value || !data.value?.overrideApprovedBy)) return 'Save, then a second user approves the override.'
   const problem = dirty.value ? null : data.value?.payments.find((p) => p.problem)?.problem
   if (problem) return problem
+  if (data.value?.header.isReverse && !executed.value && supplierProblem.value) return supplierProblem.value
   return 'Records the drawdowns on the chosen sublimits.'
 })
 const canExecute = computed(() => executeHint.value === 'Records the drawdowns on the chosen sublimits.')
@@ -421,11 +467,51 @@ async function execute() {
   busy.value = true
   try {
     await save(async () => apply(await trsDisburseApi.execute(id.value)), data.value?.header.isReverse
-      ? 'Executed: the bank drawdown is posted and the supplier transfers are sent. Tick Confirmed for each one when the bank confirms it.'
+      ? 'Executed: the supplier transfers are sent. Tick Confirmed for each one when the bank confirms it; the GL posts with the last one.'
       : 'Executed: the drawdowns are recorded, the client is paid and the GL is posted.')
   } finally {
     busy.value = false
   }
+}
+
+const newJournal = (i: number) => i === 0 || data.value?.gl?.lines[i - 1]?.journalNo !== data.value?.gl?.lines[i]?.journalNo
+
+// the step guide: the page's steps in order, the current one and the next action
+const supplierProblem = computed(() => (data.value?.transfers ?? []).find((t) => t.problem)?.problem ?? null)
+const guide = computed(() => {
+  const reverse = !!data.value?.header.isReverse
+  const steps = [
+    { key: 'choose', label: 'Choose the sources' },
+    { key: 'save', label: 'Save and reserve' },
+    ...(needsOverride.value || data.value?.overrideRequestedBy ? [{ key: 'approve', label: 'Second user approves' }] : []),
+    { key: 'execute', label: reverse ? 'Execute: send the transfers' : 'Execute: pay and post the GL' },
+    ...(reverse ? [{ key: 'confirm', label: 'Confirm each supplier' }] : []),
+    { key: 'complete', label: 'Complete the step' }
+  ]
+  const at = (k: string) => steps.findIndex((x) => x.key === k)
+  type G = { at: number; text: string; blocked?: boolean; action?: 'suggest' | 'save' | 'execute' | 'transfers'; actionLabel?: string }
+  const g = ((): G => {
+    if (executed.value && reverse && openTransfers.value.length)
+      return { at: at('confirm'), text: `Tick Confirmed for each supplier when the bank confirms the transfer (${openTransfers.value.length} left). The GL posts with the last one.`, action: 'transfers', actionLabel: 'Go to the transfers' }
+    if (executed.value) return { at: at('complete'), text: 'Everything is done here. Press Complete at the top of the page to finish the step.' }
+    if (total.value === 0) return { at: at('choose'), text: 'Press Suggest, or type an amount on each source, until Remaining is 0.', action: 'suggest', actionLabel: 'Suggest' }
+    if (Math.abs(remaining.value) > 0.001) return { at: at('choose'), text: 'The sources must add up to the net amount. Change the amounts until Remaining is 0.' }
+    if (anyBlocked.value) return { at: at('choose'), text: 'A line is blocked by a limit or a bank rule (red badge). Move that amount to another source.', blocked: true }
+    if (dirty.value || data.value?.header.fundingStatus !== 'RESERVED')
+      return { at: at('save'), text: needsOverride.value ? 'Enter the override reason, then Save and reserve.' : 'Save your choice to reserve the money on each source.', action: 'save', actionLabel: 'Save and reserve' }
+    if (pendingOverride.value) return { at: at('approve'), text: 'A second user with TRS.VERIFY opens this page and presses Approve override.', blocked: true }
+    if (reverse && supplierProblem.value) return { at: at('execute'), text: supplierProblem.value, blocked: true }
+    if (!canExecute.value) return { at: at('execute'), text: executeHint.value, blocked: true }
+    return { at: at('execute'), text: reverse ? 'Press Execute to send one transfer to each supplier. Nothing posts to the GL yet.' : 'Press Execute: the drawdowns are recorded, the client is paid and the GL is posted.', action: 'execute', actionLabel: 'Execute' }
+  })()
+  return { steps, ...g }
+})
+function runGuide() {
+  const a = guide.value.action
+  if (a === 'save') void saveLines()
+  else if (a === 'execute') void execute()
+  else if (a === 'suggest') suggest()
+  else if (a === 'transfers') document.querySelector('.trs-tr')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 // reverse factoring: the supplier transfers ticked as confirmed, posted together with Confirm
@@ -447,7 +533,7 @@ async function confirmTicked() {
   busy.value = true
   try {
     const ok = await save(async () => apply(await trsDisburseApi.confirmTransfers(id.value, [...ticked.value], bankReference.value.trim() || null)),
-      'Transfers confirmed and the GL is posted.')
+      openTransfers.value.length === ticked.value.size ? 'All transfers confirmed. The GL is posted under one Tran Set ID.' : 'Transfers confirmed.')
     if (ok) { ticked.value = new Set(); bankReference.value = '' }
   } finally {
     busy.value = false
@@ -477,11 +563,31 @@ onMounted(load)
 .num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .is-bad { color: var(--fin-bad, #B42318); }
 
+.trs-guide { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; }
+.trs-guide-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; counter-reset: none; }
+.trs-guide-steps li { display: flex; align-items: center; gap: 8px; color: var(--fin-muted); font-size: var(--fs-sm); }
+.trs-guide-steps li:not(:last-child)::after { content: "›"; margin-inline-start: 10px; color: var(--fin-line); font-size: 18px; }
+.trs-guide-n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--fin-line); font-size: 12px; font-weight: 700; }
+.trs-guide-steps li.is-done { color: var(--fin-teal-700); }
+.trs-guide-steps li.is-done .trs-guide-n { background: var(--fin-teal-600); border-color: var(--fin-teal-600); color: #fff; }
+.trs-guide-steps li.is-now { color: var(--fin-ink); font-weight: 700; }
+.trs-guide-steps li.is-now .trs-guide-n { border-color: var(--fin-orange); background: var(--fin-orange); color: #fff; }
+.trs-guide-now { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 8px; background: var(--fin-teal-50);
+  border-inline-start: 4px solid var(--fin-teal-600); color: var(--fin-ink); }
+.trs-guide-now > div { flex: 1 1 320px; min-width: 0; }
+.trs-guide-now .fa { color: var(--fin-teal-600); }
+.trs-guide-now.is-blocked { background: color-mix(in srgb, var(--fin-orange) 10%, transparent); border-inline-start-color: var(--fin-orange); }
+.trs-guide-now.is-blocked .fa { color: var(--fin-orange); }
 .trs-tr { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
 .trs-tr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .trs-tr-head h2 { margin: 0 0 4px; font-size: var(--fs-md, 14px); color: var(--fin-teal-700); }
 .trs-tr-check { width: 34px; text-align: center; }
 .trs-tr-check input { width: 16px; height: 16px; accent-color: var(--fin-teal-600); cursor: pointer; }
+.trs-gl tr.trs-gl-first td { border-top: 2px solid var(--fin-line); }
+.trs-gl td:first-child { width: 70px; color: var(--fin-teal-700); }
+.trs-gl th.num, .trs-gl td.num { text-align: end; }
+.trs-gl-problem { margin: 0; display: flex; gap: 8px; align-items: center; }
+.trs-ts { margin-inline-start: 4px; font-variant-numeric: tabular-nums; }
 .trs-tr-confirm { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
 .trs-tr-confirm .fc-field { flex: 0 1 340px; min-width: 0; }
 .trs-tr .fc-ref { white-space: nowrap; }

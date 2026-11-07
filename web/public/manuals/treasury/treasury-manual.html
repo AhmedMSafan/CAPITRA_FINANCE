@@ -209,7 +209,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">User manual · Treasury module</div>
       <h1>Bank limits and source of funds</h1>
       <p class="lede">How much bank money Capitra can use today, on what conditions, and which money pays each disbursement. Written for Treasury, Finance and Credit staff, and the checkers who verify their work.</p>
-      <div class="meta"><span><b>Version</b>1.7</span><span><b>Date</b>7 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Bank rules · Step 2 Treasury Disburse · Payment and GL</span></div>
+      <div class="meta"><span><b>Version</b>1.8</span><span><b>Date</b>7 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Bank rules · Step 2 Treasury Disburse · Payment and GL</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -474,6 +474,9 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Nothing is left to draw</td><td>The sublimit, tranche or facility is fully used or reserved.</td></tr>
       <tr><td>Bank rule: Exclude …</td><td>The bank does not fund this debtor, group, business line, product or client segment. Use another bank or own funds.</td></tr>
     </table></div>
+    <h3>The step guide</h3>
+    <p class="prose">Under the top cards, the <b>step guide</b> lists the steps of this page in order, ticks the ones done and highlights the current one. <b>What to do now</b> says the next action in one sentence, with a button for it (Suggest, Save and reserve, Execute, Go to the transfers). When something blocks the way, such as a red bank rule, an override waiting for a second user, or a supplier without a verified bank account, it turns orange and says what to fix.</p>
+    <figure><img src="img/6e-step-guide.jpg" alt="The step guide" loading="lazy"><figcaption><b>Figure 6e.</b> The step guide in reverse factoring: executed, two suppliers left to confirm.</figcaption></figure>
     <h3>How to fund a disbursement</h3>
     <ol class="b">
       <li>Open the disbursement at its Treasury Disburse step from the inbox.</li>
@@ -503,14 +506,19 @@ figcaption b{color:var(--teal-ink)}
       <li>The accounts come from the rule the <b>Treasury Disburse</b> workflow step names (Workflow designer › the step › Product Event Rule, normally <b>TRS_DISBURSE</b>). When the step names none, the rule linked to the action in Admin Setup › Product Catalog › TREASURY_FUNDING is used. If no rule is found, or the GL refuses (for example a closed period), Execute shows the reason and saves nothing.</li>
     </ul>
     <h3>Reverse factoring: supplier transfers</h3>
-    <p class="prose">In reverse factoring we pay the <b>suppliers</b>, not the buyer, and each supplier may bank somewhere else. So the money moves in two stages, with GL accounts kept apart from factoring:</p>
+    <p class="prose">In reverse factoring we pay the <b>suppliers</b>, not the buyer, and each supplier may bank somewhere else. So the money moves in stages, with GL accounts kept apart from factoring, and the whole GL posts once, under <b>one Tran Set ID</b>:</p>
     <ol class="b">
-      <li><b>Execute</b> posts only the bank drawdown (rule <b>TRS_RF_DRAWDOWN</b>): DR our bank account / CR reverse factoring bank borrowings. It saves one transfer per supplier with its bank, IBAN and amount, as <b>Sent</b>. Before Execute the same table shows the <b>Planned</b> transfers and any supplier that has no verified bank account yet.</li>
-      <li>When the bank confirms a transfer, tick its <b>Confirmed</b> box and press <b>Confirm</b> (a bank reference is optional). Each supplier posts its own entry (rule <b>TRS_RF_TRANSFER</b>): DR reverse factoring receivable (the buyer) / CR our bank account, and shows its GL Tran Set ID. The box in the header ticks every supplier at once.</li>
+      <li>Before Execute the table shows the <b>Planned</b> transfers. A supplier without a verified bank account in Customer 360 shows in red, and Execute stays blocked until each one has an account.</li>
+      <li><b>Execute</b> saves one transfer per supplier with its bank, IBAN and amount, as <b>Sent</b>. Nothing posts to the GL yet. The <b>Confirmed</b> boxes appear now.</li>
+      <li>When the bank confirms a transfer, tick its box and press <b>Confirm</b> (a bank reference is optional). The box in the header ticks every supplier at once.</li>
+      <li>When the <b>last</b> supplier is confirmed, the GL posts under one Tran Set ID: journal 1 the bank drawdown (rule <b>TRS_RF_DRAWDOWN</b>: DR our bank account / CR reverse factoring bank borrowings), then one journal per supplier (rule <b>TRS_RF_TRANSFER</b>: DR reverse factoring receivable / CR our bank account), named after the supplier. If the GL refuses, nothing is confirmed.</li>
       <li><b>Complete</b> works only when every supplier is confirmed. To complete now, tick all of them.</li>
     </ol>
-    <figure><img src="img/10b-supplier-transfers.jpg" alt="The supplier transfers with their Confirmed boxes" loading="lazy"><figcaption><b>Figure 10b.</b> Supplier transfers after Execute: one confirmed with its GL Tran Set ID, one ticked and ready to confirm, one still waiting for the bank.</figcaption></figure>
-    <div class="note"><span class="ic">GL Tran Set ID</span><p>Every completed step shows the GL transaction sets it posted: on its button in the customer's Disbursements tab, and at the top of its view-only page. Treasury Disburse lists the drawdown and each supplier's confirmation.</p></div>
+    <figure><img src="img/10b-supplier-transfers.jpg" alt="The supplier transfers with their Confirmed boxes" loading="lazy"><figcaption><b>Figure 10b.</b> Supplier transfers after Execute: one confirmed, one ticked and ready to confirm, one still waiting for the bank.</figcaption></figure>
+    <h3>GL to be posted</h3>
+    <p class="prose">Below the sources, <b>GL to be posted</b> lists every line the step will post, from the saved sources: journal, account, description, debit and credit, with the totals. It shows for factoring (posted at Execute) and for reverse factoring (posted at the last confirmation). Once posted, the title becomes <b>GL posted</b> and shows the Tran Set ID. If a rule is missing or a bank account has no GL account code, it says so here before you press anything.</p>
+    <figure><img src="img/10d-gl-preview.jpg" alt="The GL to be posted section" loading="lazy"><figcaption><b>Figure 10d.</b> GL to be posted for a reverse factoring disbursement: the drawdown, then one journal per supplier, all under one Tran Set ID.</figcaption></figure>
+    <div class="note"><span class="ic">GL Tran Set ID</span><p>Every completed step shows the GL transaction sets it posted: on its button in the customer's Disbursements tab, and at the top of its view-only page. For reverse factoring, Treasury Disburse shows its single Tran Set ID.</p></div>
     <figure><img src="img/10c-completed-gl.jpg" alt="Completed step buttons with their GL Tran Set IDs" loading="lazy"><figcaption><b>Figure 10c.</b> The Treasury Disburse step with the GL transaction sets it posted.</figcaption></figure>
     <h3>Rules to remember</h3>
     <ul class="b">
@@ -574,7 +582,7 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Tenor</td><td>Days from the invoice date to its due date</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · Treasury User Manual · v1.7 · November 2026</p>
+  <p class="foot">CAPITRA · Treasury User Manual · v1.8 · November 2026</p>
   </main>
 </div>
 </div>
@@ -588,7 +596,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">دليل المستخدم · وحدة الخزينة</div>
       <h1>حدود البنوك ومصدر التمويل</h1>
       <p class="lede">كم من أموال البنوك يمكن لـ CAPITRA استخدامه اليوم، وبأي شروط، ومن أي مصدر تُموَّل كل عملية صرف. لموظفي الخزينة والمالية والائتمان، وللمراجعين الذين يعتمدون أعمالهم.</p>
-      <div class="meta"><span><b>الإصدار</b>١٫٧</span><span><b>التاريخ</b>٧ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · شروط البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
+      <div class="meta"><span><b>الإصدار</b>١٫٨</span><span><b>التاريخ</b>٧ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · شروط البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -853,6 +861,9 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>لم يتبقَّ شيء للسحب</td><td>الحد الفرعي أو الشريحة أو التسهيل مستخدم أو محجوز بالكامل.</td></tr>
       <tr><td>شرط البنك: استبعاد …</td><td>البنك لا يموّل هذا المدين أو المجموعة أو النشاط أو المنتج أو شريحة العملاء. استخدم بنكًا آخر أو أموالنا الذاتية.</td></tr>
     </table></div>
+    <h3>دليل الخطوات</h3>
+    <p class="prose">أسفل البطاقات العلوية يعرض <b>دليل الخطوات</b> خطوات هذه الصفحة بالترتيب، ويضع علامة على ما تم، ويبرز الخطوة الحالية. وتقول <b>ما المطلوب الآن</b> الإجراء التالي في جملة واحدة مع زر له (اقتراح، حفظ وحجز، تنفيذ، الذهاب إلى التحويلات). وعندما يمنعك شيء، مثل شرط بنك أحمر أو تجاوز ينتظر مستخدمًا ثانيًا أو مورد بلا حساب بنكي معتمد، يتحول إلى البرتقالي ويقول ما يجب إصلاحه.</p>
+    <figure><img src="img/6e-step-guide.jpg" alt="دليل الخطوات" loading="lazy"><figcaption><b>شكل ٦هـ.</b> دليل الخطوات في التخصيم العكسي: تم التنفيذ، ويتبقى تأكيد موردين اثنين.</figcaption></figure>
     <h3>طريقة تمويل عملية صرف</h3>
     <ol class="b">
       <li>افتح عملية الصرف على خطوة صرف الخزينة من صندوق المهام.</li>
@@ -882,14 +893,19 @@ figcaption b{color:var(--teal-ink)}
       <li>الحسابات تأتي من القاعدة التي تحددها خطوة <b>صرف الخزينة</b> في سير العمل (مصمم سير العمل › الخطوة › قاعدة حدث المنتج، وعادةً <b>TRS_DISBURSE</b>). وإذا لم تحدد الخطوة قاعدة تُستخدم القاعدة المربوطة بالإجراء في الإعدادات › كتالوج المنتجات › TREASURY_FUNDING. إذا لم توجد قاعدة أو رفض الأستاذ العام (مثل فترة مغلقة) يظهر السبب ولا يُحفظ شيء.</li>
     </ul>
     <h3>التخصيم العكسي: التحويلات للموردين</h3>
-    <p class="prose">في التخصيم العكسي ندفع <b>للموردين</b> وليس للمشتري، وقد يتعامل كل مورد مع بنك مختلف. لذلك تتحرك الأموال على مرحلتين، بحسابات أستاذ عام منفصلة عن التخصيم:</p>
+    <p class="prose">في التخصيم العكسي ندفع <b>للموردين</b> وليس للمشتري، وقد يتعامل كل مورد مع بنك مختلف. لذلك تتحرك الأموال على مراحل، بحسابات أستاذ عام منفصلة عن التخصيم، ويُقيد كل شيء مرة واحدة تحت <b>رقم مجموعة قيود واحد</b>:</p>
     <ol class="b">
-      <li><b>التنفيذ</b> يقيد السحب من البنك فقط (القاعدة <b>TRS_RF_DRAWDOWN</b>): مدين حسابنا البنكي / دائن اقتراض بنكي للتخصيم العكسي. ويحفظ تحويلًا لكل مورد ببنكه ورقم الآيبان والمبلغ بحالة <b>مُرسل</b>. وقبل التنفيذ يعرض نفس الجدول التحويلات <b>المخططة</b> وأي مورد ليس له حساب بنكي معتمد بعد.</li>
-      <li>عندما يؤكد البنك التحويل، ضع علامة في خانة <b>مؤكد</b> واضغط <b>تأكيد</b> (مرجع البنك اختياري). كل مورد يُقيد له قيد مستقل (القاعدة <b>TRS_RF_TRANSFER</b>): مدين مديونية التخصيم العكسي (المشتري) / دائن حسابنا البنكي، ويظهر رقم مجموعة القيود الخاص به. والخانة في رأس الجدول تحدد كل الموردين مرة واحدة.</li>
+      <li>قبل التنفيذ يعرض الجدول التحويلات <b>المخططة</b>. المورد الذي ليس له حساب بنكي معتمد في Customer 360 يظهر بالأحمر، ويبقى التنفيذ متوقفًا حتى يُضاف حساب لكل مورد.</li>
+      <li><b>التنفيذ</b> يحفظ تحويلًا لكل مورد ببنكه ورقم الآيبان والمبلغ بحالة <b>مُرسل</b>، ولا يُقيد شيء في الأستاذ العام بعد. وتظهر الآن خانات <b>مؤكد</b>.</li>
+      <li>عندما يؤكد البنك التحويل، ضع علامة في خانته واضغط <b>تأكيد</b> (مرجع البنك اختياري). والخانة في رأس الجدول تحدد كل الموردين مرة واحدة.</li>
+      <li>عند تأكيد <b>آخر</b> مورد تُقيد القيود كلها تحت رقم مجموعة قيود واحد: القيد ١ السحب من البنك (القاعدة <b>TRS_RF_DRAWDOWN</b>: مدين حسابنا البنكي / دائن اقتراض بنكي للتخصيم العكسي)، ثم قيد لكل مورد (القاعدة <b>TRS_RF_TRANSFER</b>: مدين مديونية التخصيم العكسي / دائن حسابنا البنكي) باسم المورد. وإذا رفض الأستاذ العام لا يُؤكد شيء.</li>
       <li>لا يمكن <b>إكمال</b> الخطوة إلا بعد تأكيد كل الموردين. وللإكمال الآن حدد الجميع.</li>
     </ol>
-    <figure><img src="img/10b-supplier-transfers.jpg" alt="تحويلات الموردين وخانات التأكيد" loading="lazy"><figcaption><b>شكل ١٠ب.</b> تحويلات الموردين بعد التنفيذ: واحد مؤكد برقم مجموعة القيود، وواحد محدد وجاهز للتأكيد، وواحد ما زال في انتظار البنك.</figcaption></figure>
-    <div class="note"><span class="ic">رقم مجموعة القيود</span><p>كل خطوة مكتملة تعرض مجموعات القيود التي قيدتها: على زرها في تبويب الصرف للعميل، وأعلى صفحتها للعرض فقط. وخطوة صرف الخزينة تعرض قيد السحب وقيد تأكيد كل مورد.</p></div>
+    <figure><img src="img/10b-supplier-transfers.jpg" alt="تحويلات الموردين وخانات التأكيد" loading="lazy"><figcaption><b>شكل ١٠ب.</b> تحويلات الموردين بعد التنفيذ: واحد مؤكد، وواحد محدد وجاهز للتأكيد، وواحد ما زال في انتظار البنك.</figcaption></figure>
+    <h3>القيود المتوقعة</h3>
+    <p class="prose">أسفل المصادر يعرض قسم <b>القيود المتوقعة</b> كل سطر ستقيده الخطوة من المصادر المحفوظة: رقم القيد والحساب والوصف والمدين والدائن مع الإجماليات. ويظهر للتخصيم (يُقيد عند التنفيذ) وللتخصيم العكسي (يُقيد عند تأكيد آخر مورد). وبعد القيد يصبح العنوان <b>القيود المقيدة</b> ويظهر رقم مجموعة القيود. وإذا كانت هناك قاعدة غير مربوطة أو حساب بنكي بلا حساب أستاذ عام يظهر ذلك هنا قبل الضغط على أي زر.</p>
+    <figure><img src="img/10d-gl-preview.jpg" alt="قسم القيود المتوقعة" loading="lazy"><figcaption><b>شكل ١٠د.</b> القيود المتوقعة لعملية تخصيم عكسي: السحب من البنك ثم قيد لكل مورد، كلها تحت رقم مجموعة قيود واحد.</figcaption></figure>
+    <div class="note"><span class="ic">رقم مجموعة القيود</span><p>كل خطوة مكتملة تعرض مجموعات القيود التي قيدتها: على زرها في تبويب الصرف للعميل، وأعلى صفحتها للعرض فقط. وفي التخصيم العكسي تعرض خطوة صرف الخزينة رقم مجموعة القيود الوحيد.</p></div>
     <figure><img src="img/10c-completed-gl.jpg" alt="أزرار الخطوات المكتملة بأرقام مجموعات القيود" loading="lazy"><figcaption><b>شكل ١٠ج.</b> خطوة صرف الخزينة ومجموعات القيود التي قيدتها.</figcaption></figure>
     <h3>قواعد يجب تذكرها</h3>
     <ul class="b">
