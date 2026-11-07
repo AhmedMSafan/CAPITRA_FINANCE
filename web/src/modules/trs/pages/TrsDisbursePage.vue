@@ -483,7 +483,8 @@ onMounted(load)
 .trs-tr-check { width: 34px; text-align: center; }
 .trs-tr-check input { width: 16px; height: 16px; accent-color: var(--fin-teal-600); cursor: pointer; }
 .trs-tr-confirm { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-.trs-tr-confirm .fc-field { min-width: 260px; }
+.trs-tr-confirm .fc-field { flex: 0 1 340px; min-width: 0; }
+.trs-tr .fc-ref { white-space: nowrap; }
 .trs-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .trs-kpi { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; }
 .trs-kpi b { font-size: 22px; font-variant-numeric: tabular-nums; color: var(--fin-ink); }
