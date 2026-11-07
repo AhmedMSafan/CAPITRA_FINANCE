@@ -1,6 +1,7 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Application.Modules.Adm.Settings;
 using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
@@ -70,16 +71,22 @@ public static class FctTracks
 /// Factoring applications (FCT_OFFERS), from FINOVA_FINANCEING: FactoringPricingService (the calculator), FactoringOfferService
 /// (create from the calculator, change the status) and FctAgreementService.GenerateFromOfferAsync (the agreement and its workflow).
 /// </summary>
-public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime)
+public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IModuleSettings moduleSettings)
 {
     /// <summary>The statuses the workspace can give an application; APPLICATION is set when the workflow starts.</summary>
     public static readonly string[] Statuses = ["DRAFT", "ACCEPTED", "REJECTED", "SUBMITTED"];
 
-    private const decimal MinAdvance = 0.50m;
+    /// <summary>The statuses of an open offer: one that is still being worked on and has no agreement yet.</summary>
+    public static readonly string[] OpenStatuses = ["DRAFT", "SUBMITTED", "ACCEPTED"];
 
-    // ---------------------------------------------------------------- calculator (FactoringPricingService, unchanged)
+    // ---------------------------------------------------------------- calculator (FactoringPricingService)
 
-    public FctCalculationResult Calculate(FctCalculationRequest r)
+    /// <summary>The calculator with the minimum advance rate of Module Settings (FCT.MIN_ADVANCE_PCT, 50% by default).</summary>
+    public async Task<FctCalculationResult> CalculateAsync(FctCalculationRequest r, CancellationToken cancellationToken) =>
+        Calculate(r, await moduleSettings.DecimalAsync(ModuleSettingCatalog.Codes.FctMinAdvancePct, cancellationToken) / 100m);
+
+    /// <summary>FactoringPricingService; minAdvance is a fraction (0.50 is 50%).</summary>
+    public static FctCalculationResult Calculate(FctCalculationRequest r, decimal minAdvance)
     {
         var baseAdvance = Fraction(r.BaseAdvanceRatio);
         var dilution = Fraction(r.DilutionRate);
@@ -91,7 +98,7 @@ public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser cur
         var commissionPct = Fraction(r.CommissionPct);
 
         var riskBuffer = bufferOverride ?? RiskBuffer(r.RiskBand, concentration);
-        var advance = Math.Max(MinAdvance, (baseAdvance ?? 0m) - (dilution ?? 0m) - riskBuffer);
+        var advance = Math.Max(minAdvance, (baseAdvance ?? 0m) - (dilution ?? 0m) - riskBuffer);
 
         var riskMargin = RiskMargin(r.RiskBand);
         var tenorAdjustment = Math.Max(0m, ((r.AverageTenorDays ?? 90m) - 90m) / 30m * 0.0025m);
@@ -129,7 +136,10 @@ public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser cur
 
     // ---------------------------------------------------------------- applications
 
-    /// <summary>"Use In Offer": a new DRAFT application for the customer, or the customer's existing draft.</summary>
+    /// <summary>
+    /// "Use In Offer": a new DRAFT application for the customer. Unless Module Settings lets a client have several open offers
+    /// (FCT.MULTIPLE_OPEN_OFFERS), the customer's open draft is loaded instead, and an offer already submitted or accepted stops a new one.
+    /// </summary>
     public async Task<FctCreateOfferResult> CreateFromCalculatorAsync(FctCreateOfferRequest r, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(r.FactoringType))
@@ -141,10 +151,17 @@ public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser cur
         if (!await db.Set<CrmClient>().AnyAsync(x => x.ClientId == r.ClientId, cancellationToken))
             throw new NotFoundException($"Customer {r.ClientId} was not found.");
 
-        var draft = await db.Set<FctOffer>().AsNoTracking()
-            .FirstOrDefaultAsync(x => x.ClientId == r.ClientId && x.StatusCode == "DRAFT", cancellationToken);
-        if (draft is not null)
-            return new FctCreateOfferResult(draft.OfferId, draft.OfferRef, "DRAFT", true, $"Existing draft offer {draft.OfferRef} loaded.");
+        if (!await moduleSettings.BoolAsync(ModuleSettingCatalog.Codes.FctMultipleOpenOffers, cancellationToken))
+        {
+            var open = await db.Set<FctOffer>().AsNoTracking()
+                .Where(x => x.ClientId == r.ClientId && OpenStatuses.Contains(x.StatusCode!) && (x.AgreementNo == null || x.AgreementNo == ""))
+                .OrderBy(x => x.StatusCode == "DRAFT" ? 0 : 1).ThenByDescending(x => x.OfferId).FirstOrDefaultAsync(cancellationToken);
+            if (open is { StatusCode: "DRAFT" })
+                return new FctCreateOfferResult(open.OfferId, open.OfferRef, "DRAFT", true, $"Existing draft offer {open.OfferRef} loaded.");
+            if (open is not null)
+                throw new BusinessRuleException(
+                    $"The customer already has open offer {open.OfferRef} ({open.StatusCode!.ToLowerInvariant()}). A client can have one open offer at a time (Administration > Module Settings).");
+        }
 
         var now = clock.UtcNow;
         var offer = new FctOffer

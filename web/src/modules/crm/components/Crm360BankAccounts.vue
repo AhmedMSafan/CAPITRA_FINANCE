@@ -10,7 +10,7 @@
           <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="openEdit(null)"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Add Bank Account') }}</button>
         </div>
       </header>
-      <p class="c3-note"><span class="fa fa-lock" aria-hidden="true"></span>{{ tr(`A new or changed account needs another user's verification, then waits ${waitingDays} day(s) before it can be paid.`) }}</p>
+      <p class="c3-note"><span class="fa fa-lock" aria-hidden="true"></span>{{ ruleNote }}</p>
       <div class="fx-table-wrap">
         <table class="fx-table">
           <thead>
@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { ApiError } from '@/shared/api/http'
 import { getUser } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
@@ -131,7 +131,7 @@ import { chip, label } from './crm360'
 
 const props = defineProps<{
   clientId: number; accounts: CrmBankAccount[]; history: CrmBankAccountHistory[]; badge: CrmBadge; currencies: CrmOption[]
-  defaultCurrencyId: number; holderName: string; waitingDays: number; canEdit: boolean; canVerify: boolean
+  defaultCurrencyId: number; holderName: string; waitingDays: number; makerChecker: boolean; canEdit: boolean; canVerify: boolean
 }>()
 const emit = defineEmits<{ changed: [] }>()
 
@@ -149,7 +149,13 @@ const notes = ref('')
 const errors = ref<Record<string, string[]>>({})
 const bad = (f: string) => ({ 'c3-bad': !!errors.value[f] })
 const me = getUser()?.userName ?? ''
-const mine = (a: CrmBankAccount) => !!me && a.changedBy.toLowerCase() === me.toLowerCase()
+// with no maker-checker (Administration > Module Settings) the user who made the change may verify it
+const mine = (a: CrmBankAccount) => props.makerChecker && !!me && a.changedBy.toLowerCase() === me.toLowerCase()
+const ruleNote = computed(() => {
+  const who = props.makerChecker ? tr("A new or changed account needs another user's verification") : tr('A new or changed account must be verified')
+  const wait = props.waitingDays > 0 ? tr(`then waits ${props.waitingDays} day(s) before it can be paid.`) : tr('then it can be paid at once.')
+  return `${who}, ${wait}`
+})
 
 const empty = (): CrmBankAccountForm => ({
   bankName: '', branchName: null, swiftCode: null, accountNumber: null, iban: null, accountHolderName: props.holderName, accountHolderNameAr: null,
@@ -199,7 +205,7 @@ async function run(action: () => Promise<unknown>, done: string, close: () => vo
 }
 
 const save = () => run(() => (editId.value ? crm360Api.updateBankAccount(props.clientId, editId.value, { ...form }) : crm360Api.addBankAccount(props.clientId, { ...form })),
-  editId.value ? 'Bank account saved.' : 'Bank account added. Another user must verify it.', () => (editing.value = false))
+  editId.value ? 'Bank account saved.' : props.makerChecker ? 'Bank account added. Another user must verify it.' : 'Bank account added. Verify it to use it.', () => (editing.value = false))
 const verify = () => run(() => crm360Api.verifyBankAccount(props.clientId, current.value!.bankAccountId, method.value, notes.value || null),
   'Bank account verified.', () => (verifying.value = false))
 const suspend = () => run(() => crm360Api.suspendBankAccount(props.clientId, current.value!.bankAccountId, notes.value), 'Bank account suspended.', () => (suspending.value = false))

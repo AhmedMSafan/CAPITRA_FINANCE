@@ -1,6 +1,7 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Application.Modules.Adm.Settings;
 using Capitra.Application.Modules.Adm.Products;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Application.Modules.Crm;
@@ -51,7 +52,7 @@ public sealed record TrsDisburseDto(
     TrsDisburseHeaderDto Header, IReadOnlyList<TrsDisbursePartyDto> Parties, IReadOnlyList<TrsDisburseSourceDto> Sources,
     IReadOnlyList<TrsDisburseRuleDto> Rules, bool CanEdit, string? OverrideReason, string? OverrideRequestedBy, string? OverrideApprovedBy,
     bool CanApproveOverride, string? ApproveBlockedReason, IReadOnlyList<TrsDisbursePaymentDto> Payments, string? PaymentStatus,
-    DateOnly? ExecutionDate);
+    DateOnly? ExecutionDate, string SuggestOrder);
 
 /// <summary>One of our bank accounts that can pay a disbursement.</summary>
 public sealed record TrsPayingAccount(long AccountId, long BankId, string BankName, string AccountRef, string AccountNo, string AccountTypeCode,
@@ -68,8 +69,11 @@ public sealed record TrsDisburseFormDto(IReadOnlyList<TrsDisburseLineFormDto> Li
 /// against the lines it covers: BLOCK refuses, OVERRIDE needs a second user's approval, WARN only warns. Our own concentration
 /// (agreement limit and debtor or supplier share) was checked before this step.
 /// </summary>
-public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, ProductActionPosting posting)
+public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, ProductActionPosting posting, IModuleSettings moduleSettings)
 {
+    private Task<bool> OverrideNeedsSecondUserAsync(CancellationToken cancellationToken) =>
+        moduleSettings.BoolAsync(ModuleSettingCatalog.Codes.TrsOverrideSecondUser, cancellationToken);
+
     private const decimal Tolerance = 0.001m;
     private string User => currentUser.UserName ?? currentUser.UserId ?? "SYSTEM";
 
@@ -88,7 +92,8 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         var requestedBy = pending.Select(x => x.ChangedBy).FirstOrDefault();
         var approvedBy = pending.Select(x => x.OverrideApprovedBy).FirstOrDefault(x => x is not null);
         var waiting = pending.Count > 0 && approvedBy is null && c.Header.FundingStatus != "EXECUTED";
-        string? blocked = !waiting ? null
+        var secondUser = await OverrideNeedsSecondUserAsync(cancellationToken);
+        string? blocked = !waiting || !secondUser ? null
             : string.Equals(requestedBy, User, StringComparison.OrdinalIgnoreCase) ? "You chose these sources; another user must approve the override." : null;
         var accounts = await PayingAccountsAsync(c.Header.CurrencyCode, cancellationToken);
         var banks = c.Sources.Where(x => x.BankId is not null).GroupBy(x => x.BankId!.Value).ToDictionary(g => g.Key, g => g.First().BankName);
@@ -103,19 +108,27 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         }).ToList();
         return new TrsDisburseDto(c.Header, c.Parties, c.Sources, c.Rules, c.Header.FundingStatus != "EXECUTED",
             pending.Select(x => x.OverrideReason).FirstOrDefault(x => x is not null), requestedBy, approvedBy, waiting && blocked is null, blocked,
-            payments, c.Disbursement.PaymentStatus, c.Disbursement.ExecutionDate);
+            payments, c.Disbursement.PaymentStatus, c.Disbursement.ExecutionDate,
+            await moduleSettings.TextAsync(ModuleSettingCatalog.Codes.TrsSuggestOrder, cancellationToken));
     }
 
     // ---------------------------------------------------------------- paying accounts
 
-    /// <summary>Our active bank accounts in the currency, by bank.</summary>
-    private async Task<List<TrsPayingAccount>> PayingAccountsAsync(string currencyCode, CancellationToken cancellationToken) =>
-        await (from a in db.Set<TrsBankAccount>().AsNoTracking()
+    /// <summary>Our active bank accounts in the currency, by bank; escrow accounts only when Module Settings lets them pay.</summary>
+    private async Task<List<TrsPayingAccount>> PayingAccountsAsync(string currencyCode, CancellationToken cancellationToken)
+    {
+        var accounts = await (from a in db.Set<TrsBankAccount>().AsNoTracking()
                join b in db.Set<TrsBank>() on a.BankId equals b.BankId
                where a.IsActive && a.CurrencyCode == currencyCode
                orderby a.AccountId
                select new TrsPayingAccount(a.AccountId, a.BankId, b.BankNameEn, a.AccountRef, a.AccountNo, a.AccountTypeCode, a.CurrencyCode, a.ErpAccountCode))
             .ToListAsync(cancellationToken);
+        return CanPay(accounts, await moduleSettings.BoolAsync(ModuleSettingCatalog.Codes.TrsAllowEscrowPayment, cancellationToken));
+    }
+
+    /// <summary>The accounts that may pay: all of them, or all but the escrow accounts (module setting TRS.ALLOW_ESCROW_PAYMENT).</summary>
+    public static List<TrsPayingAccount> CanPay(IEnumerable<TrsPayingAccount> accounts, bool allowEscrow) =>
+        [.. accounts.Where(x => allowEscrow || x.AccountTypeCode != "ESCROW")];
 
     /// <summary>
     /// The account a line is paid from (agreed with Ahmed, 5 Nov 2026: the bank puts the drawdown in our account at that bank and we pay
@@ -535,7 +548,7 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             .Where(x => x.DisbursementId == disbursementId && x.StatusCode == "RESERVED" && x.IsOverrideRequired && x.OverrideApprovedBy == null)
             .ToListAsync(cancellationToken);
         if (pending.Count == 0) throw new BusinessRuleException("No override is waiting for approval.");
-        if (pending.Any(x => string.Equals(x.ChangedBy, User, StringComparison.OrdinalIgnoreCase)))
+        if (await OverrideNeedsSecondUserAsync(cancellationToken) && pending.Any(x => string.Equals(x.ChangedBy, User, StringComparison.OrdinalIgnoreCase)))
             throw new BusinessRuleException("You chose these sources; another user must approve the override.");
         foreach (var f in pending)
         {

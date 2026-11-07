@@ -254,6 +254,13 @@ const router = createRouter({
           component: () => import('@/modules/adm/pages/AdministrationPage.vue'),
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Administration' }
         },
+        // Module settings: each module's rules, one tab per module; a change needs a second user's approval
+        {
+          path: 'admin/module-settings',
+          name: 'adm-module-settings',
+          component: () => import('@/modules/adm/pages/ModuleSettingsPage.vue'),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Module Settings' }
+        },
         // Product and charge setup (FINOVA_FINANCEING Admin Setup)
         {
           path: 'admin/products',

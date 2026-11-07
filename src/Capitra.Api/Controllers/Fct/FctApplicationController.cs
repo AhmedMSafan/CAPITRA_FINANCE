@@ -13,7 +13,8 @@ public sealed class FctApplicationController(FctApplicationService applications)
 {
     [HttpPost("calculator/calculate")]
     [HasPermission(Permissions.Fct.View)]
-    public FctCalculationResult Calculate(FctCalculationRequest request) => applications.Calculate(request);
+    public Task<FctCalculationResult> Calculate(FctCalculationRequest request, CancellationToken cancellationToken) =>
+        applications.CalculateAsync(request, cancellationToken);
 
     [HttpPost("applications/from-calculator")]
     [HasPermission(Permissions.Fct.Edit)]

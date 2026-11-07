@@ -289,13 +289,20 @@ function clearAll() {
   for (const s of sources.value) amounts[s.sourceKey] = 0
   dirty.value = true
 }
-/** Fills the bank lines first (most available first), each within every rule, then own funds with the rest. */
+/**
+ * Shares the net amount (module setting TRS.SUGGEST_ORDER): bank lines first (most available first, each within every rule) and own
+ * funds with the rest, or own funds for all of it.
+ */
 function suggest() {
   clearAll()
+  const own = sources.value.find((s) => !s.sublimitId)
+  const fillOwn = () => {
+    if (own && remaining.value > 0.001) amounts[own.sourceKey] = Math.round(remaining.value * 1000) / 1000
+  }
+  if (data.value?.suggestOrder === 'OWN_FIRST') fillOwn()
   const banks = sources.value.filter((s) => s.sublimitId && !s.unavailable).sort((a, b) => (b.available ?? 0) - (a.available ?? 0))
   for (const s of banks) if (remaining.value > 0.001) amounts[s.sourceKey] = maxFor(s)
-  const own = sources.value.find((s) => !s.sublimitId)
-  if (own && remaining.value > 0.001) amounts[own.sourceKey] = Math.round(remaining.value * 1000) / 1000
+  fillOwn()
 }
 
 function apply(d: TrsDisburse) {

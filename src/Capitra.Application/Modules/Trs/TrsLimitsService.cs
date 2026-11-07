@@ -1,5 +1,6 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Application.Modules.Adm.Settings;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Trs;
@@ -69,8 +70,14 @@ public sealed record TrsNotesDto(string? Notes);
 /// exclusions, tenor). What can be drawn at any node is the smallest of what is free at that node and at every node above it. A bank
 /// rule is checked only once a second user has verified it.
 /// </summary>
-public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock)
+public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, IModuleSettings moduleSettings)
 {
+    /// <summary>Module setting TRS.BANK_RULE_MAKER_CHECKER: No lets the user who saved a rule verify it.</summary>
+    private bool ruleMakerChecker = true;
+
+    private async Task LoadSettingsAsync(CancellationToken cancellationToken) =>
+        ruleMakerChecker = await moduleSettings.BoolAsync(ModuleSettingCatalog.Codes.TrsBankRuleMakerChecker, cancellationToken);
+
     public static readonly IReadOnlyList<TrsOptionDto> BusinessLines =
     [
         new("FACTORING", "Factoring"), new("REVERSE_FACTORING", "Reverse Factoring"), new("LEASING", "Leasing"),
@@ -130,6 +137,7 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
 
     public async Task<TrsLimitsDto> GetAsync(CancellationToken cancellationToken)
     {
+        await LoadSettingsAsync(cancellationToken);
         var banks = await db.Set<TrsBank>().AsNoTracking().OrderBy(x => x.BankNameEn).ToListAsync(cancellationToken);
         var facilities = await db.Set<TrsCreditFacility>().AsNoTracking().Where(x => x.FacilityStatus != "CLOSED")
             .OrderBy(x => x.FacilityRef).ToListAsync(cancellationToken);
@@ -272,7 +280,7 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
 
             var (canVerify, blocked) = r.StatusCode != "PENDING"
                 ? (false, "The rule is already verified.")
-                : SameUser(r.ChangedBy) ? (false, "You made the last change; another user must verify it.") : (true, (string?)null);
+                : ruleMakerChecker && SameUser(r.ChangedBy) ? (false, "You made the last change; another user must verify it.") : (true, (string?)null);
             return new TrsBankRuleDto(r.RuleId, r.BankId, r.FacilityId, r.FacilityId is long fid2 ? refs.GetValueOrDefault(fid2) : null, r.RuleTypeCode,
                 r.SubjectTypeCode, r.SubjectClientId, r.SubjectValue, subject, r.LimitPct, r.LimitAmount, r.WarningPct, r.MaxTenorDays, r.BasisCode,
                 r.BreachActionCode, r.StatusCode, r.ChangedBy, r.ChangedAt, r.VerifiedBy, r.VerifiedAt, r.Notes, canVerify, blocked, highest);
@@ -545,7 +553,8 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
         var r = await db.Set<TrsBankRule>().SingleOrDefaultAsync(x => x.RuleId == ruleId, cancellationToken)
             ?? throw new NotFoundException($"Rule {ruleId} was not found.");
         if (r.StatusCode != "PENDING") throw new BusinessRuleException("The rule is not waiting for verification.");
-        if (SameUser(r.ChangedBy)) throw new BusinessRuleException("You made the last change to this rule. Another user must verify it.");
+        await LoadSettingsAsync(cancellationToken);
+        if (ruleMakerChecker && SameUser(r.ChangedBy)) throw new BusinessRuleException("You made the last change to this rule. Another user must verify it.");
         r.StatusCode = "ACTIVE";
         r.VerifiedBy = User;
         r.VerifiedAt = clock.UtcNow;

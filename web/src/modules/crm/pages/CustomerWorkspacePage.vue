@@ -92,11 +92,11 @@
           </div>
 
           <Crm360Compliance v-else-if="tab === 'compliance'" :client-id="clientId" :state="data.compliance" :badge="data.complianceBadge"
-                            :history="data.complianceHistory" :can-edit="canEdit" :can-verify="canVerify" @changed="load" />
+                            :history="data.complianceHistory" :maker-checker="data.complianceMakerChecker" :can-edit="canEdit" :can-verify="canVerify" @changed="load" />
 
           <Crm360BankAccounts v-else-if="tab === 'bank'" :client-id="clientId" :accounts="data.bankAccounts" :history="data.bankAccountHistory"
                               :badge="data.bankBadge" :currencies="currencies" :default-currency-id="baseCurrencyId" :holder-name="data.profile.clientName"
-                              :waiting-days="data.bankAccountWaitingDays" :can-edit="canEdit" :can-verify="canVerify" @changed="load" />
+                              :waiting-days="data.bankAccountWaitingDays" :maker-checker="data.bankAccountMakerChecker" :can-edit="canEdit" :can-verify="canVerify" @changed="load" />
 
           <Crm360Roles v-else-if="tab === 'roles'" :client-id="clientId" :roles="data.roles" :programs="data.programs" :can-edit="canEdit" @changed="load" />
         </template>

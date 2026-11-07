@@ -48,7 +48,7 @@
     </section>
 
     <Crm360Dialog v-model:visible="editing" :title="tr('Edit Compliance Profile')" icon="fa-shield" :busy="busy">
-      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Saving a change removes the verification. Another user must verify it again.') }}</p>
+      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr(makerChecker ? 'Saving a change removes the verification. Another user must verify it again.' : 'Saving a change removes the verification. Verify it again to make it count.') }}</p>
       <div class="c3-grid">
         <label class="fc-field" :class="bad('riskGrade')"><span>{{ tr('Risk Grade') }}</span>
           <select v-model="form.riskGrade" class="fx-select"><option :value="null"></option><option v-for="v in RISK" :key="v" :value="v">{{ v }}</option></select></label>
@@ -96,7 +96,7 @@ import { crm360Api, type CrmBadge, type CrmCompliance, type CrmComplianceHistory
 import Crm360Dialog from './Crm360Dialog.vue'
 import { chip } from './crm360'
 
-const props = defineProps<{ clientId: number; state: CrmComplianceState; badge: CrmBadge; history: CrmComplianceHistory[]; canEdit: boolean; canVerify: boolean }>()
+const props = defineProps<{ clientId: number; state: CrmComplianceState; badge: CrmBadge; history: CrmComplianceHistory[]; makerChecker: boolean; canEdit: boolean; canVerify: boolean }>()
 const emit = defineEmits<{ changed: [] }>()
 
 const KYC = ['PENDING', 'APPROVED', 'REJECTED']
@@ -141,7 +141,7 @@ async function run(action: () => Promise<void>, done: string, close: () => void)
 const blank = (v: string | null) => (v ? v : null)
 const save = () => run(() => crm360Api.saveCompliance(props.clientId, {
   ...form, kycExpiryDate: blank(form.kycExpiryDate), amlCheckDate: blank(form.amlCheckDate), nextReviewDate: blank(form.nextReviewDate)
-}), 'Compliance profile saved. Another user must verify it.', () => (editing.value = false))
+}), props.makerChecker ? 'Compliance profile saved. Another user must verify it.' : 'Compliance profile saved. Verify it to make it count.', () => (editing.value = false))
 const verify = () => run(() => crm360Api.verifyCompliance(props.clientId, verifyNotes.value || null), 'Compliance profile verified.', () => {
   verifying.value = false
   verifyNotes.value = ''
