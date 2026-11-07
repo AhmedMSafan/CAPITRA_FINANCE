@@ -18,7 +18,54 @@ export type TrsDisburseHeader = {
   executedAt: string | null
 }
 
-export type TrsDisburseParty = { clientId: number | null; name: string; role: 'DEBTOR' | 'SELLER'; weight: number; groupName: string | null }
+export type TrsDisburseParty = {
+  clientId: number | null
+  name: string
+  role: 'DEBTOR' | 'SELLER'
+  weight: number
+  groupName: string | null
+  taxNumber: string | null
+}
+
+/** One party's popup: its invoices, its bank accounts and, for the seller (the supplier in reverse factoring), the amount it receives. */
+export type TrsDisbursePartyDetail = {
+  clientId: number | null
+  name: string
+  role: 'DEBTOR' | 'SELLER'
+  taxNumber: string | null
+  clientCode: string | null
+  currencyCode: string
+  weight: number
+  invoices: {
+    invoiceId: number
+    invoiceNumber: string
+    clientInvoiceNumber: string | null
+    invoiceAt: string | null
+    dueAt: string | null
+    grossAmount: number
+    amount: number
+    statusCode: string | null
+    ineligibleReason: string | null
+  }[]
+  invoiceTotal: number
+  eligibleTotal: number
+  amountToReceive: number | null
+  bankAccounts: {
+    bankAccountId: number
+    bankName: string
+    branchName: string | null
+    accountNumber: string | null
+    iban: string | null
+    accountHolderName: string
+    currencyCode: string
+    isPrimary: boolean
+    statusCode: string
+    isPayable: boolean
+    payableFromAt: string
+  }[]
+  /** The account the money goes to: verified, waiting period passed, in the disbursement currency. */
+  payTo: string | null
+}
 
 export type TrsDisburseSource = {
   sourceKey: string
@@ -94,5 +141,8 @@ export const trsDisburseApi = {
   get: (id: number) => http.get<TrsDisburse>(base(id)),
   save: (id: number, form: TrsDisburseForm) => http.put<TrsDisburse>(base(id), form),
   approveOverride: (id: number) => http.post<TrsDisburse>(`${base(id)}/approve-override`, {}),
-  execute: (id: number) => http.post<TrsDisburse>(`${base(id)}/execute`, {})
+  execute: (id: number) => http.post<TrsDisburse>(`${base(id)}/execute`, {}),
+  party: (id: number, p: { clientId: number | null; taxNumber: string | null }) =>
+    http.get<TrsDisbursePartyDetail>(
+      `${base(id)}/party?${p.clientId !== null ? `clientId=${p.clientId}` : `taxNumber=${encodeURIComponent(p.taxNumber ?? '')}`}`)
 }

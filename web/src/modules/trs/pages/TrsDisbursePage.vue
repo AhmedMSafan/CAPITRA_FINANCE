@@ -99,7 +99,9 @@
           <ul class="trs-parties">
             <li v-for="p in data.parties" :key="p.role + (p.clientId ?? p.name)">
               <span class="fx-chip fx-chip--plain">{{ tr(partyRole(p.role)) }}</span>
-              <span>{{ p.name }}</span><span class="trs-muted num">{{ (p.weight * 100).toFixed(0) }}%</span>
+              <button type="button" class="trs-party-link" :title="tr('Show invoices, bank account and amount')" @click="openParty(p)">
+                {{ p.name }}<span class="fa fa-external-link" aria-hidden="true"></span></button>
+              <span class="trs-muted num">{{ (p.weight * 100).toFixed(0) }}%</span>
             </li>
           </ul>
         </div>
@@ -152,6 +154,8 @@
       </aside>
     </div>
     <div v-else-if="!loading" class="fx-empty">{{ tr('Open this page from a disbursement task.') }}</div>
+    <TrsPartyDialog v-if="data" v-model:visible="partyOpen" :disbursement-id="data.header.disbursementId" :party="party"
+                    :reverse="data.header.isReverse" />
   </div>
 </template>
 
@@ -167,7 +171,8 @@ import { formatDate } from '@/shared/format/datetime'
 import { formatAmount } from '@/shared/format/money'
 import { tr } from '@/shared/layout/language'
 import FctStepActions from '@/modules/fct/components/FctStepActions.vue'
-import { trsDisburseApi, type TrsDisburse, type TrsDisburseRule, type TrsDisburseSource } from '../api/trsDisburse.api'
+import TrsPartyDialog from '../components/TrsPartyDialog.vue'
+import { trsDisburseApi, type TrsDisburse, type TrsDisburseParty, type TrsDisburseRule, type TrsDisburseSource } from '../api/trsDisburse.api'
 import { label, openManual, pct, save } from '../components/trs'
 
 const route = useRoute()
@@ -216,6 +221,12 @@ const tree = computed<TreeRow[]>(() => {
 })
 
 /** Reverse factoring (agreed with Ahmed, 7 Nov 2026): our client is the buyer, who owes the invoices; the suppliers sold them to us. */
+const partyOpen = ref(false)
+const party = ref<TrsDisburseParty | null>(null)
+function openParty(p: TrsDisburseParty) {
+  party.value = p
+  partyOpen.value = true
+}
 const partyRole = (role: string) => (data.value?.header.isReverse ? (role === 'DEBTOR' ? 'Buyer (debtor)' : 'Supplier') : role === 'DEBTOR' ? 'Debtor' : 'Seller')
 const rulesOf = (s: TrsDisburseSource) => (data.value?.rules ?? []).filter((r) => s.ruleIds.includes(r.ruleId))
 const covered = (r: TrsDisburseRule) => sources.value.filter((s) => s.ruleIds.includes(r.ruleId)).reduce((t, s) => t + amt(s.sourceKey), 0)
@@ -426,6 +437,10 @@ onMounted(load)
 .trs-facts dd { margin: 3px 0 0; }
 .trs-parties { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .trs-parties li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.trs-party-link { justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit;
+  color: var(--fin-teal-700); font-weight: 600; text-align: start; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.trs-party-link .fa { font-size: 11px; color: var(--fin-orange); }
+.trs-party-link:hover { color: var(--fin-teal-600); }
 .trs-rule { display: flex; flex-direction: column; gap: 3px; padding: 10px 0; border-block-start: 1px solid var(--fin-line-soft); }
 .trs-rule-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .trs-rule-subject { font-weight: 600; }
