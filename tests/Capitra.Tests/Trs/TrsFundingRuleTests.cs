@@ -39,6 +39,8 @@ public sealed class TrsFundingRuleTests
         Assert.Null(p.Member("DEBTOR"));
         Assert.Equal("REVERSE_FACTORING", TrsFundingProfiles.BusinessLineOf("Reverse Factoring"));
         Assert.Equal("FACTORING", TrsFundingProfiles.BusinessLineOf(null));
+        Assert.Equal("REVERSE_FACTORING", TrsFundingProfiles.BusinessLineOf("Factoring", "REVERSE"));  // the product decides, as at Invoice Entry
+        Assert.Equal("FACTORING", TrsFundingProfiles.BusinessLineOf("Factoring", "CLASSIC"));
     }
 
     [Fact]

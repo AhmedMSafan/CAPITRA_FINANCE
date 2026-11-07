@@ -98,7 +98,7 @@
           <span class="trs-k">{{ data.header.isReverse ? tr('Buyer and suppliers') : tr('Debtors and seller') }}</span>
           <ul class="trs-parties">
             <li v-for="p in data.parties" :key="p.role + (p.clientId ?? p.name)">
-              <span class="fx-chip fx-chip--plain">{{ tr(p.role === 'DEBTOR' ? 'Debtor' : 'Seller') }}</span>
+              <span class="fx-chip fx-chip--plain">{{ tr(partyRole(p.role)) }}</span>
               <span>{{ p.name }}</span><span class="trs-muted num">{{ (p.weight * 100).toFixed(0) }}%</span>
             </li>
           </ul>
@@ -215,6 +215,8 @@ const tree = computed<TreeRow[]>(() => {
   return rows
 })
 
+/** Reverse factoring (agreed with Ahmed, 7 Nov 2026): our client is the buyer, who owes the invoices; the suppliers sold them to us. */
+const partyRole = (role: string) => (data.value?.header.isReverse ? (role === 'DEBTOR' ? 'Buyer (debtor)' : 'Supplier') : role === 'DEBTOR' ? 'Debtor' : 'Seller')
 const rulesOf = (s: TrsDisburseSource) => (data.value?.rules ?? []).filter((r) => s.ruleIds.includes(r.ruleId))
 const covered = (r: TrsDisburseRule) => sources.value.filter((s) => s.ruleIds.includes(r.ruleId)).reduce((t, s) => t + amt(s.sourceKey), 0)
 

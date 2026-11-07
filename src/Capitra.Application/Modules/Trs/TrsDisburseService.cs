@@ -170,10 +170,10 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             ? await db.Set<FctAgreement>().AsNoTracking().Where(x => x.AgreementId == aid).Select(x => new { x.AgreementNumber, x.FactoringType })
                 .SingleOrDefaultAsync(cancellationToken)
             : null;
-        var businessLine = TrsFundingProfiles.BusinessLineOf(agreement?.FactoringType);
-        var reverse = businessLine == "REVERSE_FACTORING";
         var profile = (await TrsFundingProfiles.LoadAsync(db, [disbursementId], cancellationToken)).GetValueOrDefault(disbursementId)
-            ?? new TrsFundingProfile(businessLine, null, null);
+            ?? new TrsFundingProfile(TrsFundingProfiles.BusinessLineOf(agreement?.FactoringType), null, null);
+        var businessLine = profile.BusinessLine;
+        var reverse = businessLine == "REVERSE_FACTORING";
         var currency = await db.Set<CrmLkpCurrency>().AsNoTracking().Where(x => x.CurrencyId == d.CurrencyId).Select(x => x.CurrencyCode)
             .FirstOrDefaultAsync(cancellationToken) ?? "EGP";
         var net = d.NetAmount ?? d.GrossAmount;
