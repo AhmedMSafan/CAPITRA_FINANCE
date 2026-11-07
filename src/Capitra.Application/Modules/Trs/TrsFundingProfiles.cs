@@ -29,9 +29,13 @@ public static class TrsFundingProfiles
 
     public static bool IsDimension(string? subjectTypeCode) => subjectTypeCode is not null && Dimensions.Contains(subjectTypeCode);
 
-    /// <summary>The business line of a factoring agreement type: reverse factoring when it says so, otherwise factoring.</summary>
-    public static string BusinessLineOf(string? factoringType) =>
-        factoringType?.Contains("REVERSE", StringComparison.OrdinalIgnoreCase) == true ? "REVERSE_FACTORING" : "FACTORING";
+    /// <summary>
+    /// The business line of a disbursement: reverse factoring when its product's factoring mode is REVERSE (as Invoice Entry decides) or
+    /// the agreement's factoring type says so, otherwise factoring.
+    /// </summary>
+    public static string BusinessLineOf(string? factoringType, string? productFactoringMode = null) =>
+        string.Equals(productFactoringMode, "REVERSE", StringComparison.OrdinalIgnoreCase)
+        || factoringType?.Contains("REVERSE", StringComparison.OrdinalIgnoreCase) == true ? "REVERSE_FACTORING" : "FACTORING";
 
     public static async Task<Dictionary<long, TrsFundingProfile>> LoadAsync(ICapitraDbContext db, IEnumerable<long> disbursementIds,
         CancellationToken cancellationToken)
@@ -47,10 +51,11 @@ public static class TrsFundingProfiles
                           join c in db.Set<CrmClient>() on d.ClientId equals c.ClientId into cj
                           from c in cj.DefaultIfEmpty()
                           select new { d.DisbursementId, FactoringType = a == null ? null : a.FactoringType, ProductCode = p == null ? null : p.ProductCode,
+                              ProductMode = p == null ? null : p.FactoringModeCode,
                               Segment = c == null ? null : c.ClientSegment })
             .ToListAsync(cancellationToken);
         return rows.ToDictionary(x => x.DisbursementId,
-            x => new TrsFundingProfile(BusinessLineOf(x.FactoringType), x.ProductCode, string.IsNullOrWhiteSpace(x.Segment) ? null : x.Segment.Trim()));
+            x => new TrsFundingProfile(BusinessLineOf(x.FactoringType, x.ProductMode), x.ProductCode, string.IsNullOrWhiteSpace(x.Segment) ? null : x.Segment.Trim()));
     }
 
     /// <summary>"business line Leasing", "product Invoice Discounting", "client segment SME".</summary>

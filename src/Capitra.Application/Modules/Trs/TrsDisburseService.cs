@@ -170,10 +170,10 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             ? await db.Set<FctAgreement>().AsNoTracking().Where(x => x.AgreementId == aid).Select(x => new { x.AgreementNumber, x.FactoringType })
                 .SingleOrDefaultAsync(cancellationToken)
             : null;
-        var businessLine = TrsFundingProfiles.BusinessLineOf(agreement?.FactoringType);
-        var reverse = businessLine == "REVERSE_FACTORING";
         var profile = (await TrsFundingProfiles.LoadAsync(db, [disbursementId], cancellationToken)).GetValueOrDefault(disbursementId)
-            ?? new TrsFundingProfile(businessLine, null, null);
+            ?? new TrsFundingProfile(TrsFundingProfiles.BusinessLineOf(agreement?.FactoringType), null, null);
+        var businessLine = profile.BusinessLine;
+        var reverse = businessLine == "REVERSE_FACTORING";
         var currency = await db.Set<CrmLkpCurrency>().AsNoTracking().Where(x => x.CurrencyId == d.CurrencyId).Select(x => x.CurrencyCode)
             .FirstOrDefaultAsync(cancellationToken) ?? "EGP";
         var net = d.NetAmount ?? d.GrossAmount;
@@ -322,12 +322,15 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             var inScope = facilities.Where(f => f.BankId == r.BankId && (r.FacilityId is null || f.FacilityId == r.FacilityId)).Select(f => f.FacilityId).ToHashSet();
             var scoped = rows.Where(x => subFacility.TryGetValue(x.SublimitId, out var fid) && inScope.Contains(fid)).ToList();
             var role = r.SubjectTypeCode == "SELLER" ? "SELLER" : "DEBTOR";
+            var reverse = profile.BusinessLine == "REVERSE_FACTORING";
             var dimension = TrsFundingProfiles.IsDimension(r.SubjectTypeCode);
             string Who() => r.SubjectTypeCode switch
             {
                 "BUSINESS_LINE" or "PRODUCT" or "CLIENT_SEGMENT" => TrsFundingProfiles.Describe(r.SubjectTypeCode, r.SubjectValue, productNames),
                 "DEBTOR_GROUP" => r.SubjectValue is null ? "any debtor group" : $"debtor group {r.SubjectValue}",
-                _ => r.SubjectClientId is long id ? subjectNames.GetValueOrDefault(id) ?? $"client {id}" : role == "SELLER" ? "any seller" : "any debtor",
+                // in reverse factoring the debtor is the buyer (our client) and the sellers are its suppliers (Ahmed, 7 Nov 2026)
+                _ => r.SubjectClientId is long id ? subjectNames.GetValueOrDefault(id) ?? $"client {id}"
+                    : role == "SELLER" ? (reverse ? "any supplier (seller)" : "any seller") : reverse ? "the buyer (debtor)" : "any debtor",
             };
 
             // the parties this rule looks at, with this disbursement's share (weight) and what they already hold of the bank's money
