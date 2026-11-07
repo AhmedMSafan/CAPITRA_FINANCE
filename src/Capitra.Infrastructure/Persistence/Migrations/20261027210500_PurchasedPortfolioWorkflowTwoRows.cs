@@ -1,0 +1,35 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace Capitra.Infrastructure.Persistence.Migrations
+{
+    /// <summary>
+    /// The Purchased Portfolio Workflow diagram in two rows of five steps, so the designer shows every step bigger.
+    /// Only the diagram layout changes, and only while the definition still has its 10 steps and 16 arrows.
+    /// </summary>
+    [DbContext(typeof(CapitraDbContext))]
+    [Migration("20261027210500_PurchasedPortfolioWorkflowTwoRows")]
+    public partial class PurchasedPortfolioWorkflowTwoRows : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql($"""
+                UPDATE "WFE_WORKFLOW_DEFINITIONS"
+                   SET "BPMN_XML" = regexp_replace("BPMN_XML", '<bpmndi:BPMNDiagram.*</bpmndi:BPMNDiagram>', '{TwoRows}')
+                 WHERE "WORKFLOW_CODE" = 'PURCHASED_PORTFOLIO_WF'
+                   AND (length("BPMN_XML") - length(replace("BPMN_XML", '<bpmn:userTask ', ''))) / length('<bpmn:userTask ') = 10
+                   AND (length("BPMN_XML") - length(replace("BPMN_XML", '<bpmn:sequenceFlow ', ''))) / length('<bpmn:sequenceFlow ') = 16;
+                """);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+        }
+
+        private const string TwoRows = "<bpmndi:BPMNDiagram id=\"BPMNDiagram_1\"><bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"Process_PURCHASED_PORTFOLIO_WF\"><bpmndi:BPMNShape id=\"StartEvent_1_di\" bpmnElement=\"StartEvent_1\"><dc:Bounds x=\"100\" y=\"202\" width=\"36\" height=\"36\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_LOAD_DATA_di\" bpmnElement=\"Task_LOAD_DATA\"><dc:Bounds x=\"180\" y=\"180\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_AML_REVIEW_di\" bpmnElement=\"Task_AML_REVIEW\"><dc:Bounds x=\"380\" y=\"180\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_PORTFOLIO_INQUIRY_di\" bpmnElement=\"Task_PORTFOLIO_INQUIRY\"><dc:Bounds x=\"580\" y=\"180\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_LEGAL_REVIEW_di\" bpmnElement=\"Task_LEGAL_REVIEW\"><dc:Bounds x=\"780\" y=\"180\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_VALUATION_REVIEW_di\" bpmnElement=\"Task_VALUATION_REVIEW\"><dc:Bounds x=\"980\" y=\"180\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_COVERAGE_REVIEW_di\" bpmnElement=\"Task_COVERAGE_REVIEW\"><dc:Bounds x=\"180\" y=\"400\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_CHEQUE_COVERAGE_REVIEW_di\" bpmnElement=\"Task_CHEQUE_COVERAGE_REVIEW\"><dc:Bounds x=\"380\" y=\"400\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_FINANCIAL_REVIEW_di\" bpmnElement=\"Task_FINANCIAL_REVIEW\"><dc:Bounds x=\"580\" y=\"400\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_BOARD_REVIEW_di\" bpmnElement=\"Task_BOARD_REVIEW\"><dc:Bounds x=\"780\" y=\"400\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"Task_DISBURSEMENT_di\" bpmnElement=\"Task_DISBURSEMENT\"><dc:Bounds x=\"980\" y=\"400\" width=\"130\" height=\"80\" /></bpmndi:BPMNShape><bpmndi:BPMNShape id=\"EndEvent_1_di\" bpmnElement=\"EndEvent_1\"><dc:Bounds x=\"1180\" y=\"422\" width=\"36\" height=\"36\" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id=\"Flow_Start_di\" bpmnElement=\"Flow_Start\"><di:waypoint x=\"136\" y=\"220\" /><di:waypoint x=\"180\" y=\"220\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_LOAD_DATA_NEXT_di\" bpmnElement=\"Flow_LOAD_DATA_NEXT\"><di:waypoint x=\"310\" y=\"220\" /><di:waypoint x=\"380\" y=\"220\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_AML_REVIEW_APPROVE_di\" bpmnElement=\"Flow_AML_REVIEW_APPROVE\"><di:waypoint x=\"510\" y=\"220\" /><di:waypoint x=\"580\" y=\"220\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_PORTFOLIO_INQUIRY_APPROVE_di\" bpmnElement=\"Flow_PORTFOLIO_INQUIRY_APPROVE\"><di:waypoint x=\"710\" y=\"220\" /><di:waypoint x=\"780\" y=\"220\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_LEGAL_REVIEW_APPROVE_di\" bpmnElement=\"Flow_LEGAL_REVIEW_APPROVE\"><di:waypoint x=\"910\" y=\"220\" /><di:waypoint x=\"980\" y=\"220\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_VALUATION_REVIEW_NEXT_di\" bpmnElement=\"Flow_VALUATION_REVIEW_NEXT\"><di:waypoint x=\"1045\" y=\"260\" /><di:waypoint x=\"1045\" y=\"330\" /><di:waypoint x=\"245\" y=\"330\" /><di:waypoint x=\"245\" y=\"400\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_COVERAGE_REVIEW_NEXT_di\" bpmnElement=\"Flow_COVERAGE_REVIEW_NEXT\"><di:waypoint x=\"310\" y=\"440\" /><di:waypoint x=\"380\" y=\"440\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_CHEQUE_COVERAGE_REVIEW_APPROVE_di\" bpmnElement=\"Flow_CHEQUE_COVERAGE_REVIEW_APPROVE\"><di:waypoint x=\"510\" y=\"440\" /><di:waypoint x=\"580\" y=\"440\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_FINANCIAL_REVIEW_NEXT_di\" bpmnElement=\"Flow_FINANCIAL_REVIEW_NEXT\"><di:waypoint x=\"710\" y=\"440\" /><di:waypoint x=\"780\" y=\"440\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_BOARD_REVIEW_APPROVE_di\" bpmnElement=\"Flow_BOARD_REVIEW_APPROVE\"><di:waypoint x=\"910\" y=\"440\" /><di:waypoint x=\"980\" y=\"440\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_DISBURSEMENT_NEXT_di\" bpmnElement=\"Flow_DISBURSEMENT_NEXT\"><di:waypoint x=\"1110\" y=\"440\" /><di:waypoint x=\"1180\" y=\"440\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_AML_REVIEW_REJECT_di\" bpmnElement=\"Flow_AML_REVIEW_REJECT\"><di:waypoint x=\"445\" y=\"180\" /><di:waypoint x=\"445\" y=\"130\" /><di:waypoint x=\"1290\" y=\"130\" /><di:waypoint x=\"1290\" y=\"440\" /><di:waypoint x=\"1216\" y=\"440\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_PORTFOLIO_INQUIRY_REJECT_di\" bpmnElement=\"Flow_PORTFOLIO_INQUIRY_REJECT\"><di:waypoint x=\"645\" y=\"180\" /><di:waypoint x=\"645\" y=\"130\" /><di:waypoint x=\"1290\" y=\"130\" /><di:waypoint x=\"1290\" y=\"440\" /><di:waypoint x=\"1216\" y=\"440\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_LEGAL_REVIEW_REJECT_di\" bpmnElement=\"Flow_LEGAL_REVIEW_REJECT\"><di:waypoint x=\"845\" y=\"180\" /><di:waypoint x=\"845\" y=\"130\" /><di:waypoint x=\"1290\" y=\"130\" /><di:waypoint x=\"1290\" y=\"440\" /><di:waypoint x=\"1216\" y=\"440\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_CHEQUE_COVERAGE_REVIEW_REJECT_di\" bpmnElement=\"Flow_CHEQUE_COVERAGE_REVIEW_REJECT\"><di:waypoint x=\"445\" y=\"480\" /><di:waypoint x=\"445\" y=\"540\" /><di:waypoint x=\"1198\" y=\"540\" /><di:waypoint x=\"1198\" y=\"458\" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id=\"Flow_BOARD_REVIEW_REJECT_di\" bpmnElement=\"Flow_BOARD_REVIEW_REJECT\"><di:waypoint x=\"845\" y=\"480\" /><di:waypoint x=\"845\" y=\"540\" /><di:waypoint x=\"1198\" y=\"540\" /><di:waypoint x=\"1198\" y=\"458\" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>";
+    }
+}

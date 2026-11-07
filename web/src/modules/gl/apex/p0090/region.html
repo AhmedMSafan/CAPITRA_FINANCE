@@ -1,0 +1,302 @@
+<div class="gh" id="glHelp">
+<header class="gh-hero">
+  <button type="button" class="gh-close" id="ghClose" title="Close this help window">Close &#10005;</button>
+  <span class="gh-eye"><i></i>Help</span>
+  <h1>How the general ledger works</h1>
+  <p>Account combinations, CCIDs, posting, reversal and balances, in seven short steps.</p>
+  <nav class="gh-tabs" role="tablist" aria-label="Help topics">
+    <button type="button" class="gh-tab" role="tab" id="ghT1" aria-controls="ghP1" aria-selected="true"><b>1</b>Account combination</button>
+    <button type="button" class="gh-tab" role="tab" id="ghT2" aria-controls="ghP2" aria-selected="false" tabindex="-1"><b>2</b>CCID</button>
+    <button type="button" class="gh-tab" role="tab" id="ghT3" aria-controls="ghP3" aria-selected="false" tabindex="-1"><b>3</b>Natural account</button>
+    <button type="button" class="gh-tab" role="tab" id="ghT4" aria-controls="ghP4" aria-selected="false" tabindex="-1"><b>4</b>Posting</button>
+    <button type="button" class="gh-tab" role="tab" id="ghT5" aria-controls="ghP5" aria-selected="false" tabindex="-1"><b>5</b>Reversal</button>
+    <button type="button" class="gh-tab" role="tab" id="ghT7" aria-controls="ghP7" aria-selected="false" tabindex="-1"><b>6</b>Balances</button>
+    <button type="button" class="gh-tab" role="tab" id="ghT6" aria-controls="ghP6" aria-selected="false" tabindex="-1"><b>7</b>Quick rules</button>
+  </nav>
+</header>
+<div class="gh-body">
+<!--P1-->
+<section class="gh-p" id="ghP1" role="tabpanel" aria-labelledby="ghT1">
+  <h2>The account combination</h2>
+  <p class="gh-lead">Every amount in the ledger is recorded against an <b>account combination</b>: one value for each segment, joined with a dash. Each segment answers one question about the money.</p>
+  <div class="gh-seg">
+    <div><div class="gh-sv c1">01<span class="gh-sd">-</span></div><svg class="gh-arr" viewBox="0 0 12 22"><path d="M6 0v16M1 12l5 7 5-7" fill="none" stroke="#0B6E79" stroke-width="2"/></svg><div class="gh-sl"><b>Company</b><span>Which legal entity owns it</span></div></div>
+    <div><div class="gh-sv c2">HQ<span class="gh-sd">-</span></div><svg class="gh-arr" viewBox="0 0 12 22"><path d="M6 0v16M1 12l5 7 5-7" fill="none" stroke="#2F5FD0" stroke-width="2"/></svg><div class="gh-sl"><b>Branch</b><span>Where it happened</span></div></div>
+    <div><div class="gh-sv c3">1100<span class="gh-sd">-</span></div><svg class="gh-arr" viewBox="0 0 12 22"><path d="M6 0v16M1 12l5 7 5-7" fill="none" stroke="#7A4BC4" stroke-width="2"/></svg><div class="gh-sl"><b>Cost centre</b><span>Which department is responsible</span></div></div>
+    <div><div class="gh-sv c4">110101<span class="gh-sd">-</span></div><svg class="gh-arr" viewBox="0 0 12 22"><path d="M6 0v16M1 12l5 7 5-7" fill="none" stroke="#E87722" stroke-width="2"/></svg><div class="gh-sl key"><b>Natural account</b><span>What it is: asset, liability, equity, income or expense</span></div></div>
+    <div><div class="gh-sv c5">MORTGAGE<span class="gh-sd">-</span></div><svg class="gh-arr" viewBox="0 0 12 22"><path d="M6 0v16M1 12l5 7 5-7" fill="none" stroke="#14734F" stroke-width="2"/></svg><div class="gh-sl"><b>Business line</b><span>Which product or business</span></div></div>
+    <div><div class="gh-sv c6">000<span class="gh-sd">-</span></div><svg class="gh-arr" viewBox="0 0 12 22"><path d="M6 0v16M1 12l5 7 5-7" fill="none" stroke="#8DA2AD" stroke-width="2"/></svg><div class="gh-sl"><b>Future 1</b><span>Reserved, 000 = not used</span></div></div>
+    <div><div class="gh-sv c7">000</div><svg class="gh-arr" viewBox="0 0 12 22"><path d="M6 0v16M1 12l5 7 5-7" fill="none" stroke="#8DA2AD" stroke-width="2"/></svg><div class="gh-sl"><b>Future 2</b><span>Reserved, 000 = not used</span></div></div>
+  </div>
+  <div class="gh-whole"><span class="mono">01-HQ-1100-110101-MORTGAGE-000-000</span><small>= one account combination, the full address of a balance</small></div>
+  <div class="gh-note"><span class="ic">i</span><div>Change any one segment and you get a <b>different</b> account combination with its own balance. Only the natural account is set up in the chart of accounts; the other segments are chosen on each journal line.</div></div>
+</section>
+<!--P2-->
+<section class="gh-p" id="ghP2" role="tabpanel" aria-labelledby="ghT2" hidden>
+  <h2>CCID: the ID behind the combination</h2>
+  <p class="gh-lead">The <b>CCID</b> (Code Combination ID) is the unique number the system gives an account combination the first time it is used. In FINOVA it is the <b>Account Combination ID</b>.</p>
+  <div class="gh-flow">
+    <div class="gh-fb"><span class="t">You type</span><span class="v mono" style="font-size:13px">01-HQ-1100-110101-MORTGAGE-000-000</span><span class="s">on a journal line</span></div>
+    <div class="gh-fa"><svg width="40" height="20" viewBox="0 0 40 20"><path d="M2 10h32M27 3l8 7-8 7" fill="none" stroke="#5F7B8A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="gh-fb"><span class="t">System checks</span><span class="v">Valid and enabled?</span><span class="s">Finds the combination, or creates it once</span></div>
+    <div class="gh-fa"><svg width="40" height="20" viewBox="0 0 40 20"><path d="M2 10h32M27 3l8 7-8 7" fill="none" stroke="#5F7B8A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="gh-fb hi"><span class="t">CCID</span><span class="v" style="font-size:26px">1001</span><span class="s">One combination = one CCID, forever</span></div>
+    <div class="gh-fa"><svg width="40" height="20" viewBox="0 0 40 20"><path d="M2 10h32M27 3l8 7-8 7" fill="none" stroke="#5F7B8A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="gh-fb dk"><span class="t">Stored on</span><span class="v">Journal lines and balances</span><span class="s">Reports turn 1001 back into the combination</span></div>
+  </div>
+  <div class="gh-pair">
+    <div class="gh-card"><h4>What you see</h4><p>The account combination text, for example in the <b>Account Combination</b> column.</p></div>
+    <div class="gh-card"><h4>What the system stores</h4><p>The CCID number. So the CCID is simply the internal code for the combination you see on screen.</p></div>
+  </div>
+  <div class="gh-note"><span class="ic">i</span><div>In Oracle E-Business Suite this is called the <b>CCID</b> (table GL_CODE_COMBINATIONS). FINOVA keeps the same idea as the <b>Account Combination ID</b> in GL_ACCOUNT_COMBINATIONS.</div></div>
+</section>
+<!--P3-->
+<section class="gh-p" id="ghP3" role="tabpanel" aria-labelledby="ghT3" hidden>
+  <h2>Natural account, combination and CCID</h2>
+  <p class="gh-lead">The <b>natural account</b> is defined once in the chart of accounts, with its name and type. It can then appear in many combinations, and <b>each combination has its own CCID and its own balance</b>.</p>
+  <div class="gh-card">
+  <svg class="gh-svg" viewBox="0 0 960 318" role="img" aria-label="Natural account 110101 used in three account combinations, each with its own CCID and balance, adding up to the account total">
+    <defs><marker id="ghA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8DA2AD"/></marker></defs>
+    <rect x="230" y="6" width="500" height="64" rx="14" fill="#FFF1E6" stroke="#E87722" stroke-width="2"/>
+    <text x="480" y="33" text-anchor="middle" font-size="16" font-weight="800" fill="#0B2533">110101 &#183; Mortgage loans receivable</text>
+    <text x="480" y="54" text-anchor="middle" font-size="12.5" fill="#5F7B8A">Natural account, set up once in the chart of accounts &#183; type Asset</text>
+    <path d="M380 70 C380 95 165 95 165 122" fill="none" stroke="#8DA2AD" stroke-width="2" marker-end="url(#ghA)"/>
+    <path d="M480 70 V122" fill="none" stroke="#8DA2AD" stroke-width="2" marker-end="url(#ghA)"/>
+    <path d="M580 70 C580 95 795 95 795 122" fill="none" stroke="#8DA2AD" stroke-width="2" marker-end="url(#ghA)"/>
+    <g>
+      <rect x="15" y="126" width="300" height="88" rx="12" fill="#fff" stroke="#DFE8EC" stroke-width="1.5"/>
+      <text x="165" y="150" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">01-<tspan fill="#2F5FD0">HQ</tspan>-1100-<tspan fill="#E87722">110101</tspan>-MORTGAGE-000-000</text>
+      <rect x="40" y="166" width="96" height="30" rx="7" fill="#FFF1E6"/><text x="88" y="186" text-anchor="middle" font-size="13" font-weight="800" fill="#B4570E">CCID 1001</text>
+      <text x="290" y="186" text-anchor="end" font-size="14" font-weight="700" fill="#0B2533">600,000</text>
+    </g>
+    <g>
+      <rect x="330" y="126" width="300" height="88" rx="12" fill="#fff" stroke="#DFE8EC" stroke-width="1.5"/>
+      <text x="480" y="150" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">01-<tspan fill="#2F5FD0">ALX</tspan>-1100-<tspan fill="#E87722">110101</tspan>-MORTGAGE-000-000</text>
+      <rect x="355" y="166" width="96" height="30" rx="7" fill="#FFF1E6"/><text x="403" y="186" text-anchor="middle" font-size="13" font-weight="800" fill="#B4570E">CCID 1002</text>
+      <text x="605" y="186" text-anchor="end" font-size="14" font-weight="700" fill="#0B2533">250,000</text>
+    </g>
+    <g>
+      <rect x="645" y="126" width="300" height="88" rx="12" fill="#fff" stroke="#DFE8EC" stroke-width="1.5"/>
+      <text x="795" y="150" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">01-HQ-<tspan fill="#7A4BC4">1200</tspan>-<tspan fill="#E87722">110101</tspan>-MORTGAGE-000-000</text>
+      <rect x="670" y="166" width="96" height="30" rx="7" fill="#FFF1E6"/><text x="718" y="186" text-anchor="middle" font-size="13" font-weight="800" fill="#B4570E">CCID 1003</text>
+      <text x="920" y="186" text-anchor="end" font-size="14" font-weight="700" fill="#0B2533">150,000</text>
+    </g>
+    <path d="M165 214 C165 240 400 236 400 258" fill="none" stroke="#14734F" stroke-width="2" marker-end="url(#ghA)"/>
+    <path d="M480 214 V258" fill="none" stroke="#14734F" stroke-width="2" marker-end="url(#ghA)"/>
+    <path d="M795 214 C795 240 560 236 560 258" fill="none" stroke="#14734F" stroke-width="2" marker-end="url(#ghA)"/>
+    <rect x="250" y="262" width="460" height="50" rx="12" fill="#E7F6EF" stroke="#14734F" stroke-width="2"/>
+    <text x="480" y="284" text-anchor="middle" font-size="14" font-weight="800" fill="#14734F">Total of natural account 110101 = 1,000,000</text>
+    <text x="480" y="302" text-anchor="middle" font-size="12" fill="#29495A">the sum of all its CCIDs: 600,000 + 250,000 + 150,000</text>
+  </svg>
+  </div>
+  <div class="gh-pair">
+    <div class="gh-card"><h4>One natural account, many combinations</h4><p>110101 is used by every branch, cost centre and business line that holds mortgage loans.</p></div>
+    <div class="gh-card"><h4>The natural account sets the behaviour</h4><p>Every CCID built on 110101 behaves as an asset, whatever its other segments are.</p></div>
+  </div>
+  <div class="gh-note"><span class="ic">i</span><div>The balance for one branch or business line is just the CCIDs that carry that branch or business line. CCID numbers and the ALX branch here are examples.</div></div>
+</section>
+<!--P4-->
+<section class="gh-p" id="ghP4" role="tabpanel" aria-labelledby="ghT4" hidden>
+  <h2>Posting to the ledger</h2>
+  <p class="gh-lead">To record a transaction you write a <b>journal</b>. Each line picks an account combination and a <b>debit</b> or <b>credit</b>. Nothing changes a balance until the journal is <b>posted</b>.</p>
+  <div class="gh-steps">
+    <div class="gh-st"><span class="n">1</span><span class="h">Enter</span><span class="s">Lines with account combinations and amounts</span></div>
+    <div class="gh-fa"><svg width="40" height="20" viewBox="0 0 40 20"><path d="M2 10h32M27 3l8 7-8 7" fill="none" stroke="#5F7B8A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="gh-st"><span class="n">2</span><span class="h">Submit</span><span class="s">The system validates the journal</span><span class="chk">&#10003; combinations valid and enabled<br>&#10003; debits = credits</span></div>
+    <div class="gh-fa"><svg width="40" height="20" viewBox="0 0 40 20"><path d="M2 10h32M27 3l8 7-8 7" fill="none" stroke="#5F7B8A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="gh-st"><span class="n">3</span><span class="h">Approve</span><span class="s">Reviewed, when the source needs approval</span></div>
+    <div class="gh-fa"><svg width="40" height="20" viewBox="0 0 40 20"><path d="M2 10h32M27 3l8 7-8 7" fill="none" stroke="#5F7B8A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="gh-st end"><span class="n">4</span><span class="h">Post</span><span class="s">Each line updates the balance of its CCID for the period</span></div>
+  </div>
+  <h2 style="font-size:15px;margin-top:22px">Example: disbursing a 1,000,000 EGP mortgage</h2>
+  <div class="gh-ta">
+    <div class="gh-t"><div class="hd"><b>Mortgage loans receivable</b><span class="mono">01-HQ-1100-110101-MORTGAGE-000-000</span></div>
+      <div class="bd"><div><span class="lb">Debit</span><div class="am dr">1,000,000</div></div><div><span class="lb">Credit</span></div></div></div>
+    <div class="gh-t"><div class="hd"><b>Customer current account</b><span class="mono">01-HQ-1100-210101-MORTGAGE-000-000</span></div>
+      <div class="bd"><div><span class="lb">Debit</span></div><div><span class="lb">Credit</span><div class="am cr">1,000,000</div></div></div></div>
+  </div>
+  <div class="gh-bal"><span>Debits 1,000,000</span>=<span class="cr">Credits 1,000,000</span><em>&#10003; balanced, ready to post</em></div>
+  <div class="gh-note"><span class="ic">i</span><div>After posting, the loans account goes up by 1,000,000 and every report that groups by company, branch or business line picks it up. Account 210101 is an example; use your own chart of accounts.</div></div>
+</section>
+<!--P5-->
+<section class="gh-p" id="ghP5" role="tabpanel" aria-labelledby="ghT5" hidden>
+  <h2>Reversing a journal</h2>
+  <p class="gh-lead">A posted journal is never edited or deleted. To cancel it you <b>reverse</b> it: the system creates a <b>new journal</b> with the same account combinations and the <b>debit and credit swapped</b>.</p>
+  <div class="gh-rv">
+    <div class="gh-jr"><div class="hd"><span class="mono">JOURNAL-20261013-144825793</span><small>Original &#183; posted</small></div>
+      <div class="ln h"><span>Account</span><span class="n">Debit</span><span class="n">Credit</span></div>
+      <div class="ln"><span class="mono">&#8230;-110101-&#8230;</span><span class="n dr">1,000,000</span><span class="n"></span></div>
+      <div class="ln"><span class="mono">&#8230;-210101-&#8230;</span><span class="n"></span><span class="n cr">1,000,000</span></div></div>
+    <div class="gh-swap" style="text-align:center"><svg width="60" height="64" viewBox="0 0 60 64" aria-hidden="true"><path d="M6 20h44M42 13l8 7-8 7" fill="none" stroke="#E87722" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M54 44H10M18 37l-8 7 8 7" fill="none" stroke="#2F5FD0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="font-size:11px;font-weight:700;color:#5F7B8A">Dr &#8644; Cr</div></div>
+    <div class="gh-jr rev"><div class="hd"><span class="mono">REV-JOURNAL-20261013-144825793</span><small>Reversal of the original &#183; posted</small></div>
+      <div class="ln h"><span>Account</span><span class="n">Debit</span><span class="n">Credit</span></div>
+      <div class="ln"><span class="mono">&#8230;-110101-&#8230;</span><span class="n"></span><span class="n cr">1,000,000</span></div>
+      <div class="ln"><span class="mono">&#8230;-210101-&#8230;</span><span class="n dr">1,000,000</span><span class="n"></span></div></div>
+  </div>
+  <div class="gh-net">
+    <div><div class="k">Original moves 110101 by</div><div class="v" style="color:#2F5FD0">+1,000,000</div></div>
+    <div><div class="k">Reversal moves 110101 by</div><div class="v" style="color:#B4570E">&minus;1,000,000</div></div>
+    <div class="z"><div class="k">Net effect</div><div class="v">0</div></div>
+  </div>
+  <h2 style="font-size:15px;margin-top:22px">Why a search shows both journals</h2>
+  <div class="gh-search">
+    <div class="q"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5F7B8A" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><div class="box">JOURNAL-20261013-144825793</div></div>
+    <div class="r"><span><mark>JOURNAL-20261013-144825793</mark></span><span class="tg">Original</span></div>
+    <div class="r"><span><span class="pre">REV-</span><mark>JOURNAL-20261013-144825793</mark></span><span class="tg rv">Reversal</span></div>
+  </div>
+  <div class="gh-note or"><span class="ic">!</span><div>The reversal number is the original number with <b>REV-</b> in front, and the search finds every journal number that <b>contains</b> what you type. So both journals appear, each with its own debit and credit lines. To see only the reversal, search with <b>REV-</b>. A journal can be reversed only once, and only after it is posted.</div></div>
+</section>
+<!--P6-->
+<section class="gh-p" id="ghP6" role="tabpanel" aria-labelledby="ghT6" hidden>
+  <h2>Quick rules</h2>
+  <p class="gh-lead">Six rules that keep the ledger right.</p>
+  <div class="gh-rules">
+    <div class="gh-rule"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span><div><b>Full combination on every line</b><span>Every segment filled, and the combination valid and enabled.</span></div></div>
+    <div class="gh-rule"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8h14M5 8l-3 7h6zM19 8l-3 7h6z"/></svg></span><div><b>Debits = credits</b><span>A journal must balance before it can be posted.</span></div></div>
+    <div class="gh-rule"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span><div><b>Only posted journals count</b><span>Draft, submitted and approved journals do not change balances.</span></div></div>
+    <div class="gh-rule"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg></span><div><b>Fix by reversing, never by editing</b><span>Reverse the posted journal, then post a correct one.</span></div></div>
+    <div class="gh-rule"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><div><b>Balances live on the CCID</b><span>Kept per CCID and period, then added up by any segment for reports.</span></div></div>
+    <div class="gh-rule"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6M12 9l-7 6M12 9l7 6M12 9v6M3 19h4M10 19h4M17 19h4"/></svg></span><div><b>A natural account has no balance of its own</b><span>Its balance is the total of every account combination that uses it. Money is held, and posted, only on combinations.</span></div></div>
+  </div>
+  <div class="gh-card gh-gl"><dl>
+    <dt>Segment</dt><dd>One part of an account combination, such as Company or Branch.</dd>
+    <dt>Natural account</dt><dd>The segment defined in the chart of accounts that says what the money is (110101).</dd>
+    <dt>Account combination</dt><dd>One value for every segment, joined in order: 01-HQ-1100-110101-MORTGAGE-000-000.</dd>
+    <dt>CCID</dt><dd>The unique ID of an account combination (Account Combination ID).</dd>
+    <dt>Posting</dt><dd>Applying an approved, balanced journal to the ledger balances.</dd>
+    <dt>Reversal</dt><dd>A new journal (REV-&#8230;) that swaps debits and credits to cancel a posted one.</dd>
+  </dl></div>
+</section>
+<!--END-->
+</div>
+<footer class="gh-foot"><button class="gh-btn" id="ghPrev" type="button">&#8592; Back</button><div class="gh-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><button class="gh-btn pri" id="ghNext" type="button">Next &#8594;</button></footer>
+</div>
+<!--P7-->
+<section class="gh-p" id="ghP7" role="tabpanel" aria-labelledby="ghT7" hidden>
+  <h2>Balances by period and currency</h2>
+  <p class="gh-lead">A CCID never changes with the period or the currency. Instead, <b>one CCID holds many balance rows</b>: one for each <b>ledger + period + currency</b>.</p>
+  <div class="gh-sub"><span>A</span>Business view</div>
+  <div class="gh-bx">
+    <div class="gh-fb hi" style="flex:0 0 230px"><span class="t">One CCID</span><span class="v" style="font-size:24px">1001</span><span class="s mono">01-HQ-1100-110101-MORTGAGE-000-000</span></div>
+    <div class="gh-fa"><svg width="40" height="20" viewBox="0 0 40 20"><path d="M2 10h32M27 3l8 7-8 7" fill="none" stroke="#5F7B8A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="gh-mx">
+      <table class="gh-tbl"><thead><tr><th>Period</th><th>Currency</th><th class="n">Opening</th><th class="n">Debit</th><th class="n">Credit</th><th class="n">Closing</th></tr></thead><tbody>
+      <tr><td>Oct-2026</td><td><span class="gh-cur">EGP</span></td><td class="n">0</td><td class="n">1,000,000</td><td class="n">0</td><td class="n"><b>1,000,000</b></td></tr>
+      <tr><td>Oct-2026</td><td><span class="gh-cur us">USD</span></td><td class="n">0</td><td class="n">20,000</td><td class="n">0</td><td class="n"><b>20,000</b></td></tr>
+      <tr class="nx"><td>Nov-2026</td><td><span class="gh-cur">EGP</span></td><td class="n">1,000,000</td><td class="n">250,000</td><td class="n">0</td><td class="n"><b>1,250,000</b></td></tr>
+      </tbody></table>
+      <div class="gh-carry">&#8627; October&#8217;s EGP closing (1,000,000) becomes November&#8217;s EGP opening.</div>
+    </div>
+  </div>
+  <div class="gh-rules" style="margin-top:14px">
+    <div class="gh-rule"><span class="ic">1</span><div><b>Same CCID in every period and currency</b><span>A new CCID appears only when a segment value changes.</span></div></div>
+    <div class="gh-rule"><span class="ic">2</span><div><b>One balance row per ledger + period + currency</b><span>Each row keeps opening, period debits and credits, and closing.</span></div></div>
+    <div class="gh-rule"><span class="ic">3</span><div><b>Closing = opening + debits &minus; credits</b><span>The closing of one period is the opening of the next.</span></div></div>
+    <div class="gh-rule"><span class="ic">4</span><div><b>Currencies are never mixed</b><span>EGP and USD on the same CCID are separate rows. Each journal line also carries the amount converted to the ledger currency (accounted amount).</span></div></div>
+  </div>
+  <div class="gh-note or"><span class="ic">!</span><div>Income and expense accounts usually start each financial year at zero, with the result moved to retained earnings. Check your year-end close setup for the exact rule. Numbers above are examples.</div></div>
+  <div class="gh-sub" style="margin-top:26px"><span>B</span>Technical structure</div>
+  <div class="gh-card">
+    <svg class="gh-svg" viewBox="0 0 960 420" role="img" aria-label="Tables: GL_ACCOUNTS to GL_ACCOUNT_COMBINATIONS to segments, posting movements and balances">
+      <defs><marker id="ghB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8DA2AD"/></marker>
+      <marker id="ghC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#14734F"/></marker></defs>
+      <path d="M288 66 H340" stroke="#8DA2AD" stroke-width="2" fill="none" marker-end="url(#ghB)"/>
+      <rect x="280" y="47" width="67" height="18" rx="9" fill="#F4F8F9" stroke="#DFE8EC"/><text x="314" y="60" text-anchor="middle" font-size="10.5" font-weight="700" fill="#29495A">1 : many</text>
+      <path d="M630 66 H682" stroke="#8DA2AD" stroke-width="2" fill="none" marker-end="url(#ghB)"/>
+      <rect x="632" y="47" width="48" height="18" rx="9" fill="#F4F8F9" stroke="#DFE8EC"/><text x="656" y="60" text-anchor="middle" font-size="10.5" font-weight="700" fill="#29495A">1 : many</text>
+      <path d="M430 156 C430 196 250 190 250 222" stroke="#8DA2AD" stroke-width="2" fill="none" marker-end="url(#ghB)"/>
+      <rect x="296" y="183" width="67" height="18" rx="9" fill="#F4F8F9" stroke="#DFE8EC"/><text x="330" y="196" text-anchor="middle" font-size="10.5" font-weight="700" fill="#29495A">1 : many</text>
+      <path d="M560 156 C560 196 700 190 700 222" stroke="#8DA2AD" stroke-width="2" fill="none" marker-end="url(#ghB)"/>
+      <rect x="606" y="183" width="67" height="18" rx="9" fill="#F4F8F9" stroke="#DFE8EC"/><text x="640" y="196" text-anchor="middle" font-size="10.5" font-weight="700" fill="#29495A">1 : many</text>
+      <path d="M334 330 H590" stroke="#14734F" stroke-width="2.4" stroke-dasharray="6 4" fill="none" marker-end="url(#ghC)"/>
+      <rect x="406" y="309" width="112" height="18" rx="9" fill="#F4F8F9" stroke="#DFE8EC"/><text x="462" y="322" text-anchor="middle" font-size="10.5" font-weight="700" fill="#29495A">posting adds to</text>
+      <g>
+      <rect x="16" y="16" width="272" height="160" rx="10" fill="#fff" stroke="#DFE8EC" stroke-width="1.5"/>
+      <path d="M16 26h272v20h-272z" fill="#E87722"/><rect x="16" y="16" width="272" height="30" rx="10" fill="#E87722"/>
+      <text x="28" y="36" font-size="12.5" font-weight="800" fill="#fff" style="font-family:Consolas,'Courier New',monospace">GL_ACCOUNTS</text>
+      <text x="28" y="66" font-size="9.5" font-weight="800" fill="#E87722">PK</text>
+      <text x="56" y="66" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ACCOUNT_ID</text>
+      <text x="56" y="86" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ACCOUNT_CODE</text>
+      <text x="278" y="86" font-size="10.5" text-anchor="end" fill="#5F7B8A">110101</text>
+      <text x="56" y="106" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ACCOUNT_TYPE</text>
+      <text x="278" y="106" font-size="10.5" text-anchor="end" fill="#5F7B8A">Asset ...</text>
+      <text x="56" y="126" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">NORMAL_BALANCE</text>
+      <text x="278" y="126" font-size="10.5" text-anchor="end" fill="#5F7B8A">Dr / Cr</text>
+      <text x="56" y="146" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">SUMMARY_FLAG</text>
+      <text x="278" y="146" font-size="10.5" text-anchor="end" fill="#5F7B8A">parent?</text>
+      <text x="56" y="166" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">POSTING_ALLOWED_FLAG</text>
+      </g>
+      <g>
+      <rect x="344" y="16" width="286" height="140" rx="10" fill="#fff" stroke="#DFE8EC" stroke-width="1.5"/>
+      <path d="M344 26h286v20h-286z" fill="#00636D"/><rect x="344" y="16" width="286" height="30" rx="10" fill="#00636D"/>
+      <text x="356" y="36" font-size="12.5" font-weight="800" fill="#fff" style="font-family:Consolas,'Courier New',monospace">GL_ACCOUNT_COMBINATIONS</text>
+      <text x="356" y="66" font-size="9.5" font-weight="800" fill="#E87722">PK</text>
+      <text x="384" y="66" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ACCOUNT_COMBINATION_ID</text>
+      <text x="620" y="66" font-size="10.5" text-anchor="end" fill="#5F7B8A">= CCID</text>
+      <text x="384" y="86" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">COA_ID</text>
+      <text x="356" y="106" font-size="9.5" font-weight="800" fill="#2F5FD0">FK</text>
+      <text x="384" y="106" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ACCOUNT_ID</text>
+      <text x="620" y="106" font-size="10.5" text-anchor="end" fill="#5F7B8A">natural acct</text>
+      <text x="384" y="126" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">CONCATENATED_ACCOUNT</text>
+      <text x="620" y="126" font-size="10.5" text-anchor="end" fill="#5F7B8A">01-HQ-...</text>
+      <text x="384" y="146" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ENABLED_FLAG</text>
+      </g>
+      <g>
+      <rect x="686" y="16" width="258" height="120" rx="10" fill="#fff" stroke="#DFE8EC" stroke-width="1.5"/>
+      <path d="M686 26h258v20h-258z" fill="#7A4BC4"/><rect x="686" y="16" width="258" height="30" rx="10" fill="#7A4BC4"/>
+      <text x="698" y="36" font-size="12.5" font-weight="800" fill="#fff" style="font-family:Consolas,'Courier New',monospace">..._COMBINATION_SEGMENTS</text>
+      <text x="698" y="66" font-size="9.5" font-weight="800" fill="#2F5FD0">FK</text>
+      <text x="726" y="66" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ACCOUNT_COMBINATION_ID</text>
+      <text x="726" y="86" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">SEGMENT_NUM</text>
+      <text x="934" y="86" font-size="10.5" text-anchor="end" fill="#5F7B8A">1, 2, 3 ...</text>
+      <text x="726" y="106" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">SEGMENT_VALUE_ID</text>
+      <text x="726" y="126" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">SEGMENT_VALUE_CODE</text>
+      <text x="934" y="126" font-size="10.5" text-anchor="end" fill="#5F7B8A">HQ</text>
+      </g>
+      <g>
+      <rect x="16" y="226" width="318" height="180" rx="10" fill="#fff" stroke="#DFE8EC" stroke-width="1.5"/>
+      <path d="M16 236h318v20h-318z" fill="#2F5FD0"/><rect x="16" y="226" width="318" height="30" rx="10" fill="#2F5FD0"/>
+      <text x="28" y="246" font-size="12.5" font-weight="800" fill="#fff" style="font-family:Consolas,'Courier New',monospace">GL_POSTING_BALANCE_IMPACTS</text>
+      <text x="28" y="276" font-size="9.5" font-weight="800" fill="#E87722">PK</text>
+      <text x="56" y="276" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">BALANCE_IMPACT_ID</text>
+      <text x="56" y="296" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">JOURNAL_HEADER_ID / LINE_ID</text>
+      <text x="28" y="316" font-size="9.5" font-weight="800" fill="#2F5FD0">FK</text>
+      <text x="56" y="316" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ACCOUNT_COMBINATION_ID</text>
+      <text x="56" y="336" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">LEDGER_ID, LEDGER_PERIOD_ID</text>
+      <text x="56" y="356" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">CURRENCY_CODE</text>
+      <text x="56" y="376" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ACCOUNTED_DR / ACCOUNTED_CR</text>
+      <text x="56" y="396" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">IMPACT_STATUS</text>
+      <text x="324" y="396" font-size="10.5" text-anchor="end" fill="#5F7B8A">APPLIED</text>
+      </g>
+      <g>
+      <rect x="594" y="226" width="350" height="180" rx="10" fill="#fff" stroke="#DFE8EC" stroke-width="1.5"/>
+      <path d="M594 236h350v20h-350z" fill="#14734F"/><rect x="594" y="226" width="350" height="30" rx="10" fill="#14734F"/>
+      <text x="606" y="246" font-size="12.5" font-weight="800" fill="#fff" style="font-family:Consolas,'Courier New',monospace">GL_ACCOUNT_BALANCES</text>
+      <text x="606" y="276" font-size="9.5" font-weight="800" fill="#2F5FD0">FK</text>
+      <text x="634" y="276" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">ACCOUNT_COMBINATION_ID</text>
+      <text x="606" y="296" font-size="9.5" font-weight="800" fill="#14734F">KEY</text>
+      <text x="634" y="296" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">LEDGER_ID</text>
+      <text x="606" y="316" font-size="9.5" font-weight="800" fill="#14734F">KEY</text>
+      <text x="634" y="316" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">LEDGER_PERIOD_ID</text>
+      <text x="606" y="336" font-size="9.5" font-weight="800" fill="#14734F">KEY</text>
+      <text x="634" y="336" font-size="11.5" font-weight="700" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">CURRENCY_CODE</text>
+      <text x="634" y="356" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">OPENING_DR / OPENING_CR</text>
+      <text x="934" y="356" font-size="10.5" text-anchor="end" fill="#5F7B8A">start</text>
+      <text x="634" y="376" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">PERIOD_DR / PERIOD_CR</text>
+      <text x="934" y="376" font-size="10.5" text-anchor="end" fill="#5F7B8A">movements</text>
+      <text x="634" y="396" font-size="11.5" font-weight="400" fill="#0B2533" style="font-family:Consolas,'Courier New',monospace">CLOSING_DR / CLOSING_CR</text>
+      <text x="934" y="396" font-size="10.5" text-anchor="end" fill="#5F7B8A">end</text>
+      </g>
+    </svg>
+  </div>
+  <div class="gh-card" style="margin-top:12px;padding:0;overflow:hidden">
+    <table class="gh-tbl"><thead><tr><th>Table</th><th>One row per</th><th>Used for</th></tr></thead><tbody>
+    <tr><td class="mono">GL_ACCOUNTS</td><td>natural account (chart of accounts)</td><td>name, type, normal balance, parent and posting flags</td></tr>
+    <tr><td class="mono">GL_ACCOUNT_COMBINATIONS</td><td>account combination = <b>CCID</b></td><td>the master of every combination ever used</td></tr>
+    <tr><td class="mono">GL_ACCOUNT_COMBINATION_SEGMENTS</td><td>segment of a CCID</td><td>the segment values behind each CCID</td></tr>
+    <tr><td class="mono">GL_POSTING_BALANCE_IMPACTS</td><td>posted movement of a journal line</td><td>audit trail; the Account ledger page reads it</td></tr>
+    <tr><td class="mono">GL_ACCOUNT_BALANCES</td><td>CCID + ledger + period + currency</td><td>opening, movements and closing used by balance reports</td></tr>
+    </tbody></table>
+  </div>
+  <div class="gh-note"><span class="ic">i</span><div>Chain: <b>GL_ACCOUNTS</b> (one natural account) &#8594; <b>GL_ACCOUNT_COMBINATIONS</b> (many CCIDs) &#8594; <b>GL_ACCOUNT_BALANCES</b> (many balance rows per CCID). Posting writes a movement to GL_POSTING_BALANCE_IMPACTS and adds it to the matching balance row.</div></div>
+</section>

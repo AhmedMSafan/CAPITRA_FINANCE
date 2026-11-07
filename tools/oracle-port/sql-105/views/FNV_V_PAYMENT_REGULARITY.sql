@@ -1,0 +1,5 @@
+select pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN", count(ap."PAYMENT_ID") as "PAYMENT_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'PAID' then 1 else 0 end) as "PAID_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" = 'LATE' then 1 else 0 end) as "LATE_COUNT", sum(case when ap."PAYMENT_STATUS_CODE" in ('PARTIAL', 'UNPAID') then 1 else 0 end) as "PROBLEM_COUNT", max(ap."DAYS_LATE") as "MAX_DAYS_LATE", sum(ap."DUE_AMOUNT") as "TOTAL_DUE", sum(ap."PAID_AMOUNT") as "TOTAL_PAID"
+from "MTG_PURCHASED_PORTFOLIO_ACCOUNTS" pa
+join "MTG_INVESTORS" i on i."INVESTOR_ID" = pa."INVESTOR_ID"
+left join "MTG_ACCOUNT_PAYMENTS" ap on ap."PORTFOLIO_ACCOUNT_ID" = pa."PORTFOLIO_ACCOUNT_ID"
+group by pa."PORTFOLIO_ACCOUNT_ID", pa."PORTFOLIO_ID", pa."INVESTOR_ID", i."INVESTOR_CODE", i."FULL_NAME_AR", i."FULL_NAME_EN"

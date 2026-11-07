@@ -1,0 +1,26 @@
+<div class="gp" id="ctApp">
+  <section class="gp-hero">
+    <div><span class="gp-eye"><i></i>General ledger</span><h1>Chart of accounts</h1>
+      <p>The GL account hierarchy of the account structure. Every account code is a value of the structure's account segment, so it always fits the segment rules.</p></div>
+    <div class="gp-act">
+      <select id="ctCoa" class="gp-sel" aria-label="Account structure"></select>
+      <button type="button" class="gp-btn gp-btn--hot" id="ctAdd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add account</span></button>
+    </div>
+  </section>
+  <div class="ct-kpis" id="ctKpis"></div>
+  <div class="ct-lay">
+    <section class="ct-panel" aria-label="Account tree">
+      <div class="ct-tools">
+        <label class="ct-srch"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="ctQ" placeholder="Search by code or name" aria-label="Search accounts"></label>
+        <div class="ct-row2"><div class="ct-chips" id="ctChips"></div><div style="display:flex;gap:6px"><button type="button" class="ct-ico" id="ctExp" title="Expand all" aria-label="Expand all"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></button><button type="button" class="ct-ico" id="ctCol" title="Collapse all" aria-label="Collapse all"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 20 5-5 5 5"/><path d="m7 4 5 5 5-5"/></svg></button></div></div>
+      </div>
+      <div class="ct-tree" id="ctTree" tabindex="0" role="tree" aria-label="GL accounts"><div class="ct-empty">Loading accounts&hellip;</div></div>
+    </section>
+    <section class="ct-panel" id="ctDet" aria-live="polite"></section>
+  </div>
+</div>
+<div class="gp-mb" id="gpMb"><div class="gp-m" role="dialog" aria-modal="true" aria-labelledby="gpMt">
+  <div class="gp-mh"><h3 id="gpMt"></h3><button type="button" class="gp-x" id="gpMx" aria-label="Close">&times;</button></div>
+  <div class="gp-mbody"><div class="gp-err" id="gpErr"></div><div id="gpMc"></div></div>
+  <div class="gp-mf"><button type="button" class="gp-btn" id="gpMcancel">Cancel</button><button type="button" class="gp-btn gp-btn--pri" id="gpMok">Save</button></div>
+</div></div>
