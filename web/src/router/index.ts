@@ -358,6 +358,12 @@ const router = createRouter({
           meta: { moduleName: 'WORKFLOW', functionName: 'My Workflow Inbox' }
         },
         {
+          path: 'workflow/out-of-office',
+          name: 'workflow-out-of-office',
+          component: () => import('@/modules/wfe/pages/WorkflowOutOfOfficePage.vue'),
+          meta: { moduleName: 'WORKFLOW', functionName: 'Out of Office' }
+        },
+        {
           path: 'workflow/tasks/:inboxId',
           name: 'workflow-task',
           component: () => import('@/modules/wfe/pages/WorkflowTaskPage.vue'),

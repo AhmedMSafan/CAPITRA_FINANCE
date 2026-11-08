@@ -68,7 +68,7 @@ public sealed class WfeRuntime(
         AddHistory(instance.WorkflowInstanceId, "INSTANCE_STARTED", null, null, startedBy, businessReference);
         await db.SaveChangesAsync(cancellationToken);
 
-        await EnterAndAdvanceAsync(instance, version.BpmnXml, BpmnModel.StartEvent(version.BpmnXml), startedBy, null, cancellationToken);
+        await EnterAndAdvanceAsync(instance, definition.WorkflowCode, version.BpmnXml, BpmnModel.StartEvent(version.BpmnXml), startedBy, null, cancellationToken);
         return instance;
     }
 
@@ -95,6 +95,27 @@ public sealed class WfeRuntime(
         foreach (var handler in claimHandlers.Where(h => h.CanHandle(context)))
             await handler.HandleAsync(context, cancellationToken);
 
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>A delegate takes over a task the away user had claimed: it becomes claimed by the delegate.</summary>
+    public async Task TakeOverAsync(long taskId, string user, CancellationToken cancellationToken)
+    {
+        var task = await LoadTaskAsync(taskId, cancellationToken);
+        if (task.TaskStatus is not (Claimed or InProgress))
+            throw new BusinessRuleException("Only a claimed task can be taken over.");
+        var from = task.ClaimedBy;
+        task.TaskStatus = Claimed;
+        task.ClaimedBy = user;
+        task.ClaimedAt = clock.UtcNow;
+        if (task.InboxItem is { } inbox)
+        {
+            inbox.InboxStatus = Claimed;
+            inbox.ClaimedBy = user;
+            inbox.ClaimedAt = task.ClaimedAt;
+        }
+
+        AddHistory(task.StepInstance!.WorkflowInstanceId, "TASK_TAKEN_OVER", task.StepInstance.ElementId, "CLAIM", user, $"Taken over from {from} (out of office).");
         await db.SaveChangesAsync(cancellationToken);
     }
 
@@ -181,7 +202,7 @@ public sealed class WfeRuntime(
             if (next is null)
                 await CompleteInstanceAsync(instance, user, cancellationToken);
             else
-                await EnterAndAdvanceAsync(instance, xml, next, user, action, cancellationToken, assignNextTo);
+                await EnterAndAdvanceAsync(instance, definition.WorkflowCode, xml, next, user, action, cancellationToken, assignNextTo);
 
             if (transaction is not null)
                 await transaction.CommitAsync(cancellationToken);
@@ -216,7 +237,7 @@ public sealed class WfeRuntime(
         ?? throw new NotFoundException("Workflow task not found.");
 
     private async Task EnterAndAdvanceAsync(
-        WfeWorkflowInstance instance, string xml, BpmnElement element, string user, string? outcome, CancellationToken cancellationToken,
+        WfeWorkflowInstance instance, string workflowCode, string xml, BpmnElement element, string user, string? outcome, CancellationToken cancellationToken,
         string? assignNextTo = null)
     {
         // Guard against a malformed diagram looping forever through automatic elements.
@@ -265,14 +286,19 @@ public sealed class WfeRuntime(
 
                 var toUser = !string.IsNullOrWhiteSpace(assignNextTo);
                 var byRole = !toUser && string.Equals(element.AssignmentType, "Role", StringComparison.OrdinalIgnoreCase);
+                // a task for one user who is out of office today goes to their delegate (K2's out of office)
+                var person = toUser ? assignNextTo!.Trim() : byRole ? null : element.Assignee?.Trim();
+                string? cover = null;
+                if (!string.IsNullOrWhiteSpace(person))
+                    cover = await WfeOutOfOfficeService.DelegateOfAsync(db, person, workflowCode, Gl.GlTime.Today(clock), cancellationToken);
                 db.Add(new WfeInboxItem
                 {
                     TaskId = task.TaskId,
                     WorkflowInstanceId = instance.WorkflowInstanceId,
                     StepInstanceId = step.StepInstanceId,
                     InboxStatus = Open,
-                    AssignmentType = toUser ? "User" : element.AssignmentType,
-                    AssignedTo = toUser ? assignNextTo!.Trim() : byRole ? null : element.Assignee,
+                    AssignmentType = toUser || cover is not null ? "User" : element.AssignmentType,
+                    AssignedTo = cover ?? (toUser ? assignNextTo!.Trim() : byRole ? null : element.Assignee),
                     AssignedRole = byRole ? element.Assignee : null,
                     Subject = element.Name,
                     Route = element.Route,
@@ -282,6 +308,8 @@ public sealed class WfeRuntime(
 
                 instance.InstanceStatus = "WAITING";
                 AddHistory(instance.WorkflowInstanceId, "TASK_CREATED", element.Id, null, user, toUser ? assignNextTo!.Trim() : element.Assignee);
+                if (cover is not null)
+                    AddHistory(instance.WorkflowInstanceId, "TASK_DELEGATED", element.Id, null, "SYSTEM", $"{person} is out of office; the task went to {cover}.");
                 await db.SaveChangesAsync(cancellationToken);
                 return;
             }

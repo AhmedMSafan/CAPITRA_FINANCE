@@ -8,6 +8,7 @@
         <p>{{ tr('Overdue tasks are listed first. Select unclaimed tasks to claim several at once.') }}</p>
       </div>
       <div class="fx-actions">
+        <RouterLink class="fx-btn" :to="{ name: 'workflow-out-of-office' }"><span class="fa fa-plane" aria-hidden="true"></span>{{ tr('Out of office') }}</RouterLink>
         <button type="button" class="fx-btn" @click="load"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Refresh') }}</button>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="!selected.length || busy" @click="claim(selected)">
           <span class="fa fa-hand-grab-o" aria-hidden="true"></span>{{ tr('Claim selected') }} (<span>{{ selected.length }}</span>)
@@ -27,6 +28,18 @@
         <span class="fa fa-play" aria-hidden="true"></span>{{ tr('Open task') }}
       </RouterLink>
       <button type="button" class="ib-note-x" :aria-label="tr('Close')" @click="notice = null"><span class="fa fa-times" aria-hidden="true"></span></button>
+    </section>
+
+    <!-- whom the user covers today: their tasks are listed here too -->
+    <section v-if="covering.length" class="ib-cover" role="status">
+      <span class="fa fa-plane" aria-hidden="true"></span>
+      <span>
+        {{ tr('You are covering for') }}
+        <template v-for="(c, i) in covering" :key="c.userName + (c.workflowCode || '')">
+          <b>{{ c.fullName || c.userName }}</b> ({{ c.workflowCode || tr('all workflows') }}, {{ tr('until') }} {{ day(c.toDate) }})<template v-if="i < covering.length - 1">, </template>
+        </template>.
+        {{ tr('Their tasks are listed here with a "For" tag. Claim one to work it; a task they had claimed is taken over.') }}
+      </span>
     </section>
 
     <div class="fx-toolbar">
@@ -57,6 +70,7 @@
               <td>
                 <RouterLink :to="taskLink(r.t)">{{ r.t.subject || r.t.stepName || '-' }}</RouterLink>
                 <span class="fx-cell-sub">{{ r.ref }}<template v-if="r.t.moduleCode"> &middot; {{ r.t.moduleCode }}</template></span>
+                <span v-if="r.t.onBehalfOf" class="ib-for">{{ tr('For') }} {{ r.t.onBehalfOf }}</span>
               </td>
               <td>{{ r.t.entityRef || '-' }}<span class="fx-cell-sub">{{ r.t.clientName }}</span></td>
               <td><span class="fx-chip fx-chip--teal">{{ r.t.stepName || r.t.stepCode || '-' }}</span></td>
@@ -65,7 +79,7 @@
               <td><span class="ib-claim" :class="r.t.claimedBy ? 'is-claimed' : 'is-open'">{{ r.t.claimedBy ? tr('Task is claimed') : tr('Not claimed') }}</span></td>
               <td>{{ r.t.claimedByName || r.t.claimedBy || r.t.assignedRole || r.t.assignedUserName || r.t.assignedGroup }}</td>
               <td class="fx-r">
-                <button v-if="r.claimable" type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="claim([r.t.inboxId])">{{ tr('Claim') }}</button>
+                <button v-if="r.claimable" type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="claim([r.t.inboxId])">{{ r.t.claimedBy ? tr('Take over') : tr('Claim') }}</button>
                 <RouterLink v-else class="fx-btn fx-btn--sm" :to="taskLink(r.t)">{{ tr('Open') }}</RouterLink>
               </td>
             </tr>
@@ -83,6 +97,7 @@ import '@/shared/styles/apex-fx-inbox.css'
 import { computed, onMounted, ref, watch } from 'vue'
 import type { WorkflowInboxTask } from '../models/workflow'
 import { workflowService } from '../services/workflowService'
+import { outOfOfficeApi, type CoverInfo } from '../services/outOfOfficeService'
 import { language, tr } from '@/shared/layout/language'
 
 const ar = language.value === 'AR'
@@ -90,6 +105,8 @@ const ar = language.value === 'AR'
 type View = 'all' | 'mine' | 'unclaimed' | 'overdue'
 
 const tasks = ref<WorkflowInboxTask[]>([])
+const covering = ref<CoverInfo[]>([])
+function day(d: string) { return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }
 const view = ref<View>('all')
 const search = ref('')
 const workflow = ref('')
@@ -135,7 +152,8 @@ const rows = computed(() => {
       t, rank, sla, slaClass,
       ref: `#${t.taskId}`,
       unclaimed: !t.claimedBy && open,
-      claimable: !t.claimedBy && open && actions.includes('CLAIM'),
+      // a task the away user had claimed can be taken over by their delegate
+      claimable: ((!t.claimedBy && open) || (!!t.onBehalfOf && !!t.claimedBy && !t.isClaimedByMe)) && actions.includes('CLAIM'),
       due: due ? due.getTime() : Number.MAX_SAFE_INTEGER,
       search: [`#${t.taskId}`, t.moduleCode, t.subject, t.entityRef, t.clientName, t.stepName].join(' ').toUpperCase()
     }
@@ -206,6 +224,7 @@ async function load() {
   notice.value = null
   try {
     tasks.value = await workflowService.getMyInbox()
+    outOfOfficeApi.covering().then((x) => (covering.value = x)).catch(() => (covering.value = []))
   } catch (e) {
     notice.value = { bad: true, title: tr('Unable to load the inbox'), detail: e instanceof Error ? e.message : '', failed: [] }
   }
@@ -215,6 +234,9 @@ onMounted(load)
 </script>
 
 <style scoped>
+.ib-cover { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 12px; padding: 10px 14px; border: 1px solid #f5c79f; border-radius: 10px; background: #fff4ea; color: #7a3d0a; font-size: 13px; line-height: 1.5; }
+.ib-cover > .fa { color: #E87722; margin-top: 3px; }
+.ib-for { display: inline-block; margin-top: 3px; padding: 1px 8px; border-radius: 999px; background: #fff0e3; color: #b5530d; font-size: 11px; font-weight: 700; }
 .ib-claim { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .ib-claim.is-claimed { background: #FDEFE3; color: #C25E12; }
 .ib-claim.is-open { background: #EEF2F4; color: #5F7787; }

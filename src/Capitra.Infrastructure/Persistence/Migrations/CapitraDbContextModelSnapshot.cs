@@ -38893,6 +38893,85 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("WFE_INSTANCE_VARIABLES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeOutOfOffice", b =>
+                {
+                    b.Property<long>("OutOfOfficeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("OUT_OF_OFFICE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("OutOfOfficeId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DelegateTo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DELEGATE_TO");
+
+                    b.Property<DateOnly>("FromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("FROM_DATE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("NOTE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly>("ToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("TO_DATE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("USER_NAME");
+
+                    b.Property<string>("WorkflowCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("WORKFLOW_CODE");
+
+                    b.HasKey("OutOfOfficeId")
+                        .HasName("PK_WFE_OUT_OF_OFFICE_ENTRIES");
+
+                    b.HasIndex("DelegateTo")
+                        .HasDatabaseName("IX_WFE_OUT_OF_OFFICE_ENTRIES_DELEGATE_TO");
+
+                    b.HasIndex("UserName", "IsActive")
+                        .HasDatabaseName("IX_WFE_OUT_OF_OFFICE_ENTRIES_USER_NAME_IS_ACTIVE");
+
+                    b.ToTable("WFE_OUT_OF_OFFICE_ENTRIES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeStepInstance", b =>
                 {
                     b.Property<long>("StepInstanceId")

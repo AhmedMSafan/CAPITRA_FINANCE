@@ -69,6 +69,7 @@ export const appMenu: MenuGroup[] = [
     links: [
       { label: 'Home', to: { name: 'home' }, icon: 'pi pi-home' },
       { label: 'My Inbox', to: '/workflow/inbox', icon: 'pi pi-inbox' },
+      { label: 'Out of Office', to: '/workflow/out-of-office', icon: 'pi pi-calendar-times' },
       { label: 'Workflow Engine', to: '/workflowengine', icon: 'pi pi-sitemap' },
       { label: 'Workflow Registry', to: '/workflowengine/registry', icon: 'pi pi-list' },
       { label: 'Administration', to: '/admin', icon: 'pi pi-cog' },

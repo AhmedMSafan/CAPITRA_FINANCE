@@ -43,6 +43,25 @@ public sealed class WfeDefinitionVersionConfiguration : IEntityTypeConfiguration
     }
 }
 
+public sealed class WfeOutOfOfficeConfiguration : IEntityTypeConfiguration<WfeOutOfOffice>
+{
+    public void Configure(EntityTypeBuilder<WfeOutOfOffice> builder)
+    {
+        builder.ToTable("WFE_OUT_OF_OFFICE_ENTRIES");
+        builder.HasKey(x => x.OutOfOfficeId);
+        builder.HasIndex(x => new { x.UserName, x.IsActive });
+        builder.HasIndex(x => x.DelegateTo);
+
+        builder.Property(x => x.OutOfOfficeId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.UserName).HasMaxLength(100);
+        builder.Property(x => x.DelegateTo).HasMaxLength(100);
+        builder.Property(x => x.WorkflowCode).HasMaxLength(50);
+        builder.Property(x => x.Note).HasMaxLength(500);
+
+        builder.ConfigureAudit();
+    }
+}
+
 public sealed class WfeWorkflowInstanceConfiguration : IEntityTypeConfiguration<WfeWorkflowInstance>
 {
     public void Configure(EntityTypeBuilder<WfeWorkflowInstance> builder)
