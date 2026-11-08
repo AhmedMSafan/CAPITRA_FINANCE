@@ -48,6 +48,9 @@ public sealed class WfeRuntime(
 
         // the instance runs on the latest released version, and stays on it when the workflow changes later
         var version = await WfeVersions.CurrentAsync(db, definition, startedBy, clock.UtcNow, cancellationToken);
+        // the workflow's data fields: defaults filled in, types and required fields checked before anything is saved
+        var fields = WfeDataFields.Of(version.BpmnXml);
+        var values = WfeDataFields.ForStart(fields, variables);
         var instance = new WfeWorkflowInstance
         {
             WorkflowDefinitionId = definition.WorkflowDefinitionId,
@@ -60,8 +63,8 @@ public sealed class WfeRuntime(
         db.Add(instance);
         await db.SaveChangesAsync(cancellationToken);
 
-        if (variables is not null)
-            await SetVariablesAsync(instance.WorkflowInstanceId, variables, cancellationToken);
+        if (values.Count > 0)
+            await SetVariablesAsync(instance.WorkflowInstanceId, values, fields, cancellationToken);
         AddHistory(instance.WorkflowInstanceId, "INSTANCE_STARTED", null, null, startedBy, businessReference);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -148,7 +151,8 @@ public sealed class WfeRuntime(
 
             if (variables is not null)
             {
-                await SetVariablesAsync(instance.WorkflowInstanceId, variables, cancellationToken);
+                var fields = WfeDataFields.Of(xml);
+                await SetVariablesAsync(instance.WorkflowInstanceId, WfeDataFields.ForUpdate(fields, variables), fields, cancellationToken);
                 await db.SaveChangesAsync(cancellationToken);
             }
 
@@ -360,15 +364,20 @@ public sealed class WfeRuntime(
         return JsonSerializer.Serialize(parameters);
     }
 
-    private async Task SetVariablesAsync(long workflowInstanceId, IDictionary<string, string?> values, CancellationToken cancellationToken)
+    private async Task SetVariablesAsync(
+        long workflowInstanceId, IDictionary<string, string?> values, IReadOnlyList<WfeDataField> fields, CancellationToken cancellationToken)
     {
         foreach (var (name, value) in values)
         {
+            var type = WfeDataFields.TypeOf(fields, name);
             var row = await db.Set<WfeInstanceVariable>().FirstOrDefaultAsync(x => x.WorkflowInstanceId == workflowInstanceId && x.VariableName == name, cancellationToken);
             if (row is null)
-                db.Add(new WfeInstanceVariable { WorkflowInstanceId = workflowInstanceId, VariableName = name, VariableValue = value });
+                db.Add(new WfeInstanceVariable { WorkflowInstanceId = workflowInstanceId, VariableName = name, VariableValue = value, VariableType = type });
             else
+            {
                 row.VariableValue = value;
+                row.VariableType = type ?? row.VariableType;
+            }
         }
     }
 

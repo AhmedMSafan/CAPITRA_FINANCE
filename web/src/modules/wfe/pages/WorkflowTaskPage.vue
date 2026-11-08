@@ -164,6 +164,30 @@
           <i class="pi pi-info-circle"></i>
           <span>{{ task.instructions }}</span>
         </div>
+
+        <!-- the instance's data fields, as the workflow declares them in the designer -->
+        <div v-if="data && (data.fields.length || data.other.length)" class="wf-data">
+          <div class="wf-data-head">
+            <i class="pi pi-database"></i>
+            <strong>Workflow data</strong>
+            <button v-if="data.other.length" type="button" class="wf-data-more" @click="showOther = !showOther">
+              {{ showOther ? 'Hide' : 'Show' }} other values ({{ data.other.length }})
+            </button>
+          </div>
+          <div v-if="data.fields.length" class="wf-data-grid">
+            <div v-for="f in data.fields" :key="f.name" class="wf-data-item" :title="f.description || f.name">
+              <label>{{ f.label }}<span v-if="f.required" class="wf-data-req">*</span></label>
+              <strong :class="{ empty: !f.value }">{{ showValue(f) }}</strong>
+            </div>
+          </div>
+          <p v-else class="wf-data-none">This workflow declares no data fields yet. Add them in the designer.</p>
+          <div v-if="showOther" class="wf-data-grid wf-data-other">
+            <div v-for="f in data.other" :key="f.name" class="wf-data-item">
+              <label>{{ f.name }}</label>
+              <strong :class="{ empty: !f.value }">{{ f.value || '-' }}</strong>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="wf-business-screen-card">
@@ -228,13 +252,35 @@
   import { computed, onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import type { WorkflowInboxTask } from '../models/workflow'
-  import { workflowService } from '../services/workflowService'
+  import { workflowService, type WorkflowDataValue, type WorkflowInstanceData } from '../services/workflowService'
   import '../styles/workflow.css'
 
   const route = useRoute()
   const router = useRouter()
 
   const task = ref<WorkflowInboxTask | null>(null)
+  const data = ref<WorkflowInstanceData | null>(null)
+  const showOther = ref(false)
+
+  /** A data value as people read it: amounts with separators, Yes/No, dates as on the rest of the page. */
+  function showValue(f: WorkflowDataValue) {
+    const v = f.value
+    if (v === null || v === '') return '-'
+    if (f.type === 'Decimal') {
+      const n = Number(v)
+      return Number.isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v
+    }
+    if (f.type === 'Number') {
+      const n = Number(v)
+      return Number.isFinite(n) ? n.toLocaleString() : v
+    }
+    if (f.type === 'Boolean') return v === 'true' ? 'Yes' : v === 'false' ? 'No' : v
+    if (f.type === 'Date') {
+      const d = new Date(v)
+      return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
+    }
+    return v
+  }
   const loading = ref(false)
   const actionLoading = ref(false)
   const error = ref('')
@@ -390,6 +436,8 @@
 
     try {
       task.value = await workflowService.getTask(inboxId.value)
+      // the data panel is extra: the task works without it
+      workflowService.getTaskData(inboxId.value).then(x => (data.value = x)).catch(() => (data.value = null))
     } catch (e) {
       error.value =
         e instanceof Error
@@ -708,6 +756,64 @@
     font-weight: 750;
     text-transform: uppercase
   }
+
+  .wf-data {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid #dce6ea;
+    border-radius: 10px;
+    background: #fbfdfd
+  }
+
+  .wf-data-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: #173b57;
+    font-size: 13px
+  }
+
+  .wf-data-head .pi { color: #00636D }
+
+  .wf-data-more {
+    margin-left: auto;
+    border: 0;
+    background: none;
+    color: #00636D;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer
+  }
+
+  .wf-data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 10px 16px
+  }
+
+  .wf-data-other { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #dce6ea }
+
+  .wf-data-item { min-width: 0 }
+
+  .wf-data-item label {
+    display: block;
+    color: #6b8296;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 2px
+  }
+
+  .wf-data-item strong {
+    display: block;
+    color: #173b57;
+    font-size: 13px;
+    overflow-wrap: anywhere
+  }
+
+  .wf-data-item strong.empty { color: #a3b1ba; font-weight: 600 }
+  .wf-data-req { color: #E87722; margin-left: 2px }
+  .wf-data-none { margin: 0; color: #6b8296; font-size: 12px }
 
   .wf-context-instructions {
     display: flex;

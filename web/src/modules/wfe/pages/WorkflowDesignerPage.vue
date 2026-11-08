@@ -28,6 +28,11 @@
           Versions
         </button>
 
+        <button class="btn btn-ghost" @click="openFields">
+          <span class="pi pi-database"></span>
+          Data Fields
+        </button>
+
         <button class="btn btn-ghost" @click="showXml=true">
           <span class="pi pi-code"></span>
           BPMN XML
@@ -233,52 +238,22 @@
               <div class="section-title">
                 <span class="section-icon pi pi-database"></span>
                 <div>
-                  <strong>Workflow Variables</strong>
-                  <small>Values available to routes and runtime processing.</small>
+                  <strong>Data Fields</strong>
+                  <small>The values each instance carries (amount, client, decision).</small>
                 </div>
               </div>
 
-              <div class="variable-head">
-                <span>Name</span>
-                <span>Type</span>
-                <span>Req.</span>
-                <span></span>
-              </div>
+              <div v-if="!variables.some(x=>x?.name)" class="fields-empty">No data fields yet.</div>
+              <ul v-else class="field-chips">
+                <li v-for="(v,i) in variables.filter(x=>x?.name)" :key="i">
+                  <b>{{ v.label || v.name }}</b>
+                  <span>{{ typeLabel(v.type) }}<template v-if="v.required"> · required</template></span>
+                </li>
+              </ul>
 
-              <div
-                v-for="(v,i) in variables"
-                :key="i"
-                class="var-row"
-              >
-                <input v-model="v.name" placeholder="Variable name" />
-
-                <select v-model="v.type">
-                  <option>String</option>
-                  <option>Number</option>
-                  <option>Decimal</option>
-                  <option>Boolean</option>
-                  <option>Date</option>
-                </select>
-
-                <label class="mini-check">
-                  <input v-model="v.required" type="checkbox" />
-                </label>
-
-                <button
-                  class="delete-row"
-                  title="Remove variable"
-                  @click="variables.splice(i,1)"
-                >
-                  <span class="pi pi-trash"></span>
-                </button>
-              </div>
-
-              <button
-                class="btn btn-secondary btn-full"
-                @click="variables.push({name:'',type:'String',required:false})"
-              >
-                <span class="pi pi-plus"></span>
-                Add Variable
+              <button class="btn btn-secondary btn-full" @click="openFields">
+                <span class="pi pi-pencil"></span>
+                Edit Data Fields
               </button>
             </section>
 
@@ -564,6 +539,83 @@
       </div>
     </div>
 
+    <!-- DATA FIELDS MODAL -->
+    <div v-if="showFields" class="modal" @click.self="showFields=false">
+      <div class="modal-card fields-card">
+        <div class="modal-head">
+          <div>
+            <small>Data fields</small>
+            <h3>What each instance of {{ form.dgrmName || 'this workflow' }} carries</h3>
+          </div>
+
+          <button class="modal-close" @click="showFields=false">
+            <span class="pi pi-times"></span>
+          </button>
+        </div>
+
+        <div class="fields-body">
+          <p class="versions-note">
+            Fields are filled when the workflow starts (by the screen that starts it, or from the default) and can change as steps complete.
+            A <b>required</b> field must have a value to start. Each value is checked against its type, so an amount is always a number.
+            Rules, recipients and forms in the next steps read these fields. The <b>Name</b> is what screens use; keep it the same once in use.
+          </p>
+
+          <div class="fields-table-wrap">
+            <table class="fields-table">
+              <thead>
+                <tr><th>Name</th><th>Label</th><th>Type</th><th class="c">Required</th><th>Default</th><th>Choices</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="(f,i) in fieldRows" :key="i" :class="{ bad: fieldErrors[i] }">
+                  <td><input v-model="f.name" placeholder="amount" /></td>
+                  <td><input v-model="f.label" placeholder="Amount" /></td>
+                  <td>
+                    <select v-model="f.type">
+                      <option v-for="t in fieldTypes" :key="t.value" :value="t.value">{{ t.label }}</option>
+                    </select>
+                  </td>
+                  <td class="c"><input v-model="f.required" type="checkbox" /></td>
+                  <td>
+                    <select v-if="f.type==='Boolean'" v-model="f.defaultValue">
+                      <option value="">(none)</option><option value="true">Yes</option><option value="false">No</option>
+                    </select>
+                    <input v-else v-model="f.defaultValue" :type="f.type==='Date'?'date':'text'" placeholder="(none)" />
+                  </td>
+                  <td>
+                    <input v-if="f.type==='Choice'" v-model="f.choicesText" placeholder="LOW, MEDIUM, HIGH" />
+                    <span v-else class="muted">-</span>
+                  </td>
+                  <td class="c">
+                    <button class="delete-row" title="Remove field" @click="fieldRows.splice(i,1)">
+                      <span class="pi pi-trash"></span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <ul v-if="fieldProblems.length" class="field-problems">
+            <li v-for="p in fieldProblems" :key="p"><span class="pi pi-exclamation-circle"></span> {{ p }}</li>
+          </ul>
+
+          <div class="fields-actions">
+            <button class="btn btn-secondary" @click="fieldRows.push({name:'',label:'',type:'String',required:false,defaultValue:'',choicesText:''})">
+              <span class="pi pi-plus"></span>
+              Add Field
+            </button>
+            <span class="spacer"></span>
+            <button class="btn btn-ghost" @click="showFields=false">Cancel</button>
+            <button class="btn btn-primary" :disabled="fieldProblems.length>0" @click="applyFields">
+              <span class="pi pi-check"></span>
+              Apply
+            </button>
+          </div>
+          <p class="fields-foot">Apply keeps the fields on the diagram. Click <b>Save Workflow</b> to save them.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- VERSIONS MODAL -->
     <div v-if="showVersions" class="modal" @click.self="showVersions=false">
       <div class="modal-card versions-card">
@@ -629,7 +681,7 @@ import finovaWorkflowModdle from '../models/finovaWorkflowModel'
 import {createWorkflowDefinition,getWorkflowDefinition,getWorkflowVersions,getWorkflowVersionXml,updateWorkflowDefinition,type WorkflowVersion} from '../services/workflowDefinitionService'
 import {productEventRulesApi,type ProductEventRule} from '@/modules/adm/api/products.api'
 
-type Var={name:string,type:string,required:boolean}; type Param={name:string,value:string};
+type Var={name:string,type:string,required:boolean,label?:string,defaultValue?:string,choices?:string[],description?:string}; type Param={name:string,value:string};
 type Step={stepCode:string,stepName:string,ruleCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[]}
 const route=useRoute(),router=useRouter(),canvas=ref<HTMLElement|null>(null),saving=ref(false),active=ref(true),selectedId=ref(''),selectedType=ref(''),message=ref(''),messageType=ref<'success'|'error'>('success'),showXml=ref(false),xmlPreview=ref(''),customAction=ref(''),flowOutcome=ref(''),customFlowOutcome=ref(''),selectedFlowSource=ref(''),selectedFlowTarget=ref(''),leftPanelOpen=ref(false),rightPanelOpen=ref(false),zoomPercent=ref(100)
 const variables=reactive<Var[]>([]),steps=reactive<Record<string,Step>>({}); let modeler:any=null
@@ -1226,6 +1278,43 @@ async function backToCurrent(){
   loadMetadataFromXml()
   await fit()
   await refreshXmlPreview()
+}
+
+// data fields (K2-style): declared on the process as finova:variables; older entries have only name, type and required
+const fieldTypes=[{value:'String',label:'Text'},{value:'Number',label:'Whole number'},{value:'Decimal',label:'Amount'},{value:'Boolean',label:'Yes / No'},{value:'Date',label:'Date'},{value:'Choice',label:'Choice'},{value:'User',label:'User'}]
+function typeLabel(t:string){return fieldTypes.find(x=>x.value===t)?.label??t}
+type FieldRow={name:string,label:string,type:string,required:boolean,defaultValue:string,choicesText:string,description?:string}
+const showFields=ref(false),fieldRows=ref<FieldRow[]>([])
+function openFields(){
+  fieldRows.value=variables.filter(v=>String(v?.name??'').trim()).map(v=>({name:String(v.name??''),label:String(v.label??''),type:fieldTypes.some(t=>t.value===v.type)?v.type:'String',required:!!v.required,defaultValue:String(v.defaultValue??''),choicesText:(Array.isArray(v.choices)?v.choices:[]).join(', '),description:v.description}))
+  showFields.value=true
+}
+function choicesOf(f:FieldRow){return f.choicesText.split(',').map(x=>x.trim()).filter(Boolean)}
+function fieldProblem(f:FieldRow,i:number):string{
+  const n=f.name.trim(),d=f.defaultValue.trim(),c=f.label.trim()||n||`Row ${i+1}`
+  if(!n)return `Row ${i+1}: give the field a name.`
+  if(!/^[A-Za-z][A-Za-z0-9_]*$/.test(n))return `"${n}": a name uses letters, digits and _ only, starting with a letter.`
+  if(fieldRows.value.findIndex(x=>x.name.trim().toLowerCase()===n.toLowerCase())!==i)return `"${n}" is used twice.`
+  if(f.type==='Choice'&&!choicesOf(f).length)return `"${c}": list its choices, separated by commas.`
+  if(d&&f.type==='Number'&&!/^-?[\d,]+$/.test(d))return `"${c}": the default must be a whole number.`
+  if(d&&f.type==='Decimal'&&!/^-?[\d,]*\.?\d+$/.test(d))return `"${c}": the default must be an amount.`
+  if(d&&f.type==='Choice'&&!choicesOf(f).some(x=>x.toLowerCase()===d.toLowerCase()))return `"${c}": the default must be one of the choices.`
+  return ''
+}
+const fieldErrors=computed(()=>fieldRows.value.map((f,i)=>fieldProblem(f,i)))
+const fieldProblems=computed(()=>fieldErrors.value.filter(Boolean))
+function applyFields(){
+  if(fieldProblems.value.length)return
+  variables.splice(0,variables.length,...fieldRows.value.map(f=>{
+    const v:Var={name:f.name.trim(),type:f.type,required:f.required}
+    if(f.label.trim())v.label=f.label.trim()
+    if(f.defaultValue.trim())v.defaultValue=f.defaultValue.trim()
+    if(f.type==='Choice')v.choices=choicesOf(f)
+    if(f.description)v.description=f.description
+    return v
+  }))
+  showFields.value=false
+  msg('Data fields applied. Save the workflow to keep them.')
 }
 
 async function load(){
@@ -2225,6 +2314,27 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
 }
 
 /* MODAL */
+.fields-empty { padding: 6px 2px 10px; color: #80919b; font-size: 12px; }
+.field-chips { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.field-chips li { display: flex; justify-content: space-between; gap: 8px; padding: 7px 9px; border: 1px solid #e1e8ec; border-radius: 8px; font-size: 12px; }
+.field-chips b { color: #173b57; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field-chips span { color: #49657b; white-space: nowrap; }
+.modal-card.fields-card { height: auto; max-height: min(720px, 88vh); width: min(1100px, 94vw); }
+.fields-body { padding: 14px 17px 16px; overflow: auto; }
+.fields-table-wrap { overflow-x: auto; }
+.fields-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.fields-table th { text-align: left; padding: 7px 6px; background: #f3f7f9; color: #49657b; font-size: 11.5px; font-weight: 750; }
+.fields-table td { padding: 6px; border-top: 1px solid #e1e8ec; }
+.fields-table .c { text-align: center; }
+.fields-table input:not([type=checkbox]), .fields-table select { width: 100%; height: 34px; padding: 0 8px; border: 1px solid #cbd9e1; border-radius: 7px; font: inherit; color: #173b57; background: #fff; }
+.fields-table input[type=checkbox] { width: 16px; height: 16px; accent-color: #00636D; }
+.fields-table tr.bad td { background: #fff7f0; }
+.fields-table .muted { color: #a3b1ba; }
+.field-problems { margin: 10px 0 0; padding: 0; list-style: none; color: #b5530d; font-size: 12.5px; display: grid; gap: 4px; }
+.fields-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.fields-actions .spacer { flex: 1; }
+.fields-foot { margin: 8px 0 0; color: #80919b; font-size: 12px; text-align: right; }
+
 .version-chip {
   width: 100%;
   height: 36px;

@@ -86,6 +86,23 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         return (await WithEntityAsync([Map(row)], cancellationToken))[0];
     }
 
+    /// <summary>The workflow data of a task's instance: the fields its version declares, then the other values stored.</summary>
+    public async Task<WfeInstanceDataDto> DataAsync(long inboxId, CancellationToken cancellationToken)
+    {
+        var row = await db.Set<WfeInboxItem>().AsNoTracking()
+            .Include(x => x.Instance!).ThenInclude(x => x.Definition)
+            .Include(x => x.Instance!).ThenInclude(x => x.Version)
+            .Include(x => x.Instance!).ThenInclude(x => x.Variables)
+            .FirstOrDefaultAsync(x => x.InboxItemId == inboxId, cancellationToken)
+            ?? throw new NotFoundException("Workflow inbox item not found.");
+        if (!CanAccess(row))
+            throw new BusinessRuleException("This task is not assigned to you.");
+        var instance = row.Instance!;
+        var values = instance.Variables.GroupBy(v => v.VariableName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().VariableValue, StringComparer.OrdinalIgnoreCase);
+        return WfeDataFields.View(WfeDataFields.Of(WfeVersions.XmlOf(instance)), values);
+    }
+
     public async Task<WfeInboxItemDto> ClaimAsync(long inboxId, CancellationToken cancellationToken)
     {
         var row = await AccessibleAsync(inboxId, cancellationToken);
