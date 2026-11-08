@@ -20,6 +20,9 @@ public sealed class WfeInboxController(WfeInbox inbox) : ControllerBase
     [HttpGet("{id:long}")]
     public Task<WfeInboxItemDto> Get(long id, CancellationToken cancellationToken) => inbox.GetAsync(id, cancellationToken);
 
+    [HttpGet("{id:long}/data")]
+    public Task<WfeInstanceDataDto> Data(long id, CancellationToken cancellationToken) => inbox.DataAsync(id, cancellationToken);
+
     [HttpPost("{id:long}/claim")]
     public Task<WfeInboxItemDto> Claim(long id, CancellationToken cancellationToken) => inbox.ClaimAsync(id, cancellationToken);
 
