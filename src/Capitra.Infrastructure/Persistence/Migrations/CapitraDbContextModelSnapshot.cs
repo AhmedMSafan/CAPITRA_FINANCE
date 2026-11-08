@@ -38564,6 +38564,72 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("TRS_SUPPLIER_TRANSFERS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeDefinitionVersion", b =>
+                {
+                    b.Property<long>("DefinitionVersionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEFINITION_VERSION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DefinitionVersionId"));
+
+                    b.Property<string>("BpmnXml")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("BPMN_XML");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateTime>("ReleasedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("RELEASED_AT");
+
+                    b.Property<string>("ReleasedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("RELEASED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<int>("VersionNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("VERSION_NO");
+
+                    b.Property<long>("WorkflowDefinitionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_DEFINITION_ID");
+
+                    b.HasKey("DefinitionVersionId")
+                        .HasName("PK_WFE_DEFINITION_VERSIONS");
+
+                    b.HasIndex("WorkflowDefinitionId", "VersionNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_WFE_DEFINITION_VERSIONS_WORKFLOW_DEFINITION_ID_VERSION_NO");
+
+                    b.ToTable("WFE_DEFINITION_VERSIONS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInboxItem", b =>
                 {
                     b.Property<long>("InboxItemId")
@@ -39126,6 +39192,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("CURRENT_ELEMENT_ID");
 
+                    b.Property<long?>("DefinitionVersionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DEFINITION_VERSION_ID");
+
                     b.Property<string>("ErrorMessage")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
@@ -39170,6 +39240,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("BusinessReference")
                         .HasDatabaseName("IX_WFE_WORKFLOW_INSTANCES_BUSINESS_REFERENCE");
+
+                    b.HasIndex("DefinitionVersionId")
+                        .HasDatabaseName("IX_WFE_WORKFLOW_INSTANCES_DEFINITION_VERSION_ID");
 
                     b.HasIndex("WorkflowDefinitionId")
                         .HasDatabaseName("IX_WFE_WORKFLOW_INSTANCES_WORKFLOW_DEFINITION_ID");
@@ -44832,6 +44905,18 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_TRS_SUPPLIER_TRANSFERS_CRM_CLIENTS");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeDefinitionVersion", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeWorkflowDefinition", "Definition")
+                        .WithMany()
+                        .HasForeignKey("WorkflowDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_DEFINITION_VERSIONS_WFE_WORKFLOW_DEFINITIONS");
+
+                    b.Navigation("Definition");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInboxItem", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Wfe.WfeStepInstance", "StepInstance")
@@ -44910,6 +44995,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeWorkflowInstance", b =>
                 {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeDefinitionVersion", "Version")
+                        .WithMany()
+                        .HasForeignKey("DefinitionVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_WFE_WORKFLOW_INSTANCES_WFE_DEFINITION_VERSIONS");
+
                     b.HasOne("Capitra.Domain.Modules.Wfe.WfeWorkflowDefinition", "Definition")
                         .WithMany()
                         .HasForeignKey("WorkflowDefinitionId")
@@ -44918,6 +45009,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_WFE_WORKFLOW_INSTANCES_WFE_WORKFLOW_DEFINITIONS");
 
                     b.Navigation("Definition");
+
+                    b.Navigation("Version");
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRoleClaim", b =>

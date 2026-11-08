@@ -46,9 +46,12 @@ public sealed class WfeRuntime(
         if (!string.Equals(definition.DefinitionStatus, "released", StringComparison.OrdinalIgnoreCase))
             throw new BusinessRuleException("Only a released workflow definition can be started.");
 
+        // the instance runs on the latest released version, and stays on it when the workflow changes later
+        var version = await WfeVersions.CurrentAsync(db, definition, startedBy, clock.UtcNow, cancellationToken);
         var instance = new WfeWorkflowInstance
         {
             WorkflowDefinitionId = definition.WorkflowDefinitionId,
+            Version = version,
             InstanceStatus = "RUNNING",
             BusinessReference = businessReference,
             StartedAt = clock.UtcNow,
@@ -62,7 +65,7 @@ public sealed class WfeRuntime(
         AddHistory(instance.WorkflowInstanceId, "INSTANCE_STARTED", null, null, startedBy, businessReference);
         await db.SaveChangesAsync(cancellationToken);
 
-        await EnterAndAdvanceAsync(instance, definition, BpmnModel.StartEvent(definition.BpmnXml), startedBy, null, cancellationToken);
+        await EnterAndAdvanceAsync(instance, version.BpmnXml, BpmnModel.StartEvent(version.BpmnXml), startedBy, null, cancellationToken);
         return instance;
     }
 
@@ -141,6 +144,7 @@ public sealed class WfeRuntime(
             var step = task.StepInstance!;
             var instance = step.Instance!;
             var definition = instance.Definition!;
+            var xml = WfeVersions.XmlOf(instance);
 
             if (variables is not null)
             {
@@ -169,11 +173,11 @@ public sealed class WfeRuntime(
             AddHistory(instance.WorkflowInstanceId, "TASK_COMPLETED", step.ElementId, action, user, null);
             await db.SaveChangesAsync(cancellationToken);
 
-            var next = BpmnModel.Next(definition.BpmnXml, step.ElementId, action);
+            var next = BpmnModel.Next(xml, step.ElementId, action);
             if (next is null)
                 await CompleteInstanceAsync(instance, user, cancellationToken);
             else
-                await EnterAndAdvanceAsync(instance, definition, next, user, action, cancellationToken, assignNextTo);
+                await EnterAndAdvanceAsync(instance, xml, next, user, action, cancellationToken, assignNextTo);
 
             if (transaction is not null)
                 await transaction.CommitAsync(cancellationToken);
@@ -203,11 +207,12 @@ public sealed class WfeRuntime(
         await db.Set<WfeTask>()
             .Include(x => x.InboxItem)
             .Include(x => x.StepInstance!).ThenInclude(x => x.Instance!).ThenInclude(x => x.Definition)
+            .Include(x => x.StepInstance!).ThenInclude(x => x.Instance!).ThenInclude(x => x.Version)
             .FirstOrDefaultAsync(x => x.TaskId == taskId, cancellationToken)
         ?? throw new NotFoundException("Workflow task not found.");
 
     private async Task EnterAndAdvanceAsync(
-        WfeWorkflowInstance instance, WfeWorkflowDefinition definition, BpmnElement element, string user, string? outcome, CancellationToken cancellationToken,
+        WfeWorkflowInstance instance, string xml, BpmnElement element, string user, string? outcome, CancellationToken cancellationToken,
         string? assignNextTo = null)
     {
         // Guard against a malformed diagram looping forever through automatic elements.
@@ -283,7 +288,7 @@ public sealed class WfeRuntime(
             step.CompletedBy = user;
             await db.SaveChangesAsync(cancellationToken);
 
-            var next = BpmnModel.Next(definition.BpmnXml, element.Id, outcome);
+            var next = BpmnModel.Next(xml, element.Id, outcome);
             if (next is null)
             {
                 await CompleteInstanceAsync(instance, user, cancellationToken);

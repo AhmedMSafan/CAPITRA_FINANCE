@@ -349,11 +349,13 @@ public sealed class CrmDisbursementProcessService(
     private async Task<ProductEventPlan> PlanAsync(FctDisbursement d, CancellationToken cancellationToken)
     {
         var reference = $"DISB-{d.DisbursementId}";
-        var xml = await (from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
-                         join w in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals w.WorkflowDefinitionId
-                         where w.WorkflowCode == WorkflowCode && i.BusinessReference == reference
-                         orderby i.WorkflowInstanceId descending
-                         select w.BpmnXml).FirstOrDefaultAsync(cancellationToken)
+        var instanceId = await (from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
+                                join w in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals w.WorkflowDefinitionId
+                                where w.WorkflowCode == WorkflowCode && i.BusinessReference == reference
+                                orderby i.WorkflowInstanceId descending
+                                select (long?)i.WorkflowInstanceId).FirstOrDefaultAsync(cancellationToken);
+        // the version the instance runs on, so a later change of the workflow does not change this request's rule
+        var xml = (instanceId is { } id ? await WfeVersions.XmlOfInstanceAsync(db, id, cancellationToken) : null)
             ?? await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.WorkflowCode == WorkflowCode).Select(x => x.BpmnXml)
                 .FirstOrDefaultAsync(cancellationToken);
         var ruleCode = xml is null ? null : BpmnModel.StepByCode(xml, InvoiceUploadStep)?.RuleCode?.Trim();

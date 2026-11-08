@@ -826,11 +826,10 @@ public sealed class MtgDisbursementPackage(
 
     private async Task<(string? RuleCode, ProductEventPlan? Plan)> RulePlanAsync(long portfolioId, DateOnly date, CancellationToken ct)
     {
-        var xml = await (from p in db.Set<MtgPurchasedPortfolio>()
-                         join i in db.Set<WfeWorkflowInstance>() on p.WorkflowInstanceId equals i.WorkflowInstanceId
-                         join d in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals d.WorkflowDefinitionId
-                         where p.PortfolioId == portfolioId
-                         select d.BpmnXml).FirstOrDefaultAsync(ct);
+        var instanceId = await db.Set<MtgPurchasedPortfolio>().Where(p => p.PortfolioId == portfolioId).Select(p => p.WorkflowInstanceId)
+            .FirstOrDefaultAsync(ct);
+        // the version the portfolio's instance runs on
+        var xml = instanceId is { } id ? await WfeVersions.XmlOfInstanceAsync(db, id, ct) : null;
         var code = xml is null ? null : BpmnModel.StepByCode(xml, DisbursementStep)?.RuleCode?.Trim();
         if (string.IsNullOrEmpty(code))
             return (null, null);

@@ -23,6 +23,15 @@ public sealed class WfeDefinitionController(WfeDefinitions definitions) : Contro
     [HasPermission(Permissions.Wfe.DefinitionView)]
     public Task<WfeDefinitionDto> Get(long id, CancellationToken cancellationToken) => definitions.GetAsync(id, cancellationToken);
 
+    [HttpGet("{id:long}/versions")]
+    [HasPermission(Permissions.Wfe.DefinitionView)]
+    public Task<IReadOnlyList<WfeVersionDto>> Versions(long id, CancellationToken cancellationToken) => definitions.VersionsAsync(id, cancellationToken);
+
+    [HttpGet("{id:long}/versions/{versionId:long}")]
+    [HasPermission(Permissions.Wfe.DefinitionView)]
+    public async Task<WfeVersionXmlDto> VersionXml(long id, long versionId, CancellationToken cancellationToken) =>
+        new(await definitions.VersionXmlAsync(id, versionId, cancellationToken));
+
     [HttpPost]
     [HasPermission(Permissions.Wfe.DefinitionEdit)]
     public Task<WfeDefinitionDto> Create(SaveWfeDefinitionRequest request, CancellationToken cancellationToken) =>
