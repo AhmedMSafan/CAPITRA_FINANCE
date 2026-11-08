@@ -58,4 +58,6 @@ export interface CompleteWorkflowTaskRequest {
   comment?: string | null;
   routingMode?: 'DEFAULT' | 'USER';
   assignedUserId?: string | null;
+  /** The step form's values, for a step worked on its form. */
+  values?: Record<string, string | null>;
 }

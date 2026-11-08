@@ -38564,6 +38564,137 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("TRS_SUPPLIER_TRANSFERS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeDataSource", b =>
+                {
+                    b.Property<long>("DataSourceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DATA_SOURCE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DataSourceId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SourceCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("SOURCE_CODE");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("SOURCE_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DataSourceId")
+                        .HasName("PK_WFE_DATA_SOURCES");
+
+                    b.HasIndex("SourceCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_WFE_DATA_SOURCES_SOURCE_CODE");
+
+                    b.ToTable("WFE_DATA_SOURCES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeDataSourceItem", b =>
+                {
+                    b.Property<long>("DataSourceItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DATA_SOURCE_ITEM_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DataSourceItemId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DataSourceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DATA_SOURCE_ID");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("ItemLabel")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("ITEM_LABEL");
+
+                    b.Property<string>("ItemValue")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("ITEM_VALUE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("SORT_ORDER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DataSourceItemId")
+                        .HasName("PK_WFE_DATA_SOURCE_ITEMS");
+
+                    b.HasIndex("DataSourceId", "ItemValue")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_WFE_DATA_SOURCE_ITEMS_DATA_SOURCE_ID_ITEM_VALUE");
+
+                    b.ToTable("WFE_DATA_SOURCE_ITEMS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeDefinitionVersion", b =>
                 {
                     b.Property<long>("DefinitionVersionId")
@@ -38628,6 +38759,82 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_WFE_DEFINITION_VERSIONS_WORKFLOW_DEFINITION_ID_VERSION_NO");
 
                     b.ToTable("WFE_DEFINITION_VERSIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeForm", b =>
+                {
+                    b.Property<long>("FormId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("FORM_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("FormId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<string>("FormCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("FORM_CODE");
+
+                    b.Property<string>("FormName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("FORM_NAME");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("LayoutJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("LAYOUT_JSON");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long>("WorkflowDefinitionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_DEFINITION_ID");
+
+                    b.HasKey("FormId")
+                        .HasName("PK_WFE_FORMS");
+
+                    b.HasIndex("FormCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_WFE_FORMS_FORM_CODE");
+
+                    b.HasIndex("WorkflowDefinitionId")
+                        .HasDatabaseName("IX_WFE_FORMS_WORKFLOW_DEFINITION_ID");
+
+                    b.ToTable("WFE_FORMS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeInboxItem", b =>
@@ -44984,6 +45191,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_TRS_SUPPLIER_TRANSFERS_CRM_CLIENTS");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeDataSourceItem", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeDataSource", null)
+                        .WithMany("Items")
+                        .HasForeignKey("DataSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_DATA_SOURCE_ITEMS_WFE_DATA_SOURCES");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeDefinitionVersion", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Wfe.WfeWorkflowDefinition", "Definition")
@@ -44992,6 +45209,18 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_WFE_DEFINITION_VERSIONS_WFE_WORKFLOW_DEFINITIONS");
+
+                    b.Navigation("Definition");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeForm", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Wfe.WfeWorkflowDefinition", "Definition")
+                        .WithMany()
+                        .HasForeignKey("WorkflowDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_WFE_FORMS_WFE_WORKFLOW_DEFINITIONS");
 
                     b.Navigation("Definition");
                 });
@@ -45206,6 +45435,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Navigation("Charges");
 
                     b.Navigation("GlLines");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeDataSource", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeStepInstance", b =>

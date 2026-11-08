@@ -340,6 +340,18 @@ const router = createRouter({
           meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Workflow Designer' }
         },
         {
+          path: 'workflowengine/forms',
+          name: 'workflow-forms',
+          component: () => import('@/modules/wfe/pages/WorkflowFormsPage.vue'),
+          meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Workflow Forms' }
+        },
+        {
+          path: 'workflowengine/data-sources',
+          name: 'workflow-data-sources',
+          component: () => import('@/modules/wfe/pages/WorkflowDataSourcesPage.vue'),
+          meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Data Sources' }
+        },
+        {
           path: 'admin/users',
           name: 'admin-users',
           component: () => import('@/modules/sec/pages/UserManagementPage.vue'),
@@ -356,6 +368,12 @@ const router = createRouter({
           name: 'workflow-inbox',
           component: () => import('@/modules/wfe/pages/WorkflowInboxPage.vue'),
           meta: { moduleName: 'WORKFLOW', functionName: 'My Workflow Inbox' }
+        },
+        {
+          path: 'workflow/start',
+          name: 'workflow-start',
+          component: () => import('@/modules/wfe/pages/WorkflowStartPage.vue'),
+          meta: { moduleName: 'WORKFLOW', functionName: 'Start a Workflow' }
         },
         {
           path: 'workflow/out-of-office',

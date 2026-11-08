@@ -51,10 +51,11 @@
             Claim
           </button>
 
-          <button v-if="task.status === 'CLAIMED' || task.status === 'IN_PROGRESS'"
+          <!-- a step worked on its form needs Start work once; after that the form below is the working screen -->
+          <button v-if="task.status === 'CLAIMED' || (task.status === 'IN_PROGRESS' && task.route)"
                   type="button"
                   class="wf-action-button wf-action-start"
-                  :disabled="actionLoading || !task.route"
+                  :disabled="actionLoading || (!task.route && !taskForm)"
                   @click="runTask">
             <i class="pi pi-play"></i>
             {{ task.status === 'IN_PROGRESS' ? 'Continue work' : 'Start work' }}
@@ -205,6 +206,10 @@
             Select Start work to open the working screen. You can come back to it later with Continue work.
           </template>
 
+          <template v-else-if="task.status === 'IN_PROGRESS' && !task.route && taskForm">
+            This task is worked on its form below. Fill it in, then complete the task.
+          </template>
+
           <template v-else-if="task.status === 'IN_PROGRESS'">
             This task is in progress. Use Continue work whenever you need to return to the working screen.
             <template v-if="task.route"> The task is completed from that screen, when its work is done.</template>
@@ -216,8 +221,25 @@
         </div>
       </section>
 
+      <!-- the step's form (Workflow Forms): filled in here when the step has no business screen, else shown read-only -->
+      <section v-if="taskForm" class="wf-form-card">
+        <div class="wf-form-head">
+          <i class="pi pi-file-edit"></i>
+          <strong>{{ taskForm.formName }}</strong>
+          <span class="wf-form-state">{{ taskForm.editable ? 'Fill in, then complete the task' : task.status === 'IN_PROGRESS' || task.route ? 'Read-only' : 'Start work to fill it in' }}</span>
+        </div>
+        <p v-if="taskForm.description" class="wf-form-desc">{{ taskForm.description }}</p>
+        <WorkflowFormView v-model="formValues" :view="taskForm" :errors="formErrors" id-prefix="task" />
+      </section>
+
       <!-- a task with a business screen is completed there (the Excel import completes Load Excel, the review pages
            accept or reject); the panel serves only tasks without a screen -->
+      <div v-if="actionError" class="wf-action-error" role="alert">
+        <i class="pi pi-exclamation-circle"></i>
+        <span>{{ actionError }}</span>
+        <button type="button" aria-label="Close" @click="actionError = ''"><i class="pi pi-times"></i></button>
+      </div>
+
       <section v-if="task.status === 'IN_PROGRESS' && !task.route"
                class="wf-completion-panel">
         <label for="completionComment">
@@ -253,6 +275,8 @@
   import { useRoute, useRouter } from 'vue-router'
   import type { WorkflowInboxTask } from '../models/workflow'
   import { workflowService, type WorkflowDataValue, type WorkflowInstanceData } from '../services/workflowService'
+  import { apiErrorText, apiFieldErrors, formApi, type FormView } from '../services/formService'
+  import WorkflowFormView from '../components/WorkflowFormView.vue'
   import '../styles/workflow.css'
 
   const route = useRoute()
@@ -261,6 +285,20 @@
   const task = ref<WorkflowInboxTask | null>(null)
   const data = ref<WorkflowInstanceData | null>(null)
   const showOther = ref(false)
+  const taskForm = ref<FormView | null>(null)
+  const formValues = ref<Record<string, string | null>>({})
+  const formErrors = ref<Record<string, string>>({})
+  const actionError = ref('')
+
+  /** The step's form and its current values; a task without one works as before. */
+  async function loadForm() {
+    try {
+      taskForm.value = (await formApi.taskForm(inboxId.value)).form
+      formValues.value = Object.fromEntries((taskForm.value?.controls ?? []).filter((c) => c.field).map((c) => [c.field as string, c.value]))
+    } catch {
+      taskForm.value = null
+    }
+  }
 
   /** A data value as people read it: amounts with separators, Yes/No, dates as on the rest of the page. */
   function showValue(f: WorkflowDataValue) {
@@ -438,6 +476,7 @@
       task.value = await workflowService.getTask(inboxId.value)
       // the data panel is extra: the task works without it
       workflowService.getTaskData(inboxId.value).then(x => (data.value = x)).catch(() => (data.value = null))
+      await loadForm()
     } catch (e) {
       error.value =
         e instanceof Error
@@ -477,6 +516,8 @@
       // move the task from CLAIMED -> IN_PROGRESS.
       if (task.value.status === 'CLAIMED') {
         task.value = await workflowService.start(task.value.inboxId)
+        // a step worked on its form: the form opens for filling in
+        if (!task.value.route) await loadForm()
       }
 
       // Subsequent visits while IN_PROGRESS:
@@ -551,11 +592,14 @@
     error.value = ''
 
     try {
+      formErrors.value = {}
+      actionError.value = ''
       task.value = await workflowService.complete(
         task.value.inboxId,
         {
           action,
-          comment: completionComment.value || null
+          comment: completionComment.value || null,
+          values: taskForm.value?.editable ? formValues.value : undefined
         }
       )
 
@@ -563,10 +607,9 @@
         name: 'workflow-inbox'
       })
     } catch (e) {
-      error.value =
-        e instanceof Error
-          ? e.message
-          : `Unable to ${actionLabel(action).toLowerCase()} workflow task.`
+      // the task stays on screen, so the form keeps what was typed
+      formErrors.value = apiFieldErrors(e)
+      actionError.value = apiErrorText(e, `Unable to ${actionLabel(action).toLowerCase()} workflow task.`)
     } finally {
       actionLoading.value = false
     }
@@ -585,6 +628,16 @@
   .wf-context-summary .wf-context-summary-item > div { min-width: 0; }
   .wf-context-summary .wf-context-summary-item label,
   .wf-context-summary .wf-context-summary-item strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .wf-action-error { position: sticky; top: 10px; z-index: 5; display: flex; align-items: center; gap: 10px; margin-top: 18px; padding: 11px 14px; border-radius: 10px; background: #fdecea; border: 1px solid #f3c3bc; color: #8a2416; font-size: 13.5px; box-shadow: 0 6px 18px rgba(138,36,22,.12); }
+  .wf-action-error span { flex: 1; }
+  .wf-action-error button { border: 0; background: none; color: inherit; cursor: pointer; }
+  .wf-form-card { margin-top: 18px; background: #fff; border: 1px solid #dbe5ec; border-top: 3px solid #00636D; border-radius: 14px; box-shadow: 0 4px 16px rgba(28,55,82,.05); padding: 18px 26px 22px; }
+  .wf-form-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: #12324a; }
+  .wf-form-head .pi { color: #00636D; }
+  .wf-form-head strong { font-size: 15px; }
+  .wf-form-state { margin-left: auto; padding: 3px 10px; border-radius: 999px; background: #fff4ea; color: #b4520b; font-size: 11.5px; font-weight: 700; }
+  .wf-form-desc { margin: -6px 0 14px; color: #5f7787; font-size: 12.5px; }
 
   .wf-context-card {
     margin-top: 18px;

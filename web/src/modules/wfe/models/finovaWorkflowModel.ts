@@ -22,6 +22,7 @@ const finovaWorkflowModdle = {
       properties: [
         { name: 'stepCode', isAttr: true, type: 'String' },
         { name: 'ruleCode', isAttr: true, type: 'String' },
+        { name: 'formCode', isAttr: true, type: 'String' },
         { name: 'stepType', isAttr: true, type: 'String' },
         { name: 'assignmentType', isAttr: true, type: 'String' },
         { name: 'assignee', isAttr: true, type: 'String' },
