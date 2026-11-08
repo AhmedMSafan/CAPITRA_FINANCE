@@ -49,13 +49,15 @@ public sealed record WfeInboxItemDto(
     string? OnBehalfOf = null);
 
 /// <summary>RoutingMode USER sends the next task to AssignedUserId instead of the workflow default (FINOVA's routing override).</summary>
-public sealed record CompleteInboxItemRequest(string? Action, string? Comment, string? RoutingMode = null, string? AssignedUserId = null);
+/// <param name="Values">The step form's values, for a step worked on its form.</param>
+public sealed record CompleteInboxItemRequest(
+    string? Action, string? Comment, string? RoutingMode = null, string? AssignedUserId = null, IDictionary<string, string?>? Values = null);
 
 /// <summary>
 /// My Inbox: the open tasks the signed-in user may work on (assigned to them, or to one of their roles),
 /// and claiming, starting and completing them. The user always comes from the login token.
 /// </summary>
-public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, WfeRuntime runtime, IClock clock, IUserDirectory directory)
+public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, WfeRuntime runtime, IClock clock, IUserDirectory directory, WfeForms forms)
 {
     private string Me => currentUser.UserName ?? throw new BusinessRuleException("No signed-in user.");
 
@@ -131,6 +133,56 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         return WfeDataFields.View(WfeDataFields.Of(WfeVersions.XmlOf(instance)), values);
     }
 
+    /// <summary>
+    /// The step's form with the instance's values, or null when the step has none. It can be filled in while the task is in progress
+    /// with the signed-in user and the step has no business screen; otherwise it shows the values only.
+    /// </summary>
+    public async Task<WfeFormViewDto?> FormAsync(long inboxId, CancellationToken cancellationToken)
+    {
+        await LoadCoversAsync(cancellationToken);
+        var row = await WithStepAsync(inboxId, cancellationToken);
+        if (!CanAccess(row))
+            throw new BusinessRuleException("This task is not assigned to you.");
+        var (form, fields) = await StepFormAsync(row, cancellationToken);
+        if (form is null)
+            return null;
+        var values = row.Instance!.Variables.GroupBy(v => v.VariableName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().VariableValue, StringComparer.OrdinalIgnoreCase);
+        var editable = row.InboxStatus == WfeRuntime.InProgress && Same(row.ClaimedBy) && string.IsNullOrWhiteSpace(row.Route);
+        return await forms.ViewAsync(form, fields, values, editable, cancellationToken);
+    }
+
+    private async Task<WfeInboxItem> WithStepAsync(long inboxId, CancellationToken cancellationToken) =>
+        await db.Set<WfeInboxItem>().AsNoTracking()
+            .Include(x => x.StepInstance)
+            .Include(x => x.Instance!).ThenInclude(x => x.Definition)
+            .Include(x => x.Instance!).ThenInclude(x => x.Version)
+            .Include(x => x.Instance!).ThenInclude(x => x.Variables)
+            .FirstOrDefaultAsync(x => x.InboxItemId == inboxId, cancellationToken)
+        ?? throw new NotFoundException("Workflow inbox item not found.");
+
+    /// <summary>The form of the task's step in the instance's version, and the version's data fields.</summary>
+    private async Task<(WfeForm? Form, IReadOnlyList<WfeDataField> Fields)> StepFormAsync(WfeInboxItem row, CancellationToken cancellationToken)
+    {
+        var instance = row.Instance!;
+        var xml = WfeVersions.XmlOf(instance);
+        var elementId = row.StepInstance?.ElementId;
+        if (string.IsNullOrWhiteSpace(elementId))
+            return (null, []);
+        string? code;
+        try
+        {
+            code = BpmnModel.Element(xml, elementId).FormCode;
+        }
+        catch (InvalidOperationException)
+        {
+            return (null, []);
+        }
+
+        var form = await forms.FindAsync(instance.WorkflowDefinitionId, code, cancellationToken);
+        return (form, form is null ? [] : WfeDataFields.Of(xml));
+    }
+
     public async Task<WfeInboxItemDto> ClaimAsync(long inboxId, CancellationToken cancellationToken)
     {
         var row = await AccessibleAsync(inboxId, cancellationToken);
@@ -153,7 +205,17 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
     {
         var row = await AccessibleAsync(inboxId, cancellationToken);
         var action = string.IsNullOrWhiteSpace(request.Action) ? "COMPLETE" : request.Action;
-        var variables = string.IsNullOrWhiteSpace(request.Comment) ? null : new Dictionary<string, string?> { ["TASK_COMMENT"] = request.Comment };
+        Dictionary<string, string?>? variables = null;
+        // a step worked on its form saves the form's values with the completion (its required fields filled in first)
+        if (string.IsNullOrWhiteSpace(row.Route))
+        {
+            var (form, fields) = await StepFormAsync(await WithStepAsync(inboxId, cancellationToken), cancellationToken);
+            if (form is not null && !IsSendBack(action))
+                variables = await forms.AcceptAsync(form, fields, request.Values, cancellationToken);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Comment))
+            (variables ??= new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase))["TASK_COMMENT"] = request.Comment;
         var toUser = string.Equals(request.RoutingMode, "USER", StringComparison.OrdinalIgnoreCase);
         if (toUser && string.IsNullOrWhiteSpace(request.AssignedUserId))
             throw new BusinessRuleException("Select a user or turn off Assign to a specific user.");
@@ -162,6 +224,10 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         var done = await Query().FirstAsync(x => x.InboxItemId == inboxId, cancellationToken);
         return Map(done);
     }
+
+    /// <summary>Rejecting or returning a task does not need its form filled in.</summary>
+    private static bool IsSendBack(string action) =>
+        action.Trim().ToUpperInvariant() is "REJECT" or "RETURN" or "CANCEL";
 
     private async Task<WfeInboxItem> AccessibleAsync(long inboxId, CancellationToken cancellationToken)
     {

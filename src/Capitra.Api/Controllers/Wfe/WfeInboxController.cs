@@ -23,6 +23,10 @@ public sealed class WfeInboxController(WfeInbox inbox) : ControllerBase
     [HttpGet("{id:long}/data")]
     public Task<WfeInstanceDataDto> Data(long id, CancellationToken cancellationToken) => inbox.DataAsync(id, cancellationToken);
 
+    /// <summary>The step's form, or form null when the step has none.</summary>
+    [HttpGet("{id:long}/form")]
+    public async Task<WfeTaskFormDto> Form(long id, CancellationToken cancellationToken) => new(await inbox.FormAsync(id, cancellationToken));
+
     [HttpPost("{id:long}/claim")]
     public Task<WfeInboxItemDto> Claim(long id, CancellationToken cancellationToken) => inbox.ClaimAsync(id, cancellationToken);
 

@@ -62,6 +62,62 @@ public sealed class WfeOutOfOfficeConfiguration : IEntityTypeConfiguration<WfeOu
     }
 }
 
+public sealed class WfeDataSourceConfiguration : IEntityTypeConfiguration<WfeDataSource>
+{
+    public void Configure(EntityTypeBuilder<WfeDataSource> builder)
+    {
+        builder.ToTable("WFE_DATA_SOURCES");
+        builder.HasKey(x => x.DataSourceId);
+        builder.HasIndex(x => x.SourceCode).IsUnique();
+
+        builder.Property(x => x.DataSourceId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.SourceCode).HasMaxLength(50);
+        builder.Property(x => x.SourceName).HasMaxLength(150);
+        builder.Property(x => x.Description).HasMaxLength(500);
+
+        builder.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.DataSourceId).OnDelete(DeleteBehavior.Cascade);
+
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class WfeDataSourceItemConfiguration : IEntityTypeConfiguration<WfeDataSourceItem>
+{
+    public void Configure(EntityTypeBuilder<WfeDataSourceItem> builder)
+    {
+        builder.ToTable("WFE_DATA_SOURCE_ITEMS");
+        builder.HasKey(x => x.DataSourceItemId);
+        builder.HasIndex(x => new { x.DataSourceId, x.ItemValue }).IsUnique();
+
+        builder.Property(x => x.DataSourceItemId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.ItemValue).HasMaxLength(200);
+        builder.Property(x => x.ItemLabel).HasMaxLength(300);
+
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class WfeFormConfiguration : IEntityTypeConfiguration<WfeForm>
+{
+    public void Configure(EntityTypeBuilder<WfeForm> builder)
+    {
+        builder.ToTable("WFE_FORMS");
+        builder.HasKey(x => x.FormId);
+        builder.HasIndex(x => x.FormCode).IsUnique();
+        builder.HasIndex(x => x.WorkflowDefinitionId);
+
+        builder.Property(x => x.FormId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.FormCode).HasMaxLength(50);
+        builder.Property(x => x.FormName).HasMaxLength(150);
+        builder.Property(x => x.Description).HasMaxLength(500);
+        builder.Property(x => x.LayoutJson).HasColumnType("text");
+
+        builder.HasOne(x => x.Definition).WithMany().HasForeignKey(x => x.WorkflowDefinitionId).OnDelete(DeleteBehavior.Restrict);
+
+        builder.ConfigureAudit();
+    }
+}
+
 public sealed class WfeWorkflowInstanceConfiguration : IEntityTypeConfiguration<WfeWorkflowInstance>
 {
     public void Configure(EntityTypeBuilder<WfeWorkflowInstance> builder)

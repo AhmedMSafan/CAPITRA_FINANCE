@@ -14,7 +14,8 @@ public sealed record BpmnElement(
     string? Route,
     string? RouteParameters,
     string? Actions,
-    string? RuleCode = null)
+    string? RuleCode = null,
+    string? FormCode = null)
 {
     public bool IsHumanTask =>
         Type is "userTask" or "manualTask" || string.Equals(StepType, "HumanTask", StringComparison.OrdinalIgnoreCase);
@@ -39,6 +40,10 @@ public static class BpmnModel
             ?? throw new InvalidOperationException($"BPMN element '{elementId}' was not found.");
         return Map(element);
     }
+
+    /// <summary>Every element of the diagram that carries an id (events, tasks, gateways, flows).</summary>
+    public static IReadOnlyList<BpmnElement> Elements(string xml) =>
+        Load(xml).Descendants().Where(x => x.Attribute("id") is not null && x.Name.Namespace == Bpmn).Select(Map).ToList();
 
     /// <summary>The first element with this step code, or null.</summary>
     public static BpmnElement? StepByCode(string xml, string stepCode) =>
@@ -81,7 +86,8 @@ public static class BpmnModel
         Attr(e, "route"),
         Attr(e, "routeParameters"),
         Attr(e, "actions"),
-        Attr(e, "ruleCode"));
+        Attr(e, "ruleCode"),
+        Attr(e, "formCode"));
 
     private static string? Attr(XElement e, string name) => (string?)e.Attribute(Finova + name) ?? (string?)e.Attribute(name);
 }

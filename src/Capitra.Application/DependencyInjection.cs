@@ -61,6 +61,8 @@ public static class DependencyInjection
         services.AddScoped<WfeDefinitions>();
         services.AddScoped<WfeInbox>();
         services.AddScoped<WfeOutOfOfficeService>();
+        services.AddScoped<WfeDataSources>();
+        services.AddScoped<WfeForms>();
 
         // Copied APEX pages: every on-demand process found in this assembly, looked up by app, page and name.
         foreach (var type in typeof(DependencyInjection).Assembly.GetTypes()

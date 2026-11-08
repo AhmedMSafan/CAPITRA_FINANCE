@@ -141,6 +141,7 @@ import '@/shared/styles/apex-fx-inbox.css'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { tr } from '@/shared/layout/language'
 import { getUser, hasPermission } from '@/shared/auth/session'
+import { apiErrorText } from '../services/formService'
 import { outOfOfficeApi, type OutOfOffice, type UserOption, type WorkflowOption } from '../services/outOfOfficeService'
 
 const me = getUser()?.userName ?? ''
@@ -191,9 +192,7 @@ function edit(e: OutOfOffice) {
 
 function errorText(e: unknown) {
   // validation errors come back per field; show them as one line
-  const x = e as { errors?: Record<string, string[]>; message?: string }
-  if (x?.errors) return Object.values(x.errors).flat().join(' ')
-  return e instanceof Error ? e.message : tr('Something went wrong.')
+  return apiErrorText(e, tr('Something went wrong.'))
 }
 
 async function save() {

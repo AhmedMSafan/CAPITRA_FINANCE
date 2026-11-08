@@ -443,6 +443,28 @@
               <input v-else v-model="step.ruleCode" placeholder="e.g. PP_DISBURSE" />
             </section>
 
+            <section v-if="step.stepType==='HumanTask'||step.stepType==='Start'" class="property-section">
+              <div class="section-title">
+                <span class="section-icon pi pi-file-edit"></span>
+                <div>
+                  <strong>Form</strong>
+                  <small v-if="step.stepType==='Start'">The form people fill in to start this workflow from Start a Workflow.</small>
+                  <small v-else>The step's form over the data fields. Without a business screen the task is worked on it; with one it shows read-only.</small>
+                </div>
+              </div>
+
+              <label class="field-label">Form</label>
+              <select v-model="step.formCode" :disabled="!form.dgrmId">
+                <option value="">- None -</option>
+                <option v-if="step.formCode && !workflowForms.some(x=>x.formCode===step.formCode)" :value="step.formCode">{{ step.formCode }} (not found)</option>
+                <option v-for="x in workflowForms" :key="x.formId" :value="x.formCode">{{ x.formName }} ({{ x.formCode }}){{ x.isActive ? '' : ' - off' }}</option>
+              </select>
+              <button class="text-button form-manage" type="button" :disabled="!form.dgrmId" @click="openForms">
+                <span class="pi pi-external-link"></span>
+                {{ form.dgrmId ? (step.formCode ? 'Open this form' : 'Make a form') : 'Save the workflow first' }}
+              </button>
+            </section>
+
             <section class="property-section">
               <div class="section-title">
                 <span class="section-icon pi pi-external-link"></span>
@@ -680,17 +702,22 @@ import 'bpmn-js/dist/assets/diagram-js.css'; import 'bpmn-js/dist/assets/bpmn-fo
 import finovaWorkflowModdle from '../models/finovaWorkflowModel'
 import {createWorkflowDefinition,getWorkflowDefinition,getWorkflowVersions,getWorkflowVersionXml,updateWorkflowDefinition,type WorkflowVersion} from '../services/workflowDefinitionService'
 import {productEventRulesApi,type ProductEventRule} from '@/modules/adm/api/products.api'
+import {formApi,type WorkflowForm} from '../services/formService'
 
 type Var={name:string,type:string,required:boolean,label?:string,defaultValue?:string,choices?:string[],description?:string}; type Param={name:string,value:string};
-type Step={stepCode:string,stepName:string,ruleCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[]}
+type Step={stepCode:string,stepName:string,ruleCode:string,formCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[]}
 const route=useRoute(),router=useRouter(),canvas=ref<HTMLElement|null>(null),saving=ref(false),active=ref(true),selectedId=ref(''),selectedType=ref(''),message=ref(''),messageType=ref<'success'|'error'>('success'),showXml=ref(false),xmlPreview=ref(''),customAction=ref(''),flowOutcome=ref(''),customFlowOutcome=ref(''),selectedFlowSource=ref(''),selectedFlowTarget=ref(''),leftPanelOpen=ref(false),rightPanelOpen=ref(false),zoomPercent=ref(100)
 const variables=reactive<Var[]>([]),steps=reactive<Record<string,Step>>({}); let modeler:any=null
 const form=reactive({dgrmId:0,dgrmName:'',dgrmVersion:'1',dgrmStatus:'draft',dgrmContent:'',dgrmCreatedBy:'SYSTEM',dgrmLastUpdateBy:'SYSTEM',workflowCode:'',description:'',isActive:'Y'})
 // active product event rules for the Product Event Rule drop-down; without access to them the field stays free text
 const productRules=ref<ProductEventRule[]>([])
 productEventRulesApi.list().then(x=>productRules.value=x.filter(r=>r.isActive)).catch(()=>{})
+// this workflow's forms (Workflow Forms) for the Form drop-down of a step or the Start event
+const workflowForms=ref<WorkflowForm[]>([])
+function loadForms(){if(form.dgrmId)formApi.ofWorkflow(form.dgrmId).then(x=>workflowForms.value=x).catch(()=>workflowForms.value=[])}
+function openForms(){router.push({name:'workflow-forms',query:step.value.formCode?{form:String(workflowForms.value.find(f=>f.formCode===step.value.formCode)?.formId??'')}:{workflow:String(form.dgrmId)}})}
 const actionCatalog=ref(['CLAIM','ACCEPT','APPROVE','REJECT','RETURN','COMPLETE'])
-function emptyStep():Step{return{stepCode:'',stepName:'',ruleCode:'',stepType:'HumanTask',assignmentType:'Role',assignee:'',route:'',routeParameters:[],actions:['CLAIM','COMPLETE']}}
+function emptyStep():Step{return{stepCode:'',stepName:'',ruleCode:'',formCode:'',stepType:'HumanTask',assignmentType:'Role',assignee:'',route:'',routeParameters:[],actions:['CLAIM','COMPLETE']}}
 // selecting an element creates its step settings (bindSelection), so the computed only reads them
 const step=computed<Step>(()=>(selectedId.value?steps[selectedId.value]:undefined)??emptyStep())
 const starter=`<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:finova="http://finova/workflow" id="Definitions_FINOVA" targetNamespace="http://finova/workflow"><bpmn:process id="Process_FINOVA" name="FINOVA Workflow Engine" isExecutable="true"><bpmn:startEvent id="StartEvent_1" name="Start"><bpmn:outgoing>Flow_1</bpmn:outgoing></bpmn:startEvent><bpmn:userTask id="Task_1" name="Approval Task"><bpmn:incoming>Flow_1</bpmn:incoming><bpmn:outgoing>Flow_2</bpmn:outgoing></bpmn:userTask><bpmn:endEvent id="EndEvent_1" name="End"><bpmn:incoming>Flow_2</bpmn:incoming></bpmn:endEvent><bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1"/><bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="EndEvent_1"/></bpmn:process><bpmndi:BPMNDiagram id="BPMNDiagram_1"><bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_FINOVA"><bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1"><dc:Bounds x="180" y="182" width="36" height="36"/></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1"><dc:Bounds x="300" y="160" width="120" height="80"/></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1"><dc:Bounds x="520" y="182" width="36" height="36"/></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="216" y="200"/><di:waypoint x="300" y="200"/></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="420" y="200"/><di:waypoint x="520" y="200"/></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>`
@@ -725,6 +752,7 @@ function loadMetadataFromXml(){
     s.stepName=bo.name||''
     s.stepCode=bo.stepCode||''
     s.ruleCode=bo.ruleCode||''
+    s.formCode=bo.formCode||''
     s.stepType=bo.stepType||inferType(e.type)
     s.assignmentType=bo.assignmentType||((s.stepType==='HumanTask')?'Role':'None')
     s.assignee=bo.assignee||''
@@ -756,6 +784,7 @@ function writeMetadataToBpmn(){
       name:s.stepName||el.businessObject.name,
       stepCode:s.stepCode,
       ruleCode:s.ruleCode||undefined,
+      formCode:s.formCode||undefined,
       stepType:s.stepType,
       assignmentType:s.assignmentType,
       assignee:s.assignee,
@@ -1326,6 +1355,7 @@ async function load(){
     Object.assign(form,w)
     active.value=form.isActive==='Y'
     xml=form.dgrmContent||starter
+    loadForms()
   }
 
   await modeler.importXML(removeSavedViewbox(xml))
@@ -2239,6 +2269,8 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
   justify-content: space-between;
   margin: 12px 0 6px;
 }
+
+.form-manage { margin-top: 8px; }
 
 .text-button {
   display: inline-flex;
