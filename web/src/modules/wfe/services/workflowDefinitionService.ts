@@ -110,3 +110,24 @@ export type RunningInstance = {
 export function getRunningInstances() {
   return http.get<RunningInstance[]>(`${API_URL}/running`)
 }
+
+/** A released version of a workflow: running = instances still open on it, total = all instances started on it. */
+export type WorkflowVersion = {
+  definitionVersionId: number
+  versionNo: number
+  releasedAt: string
+  releasedBy: string
+  running: number
+  total: number
+  isCurrent: boolean
+}
+
+/** The released versions of a workflow, newest first. */
+export function getWorkflowVersions(id: number) {
+  return http.get<WorkflowVersion[]>(`${API_URL}/${id}/versions`)
+}
+
+/** The BPMN of one released version. */
+export async function getWorkflowVersionXml(id: number, versionId: number) {
+  return (await http.get<{ bpmnXml: string }>(`${API_URL}/${id}/versions/${versionId}`)).bpmnXml
+}

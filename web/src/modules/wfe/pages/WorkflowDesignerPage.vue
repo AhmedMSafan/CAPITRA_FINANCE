@@ -23,12 +23,17 @@
           Fit
         </button>
 
+        <button v-if="form.dgrmId>0" class="btn btn-ghost" @click="openVersions">
+          <span class="pi pi-history"></span>
+          Versions
+        </button>
+
         <button class="btn btn-ghost" @click="showXml=true">
           <span class="pi pi-code"></span>
           BPMN XML
         </button>
 
-        <button class="btn btn-primary" :disabled="saving" @click="save">
+        <button class="btn btn-primary" :disabled="saving||!!viewing" :title="viewing?'You are viewing an old version. Go back to the current workflow to save.':''" @click="save">
           <span :class="saving ? 'pi pi-spin pi-spinner' : 'pi pi-save'"></span>
           {{ saving ? 'Saving...' : 'Save Workflow' }}
         </button>
@@ -49,7 +54,10 @@
 
       <div class="summary-field version-field">
         <label>Version</label>
-        <input v-model="form.dgrmVersion" placeholder="1" />
+        <input v-if="!versionsKept" v-model="form.dgrmVersion" placeholder="1" />
+        <button v-else class="version-chip" type="button" title="Versions are kept automatically. Click to see them." @click="openVersions">
+          v{{ form.dgrmVersion }}
+        </button>
       </div>
 
       <div class="summary-field status-field">
@@ -69,6 +77,20 @@
           <small>Workflow can be started</small>
         </span>
       </label>
+    </section>
+
+    <!-- VIEWING AN OLD VERSION -->
+    <section v-if="viewing" class="version-banner">
+      <span class="pi pi-eye"></span>
+      <span>
+        You are viewing <b>version {{ viewing.versionNo }}</b>, released {{ fmtDate(viewing.releasedAt) }} by {{ viewing.releasedBy }}.
+        {{ viewing.running ? (viewing.running===1 ? '1 running instance still follows it.' : `${viewing.running} running instances still follow it.`) : 'No instance is running on it.' }}
+        Changes here are not saved.
+      </span>
+      <button class="btn btn-primary" @click="backToCurrent">
+        <span class="pi pi-arrow-left"></span>
+        Back to current workflow
+      </button>
     </section>
 
     <!-- DESIGNER WORKSPACE -->
@@ -542,6 +564,52 @@
       </div>
     </div>
 
+    <!-- VERSIONS MODAL -->
+    <div v-if="showVersions" class="modal" @click.self="showVersions=false">
+      <div class="modal-card versions-card">
+        <div class="modal-head">
+          <div>
+            <small>Released versions</small>
+            <h3>{{ form.dgrmName || form.workflowCode }}</h3>
+          </div>
+
+          <button class="modal-close" @click="showVersions=false">
+            <span class="pi pi-times"></span>
+          </button>
+        </div>
+
+        <div class="versions-body">
+          <p class="versions-note">
+            Each time you save a <b>Released</b> workflow with changed steps or routing, a new version is kept.
+            New instances start on the latest version. Instances already running stay on the version they started with,
+            so your change never moves work in progress. Moving shapes only does not make a new version.
+          </p>
+
+          <div v-if="versionsLoading" class="versions-empty"><span class="pi pi-spin pi-spinner"></span> Loading...</div>
+          <div v-else-if="!versions.length" class="versions-empty">No version is kept yet. Save the workflow as Released to keep version 1.</div>
+          <table v-else class="versions-table">
+            <thead>
+              <tr><th>Version</th><th>Released</th><th>By</th><th class="num">Running</th><th class="num">All instances</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="v in versions" :key="v.definitionVersionId">
+                <td><b>v{{ v.versionNo }}</b> <span v-if="v.isCurrent" class="current-tag">Current</span></td>
+                <td>{{ fmtDate(v.releasedAt) }}</td>
+                <td>{{ v.releasedBy }}</td>
+                <td class="num">{{ v.running }}</td>
+                <td class="num">{{ v.total }}</td>
+                <td class="act">
+                  <button class="btn btn-ghost btn-sm" @click="viewVersion(v)">
+                    <span class="pi pi-eye"></span> View
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div
       v-if="message"
       :class="['toast',messageType==='error'?'toast-error':'toast-success']"
@@ -558,7 +626,7 @@ import { useRoute,useRouter } from 'vue-router'
 import BpmnModeler from 'bpmn-js/lib/Modeler'
 import 'bpmn-js/dist/assets/diagram-js.css'; import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css'
 import finovaWorkflowModdle from '../models/finovaWorkflowModel'
-import {createWorkflowDefinition,getWorkflowDefinition,updateWorkflowDefinition} from '../services/workflowDefinitionService'
+import {createWorkflowDefinition,getWorkflowDefinition,getWorkflowVersions,getWorkflowVersionXml,updateWorkflowDefinition,type WorkflowVersion} from '../services/workflowDefinitionService'
 import {productEventRulesApi,type ProductEventRule} from '@/modules/adm/api/products.api'
 
 type Var={name:string,type:string,required:boolean}; type Param={name:string,value:string};
@@ -1126,6 +1194,40 @@ async function refreshXmlPreview(){
   )
 }
 
+// released versions (K2-style): new instances use the latest, running ones keep theirs
+const showVersions=ref(false),versions=ref<WorkflowVersion[]>([]),versionsLoading=ref(false),versionsKept=ref(false)
+const viewing=ref<WorkflowVersion|null>(null)
+let currentXml=''
+function fmtDate(x:string){return new Date(x).toLocaleString(undefined,{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+async function loadVersions(){
+  if(form.dgrmId<=0){versions.value=[];versionsKept.value=false;return}
+  versionsLoading.value=true
+  try{versions.value=await getWorkflowVersions(form.dgrmId);versionsKept.value=versions.value.length>0}
+  catch{versions.value=[]}
+  finally{versionsLoading.value=false}
+}
+async function openVersions(){showVersions.value=true;await loadVersions()}
+async function viewVersion(v:WorkflowVersion){
+  try{
+    const xml=await getWorkflowVersionXml(form.dgrmId,v.definitionVersionId)
+    // keep the workflow as it is on screen, unsaved edits included, to come back to it
+    if(!viewing.value){writeMetadataToBpmn();currentXml=(await modeler.saveXML({format:true})).xml||''}
+    viewing.value=v
+    showVersions.value=false
+    await modeler.importXML(removeSavedViewbox(xml))
+    loadMetadataFromXml()
+    await fit()
+    await refreshXmlPreview()
+  }catch(e){msg(e instanceof Error?e.message:'The version could not be opened.',true)}
+}
+async function backToCurrent(){
+  viewing.value=null
+  await modeler.importXML(currentXml)
+  loadMetadataFromXml()
+  await fit()
+  await refreshXmlPreview()
+}
+
 async function load(){
   let xml=starter
   const id=route.params.id
@@ -1139,6 +1241,7 @@ async function load(){
 
   await modeler.importXML(removeSavedViewbox(xml))
   loadMetadataFromXml()
+  await loadVersions()
 
   // First-time / old workflow:
   // center the entire diagram horizontally and vertically.
@@ -1180,9 +1283,13 @@ async function save(){
         ? await updateWorkflowDefinition(form.dgrmId,form)
         : await createWorkflowDefinition(form)
 
+    const before=form.dgrmVersion
     Object.assign(form,saved)
+    await loadVersions()
 
-    msg('Workflow and designer position saved successfully.')
+    msg(versionsKept.value&&saved.dgrmVersion!==before
+      ? `Saved as version ${saved.dgrmVersion}. New instances use it; running instances stay on their version.`
+      : 'Workflow and designer position saved successfully.')
 
     if(route.params.id==='new'||!route.params.id)
       await router.replace(`/workflowengine/designer/${form.dgrmId}`)
@@ -2118,6 +2225,49 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
 }
 
 /* MODAL */
+.version-chip {
+  width: 100%;
+  height: 36px;
+  border: 1px solid #b9d9d6;
+  border-radius: 8px;
+  background: #eef7f6;
+  color: #00636D;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.version-chip:hover { background: #e2f1ef; }
+
+.version-banner {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  padding: 9px 12px;
+  border: 1px solid #f5c79f;
+  border-radius: 10px;
+  background: #fff4ea;
+  color: #7a3d0a;
+  font-size: 13px;
+}
+
+.version-banner > .pi { color: #E87722; font-size: 16px; }
+.version-banner > span:nth-child(2) { flex: 1; }
+
+.modal-card.versions-card { height: auto; max-height: min(640px, 84vh); width: min(860px, 92vw); }
+.versions-body { padding: 14px 17px 18px; overflow: auto; }
+.versions-note { margin: 0 0 12px; color: #49657b; font-size: 13px; line-height: 1.5; }
+.versions-empty { padding: 18px; color: #49657b; text-align: center; }
+.versions-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.versions-table th { text-align: left; padding: 8px 10px; background: #f3f7f9; color: #49657b; font-size: 11.5px; font-weight: 750; }
+.versions-table td { padding: 8px 10px; border-top: 1px solid #e1e8ec; color: #173b57; }
+.versions-table .num { text-align: right; }
+.versions-table .act { text-align: right; }
+.current-tag { margin-left: 6px; padding: 2px 7px; border-radius: 999px; background: #00636D; color: #fff; font-size: 10.5px; font-weight: 800; }
+.btn-sm { height: 30px; padding: 0 10px; font-size: 12px; }
+
 .modal {
   position: fixed;
   inset: 0;

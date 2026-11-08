@@ -25,6 +25,24 @@ public sealed class WfeWorkflowDefinitionConfiguration : IEntityTypeConfiguratio
     }
 }
 
+public sealed class WfeDefinitionVersionConfiguration : IEntityTypeConfiguration<WfeDefinitionVersion>
+{
+    public void Configure(EntityTypeBuilder<WfeDefinitionVersion> builder)
+    {
+        builder.ToTable("WFE_DEFINITION_VERSIONS");
+        builder.HasKey(x => x.DefinitionVersionId);
+        builder.HasIndex(x => new { x.WorkflowDefinitionId, x.VersionNo }).IsUnique();
+
+        builder.Property(x => x.DefinitionVersionId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.BpmnXml).HasColumnType("text");
+        builder.Property(x => x.ReleasedBy).HasMaxLength(100);
+
+        builder.HasOne(x => x.Definition).WithMany().HasForeignKey(x => x.WorkflowDefinitionId).OnDelete(DeleteBehavior.Cascade);
+
+        builder.ConfigureAudit();
+    }
+}
+
 public sealed class WfeWorkflowInstanceConfiguration : IEntityTypeConfiguration<WfeWorkflowInstance>
 {
     public void Configure(EntityTypeBuilder<WfeWorkflowInstance> builder)
@@ -42,6 +60,7 @@ public sealed class WfeWorkflowInstanceConfiguration : IEntityTypeConfiguration<
         builder.Property(x => x.ErrorMessage).HasMaxLength(2000);
 
         builder.HasOne(x => x.Definition).WithMany().HasForeignKey(x => x.WorkflowDefinitionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Version).WithMany().HasForeignKey(x => x.DefinitionVersionId).OnDelete(DeleteBehavior.Restrict);
 
         builder.ConfigureAudit();
     }

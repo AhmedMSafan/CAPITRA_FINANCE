@@ -1086,11 +1086,13 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
     private async Task<string?> StepRuleCodeAsync(long disbursementId, CancellationToken cancellationToken)
     {
         var reference = $"DISB-{disbursementId.ToString(CultureInfo.InvariantCulture)}";
-        var xml = await (from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
-                         join w in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals w.WorkflowDefinitionId
-                         where w.WorkflowCode == CrmDisbursementProcessService.WorkflowCode && i.BusinessReference == reference
-                         orderby i.WorkflowInstanceId descending
-                         select w.BpmnXml).FirstOrDefaultAsync(cancellationToken)
+        var instanceId = await (from i in db.Set<WfeWorkflowInstance>().AsNoTracking()
+                                join w in db.Set<WfeWorkflowDefinition>() on i.WorkflowDefinitionId equals w.WorkflowDefinitionId
+                                where w.WorkflowCode == CrmDisbursementProcessService.WorkflowCode && i.BusinessReference == reference
+                                orderby i.WorkflowInstanceId descending
+                                select (long?)i.WorkflowInstanceId).FirstOrDefaultAsync(cancellationToken);
+        // the version the instance runs on
+        var xml = (instanceId is { } id ? await WfeVersions.XmlOfInstanceAsync(db, id, cancellationToken) : null)
             ?? await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.WorkflowCode == CrmDisbursementProcessService.WorkflowCode)
                 .Select(x => x.BpmnXml).FirstOrDefaultAsync(cancellationToken);
         var code = xml is null ? null : BpmnModel.StepByCode(xml, TrsDisburseCompletionHandler.TreasuryDisburseStep)?.RuleCode?.Trim();

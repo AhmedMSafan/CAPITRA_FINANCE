@@ -9,6 +9,9 @@ public class WfeWorkflowInstance : AuditableEntity
 
     public long WorkflowDefinitionId { get; set; }
 
+    /// <summary>The released version the instance runs on; null for instances started before versions were kept (they read the definition).</summary>
+    public long? DefinitionVersionId { get; set; }
+
     /// <summary>One of: RUNNING, WAITING, COMPLETED, FAULTED.</summary>
     public string InstanceStatus { get; set; } = "RUNNING";
 
@@ -25,6 +28,8 @@ public class WfeWorkflowInstance : AuditableEntity
     public string? ErrorMessage { get; set; }
 
     public WfeWorkflowDefinition? Definition { get; set; }
+
+    public WfeDefinitionVersion? Version { get; set; }
 
     public ICollection<WfeStepInstance> Steps { get; set; } = [];
 

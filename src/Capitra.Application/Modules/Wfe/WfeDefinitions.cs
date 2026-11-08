@@ -46,7 +46,7 @@ public sealed record WfeRunningInstanceDto(
     IReadOnlyList<WfeRunningStepDto> Steps);
 
 /// <summary>The workflow definitions the BPMN designer reads and saves.</summary>
-public sealed class WfeDefinitions(ICapitraDbContext db)
+public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUser, IClock clock)
 {
     public async Task<IReadOnlyList<WfeDefinitionDto>> ListAsync(string? search, CancellationToken cancellationToken)
     {
@@ -68,13 +68,14 @@ public sealed class WfeDefinitions(ICapitraDbContext db)
         string[] closed = ["COMPLETED", "REJECTED", "CANCELLED"];
         var rows = await db.Set<WfeWorkflowInstance>().AsNoTracking()
             .Include(x => x.Definition)
+            .Include(x => x.Version)
             .Include(x => x.Steps)
             .Where(x => !closed.Contains(x.InstanceStatus.ToUpper()))
             .ToListAsync(cancellationToken);
         return rows
             .Select(x => new WfeRunningInstanceDto(
                 x.WorkflowInstanceId, x.WorkflowDefinitionId, x.Definition?.WorkflowName ?? x.WorkflowDefinitionId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                x.Definition?.VersionNo ?? "1", x.BusinessReference, x.InstanceStatus, x.CurrentElementId, x.StartedAt, x.StartedBy,
+                x.Version?.VersionNo.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? x.Definition?.VersionNo ?? "1", x.BusinessReference, x.InstanceStatus, x.CurrentElementId, x.StartedAt, x.StartedBy,
                 x.UpdatedAt ?? x.CreatedAt,
                 x.Steps.OrderBy(s => s.EnteredAt).ThenBy(s => s.StepInstanceId)
                     .Select(s => new WfeRunningStepDto(s.ElementId, s.StepName, s.StepStatus, s.Outcome, s.EnteredAt, s.CompletedAt, s.CompletedBy)).ToList()))
@@ -119,14 +120,31 @@ public sealed class WfeDefinitions(ICapitraDbContext db)
 
         row.WorkflowCode = code;
         row.WorkflowName = name;
-        row.VersionNo = string.IsNullOrWhiteSpace(request.VersionNo) ? "1" : request.VersionNo.Trim();
+        // once versions are kept, the version number is the latest release's, not typed
+        var kept = row.WorkflowDefinitionId != 0
+            && await db.Set<WfeDefinitionVersion>().AnyAsync(x => x.WorkflowDefinitionId == row.WorkflowDefinitionId, cancellationToken);
+        if (!kept)
+            row.VersionNo = string.IsNullOrWhiteSpace(request.VersionNo) ? "1" : request.VersionNo.Trim();
         row.DefinitionStatus = string.IsNullOrWhiteSpace(request.DefinitionStatus) ? "draft" : request.DefinitionStatus.Trim().ToLowerInvariant();
         row.BpmnXml = request.BpmnXml;
         row.Description = request.Description;
         row.IsActive = request.IsActive;
+        // saving a released workflow whose steps or routing changed keeps a new version; running instances stay on theirs
+        if (row.DefinitionStatus == "released")
+            await WfeVersions.CurrentAsync(db, row, currentUser.UserName ?? "SYSTEM", clock.UtcNow, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return Map(row);
     }
+
+    /// <summary>The released versions of a workflow, newest first, with how many instances run on each.</summary>
+    public Task<IReadOnlyList<WfeVersionDto>> VersionsAsync(long id, CancellationToken cancellationToken) =>
+        WfeVersions.ListAsync(db, id, cancellationToken);
+
+    /// <summary>The BPMN of one released version, to view it.</summary>
+    public async Task<string> VersionXmlAsync(long id, long versionId, CancellationToken cancellationToken) =>
+        await db.Set<WfeDefinitionVersion>().AsNoTracking().Where(x => x.WorkflowDefinitionId == id && x.DefinitionVersionId == versionId)
+            .Select(x => x.BpmnXml).FirstOrDefaultAsync(cancellationToken)
+        ?? throw new NotFoundException("Workflow version not found.");
 
     public async Task DeleteAsync(long id, CancellationToken cancellationToken)
     {
