@@ -45,7 +45,8 @@ public sealed record WfeInboxItemDto(
     string? AssignedUserId,
     string? AssignedUserName,
     string? AssignedGroup,
-    string? ClientNumber = null);
+    string? ClientNumber = null,
+    string? OnBehalfOf = null);
 
 /// <summary>RoutingMode USER sends the next task to AssignedUserId instead of the workflow default (FINOVA's routing override).</summary>
 public sealed record CompleteInboxItemRequest(string? Action, string? Comment, string? RoutingMode = null, string? AssignedUserId = null);
@@ -54,12 +55,37 @@ public sealed record CompleteInboxItemRequest(string? Action, string? Comment, s
 /// My Inbox: the open tasks the signed-in user may work on (assigned to them, or to one of their roles),
 /// and claiming, starting and completing them. The user always comes from the login token.
 /// </summary>
-public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, WfeRuntime runtime)
+public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, WfeRuntime runtime, IClock clock, IUserDirectory directory)
 {
     private string Me => currentUser.UserName ?? throw new BusinessRuleException("No signed-in user.");
 
+    /// <summary>A user who is out of office today with the signed-in user as delegate, for one workflow or all (null), and their roles.</summary>
+    private sealed record Cover(string UserName, string? WorkflowCode, IReadOnlyList<string> Roles);
+
+    private List<Cover> covers = [];
+
+    /// <summary>Loads whom the signed-in user covers today, so their tasks show in this user's inbox too.</summary>
+    private async Task LoadCoversAsync(CancellationToken ct)
+    {
+        var me = currentUser.UserName;
+        if (string.IsNullOrWhiteSpace(me))
+            return;
+        var today = Gl.GlTime.Today(clock);
+        var rules = await db.Set<WfeOutOfOffice>().AsNoTracking()
+            .Where(x => x.IsActive && x.DelegateTo == me && x.FromDate <= today && x.ToDate >= today).ToListAsync(ct);
+        if (rules.Count == 0)
+        {
+            covers = [];
+            return;
+        }
+
+        var users = (await directory.ActiveUsersAsync(ct)).ToDictionary(x => x.UserName, StringComparer.OrdinalIgnoreCase);
+        covers = rules.Select(r => new Cover(r.UserName, r.WorkflowCode, users.TryGetValue(r.UserName, out var u) ? u.Roles : [])).ToList();
+    }
+
     public async Task<IReadOnlyList<WfeInboxItemDto>> MyInboxAsync(CancellationToken cancellationToken)
     {
+        await LoadCoversAsync(cancellationToken);
         var rows = await Query()
             .Where(x => x.InboxStatus == WfeRuntime.Open || x.InboxStatus == WfeRuntime.Claimed || x.InboxStatus == WfeRuntime.InProgress)
             .OrderBy(x => x.CreatedAt)
@@ -79,6 +105,7 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
 
     public async Task<WfeInboxItemDto> GetAsync(long inboxId, CancellationToken cancellationToken)
     {
+        await LoadCoversAsync(cancellationToken);
         var row = await Query().FirstOrDefaultAsync(x => x.InboxItemId == inboxId, cancellationToken)
             ?? throw new NotFoundException("Workflow inbox item not found.");
         if (!CanAccess(row))
@@ -89,6 +116,7 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
     /// <summary>The workflow data of a task's instance: the fields its version declares, then the other values stored.</summary>
     public async Task<WfeInstanceDataDto> DataAsync(long inboxId, CancellationToken cancellationToken)
     {
+        await LoadCoversAsync(cancellationToken);
         var row = await db.Set<WfeInboxItem>().AsNoTracking()
             .Include(x => x.Instance!).ThenInclude(x => x.Definition)
             .Include(x => x.Instance!).ThenInclude(x => x.Version)
@@ -106,7 +134,11 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
     public async Task<WfeInboxItemDto> ClaimAsync(long inboxId, CancellationToken cancellationToken)
     {
         var row = await AccessibleAsync(inboxId, cancellationToken);
-        await runtime.ClaimAsync(row.TaskId, Me, cancellationToken);
+        // a task the away user had claimed is taken over by their delegate
+        if (row.InboxStatus is WfeRuntime.Claimed or WfeRuntime.InProgress && !Same(row.ClaimedBy))
+            await runtime.TakeOverAsync(row.TaskId, Me, cancellationToken);
+        else
+            await runtime.ClaimAsync(row.TaskId, Me, cancellationToken);
         return await GetAsync(inboxId, cancellationToken);
     }
 
@@ -133,15 +165,50 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
 
     private async Task<WfeInboxItem> AccessibleAsync(long inboxId, CancellationToken cancellationToken)
     {
-        var row = await db.Set<WfeInboxItem>().AsNoTracking().FirstOrDefaultAsync(x => x.InboxItemId == inboxId, cancellationToken)
+        await LoadCoversAsync(cancellationToken);
+        var row = await db.Set<WfeInboxItem>().AsNoTracking().Include(x => x.Instance!).ThenInclude(x => x.Definition)
+            .FirstOrDefaultAsync(x => x.InboxItemId == inboxId, cancellationToken)
             ?? throw new NotFoundException("Workflow inbox item not found.");
         if (!CanAccess(row))
             throw new BusinessRuleException("This task is not assigned to you.");
         return row;
     }
 
-    /// <summary>A claimed task belongs to whoever claimed it; an open one to its user, or to everyone in its role.</summary>
-    private bool CanAccess(WfeInboxItem x)
+    /// <summary>
+    /// A claimed task belongs to whoever claimed it; an open one to its user, or to everyone in its role. A delegate also has
+    /// the tasks of the users they cover today (in the covered workflows).
+    /// </summary>
+    private bool CanAccess(WfeInboxItem x) => CanAccessOwn(x) || OnBehalfOf(x) is not null;
+
+    /// <summary>The away user this task reaches the signed-in user for, or null.</summary>
+    private string? OnBehalfOf(WfeInboxItem x)
+    {
+        if (covers.Count == 0 || CanAccessOwn(x))
+            return null;
+        var code = x.Instance?.Definition?.WorkflowCode;
+        foreach (var c in covers.Where(c => c.WorkflowCode is null || string.Equals(c.WorkflowCode, code, StringComparison.OrdinalIgnoreCase)))
+        {
+            if (x.InboxStatus is WfeRuntime.Claimed or WfeRuntime.InProgress)
+            {
+                if (string.Equals(x.ClaimedBy, c.UserName, StringComparison.OrdinalIgnoreCase))
+                    return c.UserName;
+                continue;
+            }
+
+            if (string.Equals(x.AssignmentType, "Role", StringComparison.OrdinalIgnoreCase))
+            {
+                var role = x.AssignedRole ?? x.AssignedTo;
+                if (!string.IsNullOrWhiteSpace(role) && c.Roles.Contains(role.Trim(), StringComparer.OrdinalIgnoreCase))
+                    return c.UserName;
+            }
+            else if (string.Equals(x.AssignedTo, c.UserName, StringComparison.OrdinalIgnoreCase))
+                return c.UserName;
+        }
+
+        return null;
+    }
+
+    private bool CanAccessOwn(WfeInboxItem x)
     {
         if (x.InboxStatus is WfeRuntime.Claimed or WfeRuntime.InProgress)
             return Same(x.ClaimedBy);
@@ -210,6 +277,6 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
             V("MODULE_CODE"), V("FUNCTION_CODE"), V("ENTITY_TYPE"), L("ENTITY_ID"),
             V("ENTITY_REF", "BUSINESS_REFERENCE") ?? x.Instance?.BusinessReference,
             L("CLIENT_ID"), V("CLIENT_NAME"), D("AMOUNT"), V("CURRENCY_CODE"), V("PRIORITY") ?? "NORMAL", V("INSTRUCTIONS"), T("DUE_DATE"),
-            x.AssignedTo, x.AssignedTo, x.AssignedRole);
+            x.AssignedTo, x.AssignedTo, x.AssignedRole, OnBehalfOf: OnBehalfOf(x));
     }
 }

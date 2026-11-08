@@ -10,6 +10,8 @@ export interface WorkflowInboxTask {
   assignedRole?: string | null;
   claimedBy?: string | null;
   claimedByName?: string | null;
+  /** The away user this task reaches you for, as their out-of-office delegate. */
+  onBehalfOf?: string | null;
   isClaimedByMe?: boolean;
 
   subject?: string | null;
