@@ -8,6 +8,7 @@
         <p>{{ tr('Overdue tasks are listed first. Select unclaimed tasks to claim several at once.') }}</p>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openWorkflowManual(7)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink class="fx-btn" :to="{ name: 'workflow-out-of-office' }"><span class="fa fa-plane" aria-hidden="true"></span>{{ tr('Out of office') }}</RouterLink>
         <button type="button" class="fx-btn" @click="load"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Refresh') }}</button>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="!selected.length || busy" @click="claim(selected)">
@@ -94,6 +95,7 @@
 <script setup lang="ts">
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
+import { openWorkflowManual } from '../utils/manual'
 import { computed, onMounted, ref, watch } from 'vue'
 import type { WorkflowInboxTask } from '../models/workflow'
 import { workflowService } from '../services/workflowService'
