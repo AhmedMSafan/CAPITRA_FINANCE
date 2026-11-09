@@ -12,6 +12,11 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></svg>
             <span>{{ tr('Open my inbox') }}</span><em>{{ tasks === null ? 0 : tasks }}</em>
           </router-link>
+          <!-- user-defined workflows (vacation, expense...): every user starts them here, on their document -->
+          <router-link class="fm-btn fm-btn--request" to="/workflow/start">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M12 18v-6" /><path d="M9 15h6" /></svg>
+            <span>{{ tr('Start a request') }}</span>
+          </router-link>
         </div>
       </div>
       <div class="fm-kpis">
@@ -147,4 +152,6 @@ onMounted(async () => {
 .fm-hero h1 { font-size: clamp(20px, 1.9vw, 26px); }
 /* five shared services (CRM after Admin) on one row on wide screens */
 @media (min-width: 1201px) { .fm-grid--2 { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.fm-btn--request { background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .35); color: #fff !important; }
+.fm-btn--request:hover { background: rgba(255, 255, 255, .18); border-color: #fff; }
 </style>

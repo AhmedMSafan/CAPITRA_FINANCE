@@ -38785,6 +38785,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("DESCRIPTION");
 
+                    b.Property<string>("FieldsJson")
+                        .HasColumnType("text")
+                        .HasColumnName("FIELDS_JSON");
+
                     b.Property<string>("FormCode")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -38820,7 +38824,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
-                    b.Property<long>("WorkflowDefinitionId")
+                    b.Property<long?>("WorkflowDefinitionId")
                         .HasColumnType("bigint")
                         .HasColumnName("WORKFLOW_DEFINITION_ID");
 
@@ -45219,7 +45223,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("WorkflowDefinitionId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("FK_WFE_FORMS_WFE_WORKFLOW_DEFINITIONS");
 
                     b.Navigation("Definition");

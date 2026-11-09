@@ -8,7 +8,9 @@ const finovaWorkflowModdle = {
       name: 'WorkflowMetadata',
       extends: ['bpmn:Process'],
       properties: [
-        { name: 'variables', isAttr: true, type: 'String' }
+        { name: 'variables', isAttr: true, type: 'String' },
+        { name: 'workflowType', isAttr: true, type: 'String' },
+        { name: 'documentCode', isAttr: true, type: 'String' }
       ]
     },
     {

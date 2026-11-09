@@ -21,11 +21,46 @@ public sealed record BpmnElement(
         Type is "userTask" or "manualTask" || string.Equals(StepType, "HumanTask", StringComparison.OrdinalIgnoreCase);
 }
 
+/// <summary>
+/// The workflow's type and document. System-built workflows are started by the system (factoring, portfolios); user-defined ones
+/// by a user from Start a request, on the one document linked to the whole workflow. Type is null on workflows drawn before types.
+/// </summary>
+public sealed record BpmnProcessInfo(string? Type, string? DocumentCode)
+{
+    public const string System = "SYSTEM";
+    public const string User = "USER";
+
+    public bool IsUserDefined => string.Equals(Type, User, StringComparison.OrdinalIgnoreCase);
+
+    public bool IsSystemBuilt => string.Equals(Type, System, StringComparison.OrdinalIgnoreCase);
+}
+
 /// <summary>Reads a BPMN 2.0 diagram: its start event and the element a sequence flow leads to.</summary>
 public static class BpmnModel
 {
     private static readonly XNamespace Bpmn = "http://www.omg.org/spec/BPMN/20100524/MODEL";
     private static readonly XNamespace Finova = "http://finova/workflow";
+
+    /// <summary>The process's type and document (finova:workflowType, finova:documentCode); empty when the XML cannot be read.</summary>
+    public static BpmnProcessInfo Process(string? xml)
+    {
+        if (string.IsNullOrWhiteSpace(xml))
+            return new BpmnProcessInfo(null, null);
+        try
+        {
+            var p = XDocument.Parse(xml).Descendants(Bpmn + "process").FirstOrDefault();
+            if (p is null)
+                return new BpmnProcessInfo(null, null);
+            var type = Attr(p, "workflowType")?.Trim().ToUpperInvariant();
+            var doc = Attr(p, "documentCode")?.Trim().ToUpperInvariant();
+            return new BpmnProcessInfo(
+                type is BpmnProcessInfo.System or BpmnProcessInfo.User ? type : null, string.IsNullOrEmpty(doc) ? null : doc);
+        }
+        catch (System.Xml.XmlException)
+        {
+            return new BpmnProcessInfo(null, null);
+        }
+    }
 
     public static BpmnElement StartEvent(string xml)
     {

@@ -130,7 +130,12 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         var instance = row.Instance!;
         var values = instance.Variables.GroupBy(v => v.VariableName, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First().VariableValue, StringComparer.OrdinalIgnoreCase);
-        return WfeDataFields.View(WfeDataFields.Of(WfeVersions.XmlOf(instance)), values);
+        // the workflow's data fields, then the document fields the instance has values for
+        var xml = WfeVersions.XmlOf(instance);
+        var own = WfeDataFields.Of(xml);
+        var fields = (await WfeForms.AllFieldsAsync(db, xml, cancellationToken))
+            .Where(f => own.Any(o => string.Equals(o.Name, f.Name, StringComparison.OrdinalIgnoreCase)) || values.ContainsKey(f.Name)).ToList();
+        return WfeDataFields.View(fields, values);
     }
 
     /// <summary>
@@ -143,13 +148,13 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         var row = await WithStepAsync(inboxId, cancellationToken);
         if (!CanAccess(row))
             throw new BusinessRuleException("This task is not assigned to you.");
-        var (form, fields) = await StepFormAsync(row, cancellationToken);
+        var (form, fields, readOnly) = await StepFormAsync(row, cancellationToken);
         if (form is null)
             return null;
         var values = row.Instance!.Variables.GroupBy(v => v.VariableName, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First().VariableValue, StringComparer.OrdinalIgnoreCase);
-        var editable = row.InboxStatus == WfeRuntime.InProgress && Same(row.ClaimedBy) && string.IsNullOrWhiteSpace(row.Route);
-        return await forms.ViewAsync(form, fields, values, editable, cancellationToken);
+        var editable = !readOnly && row.InboxStatus == WfeRuntime.InProgress && Same(row.ClaimedBy) && string.IsNullOrWhiteSpace(row.Route);
+        return (await forms.ViewAsync(form, fields, values, editable, cancellationToken)) with { IsRequest = readOnly };
     }
 
     private async Task<WfeInboxItem> WithStepAsync(long inboxId, CancellationToken cancellationToken) =>
@@ -161,26 +166,36 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
             .FirstOrDefaultAsync(x => x.InboxItemId == inboxId, cancellationToken)
         ?? throw new NotFoundException("Workflow inbox item not found.");
 
-    /// <summary>The form of the task's step in the instance's version, and the version's data fields.</summary>
-    private async Task<(WfeForm? Form, IReadOnlyList<WfeDataField> Fields)> StepFormAsync(WfeInboxItem row, CancellationToken cancellationToken)
+    /// <summary>
+    /// The document of the task, its fields, and whether it is read-only. A user-defined workflow shows its one document on every step,
+    /// read-only: the requester filled it in. A system-built workflow shows the step's own document (or older form), if it has one.
+    /// </summary>
+    private async Task<(WfeForm? Form, IReadOnlyList<WfeDataField> Fields, bool ReadOnly)> StepFormAsync(WfeInboxItem row, CancellationToken cancellationToken)
     {
         var instance = row.Instance!;
         var xml = WfeVersions.XmlOf(instance);
-        var elementId = row.StepInstance?.ElementId;
-        if (string.IsNullOrWhiteSpace(elementId))
-            return (null, []);
+        var process = BpmnModel.Process(xml);
         string? code;
-        try
+        var readOnly = process.IsUserDefined;
+        if (readOnly)
+            code = WfeForms.StartDocumentCode(xml);
+        else
         {
-            code = BpmnModel.Element(xml, elementId).FormCode;
-        }
-        catch (InvalidOperationException)
-        {
-            return (null, []);
+            var elementId = row.StepInstance?.ElementId;
+            if (string.IsNullOrWhiteSpace(elementId))
+                return (null, [], false);
+            try
+            {
+                code = BpmnModel.Element(xml, elementId).FormCode;
+            }
+            catch (InvalidOperationException)
+            {
+                return (null, [], false);
+            }
         }
 
         var form = await forms.FindAsync(instance.WorkflowDefinitionId, code, cancellationToken);
-        return (form, form is null ? [] : WfeDataFields.Of(xml));
+        return (form, form is null ? [] : WfeForms.FieldsOf(form, xml), readOnly);
     }
 
     public async Task<WfeInboxItemDto> ClaimAsync(long inboxId, CancellationToken cancellationToken)
@@ -206,11 +221,12 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         var row = await AccessibleAsync(inboxId, cancellationToken);
         var action = string.IsNullOrWhiteSpace(request.Action) ? "COMPLETE" : request.Action;
         Dictionary<string, string?>? variables = null;
-        // a step worked on its form saves the form's values with the completion (its required fields filled in first)
+        // a step worked on its document saves the values with the completion (its required fields filled in first);
+        // a user-defined workflow's document is the requester's and is never changed by an approver
         if (string.IsNullOrWhiteSpace(row.Route))
         {
-            var (form, fields) = await StepFormAsync(await WithStepAsync(inboxId, cancellationToken), cancellationToken);
-            if (form is not null && !IsSendBack(action))
+            var (form, fields, readOnly) = await StepFormAsync(await WithStepAsync(inboxId, cancellationToken), cancellationToken);
+            if (form is not null && !readOnly && !IsSendBack(action))
                 variables = await forms.AcceptAsync(form, fields, request.Values, cancellationToken);
         }
 

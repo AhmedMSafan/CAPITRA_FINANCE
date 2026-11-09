@@ -343,7 +343,7 @@ const router = createRouter({
           path: 'workflowengine/forms',
           name: 'workflow-forms',
           component: () => import('@/modules/wfe/pages/WorkflowFormsPage.vue'),
-          meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Workflow Forms' }
+          meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Document Designer' }
         },
         {
           path: 'workflowengine/data-sources',
@@ -373,7 +373,7 @@ const router = createRouter({
           path: 'workflow/start',
           name: 'workflow-start',
           component: () => import('@/modules/wfe/pages/WorkflowStartPage.vue'),
-          meta: { moduleName: 'WORKFLOW', functionName: 'Start a Workflow' }
+          meta: { moduleName: 'WORKFLOW', functionName: 'Start a request' }
         },
         {
           path: 'workflow/out-of-office',

@@ -212,6 +212,10 @@
             Select Start work to open the working screen. You can come back to it later with Continue work.
           </template>
 
+          <template v-else-if="task.status === 'IN_PROGRESS' && !task.route && taskForm?.isRequest">
+            Read the request below, then approve or reject it. Add a comment to explain your decision.
+          </template>
+
           <template v-else-if="task.status === 'IN_PROGRESS' && !task.route && taskForm">
             This task is worked on its form below. Fill it in, then complete the task.
           </template>
@@ -232,7 +236,7 @@
         <div class="wf-form-head">
           <i class="pi pi-file-edit"></i>
           <strong>{{ taskForm.formName }}</strong>
-          <span class="wf-form-state">{{ taskForm.editable ? 'Fill in, then complete the task' : task.status === 'IN_PROGRESS' || task.route ? 'Read-only' : 'Start work to fill it in' }}</span>
+          <span class="wf-form-state">{{ taskForm.isRequest ? 'The request as sent: read-only' : taskForm.editable ? 'Fill in, then complete the task' : task.status === 'IN_PROGRESS' || task.route ? 'Read-only' : 'Start work to fill it in' }}</span>
         </div>
         <p v-if="taskForm.description" class="wf-form-desc">{{ taskForm.description }}</p>
         <WorkflowFormView v-model="formValues" :view="taskForm" :errors="formErrors" id-prefix="task" />

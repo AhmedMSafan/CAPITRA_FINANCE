@@ -64,7 +64,7 @@ public sealed class WfeRuntime(
         await db.SaveChangesAsync(cancellationToken);
 
         if (values.Count > 0)
-            await SetVariablesAsync(instance.WorkflowInstanceId, values, fields, cancellationToken);
+            await SetVariablesAsync(instance.WorkflowInstanceId, values, await WfeForms.AllFieldsAsync(db, version.BpmnXml, cancellationToken), cancellationToken);
         AddHistory(instance.WorkflowInstanceId, "INSTANCE_STARTED", null, null, startedBy, businessReference);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -173,7 +173,8 @@ public sealed class WfeRuntime(
             if (variables is not null)
             {
                 var fields = WfeDataFields.Of(xml);
-                await SetVariablesAsync(instance.WorkflowInstanceId, WfeDataFields.ForUpdate(fields, variables), fields, cancellationToken);
+                await SetVariablesAsync(
+                    instance.WorkflowInstanceId, WfeDataFields.ForUpdate(fields, variables), await WfeForms.AllFieldsAsync(db, xml, cancellationToken), cancellationToken);
                 await db.SaveChangesAsync(cancellationToken);
             }
 

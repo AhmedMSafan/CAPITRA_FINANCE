@@ -29,6 +29,10 @@ public static class WfeDataFields
     private static readonly XNamespace Bpmn = "http://www.omg.org/spec/BPMN/20100524/MODEL";
     private static readonly XNamespace Finova = "http://finova/workflow";
     private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions JsonOut = new(JsonSerializerDefaults.Web)
+    {
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
 
     private sealed class Raw
     {
@@ -55,6 +59,12 @@ public static class WfeDataFields
             return [];
         }
 
+        return Parse(json);
+    }
+
+    /// <summary>Fields stored as JSON (finova:variables or a document's FIELDS_JSON); none when the list cannot be read.</summary>
+    public static IReadOnlyList<WfeDataField> Parse(string? json)
+    {
         if (string.IsNullOrWhiteSpace(json))
             return [];
         List<Raw>? rows;
@@ -75,6 +85,60 @@ public static class WfeDataFields
                 (x.Choices ?? []).Select(c => c.Trim()).Where(c => c.Length > 0).ToList(), x.Description?.Trim()))
             .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase).Select(g => g.First())
             .ToList();
+    }
+
+    public static string ToJson(IEnumerable<WfeDataField> fields) =>
+        JsonSerializer.Serialize(fields.Select(f => new Raw
+        {
+            Name = f.Name, Label = f.Label, Type = f.Type, Required = f.Required, DefaultValue = f.DefaultValue,
+            Choices = f.Choices.Count == 0 ? null : f.Choices.ToList(), Description = f.Description,
+        }), JsonOut);
+
+    /// <summary>
+    /// A document's fields as typed in the Document Designer, checked: each has a name of letters, digits or _ (once), a known type,
+    /// a Choice field its choices, and a default that fits its type. Problems are added to <paramref name="errors"/>.
+    /// </summary>
+    public static List<WfeDataField> Clean(IEnumerable<WfeDataField?>? given, List<string> errors)
+    {
+        var list = new List<WfeDataField>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (f, i) in (given ?? []).Select((f, i) => (f, i + 1)))
+        {
+            var name = f?.Name?.Trim() ?? string.Empty;
+            if (!System.Text.RegularExpressions.Regex.IsMatch(name, "^[A-Za-z][A-Za-z0-9_]{0,49}$"))
+            {
+                errors.Add($"Field {i}: give it a name of letters, digits or _ (starting with a letter).");
+                continue;
+            }
+
+            if (!seen.Add(name))
+            {
+                errors.Add($"Field \"{name}\" is listed twice.");
+                continue;
+            }
+
+            var type = Types.FirstOrDefault(t => string.Equals(t, f!.Type?.Trim(), StringComparison.OrdinalIgnoreCase)) ?? "String";
+            var choices = (f!.Choices ?? []).Select(c => c?.Trim() ?? string.Empty).Where(c => c.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            if (type != "Choice")
+                choices = [];
+            var field = new WfeDataField(name, string.IsNullOrWhiteSpace(f.Label) ? null : f.Label.Trim(), type, f.Required,
+                string.IsNullOrWhiteSpace(f.DefaultValue) ? null : f.DefaultValue.Trim(), choices,
+                string.IsNullOrWhiteSpace(f.Description) ? null : f.Description.Trim());
+            if (type == "Choice" && choices.Count == 0)
+                errors.Add($"\"{field.Caption}\" is a Choice field: list its choices.");
+            if (field.DefaultValue is not null)
+            {
+                var (value, error) = Normalize(field, field.DefaultValue);
+                if (error is not null)
+                    errors.Add($"Default of {error}");
+                else
+                    field = field with { DefaultValue = value };
+            }
+
+            list.Add(field);
+        }
+
+        return list;
     }
 
     /// <summary>
