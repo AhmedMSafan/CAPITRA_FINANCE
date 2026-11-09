@@ -7,6 +7,7 @@
         <p>{{ tr('Lay out a form over a workflow\'s data fields. In the designer, a step or the start of the workflow then uses it.') }}</p>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openWorkflowManual(6)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink class="fx-btn" :to="{ name: 'workflow-data-sources' }"><span class="fa fa-database" aria-hidden="true"></span>{{ tr('Data Sources') }}</RouterLink>
         <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="newForm"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New form') }}</button>
       </div>
@@ -194,6 +195,7 @@
 <script setup lang="ts">
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
+import { openWorkflowManual } from '../utils/manual'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { tr } from '@/shared/layout/language'

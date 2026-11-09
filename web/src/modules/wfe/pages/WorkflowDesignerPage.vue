@@ -13,6 +13,11 @@
       </div>
 
       <div class="page-head-actions">
+        <button class="btn btn-ghost" type="button" @click="openWorkflowManual(3)">
+          <span class="pi pi-question-circle"></span>
+          Help
+        </button>
+
         <button class="btn btn-ghost" @click="router.push('/workflowengine/registry')">
           <span class="pi pi-arrow-left"></span>
           Workflows
@@ -703,6 +708,7 @@ import finovaWorkflowModdle from '../models/finovaWorkflowModel'
 import {createWorkflowDefinition,getWorkflowDefinition,getWorkflowVersions,getWorkflowVersionXml,updateWorkflowDefinition,type WorkflowVersion} from '../services/workflowDefinitionService'
 import {productEventRulesApi,type ProductEventRule} from '@/modules/adm/api/products.api'
 import {formApi,type WorkflowForm} from '../services/formService'
+import { openWorkflowManual } from '../utils/manual'
 
 type Var={name:string,type:string,required:boolean,label?:string,defaultValue?:string,choices?:string[],description?:string}; type Param={name:string,value:string};
 type Step={stepCode:string,stepName:string,ruleCode:string,formCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[]}

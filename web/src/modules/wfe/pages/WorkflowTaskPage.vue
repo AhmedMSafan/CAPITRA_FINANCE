@@ -1,12 +1,18 @@
 <template>
   <main class="wf-task-page">
 
-    <button type="button"
-            class="wf-task-back"
-            @click="router.push({ name: 'workflow-inbox' })">
-      <i class="pi pi-arrow-left"></i>
-      Back to inbox
-    </button>
+    <div class="wf-task-topbar">
+      <button type="button"
+              class="wf-task-back"
+              @click="router.push({ name: 'workflow-inbox' })">
+        <i class="pi pi-arrow-left"></i>
+        Back to inbox
+      </button>
+      <button type="button" class="wf-task-back" @click="openWorkflowManual(7)">
+        <i class="pi pi-question-circle"></i>
+        Help
+      </button>
+    </div>
 
     <div v-if="loading" class="wf-task-loading">
       <i class="pi pi-spin pi-spinner"></i>
@@ -277,6 +283,7 @@
   import { workflowService, type WorkflowDataValue, type WorkflowInstanceData } from '../services/workflowService'
   import { apiErrorText, apiFieldErrors, formApi, type FormView } from '../services/formService'
   import WorkflowFormView from '../components/WorkflowFormView.vue'
+import { openWorkflowManual } from '../utils/manual'
   import '../styles/workflow.css'
 
   const route = useRoute()
@@ -632,6 +639,7 @@
   .wf-action-error { position: sticky; top: 10px; z-index: 5; display: flex; align-items: center; gap: 10px; margin-top: 18px; padding: 11px 14px; border-radius: 10px; background: #fdecea; border: 1px solid #f3c3bc; color: #8a2416; font-size: 13.5px; box-shadow: 0 6px 18px rgba(138,36,22,.12); }
   .wf-action-error span { flex: 1; }
   .wf-action-error button { border: 0; background: none; color: inherit; cursor: pointer; }
+  .wf-task-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .wf-form-card { margin-top: 18px; background: #fff; border: 1px solid #dbe5ec; border-top: 3px solid #00636D; border-radius: 14px; box-shadow: 0 4px 16px rgba(28,55,82,.05); padding: 18px 26px 22px; }
   .wf-form-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: #12324a; }
   .wf-form-head .pi { color: #00636D; }

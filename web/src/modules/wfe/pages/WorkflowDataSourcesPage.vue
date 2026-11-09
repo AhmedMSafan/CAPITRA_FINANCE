@@ -7,6 +7,7 @@
         <p>{{ tr('The lists a workflow form offers in its drop-downs. Built-in ones read the application; make your own for anything else.') }}</p>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openWorkflowManual(6)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink class="fx-btn" :to="{ name: 'workflow-forms' }"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Forms') }}</RouterLink>
         <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="newSource"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New data source') }}</button>
       </div>
@@ -103,6 +104,7 @@
 <script setup lang="ts">
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
+import { openWorkflowManual } from '../utils/manual'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'

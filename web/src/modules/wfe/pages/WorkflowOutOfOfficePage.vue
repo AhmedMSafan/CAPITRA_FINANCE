@@ -7,6 +7,7 @@
         <p>{{ tr('While you are away, new tasks for you go to the person you choose, and they also see the tasks already waiting for you.') }}</p>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openWorkflowManual(9)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink class="fx-btn" :to="{ name: 'workflow-inbox' }"><span class="fa fa-inbox" aria-hidden="true"></span>{{ tr('My Inbox') }}</RouterLink>
       </div>
     </div>
@@ -138,6 +139,7 @@
 <script setup lang="ts">
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
+import { openWorkflowManual } from '../utils/manual'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { tr } from '@/shared/layout/language'
 import { getUser, hasPermission } from '@/shared/auth/session'

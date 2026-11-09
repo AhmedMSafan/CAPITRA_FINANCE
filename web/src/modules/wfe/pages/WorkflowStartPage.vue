@@ -7,6 +7,7 @@
         <p>{{ tr('Choose a workflow, fill in its form and start it. The first task goes to whoever the workflow names.') }}</p>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openWorkflowManual(8)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink class="fx-btn" :to="{ name: 'workflow-inbox' }"><span class="fa fa-inbox" aria-hidden="true"></span>{{ tr('My Inbox') }}</RouterLink>
       </div>
     </div>
@@ -59,6 +60,7 @@
 <script setup lang="ts">
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
+import { openWorkflowManual } from '../utils/manual'
 import { onMounted, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
 import WorkflowFormView from '../components/WorkflowFormView.vue'

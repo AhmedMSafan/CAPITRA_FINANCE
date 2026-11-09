@@ -9,6 +9,7 @@
           <p>Every workflow the engine can run. Open one to change its steps and routing in the visual designer, or start a new one.</p>
         </div>
         <div class="wr-cta">
+          <button class="wx-btn wx-btn--ghost" type="button" @click="openWorkflowManual(3)"><i class="pi pi-question-circle"></i><span>Help</span></button>
           <router-link class="wx-btn wx-btn--ghost" to="/workflow/inbox"><i class="pi pi-inbox"></i><span>My inbox</span></router-link>
           <button class="wx-btn wx-btn--hot" type="button" @click="createNew"><i class="pi pi-plus"></i><span>New workflow</span></button>
         </div>
@@ -92,6 +93,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { openWorkflowManual } from '../utils/manual'
 import { getWorkflowDefinitions, type WorkflowDefinition } from '../services/workflowDefinitionService'
 import { readFlow, type Flow } from '../utils/bpmnFlow'
 
