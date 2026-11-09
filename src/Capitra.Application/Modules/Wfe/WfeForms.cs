@@ -18,17 +18,28 @@ public sealed record WfeFormControl(
 
 public sealed record WfeFormLayout(int Columns, IReadOnlyList<WfeFormControl> Controls);
 
-/// <param name="UsedAt">The steps (and Start) of the workflow that use the form now.</param>
+/// <param name="WorkflowDefinitionId">Only on a form made before documents: the workflow whose data fields it shows.</param>
+/// <param name="UsedAt">Where workflows use it now: "Workflow: Step", or "Workflow (whole workflow)" for a user-defined workflow.</param>
+/// <param name="Fields">The document's fields (an older form: its workflow's data fields).</param>
 public sealed record WfeFormDto(
-    long FormId, string FormCode, string FormName, long WorkflowDefinitionId, string WorkflowCode, string WorkflowName, string? Description,
-    bool IsActive, int ControlCount, IReadOnlyList<string> UsedAt, WfeFormLayout Layout, int RowVersion);
+    long FormId, string FormCode, string FormName, long? WorkflowDefinitionId, string? WorkflowCode, string? WorkflowName, string? Description,
+    bool IsActive, int ControlCount, IReadOnlyList<string> UsedAt, IReadOnlyList<WfeDataField> Fields, WfeFormLayout Layout, int RowVersion)
+{
+    /// <summary>A document has its own fields; an older form uses one workflow's data fields.</summary>
+    public bool IsDocument => WorkflowDefinitionId is null;
+}
 
+/// <param name="WorkflowDefinitionId">Leave empty for a document; an older form keeps its workflow.</param>
+/// <param name="Fields">The document's own fields. Sending them makes the form a document (an older form becomes one).</param>
 public sealed record SaveWfeFormRequest(
-    string FormCode, string FormName, long WorkflowDefinitionId, string? Description, bool IsActive, WfeFormLayout? Layout, int RowVersion);
+    string FormCode, string FormName, long? WorkflowDefinitionId, string? Description, bool IsActive, WfeFormLayout? Layout, int RowVersion,
+    IReadOnlyList<WfeDataField>? Fields = null);
 
 /// <summary>A form ready to show: each control with its label, value and drop-down options.</summary>
+/// <param name="IsRequest">The document of a user-defined workflow, as the requester sent it: approvers only read it.</param>
 public sealed record WfeFormViewDto(
-    string FormCode, string FormName, string? Description, int Columns, bool Editable, IReadOnlyList<WfeFormControlViewDto> Controls);
+    string FormCode, string FormName, string? Description, int Columns, bool Editable, IReadOnlyList<WfeFormControlViewDto> Controls,
+    bool IsRequest = false);
 
 public sealed record WfeFormControlViewDto(
     string Kind, string? Field, string Label, string Control, string? FieldType, bool Required, bool ReadOnly, string? Help, string Width,
@@ -38,15 +49,29 @@ public sealed record WfeTaskFormDto(WfeFormViewDto? Form);
 
 public sealed record WfeStartFormItemDto(string WorkflowCode, string WorkflowName, string? Description, string FormCode, string FormName);
 
+/// <summary>
+/// A request the signed-in user sent, for Start a request: where it is now, and the last decision on it.
+/// </summary>
+/// <param name="Status">IN_PROGRESS, APPROVED, REJECTED, COMPLETED or FAULTED.</param>
+public sealed record WfeMyRequestDto(
+    long InstanceId, string WorkflowCode, string WorkflowName, string? BusinessReference, DateTime StartedAt, string Status,
+    string? CurrentStep, string? LastAction, string? LastActionBy, DateTime? LastActionAt, string? Comment);
+
+/// <summary>A workflow and its type, for the Document Designer's "used by" and the designer's lists.</summary>
+public sealed record WfeWorkflowTypeDto(long WorkflowDefinitionId, string WorkflowCode, string WorkflowName, string Type, string? DocumentCode);
+
 public sealed record WfeStartFromFormRequest(string? BusinessReference, IDictionary<string, string?>? Values);
 
 /// <summary>Where the new instance went: its first task's step and who has it.</summary>
 public sealed record WfeStartedDto(long InstanceId, string? NextStep, string? NextAssignee, long? InboxId);
 
 /// <summary>
-/// Forms (K2's SmartForms, kept simple): a workflow administrator lays out a form over a workflow's data fields, and a step or
-/// the start of the workflow uses it (finova:formCode). A step with its own business screen keeps that screen; a step without one
-/// is worked on its form. Forms are additive: a workflow without forms runs exactly as before.
+/// Documents (K2's SmartForms, kept simple). The Document Designer is a function of its own: a document has its own fields
+/// (type, required, choices) and a layout, and belongs to no workflow. Workflows link it:
+/// - a system-built workflow on any step (finova:formCode): a step without a business screen is worked on it;
+/// - a user-defined workflow on the whole workflow (finova:documentCode): the requester fills it in from Start a request and
+///   every approval step shows it read-only.
+/// Forms made before documents keep working on their workflow's data fields. A workflow without documents runs as before.
 /// </summary>
 public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentUser, WfeDataSources sources, WfeRuntime runtime)
 {
@@ -90,12 +115,61 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     public async Task<IReadOnlyList<WfeFormDto>> ListAsync(CancellationToken ct)
     {
         var rows = await db.Set<WfeForm>().AsNoTracking().Include(x => x.Definition).OrderBy(x => x.FormName).ToListAsync(ct);
-        return rows.Select(Map).ToList();
+        var workflows = await WorkflowsAsync(ct);
+        return rows.Select(x => Map(x, workflows)).ToList();
     }
 
     public async Task<WfeFormDto> GetAsync(long id, CancellationToken ct) =>
         Map(await db.Set<WfeForm>().AsNoTracking().Include(x => x.Definition).FirstOrDefaultAsync(x => x.FormId == id, ct)
-            ?? throw new NotFoundException("Form not found."));
+            ?? throw new NotFoundException("Form not found."), await WorkflowsAsync(ct));
+
+    /// <summary>Every workflow with its type and linked document, for the designers.</summary>
+    public async Task<IReadOnlyList<WfeWorkflowTypeDto>> WorkflowTypesAsync(CancellationToken ct) =>
+        (await WorkflowsAsync(ct)).Select(w =>
+        {
+            var p = BpmnModel.Process(w.Xml);
+            return new WfeWorkflowTypeDto(w.Id, w.Code, w.Name, p.IsUserDefined ? BpmnProcessInfo.User : BpmnProcessInfo.System, p.DocumentCode);
+        }).ToList();
+
+    /// <summary>The fields a form shows: a document's own, or (an older form) its workflow's data fields.</summary>
+    public static IReadOnlyList<WfeDataField> FieldsOf(WfeForm form, string? workflowXml) =>
+        form.FieldsJson is not null ? WfeDataFields.Parse(form.FieldsJson) : workflowXml is null ? [] : WfeDataFields.Of(workflowXml);
+
+    /// <summary>
+    /// The workflow's data fields, then the fields of the documents it links (on the workflow or on its steps), for typing the
+    /// values an instance stores. A data field of the workflow wins over a document field of the same name.
+    /// </summary>
+    public static async Task<IReadOnlyList<WfeDataField>> AllFieldsAsync(ICapitraDbContext db, string xml, CancellationToken ct)
+    {
+        var fields = WfeDataFields.Of(xml).ToList();
+        var codes = LinkedCodes(xml);
+        if (codes.Count == 0)
+            return fields;
+        var docs = await db.Set<WfeForm>().AsNoTracking().Where(x => codes.Contains(x.FormCode) && x.FieldsJson != null)
+            .Select(x => x.FieldsJson).ToListAsync(ct);
+        foreach (var f in docs.SelectMany(WfeDataFields.Parse))
+            if (!fields.Exists(x => string.Equals(x.Name, f.Name, StringComparison.OrdinalIgnoreCase)))
+                fields.Add(f);
+        return fields;
+    }
+
+    /// <summary>The document codes a diagram links: the workflow's document and every step's.</summary>
+    private static List<string> LinkedCodes(string xml)
+    {
+        var codes = new List<string>();
+        if (BpmnModel.Process(xml).DocumentCode is { } doc)
+            codes.Add(doc);
+        try
+        {
+            codes.AddRange(BpmnModel.Elements(xml).Select(e => e.FormCode?.Trim().ToUpperInvariant()).OfType<string>().Where(c => c.Length > 0));
+        }
+        catch (Exception e) when (e is InvalidOperationException or System.Xml.XmlException)
+        {
+            // an unreadable diagram links nothing
+        }
+
+        return codes.Distinct().ToList();
+    }
 
     /// <summary>The data fields a workflow declares now (its designer copy), for laying out its forms.</summary>
     public async Task<IReadOnlyList<WfeDataField>> FieldsAsync(long workflowDefinitionId, CancellationToken ct)
@@ -105,12 +179,13 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         return WfeDataFields.Of(def.BpmnXml);
     }
 
-    /// <summary>The active forms of a workflow, for the designer's step settings.</summary>
+    /// <summary>The documents a workflow can link (every document, and its own older forms), for the designer.</summary>
     public async Task<IReadOnlyList<WfeFormDto>> OfWorkflowAsync(long workflowDefinitionId, CancellationToken ct)
     {
         var rows = await db.Set<WfeForm>().AsNoTracking().Include(x => x.Definition)
-            .Where(x => x.WorkflowDefinitionId == workflowDefinitionId).OrderBy(x => x.FormName).ToListAsync(ct);
-        return rows.Select(Map).ToList();
+            .Where(x => x.WorkflowDefinitionId == null || x.WorkflowDefinitionId == workflowDefinitionId).OrderBy(x => x.FormName).ToListAsync(ct);
+        var workflows = await WorkflowsAsync(ct);
+        return rows.Select(x => Map(x, workflows)).ToList();
     }
 
     public async Task<WfeFormDto> SaveAsync(long? id, SaveWfeFormRequest r, CancellationToken ct)
@@ -121,14 +196,33 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         if (!CodePattern().IsMatch(code))
             errors["formCode"] = ["Use 2 to 50 capital letters, digits or _, starting with a letter."];
         if (name.Length == 0)
-            errors["formName"] = ["Give the form a name."];
-        var def = await db.Set<WfeWorkflowDefinition>().AsNoTracking().FirstOrDefaultAsync(x => x.WorkflowDefinitionId == r.WorkflowDefinitionId, ct);
-        if (def is null)
-            errors["workflowDefinitionId"] = ["Choose the workflow the form belongs to."];
+            errors["formName"] = ["Give the document a name."];
+        // a document has its own fields; an older form (no fields sent) keeps its workflow's data fields
+        var document = r.Fields is not null || r.WorkflowDefinitionId is null;
+        WfeWorkflowDefinition? def = null;
+        IReadOnlyList<WfeDataField> fields = [];
+        if (document)
+        {
+            var problems = new List<string>();
+            fields = WfeDataFields.Clean(r.Fields, problems);
+            if (fields.Count == 0 && problems.Count == 0)
+                problems.Add("Add the document's fields.");
+            if (problems.Count > 0)
+                errors["fields"] = problems.Distinct().ToArray();
+        }
+        else
+        {
+            def = await db.Set<WfeWorkflowDefinition>().AsNoTracking().FirstOrDefaultAsync(x => x.WorkflowDefinitionId == r.WorkflowDefinitionId, ct);
+            if (def is null)
+                errors["workflowDefinitionId"] = ["Choose the workflow the form belongs to."];
+            else
+                fields = WfeDataFields.Of(def.BpmnXml);
+        }
+
         if (errors.Count > 0)
             throw new BusinessValidationException(errors);
 
-        var layout = await CleanLayoutAsync(r.Layout ?? new WfeFormLayout(1, []), WfeDataFields.Of(def!.BpmnXml), ct);
+        var layout = await CleanLayoutAsync(r.Layout ?? new WfeFormLayout(1, []), fields, document ? "document" : "workflow", ct);
         if (await db.Set<WfeForm>().AnyAsync(x => x.FormCode == code && x.FormId != (id ?? 0), ct))
             throw new ConflictException($"A form with code {code} already exists.");
 
@@ -143,13 +237,16 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
             row = await db.Set<WfeForm>().FirstOrDefaultAsync(x => x.FormId == id, ct) ?? throw new NotFoundException("Form not found.");
             if (row.RowVersion != r.RowVersion)
                 throw new ConflictException("The form was changed by someone else. Reload it and try again.");
-            if ((row.FormCode != code || row.WorkflowDefinitionId != r.WorkflowDefinitionId) && await UsedAtAsync(row, ct) is { Count: > 0 } used)
-                throw new BusinessRuleException($"The workflow uses {row.FormCode} at {string.Join(", ", used)}, so its code and workflow cannot change.");
+            if (row.FormCode != code && await UsedAtAsync(row, ct) is { Count: > 0 } used)
+                throw new BusinessRuleException($"{row.FormCode} is used at {string.Join(", ", used)}, so its code cannot change.");
+            if (!document && row.WorkflowDefinitionId != def!.WorkflowDefinitionId && await UsedAtAsync(row, ct) is { Count: > 0 } usedBy)
+                throw new BusinessRuleException($"{row.FormCode} is used at {string.Join(", ", usedBy)}, so its workflow cannot change.");
         }
 
         row.FormCode = code;
         row.FormName = name;
-        row.WorkflowDefinitionId = def.WorkflowDefinitionId;
+        row.WorkflowDefinitionId = def?.WorkflowDefinitionId;
+        row.FieldsJson = document ? WfeDataFields.ToJson(fields) : null;
         row.Description = string.IsNullOrWhiteSpace(r.Description) ? null : r.Description.Trim();
         row.IsActive = r.IsActive;
         row.LayoutJson = JsonSerializer.Serialize(layout, Json);
@@ -161,11 +258,13 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     {
         var row = await db.Set<WfeForm>().FirstOrDefaultAsync(x => x.FormId == id, ct) ?? throw new NotFoundException("Form not found.");
         if (await UsedAtAsync(row, ct) is { Count: > 0 } used)
-            throw new BusinessRuleException($"The workflow uses {row.FormCode} at {string.Join(", ", used)}. Take it off those steps in the designer first.");
-        var inVersions = await db.Set<WfeDefinitionVersion>().AsNoTracking().Where(x => x.WorkflowDefinitionId == row.WorkflowDefinitionId)
-            .Select(x => x.BpmnXml).ToListAsync(ct);
+            throw new BusinessRuleException($"{row.FormCode} is used at {string.Join(", ", used)}. Take it off there in the workflow designer first.");
+        var versions = db.Set<WfeDefinitionVersion>().AsNoTracking();
+        if (row.WorkflowDefinitionId is { } wf)
+            versions = versions.Where(x => x.WorkflowDefinitionId == wf);
+        var inVersions = await versions.Select(x => x.BpmnXml).ToListAsync(ct);
         if (inVersions.Any(x => Steps(x, row.FormCode).Count > 0))
-            throw new BusinessRuleException($"An earlier version of the workflow uses {row.FormCode}, and its instances may still need it. Switch the form off instead.");
+            throw new BusinessRuleException($"An earlier version of a workflow uses {row.FormCode}, and its instances may still need it. Switch it off instead.");
         db.Remove(row);
         await db.SaveChangesAsync(ct);
     }
@@ -174,7 +273,7 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     /// A layout with its controls checked: every field is a data field of the workflow (once), its control fits the field's type,
     /// and each drop-down has a data source that exists (or the field's own choices).
     /// </summary>
-    private async Task<WfeFormLayout> CleanLayoutAsync(WfeFormLayout layout, IReadOnlyList<WfeDataField> fields, CancellationToken ct)
+    private async Task<WfeFormLayout> CleanLayoutAsync(WfeFormLayout layout, IReadOnlyList<WfeDataField> fields, string owner, CancellationToken ct)
     {
         var errors = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -194,7 +293,7 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
             var f = fields.FirstOrDefault(x => string.Equals(x.Name, c.Field?.Trim(), StringComparison.OrdinalIgnoreCase));
             if (f is null)
             {
-                errors.Add($"Item {i}: \"{c.Field}\" is not a data field of this workflow.");
+                errors.Add($"Item {i}: \"{c.Field}\" is not a data field of this {owner}.");
                 continue;
             }
 
@@ -225,14 +324,14 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
 
     // ---------- running forms ----------
 
-    /// <summary>An active form of this workflow by code, or null (the step then works as it did without a form).</summary>
+    /// <summary>An active document (or older form of this workflow) by code, or null (the step then works as without one).</summary>
     public async Task<WfeForm?> FindAsync(long workflowDefinitionId, string? formCode, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(formCode))
             return null;
         var code = formCode.Trim().ToUpperInvariant();
         return await db.Set<WfeForm>().AsNoTracking()
-            .FirstOrDefaultAsync(x => x.FormCode == code && x.WorkflowDefinitionId == workflowDefinitionId && x.IsActive, ct);
+            .FirstOrDefaultAsync(x => x.FormCode == code && (x.WorkflowDefinitionId == null || x.WorkflowDefinitionId == workflowDefinitionId) && x.IsActive, ct);
     }
 
     /// <summary>The form with its values and options. Controls of fields the version does not declare are left out.</summary>
@@ -314,10 +413,14 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
 
         if (errors.Count > 0)
             throw new BusinessValidationException(errors);
-        return result;
+        // each value in its stored form (1500.25, 2026-11-08, true), checked against its field's type
+        return WfeDataFields.ForUpdate(fields, result);
     }
 
-    /// <summary>The released workflows that can be started from a form, for Start a Workflow.</summary>
+    /// <summary>
+    /// The released user-defined workflows a user can start, each on its document, for Start a request. System-built workflows are
+    /// started by their modules and are never offered (a workflow drawn before types is offered when its Start has a form).
+    /// </summary>
     public async Task<IReadOnlyList<WfeStartFormItemDto>> StartListAsync(CancellationToken ct)
     {
         var defs = await db.Set<WfeWorkflowDefinition>().AsNoTracking()
@@ -326,10 +429,42 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         var list = new List<WfeStartFormItemDto>();
         foreach (var d in defs)
         {
-            var code = StartFormCode(d.BpmnXml);
-            var form = forms.FirstOrDefault(f => f.WorkflowDefinitionId == d.WorkflowDefinitionId && string.Equals(f.FormCode, code, StringComparison.OrdinalIgnoreCase));
+            var code = StartDocumentCode(d.BpmnXml);
+            var form = forms.FirstOrDefault(f => (f.WorkflowDefinitionId == null || f.WorkflowDefinitionId == d.WorkflowDefinitionId)
+                && string.Equals(f.FormCode, code, StringComparison.OrdinalIgnoreCase));
             if (form is not null)
                 list.Add(new WfeStartFormItemDto(d.WorkflowCode, d.WorkflowName, d.Description, form.FormCode, form.FormName));
+        }
+
+        return list;
+    }
+
+    /// <summary>The requests the signed-in user sent (workflows started on a document), newest first.</summary>
+    public async Task<IReadOnlyList<WfeMyRequestDto>> MyRequestsAsync(CancellationToken ct)
+    {
+        var me = Me;
+        var rows = await db.Set<WfeWorkflowInstance>().AsNoTracking()
+            .Include(x => x.Definition).Include(x => x.Version).Include(x => x.Steps).Include(x => x.Variables)
+            .Where(x => x.StartedBy == me).OrderByDescending(x => x.StartedAt).ThenByDescending(x => x.WorkflowInstanceId).Take(100).ToListAsync(ct);
+        var list = new List<WfeMyRequestDto>();
+        foreach (var x in rows)
+        {
+            if (x.Definition is null || StartDocumentCode(WfeVersions.XmlOf(x)) is null)
+                continue;
+            var decided = x.Steps.Where(s => s.CompletedAt is not null && !string.IsNullOrWhiteSpace(s.Outcome))
+                .OrderByDescending(s => s.CompletedAt).ThenByDescending(s => s.StepInstanceId).FirstOrDefault();
+            var open = x.Steps.Where(s => s.CompletedAt is null).OrderByDescending(s => s.EnteredAt).FirstOrDefault();
+            var outcome = decided?.Outcome?.Trim().ToUpperInvariant();
+            var status = x.InstanceStatus.ToUpperInvariant() switch
+            {
+                "COMPLETED" => outcome is "REJECT" or "REJECTED" ? "REJECTED" : outcome is "APPROVE" or "APPROVED" ? "APPROVED" : "COMPLETED",
+                "FAULTED" => "FAULTED",
+                _ => "IN_PROGRESS",
+            };
+            var comment = x.Variables.FirstOrDefault(v => v.VariableName == "TASK_COMMENT")?.VariableValue;
+            list.Add(new WfeMyRequestDto(x.WorkflowInstanceId, x.Definition.WorkflowCode, x.Definition.WorkflowName, x.BusinessReference, x.StartedAt,
+                status, status == "IN_PROGRESS" ? open?.StepName ?? open?.StepCode : null, decided?.Outcome, decided?.CompletedBy, decided?.CompletedAt,
+                comment));
         }
 
         return list;
@@ -339,7 +474,7 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     public async Task<WfeFormViewDto> StartFormAsync(string workflowCode, CancellationToken ct)
     {
         var (def, form) = await StartFormOfAsync(workflowCode, ct);
-        var fields = WfeDataFields.Of(def.BpmnXml);
+        var fields = FieldsOf(form, def.BpmnXml);
         var defaults = fields.Where(f => f.DefaultValue is not null).ToDictionary(f => f.Name, f => f.DefaultValue, StringComparer.OrdinalIgnoreCase);
         return await ViewAsync(form, fields, defaults, true, ct);
     }
@@ -348,7 +483,7 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     public async Task<WfeStartedDto> StartAsync(string workflowCode, WfeStartFromFormRequest r, CancellationToken ct)
     {
         var (def, form) = await StartFormOfAsync(workflowCode, ct);
-        var values = await AcceptAsync(form, WfeDataFields.Of(def.BpmnXml), r.Values, ct);
+        var values = await AcceptAsync(form, FieldsOf(form, def.BpmnXml), r.Values, ct);
         var reference = string.IsNullOrWhiteSpace(r.BusinessReference) ? null : r.BusinessReference.Trim();
         var instance = await runtime.StartAsync(def.WorkflowDefinitionId, reference, values, Me, ct);
         var next = await db.Set<WfeInboxItem>().AsNoTracking().Include(x => x.StepInstance)
@@ -365,13 +500,24 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
             ?? throw new NotFoundException($"Workflow {code} not found.");
         if (!def.IsActive || !string.Equals(def.DefinitionStatus, "released", StringComparison.OrdinalIgnoreCase))
             throw new BusinessRuleException($"{def.WorkflowName} is not released, so it cannot be started.");
-        var form = await FindAsync(def.WorkflowDefinitionId, StartFormCode(def.BpmnXml), ct)
-            ?? throw new BusinessRuleException($"{def.WorkflowName} has no start form. Its module starts it.");
+        if (BpmnModel.Process(def.BpmnXml).IsSystemBuilt)
+            throw new BusinessRuleException($"{def.WorkflowName} is a system-built workflow. Its module starts it.");
+        var form = await FindAsync(def.WorkflowDefinitionId, StartDocumentCode(def.BpmnXml), ct)
+            ?? throw new BusinessRuleException($"{def.WorkflowName} has no document to start it on. Link one in the workflow designer.");
         return (def, form);
     }
 
-    private static string? StartFormCode(string xml)
+    /// <summary>
+    /// The document a user starts the workflow on: a user-defined workflow's document; else the Start's form (workflows drawn before
+    /// types). Null for a system-built workflow.
+    /// </summary>
+    public static string? StartDocumentCode(string xml)
     {
+        var p = BpmnModel.Process(xml);
+        if (p.IsSystemBuilt)
+            return null;
+        if (p.DocumentCode is not null)
+            return p.DocumentCode;
         try
         {
             return BpmnModel.StartEvent(xml).FormCode;
@@ -382,32 +528,48 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         }
     }
 
-    /// <summary>The names of the steps (or Start) of a diagram that use this form.</summary>
+    /// <summary>Where a diagram uses this document: "whole workflow" for a user-defined workflow's document, else its steps (or Start).</summary>
     private static List<string> Steps(string xml, string formCode)
     {
+        var list = new List<string>();
+        if (string.Equals(BpmnModel.Process(xml).DocumentCode, formCode, StringComparison.OrdinalIgnoreCase))
+            list.Add("whole workflow");
         try
         {
-            return BpmnModel.Elements(xml).Where(e => string.Equals(e.FormCode, formCode, StringComparison.OrdinalIgnoreCase))
-                .Select(e => e.Type == "startEvent" ? "Start" : e.Name ?? e.StepCode ?? e.Id).ToList();
+            list.AddRange(BpmnModel.Elements(xml).Where(e => string.Equals(e.FormCode, formCode, StringComparison.OrdinalIgnoreCase))
+                .Select(e => e.Type == "startEvent" ? "Start" : e.Name ?? e.StepCode ?? e.Id));
         }
         catch (Exception e) when (e is InvalidOperationException or System.Xml.XmlException)
         {
-            return [];
+            // an unreadable diagram uses nothing
         }
+
+        return list;
     }
 
-    private async Task<List<string>> UsedAtAsync(WfeForm row, CancellationToken ct)
+    private sealed record Workflow(long Id, string Code, string Name, string Xml);
+
+    private async Task<List<Workflow>> WorkflowsAsync(CancellationToken ct) =>
+        await db.Set<WfeWorkflowDefinition>().AsNoTracking().OrderBy(x => x.WorkflowName)
+            .Select(x => new Workflow(x.WorkflowDefinitionId, x.WorkflowCode, x.WorkflowName, x.BpmnXml)).ToListAsync(ct);
+
+    /// <summary>
+    /// Where workflows use the form now. An older form: its workflow's steps. A document: "Workflow: Step" in every workflow.
+    /// </summary>
+    private static List<string> UsedAt(WfeForm row, IReadOnlyList<Workflow> workflows)
     {
-        var xml = await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.WorkflowDefinitionId == row.WorkflowDefinitionId)
-            .Select(x => x.BpmnXml).FirstOrDefaultAsync(ct);
-        return xml is null ? [] : Steps(xml, row.FormCode);
+        if (row.WorkflowDefinitionId is { } wf && row.FieldsJson is null)
+            return workflows.Where(w => w.Id == wf).SelectMany(w => Steps(w.Xml, row.FormCode)).ToList();
+        return workflows.SelectMany(w => Steps(w.Xml, row.FormCode).Select(s => s == "whole workflow" ? $"{w.Name} (whole workflow)" : $"{w.Name}: {s}")).ToList();
     }
 
-    private static WfeFormDto Map(WfeForm x)
+    private async Task<List<string>> UsedAtAsync(WfeForm row, CancellationToken ct) => UsedAt(row, await WorkflowsAsync(ct));
+
+    private static WfeFormDto Map(WfeForm x, IReadOnlyList<Workflow> workflows)
     {
         var layout = ParseLayout(x.LayoutJson);
-        return new WfeFormDto(x.FormId, x.FormCode, x.FormName, x.WorkflowDefinitionId, x.Definition?.WorkflowCode ?? string.Empty,
-            x.Definition?.WorkflowName ?? string.Empty, x.Description, x.IsActive, layout.Controls.Count(c => c.Kind == "field"),
-            x.Definition is null ? [] : Steps(x.Definition.BpmnXml, x.FormCode), layout, x.RowVersion);
+        return new WfeFormDto(x.FormId, x.FormCode, x.FormName, x.WorkflowDefinitionId, x.Definition?.WorkflowCode,
+            x.Definition?.WorkflowName, x.Description, x.IsActive, layout.Controls.Count(c => c.Kind == "field"),
+            UsedAt(x, workflows), FieldsOf(x, x.Definition?.BpmnXml), layout, x.RowVersion);
     }
 }

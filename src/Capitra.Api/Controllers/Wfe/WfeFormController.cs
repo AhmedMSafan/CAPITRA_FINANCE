@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capitra.Api.Controllers.Wfe;
 
-/// <summary>Workflow forms: laid out by workflow administrators, filled in by every signed-in user on their tasks and start forms.</summary>
+/// <summary>Documents (Document Designer): designed by workflow administrators, filled in by every signed-in user on their tasks and requests.</summary>
 [ApiController]
 [Route("api/wfe/forms")]
 public sealed class WfeFormController(WfeForms forms) : ControllerBase
@@ -21,6 +21,11 @@ public sealed class WfeFormController(WfeForms forms) : ControllerBase
     [HttpGet("workflow/{definitionId:long}")]
     [HasPermission(Permissions.Wfe.DefinitionView)]
     public Task<IReadOnlyList<WfeFormDto>> OfWorkflow(long definitionId, CancellationToken ct) => forms.OfWorkflowAsync(definitionId, ct);
+
+    /// <summary>Every workflow with its type (SYSTEM or USER) and document, for the Document Designer.</summary>
+    [HttpGet("workflows")]
+    [HasPermission(Permissions.Wfe.DefinitionView)]
+    public Task<IReadOnlyList<WfeWorkflowTypeDto>> Workflows(CancellationToken ct) => forms.WorkflowTypesAsync(ct);
 
     [HttpGet("workflow/{definitionId:long}/fields")]
     [HasPermission(Permissions.Wfe.DefinitionView)]
@@ -45,6 +50,10 @@ public sealed class WfeFormController(WfeForms forms) : ControllerBase
     /// <summary>The released workflows a user can start from a form.</summary>
     [HttpGet("start")]
     public Task<IReadOnlyList<WfeStartFormItemDto>> StartList(CancellationToken ct) => forms.StartListAsync(ct);
+
+    /// <summary>The requests the signed-in user sent, with where each one is now.</summary>
+    [HttpGet("start/mine")]
+    public Task<IReadOnlyList<WfeMyRequestDto>> MyRequests(CancellationToken ct) => forms.MyRequestsAsync(ct);
 
     [HttpGet("start/{workflowCode}")]
     public Task<WfeFormViewDto> StartForm(string workflowCode, CancellationToken ct) => forms.StartFormAsync(workflowCode, ct);

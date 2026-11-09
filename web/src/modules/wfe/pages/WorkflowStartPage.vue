@@ -1,10 +1,10 @@
 <template>
-  <!-- Start a workflow from its start form (K2-style): the workflows whose start event has a form, then that form. -->
+  <!-- Start a request (K2-style): the user-defined workflows, each on its document; fill it in and send it for approval. -->
   <div class="fx" id="fxStart">
     <div class="fx-head">
       <div>
-        <h1>{{ tr('Start a workflow') }}</h1>
-        <p>{{ tr('Choose a workflow, fill in its form and start it. The first task goes to whoever the workflow names.') }}</p>
+        <h1>{{ tr('Start a request') }}</h1>
+        <p>{{ tr('Choose a request, fill in its document and send it. It goes to the first approver the workflow names; you see the answer below, in My requests.') }}</p>
       </div>
       <div class="fx-actions">
         <button type="button" class="fx-btn" @click="openWorkflowManual(8)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
@@ -28,7 +28,7 @@
             <small>{{ w.description || w.workflowCode }}</small>
           </span>
         </button>
-        <div v-if="!items.length && !loading" class="fx-empty"><span class="fa fa-play-circle-o" aria-hidden="true"></span>{{ tr('No workflow has a start form yet. In the designer, give the Start event a form.') }}</div>
+        <div v-if="!items.length && !loading" class="fx-empty"><span class="fa fa-play-circle-o" aria-hidden="true"></span>{{ tr('No request can be started yet. In the workflow designer, make a workflow user-defined and link its document.') }}</div>
       </div>
 
       <div v-if="view" class="fx-card fx-card-pad st-form">
@@ -45,13 +45,40 @@
         <div class="st-actions">
           <button type="button" class="fx-btn" :disabled="busy" @click="reset">{{ tr('Clear') }}</button>
           <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="start">
-            <span class="fa fa-play" aria-hidden="true"></span>{{ tr('Start workflow') }}
+            <span class="fa fa-play" aria-hidden="true"></span>{{ tr('Send request') }}
           </button>
         </div>
       </div>
       <div v-else class="fx-card fx-card-pad st-blank">
         <span class="fa fa-hand-o-left" aria-hidden="true"></span>
-        <p>{{ tr('Choose a workflow to see its form.') }}</p>
+        <p>{{ tr('Choose a request to see its document.') }}</p>
+      </div>
+    </div>
+
+    <!-- the requests I sent: where each one is now, and the decision on it -->
+    <div class="fx-card st-mine">
+      <div class="st-mine-head"><h2>{{ tr('My requests') }}</h2><span class="fx-cell-sub">{{ mine.length }}</span></div>
+      <div class="st-table-wrap">
+        <table v-if="mine.length" class="st-table">
+          <thead>
+            <tr><th>#</th><th>{{ tr('Request') }}</th><th>{{ tr('Sent') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Now / decided by') }}</th><th>{{ tr('Comment') }}</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in mine" :key="r.instanceId">
+              <td class="st-num">{{ r.instanceId }}</td>
+              <td><b>{{ r.workflowName }}</b><small v-if="r.businessReference">{{ r.businessReference }}</small></td>
+              <td>{{ fmt(r.startedAt) }}</td>
+              <td><span class="st-chip" :class="`st-chip--${r.status.toLowerCase()}`">{{ tr(statusText[r.status] ?? r.status) }}</span></td>
+              <td>
+                <template v-if="r.status === 'IN_PROGRESS'">{{ tr('Waiting at') }} {{ r.currentStep ?? '-' }}</template>
+                <template v-else-if="r.lastActionBy">{{ r.lastActionBy }}<small>{{ fmt(r.lastActionAt) }}</small></template>
+                <template v-else>-</template>
+              </td>
+              <td class="st-comment">{{ r.comment || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="fx-empty"><span class="fa fa-paper-plane-o" aria-hidden="true"></span>{{ tr('You have not sent a request yet.') }}</div>
       </div>
     </div>
   </div>
@@ -64,7 +91,16 @@ import { openWorkflowManual } from '../utils/manual'
 import { onMounted, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
 import WorkflowFormView from '../components/WorkflowFormView.vue'
-import { apiErrorText, apiFieldErrors, formApi, type FormView, type StartFormItem, type Started } from '../services/formService'
+import { apiErrorText, apiFieldErrors, formApi, type FormView, type MyRequest, type StartFormItem, type Started } from '../services/formService'
+
+const mine = ref<MyRequest[]>([])
+const statusText: Record<string, string> = { IN_PROGRESS: 'In progress', APPROVED: 'Approved', REJECTED: 'Rejected', COMPLETED: 'Completed', FAULTED: 'Stopped by an error' }
+function fmt(d: string | null) {
+  return d ? new Date(d).toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''
+}
+async function loadMine() {
+  try { mine.value = await formApi.myRequests() } catch { mine.value = [] }
+}
 
 const items = ref<StartFormItem[]>([])
 const chosen = ref<StartFormItem | null>(null)
@@ -109,10 +145,11 @@ async function start() {
     started.value = r
     message.value = {
       bad: false,
-      text: `${tr('Started')} ${chosen.value.workflowName} (#${r.instanceId}).` +
+      text: `${tr('Sent')} ${chosen.value.workflowName} (#${r.instanceId}).` +
         (r.nextStep ? ` ${tr('The next task,')} ${r.nextStep}, ${tr('went to')} ${r.nextAssignee ?? tr('the workflow\'s users')}.` : ` ${tr('It has no task waiting.')}`)
     }
     reset()
+    await loadMine()
   } catch (e) {
     errors.value = apiFieldErrors(e)
     message.value = { bad: true, text: apiErrorText(e) }
@@ -122,6 +159,7 @@ async function start() {
 }
 
 onMounted(async () => {
+  void loadMine()
   try {
     items.value = await formApi.startList()
     const only = items.value.length === 1 ? items.value[0] : undefined
@@ -157,5 +195,19 @@ onMounted(async () => {
 .st-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 .st-blank { display: grid; justify-items: center; gap: 6px; padding: 48px 18px; color: #5f7787; text-align: center; }
 .st-blank .fa { font-size: 26px; color: #9fbfc4; }
+.st-mine { margin-top: 16px; max-width: 1056px; }
+.st-mine-head { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 16px 8px; }
+.st-mine-head h2 { margin: 0; }
+.st-table-wrap { overflow-x: auto; }
+.st-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.st-table th { text-align: left; padding: 8px 16px; color: #5f7787; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; border-top: 1px solid #e6eef1; white-space: nowrap; }
+.st-table td { padding: 10px 16px; border-top: 1px solid #e6eef1; color: #12324a; vertical-align: top; }
+.st-table td small { display: block; color: #5f7787; font-size: 11.5px; }
+.st-num { color: #5f7787 !important; font-variant-numeric: tabular-nums; }
+.st-comment { max-width: 280px; color: #3d5666 !important; }
+.st-chip { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.st-chip--in_progress { background: #fff1e4; color: #a24f0c; }
+.st-chip--approved, .st-chip--completed { background: #e4f6ee; color: #0e5a3c; }
+.st-chip--rejected, .st-chip--faulted { background: #fdecea; color: #8a2416; }
 @media (max-width: 900px) { .st-grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

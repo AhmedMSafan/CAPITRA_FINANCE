@@ -101,6 +101,23 @@ public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUse
         if (errors.Count > 0)
             throw new BusinessValidationException(errors);
 
+        // a user-defined workflow is started by a user on its document, so it is released only with one
+        var status = string.IsNullOrWhiteSpace(request.DefinitionStatus) ? "draft" : request.DefinitionStatus.Trim().ToLowerInvariant();
+        var process = BpmnModel.Process(request.BpmnXml);
+        if (status == "released" && process.IsUserDefined)
+        {
+            if (process.DocumentCode is null)
+                throw new BusinessValidationException(new Dictionary<string, string[]>
+                {
+                    ["documentCode"] = ["A user-defined workflow needs its document. Choose it in Workflow Properties, or save it as a draft."],
+                });
+            if (!await db.Set<WfeForm>().AnyAsync(x => x.FormCode == process.DocumentCode && x.IsActive, cancellationToken))
+                throw new BusinessValidationException(new Dictionary<string, string[]>
+                {
+                    ["documentCode"] = [$"Document {process.DocumentCode} does not exist or is switched off."],
+                });
+        }
+
         if (await db.Set<WfeWorkflowDefinition>().AnyAsync(x => x.WorkflowCode == code && x.WorkflowDefinitionId != (id ?? 0), cancellationToken))
             throw new ConflictException($"Workflow code '{code}' already exists.");
 
@@ -125,7 +142,7 @@ public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUse
             && await db.Set<WfeDefinitionVersion>().AnyAsync(x => x.WorkflowDefinitionId == row.WorkflowDefinitionId, cancellationToken);
         if (!kept)
             row.VersionNo = string.IsNullOrWhiteSpace(request.VersionNo) ? "1" : request.VersionNo.Trim();
-        row.DefinitionStatus = string.IsNullOrWhiteSpace(request.DefinitionStatus) ? "draft" : request.DefinitionStatus.Trim().ToLowerInvariant();
+        row.DefinitionStatus = status;
         row.BpmnXml = request.BpmnXml;
         row.Description = request.Description;
         row.IsActive = request.IsActive;

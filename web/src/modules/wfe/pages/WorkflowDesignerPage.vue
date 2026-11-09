@@ -241,6 +241,41 @@
 
             <section class="property-section">
               <div class="section-title">
+                <span class="section-icon pi pi-sitemap"></span>
+                <div>
+                  <strong>Workflow Type</strong>
+                  <small>Who starts it, and where its document is linked.</small>
+                </div>
+              </div>
+
+              <div class="wf-type" role="radiogroup" aria-label="Workflow type">
+                <label :class="{on:wfType==='SYSTEM'}">
+                  <input v-model="wfType" type="radio" value="SYSTEM" />
+                  <span><b>System-built</b><small>Started by the system (factoring, portfolios). Any step can link its own document.</small></span>
+                </label>
+                <label :class="{on:wfType==='USER'}">
+                  <input v-model="wfType" type="radio" value="USER" />
+                  <span><b>User-defined</b><small>Started by a user from Start a request, on one document for the whole workflow.</small></span>
+                </label>
+              </div>
+
+              <template v-if="wfType==='USER'">
+                <label class="field-label">Document</label>
+                <select v-model="wfDocument">
+                  <option value="">- Choose the document -</option>
+                  <option v-if="wfDocument && !documents.some(x=>x.formCode===wfDocument)" :value="wfDocument">{{ wfDocument }} (not found)</option>
+                  <option v-for="x in documents" :key="x.formId" :value="x.formCode">{{ x.formName }} ({{ x.formCode }}){{ x.isActive ? '' : ' - off' }}</option>
+                </select>
+                <small class="field-hint">The requester fills it in to start. Every approval step shows it read-only; approvers approve or reject with a comment.</small>
+                <button class="text-button form-manage" type="button" @click="openDocument(wfDocument)">
+                  <span class="pi pi-external-link"></span>
+                  {{ wfDocument ? 'Open this document' : 'Design a document' }}
+                </button>
+              </template>
+            </section>
+
+            <section class="property-section">
+              <div class="section-title">
                 <span class="section-icon pi pi-database"></span>
                 <div>
                   <strong>Data Fields</strong>
@@ -448,25 +483,35 @@
               <input v-else v-model="step.ruleCode" placeholder="e.g. PP_DISBURSE" />
             </section>
 
-            <section v-if="step.stepType==='HumanTask'||step.stepType==='Start'" class="property-section">
+            <section v-if="wfType==='USER'&&(step.stepType==='HumanTask'||step.stepType==='Start')" class="property-section">
               <div class="section-title">
                 <span class="section-icon pi pi-file-edit"></span>
                 <div>
-                  <strong>Form</strong>
-                  <small v-if="step.stepType==='Start'">The form people fill in to start this workflow from Start a Workflow.</small>
-                  <small v-else>The step's form over the data fields. Without a business screen the task is worked on it; with one it shows read-only.</small>
+                  <strong>Document</strong>
+                  <small>This is a user-defined workflow: {{ step.stepType==='Start' ? 'the requester starts it on' : 'this step shows, read-only,' }} the workflow's document{{ wfDocument ? ` (${wfDocument})` : '' }}. Change it in Workflow Properties.</small>
+                </div>
+              </div>
+            </section>
+
+            <section v-else-if="step.stepType==='HumanTask'||(step.stepType==='Start'&&step.formCode)" class="property-section">
+              <div class="section-title">
+                <span class="section-icon pi pi-file-edit"></span>
+                <div>
+                  <strong>Document</strong>
+                  <small v-if="step.stepType==='Start'">An older start form. A system-built workflow is started by its module; make the workflow user-defined to start it from Start a request.</small>
+                  <small v-else>Optional. Without a business screen the task is worked on the document; with one it shows read-only.</small>
                 </div>
               </div>
 
-              <label class="field-label">Form</label>
-              <select v-model="step.formCode" :disabled="!form.dgrmId">
+              <label class="field-label">Document</label>
+              <select v-model="step.formCode">
                 <option value="">- None -</option>
-                <option v-if="step.formCode && !workflowForms.some(x=>x.formCode===step.formCode)" :value="step.formCode">{{ step.formCode }} (not found)</option>
-                <option v-for="x in workflowForms" :key="x.formId" :value="x.formCode">{{ x.formName }} ({{ x.formCode }}){{ x.isActive ? '' : ' - off' }}</option>
+                <option v-if="step.formCode && !documents.some(x=>x.formCode===step.formCode)" :value="step.formCode">{{ step.formCode }} (not found)</option>
+                <option v-for="x in documents" :key="x.formId" :value="x.formCode">{{ x.formName }} ({{ x.formCode }}){{ x.isActive ? '' : ' - off' }}</option>
               </select>
-              <button class="text-button form-manage" type="button" :disabled="!form.dgrmId" @click="openForms">
+              <button class="text-button form-manage" type="button" @click="openDocument(step.formCode)">
                 <span class="pi pi-external-link"></span>
-                {{ form.dgrmId ? (step.formCode ? 'Open this form' : 'Make a form') : 'Save the workflow first' }}
+                {{ step.formCode ? 'Open this document' : 'Design a document' }}
               </button>
             </section>
 
@@ -707,7 +752,7 @@ import 'bpmn-js/dist/assets/diagram-js.css'; import 'bpmn-js/dist/assets/bpmn-fo
 import finovaWorkflowModdle from '../models/finovaWorkflowModel'
 import {createWorkflowDefinition,getWorkflowDefinition,getWorkflowVersions,getWorkflowVersionXml,updateWorkflowDefinition,type WorkflowVersion} from '../services/workflowDefinitionService'
 import {productEventRulesApi,type ProductEventRule} from '@/modules/adm/api/products.api'
-import {formApi,type WorkflowForm} from '../services/formService'
+import {apiErrorText,formApi,type WorkflowForm} from '../services/formService'
 import { openWorkflowManual } from '../utils/manual'
 
 type Var={name:string,type:string,required:boolean,label?:string,defaultValue?:string,choices?:string[],description?:string}; type Param={name:string,value:string};
@@ -718,10 +763,12 @@ const form=reactive({dgrmId:0,dgrmName:'',dgrmVersion:'1',dgrmStatus:'draft',dgr
 // active product event rules for the Product Event Rule drop-down; without access to them the field stays free text
 const productRules=ref<ProductEventRule[]>([])
 productEventRulesApi.list().then(x=>productRules.value=x.filter(r=>r.isActive)).catch(()=>{})
-// this workflow's forms (Workflow Forms) for the Form drop-down of a step or the Start event
-const workflowForms=ref<WorkflowForm[]>([])
-function loadForms(){if(form.dgrmId)formApi.ofWorkflow(form.dgrmId).then(x=>workflowForms.value=x).catch(()=>workflowForms.value=[])}
-function openForms(){router.push({name:'workflow-forms',query:step.value.formCode?{form:String(workflowForms.value.find(f=>f.formCode===step.value.formCode)?.formId??'')}:{workflow:String(form.dgrmId)}})}
+// the documents (Document Designer) a step or the whole workflow can link, with this workflow's older forms
+const documents=ref<WorkflowForm[]>([])
+// the workflow's type (finova:workflowType) and, for a user-defined one, its document (finova:documentCode)
+const wfType=ref<'SYSTEM'|'USER'>('SYSTEM'),wfDocument=ref('')
+function loadForms(){(form.dgrmId?formApi.ofWorkflow(form.dgrmId):formApi.list().then(x=>x.filter(f=>f.isDocument))).then(x=>documents.value=x).catch(()=>documents.value=[])}
+function openDocument(code:string){const f=documents.value.find(x=>x.formCode===code);router.push({name:'workflow-forms',query:f?{form:String(f.formId)}:{new:'1'}})}
 const actionCatalog=ref(['CLAIM','ACCEPT','APPROVE','REJECT','RETURN','COMPLETE'])
 function emptyStep():Step{return{stepCode:'',stepName:'',ruleCode:'',formCode:'',stepType:'HumanTask',assignmentType:'Role',assignee:'',route:'',routeParameters:[],actions:['CLAIM','COMPLETE']}}
 // selecting an element creates its step settings (bindSelection), so the computed only reads them
@@ -749,6 +796,11 @@ function loadMetadataFromXml(){
   if(process?.variables){
     try{variables.push(...JSON.parse(process.variables))}catch{}
   }
+  // a workflow drawn before types is user-defined when its Start has a form (it was offered on Start a Workflow), else system-built
+  const startForm=registry.getAll().find((e:any)=>e.type==='bpmn:StartEvent')?.businessObject?.formCode||''
+  const t=String(process?.workflowType??'').toUpperCase()
+  wfType.value=t==='USER'||(!t&&startForm)?'USER':'SYSTEM'
+  wfDocument.value=process?.documentCode||(wfType.value==='USER'?startForm:'')
 
   registry.getAll().forEach((e:any)=>{
     const bo=e.businessObject
@@ -780,7 +832,11 @@ function writeMetadataToBpmn(){
   const modeling=modeler.get('modeling')
   const process=registry.getAll().find((e:any)=>e.businessObject?.$type==='bpmn:Process')?.businessObject
 
-  if(process)process.variables=JSON.stringify(variables)
+  if(process){
+    process.variables=JSON.stringify(variables)
+    process.workflowType=wfType.value
+    process.documentCode=wfType.value==='USER'&&wfDocument.value?wfDocument.value:undefined
+  }
 
   Object.entries(steps).forEach(([id,s])=>{
     const el=registry.get(id)
@@ -1361,8 +1417,8 @@ async function load(){
     Object.assign(form,w)
     active.value=form.isActive==='Y'
     xml=form.dgrmContent||starter
-    loadForms()
   }
+  loadForms()
 
   await modeler.importXML(removeSavedViewbox(xml))
   loadMetadataFromXml()
@@ -1420,12 +1476,7 @@ async function save(){
       await router.replace(`/workflowengine/designer/${form.dgrmId}`)
   }
   catch(e){
-    msg(
-      e instanceof Error
-        ? e.message
-        : 'Save failed.',
-      true
-    )
+    msg(apiErrorText(e,'Save failed.'),true)
   }
   finally{
     saving.value=false
@@ -2277,6 +2328,14 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
 }
 
 .form-manage { margin-top: 8px; }
+.wf-type { display: grid; gap: 8px; margin-bottom: 12px; }
+.wf-type label { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid #d9e6ea; border-radius: 10px; cursor: pointer; background: #fff; }
+.wf-type label.on { border-color: #00636D; background: #f0f8f8; box-shadow: 0 0 0 3px rgba(0, 99, 109, .08); }
+.wf-type input[type="radio"] { flex: none; width: 16px; height: 16px; min-width: 0; margin: 2px 0 0; padding: 0; accent-color: #00636D; box-shadow: none; }
+.wf-type span { display: grid; gap: 2px; }
+.wf-type b { color: #12324a; font-size: 13px; }
+.wf-type small { color: #5f7787; font-size: 11.5px; line-height: 1.35; }
+.field-hint { display: block; margin-top: 6px; color: #5f7787; font-size: 11.5px; line-height: 1.4; }
 
 .text-button {
   display: inline-flex;

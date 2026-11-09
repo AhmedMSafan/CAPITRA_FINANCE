@@ -1,4 +1,4 @@
-// Workflow forms and data sources (K2's SmartForms and SmartObjects, kept simple): api/wfe/forms and api/wfe/data-sources.
+// Documents (Document Designer) and data sources (K2's SmartForms and SmartObjects, kept simple): api/wfe/forms and api/wfe/data-sources.
 import { ApiError, http } from '@/shared/api/http'
 
 export type FormControlKind = 'field' | 'heading' | 'note'
@@ -18,30 +18,58 @@ export type FormControl = {
 
 export type FormLayout = { columns: 1 | 2; controls: FormControl[] }
 
+/** A document: its own fields and layout. An older form (made before documents) uses one workflow's data fields. */
 export type WorkflowForm = {
   formId: number
   formCode: string
   formName: string
-  workflowDefinitionId: number
-  workflowCode: string
-  workflowName: string
+  workflowDefinitionId: number | null
+  workflowCode: string | null
+  workflowName: string | null
   description: string | null
   isActive: boolean
   controlCount: number
   usedAt: string[]
+  fields: DataField[]
   layout: FormLayout
   rowVersion: number
+  isDocument: boolean
 }
 
 export type SaveWorkflowForm = {
   formCode: string
   formName: string
-  workflowDefinitionId: number
+  workflowDefinitionId: number | null
   description: string | null
   isActive: boolean
   layout: FormLayout
   rowVersion: number
+  fields: DocumentField[]
 }
+
+/** A document field as the Document Designer saves it. */
+export type DocumentField = {
+  name: string
+  label: string | null
+  type: string
+  required: boolean
+  defaultValue: string | null
+  choices: string[]
+  description: string | null
+}
+
+export type WorkflowType = 'SYSTEM' | 'USER'
+export type WorkflowTypeItem = { workflowDefinitionId: number; workflowCode: string; workflowName: string; type: WorkflowType; documentCode: string | null }
+
+export const fieldTypes = [
+  { value: 'String', label: 'Text' },
+  { value: 'Number', label: 'Whole number' },
+  { value: 'Decimal', label: 'Amount' },
+  { value: 'Date', label: 'Date' },
+  { value: 'Boolean', label: 'Yes / No' },
+  { value: 'Choice', label: 'Choice list' },
+  { value: 'User', label: 'User' }
+]
 
 export type DataField = {
   name: string
@@ -64,6 +92,8 @@ export type FormView = {
   columns: number
   editable: boolean
   controls: FormControlView[]
+  /** a user-defined workflow's document as the requester sent it: read-only for approvers */
+  isRequest?: boolean
 }
 
 export type FormControlView = {
@@ -95,6 +125,19 @@ export type DataSource = {
 }
 
 export type StartFormItem = { workflowCode: string; workflowName: string; description: string | null; formCode: string; formName: string }
+export type MyRequest = {
+  instanceId: number
+  workflowCode: string
+  workflowName: string
+  businessReference: string | null
+  startedAt: string
+  status: 'IN_PROGRESS' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'FAULTED'
+  currentStep: string | null
+  lastAction: string | null
+  lastActionBy: string | null
+  lastActionAt: string | null
+  comment: string | null
+}
 export type Started = { instanceId: number; nextStep: string | null; nextAssignee: string | null; inboxId: number | null }
 
 /** The controls each data field type can use; the first is the default. */
@@ -140,11 +183,13 @@ const SOURCES = '/api/wfe/data-sources'
 export const formApi = {
   list: () => http.get<WorkflowForm[]>(FORMS),
   get: (id: number) => http.get<WorkflowForm>(`${FORMS}/${id}`),
+  workflows: () => http.get<WorkflowTypeItem[]>(`${FORMS}/workflows`),
   ofWorkflow: (definitionId: number) => http.get<WorkflowForm[]>(`${FORMS}/workflow/${definitionId}`),
   fields: (definitionId: number) => http.get<DataField[]>(`${FORMS}/workflow/${definitionId}/fields`),
   save: (id: number | null, body: SaveWorkflowForm) => (id ? http.put<WorkflowForm>(`${FORMS}/${id}`, body) : http.post<WorkflowForm>(FORMS, body)),
   remove: (id: number) => http.delete<void>(`${FORMS}/${id}`),
   startList: () => http.get<StartFormItem[]>(`${FORMS}/start`),
+  myRequests: () => http.get<MyRequest[]>(`${FORMS}/start/mine`),
   startForm: (workflowCode: string) => http.get<FormView>(`${FORMS}/start/${encodeURIComponent(workflowCode)}`),
   start: (workflowCode: string, businessReference: string | null, values: Record<string, string | null>) =>
     http.post<Started>(`${FORMS}/start/${encodeURIComponent(workflowCode)}`, { businessReference, values }),

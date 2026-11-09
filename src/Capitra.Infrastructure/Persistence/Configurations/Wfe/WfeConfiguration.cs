@@ -111,6 +111,7 @@ public sealed class WfeFormConfiguration : IEntityTypeConfiguration<WfeForm>
         builder.Property(x => x.FormName).HasMaxLength(150);
         builder.Property(x => x.Description).HasMaxLength(500);
         builder.Property(x => x.LayoutJson).HasColumnType("text");
+        builder.Property(x => x.FieldsJson).HasColumnType("text");
 
         builder.HasOne(x => x.Definition).WithMany().HasForeignKey(x => x.WorkflowDefinitionId).OnDelete(DeleteBehavior.Restrict);
 

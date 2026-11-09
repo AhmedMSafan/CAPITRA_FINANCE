@@ -1,15 +1,15 @@
 <template>
-  <!-- Workflow forms (K2 SmartForms, kept simple): lay out a form over a workflow's data fields, then use it on a step or at the start. -->
+  <!-- Document Designer (K2 SmartForms, kept simple): a document has its own fields and layout; workflows link it in the designer. -->
   <div class="fx" id="fxForms">
     <div class="fx-head">
       <div>
-        <h1>{{ tr('Workflow forms') }}</h1>
-        <p>{{ tr('Lay out a form over a workflow\'s data fields. In the designer, a step or the start of the workflow then uses it.') }}</p>
+        <h1>{{ tr('Document Designer') }}</h1>
+        <p>{{ tr('Design a document once: its fields, which are required, and how it looks. In the workflow designer, a user-defined workflow links it to the whole workflow, and a system-built workflow links it to a step.') }}</p>
       </div>
       <div class="fx-actions">
         <button type="button" class="fx-btn" @click="openWorkflowManual(6)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink class="fx-btn" :to="{ name: 'workflow-data-sources' }"><span class="fa fa-database" aria-hidden="true"></span>{{ tr('Data Sources') }}</RouterLink>
-        <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="newForm"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New form') }}</button>
+        <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="newForm"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New document') }}</button>
       </div>
     </div>
 
@@ -22,16 +22,16 @@
     <div class="fm-grid">
       <!-- the forms -->
       <div class="fx-card fm-list">
-        <div class="fm-list-head"><h2>{{ tr('Forms') }}</h2><span class="fx-cell-sub">{{ forms.length }}</span></div>
+        <div class="fm-list-head"><h2>{{ tr('Documents') }}</h2><span class="fx-cell-sub">{{ forms.length }}</span></div>
         <button v-for="f in forms" :key="f.formId" type="button" class="fm-row" :class="{ on: edit.id === f.formId }" @click="open(f)">
           <span class="fm-row-name">{{ f.formName }}<span v-if="!f.isActive" class="fx-chip fx-chip--plain">{{ tr('Off') }}</span></span>
-          <span class="fm-row-sub">{{ f.formCode }} · {{ f.workflowName }}</span>
+          <span class="fm-row-sub">{{ f.formCode }}<template v-if="!f.isDocument"> · {{ tr('older form of') }} {{ f.workflowName }}</template></span>
           <span class="fm-row-sub">
             {{ f.controlCount }} {{ f.controlCount === 1 ? tr('field') : tr('fields') }} ·
-            {{ f.usedAt.length ? `${tr('used at')} ${f.usedAt.join(', ')}` : tr('not used yet') }}
+            {{ f.usedAt.length ? `${tr('used by')} ${f.usedAt.join(', ')}` : tr('not linked yet') }}
           </span>
         </button>
-        <div v-if="!forms.length" class="fx-empty"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('No forms yet.') }}</div>
+        <div v-if="!forms.length" class="fx-empty"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('No documents yet.') }}</div>
       </div>
 
       <!-- the editor -->
@@ -39,21 +39,21 @@
         <div class="fx-card fx-card-pad">
           <div class="fm-settings">
             <label class="fm-field fm-wide">
-              <span>{{ tr('Form name') }}</span>
-              <input v-model="edit.formName" class="fx-search" maxlength="150" :placeholder="tr('e.g. Disbursement request')" :disabled="!canEdit">
+              <span>{{ tr('Document name') }}</span>
+              <input v-model="edit.formName" class="fx-search" maxlength="150" :placeholder="tr('e.g. Vacation request')" :disabled="!canEdit">
             </label>
             <label class="fm-field">
               <span>{{ tr('Code') }}</span>
-              <input v-model="edit.formCode" class="fx-search fm-code" maxlength="50" placeholder="DISB_REQUEST_FORM" :disabled="!canEdit"
+              <input v-model="edit.formCode" class="fx-search fm-code" maxlength="50" placeholder="VACATION_REQUEST" :disabled="!canEdit"
                      @input="edit.formCode = edit.formCode.toUpperCase().replace(/[^A-Z0-9_]/g, '_')">
             </label>
-            <label class="fm-field fm-wide">
-              <span>{{ tr('Workflow') }}</span>
-              <select v-model.number="edit.workflowDefinitionId" class="fx-select" :disabled="!canEdit">
-                <option :value="0">{{ tr('Choose a workflow') }}</option>
-                <option v-for="w in workflows" :key="w.dgrmId" :value="w.dgrmId">{{ w.dgrmName }} ({{ w.workflowCode }})</option>
-              </select>
-            </label>
+            <div class="fm-field fm-wide">
+              <span>{{ tr('Used by') }}</span>
+              <div class="fm-used">
+                <span v-for="u in usedAt" :key="u" class="fx-chip">{{ u }}</span>
+                <span v-if="!usedAt.length" class="fx-cell-sub">{{ tr('No workflow links it yet.') }}</span>
+              </div>
+            </div>
             <div class="fm-field">
               <span>{{ tr('Columns') }}</span>
               <div class="fx-seg" role="group">
@@ -67,21 +67,64 @@
             </label>
             <label class="fm-check">
               <input v-model="edit.isActive" type="checkbox" class="fx-check" :disabled="!canEdit">
-              <span>{{ tr('On') }}</span><small>{{ tr('Switched off, steps that use it work as if they had no form.') }}</small>
+              <span>{{ tr('On') }}</span><small>{{ tr('Switched off, it is not offered, and steps that link it work as if they had none.') }}</small>
             </label>
           </div>
+          <p v-if="legacyOf" class="fm-hint fm-legacy">
+            <span class="fa fa-info-circle" aria-hidden="true"></span>
+            {{ tr('This form was made before documents and uses the data fields of') }} <b>{{ legacyOf }}</b>.
+            {{ tr('Its fields are copied below. Saving makes it a document of its own, and the workflow keeps using it.') }}
+          </p>
+        </div>
+
+        <!-- the document's own fields -->
+        <div class="fx-card fx-card-pad">
+          <div class="fm-pane-head">
+            <h2>{{ tr('Fields') }}</h2>
+            <span class="fx-cell-sub">{{ tr('The values the document holds. A required field must be filled in before the document is sent.') }}</span>
+          </div>
+          <div class="fm-table-wrap">
+            <table class="fm-fields">
+              <thead>
+                <tr>
+                  <th>{{ tr('Label') }}</th><th>{{ tr('Name') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Choices') }}</th>
+                  <th>{{ tr('Default') }}</th><th class="fm-c">{{ tr('Required') }}</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(f, i) in edit.fields" :key="i">
+                  <td><input v-model="f.label" class="fx-search" maxlength="100" :placeholder="tr('e.g. From date')" :disabled="!canEdit" @blur="nameFromLabel(f, i)"></td>
+                  <td><input v-model="f.name" class="fx-search fm-code" maxlength="50" placeholder="fromDate" :disabled="!canEdit" @change="renameField(i)"></td>
+                  <td>
+                    <select v-model="f.type" class="fx-select" :disabled="!canEdit" @change="typeChanged(f)">
+                      <option v-for="t in fieldTypes" :key="t.value" :value="t.value">{{ tr(t.label) }}</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input v-if="f.type === 'Choice'" :value="f.choices.join(', ')" class="fx-search" :placeholder="tr('ANNUAL, SICK, UNPAID')" :disabled="!canEdit"
+                           @change="f.choices = ($event.target as HTMLInputElement).value.split(',').map((x) => x.trim()).filter(Boolean)">
+                    <span v-else class="fx-cell-sub">-</span>
+                  </td>
+                  <td><input v-model="f.defaultValue" class="fx-search" :disabled="!canEdit"></td>
+                  <td class="fm-c"><input v-model="f.required" type="checkbox" class="fx-check" :disabled="!canEdit" :aria-label="tr('Required')"></td>
+                  <td><button v-if="canEdit" type="button" class="fm-tool" :aria-label="tr('Remove')" @click="removeField(i)"><span class="fa fa-trash-o" aria-hidden="true"></span></button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="!edit.fields.length" class="fm-hint">{{ tr('No fields yet. Add the first one.') }}</div>
+          <button v-if="canEdit" type="button" class="fx-btn fx-btn--sm fm-add-field" @click="addDocField"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Add field') }}</button>
         </div>
 
         <div class="fm-panes">
           <!-- controls -->
           <div class="fx-card fx-card-pad">
             <div class="fm-pane-head">
-              <h2>{{ tr('Controls') }}</h2>
-              <span class="fx-cell-sub">{{ tr('Top to bottom, as on the form') }}</span>
+              <h2>{{ tr('Layout') }}</h2>
+              <span class="fx-cell-sub">{{ tr('Top to bottom, as on the document') }}</span>
             </div>
 
-            <p v-if="!edit.workflowDefinitionId" class="fm-hint">{{ tr('Choose the workflow first: its data fields become the form\'s controls.') }}</p>
-            <p v-else-if="!fields.length" class="fm-hint">{{ tr('This workflow has no data fields yet. Add them in the designer with Data Fields.') }}</p>
+            <p v-if="!fields.length" class="fm-hint">{{ tr('Add the document\'s fields first: each one becomes a control here.') }}</p>
 
             <ol class="fm-controls">
               <li v-for="(c, i) in edit.controls" :key="i" class="fm-control" :class="{ open: openIndex === i }">
@@ -130,7 +173,7 @@
                     </label>
                     <div class="fm-flags fm-full">
                       <label class="fm-check"><input v-model="c.required" type="checkbox" class="fx-check" :disabled="!canEdit || c.readOnly || fieldOf(c)?.required"> <span>{{ tr('Required') }}</span>
-                        <small v-if="fieldOf(c)?.required">{{ tr('(the data field is required)') }}</small></label>
+                        <small v-if="fieldOf(c)?.required">{{ tr('(the field is required)') }}</small></label>
                       <label class="fm-check"><input v-model="c.readOnly" type="checkbox" class="fx-check" :disabled="!canEdit" @change="c.readOnly && (c.required = false)"> <span>{{ tr('Read-only') }}</span>
                         <small>{{ tr('shown, not changed') }}</small></label>
                     </div>
@@ -143,7 +186,7 @@
               </li>
             </ol>
 
-            <div v-if="canEdit && edit.workflowDefinitionId" class="fm-add">
+            <div v-if="canEdit" class="fm-add">
               <span class="fm-add-label">{{ tr('Add') }}</span>
               <button v-for="f in unused" :key="f.name" type="button" class="fx-btn fx-btn--sm" @click="addField(f)">
                 <span class="fa fa-plus" aria-hidden="true"></span>{{ f.caption }}
@@ -161,7 +204,7 @@
               <span class="fx-cell-sub">{{ tr('As people see it on the task') }}</span>
             </div>
             <div class="fm-sheet">
-              <div class="fm-sheet-title">{{ edit.formName || tr('Untitled form') }}</div>
+              <div class="fm-sheet-title">{{ edit.formName || tr('Untitled document') }}</div>
               <WorkflowFormView :view="preview" v-model="previewValues" id-prefix="pv" />
             </div>
           </div>
@@ -170,7 +213,7 @@
         <div v-if="canEdit" class="fm-actions">
           <template v-if="edit.id">
             <template v-if="confirmDelete">
-              <span class="fm-confirm">{{ tr('Delete this form?') }}</span>
+              <span class="fm-confirm">{{ tr('Delete this document?') }}</span>
               <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="remove">{{ tr('Yes, delete') }}</button>
               <button type="button" class="fx-btn" @click="confirmDelete = false">{{ tr('No') }}</button>
             </template>
@@ -179,14 +222,14 @@
           <span class="fm-gap"></span>
           <span v-if="problem" class="fm-problem"><span class="fa fa-exclamation-circle" aria-hidden="true"></span> {{ problem }}</span>
           <button type="button" class="fx-btn fx-btn--teal" :disabled="busy || !!problem" @click="save">
-            <span class="fa fa-check" aria-hidden="true"></span>{{ edit.id ? tr('Save form') : tr('Create form') }}
+            <span class="fa fa-check" aria-hidden="true"></span>{{ edit.id ? tr('Save document') : tr('Create document') }}
           </button>
         </div>
       </div>
 
       <div v-else class="fx-card fx-card-pad fm-blank">
         <span class="fa fa-file-text-o" aria-hidden="true"></span>
-        <p>{{ forms.length ? tr('Choose a form to change it, or make a new one.') : tr('Make the first form: choose its workflow, then add its data fields.') }}</p>
+        <p>{{ forms.length ? tr('Choose a document to change it, or make a new one.') : tr('Make the first document: add its fields, then lay them out.') }}</p>
       </div>
     </div>
   </div>
@@ -201,19 +244,16 @@ import { useRoute } from 'vue-router'
 import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'
 import WorkflowFormView from '../components/WorkflowFormView.vue'
-import { getWorkflowDefinitions, type WorkflowDefinition } from '../services/workflowDefinitionService'
 import {
-  apiErrorText, controlName, controlsFor, dataSourceApi, defaultControl, formApi,
-  type DataField, type DataSource, type FormControl, type FormControlView, type FormView, type Option, type WorkflowForm
+  apiErrorText, controlName, controlsFor, dataSourceApi, defaultControl, fieldTypes, formApi,
+  type DataField, type DataSource, type DocumentField, type FormControl, type FormControlView, type FormView, type Option, type WorkflowForm
 } from '../services/formService'
 
 const route = useRoute()
 const canEdit = hasPermission('WFE.DEFINITION.EDIT')
 
 const forms = ref<WorkflowForm[]>([])
-const workflows = ref<WorkflowDefinition[]>([])
 const sources = ref<DataSource[]>([])
-const fields = ref<DataField[]>([])
 const options = ref<Record<string, Option[]>>({})
 const editing = ref(false)
 const openIndex = ref(-1)
@@ -222,8 +262,13 @@ const confirmDelete = ref(false)
 const message = ref<{ text: string; bad: boolean } | null>(null)
 const previewValues = ref<Record<string, string | null>>({})
 
-const blank = () => ({ id: 0, formCode: '', formName: '', workflowDefinitionId: 0, description: '', isActive: true, columns: 1 as 1 | 2, controls: [] as FormControl[], rowVersion: 0 })
+const blank = () => ({ id: 0, formCode: '', formName: '', description: '', isActive: true, columns: 1 as 1 | 2, controls: [] as FormControl[], fields: [] as DocumentField[], rowVersion: 0 })
 const edit = reactive(blank())
+const usedAt = ref<string[]>([])
+const legacyOf = ref('')
+
+/** The document's fields as the layout and preview use them (with their caption). */
+const fields = computed<DataField[]>(() => edit.fields.filter((f) => f.name.trim()).map((f) => ({ ...f, name: f.name.trim(), caption: f.label?.trim() || f.name.trim() })))
 
 const unused = computed(() => fields.value.filter((f) => !edit.controls.some((c) => c.kind === 'field' && c.field?.toLowerCase() === f.name.toLowerCase())))
 
@@ -236,7 +281,7 @@ function subOf(c: FormControl) {
   if (c.kind === 'heading') return tr('Heading')
   if (c.kind === 'note') return tr('Note')
   const f = fieldOf(c)
-  if (!f) return tr('Not a data field of this workflow any more')
+  if (!f) return tr('Not a field of this document any more')
   const bits = [tr(controlName(c.control ?? defaultControl(f.type)))]
   if (c.control === 'dropdown') bits.push(c.dataSource ? sources.value.find((s) => s.sourceCode === c.dataSource)?.sourceName ?? c.dataSource : tr('own choices'))
   if (c.readOnly) bits.push(tr('read-only'))
@@ -251,13 +296,20 @@ function iconOf(c: FormControl) {
 
 /** Problems that stop saving, in plain words; the server checks the same and more. */
 const problem = computed(() => {
-  if (!edit.formName.trim()) return tr('Give the form a name.')
-  if (!/^[A-Z][A-Z0-9_]{1,49}$/.test(edit.formCode)) return tr('Give the form a code: capital letters, digits or _.')
-  if (!edit.workflowDefinitionId) return tr('Choose the workflow.')
+  if (!edit.formName.trim()) return tr('Give the document a name.')
+  if (!/^[A-Z][A-Z0-9_]{1,49}$/.test(edit.formCode)) return tr('Give the document a code: capital letters, digits or _.')
+  if (!edit.fields.length) return tr('Add the document\'s fields.')
+  const unnamed = edit.fields.findIndex((f) => !/^[A-Za-z][A-Za-z0-9_]{0,49}$/.test(f.name.trim()))
+  if (unnamed >= 0) return `${tr('Field')} ${unnamed + 1}: ${tr('give it a name of letters, digits or _.')}`
+  const names = edit.fields.map((f) => f.name.trim().toLowerCase())
+  const twice = names.find((n, i) => names.indexOf(n) !== i)
+  if (twice) return `${twice}: ${tr('the field is listed twice.')}`
+  const noChoices = edit.fields.find((f) => f.type === 'Choice' && !f.choices.length)
+  if (noChoices) return `${noChoices.label || noChoices.name}: ${tr('list its choices.')}`
   const bad = edit.controls.find((c) => c.kind === 'field' && c.control === 'dropdown' && !c.dataSource && !fieldOf(c)?.choices.length)
   if (bad) return `${titleOf(bad)}: ${tr('choose the data source of the drop-down.')}`
   const lost = edit.controls.find((c) => c.kind === 'field' && !fieldOf(c))
-  if (lost) return `${lost.field}: ${tr('not a data field of this workflow any more. Remove it.')}`
+  if (lost) return `${lost.field}: ${tr('not a field of this document any more. Remove it.')}`
   return ''
 })
 
@@ -285,14 +337,11 @@ watch(() => preview.value.controls.map((c) => (c.control === 'user' ? 'USERS' : 
       }
   }, { immediate: true })
 
-watch(() => edit.workflowDefinitionId, async (id) => {
-  fields.value = []
-  if (!id) return
-  try { fields.value = await formApi.fields(id) } catch (e) { message.value = { bad: true, text: apiErrorText(e) } }
-})
-
 function newForm() {
   Object.assign(edit, blank())
+  usedAt.value = []
+  legacyOf.value = ''
+  fieldNames.value = []
   editing.value = true
   openIndex.value = -1
   confirmDelete.value = false
@@ -301,9 +350,14 @@ function newForm() {
 
 function open(f: WorkflowForm) {
   Object.assign(edit, {
-    id: f.formId, formCode: f.formCode, formName: f.formName, workflowDefinitionId: f.workflowDefinitionId, description: f.description ?? '',
-    isActive: f.isActive, columns: f.layout.columns === 2 ? 2 : 1, controls: f.layout.controls.map((c) => ({ ...c, width: c.width ?? 'full' })), rowVersion: f.rowVersion
+    id: f.formId, formCode: f.formCode, formName: f.formName, description: f.description ?? '',
+    isActive: f.isActive, columns: f.layout.columns === 2 ? 2 : 1, controls: f.layout.controls.map((c) => ({ ...c, width: c.width ?? 'full' })),
+    fields: f.fields.map((x) => ({ name: x.name, label: x.label, type: x.type, required: x.required, defaultValue: x.defaultValue, choices: [...x.choices], description: x.description })),
+    rowVersion: f.rowVersion
   })
+  usedAt.value = f.usedAt
+  legacyOf.value = f.isDocument ? '' : f.workflowName ?? ''
+  fieldNames.value = edit.fields.map((x) => x.name.trim())
   editing.value = true
   openIndex.value = -1
   confirmDelete.value = false
@@ -313,6 +367,43 @@ function open(f: WorkflowForm) {
 function addField(f: DataField) {
   edit.controls.push({ kind: 'field', field: f.name, label: null, control: defaultControl(f.type), dataSource: null, required: f.required, readOnly: false, help: null, width: 'full' })
 }
+/** A new field goes on the layout too, at the end. */
+function addDocField() {
+  edit.fields.push({ name: '', label: '', type: 'String', required: false, defaultValue: null, choices: [], description: null })
+}
+function nameFromLabel(f: DocumentField, i: number) {
+  if (f.name.trim() || !f.label?.trim()) return
+  const words = f.label.trim().replace(/[^A-Za-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean)
+  const name = words.map((w, k) => (k === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())).join('')
+  f.name = /^[A-Za-z]/.test(name) ? name.slice(0, 50) : `f${name}`.slice(0, 50)
+  renameField(i)
+}
+// the layout follows the fields: a named field gets its control, a renamed one keeps it
+const fieldNames = ref<string[]>([])
+function renameField(i: number) {
+  const f = edit.fields[i]
+  if (!f) return
+  const before = fieldNames.value[i] ?? ''
+  const now = f.name.trim()
+  const c = before ? edit.controls.find((x) => x.kind === 'field' && x.field?.toLowerCase() === before.toLowerCase()) : undefined
+  if (c) c.field = now
+  else if (now && !edit.controls.some((x) => x.kind === 'field' && x.field?.toLowerCase() === now.toLowerCase()))
+    edit.controls.push({ kind: 'field', field: now, label: null, control: defaultControl(f.type), dataSource: null, required: false, readOnly: false, help: null, width: 'full' })
+  fieldNames.value = edit.fields.map((x) => x.name.trim())
+}
+function typeChanged(f: DocumentField) {
+  if (f.type !== 'Choice') f.choices = []
+  const c = edit.controls.find((x) => x.kind === 'field' && x.field?.toLowerCase() === f.name.trim().toLowerCase())
+  if (c && !controlsFor(f.type).includes(c.control ?? 'text')) { c.control = defaultControl(f.type); c.dataSource = null }
+}
+function removeField(i: number) {
+  const name = edit.fields[i]?.name.trim().toLowerCase()
+  edit.fields.splice(i, 1)
+  if (name) edit.controls = edit.controls.filter((c) => !(c.kind === 'field' && c.field?.toLowerCase() === name))
+  fieldNames.value = edit.fields.map((x) => x.name.trim())
+  openIndex.value = -1
+}
+
 function addText(kind: 'heading' | 'note') {
   edit.controls.push({ kind, field: null, label: '', control: null, dataSource: null, required: false, readOnly: false, help: null, width: 'full' })
   openIndex.value = edit.controls.length - 1
@@ -332,10 +423,11 @@ async function save() {
   busy.value = true
   try {
     const saved = await formApi.save(edit.id || null, {
-      formCode: edit.formCode, formName: edit.formName.trim(), workflowDefinitionId: edit.workflowDefinitionId, description: edit.description || null,
-      isActive: edit.isActive, layout: { columns: edit.columns, controls: edit.controls }, rowVersion: edit.rowVersion
+      formCode: edit.formCode, formName: edit.formName.trim(), workflowDefinitionId: null, description: edit.description || null,
+      isActive: edit.isActive, layout: { columns: edit.columns, controls: edit.controls }, rowVersion: edit.rowVersion,
+      fields: edit.fields.map((f) => ({ ...f, name: f.name.trim(), label: f.label?.trim() || null, defaultValue: f.defaultValue?.trim() || null }))
     })
-    message.value = { bad: false, text: `${tr('Saved')} ${saved.formName}. ${saved.usedAt.length ? `${tr('Used at')} ${saved.usedAt.join(', ')}.` : tr('Open the workflow in the designer to use it on a step or at the start.')}` }
+    message.value = { bad: false, text: `${tr('Saved')} ${saved.formName}. ${saved.usedAt.length ? `${tr('Used by')} ${saved.usedAt.join(', ')}.` : tr('Link it to a workflow in the workflow designer.')}` }
     await load()
     open(saved)
   } catch (e) {
@@ -366,14 +458,12 @@ async function load() {
 }
 
 onMounted(async () => {
-  getWorkflowDefinitions().then((x) => (workflows.value = x)).catch(() => (workflows.value = []))
   dataSourceApi.list().then((x) => (sources.value = x.filter((s) => s.isActive))).catch(() => (sources.value = []))
   await load()
   const id = Number(route.query.form)
-  const wf = Number(route.query.workflow)
   const f = forms.value.find((x) => x.formId === id)
   if (f) open(f)
-  else if (wf && canEdit) { newForm(); edit.workflowDefinitionId = wf }
+  else if (route.query.new && canEdit) newForm()
 })
 </script>
 
@@ -428,6 +518,15 @@ onMounted(async () => {
 .fm-gap { flex: 1; }
 .fm-problem { color: #b4520b; font-size: 12.5px; }
 .fm-confirm { color: #b4520b; font-size: 12.5px; font-weight: 700; }
+.fm-used { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; align-items: center; }
+.fm-legacy { margin: 12px 0 0; }
+.fm-table-wrap { overflow-x: auto; }
+.fm-fields { width: 100%; border-collapse: collapse; font-size: 13px; }
+.fm-fields th { text-align: left; color: #5f7787; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; padding: 0 6px 6px; white-space: nowrap; }
+.fm-fields td { padding: 4px 6px; border-top: 1px solid #edf2f4; vertical-align: middle; }
+.fm-fields td .fx-search, .fm-fields td .fx-select { width: 100%; min-width: 110px; max-width: 100%; }
+.fm-fields .fm-c { text-align: center; width: 70px; }
+.fm-add-field { margin-top: 12px; }
 .fm-blank { display: grid; justify-items: center; gap: 6px; padding: 48px 18px; color: #5f7787; text-align: center; }
 .fm-blank .fa { font-size: 28px; color: #9fbfc4; }
 @media (max-width: 1200px) { .fm-panes { grid-template-columns: minmax(0, 1fr); } .fm-preview { position: static; } }
