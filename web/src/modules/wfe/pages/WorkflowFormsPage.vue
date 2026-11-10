@@ -561,6 +561,12 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* the page buttons stay on the right of the title on every workflow page, however long the description */
+#fxForms .fx-head { flex-wrap: nowrap; }
+#fxForms .fx-head > div:first-child { flex: 1 1 auto; min-width: 0; }
+#fxForms .fx-head .fx-actions { flex: none; }
+@media (max-width: 900px) { #fxForms .fx-head { flex-wrap: wrap; } }
+
 /* the layout canvas */
 .fm-canvas { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px 10px; padding: 12px; border: 1px dashed #c9dadf; border-radius: 12px; background: repeating-linear-gradient(0deg, #f7fbfb 0 23px, #eef5f6 23px 24px); min-height: 80px; }
 .fm-canvas.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
