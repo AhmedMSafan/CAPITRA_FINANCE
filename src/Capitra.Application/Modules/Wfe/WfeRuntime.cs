@@ -202,7 +202,7 @@ public sealed class WfeRuntime(
             AddHistory(instance.WorkflowInstanceId, "TASK_COMPLETED", step.ElementId, action, user, late);
             await db.SaveChangesAsync(cancellationToken);
 
-            var next = BpmnModel.Next(xml, step.ElementId, action);
+            var next = await NextAsync(instance.WorkflowInstanceId, xml, step.ElementId, action, user, cancellationToken);
             if (next is null)
                 await CompleteInstanceAsync(instance, user, cancellationToken);
             else
@@ -327,7 +327,7 @@ public sealed class WfeRuntime(
             step.CompletedBy = user;
             await db.SaveChangesAsync(cancellationToken);
 
-            var next = BpmnModel.Next(xml, element.Id, outcome);
+            var next = await NextAsync(instance.WorkflowInstanceId, xml, element.Id, outcome, user, cancellationToken);
             if (next is null)
             {
                 await CompleteInstanceAsync(instance, user, cancellationToken);
@@ -341,6 +341,26 @@ public sealed class WfeRuntime(
         instance.ErrorMessage = "Automatic BPMN traversal exceeded 100 steps.";
         await db.SaveChangesAsync(cancellationToken);
         throw new BusinessRuleException(instance.ErrorMessage);
+    }
+
+    /// <summary>
+    /// The next element, chosen by the action and by the rules on the instance's data fields; a path chosen by its conditions
+    /// is written to the history, so it is clear why the request went that way.
+    /// </summary>
+    private async Task<BpmnElement?> NextAsync(long workflowInstanceId, string xml, string elementId, string? outcome, string user, CancellationToken cancellationToken)
+    {
+        var values = await db.Set<WfeInstanceVariable>().AsNoTracking()
+            .Where(x => x.WorkflowInstanceId == workflowInstanceId)
+            .Select(x => new { x.VariableName, x.VariableValue })
+            .ToListAsync(cancellationToken);
+        var data = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var v in values)
+            data[v.VariableName] = v.VariableValue;
+        var (next, flow) = BpmnModel.Next(xml, elementId, outcome, data);
+        if (flow is { Rules.Count: > 0 })
+            AddHistory(workflowInstanceId, "PATH_CHOSEN", flow.Id, outcome, user,
+                $"To {flow.TargetName}: " + string.Join(" and ", flow.Rules.Select(r => $"{r.Text} ({(data.TryGetValue(r.Field, out var a) && !string.IsNullOrEmpty(a) ? a : "empty")})")));
+        return next;
     }
 
     private async Task CompleteInstanceAsync(WfeWorkflowInstance instance, string user, CancellationToken cancellationToken)

@@ -44,7 +44,8 @@ const finovaWorkflowModdle = {
       name: 'FlowMetadata',
       extends: ['bpmn:SequenceFlow'],
       properties: [
-        { name: 'outcome', isAttr: true, type: 'String' }
+        { name: 'outcome', isAttr: true, type: 'String' },
+        { name: 'conditions', isAttr: true, type: 'String' }
       ]
     }
   ]
