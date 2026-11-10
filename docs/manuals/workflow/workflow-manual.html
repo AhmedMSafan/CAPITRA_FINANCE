@@ -212,7 +212,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">User manual · Workflow</div>
       <h1>Workflows, tasks and forms</h1>
       <p class="lede">How work moves through Capitra: who gets each task, how to work it, how to build and change a workflow, and how forms, data fields, versions and out of office fit together. Written for everyone who works tasks, and for the workflow administrators who design them.</p>
-      <div class="meta"><span><b>Version</b>1.1</span><span><b>Date</b>10 November 2026</span><span><b>Covers</b>My Inbox · Designer · Workflow types · Versions · Data fields · Document Designer · Data sources · Start a request · My requests · Out of office</span></div>
+      <div class="meta"><span><b>Version</b>1.2</span><span><b>Date</b>10 November 2026</span><span><b>Covers</b>My Inbox · Designer · Workflow types · Deadlines (SLA) and alerts · Versions · Data fields · Document Designer · Automatic values · Data sources · Start a request · My requests · Out of office</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -324,7 +324,20 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Document</td><td>System-built workflows only: the document people work on at this step (section 6). In a user-defined workflow every step shows the workflow's document.</td></tr>
       <tr><td>Route / Page</td><td>The business screen the task opens, with its parameters. Leave empty for a step worked on its form.</td></tr>
       <tr><td>Actions</td><td>The buttons that complete the task: APPROVE, REJECT, RETURN, COMPLETE… CLAIM is the claim button, not an outcome.</td></tr>
+      <tr><td>Deadline (SLA)</td><td>Optional: how long the task may take, a reminder before it is due, and what happens when it is overdue (below).</td></tr>
     </table></div>
+    <h3>Deadlines (SLA)</h3>
+    <p class="prose">A human step can have a time limit. Each task of the step is then <b>due</b> at a set time, and Capitra watches it every minute: it reminds the person who has it, tells them when it is overdue, and can escalate it. Set it in the step's <b>Deadline (SLA)</b> section; the sentence at the bottom says in plain words what will happen.</p>
+    <div class="tbl"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td>Time limit and unit</td><td>How long after the task is created it is due: <b>Hours</b>, <b>Days</b>, or <b>Working days</b>. Working days skip Friday, Saturday and the holidays in the Treasury calendar, and keep the time of day.</td></tr>
+      <tr><td>Remind the assignee</td><td>Hours before the due time. The person (or everyone in the role) gets a <b>Due soon</b> alert, and the task shows <b>Due soon</b>.</td></tr>
+      <tr><td>When overdue</td><td><b>Alert the assignee only</b>: an <b>Overdue</b> alert at the due time.<br><b>Move the task (escalate)</b>: after the grace hours the task goes to the chosen user or role, unclaimed, and everyone involved is told.<br><b>Tell someone else</b>: after the grace hours the chosen user or role is told; the task stays where it is.</td></tr>
+      <tr><td>After (hours)</td><td>The grace period after the due time before escalating. 0 means at the due time.</td></tr>
+      <tr><td>To a Role / User</td><td>Who the overdue task is escalated to. Out of office applies: a user who is away is replaced by their delegate.</td></tr>
+    </table></div>
+    <figure><img src="img/17-step-deadline.jpg" alt="The Deadline (SLA) settings of a step" loading="lazy" style="max-width:420px"><figcaption><b>Figure 5.</b> Manager approval is due 2 working days after the request; a reminder 4 hours before; 4 hours after it is overdue it moves to admin.</figcaption></figure>
+    <div class="note warn"><span class="ic">Remember</span><p>A workflow is released only when its deadlines are complete: a time limit above 0, working days as a whole number, and a user or role when the task is escalated. A deadline applies to tasks created after the release; tasks already waiting keep theirs. A step without a time limit has no due date.</p></div>
     <h3>Arrows and outcomes</h3>
     <p class="prose">When a step has more than one arrow out, name each arrow after an outcome (APPROVE, REJECT). The task's outcome picks the arrow. With one arrow, any outcome follows it.</p>
     <h3>Saving and releasing</h3>
@@ -334,14 +347,14 @@ figcaption b{color:var(--teal-ink)}
   <section class="sec" id="en-4">
     <div class="sec-h"><span class="n">4</span><h2>Versions</h2></div>
     <p class="prose">Each time a released workflow is saved with changed steps or arrows, Capitra keeps the old one as a version and the change becomes the new current version. Instances already running stay on the version they started with, so a change never breaks work in progress. Moving boxes around (layout only) does not make a new version.</p>
-    <figure><img src="img/4-versions.jpg" alt="The versions list of a workflow" loading="lazy"><figcaption><b>Figure 5.</b> Versions: who released each one and when, how many instances run on it, and which is current.</figcaption></figure>
+    <figure><img src="img/4-versions.jpg" alt="The versions list of a workflow" loading="lazy"><figcaption><b>Figure 6.</b> Versions: who released each one and when, how many instances run on it, and which is current.</figcaption></figure>
     <ul class="b"><li><b>View</b> opens an old version read-only. A banner says so; <b>Back to current workflow</b> returns.</li><li>Save is off while you look at an old version.</li><li>The version number is set by Capitra and shown in the chip beside the code.</li></ul>
   </section>
 
   <section class="sec" id="en-5">
     <div class="sec-h"><span class="n">5</span><h2>Data fields</h2></div>
     <p class="prose">Data fields are the values each instance of a workflow carries: the amount, the client, the decision. Open them with <b>Data Fields</b> in the designer. Each field has a name (what screens and forms use, keep it once in use), a label, a type, whether it is required, a default and, for Choice, its choices.</p>
-    <figure><img src="img/5-data-fields.jpg" alt="The data fields editor" loading="lazy"><figcaption><b>Figure 6.</b> The data fields of the Expense claim workflow. <b>Apply</b>, then <b>Save Workflow</b>.</figcaption></figure>
+    <figure><img src="img/5-data-fields.jpg" alt="The data fields editor" loading="lazy"><figcaption><b>Figure 7.</b> The data fields of the Expense claim workflow. <b>Apply</b>, then <b>Save Workflow</b>.</figcaption></figure>
     <div class="tbl"><table>
       <tr><th>Type</th><th>Holds</th><th>Stored as</th></tr>
       <tr><td>Text</td><td>Any text</td><td>As typed</td></tr>
@@ -359,8 +372,8 @@ figcaption b{color:var(--teal-ink)}
     <div class="sec-h"><span class="n">6</span><h2>Documents and data sources</h2></div>
     <p class="prose">A <b>document</b> is a form you design once in the <b>Document Designer</b>: its own fields, which of them are required, and how it looks. It does not belong to any workflow. Workflows link it in the designer: a user-defined workflow on the whole workflow, a system-built workflow on a step (section 3).</p>
     <h3>Designing a document</h3>
-    <ol class="b"><li>Workspace → <b>Document Designer</b> → <b>New document</b>. Give it a name and a code, e.g. <code>VACATION_REQUEST</code>.</li><li>Under <b>Fields</b>, <b>Add field</b> for each value: its label (the name fills in by itself), its type, the choices of a Choice list, a default, and whether it is <b>Required</b>.</li><li>Each field appears under <b>Layout</b>. Click one to set its label on the form, its control, its data source (for a drop-down), its width on a 2-column document, help text, and <b>Read-only</b>. Add <b>Headings</b> and <b>Notes</b> between fields, and order them with the arrows.</li><li>The <b>Preview</b> shows the document as people will see it.</li><li><b>Create document</b>. <b>Used by</b> shows the workflows that link it.</li></ol>
-    <figure><img src="img/7-document-designer.jpg" alt="The Document Designer with the Vacation request document" loading="lazy"><figcaption><b>Figure 7.</b> The Document Designer: the document's fields at the top, the layout and the live preview below.</figcaption></figure>
+    <ol class="b"><li>Workspace → <b>Document Designer</b> → <b>New document</b>. Give it a name and a code, e.g. <code>VACATION_REQUEST</code>.</li><li>Under <b>Fields</b>, <b>Add field</b> for each value: its label (the name fills in by itself), its type, the choices of a Choice list, a default or an <b>automatic value</b> (below), and whether it is <b>Required</b>.</li><li>Each field appears as a box under <b>Layout</b>. Drag the boxes to arrange the document (below). Click a box to set its label on the form, its control, its data source (for a drop-down), its width, help text, and <b>Read-only</b>. Add <b>Headings</b> and <b>Notes</b> between fields.</li><li>The <b>Preview</b> shows the document as people will see it.</li><li><b>Create document</b>. <b>Used by</b> shows the workflows that link it.</li></ol>
+    <figure><img src="img/7-document-designer.jpg" alt="The Document Designer with the Vacation request document" loading="lazy"><figcaption><b>Figure 8.</b> The fields of the Vacation request document. Employee, Department and Request date are filled in automatically.</figcaption></figure>
     <div class="tbl"><table>
       <tr><th>Field type</th><th>Controls it can use</th><th>Stored as</th></tr>
       <tr><td>Text</td><td>Text box, text area, drop-down</td><td>As typed</td></tr>
@@ -371,47 +384,75 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Choice list</td><td>Drop-down (its own choices, or a data source)</td><td>The choice</td></tr>
       <tr><td>User</td><td>User picker</td><td>The user name</td></tr>
     </table></div>
+    <h3>Automatic values</h3>
+    <p class="prose">A field can take its value from the system instead of the user. Choose it in <b>Default or automatic value</b>, or type its token as the default. The value is taken <b>once</b>, when the person creates the document (sends the request, or first fills in a step's document), from their login. The field is read-only, the server sets it, and it never changes afterwards: approvers cannot change it, and later steps never fill it again.</p>
+    <div class="tbl"><table>
+      <tr><th>Token</th><th>Becomes</th><th>Field type</th></tr>
+      <tr><td><code>@UserName</code></td><td>The user name of the person creating the document</td><td>User or Text</td></tr>
+      <tr><td><code>@FullName</code></td><td>Their full name</td><td>Text</td></tr>
+      <tr><td><code>@Department</code></td><td>Their department (Administration → Users)</td><td>Text</td></tr>
+      <tr><td><code>@EmployeeNo</code></td><td>Their employee number</td><td>Text</td></tr>
+      <tr><td><code>@Today</code> (or <code>@TodayDate</code>)</td><td>Today's date (Cairo time)</td><td>Date or Text</td></tr>
+    </table></div>
+    <h3>Arranging the layout</h3>
+    <p class="prose">The <b>Layout</b> shows each field, heading and note as a box, in the shape of the document. Drag a box:</p>
+    <ul class="b"><li><b>Above or below</b> another box (an orange line shows where) to move it there on its own row.</li><li><b>Onto the left or right half</b> of another field to sit beside it. The document becomes two columns, the two fields share the row.</li><li>To the dashed area at the end to put it last.</li></ul>
+    <p class="prose">Or click a box and use the arrows in its settings: <b>up</b>, <b>down</b>, <b>left half</b>, <b>right half</b>, or <b>whole row</b>. The <b>Preview</b> follows every change.</p>
+    <figure><img src="img/18-layout-canvas.jpg" alt="The layout canvas with Reason dragged beside Request date, and the preview" loading="lazy"><figcaption><b>Figure 9.</b> Reason was dragged onto the right half of Request date. Its settings show the arrows and <b>Width: Right half</b>.</figcaption></figure>
     <h3>Data sources</h3>
     <p class="prose">Workspace → <b>Data Sources</b>. The lists a document's drop-downs offer. Three are built in and always current: <b>Users</b>, <b>Clients</b> and <b>Currencies</b>. Make your own for anything else: a code, a name and items, each with the value that is stored and the label people see.</p>
-    <figure><img src="img/8-data-sources.jpg" alt="The data sources page with a list being edited" loading="lazy"><figcaption><b>Figure 8.</b> A data source with its items. Switch an item off to stop offering it without losing it.</figcaption></figure>
+    <figure><img src="img/8-data-sources.jpg" alt="The data sources page with a list being edited" loading="lazy"><figcaption><b>Figure 10.</b> A data source with its items. Switch an item off to stop offering it without losing it.</figcaption></figure>
     <div class="note warn"><span class="ic">Remember</span><p>A document in use cannot be deleted, and its code cannot change; switch it off instead. A form made before documents shows <b>older form of</b> its workflow: open it and save it once to make it a document of its own; the workflow keeps using it.</p></div>
   </section>
 
   <section class="sec" id="en-7">
     <div class="sec-h"><span class="n">7</span><h2>Working your tasks</h2></div>
     <p class="prose"><b>My Inbox</b> lists the tasks you may work: those assigned to you, to one of your roles, the ones you claimed, and those of people you cover (section 9). Overdue tasks come first. Filter by All, Claimed by me, Unclaimed or Overdue, search, or pick a workflow.</p>
-    <figure><img src="img/10-inbox.jpg" alt="My Inbox with three tasks" loading="lazy"><figcaption><b>Figure 9.</b> My Inbox. Tick several unclaimed tasks and use <b>Claim selected</b> to claim them at once.</figcaption></figure>
+    <figure><img src="img/10-inbox.jpg" alt="My Inbox with three tasks" loading="lazy"><figcaption><b>Figure 11.</b> My Inbox. The SLA column shows each task's deadline. Tick several unclaimed tasks and use <b>Claim selected</b> to claim them at once.</figcaption></figure>
     <h3>The steps of a task</h3>
     <div class="steps">
       <div class="step"><span class="g">1</span><div><b>Claim.</b> The task becomes yours; others in the role no longer see it.</div><span class="pill warn">Claimed</span></div>
       <div class="step"><span class="g">2</span><div><b>Start work.</b> Opens the business screen, or opens the step's form for filling in. <b>Continue work</b> returns to the screen later.</div><span class="pill warn">In progress</span></div>
       <div class="step"><span class="g">3</span><div><b>Complete.</b> On the business screen, or with the action buttons under the form (Approve, Reject…). Add an optional comment.</div><span class="pill ok">Completed</span></div>
     </div>
-    <figure><img src="img/11-task-open.jpg" alt="A task page before it is claimed" loading="lazy"><figcaption><b>Figure 10.</b> The task page: workflow, customer, amount and reference, who has it, and the workflow data.</figcaption></figure>
+    <figure><img src="img/11-task-open.jpg" alt="A task page before it is claimed" loading="lazy"><figcaption><b>Figure 12.</b> The task page: workflow, customer, amount and reference, who has it, and the workflow data.</figcaption></figure>
     <h3>A step worked on its form</h3>
     <p class="prose">After <b>Start work</b> the form opens for filling in. Required fields carry an orange star. If one is empty, the task is not completed: the message says which field, and what you typed stays on the page. Rejecting or returning a task does not need the form filled in.</p>
-    <figure><img src="img/12-task-form.jpg" alt="The Expense review form on a task" loading="lazy"><figcaption><b>Figure 11.</b> The Expense review form: the claim read-only, the decision to fill in.</figcaption></figure>
+    <figure><img src="img/12-task-form.jpg" alt="The Expense review form on a task" loading="lazy"><figcaption><b>Figure 13.</b> The Expense review form: the claim read-only, the decision to fill in.</figcaption></figure>
     <h3>Approving a request</h3>
     <p class="prose">A task of a user-defined workflow shows the request as the requester sent it, marked <b>The request as sent: read-only</b>. Read it, add a comment, then <b>Approve</b> or <b>Reject</b>. The requester sees your decision and comment under My requests (section 8).</p>
-    <figure><img src="img/16-approver-request.jpg" alt="The approver's task with the vacation request read-only" loading="lazy"><figcaption><b>Figure 12.</b> Manager approval of a vacation request.</figcaption></figure>
+    <figure><img src="img/16-approver-request.jpg" alt="The approver's task with the vacation request read-only" loading="lazy"><figcaption><b>Figure 14.</b> Manager approval of a vacation request.</figcaption></figure>
+    <h3>Deadlines and alerts</h3>
+    <p class="prose">A task of a step with a deadline (section 3) shows it in the inbox's <b>SLA</b> column and beside <b>Due Date</b> on the task page:</p>
+    <div class="tbl"><table>
+      <tr><th>Shows</th><th>Means</th></tr>
+      <tr><td>A date, e.g. <code>12-NOV 11:36</code> / <b>On time</b></td><td>Due then; not yet in the reminder window.</td></tr>
+      <tr><td><b>Due soon</b></td><td>The step's reminder time has passed (two days before, for a due date without one).</td></tr>
+      <tr><td><b>Overdue 5h</b> / <b>Overdue 1d</b></td><td>Past its due time, by that long. Overdue tasks are listed first.</td></tr>
+      <tr><td><b>Escalated</b></td><td>It was overdue and moved to you. Hover it (or see the task page) for who had it before.</td></tr>
+      <tr><td><b>No due date</b></td><td>The step has no time limit.</td></tr>
+    </table></div>
+    <p class="prose">The <b>bell</b> in the top bar shows your deadline alerts and how many are unread: <b>Due soon</b>, <b>Overdue</b>, and <b>Escalated</b> (moved to you, or moved away from you). Click an alert to open its task, or <b>Mark all read</b>. Alerts are checked every minute.</p>
+    <figure><img src="img/19-deadline-alerts.jpg" alt="The bell open with deadline alerts" loading="lazy"><figcaption><b>Figure 15.</b> Deadline alerts: a task escalated to you, one due soon, and one overdue.</figcaption></figure>
+    <div class="note"><span class="ic">Tip</span><p>A task finished after its due time is still completed; its history notes that it was late. Reminders, overdue notices and escalations are in the instance history too.</p></div>
   </section>
 
   <section class="sec" id="en-8">
     <div class="sec-h"><span class="n">8</span><h2>Start a request</h2></div>
     <p class="prose">Anyone can send a request (a vacation, an expense claim…) with <b>Start a request</b> on Home, or Workspace → <b>Start a request</b>. The page lists the user-defined workflows only; system-built workflows are started by their modules.</p>
-    <figure><img src="img/15-home-request.jpg" alt="The Start a request button on Home" loading="lazy"><figcaption><b>Figure 13.</b> Start a request on Home, beside Open my inbox.</figcaption></figure>
-    <ol class="b"><li>Choose the request on the left.</li><li>Enter a business reference if you have one.</li><li>Fill in the document. Defaults are already there; required fields carry an orange star.</li><li><b>Send request</b>. The message says which step comes next and who has it.</li></ol>
+    <figure><img src="img/15-home-request.jpg" alt="The Start a request button on Home" loading="lazy"><figcaption><b>Figure 16.</b> Start a request on Home, beside Open my inbox.</figcaption></figure>
+    <ol class="b"><li>Choose the request on the left.</li><li>Enter a business reference if you have one.</li><li>Fill in the document. Defaults are already there, automatic values (your name, department, today) are filled in and locked; required fields carry an orange star.</li><li><b>Send request</b>. The message says which step comes next and who has it.</li></ol>
     <h3>My requests</h3>
     <p class="prose">Under the form, <b>My requests</b> lists what you sent, newest first: <b>In progress</b> with the step it is waiting at, or <b>Approved</b> / <b>Rejected</b> with who decided, when, and their comment.</p>
-    <figure><img src="img/9-start-a-request.jpg" alt="Start a request with the vacation request and My requests" loading="lazy"><figcaption><b>Figure 14.</b> A vacation request being filled in, and My requests below.</figcaption></figure>
+    <figure><img src="img/9-start-a-request.jpg" alt="Start a request with the vacation request and My requests" loading="lazy"><figcaption><b>Figure 17.</b> A vacation request: Employee, Department and Request date are filled in automatically for Mona; My requests below.</figcaption></figure>
   </section>
 
   <section class="sec" id="en-9">
     <div class="sec-h"><span class="n">9</span><h2>Out of office</h2></div>
     <p class="prose">Workspace → <b>Out of Office</b>, or the button on My Inbox. Choose who works your tasks, for all workflows or one, and the first and last day away. While the dates run:</p>
     <ul class="b"><li>New tasks meant for you go to your delegate.</li><li>Your delegate also sees the tasks already waiting for you and for your roles, with a <b>For &lt;you&gt;</b> tag, and a banner says whom they cover.</li><li>A task you had claimed shows <b>Take over</b>: the delegate claims it from you.</li><li>A rule for one workflow wins over the rule for all workflows. If your delegate is away too, the task passes to their delegate (up to five steps, never back to you).</li></ul>
-    <figure><img src="img/13-out-of-office.jpg" alt="The out of office page" loading="lazy"><figcaption><b>Figure 15.</b> Out of office: the form, and your entries with their state (Away now, Planned, Ended, Off).</figcaption></figure>
-    <figure><img src="img/14-delegate-inbox.jpg" alt="The delegate's inbox showing the covered user's tasks" loading="lazy"><figcaption><b>Figure 16.</b> The delegate's inbox: the banner, the <b>For admin</b> tags and <b>Take over</b>.</figcaption></figure>
+    <figure><img src="img/13-out-of-office.jpg" alt="The out of office page" loading="lazy"><figcaption><b>Figure 18.</b> Out of office: the form, and your entries with their state (Away now, Planned, Ended, Off).</figcaption></figure>
+    <figure><img src="img/14-delegate-inbox.jpg" alt="The delegate's inbox showing the covered user's tasks" loading="lazy"><figcaption><b>Figure 19.</b> The delegate's inbox: the banner, the <b>For admin</b> tags and <b>Take over</b>.</figcaption></figure>
     <div class="note"><span class="ic">Tip</span><p>Switch an entry <b>Off</b> to keep it for next time without using it. Workflow administrators can choose <b>Everyone</b> to see and set entries for other people.</p></div>
   </section>
 
@@ -432,6 +473,11 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>"…" is not a data field of this document.</td><td>Add the field under Fields first, or remove it from the layout.</td></tr>
       <tr><td>… is used at …</td><td>Take the document off those workflows or steps in the designer, or switch it off.</td></tr>
       <tr><td>… is already out of office … Change that entry instead.</td><td>Only one entry per person, workflow and dates. Change the existing one.</td></tr>
+      <tr><td>…: give the time limit, or clear the deadline settings.</td><td>A step has reminder or escalation settings but no time limit. Enter the time limit, or clear the others.</td></tr>
+      <tr><td>…: working days must be a whole number.</td><td>Use 1, 2, 3… working days, or switch the unit to Hours or Days.</td></tr>
+      <tr><td>…: choose the user or role the overdue task is escalated to.</td><td>Fill in To a Role / User, or set When overdue to Alert the assignee only.</td></tr>
+      <tr><td>"…": unknown automatic value "@…".</td><td>Use @UserName, @FullName, @Department, @EmployeeNo or @Today.</td></tr>
+      <tr><td>"…": today's date needs a Date field.</td><td>An automatic value must fit the field's type: change the type, or choose another value.</td></tr>
     </table></div>
   </section>
 
@@ -451,20 +497,24 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>Instance</td><td>Running · Waiting (at a task) · Completed</td></tr>
       <tr><td>Request (My requests)</td><td>In progress · Approved · Rejected · Completed</td></tr>
       <tr><td>Task</td><td>Open (not claimed) · Claimed · In progress · Completed</td></tr>
+      <tr><td>Task deadline</td><td>No due date · On time · Due soon · Overdue · Escalated</td></tr>
+      <tr><td>Alert</td><td>Due soon · Overdue · Escalated, each unread or read</td></tr>
       <tr><td>Out of office entry</td><td>Away now · Planned · Ended · Off</td></tr>
     </table></div>
     <h3>Glossary</h3>
     <div class="tbl"><table>
       <tr><th>Term</th><th>Meaning</th></tr>
       <tr><td>BPMN</td><td>The standard drawing language of the designer</td></tr>
+      <tr><td>Automatic value</td><td>A document field the system fills in once, from the person creating the document: @UserName, @FullName, @Department, @EmployeeNo, @Today</td></tr>
       <tr><td>Delegate</td><td>The person who works your tasks while you are out of office</td></tr>
-      <tr><td>History</td><td>The record of every step of an instance: started, entered, claimed, delegated, taken over, completed</td></tr>
+      <tr><td>Escalation</td><td>What happens to an overdue task after its grace period: moved to another user or role, or someone else told</td></tr>
+      <tr><td>History</td><td>The record of every step of an instance: started, entered, claimed, delegated, taken over, reminded, overdue, escalated, completed</td></tr>
       <tr><td>Route</td><td>The business screen a step opens</td></tr>
-      <tr><td>SLA</td><td>The target time to finish a task</td></tr>
+      <tr><td>SLA</td><td>A step's deadline: the time limit to finish its task, with reminder and escalation</td></tr>
       <tr><td>Take over</td><td>A delegate claiming a task the away person had claimed</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · Workflow User Manual · Version 1.1 · November 2026</p>
+  <p class="foot">CAPITRA · Workflow User Manual · Version 1.2 · November 2026</p>
   </main>
 </div>
 </div>
@@ -478,7 +528,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">دليل المستخدم · سير العمل</div>
       <h1>سير العمل والمهام والنماذج</h1>
       <p class="lede">كيف ينتقل العمل داخل كابيترا: من تصله كل مهمة، وكيف ينجزها، وكيف يُصمَّم سير العمل ويُعدَّل، وكيف تعمل النماذج وحقول البيانات والإصدارات والغياب عن العمل معًا. مكتوب لكل من ينجز المهام، ولمسؤولي سير العمل الذين يصممونها.</p>
-      <div class="meta"><span><b>الإصدار</b>١٫١</span><span><b>التاريخ</b>١٠ نوفمبر ٢٠٢٦</span><span><b>يغطي</b>صندوق المهام · المصمم · أنواع سير العمل · الإصدارات · حقول البيانات · مصمم المستندات · مصادر البيانات · تقديم طلب · طلباتي · الغياب عن العمل</span></div>
+      <div class="meta"><span><b>الإصدار</b>١٫٢</span><span><b>التاريخ</b>١٠ نوفمبر ٢٠٢٦</span><span><b>يغطي</b>صندوق المهام · المصمم · أنواع سير العمل · المهل الزمنية (SLA) والتنبيهات · الإصدارات · حقول البيانات · مصمم المستندات · القيم التلقائية · مصادر البيانات · تقديم طلب · طلباتي · الغياب عن العمل</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -590,7 +640,20 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>المستند</td><td>لمسارات العمل المبنية في النظام فقط: المستند الذي يُعمل عليه في هذه الخطوة (القسم ٦). في سير العمل المعرّف من المستخدم تعرض كل خطوة مستند سير العمل.</td></tr>
       <tr><td>المسار / الصفحة</td><td>شاشة العمل التي تفتحها المهمة ومعاملاتها. اتركه فارغًا لخطوة تُنجز على نموذجها.</td></tr>
       <tr><td>الإجراءات</td><td>الأزرار التي تُكمل المهمة: اعتماد، رفض، إرجاع، إكمال… أما الاستلام فهو زر الاستلام وليس نتيجة.</td></tr>
+      <tr><td>المهلة (SLA)</td><td>اختياري: المدة المسموح بها للمهمة، وتذكير قبل موعدها، وما يحدث عند تأخرها (أدناه).</td></tr>
     </table></div>
+    <h3>المهل الزمنية (SLA)</h3>
+    <p class="prose">يمكن أن يكون للخطوة البشرية حد زمني، فتصبح كل مهمة منها <b>مستحقة</b> في وقت محدد، ويراقبها النظام كل دقيقة: يذكّر من لديه المهمة، ويبلغه عند تأخرها، ويمكنه تصعيدها. اضبط ذلك في قسم <b>Deadline (SLA)</b> في إعدادات الخطوة؛ والجملة أسفل القسم تشرح ما سيحدث بكلمات بسيطة.</p>
+    <div class="tbl"><table>
+      <tr><th>الإعداد</th><th>ما يفعله</th></tr>
+      <tr><td>الحد الزمني ووحدته</td><td>بعد كم من إنشاء المهمة تستحق: <b>ساعات</b> أو <b>أيام</b> أو <b>أيام عمل</b>. أيام العمل تتخطى الجمعة والسبت والعطلات المسجلة في تقويم الخزينة، وتحتفظ بالساعة نفسها.</td></tr>
+      <tr><td>تذكير المكلّف</td><td>عدد الساعات قبل موعد الاستحقاق. يصل صاحب المهمة (أو كل أفراد الدور) تنبيه <b>تستحق قريبًا</b>، وتظهر المهمة بالحالة نفسها.</td></tr>
+      <tr><td>عند التأخر</td><td><b>تنبيه المكلّف فقط</b>: تنبيه <b>متأخرة</b> عند موعد الاستحقاق.<br><b>نقل المهمة (تصعيد)</b>: بعد ساعات السماح تنتقل المهمة إلى المستخدم أو الدور المحدد غير مستلمة، ويُبلَّغ كل المعنيين.<br><b>إبلاغ شخص آخر</b>: بعد ساعات السماح يُبلَّغ المستخدم أو الدور المحدد، وتبقى المهمة مكانها.</td></tr>
+      <tr><td>بعد (ساعات)</td><td>مهلة السماح بعد موعد الاستحقاق قبل التصعيد. صفر تعني عند الموعد نفسه.</td></tr>
+      <tr><td>إلى دور / مستخدم</td><td>من تُصعَّد إليه المهمة المتأخرة. يُطبَّق الغياب عن العمل: المستخدم الغائب يحل محله نائبه.</td></tr>
+    </table></div>
+    <figure><img src="img/17-step-deadline.jpg" alt="إعدادات المهلة الزمنية لخطوة" loading="lazy" style="max-width:420px"><figcaption><b>شكل ٥.</b> اعتماد المدير يستحق بعد يومي عمل من الطلب، مع تذكير قبله بأربع ساعات، وبعد تأخره بأربع ساعات ينتقل إلى admin.</figcaption></figure>
+    <div class="note warn"><span class="ic">تذكّر</span><p>لا يُنشر سير العمل إلا إذا اكتملت مهله: حد زمني أكبر من صفر، وأيام العمل عدد صحيح، ومستخدم أو دور عند التصعيد. المهلة تنطبق على المهام التي تُنشأ بعد النشر؛ والمهام المنتظرة تحتفظ بمهلتها. الخطوة بلا حد زمني ليس لمهامها موعد استحقاق.</p></div>
     <h3>الأسهم والنتائج</h3>
     <p class="prose">إذا خرج من الخطوة أكثر من سهم، فسمِّ كل سهم باسم نتيجة (APPROVE، REJECT)، ونتيجة المهمة تختار السهم. ومع سهم واحد تتبعه أي نتيجة.</p>
     <h3>الحفظ والنشر</h3>
@@ -600,14 +663,14 @@ figcaption b{color:var(--teal-ink)}
   <section class="sec" id="ar-4">
     <div class="sec-h"><span class="n">٤</span><h2>الإصدارات</h2></div>
     <p class="prose">في كل مرة يُحفظ فيها سير عمل منشور بخطوات أو أسهم متغيرة، يحتفظ كابيترا بالقديم كإصدار، ويصبح التعديل هو الإصدار الحالي. النسخ الجارية تبقى على الإصدار الذي بدأت به، فلا يكسر التعديل عملًا قائمًا. تحريك المربعات فقط (الشكل) لا ينشئ إصدارًا جديدًا.</p>
-    <figure><img src="img/4-versions.jpg" alt="قائمة إصدارات سير العمل" loading="lazy"><figcaption><b>شكل ٥.</b> الإصدارات: من نشر كل إصدار ومتى، وكم نسخة تعمل عليه، وأيها الحالي.</figcaption></figure>
+    <figure><img src="img/4-versions.jpg" alt="قائمة إصدارات سير العمل" loading="lazy"><figcaption><b>شكل ٦.</b> الإصدارات: من نشر كل إصدار ومتى، وكم نسخة تعمل عليه، وأيها الحالي.</figcaption></figure>
     <ul class="b"><li><b>عرض</b> يفتح إصدارًا قديمًا للقراءة فقط مع شريط يوضح ذلك، و<b>الرجوع إلى سير العمل الحالي</b> يعيدك.</li><li>الحفظ متوقف أثناء عرض إصدار قديم.</li><li>رقم الإصدار يحدده كابيترا ويظهر في الشارة بجوار الرمز.</li></ul>
   </section>
 
   <section class="sec" id="ar-5">
     <div class="sec-h"><span class="n">٥</span><h2>حقول البيانات</h2></div>
     <p class="prose">حقول البيانات هي القيم التي تحملها كل نسخة من سير العمل: المبلغ والعميل والقرار. افتحها من <b>حقول البيانات</b> في المصمم. لكل حقل اسم (تستخدمه الشاشات والنماذج، فلا تغيّره بعد الاستخدام)، وعنوان، ونوع، وهل هو إلزامي، وقيمة افتراضية، وخيارات لنوع الاختيار.</p>
-    <figure><img src="img/5-data-fields.jpg" alt="محرر حقول البيانات" loading="lazy"><figcaption><b>شكل ٦.</b> حقول بيانات سير عمل مطالبة المصروفات. <b>تطبيق</b> ثم <b>حفظ سير العمل</b>.</figcaption></figure>
+    <figure><img src="img/5-data-fields.jpg" alt="محرر حقول البيانات" loading="lazy"><figcaption><b>شكل ٧.</b> حقول بيانات سير عمل مطالبة المصروفات. <b>تطبيق</b> ثم <b>حفظ سير العمل</b>.</figcaption></figure>
     <div class="tbl"><table>
       <tr><th>النوع</th><th>يحمل</th><th>يُخزَّن بصيغة</th></tr>
       <tr><td>نص</td><td>أي نص</td><td>كما كُتب</td></tr>
@@ -625,8 +688,8 @@ figcaption b{color:var(--teal-ink)}
     <div class="sec-h"><span class="n">٦</span><h2>المستندات ومصادر البيانات</h2></div>
     <p class="prose"><b>المستند</b> نموذج تصممه مرة واحدة في <b>مصمم المستندات</b>: حقوله الخاصة، وأيها إلزامي، وشكله. لا ينتمي المستند إلى سير عمل بعينه، بل تربطه مسارات العمل في المصمم: سير العمل المعرّف من المستخدم على مستوى سير العمل كله، والمبني في النظام على خطوة (القسم ٣).</p>
     <h3>تصميم مستند</h3>
-    <ol class="b"><li>مساحة العمل ← <b>مصمم المستندات</b> ← <b>مستند جديد</b>. أعطه اسمًا ورمزًا، مثل <code>VACATION_REQUEST</code>.</li><li>تحت <b>الحقول</b> اضغط <b>إضافة حقل</b> لكل قيمة: عنوانها (يُملأ الاسم تلقائيًا)، ونوعها، وخيارات قائمة الاختيار، وقيمة افتراضية، وهل هو <b>إلزامي</b>.</li><li>يظهر كل حقل تحت <b>التخطيط</b>. اضغط عليه لضبط عنوانه في المستند وأداته ومصدر بياناته (للقائمة المنسدلة) وعرضه في مستند من عمودين ونص المساعدة و<b>للقراءة فقط</b>. أضف <b>عناوين</b> و<b>ملاحظات</b> بين الحقول ورتّبها بالأسهم.</li><li><b>المعاينة</b> تعرض المستند كما سيراه المستخدمون.</li><li><b>إنشاء المستند</b>. خانة <b>مستخدم في</b> تعرض مسارات العمل التي تربطه.</li></ol>
-    <figure><img src="img/7-document-designer.jpg" alt="مصمم المستندات مع مستند طلب إجازة" loading="lazy"><figcaption><b>شكل ٧.</b> مصمم المستندات: حقول المستند في الأعلى، والتخطيط والمعاينة المباشرة أسفلها.</figcaption></figure>
+    <ol class="b"><li>مساحة العمل ← <b>مصمم المستندات</b> ← <b>مستند جديد</b>. أعطه اسمًا ورمزًا، مثل <code>VACATION_REQUEST</code>.</li><li>تحت <b>الحقول</b> اضغط <b>إضافة حقل</b> لكل قيمة: عنوانها (يُملأ الاسم تلقائيًا)، ونوعها، وخيارات قائمة الاختيار، وقيمة افتراضية أو <b>قيمة تلقائية</b> (أدناه)، وهل هو <b>إلزامي</b>.</li><li>يظهر كل حقل كمربع تحت <b>التخطيط</b>. اسحب المربعات لترتيب المستند (أدناه). اضغط المربع لضبط عنوانه في المستند وأداته ومصدر بياناته (للقائمة المنسدلة) وعرضه ونص المساعدة و<b>للقراءة فقط</b>. أضف <b>عناوين</b> و<b>ملاحظات</b> بين الحقول.</li><li><b>المعاينة</b> تعرض المستند كما سيراه المستخدمون.</li><li><b>إنشاء المستند</b>. خانة <b>مستخدم في</b> تعرض مسارات العمل التي تربطه.</li></ol>
+    <figure><img src="img/7-document-designer.jpg" alt="مصمم المستندات مع مستند طلب إجازة" loading="lazy"><figcaption><b>شكل ٨.</b> حقول مستند طلب الإجازة. الموظف والإدارة وتاريخ الطلب تُملأ تلقائيًا.</figcaption></figure>
     <div class="tbl"><table>
       <tr><th>نوع الحقل</th><th>الأدوات المتاحة له</th><th>يُخزَّن بصيغة</th></tr>
       <tr><td>نص</td><td>مربع نص، منطقة نص، قائمة منسدلة</td><td>كما كُتب</td></tr>
@@ -637,47 +700,75 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>قائمة اختيار</td><td>قائمة منسدلة (بخياراتها أو من مصدر بيانات)</td><td>الخيار</td></tr>
       <tr><td>مستخدم</td><td>منتقي المستخدم</td><td>اسم المستخدم</td></tr>
     </table></div>
+    <h3>القيم التلقائية</h3>
+    <p class="prose">يمكن أن يأخذ الحقل قيمته من النظام بدلًا من المستخدم. اخترها في <b>Default or automatic value</b>، أو اكتب رمزها كقيمة افتراضية. تؤخذ القيمة <b>مرة واحدة</b> عند إنشاء المستند (إرسال الطلب، أو أول تعبئة لمستند الخطوة) من بيانات دخول المستخدم. الحقل للقراءة فقط، والخادم هو من يضبطه، ولا يتغير بعد ذلك أبدًا: لا يستطيع المعتمدون تغييره، ولا تعيد الخطوات اللاحقة تعبئته.</p>
+    <div class="tbl"><table>
+      <tr><th>الرمز</th><th>يصبح</th><th>نوع الحقل</th></tr>
+      <tr><td><code>@UserName</code></td><td>اسم المستخدم لمن ينشئ المستند</td><td>مستخدم أو نص</td></tr>
+      <tr><td><code>@FullName</code></td><td>اسمه الكامل</td><td>نص</td></tr>
+      <tr><td><code>@Department</code></td><td>إدارته (الإدارة ← المستخدمون)</td><td>نص</td></tr>
+      <tr><td><code>@EmployeeNo</code></td><td>رقمه الوظيفي</td><td>نص</td></tr>
+      <tr><td><code>@Today</code> (أو <code>@TodayDate</code>)</td><td>تاريخ اليوم (بتوقيت القاهرة)</td><td>تاريخ أو نص</td></tr>
+    </table></div>
+    <h3>ترتيب التخطيط</h3>
+    <p class="prose">يعرض <b>التخطيط</b> كل حقل وعنوان وملاحظة كمربع، بشكل المستند نفسه. اسحب المربع:</p>
+    <ul class="b"><li><b>فوق أو تحت</b> مربع آخر (يظهر خط برتقالي مكانه) لنقله إلى سطر مستقل هناك.</li><li><b>إلى النصف الأيسر أو الأيمن</b> من حقل آخر ليكون بجانبه. يصبح المستند من عمودين ويتشارك الحقلان السطر.</li><li>إلى المنطقة المنقطة في النهاية ليكون الأخير.</li></ul>
+    <p class="prose">أو اضغط المربع واستخدم الأسهم في إعداداته: <b>أعلى</b>، <b>أسفل</b>، <b>النصف الأيسر</b>، <b>النصف الأيمن</b>، أو <b>السطر كاملًا</b>. <b>المعاينة</b> تتبع كل تغيير.</p>
+    <figure><img src="img/18-layout-canvas.jpg" alt="لوحة التخطيط والمعاينة" loading="lazy"><figcaption><b>شكل ٩.</b> سُحب حقل السبب إلى النصف الأيمن من تاريخ الطلب. إعداداته تعرض الأسهم و<b>Width: Right half</b>.</figcaption></figure>
     <h3>مصادر البيانات</h3>
     <p class="prose">مساحة العمل ← <b>مصادر البيانات</b>: القوائم التي تعرضها القوائم المنسدلة في المستندات. ثلاثة منها مدمجة ومحدّثة دائمًا: <b>المستخدمون</b> و<b>العملاء</b> و<b>العملات</b>. وأنشئ قائمتك لأي شيء آخر: رمز واسم وعناصر، لكل عنصر قيمة تُخزَّن وعنوان يراه المستخدم.</p>
-    <figure><img src="img/8-data-sources.jpg" alt="صفحة مصادر البيانات" loading="lazy"><figcaption><b>شكل ٨.</b> مصدر بيانات وعناصره. أوقف عنصرًا لتتوقف عن عرضه دون حذفه.</figcaption></figure>
+    <figure><img src="img/8-data-sources.jpg" alt="صفحة مصادر البيانات" loading="lazy"><figcaption><b>شكل ١٠.</b> مصدر بيانات وعناصره. أوقف عنصرًا لتتوقف عن عرضه دون حذفه.</figcaption></figure>
     <div class="note warn"><span class="ic">تذكّر</span><p>لا يمكن حذف مستند مستخدم ولا تغيير رمزه؛ أوقفه بدلًا من ذلك. النموذج المنشأ قبل المستندات يظهر عليه <b>older form of</b> مع اسم سير عمله: افتحه واحفظه مرة واحدة ليصبح مستندًا مستقلًا، ويستمر سير العمل في استخدامه.</p></div>
   </section>
 
   <section class="sec" id="ar-7">
     <div class="sec-h"><span class="n">٧</span><h2>إنجاز مهامك</h2></div>
     <p class="prose"><b>صندوق مهامي</b> يعرض المهام التي يمكنك إنجازها: المسندة إليك أو إلى أحد أدوارك، وما استلمته، ومهام من تنوب عنهم (القسم ٩). المتأخرة أولًا. صفِّ حسب الكل أو المستلمة مني أو غير المستلمة أو المتأخرة، أو ابحث، أو اختر سير عمل.</p>
-    <figure><img src="img/10-inbox.jpg" alt="صندوق مهامي" loading="lazy"><figcaption><b>شكل ٩.</b> صندوق مهامي. حدد عدة مهام غير مستلمة واستخدم <b>استلام المحدد</b> لاستلامها مرة واحدة.</figcaption></figure>
+    <figure><img src="img/10-inbox.jpg" alt="صندوق مهامي" loading="lazy"><figcaption><b>شكل ١١.</b> صندوق مهامي. عمود SLA يعرض مهلة كل مهمة. حدد عدة مهام غير مستلمة واستخدم <b>استلام المحدد</b> لاستلامها مرة واحدة.</figcaption></figure>
     <h3>مراحل المهمة</h3>
     <div class="steps">
       <div class="step"><span class="g">١</span><div><b>الاستلام.</b> تصبح المهمة لك ولا يراها باقي أفراد الدور.</div><span class="pill warn">مستلمة</span></div>
       <div class="step"><span class="g">٢</span><div><b>بدء العمل.</b> يفتح شاشة العمل، أو يفتح نموذج الخطوة للتعبئة. <b>متابعة العمل</b> يعيدك إلى الشاشة لاحقًا.</div><span class="pill warn">قيد التنفيذ</span></div>
       <div class="step"><span class="g">٣</span><div><b>الإكمال.</b> من شاشة العمل، أو بأزرار الإجراءات أسفل النموذج (اعتماد، رفض…)، مع تعليق اختياري.</div><span class="pill ok">مكتملة</span></div>
     </div>
-    <figure><img src="img/11-task-open.jpg" alt="صفحة مهمة قبل استلامها" loading="lazy"><figcaption><b>شكل ١٠.</b> صفحة المهمة: سير العمل والعميل والمبلغ والمرجع، ومن لديه المهمة، وبيانات سير العمل.</figcaption></figure>
+    <figure><img src="img/11-task-open.jpg" alt="صفحة مهمة قبل استلامها" loading="lazy"><figcaption><b>شكل ١٢.</b> صفحة المهمة: سير العمل والعميل والمبلغ والمرجع، ومن لديه المهمة، وبيانات سير العمل.</figcaption></figure>
     <h3>خطوة تُنجز على نموذجها</h3>
     <p class="prose">بعد <b>بدء العمل</b> يُفتح النموذج للتعبئة. الحقول الإلزامية عليها نجمة برتقالية، وإذا كان أحدها فارغًا لا تكتمل المهمة: الرسالة تحدد الحقل، ويبقى ما كتبته في الصفحة. رفض المهمة أو إرجاعها لا يحتاج إلى تعبئة النموذج.</p>
-    <figure><img src="img/12-task-form.jpg" alt="نموذج مراجعة المصروفات على مهمة" loading="lazy"><figcaption><b>شكل ١١.</b> نموذج مراجعة المصروفات: المطالبة للقراءة فقط، والقرار للتعبئة.</figcaption></figure>
+    <figure><img src="img/12-task-form.jpg" alt="نموذج مراجعة المصروفات على مهمة" loading="lazy"><figcaption><b>شكل ١٣.</b> نموذج مراجعة المصروفات: المطالبة للقراءة فقط، والقرار للتعبئة.</figcaption></figure>
     <h3>اعتماد طلب</h3>
     <p class="prose">مهمة سير العمل المعرّف من المستخدم تعرض الطلب كما أرسله مقدمه، وعليه <b>The request as sent: read-only</b>. اقرأه وأضف تعليقًا ثم <b>اعتماد</b> أو <b>رفض</b>. يرى مقدم الطلب قرارك وتعليقك في طلباتي (القسم ٨).</p>
-    <figure><img src="img/16-approver-request.jpg" alt="مهمة المعتمد وطلب الإجازة للقراءة فقط" loading="lazy"><figcaption><b>شكل ١٢.</b> اعتماد المدير لطلب إجازة.</figcaption></figure>
+    <figure><img src="img/16-approver-request.jpg" alt="مهمة المعتمد وطلب الإجازة للقراءة فقط" loading="lazy"><figcaption><b>شكل ١٤.</b> اعتماد المدير لطلب إجازة.</figcaption></figure>
+    <h3>المهل والتنبيهات</h3>
+    <p class="prose">مهمة الخطوة التي لها مهلة (القسم ٣) تعرضها في عمود <b>SLA</b> في صندوق المهام وبجوار <b>Due Date</b> في صفحة المهمة:</p>
+    <div class="tbl"><table>
+      <tr><th>يظهر</th><th>المعنى</th></tr>
+      <tr><td>تاريخ، مثل <code>12-NOV 11:36</code> / <b>On time</b></td><td>تستحق حينها، ولم تدخل فترة التذكير بعد.</td></tr>
+      <tr><td><b>تستحق قريبًا</b></td><td>مضى وقت التذكير المحدد للخطوة (قبل يومين إن لم يُحدد).</td></tr>
+      <tr><td><b>متأخرة 5h</b> / <b>متأخرة 1d</b></td><td>تجاوزت موعدها بهذه المدة. المتأخرة تظهر أولًا.</td></tr>
+      <tr><td><b>تم التصعيد</b></td><td>تأخرت فنُقلت إليك. مرّر المؤشر عليها (أو انظر صفحة المهمة) لمعرفة من كانت لديه.</td></tr>
+      <tr><td><b>بدون موعد</b></td><td>الخطوة بلا حد زمني.</td></tr>
+    </table></div>
+    <p class="prose"><b>الجرس</b> في الشريط العلوي يعرض تنبيهات المهل وعدد غير المقروء منها: <b>تستحق قريبًا</b> و<b>متأخرة</b> و<b>تم التصعيد</b> (نُقلت إليك، أو نُقلت منك). اضغط التنبيه لفتح مهمته، أو <b>تعليم الكل كمقروء</b>. تُفحص التنبيهات كل دقيقة.</p>
+    <figure><img src="img/19-deadline-alerts.jpg" alt="الجرس مفتوحًا بتنبيهات المهل" loading="lazy"><figcaption><b>شكل ١٥.</b> تنبيهات المهل: مهمة صُعّدت إليك، وأخرى تستحق قريبًا، وثالثة متأخرة.</figcaption></figure>
+    <div class="note"><span class="ic">نصيحة</span><p>المهمة المنجزة بعد موعدها تكتمل عاديًا، ويسجل تاريخها أنها تأخرت. التذكيرات وإشعارات التأخير والتصعيد موجودة أيضًا في سجل النسخة.</p></div>
   </section>
 
   <section class="sec" id="ar-8">
     <div class="sec-h"><span class="n">٨</span><h2>تقديم طلب</h2></div>
     <p class="prose">يمكن لأي مستخدم إرسال طلب (إجازة، مطالبة مصروفات…) بزر <b>تقديم طلب</b> في الصفحة الرئيسية، أو مساحة العمل ← <b>تقديم طلب</b>. تعرض الصفحة مسارات العمل المعرّفة من المستخدم فقط؛ أما المبنية في النظام فتبدؤها وحداتها.</p>
-    <figure><img src="img/15-home-request.jpg" alt="زر تقديم طلب في الصفحة الرئيسية" loading="lazy"><figcaption><b>شكل ١٣.</b> زر تقديم طلب في الصفحة الرئيسية بجوار فتح صندوق مهامي.</figcaption></figure>
-    <ol class="b"><li>اختر الطلب من القائمة.</li><li>أدخل مرجع العمل إن وُجد.</li><li>املأ المستند؛ القيم الافتراضية موجودة مسبقًا، والحقول الإلزامية عليها نجمة برتقالية.</li><li><b>إرسال الطلب</b>. الرسالة تحدد الخطوة التالية ومن لديه المهمة.</li></ol>
+    <figure><img src="img/15-home-request.jpg" alt="زر تقديم طلب في الصفحة الرئيسية" loading="lazy"><figcaption><b>شكل ١٦.</b> زر تقديم طلب في الصفحة الرئيسية بجوار فتح صندوق مهامي.</figcaption></figure>
+    <ol class="b"><li>اختر الطلب من القائمة.</li><li>أدخل مرجع العمل إن وُجد.</li><li>املأ المستند؛ القيم الافتراضية موجودة مسبقًا، والقيم التلقائية (اسمك وإدارتك وتاريخ اليوم) مملوءة ومقفلة، والحقول الإلزامية عليها نجمة برتقالية.</li><li><b>إرسال الطلب</b>. الرسالة تحدد الخطوة التالية ومن لديه المهمة.</li></ol>
     <h3>طلباتي</h3>
     <p class="prose">أسفل النموذج تعرض <b>طلباتي</b> ما أرسلته، الأحدث أولًا: <b>قيد التنفيذ</b> مع الخطوة التي ينتظر عندها، أو <b>معتمد</b> / <b>مرفوض</b> مع من قرر ومتى وتعليقه.</p>
-    <figure><img src="img/9-start-a-request.jpg" alt="تقديم طلب إجازة وقائمة طلباتي" loading="lazy"><figcaption><b>شكل ١٤.</b> تعبئة طلب إجازة، وطلباتي أسفلها.</figcaption></figure>
+    <figure><img src="img/9-start-a-request.jpg" alt="تقديم طلب إجازة وقائمة طلباتي" loading="lazy"><figcaption><b>شكل ١٧.</b> طلب إجازة: الموظف والإدارة وتاريخ الطلب مملوءة تلقائيًا لمنى، وطلباتي أسفلها.</figcaption></figure>
   </section>
 
   <section class="sec" id="ar-9">
     <div class="sec-h"><span class="n">٩</span><h2>الغياب عن العمل</h2></div>
     <p class="prose">مساحة العمل ← <b>الغياب عن العمل</b>، أو الزر في صندوق المهام. اختر من ينجز مهامك، لكل مسارات العمل أو لواحد منها، وأول وآخر يوم غياب. أثناء هذه الفترة:</p>
     <ul class="b"><li>المهام الجديدة الموجهة إليك تذهب إلى من ينوب عنك.</li><li>يرى من ينوب عنك أيضًا المهام المنتظرة لك ولأدوارك، عليها وسم <b>نيابة عن…</b>، وشريط يوضح عمّن ينوب.</li><li>المهمة التي كنت قد استلمتها يظهر عليها <b>تولّي المهمة</b> فيستلمها النائب منك.</li><li>قاعدة سير العمل الواحد تسبق قاعدة كل مسارات العمل. وإذا كان النائب غائبًا أيضًا تنتقل المهمة إلى نائبه (حتى خمس خطوات، ولا تعود إليك).</li></ul>
-    <figure><img src="img/13-out-of-office.jpg" alt="صفحة الغياب عن العمل" loading="lazy"><figcaption><b>شكل ١٥.</b> الغياب عن العمل: النموذج وسجلاتك بحالتها (غائب الآن، مخطط، انتهى، موقوف).</figcaption></figure>
-    <figure><img src="img/14-delegate-inbox.jpg" alt="صندوق مهام النائب" loading="lazy"><figcaption><b>شكل ١٦.</b> صندوق مهام النائب: الشريط ووسوم <b>For admin</b> وزر <b>Take over</b>.</figcaption></figure>
+    <figure><img src="img/13-out-of-office.jpg" alt="صفحة الغياب عن العمل" loading="lazy"><figcaption><b>شكل ١٨.</b> الغياب عن العمل: النموذج وسجلاتك بحالتها (غائب الآن، مخطط، انتهى، موقوف).</figcaption></figure>
+    <figure><img src="img/14-delegate-inbox.jpg" alt="صندوق مهام النائب" loading="lazy"><figcaption><b>شكل ١٩.</b> صندوق مهام النائب: الشريط ووسوم <b>For admin</b> وزر <b>Take over</b>.</figcaption></figure>
     <div class="note"><span class="ic">نصيحة</span><p>أوقف السجل لتحتفظ به للمرة القادمة دون استخدامه. ويمكن لمسؤولي سير العمل اختيار <b>الجميع</b> لرؤية سجلات غيرهم وتسجيلها.</p></div>
   </section>
 
@@ -698,6 +789,11 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>"…" is not a data field of this document.</td><td>أضف الحقل تحت الحقول أولًا، أو احذفه من التخطيط.</td></tr>
       <tr><td>… is used at …</td><td>أزل المستند من تلك المسارات أو الخطوات في المصمم، أو أوقفه.</td></tr>
       <tr><td>… is already out of office … Change that entry instead.</td><td>سجل واحد فقط لكل شخص وسير عمل وفترة. عدّل السجل الموجود.</td></tr>
+      <tr><td>…: give the time limit, or clear the deadline settings.</td><td>للخطوة إعدادات تذكير أو تصعيد بلا حد زمني. أدخل الحد الزمني أو امسح الباقي.</td></tr>
+      <tr><td>…: working days must be a whole number.</td><td>استخدم ١ أو ٢ أو ٣… أيام عمل، أو غيّر الوحدة إلى ساعات أو أيام.</td></tr>
+      <tr><td>…: choose the user or role the overdue task is escalated to.</td><td>املأ إلى دور / مستخدم، أو اجعل عند التأخر: تنبيه المكلّف فقط.</td></tr>
+      <tr><td>"…": unknown automatic value "@…".</td><td>استخدم @UserName أو @FullName أو @Department أو @EmployeeNo أو @Today.</td></tr>
+      <tr><td>"…": today's date needs a Date field.</td><td>القيمة التلقائية يجب أن تناسب نوع الحقل: غيّر النوع أو اختر قيمة أخرى.</td></tr>
     </table></div>
   </section>
 
@@ -717,20 +813,24 @@ figcaption b{color:var(--teal-ink)}
       <tr><td>النسخة الجارية</td><td>قيد التشغيل · بانتظار مهمة · مكتملة</td></tr>
       <tr><td>الطلب (طلباتي)</td><td>قيد التنفيذ · معتمد · مرفوض · مكتمل</td></tr>
       <tr><td>المهمة</td><td>مفتوحة (غير مستلمة) · مستلمة · قيد التنفيذ · مكتملة</td></tr>
+      <tr><td>مهلة المهمة</td><td>بدون موعد · في الموعد · تستحق قريبًا · متأخرة · تم التصعيد</td></tr>
+      <tr><td>التنبيه</td><td>تستحق قريبًا · متأخرة · تم التصعيد، مقروء أو غير مقروء</td></tr>
       <tr><td>سجل الغياب</td><td>غائب الآن · مخطط · انتهى · موقوف</td></tr>
     </table></div>
     <h3>المصطلحات</h3>
     <div class="tbl"><table>
       <tr><th>المصطلح</th><th>المعنى</th></tr>
       <tr><td>BPMN</td><td>لغة الرسم القياسية للمصمم</td></tr>
+      <tr><td>القيمة التلقائية</td><td>حقل في المستند يملؤه النظام مرة واحدة من بيانات منشئ المستند: @UserName، @FullName، @Department، @EmployeeNo، @Today</td></tr>
       <tr><td>النائب</td><td>الشخص الذي ينجز مهامك أثناء غيابك</td></tr>
-      <tr><td>السجل</td><td>تاريخ كل خطوة في النسخة: البدء، الدخول، الاستلام، الإنابة، التولي، الإكمال</td></tr>
+      <tr><td>التصعيد</td><td>ما يحدث للمهمة المتأخرة بعد مهلة السماح: تُنقل إلى مستخدم أو دور آخر، أو يُبلَّغ شخص آخر</td></tr>
+      <tr><td>السجل</td><td>تاريخ كل خطوة في النسخة: البدء، الدخول، الاستلام، الإنابة، التولي، التذكير، التأخر، التصعيد، الإكمال</td></tr>
       <tr><td>المسار</td><td>شاشة العمل التي تفتحها الخطوة</td></tr>
-      <tr><td>SLA</td><td>الوقت المستهدف لإنجاز المهمة</td></tr>
+      <tr><td>SLA</td><td>مهلة الخطوة: الحد الزمني لإنجاز مهمتها، مع التذكير والتصعيد</td></tr>
       <tr><td>تولّي المهمة</td><td>استلام النائب لمهمة كان الغائب قد استلمها</td></tr>
     </table></div>
   </section>
-  <p class="foot">CAPITRA · دليل مستخدم سير العمل · الإصدار ١٫١ · نوفمبر ٢٠٢٦</p>
+  <p class="foot">CAPITRA · دليل مستخدم سير العمل · الإصدار ١٫٢ · نوفمبر ٢٠٢٦</p>
   </main>
 </div>
 </div>
