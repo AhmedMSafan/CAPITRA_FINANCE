@@ -88,7 +88,7 @@
               <thead>
                 <tr>
                   <th>{{ tr('Label') }}</th><th>{{ tr('Name') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Choices') }}</th>
-                  <th>{{ tr('Default') }}</th><th class="fm-c">{{ tr('Required') }}</th><th></th>
+                  <th>{{ tr('Default or automatic value') }}</th><th class="fm-c">{{ tr('Required') }}</th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -105,7 +105,16 @@
                            @change="f.choices = ($event.target as HTMLInputElement).value.split(',').map((x) => x.trim()).filter(Boolean)">
                     <span v-else class="fx-cell-sub">-</span>
                   </td>
-                  <td><input v-model="f.defaultValue" class="fx-search" :disabled="!canEdit"></td>
+                  <td>
+                    <div class="fm-auto">
+                      <select v-model="f.auto" class="fx-select" :disabled="!canEdit" :aria-label="tr('Default or automatic value')" @change="f.auto && (f.defaultValue = null)">
+                        <option :value="null">{{ tr('Typed value') }}</option>
+                        <option v-for="a in autoValues.filter((x) => x.types.includes(f.type))" :key="a.value" :value="a.value">{{ tr(a.label) }}</option>
+                      </select>
+                      <input v-if="!f.auto" v-model="f.defaultValue" class="fx-search" :placeholder="tr('optional')" :disabled="!canEdit">
+                      <span v-else class="fm-auto-tag"><span class="pi pi-lock" aria-hidden="true"></span> {{ tr('Read-only, filled in for the user') }}</span>
+                    </div>
+                  </td>
                   <td class="fm-c"><input v-model="f.required" type="checkbox" class="fx-check" :disabled="!canEdit" :aria-label="tr('Required')"></td>
                   <td><button v-if="canEdit" type="button" class="fm-tool" :aria-label="tr('Remove')" @click="removeField(i)"><span class="fa fa-trash-o" aria-hidden="true"></span></button></td>
                 </tr>
@@ -244,7 +253,7 @@ import { useRoute } from 'vue-router'
 import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'
 import WorkflowFormView from '../components/WorkflowFormView.vue'
-import {
+import { autoValues,
   apiErrorText, controlName, controlsFor, dataSourceApi, defaultControl, fieldTypes, formApi,
   type DataField, type DataSource, type DocumentField, type FormControl, type FormControlView, type FormView, type Option, type WorkflowForm
 } from '../services/formService'
@@ -323,7 +332,7 @@ const preview = computed<FormView>(() => ({
     const control = c.control ?? defaultControl(f.type)
     const source = control === 'user' ? 'USERS' : control === 'dropdown' ? c.dataSource : null
     const opts = source ? options.value[source] ?? [] : control === 'dropdown' ? f.choices.map((x) => ({ value: x, label: x })) : []
-    return [{ kind: 'field', field: f.name, label: c.label || f.caption, control, fieldType: f.type, required: !c.readOnly && (c.required || f.required), readOnly: c.readOnly, help: c.help || f.description, width: c.width ?? 'full', value: null, options: opts }]
+    return [{ kind: 'field', field: f.name, label: c.label || f.caption, control, fieldType: f.type, required: !c.readOnly && !f.auto && (c.required || f.required), readOnly: c.readOnly || !!f.auto, help: c.help || f.description || (f.auto ? tr('Filled in automatically') : null), width: c.width ?? 'full', value: null, options: opts }]
   })
 }))
 
@@ -352,7 +361,7 @@ function open(f: WorkflowForm) {
   Object.assign(edit, {
     id: f.formId, formCode: f.formCode, formName: f.formName, description: f.description ?? '',
     isActive: f.isActive, columns: f.layout.columns === 2 ? 2 : 1, controls: f.layout.controls.map((c) => ({ ...c, width: c.width ?? 'full' })),
-    fields: f.fields.map((x) => ({ name: x.name, label: x.label, type: x.type, required: x.required, defaultValue: x.defaultValue, choices: [...x.choices], description: x.description })),
+    fields: f.fields.map((x) => ({ name: x.name, label: x.label, type: x.type, required: x.required, defaultValue: x.defaultValue, choices: [...x.choices], description: x.description, auto: x.auto ?? null })),
     rowVersion: f.rowVersion
   })
   usedAt.value = f.usedAt
@@ -393,6 +402,8 @@ function renameField(i: number) {
 }
 function typeChanged(f: DocumentField) {
   if (f.type !== 'Choice') f.choices = []
+  // an automatic value that does not fit the new type is dropped
+  if (f.auto && !autoValues.find((a) => a.value === f.auto)?.types.includes(f.type)) f.auto = null
   const c = edit.controls.find((x) => x.kind === 'field' && x.field?.toLowerCase() === f.name.trim().toLowerCase())
   if (c && !controlsFor(f.type).includes(c.control ?? 'text')) { c.control = defaultControl(f.type); c.dataSource = null }
 }
@@ -468,6 +479,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.fm-auto { display: grid; gap: 4px; min-width: 190px; }
+.fm-auto-tag { font-size: 11.5px; color: #00636D; }
+
 .wf-msg { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 11px 14px; border-radius: 10px; font-size: 13.5px; background: #e4f6ee; border: 1px solid #bfe5d2; color: #0e5a3c; }
 .wf-msg.is-bad { background: #fdecea; border-color: #f3c3bc; color: #8a2416; }
 .wf-msg > span:nth-child(2) { flex: 1; }

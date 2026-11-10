@@ -538,7 +538,7 @@ export const AR: Record<string, string> = {
   'Overdue tasks are listed first. Select unclaimed tasks to claim several at once.': 'تظهر المهام المتأخرة أولاً. حدد المهام غير المستلمة لاستلام عدة مهام دفعة واحدة.',
   Refresh: 'تحديث', 'Claim selected': 'استلام المحدد', All: 'الكل', 'Claimed by me': 'مستلمة بواسطتي', Unclaimed: 'غير مستلمة', Overdue: 'متأخرة',
   Task: 'المهمة', Step: 'الخطوة', Value: 'القيمة', SLA: 'مستوى الخدمة', Assignee: 'المسؤول', Claim: 'استلام', Open: 'فتح',
-  'Due soon': 'تستحق قريباً', 'Escalated': 'تم التصعيد', 'Escalated from': 'صُعدت من', 'No due date': 'بدون موعد', 'No tasks match these filters.': 'لا توجد مهام مطابقة.',
+  'Due soon': 'تستحق قريباً', 'Default or automatic value': 'القيمة الافتراضية أو التلقائية', 'Typed value': 'قيمة مكتوبة', 'optional': 'اختياري', 'Read-only, filled in for the user': 'للقراءة فقط، تُملأ تلقائياً', 'Filled in automatically': 'تُملأ تلقائياً', 'Current user (user name)': 'المستخدم الحالي (اسم المستخدم)', 'Current user full name': 'الاسم الكامل للمستخدم الحالي', 'Current user department': 'إدارة المستخدم الحالي', 'Current user employee no.': 'رقم موظف المستخدم الحالي', "Today's date": 'تاريخ اليوم', 'Escalated': 'تم التصعيد', 'Escalated from': 'صُعدت من', 'No due date': 'بدون موعد', 'No tasks match these filters.': 'لا توجد مهام مطابقة.',
   // added: the inbox texts outside the t() pairs
   'Search task, portfolio or developer': 'ابحث بالمهمة أو المحفظة أو المطور', 'All workflows': 'كل مسارات العمل',
 

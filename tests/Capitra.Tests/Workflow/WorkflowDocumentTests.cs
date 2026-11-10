@@ -32,7 +32,7 @@ public sealed class WorkflowDocumentTests
     private sealed class Directory : IUserDirectory
     {
         public Task<IReadOnlyList<DirectoryUser>> ActiveUsersAsync(CancellationToken ct) =>
-            Task.FromResult<IReadOnlyList<DirectoryUser>>([new("1", "ahmed", "Ahmed Safan", []), new("2", "mona", "Mona Hassan", [])]);
+            Task.FromResult<IReadOnlyList<DirectoryUser>>([new("1", "ahmed", "Ahmed Safan", [], "Credit", "E-1001"), new("2", "mona", "Mona Hassan", [])]);
     }
 
     private static readonly WfeDataField[] LeaveFields =
@@ -58,7 +58,7 @@ public sealed class WorkflowDocumentTests
             db.Add(new WfeWorkflowDefinition { WorkflowCode = code, WorkflowName = code, DefinitionStatus = "released", BpmnXml = xml, CreatedBy = "test" });
         db.SaveChanges();
         var runtime = new WfeRuntime(db, new Clock(), [], []);
-        var forms = new WfeForms(db, new User(), new WfeDataSources(db, new Directory()), runtime);
+        var forms = new WfeForms(db, new User(), new WfeDataSources(db, new Directory()), runtime, new Clock());
         return new Ctx(db, forms, new WfeInbox(db, new User(), runtime, new Clock(), new Directory(), forms), new WfeDefinitions(db, new User(), new Clock()));
     }
 
@@ -139,5 +139,38 @@ public sealed class WorkflowDocumentTests
         var draft = await c.Definitions.SaveAsync(null, Req(Xml("USER", null), "draft"), default);
         Assert.Equal("draft", draft.DefinitionStatus);
         await c.Definitions.SaveAsync(null, Req(Xml("SYSTEM", null), "released") with { WorkflowCode = "SYS" }, default);
+    }
+
+    [Fact]
+    public async Task Automatic_fields_take_the_signed_in_user_and_today_and_cannot_be_typed()
+    {
+        var c = Setup(("LEAVE", Xml("USER", "LEAVE_REQUEST")));
+        await using var _db = c.Db;
+        WfeDataField[] fields =
+        [
+            new("requester", "Requester", "User", false, null, [], null, "current_user"),
+            new("requesterName", "Name", "String", false, null, [], null, WfeDataFields.CurrentUserName),
+            new("department", "Department", "String", false, null, [], null, WfeDataFields.CurrentDepartment),
+            new("requestDate", "Request date", "Date", false, null, [], null, WfeDataFields.Today),
+            new("days", "Days", "Number", true, null, [], null),
+        ];
+
+        var bad = await Assert.ThrowsAsync<BusinessValidationException>(() => c.Forms.SaveAsync(null, Document("LEAVE_REQUEST",
+            [new("days", null, "Number", false, null, [], null, WfeDataFields.Today)]), default));
+        Assert.Contains("needs a Date field", string.Join(" ", bad.Errors["fields"]));
+
+        var saved = await c.Forms.SaveAsync(null, Document("LEAVE_REQUEST", fields, Field("requester"), Field("requesterName"), Field("department"), Field("requestDate"), Field("days")), default);
+        Assert.Equal(WfeDataFields.CurrentUser, saved.Fields[0].Auto);
+
+        var form = await c.Forms.StartFormAsync("LEAVE", default);
+        var requester = form.Controls.First(x => x.Field == "requester");
+        Assert.True(requester.ReadOnly);
+        Assert.Equal("ahmed", requester.Value);
+        Assert.Equal("2026-11-09", form.Controls.First(x => x.Field == "requestDate").Value);
+
+        // what the browser sends for an automatic field is ignored
+        var started = await c.Forms.StartAsync("LEAVE", new(null, new Dictionary<string, string?> { ["requester"] = "mona", ["days"] = "2" }), default);
+        var vars = await c.Db.Set<WfeInstanceVariable>().Where(x => x.WorkflowInstanceId == started.InstanceId).ToDictionaryAsync(x => x.VariableName, x => x.VariableValue);
+        Assert.Equal(("ahmed", "Ahmed Safan", "Credit", "2026-11-09"), (vars["requester"], vars["requesterName"], vars["department"], vars["requestDate"]));
     }
 }

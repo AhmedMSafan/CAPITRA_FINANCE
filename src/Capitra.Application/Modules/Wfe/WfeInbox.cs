@@ -230,7 +230,14 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         {
             var (form, fields, readOnly) = await StepFormAsync(await WithStepAsync(inboxId, cancellationToken), cancellationToken);
             if (form is not null && !readOnly && !IsSendBack(action))
+            {
                 variables = await forms.AcceptAsync(form, fields, request.Values, cancellationToken);
+                // automatic fields still empty get the user who works the step (or today)
+                var known = await db.Set<WfeInstanceVariable>().AsNoTracking().Where(x => x.WorkflowInstanceId == row.WorkflowInstanceId)
+                    .ToDictionaryAsync(x => x.VariableName, x => x.VariableValue, StringComparer.OrdinalIgnoreCase, cancellationToken);
+                foreach (var (name, value) in await forms.AutoValuesAsync(fields, known, cancellationToken))
+                    variables[name] = value;
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.Comment))

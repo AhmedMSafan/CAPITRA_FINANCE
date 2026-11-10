@@ -9,11 +9,11 @@ public sealed class UserDirectory(CapitraDbContext db) : IUserDirectory
     public async Task<IReadOnlyList<DirectoryUser>> ActiveUsersAsync(CancellationToken ct)
     {
         var users = await db.Users.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.UserName)
-            .Select(x => new { x.Id, x.UserName, x.FullName }).ToListAsync(ct);
+            .Select(x => new { x.Id, x.UserName, x.FullName, x.Department, x.EmployeeNo }).ToListAsync(ct);
         var roles = await (from ur in db.UserRoles.AsNoTracking()
                            join r in db.Roles.AsNoTracking() on ur.RoleId equals r.Id
                            select new { ur.UserId, r.Name }).ToListAsync(ct);
         var byUser = roles.GroupBy(x => x.UserId).ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(x => x.Name!).Where(n => n != null).ToList());
-        return users.Select(u => new DirectoryUser(u.Id, u.UserName ?? u.Id, u.FullName, byUser.TryGetValue(u.Id, out var r) ? r : [])).ToList();
+        return users.Select(u => new DirectoryUser(u.Id, u.UserName ?? u.Id, u.FullName, byUser.TryGetValue(u.Id, out var r) ? r : [], u.Department, u.EmployeeNo)).ToList();
     }
 }

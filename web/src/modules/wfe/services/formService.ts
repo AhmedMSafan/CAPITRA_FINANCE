@@ -56,7 +56,18 @@ export type DocumentField = {
   defaultValue: string | null
   choices: string[]
   description: string | null
+  /** Filled in by the system, read-only: CURRENT_USER, CURRENT_USER_NAME, CURRENT_DEPARTMENT, CURRENT_EMPLOYEE_NO or TODAY. */
+  auto?: string | null
 }
+
+/** The automatic values a document field can take, and the field types each fits. */
+export const autoValues = [
+  { value: 'CURRENT_USER', label: 'Current user (user name)', types: ['User', 'String'] },
+  { value: 'CURRENT_USER_NAME', label: 'Current user full name', types: ['String'] },
+  { value: 'CURRENT_DEPARTMENT', label: 'Current user department', types: ['String'] },
+  { value: 'CURRENT_EMPLOYEE_NO', label: 'Current user employee no.', types: ['String'] },
+  { value: 'TODAY', label: "Today's date", types: ['Date', 'String'] }
+]
 
 export type WorkflowType = 'SYSTEM' | 'USER'
 export type WorkflowTypeItem = { workflowDefinitionId: number; workflowCode: string; workflowName: string; type: WorkflowType; documentCode: string | null }
@@ -79,6 +90,7 @@ export type DataField = {
   defaultValue: string | null
   choices: string[]
   description: string | null
+  auto?: string | null
   caption: string
 }
 

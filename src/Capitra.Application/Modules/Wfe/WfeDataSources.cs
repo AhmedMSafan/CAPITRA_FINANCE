@@ -32,6 +32,11 @@ public sealed partial class WfeDataSources(ICapitraDbContext db, IUserDirectory 
 
     private const int MaxOptions = 2000;
 
+    /// <summary>One active user by user name (for a document's automatic values), or null.</summary>
+    public async Task<DirectoryUser?> UserAsync(string? userName, CancellationToken ct) =>
+        string.IsNullOrWhiteSpace(userName) ? null
+        : (await directory.ActiveUsersAsync(ct)).FirstOrDefault(u => string.Equals(u.UserName, userName, StringComparison.OrdinalIgnoreCase));
+
     private static readonly (string Code, string Name, string Description)[] BuiltIns =
     [
         (Users, "Users", "Active users of the application: the user name is stored, the full name is shown."),
