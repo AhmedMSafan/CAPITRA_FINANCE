@@ -181,4 +181,27 @@ public sealed class WorkflowDocumentTests
         var again = await c.Forms.AutoValuesAsync(saved.Fields, new Dictionary<string, string?> { ["requester"] = "ahmed", ["requesterName"] = null, ["department"] = null, ["requestDate"] = "2026-11-09", ["createdBy"] = "ahmed" }, default);
         Assert.Empty(again);
     }
+
+    [Fact]
+    public async Task Sections_can_have_a_frame_and_a_background_and_separators_divide_the_form()
+    {
+        var c = Setup(("LEAVE", Xml("USER", "LEAVE_REQUEST")));
+        await using var _db = c.Db;
+        WfeFormControl Heading(string text, bool frame, string? colour) => new("heading", null, text, null, null, false, false, null, "full", frame, colour);
+        var separator = new WfeFormControl("separator", null, null, null, null, false, false, null, "full");
+
+        var bad = await Assert.ThrowsAsync<BusinessValidationException>(() => c.Forms.SaveAsync(null,
+            Document("LEAVE_REQUEST", LeaveFields, Heading("Leave", true, "purple"), Field("leaveType")), default));
+        Assert.Contains("not one of the section colours", string.Join(" | ", bad.Errors["layout"]));
+
+        var saved = await c.Forms.SaveAsync(null, Document("LEAVE_REQUEST", LeaveFields,
+            Heading("Leave", true, "Teal"), Field("leaveType"), Field("fromDate"), separator, Field("days"),
+            Heading("Notes", false, null), Field("reason"), new WfeFormControl("note", null, "Plain text", null, null, false, false, null, "full", true, "teal")), default);
+        var layout = saved.Layout.Controls;
+        Assert.Equal((true, "teal"), (layout[0].Frame, layout[0].Background));
+        Assert.Equal(("separator", null), (layout[3].Kind, layout[3].Label));
+        Assert.Equal((false, null), (layout[5].Frame, layout[5].Background));
+        // only a heading carries section settings
+        Assert.Equal((false, null), (layout[7].Frame, layout[7].Background));
+    }
 }

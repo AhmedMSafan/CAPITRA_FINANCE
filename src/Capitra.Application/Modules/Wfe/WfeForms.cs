@@ -8,13 +8,21 @@ using Microsoft.EntityFrameworkCore;
 namespace Capitra.Application.Modules.Wfe;
 
 /// <summary>
-/// One control of a form, in the designer's order. Kind field shows a data field; heading and note are text between them.
+/// One control of a form, in the designer's order. Kind field shows a data field; heading and note are text between them;
+/// separator is a line across the form (with an optional caption).
 /// </summary>
+/// <param name="Frame">On a heading: its section (the heading and everything up to the next heading) is drawn in a frame.</param>
+/// <param name="Background">On a heading: the section's background colour (teal, orange, grey, green, yellow or sand).</param>
 /// <param name="Control">text, textarea, number, amount, date, yesno, dropdown or user.</param>
 /// <param name="DataSource">The drop-down's data source; a Choice field without one offers its own choices.</param>
 /// <param name="Width">full, half (beside the next half control), left or right (that half of its row) on a two-column form.</param>
 public sealed record WfeFormControl(
-    string Kind, string? Field, string? Label, string? Control, string? DataSource, bool Required, bool ReadOnly, string? Help, string? Width);
+    string Kind, string? Field, string? Label, string? Control, string? DataSource, bool Required, bool ReadOnly, string? Help, string? Width,
+    bool Frame = false, string? Background = null)
+{
+    /// <summary>The section colours a heading can give its section.</summary>
+    public static readonly string[] Backgrounds = ["teal", "orange", "grey", "green", "yellow", "sand"];
+}
 
 public sealed record WfeFormLayout(int Columns, IReadOnlyList<WfeFormControl> Controls);
 
@@ -43,7 +51,7 @@ public sealed record WfeFormViewDto(
 
 public sealed record WfeFormControlViewDto(
     string Kind, string? Field, string Label, string Control, string? FieldType, bool Required, bool ReadOnly, string? Help, string Width,
-    string? Value, IReadOnlyList<WfeOptionDto> Options);
+    string? Value, IReadOnlyList<WfeOptionDto> Options, bool Frame = false, string? Background = null);
 
 public sealed record WfeTaskFormDto(WfeFormViewDto? Form);
 
@@ -286,7 +294,17 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
             {
                 if (string.IsNullOrWhiteSpace(c.Label))
                     errors.Add($"Item {i}: write the {kind} text.");
-                controls.Add(new WfeFormControl(kind, null, c.Label?.Trim(), null, null, false, false, null, "full"));
+                var colour = c.Background?.Trim().ToLowerInvariant();
+                if (kind == "heading" && !string.IsNullOrEmpty(colour) && !WfeFormControl.Backgrounds.Contains(colour))
+                    errors.Add($"Item {i}: \"{c.Background}\" is not one of the section colours.");
+                controls.Add(new WfeFormControl(kind, null, c.Label?.Trim(), null, null, false, false, null, "full",
+                    kind == "heading" && c.Frame, kind == "heading" && colour is not null && WfeFormControl.Backgrounds.Contains(colour) ? colour : null));
+                continue;
+            }
+
+            if (kind == "separator")
+            {
+                controls.Add(new WfeFormControl(kind, null, string.IsNullOrWhiteSpace(c.Label) ? null : c.Label.Trim(), null, null, false, false, null, "full"));
                 continue;
             }
 
@@ -343,9 +361,9 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         var list = new List<WfeFormControlViewDto>();
         foreach (var c in layout.Controls)
         {
-            if (c.Kind is "heading" or "note")
+            if (c.Kind is "heading" or "note" or "separator")
             {
-                list.Add(new WfeFormControlViewDto(c.Kind, null, c.Label ?? string.Empty, c.Kind, null, false, true, null, "full", null, []));
+                list.Add(new WfeFormControlViewDto(c.Kind, null, c.Label ?? string.Empty, c.Kind, null, false, true, null, "full", null, [], c.Frame, c.Background));
                 continue;
             }
 

@@ -1,45 +1,50 @@
 <template>
   <!-- A workflow form (K2 SmartForm style): its controls over the workflow's data fields, filled in or shown read-only. -->
-  <div class="wff" :class="{ 'wff-two': view.columns === 2 }">
-    <template v-for="(c, i) in view.controls" :key="c.field || `${c.kind}-${i}`">
-      <h3 v-if="c.kind === 'heading'" class="wff-heading">{{ c.label }}</h3>
-      <p v-else-if="c.kind === 'note'" class="wff-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ c.label }}</p>
+  <div class="wff wff-grid" :class="{ 'wff-two': view.columns === 2 }">
+    <!-- each heading starts a section; a section can have a frame and a background colour -->
+    <div v-for="(g, gi) in sections" :key="gi" class="wff-sec" :class="sectionClass(g.head)">
+      <template v-for="(c, i) in g.items" :key="c.field || `${c.kind}-${gi}-${i}`">
+        <h3 v-if="c.kind === 'heading'" class="wff-heading">{{ c.label }}</h3>
+        <p v-else-if="c.kind === 'note'" class="wff-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ c.label }}</p>
+        <div v-else-if="c.kind === 'separator'" class="wff-sep" role="separator"><span v-if="c.label">{{ c.label }}</span></div>
 
-      <div v-else class="wff-item" :class="{ 'wff-half': c.width === 'half', 'wff-left': c.width === 'left', 'wff-right': c.width === 'right', 'has-error': !!errorOf(c) }">
-        <label :for="id(c)" class="wff-label">{{ c.label }}<span v-if="c.required && !c.readOnly" class="wff-req">*</span></label>
+        <div v-else class="wff-item" :class="{ 'wff-half': c.width === 'half', 'wff-left': c.width === 'left', 'wff-right': c.width === 'right', 'has-error': !!errorOf(c) }">
+          <label :for="id(c)" class="wff-label">{{ c.label }}<span v-if="c.required && !c.readOnly" class="wff-req">*</span></label>
 
-        <!-- read-only: the value as people read it -->
-        <div v-if="c.readOnly" :id="id(c)" class="wff-value" :class="{ empty: !show(c) }">{{ show(c) || '-' }}</div>
+          <!-- read-only: the value as people read it -->
+          <div v-if="c.readOnly" :id="id(c)" class="wff-value" :class="{ empty: !show(c) }">{{ show(c) || '-' }}</div>
 
-        <div v-else-if="c.control === 'yesno'" :id="id(c)" class="wff-yesno" role="radiogroup" :aria-label="c.label">
-          <button type="button" role="radio" :aria-checked="val(c) === 'true'" @click="set(c, val(c) === 'true' ? null : 'true')">Yes</button>
-          <button type="button" role="radio" :aria-checked="val(c) === 'false'" @click="set(c, val(c) === 'false' ? null : 'false')">No</button>
+          <div v-else-if="c.control === 'yesno'" :id="id(c)" class="wff-yesno" role="radiogroup" :aria-label="c.label">
+            <button type="button" role="radio" :aria-checked="val(c) === 'true'" @click="set(c, val(c) === 'true' ? null : 'true')">Yes</button>
+            <button type="button" role="radio" :aria-checked="val(c) === 'false'" @click="set(c, val(c) === 'false' ? null : 'false')">No</button>
+          </div>
+
+          <select v-else-if="c.control === 'dropdown' || c.control === 'user'" :id="id(c)" class="wff-input" :value="val(c) ?? ''"
+                  @change="set(c, ($event.target as HTMLSelectElement).value || null)">
+            <option value="">{{ c.control === 'user' ? 'Choose a person' : 'Choose…' }}</option>
+            <option v-for="o in c.options" :key="o.value" :value="o.value">{{ o.label }}</option>
+          </select>
+
+          <textarea v-else-if="c.control === 'textarea'" :id="id(c)" class="wff-input wff-area" rows="3" :value="val(c) ?? ''"
+                    @input="set(c, ($event.target as HTMLTextAreaElement).value)"></textarea>
+
+          <input v-else :id="id(c)" class="wff-input" :class="{ 'wff-num': c.control === 'number' || c.control === 'amount' }"
+                 :type="c.control === 'date' ? 'date' : 'text'"
+                 :inputmode="c.control === 'number' ? 'numeric' : c.control === 'amount' ? 'decimal' : undefined"
+                 :placeholder="c.control === 'amount' ? '0.00' : undefined"
+                 :value="val(c) ?? ''" @input="set(c, ($event.target as HTMLInputElement).value)">
+
+          <small v-if="errorOf(c)" class="wff-error"><span class="fa fa-exclamation-circle" aria-hidden="true"></span> {{ errorOf(c) }}</small>
+          <small v-else-if="c.help" class="wff-help">{{ c.help }}</small>
         </div>
-
-        <select v-else-if="c.control === 'dropdown' || c.control === 'user'" :id="id(c)" class="wff-input" :value="val(c) ?? ''"
-                @change="set(c, ($event.target as HTMLSelectElement).value || null)">
-          <option value="">{{ c.control === 'user' ? 'Choose a person' : 'Choose…' }}</option>
-          <option v-for="o in c.options" :key="o.value" :value="o.value">{{ o.label }}</option>
-        </select>
-
-        <textarea v-else-if="c.control === 'textarea'" :id="id(c)" class="wff-input wff-area" rows="3" :value="val(c) ?? ''"
-                  @input="set(c, ($event.target as HTMLTextAreaElement).value)"></textarea>
-
-        <input v-else :id="id(c)" class="wff-input" :class="{ 'wff-num': c.control === 'number' || c.control === 'amount' }"
-               :type="c.control === 'date' ? 'date' : 'text'"
-               :inputmode="c.control === 'number' ? 'numeric' : c.control === 'amount' ? 'decimal' : undefined"
-               :placeholder="c.control === 'amount' ? '0.00' : undefined"
-               :value="val(c) ?? ''" @input="set(c, ($event.target as HTMLInputElement).value)">
-
-        <small v-if="errorOf(c)" class="wff-error"><span class="fa fa-exclamation-circle" aria-hidden="true"></span> {{ errorOf(c) }}</small>
-        <small v-else-if="c.help" class="wff-help">{{ c.help }}</small>
-      </div>
-    </template>
+      </template>
+    </div>
     <p v-if="!view.controls.length" class="wff-empty">This form has no controls yet.</p>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { FormControlView, FormView } from '../services/formService'
 
 const props = defineProps<{
@@ -49,6 +54,20 @@ const props = defineProps<{
   idPrefix?: string
 }>()
 const emit = defineEmits<{ 'update:modelValue': [Record<string, string | null>] }>()
+
+/** The controls split into sections: each heading starts one, and the controls before the first heading are a plain one. */
+const sections = computed(() => {
+  const out: { head: FormControlView | null; items: FormControlView[] }[] = []
+  for (const c of props.view.controls) {
+    if (c.kind === 'heading' || !out.length) out.push({ head: c.kind === 'heading' ? c : null, items: [] })
+    out[out.length - 1]!.items.push(c)
+  }
+  return out
+})
+function sectionClass(h: FormControlView | null) {
+  const styled = !!h && (!!h.frame || !!h.background)
+  return { 'wff-sec--styled': styled, 'wff-grid': styled, 'wff-two': styled && props.view.columns === 2, 'wff-sec--framed': !!h?.frame, [`wff-bg-${h?.background}`]: !!h?.background }
+}
 
 function id(c: FormControlView) { return `${props.idPrefix ?? 'wff'}-${c.field}` }
 function val(c: FormControlView) { return c.field ? props.modelValue[c.field] ?? null : null }
@@ -76,12 +95,27 @@ function show(c: FormControlView) {
 </script>
 
 <style scoped>
-.wff { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px 18px; }
-.wff.wff-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.wff > * { grid-column: 1 / -1; min-width: 0; }
-.wff.wff-two > .wff-half { grid-column: auto; }
-.wff.wff-two > .wff-left { grid-column: 1; }
-.wff.wff-two > .wff-right { grid-column: 2; }
+.wff-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px 18px; }
+.wff-grid.wff-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* a plain section adds no box: its controls sit in the form's own grid */
+.wff-sec { display: contents; }
+.wff-grid > *, .wff-sec:not(.wff-sec--styled) > * { grid-column: 1 / -1; min-width: 0; }
+.wff-two > .wff-half, .wff-two > .wff-sec:not(.wff-sec--styled) > .wff-half { grid-column: auto; }
+.wff-two > .wff-left, .wff-two > .wff-sec:not(.wff-sec--styled) > .wff-left { grid-column: 1; }
+.wff-two > .wff-right, .wff-two > .wff-sec:not(.wff-sec--styled) > .wff-right { grid-column: 2; }
+.wff-sec.wff-sec--styled { display: grid; grid-column: 1 / -1; padding: 14px 16px 16px; border-radius: 12px; }
+.wff-sec--framed { border: 1px solid #c9d8de; box-shadow: 0 1px 2px rgba(18, 50, 74, .04); }
+.wff-sec--styled > .wff-heading { margin-top: 0; }
+.wff-bg-teal { background: #e3f1f2; }
+.wff-bg-orange { background: #fdeee2; }
+.wff-bg-grey { background: #f1f4f5; }
+.wff-bg-green { background: #e8f5ec; }
+.wff-bg-yellow { background: #fdf7dc; }
+.wff-bg-sand { background: #f6f0e6; }
+.wff-sec--styled:not(.wff-sec--framed) .wff-heading { border-bottom-color: rgba(0, 99, 109, .18); }
+.wff-sep { display: flex; align-items: center; gap: 10px; color: #5f7787; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.wff-sep::before, .wff-sep::after { content: ''; flex: 1; border-top: 1px solid #c9d8de; }
+.wff-sep:not(:has(span))::after { display: none; }
 .wff-heading { margin: 6px 0 -4px; padding-bottom: 6px; border-bottom: 1px solid #d9e6ea; color: #00636D; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .wff-note { display: flex; gap: 8px; margin: 0; padding: 9px 12px; border-radius: 8px; background: #f2f7f8; color: #3f5b6b; font-size: 12.5px; }
 .wff-note .fa { color: #00636D; margin-top: 2px; }
@@ -102,5 +136,5 @@ function show(c: FormControlView) {
 .wff-error { color: #b4520b; font-size: 11.5px; font-weight: 600; }
 .has-error .wff-input, .has-error .wff-yesno { border-color: #E87722; }
 .wff-empty { color: #5f7787; font-size: 13px; margin: 0; }
-@media (max-width: 700px) { .wff.wff-two { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) { .wff-grid.wff-two { grid-template-columns: minmax(0, 1fr); } .wff-two > .wff-left, .wff-two > .wff-right, .wff-two > .wff-sec > .wff-left, .wff-two > .wff-sec > .wff-right { grid-column: 1 / -1; } }
 </style>

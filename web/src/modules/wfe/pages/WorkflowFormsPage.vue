@@ -138,7 +138,8 @@
             <!-- the canvas: drag a control up, down, or onto the left or right half of another; the arrows do the same -->
             <div class="fm-canvas" :class="{ two: edit.columns === 2, dragging: dragFrom >= 0 }" @dragover.prevent>
               <div v-for="(c, i) in edit.controls" :key="i" class="fm-card"
-                   :class="['w-' + cardWidth(c), { sel: openIndex === i, ghost: dragFrom === i, ['drop-' + dropSide]: dropAt === i && dragFrom !== i }]"
+                   :class="['w-' + cardWidth(c), { sel: openIndex === i, ghost: dragFrom === i, ['drop-' + dropSide]: dropAt === i && dragFrom !== i, framed: c.kind === 'heading' && c.frame, sep: c.kind === 'separator' }]"
+                   :style="c.kind === 'heading' && c.background ? { background: swatchOf(c.background) } : undefined"
                    :draggable="canEdit" @dragstart="dragStart(i, $event)" @dragend="dragEnd"
                    @dragover.prevent="dragOver(i, $event)" @drop.prevent="dropOn(i)" @click="openIndex = openIndex === i ? -1 : i">
                 <span class="fm-card-grip fa fa-arrows" aria-hidden="true"></span>
@@ -211,10 +212,24 @@
                       <small>{{ tr('shown, not changed') }}</small></label>
                   </div>
                 </template>
-                <label v-else class="fm-field fm-full">
-                  <span>{{ c.kind === 'heading' ? tr('Heading text') : tr('Note text') }}</span>
-                  <input v-model="c.label" class="fx-search" :disabled="!canEdit">
-                </label>
+                <template v-else>
+                  <label class="fm-field fm-full">
+                    <span>{{ c.kind === 'heading' ? tr('Heading text') : c.kind === 'separator' ? tr('Caption on the line (optional)') : tr('Note text') }}</span>
+                    <input v-model="c.label" class="fx-search" :disabled="!canEdit">
+                  </label>
+                  <template v-if="c.kind === 'heading'">
+                    <p class="fm-hint fm-full">{{ tr('A heading starts a section: everything below it, up to the next heading.') }}</p>
+                    <label class="fm-check fm-full"><input v-model="c.frame" type="checkbox" class="fx-check" :disabled="!canEdit"> <span>{{ tr('Draw a frame around this section') }}</span></label>
+                    <div class="fm-field fm-full">
+                      <span>{{ tr('Section background') }}</span>
+                      <div class="fm-swatches" role="radiogroup" :aria-label="tr('Section background')">
+                        <button type="button" role="radio" class="fm-swatch none" :aria-checked="!c.background" :disabled="!canEdit" :title="tr('None')" @click="c.background = null"><span class="fa fa-ban" aria-hidden="true"></span></button>
+                        <button v-for="o in sectionColours" :key="o.value" type="button" role="radio" class="fm-swatch" :style="{ background: o.swatch }"
+                                :aria-checked="c.background === o.value" :disabled="!canEdit" :title="tr(o.label)" :aria-label="tr(o.label)" @click="c.background = o.value"></button>
+                      </div>
+                    </div>
+                  </template>
+                </template>
               </div>
             </div>
 
@@ -226,6 +241,8 @@
               <button v-if="unused.length > 1" type="button" class="fx-btn fx-btn--sm" @click="unused.forEach(addField)">{{ tr('All fields') }}</button>
               <button type="button" class="fx-btn fx-btn--sm" @click="addText('heading')"><span class="fa fa-header" aria-hidden="true"></span>{{ tr('Heading') }}</button>
               <button type="button" class="fx-btn fx-btn--sm" @click="addText('note')"><span class="fa fa-info" aria-hidden="true"></span>{{ tr('Note') }}</button>
+              <button type="button" class="fx-btn fx-btn--sm" @click="addText('separator')"><span class="fa fa-minus" aria-hidden="true"></span>{{ tr('Separator') }}</button>
+              <button type="button" class="fx-btn fx-btn--sm" @click="addSection"><span class="fa fa-square-o" aria-hidden="true"></span>{{ tr('Framed section') }}</button>
             </div>
           </div>
 
@@ -276,7 +293,7 @@ import { useRoute } from 'vue-router'
 import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'
 import WorkflowFormView from '../components/WorkflowFormView.vue'
-import { autoValues,
+import { autoValues, sectionColours,
   apiErrorText, controlName, controlsFor, dataSourceApi, defaultControl, fieldTypes, formApi,
   type DataField, type DataSource, type DocumentField, type FormControl, type FormControlView, type FormView, type Option, type WorkflowForm
 } from '../services/formService'
@@ -306,12 +323,13 @@ const unused = computed(() => fields.value.filter((f) => !edit.controls.some((c)
 
 function fieldOf(c: FormControl) { return fields.value.find((f) => f.name.toLowerCase() === (c.field ?? '').toLowerCase()) }
 function titleOf(c: FormControl) {
-  if (c.kind !== 'field') return c.label || (c.kind === 'heading' ? tr('Heading') : tr('Note'))
+  if (c.kind !== 'field') return c.label || (c.kind === 'heading' ? tr('Heading') : c.kind === 'separator' ? tr('Separator') : tr('Note'))
   return c.label || fieldOf(c)?.caption || c.field || ''
 }
 function subOf(c: FormControl) {
-  if (c.kind === 'heading') return tr('Heading')
+  if (c.kind === 'heading') return [tr('Heading'), c.frame ? tr('framed') : '', c.background ? tr(sectionColours.find((o) => o.value === c.background)?.label ?? '') : ''].filter(Boolean).join(' · ')
   if (c.kind === 'note') return tr('Note')
+  if (c.kind === 'separator') return tr('Separator')
   const f = fieldOf(c)
   if (!f) return tr('Not a field of this document any more')
   const bits = [tr(controlName(c.control ?? defaultControl(f.type)))]
@@ -323,6 +341,7 @@ function subOf(c: FormControl) {
 function iconOf(c: FormControl) {
   if (c.kind === 'heading') return 'fa-header'
   if (c.kind === 'note') return 'fa-info-circle'
+  if (c.kind === 'separator') return 'fa-minus'
   return ({ text: 'fa-font', textarea: 'fa-align-left', number: 'fa-hashtag', amount: 'fa-money', date: 'fa-calendar', yesno: 'fa-toggle-on', dropdown: 'fa-caret-square-o-down', user: 'fa-user' } as Record<string, string>)[c.control ?? 'text'] ?? 'fa-font'
 }
 
@@ -340,6 +359,8 @@ const problem = computed(() => {
   if (noChoices) return `${noChoices.label || noChoices.name}: ${tr('list its choices.')}`
   const bad = edit.controls.find((c) => c.kind === 'field' && c.control === 'dropdown' && !c.dataSource && !fieldOf(c)?.choices.length)
   if (bad) return `${titleOf(bad)}: ${tr('choose the data source of the drop-down.')}`
+  const blank = edit.controls.find((c) => (c.kind === 'heading' || c.kind === 'note') && !c.label?.trim())
+  if (blank) return blank.kind === 'heading' ? tr('Write the text of each heading.') : tr('Write the text of each note.')
   const lost = edit.controls.find((c) => c.kind === 'field' && !fieldOf(c))
   if (lost) return `${lost.field}: ${tr('not a field of this document any more. Remove it.')}`
   return ''
@@ -349,7 +370,7 @@ const problem = computed(() => {
 const preview = computed<FormView>(() => ({
   formCode: edit.formCode, formName: edit.formName, description: edit.description, columns: edit.columns, editable: true,
   controls: edit.controls.flatMap((c): FormControlView[] => {
-    if (c.kind !== 'field') return [{ kind: c.kind, field: null, label: c.label ?? '', control: c.kind, fieldType: null, required: false, readOnly: true, help: null, width: 'full', value: null, options: [] }]
+    if (c.kind !== 'field') return [{ kind: c.kind, field: null, label: c.label ?? '', control: c.kind, fieldType: null, required: false, readOnly: true, help: null, width: 'full', value: null, options: [], frame: c.kind === 'heading' && !!c.frame, background: c.kind === 'heading' ? c.background ?? null : null }]
     const f = fieldOf(c)
     if (!f) return []
     const control = c.control ?? defaultControl(f.type)
@@ -438,10 +459,16 @@ function removeField(i: number) {
   openIndex.value = -1
 }
 
-function addText(kind: 'heading' | 'note') {
+function addText(kind: 'heading' | 'note' | 'separator') {
   edit.controls.push({ kind, field: null, label: '', control: null, dataSource: null, required: false, readOnly: false, help: null, width: 'full' })
   openIndex.value = edit.controls.length - 1
 }
+/** A heading that starts a framed, tinted section (K2's panel); the fields dragged below it are inside the frame. */
+function addSection() {
+  edit.controls.push({ kind: 'heading', field: null, label: tr('New section'), control: null, dataSource: null, required: false, readOnly: false, help: null, width: 'full', frame: true, background: 'teal' })
+  openIndex.value = edit.controls.length - 1
+}
+function swatchOf(v: string) { return sectionColours.find((o) => o.value === v)?.swatch }
 function move(i: number, by: number) {
   const c = edit.controls.splice(i, 1)[0]
   if (c) edit.controls.splice(i + by, 0, c)
@@ -661,4 +688,11 @@ onMounted(async () => {
 .fm-blank .fa { font-size: 28px; color: #9fbfc4; }
 @media (max-width: 1200px) { .fm-panes { grid-template-columns: minmax(0, 1fr); } .fm-preview { position: static; } }
 @media (max-width: 900px) { .fm-grid { grid-template-columns: minmax(0, 1fr); } .fm-settings { grid-template-columns: minmax(0, 1fr); } .fm-control-body { grid-template-columns: minmax(0, 1fr); padding-left: 12px; } }
+.fm-card.framed { box-shadow: inset 0 0 0 2px #00636D; }
+.fm-card.sep .fm-card-text b { color: #5f7787; }
+.fm-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.fm-swatch { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #c9d8de; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.fm-swatch.none { background: #fff; color: #8aa0ad; }
+.fm-swatch[aria-checked=true] { outline: 2px solid #E87722; outline-offset: 2px; }
+.fm-swatch:disabled { cursor: default; opacity: .6; }
 </style>
