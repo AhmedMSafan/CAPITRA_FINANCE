@@ -128,6 +128,9 @@ public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUse
             var rules = WfeRules.Check(request.BpmnXml!, await WfeForms.AllFieldsAsync(db, request.BpmnXml!, cancellationToken));
             if (rules.Count > 0)
                 throw new BusinessValidationException(new Dictionary<string, string[]> { ["rules"] = [.. rules] });
+            var parallel = WfeParallel.Check(request.BpmnXml!);
+            if (parallel.Count > 0)
+                throw new BusinessValidationException(new Dictionary<string, string[]> { ["parallel"] = [.. parallel] });
         }
 
         if (await db.Set<WfeWorkflowDefinition>().AnyAsync(x => x.WorkflowCode == code && x.WorkflowDefinitionId != (id ?? 0), cancellationToken))

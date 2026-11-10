@@ -49,7 +49,11 @@ public sealed record WfeInboxItemDto(
     string? OnBehalfOf = null,
     DateTime? RemindAt = null,
     string? EscalatedFrom = null,
-    DateTime? EscalatedAt = null);
+    DateTime? EscalatedAt = null,
+    IReadOnlyList<WfeApproverDto>? Approvers = null);
+
+/// <summary>One approver of a parallel approval, with their answer so far (Status OPEN, CLAIMED, IN_PROGRESS, COMPLETED or CANCELLED).</summary>
+public sealed record WfeApproverDto(string? UserName, string Status, string? Outcome, DateTime? AnsweredAt);
 
 /// <summary>RoutingMode USER sends the next task to AssignedUserId instead of the workflow default (FINOVA's routing override).</summary>
 /// <param name="Values">The step form's values, for a step worked on its form.</param>
@@ -115,7 +119,12 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
             ?? throw new NotFoundException("Workflow inbox item not found.");
         if (!CanAccess(row))
             throw new BusinessRuleException("This task is not assigned to you.");
-        return (await WithEntityAsync([Map(row)], cancellationToken))[0];
+        var dto = (await WithEntityAsync([Map(row)], cancellationToken))[0];
+        // a parallel approval: everyone the step went to, and how they answered
+        var others = await db.Set<WfeInboxItem>().AsNoTracking().Where(x => x.StepInstanceId == row.StepInstanceId)
+            .OrderBy(x => x.InboxItemId).Select(x => new WfeApproverDto(x.AssignedTo ?? x.AssignedRole, x.InboxStatus, x.Outcome, x.CompletedAt))
+            .ToListAsync(cancellationToken);
+        return others.Count > 1 ? dto with { Approvers = others } : dto;
     }
 
     /// <summary>The workflow data of a task's instance: the fields its version declares, then the other values stored.</summary>

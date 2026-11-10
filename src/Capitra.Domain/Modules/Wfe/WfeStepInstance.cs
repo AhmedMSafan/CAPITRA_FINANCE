@@ -30,5 +30,6 @@ public class WfeStepInstance : AuditableEntity
 
     public WfeWorkflowInstance? Instance { get; set; }
 
-    public WfeTask? Task { get; set; }
+    /// <summary>The step's tasks: one, or one per approver on a parallel approval.</summary>
+    public ICollection<WfeTask> Tasks { get; set; } = [];
 }

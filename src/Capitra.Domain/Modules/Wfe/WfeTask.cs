@@ -9,7 +9,7 @@ public class WfeTask : AuditableEntity
 
     public long StepInstanceId { get; set; }
 
-    /// <summary>One of: OPEN, CLAIMED, IN_PROGRESS, COMPLETED.</summary>
+    /// <summary>One of: OPEN, CLAIMED, IN_PROGRESS, COMPLETED, or CANCELLED (a parallel approval was decided without it).</summary>
     public string TaskStatus { get; set; } = "OPEN";
 
     /// <summary>One of: User, Role.</summary>

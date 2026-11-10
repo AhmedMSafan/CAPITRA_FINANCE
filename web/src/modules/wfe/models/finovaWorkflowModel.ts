@@ -37,7 +37,9 @@ const finovaWorkflowModdle = {
         { name: 'slaEscalateHours', isAttr: true, type: 'String' },
         { name: 'slaEscalation', isAttr: true, type: 'String' },
         { name: 'slaEscalateType', isAttr: true, type: 'String' },
-        { name: 'slaEscalateTo', isAttr: true, type: 'String' }
+        { name: 'slaEscalateTo', isAttr: true, type: 'String' },
+        { name: 'parallelMode', isAttr: true, type: 'String' },
+        { name: 'parallelCount', isAttr: true, type: 'String' }
       ]
     },
     {

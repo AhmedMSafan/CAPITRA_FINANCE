@@ -170,3 +170,34 @@ public static class WfeRules
         return errors;
     }
 }
+
+/// <summary>Release checks for parallel approvals.</summary>
+public static class WfeParallel
+{
+    public static List<string> Check(string xml)
+    {
+        var errors = new List<string>();
+        foreach (var e in BpmnModel.Elements(xml).Where(x => x.IsHumanTask && x.Parallel is not null))
+        {
+            var name = e.Name ?? e.Id;
+            var p = e.Parallel!;
+            if (p.Mode == BpmnParallel.Number && p.Count < 1)
+                errors.Add($"{name}: give how many approvals are needed (1 or more).");
+            if (string.Equals(e.AssignmentType, "Role", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(e.Assignee))
+                    errors.Add($"{name}: choose the role whose members approve.");
+                continue;
+            }
+
+            var users = (e.Assignee ?? string.Empty).Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase).Count();
+            if (users < 2)
+                errors.Add($"{name}: a parallel approval needs at least two users, or a role.");
+            else if (p.Mode == BpmnParallel.Number && p.Count > users)
+                errors.Add($"{name}: it needs {p.Count} approvals but has only {users} approvers.");
+        }
+
+        return errors;
+    }
+}

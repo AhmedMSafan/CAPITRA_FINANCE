@@ -39467,8 +39467,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasName("PK_WFE_TASKS");
 
                     b.HasIndex("StepInstanceId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_WFE_TASKS_STEP_INSTANCE_ID");
+                        .HasDatabaseName("IX_WFE_TASKS_STEP_INSTANCE_ID");
 
                     b.HasIndex("TaskStatus")
                         .HasDatabaseName("IX_WFE_TASKS_TASK_STATUS");
@@ -45403,8 +45402,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeTask", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Wfe.WfeStepInstance", "StepInstance")
-                        .WithOne("Task")
-                        .HasForeignKey("Capitra.Domain.Modules.Wfe.WfeTask", "StepInstanceId")
+                        .WithMany("Tasks")
+                        .HasForeignKey("StepInstanceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_WFE_TASKS_WFE_STEP_INSTANCES");
@@ -45555,7 +45554,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeStepInstance", b =>
                 {
-                    b.Navigation("Task");
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeTask", b =>

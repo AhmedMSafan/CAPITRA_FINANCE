@@ -497,8 +497,35 @@
                 </div>
               </div>
 
-              <label class="field-label">Assignee / Role / Variable</label>
-              <input v-model="step.assignee" placeholder="e.g. CREDIT_MANAGER" />
+              <label class="field-label">{{ step.parallelMode && step.assignmentType==='User' ? 'Approvers (user names, separated by commas)' : 'Assignee / Role / Variable' }}</label>
+              <input v-model="step.assignee" :placeholder="step.parallelMode && step.assignmentType==='User' ? 'e.g. mona, omar, ahmed' : 'e.g. CREDIT_MANAGER'" />
+            </section>
+
+            <section v-if="step.stepType==='HumanTask'" class="property-section parallel-section">
+              <div class="section-title">
+                <span class="section-icon pi pi-users"></span>
+                <div>
+                  <strong>Parallel approval</strong>
+                  <small>Send the task to several people at the same time, and move on when enough of them approve.</small>
+                </div>
+              </div>
+
+              <label class="field-label">Who approves</label>
+              <select v-model="step.parallelMode">
+                <option value="">One person (the usual way)</option>
+                <option value="ALL">Everyone must approve</option>
+                <option value="ANY">Any one approval is enough</option>
+                <option value="COUNT">A number of approvals</option>
+              </select>
+
+              <template v-if="step.parallelMode">
+                <div v-if="step.parallelMode==='COUNT'">
+                  <label class="field-label">Approvals needed</label>
+                  <input v-model="step.parallelCount" type="number" min="1" step="1" placeholder="e.g. 2" />
+                </div>
+                <p v-if="step.assignmentType!=='User'&&step.assignmentType!=='Role'" class="rule-hint warn">Set Assignment Type to User (list the approvers) or Role (every member approves).</p>
+                <p v-else class="rule-hint">{{ parallelSummary(step) }}</p>
+              </template>
             </section>
 
             <section v-if="step.stepType==='HumanTask'" class="property-section sla-section">
@@ -852,7 +879,7 @@ import {apiErrorText,formApi,type WorkflowForm} from '../services/formService'
 import { openWorkflowManual } from '../utils/manual'
 
 type Var={name:string,type:string,required:boolean,label?:string,defaultValue?:string,choices?:string[],description?:string}; type Param={name:string,value:string};
-type Step={stepCode:string,stepName:string,ruleCode:string,formCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[],slaDuration:string,slaUnit:string,slaRemindHours:string,slaEscalateHours:string,slaEscalation:string,slaEscalateType:string,slaEscalateTo:string}
+type Step={stepCode:string,stepName:string,ruleCode:string,formCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[],slaDuration:string,slaUnit:string,slaRemindHours:string,slaEscalateHours:string,slaEscalation:string,slaEscalateType:string,slaEscalateTo:string,parallelMode:string,parallelCount:string}
 const route=useRoute(),router=useRouter(),canvas=ref<HTMLElement|null>(null),saving=ref(false),active=ref(true),selectedId=ref(''),selectedType=ref(''),message=ref(''),messageType=ref<'success'|'error'>('success'),showXml=ref(false),xmlPreview=ref(''),customAction=ref(''),flowOutcome=ref(''),customFlowOutcome=ref(''),selectedFlowSource=ref(''),selectedFlowTarget=ref(''),leftPanelOpen=ref(false),rightPanelOpen=ref(false),zoomPercent=ref(100)
 type FlowRule={field:string,op:string,value:string}
 const flowRules=ref<FlowRule[]>([])
@@ -868,7 +895,7 @@ const wfType=ref<'SYSTEM'|'USER'>('SYSTEM'),wfDocument=ref('')
 function loadForms(){(form.dgrmId?formApi.ofWorkflow(form.dgrmId):formApi.list().then(x=>x.filter(f=>f.isDocument))).then(x=>documents.value=x).catch(()=>documents.value=[])}
 function openDocument(code:string){const f=documents.value.find(x=>x.formCode===code);router.push({name:'workflow-forms',query:f?{form:String(f.formId)}:{new:'1'}})}
 const actionCatalog=ref(['CLAIM','ACCEPT','APPROVE','REJECT','RETURN','COMPLETE'])
-function emptyStep():Step{return{stepCode:'',stepName:'',ruleCode:'',formCode:'',stepType:'HumanTask',assignmentType:'Role',assignee:'',route:'',routeParameters:[],actions:['CLAIM','COMPLETE'],slaDuration:'',slaUnit:'HOURS',slaRemindHours:'',slaEscalateHours:'',slaEscalation:'NONE',slaEscalateType:'Role',slaEscalateTo:''}}
+function emptyStep():Step{return{stepCode:'',stepName:'',ruleCode:'',formCode:'',stepType:'HumanTask',assignmentType:'Role',assignee:'',route:'',routeParameters:[],actions:['CLAIM','COMPLETE'],slaDuration:'',slaUnit:'HOURS',slaRemindHours:'',slaEscalateHours:'',slaEscalation:'NONE',slaEscalateType:'Role',slaEscalateTo:'',parallelMode:'',parallelCount:''}}
 // selecting an element creates its step settings (bindSelection), so the computed only reads them
 const step=computed<Step>(()=>(selectedId.value?steps[selectedId.value]:undefined)??emptyStep())
 const starter=`<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:finova="http://finova/workflow" id="Definitions_FINOVA" targetNamespace="http://finova/workflow"><bpmn:process id="Process_FINOVA" name="FINOVA Workflow Engine" isExecutable="true"><bpmn:startEvent id="StartEvent_1" name="Start"><bpmn:outgoing>Flow_1</bpmn:outgoing></bpmn:startEvent><bpmn:userTask id="Task_1" name="Approval Task"><bpmn:incoming>Flow_1</bpmn:incoming><bpmn:outgoing>Flow_2</bpmn:outgoing></bpmn:userTask><bpmn:endEvent id="EndEvent_1" name="End"><bpmn:incoming>Flow_2</bpmn:incoming></bpmn:endEvent><bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1"/><bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="EndEvent_1"/></bpmn:process><bpmndi:BPMNDiagram id="BPMNDiagram_1"><bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_FINOVA"><bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1"><dc:Bounds x="180" y="182" width="36" height="36"/></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1"><dc:Bounds x="300" y="160" width="120" height="80"/></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1"><dc:Bounds x="520" y="182" width="36" height="36"/></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="216" y="200"/><di:waypoint x="300" y="200"/></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="420" y="200"/><di:waypoint x="520" y="200"/></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>`
@@ -920,6 +947,8 @@ function loadMetadataFromXml(){
     s.slaEscalation=bo.slaEscalation||'NONE'
     s.slaEscalateType=bo.slaEscalateType||'Role'
     s.slaEscalateTo=bo.slaEscalateTo||''
+    s.parallelMode=['ALL','ANY','COUNT'].includes(String(bo.parallelMode||'').toUpperCase())?String(bo.parallelMode).toUpperCase():''
+    s.parallelCount=bo.parallelCount||''
 
     try{
       s.routeParameters=bo.routeParameters?JSON.parse(bo.routeParameters):[]
@@ -959,11 +988,21 @@ function writeMetadataToBpmn(){
       routeParameters:JSON.stringify(s.routeParameters),
       actions:s.actions.join(','),
       // the step's time limit (SLA); none of it is written when the step has no time limit
-      ...slaAttrs(s)
+      ...slaAttrs(s),
+      // parallel approval: only on a human step, and the count only when a number is needed
+      parallelMode:s.stepType==='HumanTask'&&s.parallelMode?s.parallelMode:undefined,
+      parallelCount:s.stepType==='HumanTask'&&s.parallelMode==='COUNT'&&String(s.parallelCount).trim()?String(s.parallelCount).trim():undefined
     })
   })
 }
 
+
+function parallelSummary(s:Step){
+  const users=s.assignee.split(/[,;]/).map(x=>x.trim()).filter(Boolean)
+  const who=s.assignmentType==='Role'?`every member of ${s.assignee||'the role'}`:users.length?`${users.length} people (${users.join(', ')})`:'the approvers listed above'
+  const need=s.parallelMode==='ALL'?'all of them must approve':s.parallelMode==='ANY'?'the first approval is enough':`${s.parallelCount||'?'} approvals are needed`
+  return `Each of ${who} gets the task; ${need}. A rejection that makes this impossible rejects the step, and the tasks not answered yet are cancelled.`
+}
 
 function slaAttrs(s:Step){
   const on=s.stepType==='HumanTask'&&String(s.slaDuration).trim()!==''
@@ -2634,6 +2673,7 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
 .rule-row .icon-button { width: 30px; height: 30px; border: 1px solid #e3e9ec; border-radius: 6px; background: #fff; color: #80919b; cursor: pointer; }
 .rule-row .icon-button:hover { color: #E87722; border-color: #E87722; }
 :deep(.rule-badge) { white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #fff4ec; border: 1px solid #E87722; color: #a24f0f; font: 600 11px/1.4 Inter, Arial, sans-serif; transform: translate(-50%, -50%); pointer-events: none; }
+.rule-hint.warn { color: #a24f0f; }
 .rule-hint { margin: 8px 2px 0; font-size: 12px; color: #6b7c86; line-height: 1.45; }
 .field-chips { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
 .field-chips li { display: flex; justify-content: space-between; gap: 8px; padding: 7px 9px; border: 1px solid #e1e8ec; border-radius: 8px; font-size: 12px; }
