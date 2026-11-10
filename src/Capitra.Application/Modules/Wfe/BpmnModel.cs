@@ -16,7 +16,8 @@ public sealed record BpmnElement(
     string? Actions,
     string? RuleCode = null,
     string? FormCode = null,
-    BpmnSla? Sla = null)
+    BpmnSla? Sla = null,
+    BpmnParallel? Parallel = null)
 {
     public bool IsHumanTask =>
         Type is "userTask" or "manualTask" || string.Equals(StepType, "HumanTask", StringComparison.OrdinalIgnoreCase);
@@ -38,6 +39,33 @@ public sealed record BpmnSla(
     public const string Notify = "NOTIFY";
 
     public bool Escalates => Escalation is Reassign or Notify && !string.IsNullOrWhiteSpace(EscalateTo);
+}
+
+/// <summary>
+/// Parallel approval on a human step (K2's several destinations): every approver gets their own task at the same time, and
+/// the step finishes when the rule is met. finova:parallelMode ALL (everyone approves), ANY (the first approval) or COUNT
+/// (finova:parallelCount approvals). The approvers are the users in finova:assignee (comma-separated), or every member of the role.
+/// </summary>
+public sealed record BpmnParallel(string Mode, int Count)
+{
+    public const string All = "ALL";
+    public const string Any = "ANY";
+    public const string Number = "COUNT";
+
+    /// <summary>The approvals needed out of <paramref name="approvers"/>.</summary>
+    public int Needed(int approvers) => Mode switch
+    {
+        Any => Math.Min(1, approvers),
+        Number => Math.Clamp(Count, 1, Math.Max(1, approvers)),
+        _ => approvers,
+    };
+
+    public string Text(int approvers) => Mode switch
+    {
+        Any => $"any 1 of {approvers}",
+        Number => $"{Needed(approvers)} of {approvers}",
+        _ => $"all {approvers}",
+    };
 }
 
 /// <summary>
@@ -176,7 +204,18 @@ public static class BpmnModel
         Attr(e, "actions"),
         Attr(e, "ruleCode"),
         Attr(e, "formCode"),
-        Sla(e));
+        Sla(e),
+        Parallel(e));
+
+    /// <summary>The step's parallel approval, or null when one person (or the first of a role) does it.</summary>
+    private static BpmnParallel? Parallel(XElement e)
+    {
+        var mode = Attr(e, "parallelMode")?.Trim().ToUpperInvariant();
+        if (mode is not (BpmnParallel.All or BpmnParallel.Any or BpmnParallel.Number))
+            return null;
+        _ = int.TryParse(Attr(e, "parallelCount"), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var count);
+        return new BpmnParallel(mode, count);
+    }
 
     /// <summary>The step's time limit, or null when it has none (or the duration is not a positive number).</summary>
     private static BpmnSla? Sla(XElement e)

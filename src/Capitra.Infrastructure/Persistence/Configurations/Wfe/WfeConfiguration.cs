@@ -200,7 +200,7 @@ public sealed class WfeTaskConfiguration : IEntityTypeConfiguration<WfeTask>
         builder.Property(x => x.RouteParameters).HasColumnType("text");
         builder.Property(x => x.AllowedActions).HasMaxLength(500);
 
-        builder.HasOne(x => x.StepInstance).WithOne(x => x.Task).HasForeignKey<WfeTask>(x => x.StepInstanceId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.StepInstance).WithMany(x => x.Tasks).HasForeignKey(x => x.StepInstanceId).OnDelete(DeleteBehavior.Cascade);
 
         builder.ConfigureAudit();
     }

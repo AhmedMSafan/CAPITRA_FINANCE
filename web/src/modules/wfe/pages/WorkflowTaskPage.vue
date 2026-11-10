@@ -169,6 +169,21 @@
           </div>
         </div>
 
+        <!-- a parallel approval: who else the step went to, and their answers so far -->
+        <div v-if="task.approvers && task.approvers.length > 1" class="wf-approvers">
+          <div class="wf-approvers-head">
+            <i class="pi pi-users"></i>
+            <strong>Parallel approval</strong>
+            <span>{{ task.approvers.filter(a => a.status === 'COMPLETED').length }} of {{ task.approvers.length }} answered</span>
+          </div>
+          <ul>
+            <li v-for="(a, i) in task.approvers" :key="i" :class="'wf-approver--' + approverState(a).kind">
+              <strong>{{ a.userName || '-' }}</strong>
+              <span>{{ approverState(a).text }}</span>
+            </li>
+          </ul>
+        </div>
+
         <div v-if="task.instructions" class="wf-context-instructions">
           <i class="pi pi-info-circle"></i>
           <span>{{ task.instructions }}</span>
@@ -459,6 +474,15 @@ import { openWorkflowManual } from '../utils/manual'
   }
 
   // the step's time limit (SLA): on time, due soon (from the step's reminder time, else two days before) or overdue
+function approverState(a: { status: string; outcome: string | null }) {
+  if (a.status === 'COMPLETED') {
+    const o = (a.outcome || '').toUpperCase()
+    return o === 'REJECT' ? { kind: 'no', text: 'Rejected' } : { kind: 'yes', text: o === 'APPROVE' || !o ? 'Approved' : o.charAt(0) + o.slice(1).toLowerCase() }
+  }
+  if (a.status === 'CANCELLED') return { kind: 'off', text: 'Not needed' }
+  return { kind: 'wait', text: a.status === 'OPEN' ? 'Waiting' : 'Working on it' }
+}
+
 const dueState = computed(() => {
   const t = task.value
   if (!t?.dueDate || (t.status || '').toUpperCase() === 'COMPLETED') return null
@@ -995,5 +1019,15 @@ function formatDateTime(value?: string | null) {
     color: #fff !important;
   }
 
+.wf-approvers { margin-top: 14px; border: 1px solid #dfe8ea; border-radius: 12px; padding: 12px 14px; background: #f8fbfb; }
+.wf-approvers-head { display: flex; align-items: center; gap: 8px; color: #00636D; font-size: 13px; }
+.wf-approvers-head span { margin-left: auto; color: #6b7c86; font-size: 12px; }
+.wf-approvers ul { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.wf-approvers li { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid #dfe8ea; background: #fff; font-size: 12px; }
+.wf-approvers li span { font-weight: 600; }
+.wf-approver--yes span { color: #00636D; }
+.wf-approver--no span { color: #b42318; }
+.wf-approver--wait span { color: #E87722; }
+.wf-approver--off { opacity: 0.6; }
 </style>
 

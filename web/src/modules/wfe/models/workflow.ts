@@ -45,6 +45,8 @@ export interface WorkflowInboxTask {
   remindAt?: string | null;
   escalatedFrom?: string | null;
   escalatedAt?: string | null;
+  /** A parallel approval: everyone the step went to, and how they answered. */
+  approvers?: { userName: string | null; status: string; outcome: string | null; answeredAt: string | null }[] | null;
 
   // Compatibility aliases for the current Vue pages while the API is migrated.
   assignedUserId?: string | null;

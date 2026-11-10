@@ -14,8 +14,10 @@ public sealed class WfeRuntime(
     ICapitraDbContext db,
     IClock clock,
     IEnumerable<IWfeTaskCompletionHandler> completionHandlers,
-    IEnumerable<IWfeTaskClaimHandler> claimHandlers)
+    IEnumerable<IWfeTaskClaimHandler> claimHandlers,
+    IUserDirectory? directory = null)
 {
+    public const string Cancelled = "CANCELLED";
     public const string Open = "OPEN";
     public const string Claimed = "CLAIMED";
     public const string InProgress = "IN_PROGRESS";
@@ -178,9 +180,11 @@ public sealed class WfeRuntime(
                 await db.SaveChangesAsync(cancellationToken);
             }
 
-            var context = new WfeTaskContext(task.TaskId, instance.WorkflowInstanceId, definition.WorkflowCode, step.StepCode, action, user);
-            foreach (var handler in completionHandlers.Where(h => h.CanHandle(context)))
-                await handler.HandleAsync(context, cancellationToken);
+            // module handlers (postings, status changes) run once per step: on a parallel approval, when it is decided
+            var parallel = BpmnModel.Element(xml, step.ElementId).Parallel is { } p
+                && await db.Set<WfeTask>().CountAsync(x => x.StepInstanceId == step.StepInstanceId, cancellationToken) > 1 ? p : null;
+            if (parallel is null)
+                await RunCompletionHandlersAsync(task.TaskId, instance.WorkflowInstanceId, definition.WorkflowCode, step.StepCode, action, user, cancellationToken);
 
             var now = clock.UtcNow;
             task.TaskStatus = Completed;
@@ -192,21 +196,40 @@ public sealed class WfeRuntime(
                 inbox.Outcome = action;
             }
 
-            step.StepStatus = Completed;
-            step.CompletedAt = now;
-            step.CompletedBy = user;
-            step.Outcome = action;
             var late = task.InboxItem?.DueAt is { } due && now > due
                 ? $"Completed after its due time ({Gl.GlTime.Stamp(due, "dd-MMM-yyyy HH:mm")})."
                 : null;
             AddHistory(instance.WorkflowInstanceId, "TASK_COMPLETED", step.ElementId, action, user, late);
             await db.SaveChangesAsync(cancellationToken);
 
-            var next = await NextAsync(instance.WorkflowInstanceId, xml, step.ElementId, action, user, cancellationToken);
+            // a parallel approval moves on only when its rule is met
+            var outcome = action;
+            if (parallel is not null)
+            {
+                var decided = await DecideParallelAsync(instance.WorkflowInstanceId, step, parallel, action, user, now, cancellationToken);
+                if (decided is null)
+                {
+                    await db.SaveChangesAsync(cancellationToken);
+                    if (transaction is not null)
+                        await transaction.CommitAsync(cancellationToken);
+                    return;
+                }
+
+                outcome = decided;
+                await RunCompletionHandlersAsync(task.TaskId, instance.WorkflowInstanceId, definition.WorkflowCode, step.StepCode, outcome, user, cancellationToken);
+            }
+
+            step.StepStatus = Completed;
+            step.CompletedAt = now;
+            step.CompletedBy = user;
+            step.Outcome = outcome;
+            await db.SaveChangesAsync(cancellationToken);
+
+            var next = await NextAsync(instance.WorkflowInstanceId, xml, step.ElementId, outcome, user, cancellationToken);
             if (next is null)
                 await CompleteInstanceAsync(instance, user, cancellationToken);
             else
-                await EnterAndAdvanceAsync(instance, definition.WorkflowCode, xml, next, user, action, cancellationToken, assignNextTo);
+                await EnterAndAdvanceAsync(instance, definition.WorkflowCode, xml, next, user, outcome, cancellationToken, assignNextTo);
 
             if (transaction is not null)
                 await transaction.CommitAsync(cancellationToken);
@@ -275,48 +298,27 @@ public sealed class WfeRuntime(
             {
                 step.StepStatus = "WAITING";
                 var parameters = await ResolveRouteParametersAsync(instance.WorkflowInstanceId, element.RouteParameters, element.StepCode ?? element.Id, cancellationToken);
-                var task = new WfeTask
-                {
-                    StepInstanceId = step.StepInstanceId,
-                    TaskStatus = Open,
-                    AssignmentType = element.AssignmentType,
-                    Assignee = element.Assignee,
-                    Route = element.Route,
-                    RouteParameters = parameters,
-                    AllowedActions = element.Actions,
-                };
-                db.Add(task);
-                await db.SaveChangesAsync(cancellationToken);
+                instance.InstanceStatus = "WAITING";
 
                 var toUser = !string.IsNullOrWhiteSpace(assignNextTo);
-                var byRole = !toUser && string.Equals(element.AssignmentType, "Role", StringComparison.OrdinalIgnoreCase);
-                // a task for one user who is out of office today goes to their delegate (K2's out of office)
-                var person = toUser ? assignNextTo!.Trim() : byRole ? null : element.Assignee?.Trim();
-                string? cover = null;
-                if (!string.IsNullOrWhiteSpace(person))
-                    cover = await WfeOutOfOfficeService.DelegateOfAsync(db, person, workflowCode, Gl.GlTime.Today(clock), cancellationToken);
-                var inbox = new WfeInboxItem
+                if (!toUser && element.Parallel is { } parallel)
                 {
-                    TaskId = task.TaskId,
-                    WorkflowInstanceId = instance.WorkflowInstanceId,
-                    StepInstanceId = step.StepInstanceId,
-                    InboxStatus = Open,
-                    AssignmentType = toUser || cover is not null ? "User" : element.AssignmentType,
-                    AssignedTo = cover ?? (toUser ? assignNextTo!.Trim() : byRole ? null : element.Assignee),
-                    AssignedRole = byRole ? element.Assignee : null,
-                    Subject = element.Name,
-                    Route = element.Route,
-                    RouteParameters = parameters,
-                    AllowedActions = element.Actions,
-                };
-                // the step's time limit (SLA): due, reminder and escalation times
-                await WfeSla.ApplyAsync(db, inbox, element.Sla, clock.UtcNow, cancellationToken);
-                db.Add(inbox);
+                    // parallel approval: every approver gets their own task now
+                    var approvers = await ApproversAsync(element, cancellationToken);
+                    if (approvers.Count == 0)
+                        throw new BusinessRuleException($"Step '{element.Name ?? element.Id}' has no approvers: add users, or give the role members.");
+                    foreach (var person in approvers)
+                        await CreateTaskAsync(instance, workflowCode, step, element, parameters, "User", person, user, cancellationToken);
+                    AddHistory(instance.WorkflowInstanceId, "PARALLEL_STARTED", element.Id, null, user,
+                        $"Sent to {string.Join(", ", approvers)}; needs {parallel.Text(approvers.Count)} to approve.");
+                }
+                else
+                {
+                    var byRole = !toUser && string.Equals(element.AssignmentType, "Role", StringComparison.OrdinalIgnoreCase);
+                    await CreateTaskAsync(instance, workflowCode, step, element, parameters,
+                        toUser ? "User" : element.AssignmentType, toUser ? assignNextTo!.Trim() : element.Assignee, user, cancellationToken, byRole);
+                }
 
-                instance.InstanceStatus = "WAITING";
-                AddHistory(instance.WorkflowInstanceId, "TASK_CREATED", element.Id, null, user, toUser ? assignNextTo!.Trim() : element.Assignee);
-                if (cover is not null)
-                    AddHistory(instance.WorkflowInstanceId, "TASK_DELEGATED", element.Id, null, "SYSTEM", $"{person} is out of office; the task went to {cover}.");
                 await db.SaveChangesAsync(cancellationToken);
                 return;
             }
@@ -341,6 +343,121 @@ public sealed class WfeRuntime(
         instance.ErrorMessage = "Automatic BPMN traversal exceeded 100 steps.";
         await db.SaveChangesAsync(cancellationToken);
         throw new BusinessRuleException(instance.ErrorMessage);
+    }
+
+    private async Task RunCompletionHandlersAsync(
+        long taskId, long workflowInstanceId, string workflowCode, string? stepCode, string action, string user, CancellationToken cancellationToken)
+    {
+        var context = new WfeTaskContext(taskId, workflowInstanceId, workflowCode, stepCode, action, user);
+        foreach (var handler in completionHandlers.Where(h => h.CanHandle(context)))
+            await handler.HandleAsync(context, cancellationToken);
+    }
+
+    /// <summary>Approving actions count towards a parallel approval; REJECT counts against it; any other action (RETURN) decides at once.</summary>
+    private static readonly string[] Approving = ["APPROVE", "ACCEPT", "COMPLETE"];
+
+    /// <summary>
+    /// The outcome of a parallel approval after one more decision, or null while it waits for others. When it is decided, the
+    /// approvers who have not answered yet have their tasks cancelled.
+    /// </summary>
+    private async Task<string?> DecideParallelAsync(
+        long workflowInstanceId, WfeStepInstance step, BpmnParallel parallel, string action, string user, DateTime now, CancellationToken cancellationToken)
+    {
+        var tasks = await db.Set<WfeTask>().Include(x => x.InboxItem).Where(x => x.StepInstanceId == step.StepInstanceId).ToListAsync(cancellationToken);
+        var answers = tasks.Where(x => x.TaskStatus == Completed).Select(x => x.InboxItem?.Outcome ?? string.Empty).ToList();
+        var total = tasks.Count;
+        var needed = parallel.Needed(total);
+        var approved = answers.Count(a => Approving.Contains(a, StringComparer.OrdinalIgnoreCase));
+        var rejected = answers.Count(a => string.Equals(a, "REJECT", StringComparison.OrdinalIgnoreCase));
+
+        string? outcome = null;
+        if (!Approving.Contains(action, StringComparer.OrdinalIgnoreCase) && action != "REJECT")
+            outcome = action;
+        else if (approved >= needed)
+            outcome = answers.First(a => Approving.Contains(a, StringComparer.OrdinalIgnoreCase)).ToUpperInvariant();
+        else if (total - rejected < needed || answers.Count == total)
+            outcome = "REJECT";
+
+        var tally = $"{approved} of {total} approved, {rejected} rejected; needs {parallel.Text(total)}.";
+        if (outcome is null)
+        {
+            AddHistory(workflowInstanceId, "PARALLEL_WAITING", step.ElementId, action, user, $"{tally} Waiting for {needed - approved} more.");
+            return null;
+        }
+
+        foreach (var open in tasks.Where(x => x.TaskStatus is Open or Claimed or InProgress))
+        {
+            open.TaskStatus = Cancelled;
+            open.CompletedAt = now;
+            if (open.InboxItem is { } item)
+            {
+                item.InboxStatus = Cancelled;
+                item.CompletedAt = now;
+            }
+        }
+
+        AddHistory(workflowInstanceId, "PARALLEL_DECIDED", step.ElementId, outcome, user, $"{outcome}: {tally}");
+        return outcome;
+    }
+
+    /// <summary>
+    /// One task and inbox item for one assignee (a user, or a role when <paramref name="byRole"/>). A user who is out of office
+    /// today is replaced by their delegate (K2's out of office); the step's time limit (SLA) gives the due times.
+    /// </summary>
+    private async Task CreateTaskAsync(
+        WfeWorkflowInstance instance, string workflowCode, WfeStepInstance step, BpmnElement element, string? parameters,
+        string? assignmentType, string? assignee, string user, CancellationToken cancellationToken, bool byRole = false)
+    {
+        var task = new WfeTask
+        {
+            StepInstanceId = step.StepInstanceId,
+            TaskStatus = Open,
+            AssignmentType = byRole ? element.AssignmentType : assignmentType,
+            Assignee = assignee,
+            Route = element.Route,
+            RouteParameters = parameters,
+            AllowedActions = element.Actions,
+        };
+        db.Add(task);
+        await db.SaveChangesAsync(cancellationToken);
+
+        var person = byRole ? null : assignee?.Trim();
+        string? cover = null;
+        if (!string.IsNullOrWhiteSpace(person))
+            cover = await WfeOutOfOfficeService.DelegateOfAsync(db, person, workflowCode, Gl.GlTime.Today(clock), cancellationToken);
+        var inbox = new WfeInboxItem
+        {
+            TaskId = task.TaskId,
+            WorkflowInstanceId = instance.WorkflowInstanceId,
+            StepInstanceId = step.StepInstanceId,
+            InboxStatus = Open,
+            AssignmentType = cover is not null ? "User" : assignmentType,
+            AssignedTo = cover ?? (byRole ? null : assignee),
+            AssignedRole = byRole ? assignee : null,
+            Subject = element.Name,
+            Route = element.Route,
+            RouteParameters = parameters,
+            AllowedActions = element.Actions,
+        };
+        await WfeSla.ApplyAsync(db, inbox, element.Sla, clock.UtcNow, cancellationToken);
+        db.Add(inbox);
+
+        AddHistory(instance.WorkflowInstanceId, "TASK_CREATED", element.Id, null, user, assignee);
+        if (cover is not null)
+            AddHistory(instance.WorkflowInstanceId, "TASK_DELEGATED", element.Id, null, "SYSTEM", $"{person} is out of office; the task went to {cover}.");
+    }
+
+    /// <summary>The approvers of a parallel step: the users listed in its assignee, or every active member of its role.</summary>
+    private async Task<List<string>> ApproversAsync(BpmnElement element, CancellationToken cancellationToken)
+    {
+        var names = (element.Assignee ?? string.Empty).Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (!string.Equals(element.AssignmentType, "Role", StringComparison.OrdinalIgnoreCase))
+            return names.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (directory is null)
+            return [];
+        var users = await directory.ActiveUsersAsync(cancellationToken);
+        return users.Where(u => u.Roles.Any(r => names.Contains(r, StringComparer.OrdinalIgnoreCase)))
+            .Select(u => u.UserName).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
     /// <summary>
