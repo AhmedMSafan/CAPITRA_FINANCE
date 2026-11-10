@@ -1,7 +1,17 @@
 // Documents (Document Designer) and data sources (K2's SmartForms and SmartObjects, kept simple): api/wfe/forms and api/wfe/data-sources.
 import { ApiError, http } from '@/shared/api/http'
 
-export type FormControlKind = 'field' | 'heading' | 'note'
+export type FormControlKind = 'field' | 'heading' | 'note' | 'separator'
+/** The colours a heading can give its section. */
+export type SectionColour = 'teal' | 'orange' | 'grey' | 'green' | 'yellow' | 'sand'
+export const sectionColours: { value: SectionColour; label: string; swatch: string }[] = [
+  { value: 'teal', label: 'Teal', swatch: '#e3f1f2' },
+  { value: 'orange', label: 'Orange', swatch: '#fdeee2' },
+  { value: 'grey', label: 'Grey', swatch: '#f1f4f5' },
+  { value: 'green', label: 'Green', swatch: '#e8f5ec' },
+  { value: 'yellow', label: 'Yellow', swatch: '#fdf7dc' },
+  { value: 'sand', label: 'Sand', swatch: '#f6f0e6' },
+]
 export type FormControlType = 'text' | 'textarea' | 'number' | 'amount' | 'date' | 'yesno' | 'dropdown' | 'user'
 
 export type FormControl = {
@@ -14,6 +24,9 @@ export type FormControl = {
   readOnly: boolean
   help: string | null
   width: 'full' | 'half' | 'left' | 'right' | null
+  /** On a heading: a frame around its section, and the section's background colour. */
+  frame?: boolean
+  background?: SectionColour | null
 }
 
 export type FormLayout = { columns: 1 | 2; controls: FormControl[] }
@@ -120,6 +133,8 @@ export type FormControlView = {
   width: string
   value: string | null
   options: Option[]
+  frame?: boolean
+  background?: string | null
 }
 
 export type DataSourceItem = { value: string; label: string; isActive: boolean }
