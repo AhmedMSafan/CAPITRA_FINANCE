@@ -118,6 +118,14 @@ public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUse
                 });
         }
 
+        // the steps' time limits (SLA) must be complete before release
+        if (status == "released")
+        {
+            var sla = WfeSla.Check(request.BpmnXml!);
+            if (sla.Count > 0)
+                throw new BusinessValidationException(new Dictionary<string, string[]> { ["sla"] = [.. sla] });
+        }
+
         if (await db.Set<WfeWorkflowDefinition>().AnyAsync(x => x.WorkflowCode == code && x.WorkflowDefinitionId != (id ?? 0), cancellationToken))
             throw new ConflictException($"Workflow code '{code}' already exists.");
 

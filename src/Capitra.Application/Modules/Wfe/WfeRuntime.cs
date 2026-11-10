@@ -196,7 +196,10 @@ public sealed class WfeRuntime(
             step.CompletedAt = now;
             step.CompletedBy = user;
             step.Outcome = action;
-            AddHistory(instance.WorkflowInstanceId, "TASK_COMPLETED", step.ElementId, action, user, null);
+            var late = task.InboxItem?.DueAt is { } due && now > due
+                ? $"Completed after its due time ({Gl.GlTime.Stamp(due, "dd-MMM-yyyy HH:mm")})."
+                : null;
+            AddHistory(instance.WorkflowInstanceId, "TASK_COMPLETED", step.ElementId, action, user, late);
             await db.SaveChangesAsync(cancellationToken);
 
             var next = BpmnModel.Next(xml, step.ElementId, action);
@@ -292,7 +295,7 @@ public sealed class WfeRuntime(
                 string? cover = null;
                 if (!string.IsNullOrWhiteSpace(person))
                     cover = await WfeOutOfOfficeService.DelegateOfAsync(db, person, workflowCode, Gl.GlTime.Today(clock), cancellationToken);
-                db.Add(new WfeInboxItem
+                var inbox = new WfeInboxItem
                 {
                     TaskId = task.TaskId,
                     WorkflowInstanceId = instance.WorkflowInstanceId,
@@ -305,7 +308,10 @@ public sealed class WfeRuntime(
                     Route = element.Route,
                     RouteParameters = parameters,
                     AllowedActions = element.Actions,
-                });
+                };
+                // the step's time limit (SLA): due, reminder and escalation times
+                await WfeSla.ApplyAsync(db, inbox, element.Sla, clock.UtcNow, cancellationToken);
+                db.Add(inbox);
 
                 instance.InstanceStatus = "WAITING";
                 AddHistory(instance.WorkflowInstanceId, "TASK_CREATED", element.Id, null, user, toUser ? assignNextTo!.Trim() : element.Assignee);

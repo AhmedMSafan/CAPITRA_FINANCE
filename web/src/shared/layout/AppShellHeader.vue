@@ -7,7 +7,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import { getUser, hasPermission, type SessionUser } from '@/shared/auth/session'
 import { logout as endSession, refreshCurrentUser } from '@/modules/sec/api/auth.api'
-import { workflowService } from '@/modules/wfe/services/workflowService'
+import { alertService, workflowService, type WorkflowAlert } from '@/modules/wfe/services/workflowService'
 import { appMenu, type MenuLink } from './appMenu'
 import { currentLang, switchLanguage, tr } from './language'
 
@@ -51,10 +51,49 @@ async function loadInbox() {
   }
 }
 
+// ---------- deadline alerts (workflow SLA): due soon, overdue, escalated ----------
+const alerts = ref<WorkflowAlert[]>([])
+const alertsOpen = ref(false)
+const unread = computed(() => alerts.value.filter((a) => !a.isRead).length)
+async function loadAlerts() {
+  try {
+    alerts.value = await alertService.mine()
+  } catch {
+    alerts.value = []
+  }
+}
+async function openAlert(a: WorkflowAlert) {
+  if (!a.isRead) {
+    a.isRead = true
+    void alertService.read(a.alertId).catch(() => {})
+  }
+  closeAll()
+  if (a.inboxId) await router.push(`/workflow/tasks/${a.inboxId}`)
+}
+async function readAllAlerts() {
+  alerts.value.forEach((a) => (a.isRead = true))
+  try {
+    await alertService.readAll()
+  } catch {
+    /* shown as read; the next load corrects it */
+  }
+}
+function alertAgo(iso: string) {
+  const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000))
+  if (m < 1) return t('just now', 'الآن')
+  if (m < 60) return ar.value ? `منذ ${m} دقيقة` : `${m} min ago`
+  const h = Math.round(m / 60)
+  if (h < 24) return ar.value ? `منذ ${h} ساعة` : `${h} h ago`
+  return new Date(iso).toLocaleDateString(ar.value ? 'ar-EG' : 'en-GB', { day: '2-digit', month: 'short' })
+}
+const ALERT_LABEL: Record<string, [string, string]> = { REMINDER: ['Due soon', 'قارب الموعد'], OVERDUE: ['Overdue', 'متأخرة'], ESCALATED: ['Escalated', 'تم التصعيد'] }
+let alertTimer: number | undefined
+
 const userOpen = ref(false)
 function closeAll() {
   menuOpen.value = false
   userOpen.value = false
+  alertsOpen.value = false
 }
 function go(to: RouteLocationRaw) {
   closeAll()
@@ -71,12 +110,20 @@ function onKey(e: KeyboardEvent) {
 }
 function onDocClick() {
   userOpen.value = false
+  alertsOpen.value = false
 }
-watch(() => route.fullPath, closeAll)
+watch(() => route.fullPath, () => {
+  closeAll()
+  void loadInbox()
+  void loadAlerts()
+})
 onMounted(async () => {
   window.addEventListener('keydown', onKey)
   document.addEventListener('click', onDocClick)
   void loadInbox()
+  void loadAlerts()
+  // the deadline checker runs every minute on the server; the bell looks again every minute
+  alertTimer = window.setInterval(() => void loadAlerts(), 60000)
   try {
     user.value = await refreshCurrentUser()
   } catch {
@@ -84,6 +131,7 @@ onMounted(async () => {
   }
 })
 onBeforeUnmount(() => {
+  window.clearInterval(alertTimer)
   window.removeEventListener('keydown', onKey)
   document.removeEventListener('click', onDocClick)
 })
@@ -112,6 +160,25 @@ const canAdminUsers = hasPermission('SEC.USER.ADMIN')
         <div class="fxh-lang" role="group" aria-label="Language">
           <button type="button" :class="{ on: !ar }" @click="ar && switchLanguage('EN')">EN</button>
           <button type="button" class="ar" :class="{ on: ar }" lang="ar" @click="!ar && switchLanguage('AR')">&#1593;</button>
+        </div>
+        <div class="fxh-bellwrap">
+          <button type="button" class="fxh-bell" :class="{ live: unread > 0 }" :aria-label="t('Alerts', 'التنبيهات')" :aria-expanded="alertsOpen ? 'true' : 'false'"
+            @click.stop="alertsOpen = !alertsOpen; menuOpen = false; userOpen = false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+            <b v-if="unread" class="fx-count">{{ unread > 99 ? '99+' : unread }}</b>
+          </button>
+          <div v-if="alertsOpen" class="fxh-menu fxh-alerts" role="dialog" :aria-label="t('Alerts', 'التنبيهات')" @click.stop>
+            <div class="fxh-al-h">
+              <b>{{ t('Deadline alerts', 'تنبيهات المواعيد') }}</b>
+              <button v-if="unread" type="button" @click="readAllAlerts">{{ t('Mark all read', 'تعليم الكل كمقروء') }}</button>
+            </div>
+            <p v-if="!alerts.length" class="fxh-al-empty">{{ t('No alerts. Tasks that are due soon, overdue or escalated to you show here.', 'لا توجد تنبيهات. تظهر هنا المهام القريبة من موعدها أو المتأخرة أو المصعدة إليك.') }}</p>
+            <a v-for="a in alerts" :key="a.alertId" class="fxh-al" :class="['fxh-al--' + a.alertType.toLowerCase(), { read: a.isRead }]" role="menuitem" @click="openAlert(a)">
+              <span class="fxh-al-tag">{{ ar ? ALERT_LABEL[a.alertType]?.[1] : ALERT_LABEL[a.alertType]?.[0] }}</span>
+              <span class="fxh-al-msg">{{ a.message }}</span>
+              <small>{{ alertAgo(a.alertAt) }}</small>
+            </a>
+          </div>
         </div>
         <RouterLink to="/workflow/inbox" class="fx-inbox">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></svg>
@@ -230,6 +297,26 @@ const canAdminUsers = hasPermission('SEC.USER.ADMIN')
 [dir=rtl] .fxh-grp a.fxh-l { padding: 7px 48px 7px 8px; }
 .fxh-grp a.fxh-l:hover { background: #F2F7F8; color: #00636D; }
 .fxh-grp .is-current { background: #FFF3E8; color: #B4570E; font-weight: 600; }
+/* the bell: deadline alerts */
+.fxh-bellwrap { position: relative; }
+.fxh-bell { position: relative; width: 36px; height: 36px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, .22); background: rgba(255, 255, 255, .06); color: #fff; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.fxh-bell:hover, .fxh-bell[aria-expanded=true] { background: rgba(255, 255, 255, .2); }
+.fxh-bell.live svg { color: #FFD9B8; }
+.fxh-alerts { width: 360px; max-height: 70vh; overflow: auto; }
+.fxh-al-h { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid #EDF2F4; background: linear-gradient(180deg, #F6FAFA, #fff); }
+.fxh-al-h b { font-size: 14px; }
+.fxh-al-h button { margin-inline-start: auto; border: 0; background: none; color: #00636D; font: 600 12.5px/1 Inter, Arial, sans-serif; cursor: pointer; padding: 4px; }
+.fxh-al-empty { margin: 0; padding: 18px 16px; color: #5F7B8A; font-size: 13px; line-height: 1.5; }
+.fxh-menu a.fxh-al { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: start; padding: 12px 16px; border-bottom: 1px solid #F1F5F6; border-inline-start: 3px solid transparent; }
+.fxh-al-tag { grid-row: span 2; font: 700 10.5px/1 Inter, Arial, sans-serif; text-transform: uppercase; letter-spacing: .04em; padding: 5px 7px; border-radius: 6px; white-space: nowrap; }
+.fxh-al-msg { font-size: 13px; line-height: 1.4; color: #0B2533; }
+.fxh-al small { color: #5F7B8A; font-size: 11.5px; }
+.fxh-al--reminder .fxh-al-tag { background: #FFF3E8; color: #B4570E; }
+.fxh-al--overdue .fxh-al-tag { background: #FDECEA; color: #B42318; }
+.fxh-al--escalated .fxh-al-tag { background: #E6F2F2; color: #00636D; }
+.fxh-menu a.fxh-al:not(.read) { border-inline-start-color: #E87722; background: #FFFBF7; }
+.fxh-al.read .fxh-al-msg { color: #5F7B8A; }
+@media (max-width: 600px) { .fxh-alerts { position: fixed; top: 66px; inset-inline: 8px; width: auto; } }
 @media (max-width: 900px) { .fxh-mega { top: 62px; inset-inline: 8px; width: auto; } }
 @media (max-width: 600px) { .fxh-lang { display: none; } }
 </style>

@@ -163,6 +163,8 @@
             <div>
               <label>Due Date</label>
               <strong>{{ formatDateTime(task.dueDate) }}</strong>
+              <span v-if="dueState" class="wf-due-state" :class="'wf-due-state--' + dueState.kind">{{ dueState.text }}</span>
+              <small v-if="task.escalatedFrom" class="wf-due-esc">Escalated from {{ task.escalatedFrom }}</small>
             </div>
           </div>
         </div>
@@ -456,7 +458,21 @@ import { openWorkflowManual } from '../utils/manual'
     return value.replaceAll('_', ' ')
   }
 
-  function formatDateTime(value?: string | null) {
+  // the step's time limit (SLA): on time, due soon (from the step's reminder time, else two days before) or overdue
+const dueState = computed(() => {
+  const t = task.value
+  if (!t?.dueDate || (t.status || '').toUpperCase() === 'COMPLETED') return null
+  const now = Date.now()
+  const due = new Date(t.dueDate).getTime()
+  const soon = t.remindAt ? new Date(t.remindAt).getTime() : due - 2 * 86400000
+  if (now > due) {
+    const late = now - due
+    return { kind: 'bad', text: `Overdue ${late >= 86400000 ? Math.floor(late / 86400000) + 'd' : Math.max(1, Math.floor(late / 3600000)) + 'h'}` }
+  }
+  return now >= soon ? { kind: 'warn', text: 'Due soon' } : { kind: 'ok', text: 'On time' }
+})
+
+function formatDateTime(value?: string | null) {
     if (!value) return '-'
 
     const date = new Date(value)
@@ -631,6 +647,12 @@ import { openWorkflowManual } from '../utils/manual'
 
 
 <style scoped>
+.wf-due-state { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+.wf-due-state--ok { background: #E6F2F2; color: #00636D; }
+.wf-due-state--warn { background: #FFF3E8; color: #B4570E; }
+.wf-due-state--bad { background: #FDECEA; color: #B42318; }
+.wf-due-esc { display: block; margin-top: 3px; color: #5F7B8A; font-size: 11px; }
+
   .wf-context-summary.wf-context-facts { border-top: 0; margin-top: 0; padding-top: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 14px; }
   /* the facts in two lines of three, so a long customer name has room */
   .wf-context-facts .wf-context-summary-item:nth-child(3n) { border-right: 0; }

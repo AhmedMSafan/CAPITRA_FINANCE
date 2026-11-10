@@ -62,6 +62,24 @@ public sealed class WfeOutOfOfficeConfiguration : IEntityTypeConfiguration<WfeOu
     }
 }
 
+public sealed class WfeAlertConfiguration : IEntityTypeConfiguration<WfeAlert>
+{
+    public void Configure(EntityTypeBuilder<WfeAlert> builder)
+    {
+        builder.ToTable("WFE_ALERTS");
+        builder.HasKey(x => x.AlertId);
+        builder.HasIndex(x => new { x.UserName, x.ReadAt });
+        builder.HasIndex(x => x.InboxItemId);
+
+        builder.Property(x => x.AlertId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.UserName).HasMaxLength(100);
+        builder.Property(x => x.AlertType).HasMaxLength(30);
+        builder.Property(x => x.Message).HasMaxLength(1000);
+
+        builder.ConfigureAudit();
+    }
+}
+
 public sealed class WfeDataSourceConfiguration : IEntityTypeConfiguration<WfeDataSource>
 {
     public void Configure(EntityTypeBuilder<WfeDataSource> builder)
@@ -210,6 +228,7 @@ public sealed class WfeInboxItemConfiguration : IEntityTypeConfiguration<WfeInbo
         builder.Property(x => x.RouteParameters).HasColumnType("text");
         builder.Property(x => x.AllowedActions).HasMaxLength(500);
         builder.Property(x => x.Outcome).HasMaxLength(50);
+        builder.Property(x => x.EscalatedFrom).HasMaxLength(150);
 
         builder.HasOne(x => x.Task).WithOne(x => x.InboxItem).HasForeignKey<WfeInboxItem>(x => x.TaskId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.Instance).WithMany().HasForeignKey(x => x.WorkflowInstanceId).OnDelete(DeleteBehavior.Cascade);
