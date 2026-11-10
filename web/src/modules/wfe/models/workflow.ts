@@ -41,6 +41,10 @@ export interface WorkflowInboxTask {
   priority?: string | null;
   instructions?: string | null;
   dueDate?: string | null;
+  /** The step's time limit (SLA): when the reminder is due, and who had the task before it was escalated. */
+  remindAt?: string | null;
+  escalatedFrom?: string | null;
+  escalatedAt?: string | null;
 
   // Compatibility aliases for the current Vue pages while the API is migrated.
   assignedUserId?: string | null;

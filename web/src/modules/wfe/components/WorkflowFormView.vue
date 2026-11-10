@@ -5,7 +5,7 @@
       <h3 v-if="c.kind === 'heading'" class="wff-heading">{{ c.label }}</h3>
       <p v-else-if="c.kind === 'note'" class="wff-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ c.label }}</p>
 
-      <div v-else class="wff-item" :class="{ 'wff-half': c.width === 'half', 'has-error': !!errorOf(c) }">
+      <div v-else class="wff-item" :class="{ 'wff-half': c.width === 'half', 'wff-left': c.width === 'left', 'wff-right': c.width === 'right', 'has-error': !!errorOf(c) }">
         <label :for="id(c)" class="wff-label">{{ c.label }}<span v-if="c.required && !c.readOnly" class="wff-req">*</span></label>
 
         <!-- read-only: the value as people read it -->
@@ -80,6 +80,8 @@ function show(c: FormControlView) {
 .wff.wff-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .wff > * { grid-column: 1 / -1; min-width: 0; }
 .wff.wff-two > .wff-half { grid-column: auto; }
+.wff.wff-two > .wff-left { grid-column: 1; }
+.wff.wff-two > .wff-right { grid-column: 2; }
 .wff-heading { margin: 6px 0 -4px; padding-bottom: 6px; border-bottom: 1px solid #d9e6ea; color: #00636D; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .wff-note { display: flex; gap: 8px; margin: 0; padding: 9px 12px; border-radius: 8px; background: #f2f7f8; color: #3f5b6b; font-size: 12.5px; }
 .wff-note .fa { color: #00636D; margin-top: 2px; }

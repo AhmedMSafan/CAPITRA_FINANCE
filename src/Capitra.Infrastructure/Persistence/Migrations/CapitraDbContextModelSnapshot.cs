@@ -38564,6 +38564,85 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("TRS_SUPPLIER_TRANSFERS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeAlert", b =>
+                {
+                    b.Property<long>("AlertId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ALERT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AlertId"));
+
+                    b.Property<DateTime>("AlertAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ALERT_AT");
+
+                    b.Property<string>("AlertType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("ALERT_TYPE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long?>("InboxItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("INBOX_ITEM_ID");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("MESSAGE");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("READ_AT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("USER_NAME");
+
+                    b.Property<long?>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("AlertId")
+                        .HasName("PK_WFE_ALERTS");
+
+                    b.HasIndex("InboxItemId")
+                        .HasDatabaseName("IX_WFE_ALERTS_INBOX_ITEM_ID");
+
+                    b.HasIndex("UserName", "ReadAt")
+                        .HasDatabaseName("IX_WFE_ALERTS_USER_NAME_READ_AT");
+
+                    b.ToTable("WFE_ALERTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Wfe.WfeDataSource", b =>
                 {
                     b.Property<long>("DataSourceId")
@@ -38893,6 +38972,23 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
+                    b.Property<DateTime?>("DueAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DUE_AT");
+
+                    b.Property<DateTime?>("EscalateAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ESCALATE_AT");
+
+                    b.Property<DateTime?>("EscalatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ESCALATED_AT");
+
+                    b.Property<string>("EscalatedFrom")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("ESCALATED_FROM");
+
                     b.Property<string>("InboxStatus")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -38903,6 +38999,18 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("OUTCOME");
+
+                    b.Property<DateTime?>("OverdueNotifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("OVERDUE_NOTIFIED_AT");
+
+                    b.Property<DateTime?>("RemindAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REMIND_AT");
+
+                    b.Property<DateTime?>("RemindedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REMINDED_AT");
 
                     b.Property<string>("Route")
                         .HasMaxLength(500)

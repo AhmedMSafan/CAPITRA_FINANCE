@@ -13,7 +13,7 @@ export type FormControl = {
   required: boolean
   readOnly: boolean
   help: string | null
-  width: 'full' | 'half' | null
+  width: 'full' | 'half' | 'left' | 'right' | null
 }
 
 export type FormLayout = { columns: 1 | 2; controls: FormControl[] }
@@ -56,7 +56,18 @@ export type DocumentField = {
   defaultValue: string | null
   choices: string[]
   description: string | null
+  /** Filled in by the system, read-only: CURRENT_USER, CURRENT_USER_NAME, CURRENT_DEPARTMENT, CURRENT_EMPLOYEE_NO or TODAY. */
+  auto?: string | null
 }
+
+/** The automatic values a document field can take, and the field types each fits. */
+export const autoValues = [
+  { value: 'CURRENT_USER', label: 'Current user (@UserName)', types: ['User', 'String'] },
+  { value: 'CURRENT_USER_NAME', label: 'Full name (@FullName)', types: ['String'] },
+  { value: 'CURRENT_DEPARTMENT', label: 'Department (@Department)', types: ['String'] },
+  { value: 'CURRENT_EMPLOYEE_NO', label: 'Employee no. (@EmployeeNo)', types: ['String'] },
+  { value: 'TODAY', label: "Today's date (@Today)", types: ['Date', 'String'] }
+]
 
 export type WorkflowType = 'SYSTEM' | 'USER'
 export type WorkflowTypeItem = { workflowDefinitionId: number; workflowCode: string; workflowName: string; type: WorkflowType; documentCode: string | null }
@@ -79,6 +90,7 @@ export type DataField = {
   defaultValue: string | null
   choices: string[]
   description: string | null
+  auto?: string | null
   caption: string
 }
 

@@ -38,6 +38,25 @@ public class WfeInboxItem : AuditableEntity
 
     public DateTime? CompletedAt { get; set; }
 
+    /// <summary>When the task is due (the step's time limit, SLA). Null: the step has no time limit.</summary>
+    public DateTime? DueAt { get; set; }
+
+    /// <summary>When to remind the assignee that the task is due soon; RemindedAt once done.</summary>
+    public DateTime? RemindAt { get; set; }
+
+    public DateTime? RemindedAt { get; set; }
+
+    /// <summary>When the overdue task is escalated (due time plus the step's grace hours); EscalatedAt once done.</summary>
+    public DateTime? EscalateAt { get; set; }
+
+    public DateTime? EscalatedAt { get; set; }
+
+    /// <summary>Who had the task before an escalation moved it (user or role).</summary>
+    public string? EscalatedFrom { get; set; }
+
+    /// <summary>When the assignee was told the task is overdue.</summary>
+    public DateTime? OverdueNotifiedAt { get; set; }
+
     public WfeTask? Task { get; set; }
 
     public WfeWorkflowInstance? Instance { get; set; }

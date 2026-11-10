@@ -12,6 +12,7 @@ builder.Services.AddSingleton(new Capitra.Application.Modules.Crm.CrmSettings(bu
 builder.Services.AddCapitraSecurity(builder.Configuration);
 
 builder.Services.AddControllers();
+builder.Services.AddHostedService<Capitra.Api.Startup.WfeSlaWorker>();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddOpenApi();

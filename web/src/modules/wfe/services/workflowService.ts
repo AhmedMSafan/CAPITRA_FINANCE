@@ -16,5 +16,15 @@ export const workflowService = {
   complete: (id: number, payload: CompleteWorkflowTaskRequest) => http.post<WorkflowInboxTask>(`${INBOX_API}/${id}/complete`, payload)
 }
 
+/** A task-deadline alert on the bell in the page header. */
+export type WorkflowAlert = { alertId: number; alertType: 'REMINDER' | 'OVERDUE' | 'ESCALATED'; message: string; inboxId: number | null; instanceId: number | null; alertAt: string; isRead: boolean }
+
+const ALERTS_API = '/api/wfe/alerts'
+export const alertService = {
+  mine: () => http.get<WorkflowAlert[]>(ALERTS_API),
+  read: (id: number) => http.post<void>(`${ALERTS_API}/${id}/read`),
+  readAll: () => http.post<void>(`${ALERTS_API}/read-all`)
+}
+
 export type WorkflowDataValue = { name: string; label: string; type: string; required: boolean; value: string | null; description: string | null }
 export type WorkflowInstanceData = { fields: WorkflowDataValue[]; other: WorkflowDataValue[] }

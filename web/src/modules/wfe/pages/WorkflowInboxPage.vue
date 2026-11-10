@@ -76,7 +76,10 @@
               <td>{{ r.t.entityRef || '-' }}<span class="fx-cell-sub">{{ r.t.clientName }}</span></td>
               <td><span class="fx-chip fx-chip--teal">{{ r.t.stepName || r.t.stepCode || '-' }}</span></td>
               <td class="fx-r">{{ money(r.t.amount) }}</td>
-              <td><span class="fx-chip" :class="r.slaClass">{{ r.sla }}</span></td>
+              <td>
+                <span class="fx-chip" :class="r.slaClass" :title="r.t.dueDate ? tr('Due') + ' ' + dueLabel(new Date(r.t.dueDate)) : ''">{{ r.sla }}</span>
+                <span v-if="r.t.escalatedFrom" class="fx-chip fx-chip--esc" :title="tr('Escalated from') + ' ' + r.t.escalatedFrom">{{ tr('Escalated') }}</span>
+              </td>
               <td><span class="ib-claim" :class="r.t.claimedBy ? 'is-claimed' : 'is-open'">{{ r.t.claimedBy ? tr('Task is claimed') : tr('Not claimed') }}</span></td>
               <td>{{ r.t.claimedByName || r.t.claimedBy || r.t.assignedRole || r.t.assignedUserName || r.t.assignedGroup }}</td>
               <td class="fx-r">
@@ -143,10 +146,16 @@ const rows = computed(() => {
     const due = t.dueDate ? new Date(t.dueDate) : null
     const open = (t.status || '').toUpperCase() === 'OPEN'
     const overdue = !!due && due.getTime() < now
-    const rank = overdue ? 0 : due && due.getTime() - now <= WARNING_DAYS * DAY ? 1 : 2
+    // "due soon" starts at the step's reminder time when it has one, else two days before the due date
+    const soonFrom = t.remindAt ? new Date(t.remindAt).getTime() : due ? due.getTime() - WARNING_DAYS * DAY : Infinity
+    const rank = overdue ? 0 : due && now >= soonFrom ? 1 : 2
     let sla = tr('No due date')
     let slaClass = ''
-    if (overdue) { sla = `${tr('Overdue')} ${Math.floor((now - due.getTime()) / DAY)}d`; slaClass = 'fx-chip--bad' }
+    if (overdue) {
+      const late = now - due.getTime()
+      sla = `${tr('Overdue')} ${late >= DAY ? Math.floor(late / DAY) + 'd' : Math.max(1, Math.floor(late / 3600000)) + 'h'}`
+      slaClass = 'fx-chip--bad'
+    }
     else if (rank === 1) { sla = tr('Due soon'); slaClass = 'fx-chip--warn' }
     else if (due) sla = dueLabel(due)
     const actions = (t.allowedActions || 'CLAIM').toUpperCase()
@@ -258,4 +267,5 @@ onMounted(load)
 .ib-note-x { flex: 0 0 auto; width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: #8AA0AB; cursor: pointer; }
 .ib-note-x:hover { background: #F2F6F7; color: #0B2533; }
 @keyframes ib-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.fx-chip--esc { margin-inline-start: 4px; background: #E6F2F2; color: #00636D; }
 </style>

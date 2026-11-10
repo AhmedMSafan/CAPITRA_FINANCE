@@ -4,11 +4,11 @@
     <div class="fx-head">
       <div>
         <h1>{{ tr('Data sources') }}</h1>
-        <p>{{ tr('The lists a workflow form offers in its drop-downs. Built-in ones read the application; make your own for anything else.') }}</p>
+        <p>{{ tr('The lists a document offers in its drop-downs. Built-in ones read the application; make your own for anything else.') }}</p>
       </div>
       <div class="fx-actions">
         <button type="button" class="fx-btn" @click="openWorkflowManual(6)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
-        <RouterLink class="fx-btn" :to="{ name: 'workflow-forms' }"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Forms') }}</RouterLink>
+        <RouterLink class="fx-btn" :to="{ name: 'workflow-forms' }"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Document Designer') }}</RouterLink>
         <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="newSource"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New data source') }}</button>
       </div>
     </div>
@@ -201,6 +201,12 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* the page buttons stay on the right of the title on every workflow page, however long the description */
+#fxSources .fx-head { flex-wrap: nowrap; }
+#fxSources .fx-head > div:first-child { flex: 1 1 auto; min-width: 0; }
+#fxSources .fx-head .fx-actions { flex: none; }
+@media (max-width: 900px) { #fxSources .fx-head { flex-wrap: wrap; } }
+
 .wf-msg { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 11px 14px; border-radius: 10px; font-size: 13.5px; background: #e4f6ee; border: 1px solid #bfe5d2; color: #0e5a3c; }
 .wf-msg.is-bad { background: #fdecea; border-color: #f3c3bc; color: #8a2416; }
 .wf-msg > span:nth-child(2) { flex: 1; }

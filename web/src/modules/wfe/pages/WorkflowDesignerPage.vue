@@ -465,6 +465,66 @@
               <input v-model="step.assignee" placeholder="e.g. CREDIT_MANAGER" />
             </section>
 
+            <section v-if="step.stepType==='HumanTask'" class="property-section sla-section">
+              <div class="section-title">
+                <span class="section-icon pi pi-clock"></span>
+                <div>
+                  <strong>Deadline (SLA)</strong>
+                  <small>Optional. How long the assignee has, a reminder before the due time, and who it goes to when overdue.</small>
+                </div>
+              </div>
+
+              <div class="two-col">
+                <div>
+                  <label class="field-label">Time limit</label>
+                  <input v-model="step.slaDuration" type="number" min="0" step="any" placeholder="e.g. 8" />
+                </div>
+                <div>
+                  <label class="field-label">Unit</label>
+                  <select v-model="step.slaUnit">
+                    <option value="HOURS">Hours</option>
+                    <option value="DAYS">Days</option>
+                    <option value="WORKING_DAYS">Working days</option>
+                  </select>
+                </div>
+              </div>
+
+              <template v-if="String(step.slaDuration).trim()">
+                <label class="field-label">Remind the assignee (hours before due)</label>
+                <input v-model="step.slaRemindHours" type="number" min="0" step="any" placeholder="e.g. 2" />
+
+                <div class="two-col">
+                  <div>
+                    <label class="field-label">When overdue</label>
+                    <select v-model="step.slaEscalation">
+                      <option value="NONE">Alert the assignee only</option>
+                      <option value="REASSIGN">Move the task (escalate)</option>
+                      <option value="NOTIFY">Tell someone else</option>
+                    </select>
+                  </div>
+                  <div v-if="step.slaEscalation!=='NONE'">
+                    <label class="field-label">After (hours)</label>
+                    <input v-model="step.slaEscalateHours" type="number" min="0" step="any" placeholder="0" />
+                  </div>
+                </div>
+
+                <div v-if="step.slaEscalation!=='NONE'" class="two-col">
+                  <div>
+                    <label class="field-label">To a</label>
+                    <select v-model="step.slaEscalateType">
+                      <option value="Role">Role</option>
+                      <option value="User">User</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="field-label">{{ step.slaEscalateType==='User'?'User name':'Role' }}</label>
+                    <input v-model="step.slaEscalateTo" :placeholder="step.slaEscalateType==='User'?'e.g. mona':'e.g. CREDIT_MANAGER'" />
+                  </div>
+                </div>
+              </template>
+              <p class="sla-summary"><span class="pi pi-info-circle"></span> {{ slaSummary(step) }}</p>
+            </section>
+
             <section class="property-section">
               <div class="section-title">
                 <span class="section-icon pi pi-book"></span>
@@ -756,7 +816,7 @@ import {apiErrorText,formApi,type WorkflowForm} from '../services/formService'
 import { openWorkflowManual } from '../utils/manual'
 
 type Var={name:string,type:string,required:boolean,label?:string,defaultValue?:string,choices?:string[],description?:string}; type Param={name:string,value:string};
-type Step={stepCode:string,stepName:string,ruleCode:string,formCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[]}
+type Step={stepCode:string,stepName:string,ruleCode:string,formCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[],slaDuration:string,slaUnit:string,slaRemindHours:string,slaEscalateHours:string,slaEscalation:string,slaEscalateType:string,slaEscalateTo:string}
 const route=useRoute(),router=useRouter(),canvas=ref<HTMLElement|null>(null),saving=ref(false),active=ref(true),selectedId=ref(''),selectedType=ref(''),message=ref(''),messageType=ref<'success'|'error'>('success'),showXml=ref(false),xmlPreview=ref(''),customAction=ref(''),flowOutcome=ref(''),customFlowOutcome=ref(''),selectedFlowSource=ref(''),selectedFlowTarget=ref(''),leftPanelOpen=ref(false),rightPanelOpen=ref(false),zoomPercent=ref(100)
 const variables=reactive<Var[]>([]),steps=reactive<Record<string,Step>>({}); let modeler:any=null
 const form=reactive({dgrmId:0,dgrmName:'',dgrmVersion:'1',dgrmStatus:'draft',dgrmContent:'',dgrmCreatedBy:'SYSTEM',dgrmLastUpdateBy:'SYSTEM',workflowCode:'',description:'',isActive:'Y'})
@@ -770,7 +830,7 @@ const wfType=ref<'SYSTEM'|'USER'>('SYSTEM'),wfDocument=ref('')
 function loadForms(){(form.dgrmId?formApi.ofWorkflow(form.dgrmId):formApi.list().then(x=>x.filter(f=>f.isDocument))).then(x=>documents.value=x).catch(()=>documents.value=[])}
 function openDocument(code:string){const f=documents.value.find(x=>x.formCode===code);router.push({name:'workflow-forms',query:f?{form:String(f.formId)}:{new:'1'}})}
 const actionCatalog=ref(['CLAIM','ACCEPT','APPROVE','REJECT','RETURN','COMPLETE'])
-function emptyStep():Step{return{stepCode:'',stepName:'',ruleCode:'',formCode:'',stepType:'HumanTask',assignmentType:'Role',assignee:'',route:'',routeParameters:[],actions:['CLAIM','COMPLETE']}}
+function emptyStep():Step{return{stepCode:'',stepName:'',ruleCode:'',formCode:'',stepType:'HumanTask',assignmentType:'Role',assignee:'',route:'',routeParameters:[],actions:['CLAIM','COMPLETE'],slaDuration:'',slaUnit:'HOURS',slaRemindHours:'',slaEscalateHours:'',slaEscalation:'NONE',slaEscalateType:'Role',slaEscalateTo:''}}
 // selecting an element creates its step settings (bindSelection), so the computed only reads them
 const step=computed<Step>(()=>(selectedId.value?steps[selectedId.value]:undefined)??emptyStep())
 const starter=`<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:finova="http://finova/workflow" id="Definitions_FINOVA" targetNamespace="http://finova/workflow"><bpmn:process id="Process_FINOVA" name="FINOVA Workflow Engine" isExecutable="true"><bpmn:startEvent id="StartEvent_1" name="Start"><bpmn:outgoing>Flow_1</bpmn:outgoing></bpmn:startEvent><bpmn:userTask id="Task_1" name="Approval Task"><bpmn:incoming>Flow_1</bpmn:incoming><bpmn:outgoing>Flow_2</bpmn:outgoing></bpmn:userTask><bpmn:endEvent id="EndEvent_1" name="End"><bpmn:incoming>Flow_2</bpmn:incoming></bpmn:endEvent><bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1"/><bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="EndEvent_1"/></bpmn:process><bpmndi:BPMNDiagram id="BPMNDiagram_1"><bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_FINOVA"><bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1"><dc:Bounds x="180" y="182" width="36" height="36"/></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1"><dc:Bounds x="300" y="160" width="120" height="80"/></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1"><dc:Bounds x="520" y="182" width="36" height="36"/></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="216" y="200"/><di:waypoint x="300" y="200"/></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="420" y="200"/><di:waypoint x="520" y="200"/></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>`
@@ -815,6 +875,13 @@ function loadMetadataFromXml(){
     s.assignmentType=bo.assignmentType||((s.stepType==='HumanTask')?'Role':'None')
     s.assignee=bo.assignee||''
     s.route=bo.route||''
+    s.slaDuration=bo.slaDuration||''
+    s.slaUnit=bo.slaUnit||'HOURS'
+    s.slaRemindHours=bo.slaRemindHours||''
+    s.slaEscalateHours=bo.slaEscalateHours||''
+    s.slaEscalation=bo.slaEscalation||'NONE'
+    s.slaEscalateType=bo.slaEscalateType||'Role'
+    s.slaEscalateTo=bo.slaEscalateTo||''
 
     try{
       s.routeParameters=bo.routeParameters?JSON.parse(bo.routeParameters):[]
@@ -852,11 +919,42 @@ function writeMetadataToBpmn(){
       assignee:s.assignee,
       route:s.route,
       routeParameters:JSON.stringify(s.routeParameters),
-      actions:s.actions.join(',')
+      actions:s.actions.join(','),
+      // the step's time limit (SLA); none of it is written when the step has no time limit
+      ...slaAttrs(s)
     })
   })
 }
 
+
+function slaAttrs(s:Step){
+  const on=s.stepType==='HumanTask'&&String(s.slaDuration).trim()!==''
+  const esc=on&&s.slaEscalation!=='NONE'
+  return{
+    slaDuration:on?String(s.slaDuration).trim():undefined,
+    slaUnit:on?s.slaUnit:undefined,
+    slaRemindHours:on&&String(s.slaRemindHours).trim()!==''?String(s.slaRemindHours).trim():undefined,
+    slaEscalation:esc?s.slaEscalation:undefined,
+    slaEscalateHours:esc&&String(s.slaEscalateHours).trim()!==''?String(s.slaEscalateHours).trim():undefined,
+    slaEscalateType:esc?s.slaEscalateType:undefined,
+    slaEscalateTo:esc&&s.slaEscalateTo.trim()?s.slaEscalateTo.trim():undefined
+  }
+}
+// a plain sentence of the step's time limit, under the settings
+function slaSummary(s:Step){
+  const n=String(s.slaDuration).trim()
+  if(!n)return'No time limit: the task has no due date.'
+  const unit=s.slaUnit==='DAYS'?'day(s)':s.slaUnit==='WORKING_DAYS'?'working day(s), skipping Friday, Saturday and holidays':'hour(s)'
+  let t=`Due ${n} ${unit} after the task is created.`
+  const r=String(s.slaRemindHours).trim()
+  if(r&&Number(r)>0)t+=` Reminder ${r} hour(s) before.`
+  if(s.slaEscalation!=='NONE'&&s.slaEscalateTo.trim()){
+    const h=String(s.slaEscalateHours).trim()||'0'
+    const who=(s.slaEscalateType==='User'?'user ':'role ')+s.slaEscalateTo.trim()
+    t+=` ${h==='0'?'When overdue':`${h} hour(s) after it is overdue`}, ${s.slaEscalation==='REASSIGN'?`it moves to ${who}`:`${who} is told`}.`
+  }
+  return t
+}
 
 const MIN_ZOOM_PERCENT=50
 const MAX_ZOOM_PERCENT=160
@@ -1485,6 +1583,9 @@ async function save(){
 onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefined,moddleExtensions:{finova:finovaWorkflowModdle},textRenderer:{defaultStyle:{fontFamily:'Inter, Arial, sans-serif',fontSize:15,fontWeight:600,lineHeight:1.2},externalStyle:{fontSize:13,lineHeight:1.2}}});bindSelection();await load();if(canvas.value)canvasObserver.observe(canvas.value)}catch(e){msg(e instanceof Error?e.message:'Designer initialization failed.',true)}});onBeforeUnmount(()=>{canvasObserver.disconnect();clearTimeout(refitTimer);modeler?.destroy()})
 </script>
 <style scoped>
+.sla-summary{margin:10px 0 0;padding:8px 10px;border-radius:6px;background:#e8f3f4;color:#00636D;font-size:12px;line-height:1.45}
+.sla-summary .pi{font-size:12px;margin-right:4px}
+
 .designer-page,
 .designer-page * {
   box-sizing: border-box;

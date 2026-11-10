@@ -12,7 +12,8 @@ namespace Capitra.Application.Modules.Wfe;
 /// </summary>
 /// <param name="Type">String (text), Number (whole number), Decimal (amount), Boolean (yes/no), Date, Choice or User.</param>
 public sealed record WfeDataField(
-    string Name, string? Label, string Type, bool Required, string? DefaultValue, IReadOnlyList<string> Choices, string? Description)
+    string Name, string? Label, string Type, bool Required, string? DefaultValue, IReadOnlyList<string> Choices, string? Description,
+    string? Auto = null)
 {
     public string Caption => string.IsNullOrWhiteSpace(Label) ? Name : Label!;
 }
@@ -25,6 +26,27 @@ public sealed record WfeInstanceDataDto(IReadOnlyList<WfeDataValueDto> Fields, I
 public static class WfeDataFields
 {
     public static readonly string[] Types = ["String", "Number", "Decimal", "Boolean", "Date", "Choice", "User"];
+
+    /// <summary>
+    /// Values the system fills in, read-only, when a document is first filled: the signed-in user (user name), their full name,
+    /// department and employee number, and today's date.
+    /// </summary>
+    public const string CurrentUser = "CURRENT_USER";
+    public const string CurrentUserName = "CURRENT_USER_NAME";
+    public const string CurrentDepartment = "CURRENT_DEPARTMENT";
+    public const string CurrentEmployeeNo = "CURRENT_EMPLOYEE_NO";
+    public const string Today = "TODAY";
+    public static readonly string[] AutoValues = [CurrentUser, CurrentUserName, CurrentDepartment, CurrentEmployeeNo, Today];
+
+    /// <summary>The tokens a designer can type as a field's value instead of choosing it: @UserName, @FullName, @Department, @EmployeeNo, @Today.</summary>
+    public static readonly IReadOnlyDictionary<string, string> AutoTokens = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["@UserName"] = CurrentUser, ["@User"] = CurrentUser,
+        ["@FullName"] = CurrentUserName,
+        ["@Department"] = CurrentDepartment,
+        ["@EmployeeNo"] = CurrentEmployeeNo,
+        ["@Today"] = Today, ["@TodayDate"] = Today, ["@Date"] = Today,
+    };
 
     private static readonly XNamespace Bpmn = "http://www.omg.org/spec/BPMN/20100524/MODEL";
     private static readonly XNamespace Finova = "http://finova/workflow";
@@ -43,6 +65,7 @@ public static class WfeDataFields
         public string? DefaultValue { get; set; }
         public List<string>? Choices { get; set; }
         public string? Description { get; set; }
+        public string? Auto { get; set; }
     }
 
     /// <summary>The fields a diagram declares; none when it declares none or the list cannot be read.</summary>
@@ -82,7 +105,8 @@ public static class WfeDataFields
             .Select(x => new WfeDataField(
                 x.Name!.Trim(), x.Label?.Trim(), Types.FirstOrDefault(t => string.Equals(t, x.Type?.Trim(), StringComparison.OrdinalIgnoreCase)) ?? "String",
                 x.Required, string.IsNullOrWhiteSpace(x.DefaultValue) ? null : x.DefaultValue.Trim(),
-                (x.Choices ?? []).Select(c => c.Trim()).Where(c => c.Length > 0).ToList(), x.Description?.Trim()))
+                (x.Choices ?? []).Select(c => c.Trim()).Where(c => c.Length > 0).ToList(), x.Description?.Trim(),
+                AutoValues.FirstOrDefault(a => string.Equals(a, x.Auto?.Trim(), StringComparison.OrdinalIgnoreCase))))
             .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase).Select(g => g.First())
             .ToList();
     }
@@ -91,7 +115,7 @@ public static class WfeDataFields
         JsonSerializer.Serialize(fields.Select(f => new Raw
         {
             Name = f.Name, Label = f.Label, Type = f.Type, Required = f.Required, DefaultValue = f.DefaultValue,
-            Choices = f.Choices.Count == 0 ? null : f.Choices.ToList(), Description = f.Description,
+            Choices = f.Choices.Count == 0 ? null : f.Choices.ToList(), Description = f.Description, Auto = f.Auto,
         }), JsonOut);
 
     /// <summary>
@@ -126,6 +150,29 @@ public static class WfeDataFields
                 string.IsNullOrWhiteSpace(f.Description) ? null : f.Description.Trim());
             if (type == "Choice" && choices.Count == 0)
                 errors.Add($"\"{field.Caption}\" is a Choice field: list its choices.");
+            // a token typed as the value (@UserName, @Today) is the same as choosing the automatic value
+            var token = f.DefaultValue?.Trim();
+            var requested = !string.IsNullOrWhiteSpace(f.Auto) ? f.Auto.Trim()
+                : token is { Length: > 1 } && token[0] == '@' ? (AutoTokens.TryGetValue(token, out var t) ? t : token) : null;
+            if (requested is not null)
+            {
+                field = field with { DefaultValue = null };
+                var auto = AutoValues.FirstOrDefault(a => string.Equals(a, requested, StringComparison.OrdinalIgnoreCase));
+                var fits = auto switch
+                {
+                    null => false,
+                    Today => type is "Date" or "String",
+                    CurrentUser => type is "User" or "String",
+                    _ => type == "String",
+                };
+                if (auto is null)
+                    errors.Add($"\"{field.Caption}\": unknown automatic value \"{requested}\". Use @UserName, @FullName, @Department, @EmployeeNo or @Today.");
+                else if (!fits)
+                    errors.Add($"\"{field.Caption}\": {AutoText(auto)} needs a {(auto == Today ? "Date" : auto == CurrentUser ? "User or String" : "String")} field.");
+                else
+                    field = field with { Auto = auto, DefaultValue = null };
+            }
+
             if (field.DefaultValue is not null)
             {
                 var (value, error) = Normalize(field, field.DefaultValue);
@@ -234,4 +281,14 @@ public static class WfeDataFields
                 return (raw, null);
         }
     }
+
+    /// <summary>How an automatic value reads in messages.</summary>
+    public static string AutoText(string auto) => auto switch
+    {
+        CurrentUser => "the current user",
+        CurrentUserName => "the current user's full name",
+        CurrentDepartment => "the current user's department",
+        CurrentEmployeeNo => "the current user's employee no.",
+        _ => "today's date",
+    };
 }

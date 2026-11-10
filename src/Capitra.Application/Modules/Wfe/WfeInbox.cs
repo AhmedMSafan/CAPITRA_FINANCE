@@ -46,7 +46,10 @@ public sealed record WfeInboxItemDto(
     string? AssignedUserName,
     string? AssignedGroup,
     string? ClientNumber = null,
-    string? OnBehalfOf = null);
+    string? OnBehalfOf = null,
+    DateTime? RemindAt = null,
+    string? EscalatedFrom = null,
+    DateTime? EscalatedAt = null);
 
 /// <summary>RoutingMode USER sends the next task to AssignedUserId instead of the workflow default (FINOVA's routing override).</summary>
 /// <param name="Values">The step form's values, for a step worked on its form.</param>
@@ -227,7 +230,14 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
         {
             var (form, fields, readOnly) = await StepFormAsync(await WithStepAsync(inboxId, cancellationToken), cancellationToken);
             if (form is not null && !readOnly && !IsSendBack(action))
+            {
                 variables = await forms.AcceptAsync(form, fields, request.Values, cancellationToken);
+                // automatic fields still empty get the user who works the step (or today)
+                var known = await db.Set<WfeInstanceVariable>().AsNoTracking().Where(x => x.WorkflowInstanceId == row.WorkflowInstanceId)
+                    .ToDictionaryAsync(x => x.VariableName, x => x.VariableValue, StringComparer.OrdinalIgnoreCase, cancellationToken);
+                foreach (var (name, value) in await forms.AutoValuesAsync(fields, known, cancellationToken))
+                    variables[name] = value;
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.Comment))
@@ -358,7 +368,8 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
             x.StepInstance?.StepCode, x.StepInstance?.StepName ?? x.Subject,
             V("MODULE_CODE"), V("FUNCTION_CODE"), V("ENTITY_TYPE"), L("ENTITY_ID"),
             V("ENTITY_REF", "BUSINESS_REFERENCE") ?? x.Instance?.BusinessReference,
-            L("CLIENT_ID"), V("CLIENT_NAME"), D("AMOUNT"), V("CURRENCY_CODE"), V("PRIORITY") ?? "NORMAL", V("INSTRUCTIONS"), T("DUE_DATE"),
-            x.AssignedTo, x.AssignedTo, x.AssignedRole, OnBehalfOf: OnBehalfOf(x));
+            L("CLIENT_ID"), V("CLIENT_NAME"), D("AMOUNT"), V("CURRENCY_CODE"), V("PRIORITY") ?? "NORMAL", V("INSTRUCTIONS"), x.DueAt ?? T("DUE_DATE"),
+            x.AssignedTo, x.AssignedTo, x.AssignedRole, OnBehalfOf: OnBehalfOf(x),
+            RemindAt: x.RemindAt, EscalatedFrom: x.EscalatedFrom, EscalatedAt: x.EscalatedFrom is null ? null : x.EscalatedAt);
     }
 }

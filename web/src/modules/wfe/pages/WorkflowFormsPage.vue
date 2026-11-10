@@ -88,7 +88,7 @@
               <thead>
                 <tr>
                   <th>{{ tr('Label') }}</th><th>{{ tr('Name') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Choices') }}</th>
-                  <th>{{ tr('Default') }}</th><th class="fm-c">{{ tr('Required') }}</th><th></th>
+                  <th>{{ tr('Default or automatic value') }}</th><th class="fm-c">{{ tr('Required') }}</th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -105,7 +105,16 @@
                            @change="f.choices = ($event.target as HTMLInputElement).value.split(',').map((x) => x.trim()).filter(Boolean)">
                     <span v-else class="fx-cell-sub">-</span>
                   </td>
-                  <td><input v-model="f.defaultValue" class="fx-search" :disabled="!canEdit"></td>
+                  <td>
+                    <div class="fm-auto">
+                      <select v-model="f.auto" class="fx-select" :disabled="!canEdit" :aria-label="tr('Default or automatic value')" @change="f.auto && (f.defaultValue = null)">
+                        <option :value="null">{{ tr('Typed value') }}</option>
+                        <option v-for="a in autoValues.filter((x) => x.types.includes(f.type))" :key="a.value" :value="a.value">{{ tr(a.label) }}</option>
+                      </select>
+                      <input v-if="!f.auto" v-model="f.defaultValue" class="fx-search" :placeholder="tr('optional, or @UserName, @Today')" :disabled="!canEdit">
+                      <span v-else class="fm-auto-tag"><span class="pi pi-lock" aria-hidden="true"></span> {{ tr('Read-only, filled in for the user') }}</span>
+                    </div>
+                  </td>
                   <td class="fm-c"><input v-model="f.required" type="checkbox" class="fx-check" :disabled="!canEdit" :aria-label="tr('Required')"></td>
                   <td><button v-if="canEdit" type="button" class="fm-tool" :aria-label="tr('Remove')" @click="removeField(i)"><span class="fa fa-trash-o" aria-hidden="true"></span></button></td>
                 </tr>
@@ -121,70 +130,93 @@
           <div class="fx-card fx-card-pad">
             <div class="fm-pane-head">
               <h2>{{ tr('Layout') }}</h2>
-              <span class="fx-cell-sub">{{ tr('Top to bottom, as on the document') }}</span>
+              <span class="fx-cell-sub">{{ tr('Drag the boxes to arrange the document') }}</span>
             </div>
 
             <p v-if="!fields.length" class="fm-hint">{{ tr('Add the document\'s fields first: each one becomes a control here.') }}</p>
 
-            <ol class="fm-controls">
-              <li v-for="(c, i) in edit.controls" :key="i" class="fm-control" :class="{ open: openIndex === i }">
-                <div class="fm-control-head">
-                  <span class="fm-control-icon fa" :class="iconOf(c)" aria-hidden="true"></span>
-                  <button type="button" class="fm-control-title" @click="openIndex = openIndex === i ? -1 : i">
-                    <b>{{ titleOf(c) }}</b>
-                    <small>{{ subOf(c) }}</small>
-                  </button>
-                  <span v-if="canEdit" class="fm-control-tools">
-                    <button type="button" class="fm-tool" :disabled="i === 0" :aria-label="tr('Move up')" @click="move(i, -1)"><span class="fa fa-arrow-up" aria-hidden="true"></span></button>
-                    <button type="button" class="fm-tool" :disabled="i === edit.controls.length - 1" :aria-label="tr('Move down')" @click="move(i, 1)"><span class="fa fa-arrow-down" aria-hidden="true"></span></button>
-                    <button type="button" class="fm-tool" :aria-label="tr('Remove')" @click="removeControl(i)"><span class="fa fa-trash-o" aria-hidden="true"></span></button>
-                  </span>
-                </div>
+            <!-- the canvas: drag a control up, down, or onto the left or right half of another; the arrows do the same -->
+            <div class="fm-canvas" :class="{ two: edit.columns === 2, dragging: dragFrom >= 0 }" @dragover.prevent>
+              <div v-for="(c, i) in edit.controls" :key="i" class="fm-card"
+                   :class="['w-' + cardWidth(c), { sel: openIndex === i, ghost: dragFrom === i, ['drop-' + dropSide]: dropAt === i && dragFrom !== i }]"
+                   :draggable="canEdit" @dragstart="dragStart(i, $event)" @dragend="dragEnd"
+                   @dragover.prevent="dragOver(i, $event)" @drop.prevent="dropOn(i)" @click="openIndex = openIndex === i ? -1 : i">
+                <span class="fm-card-grip fa fa-arrows" aria-hidden="true"></span>
+                <span class="fm-card-icon fa" :class="iconOf(c)" aria-hidden="true"></span>
+                <span class="fm-card-text"><b>{{ titleOf(c) }}</b><small>{{ subOf(c) }}</small></span>
+                <span v-if="c.kind === 'field'" class="fm-card-mock" aria-hidden="true"></span>
+              </div>
+              <div v-if="canEdit && edit.controls.length" class="fm-card-end" :class="{ on: dropAt === edit.controls.length }"
+                   @dragover.prevent="dropAt = edit.controls.length; dropSide = 'below'" @drop.prevent="dropOn(edit.controls.length)">
+                {{ tr('Drop here to put it last') }}
+              </div>
+            </div>
+            <p v-if="canEdit && edit.controls.length" class="fm-hint fm-canvas-hint">
+              <span class="fa fa-hand-pointer-o" aria-hidden="true"></span>
+              {{ tr('Drag a box above or below another to move it; onto the left or right half of another to sit beside it. Click a box for its settings.') }}
+            </p>
 
-                <div v-if="openIndex === i" class="fm-control-body">
+            <!-- the selected control: move it with the arrows, change its settings -->
+            <div v-for="c in selectedControl" :key="edit.controls.indexOf(c)" class="fm-control open">
+              <div class="fm-control-head">
+                <span class="fm-control-icon fa" :class="iconOf(c)" aria-hidden="true"></span>
+                <div class="fm-control-title"><b>{{ titleOf(c) }}</b><small>{{ subOf(c) }}</small></div>
+                <span v-if="canEdit" class="fm-control-tools">
+                  <button type="button" class="fm-tool" :disabled="openIndex === 0" :aria-label="tr('Move up')" :title="tr('Move up')" @click="move(openIndex, -1)"><span class="fa fa-arrow-up" aria-hidden="true"></span></button>
+                  <button type="button" class="fm-tool" :disabled="openIndex === edit.controls.length - 1" :aria-label="tr('Move down')" :title="tr('Move down')" @click="move(openIndex, 1)"><span class="fa fa-arrow-down" aria-hidden="true"></span></button>
                   <template v-if="c.kind === 'field'">
-                    <label class="fm-field">
-                      <span>{{ tr('Label on the form') }}</span>
-                      <input v-model="c.label" class="fx-search" :placeholder="fieldOf(c)?.caption" :disabled="!canEdit">
-                    </label>
-                    <label class="fm-field">
-                      <span>{{ tr('Control') }}</span>
-                      <select v-model="c.control" class="fx-select" :disabled="!canEdit">
-                        <option v-for="t in controlsFor(fieldOf(c)?.type ?? 'String')" :key="t" :value="t">{{ tr(controlName(t)) }}</option>
-                      </select>
-                    </label>
-                    <label v-if="c.control === 'dropdown'" class="fm-field">
-                      <span>{{ tr('Data source') }}</span>
-                      <select v-model="c.dataSource" class="fx-select" :disabled="!canEdit">
-                        <option :value="null">{{ fieldOf(c)?.choices.length ? tr('The field\'s own choices') : tr('Choose a data source') }}</option>
-                        <option v-for="s in sources" :key="s.sourceCode" :value="s.sourceCode">{{ s.sourceName }}{{ s.builtIn ? ` (${tr('built-in')})` : '' }}</option>
-                      </select>
-                    </label>
-                    <label v-if="edit.columns === 2" class="fm-field">
-                      <span>{{ tr('Width') }}</span>
-                      <select v-model="c.width" class="fx-select" :disabled="!canEdit">
-                        <option value="full">{{ tr('Whole row') }}</option>
-                        <option value="half">{{ tr('Half row') }}</option>
-                      </select>
-                    </label>
-                    <label class="fm-field fm-full">
-                      <span>{{ tr('Help text (optional)') }}</span>
-                      <input v-model="c.help" class="fx-search" :placeholder="fieldOf(c)?.description ?? ''" :disabled="!canEdit">
-                    </label>
-                    <div class="fm-flags fm-full">
-                      <label class="fm-check"><input v-model="c.required" type="checkbox" class="fx-check" :disabled="!canEdit || c.readOnly || fieldOf(c)?.required"> <span>{{ tr('Required') }}</span>
-                        <small v-if="fieldOf(c)?.required">{{ tr('(the field is required)') }}</small></label>
-                      <label class="fm-check"><input v-model="c.readOnly" type="checkbox" class="fx-check" :disabled="!canEdit" @change="c.readOnly && (c.required = false)"> <span>{{ tr('Read-only') }}</span>
-                        <small>{{ tr('shown, not changed') }}</small></label>
-                    </div>
+                    <button type="button" class="fm-tool" :aria-pressed="c.width === 'left'" :aria-label="tr('Left half')" :title="tr('Left half')" @click="place(c, 'left')"><span class="fa fa-arrow-left" aria-hidden="true"></span></button>
+                    <button type="button" class="fm-tool" :aria-pressed="c.width === 'right'" :aria-label="tr('Right half')" :title="tr('Right half')" @click="place(c, 'right')"><span class="fa fa-arrow-right" aria-hidden="true"></span></button>
+                    <button type="button" class="fm-tool" :aria-pressed="(c.width ?? 'full') === 'full'" :aria-label="tr('Whole row')" :title="tr('Whole row')" @click="place(c, 'full')"><span class="fa fa-arrows-h" aria-hidden="true"></span></button>
                   </template>
-                  <label v-else class="fm-field fm-full">
-                    <span>{{ c.kind === 'heading' ? tr('Heading text') : tr('Note text') }}</span>
-                    <input v-model="c.label" class="fx-search" :disabled="!canEdit">
+                  <button type="button" class="fm-tool" :aria-label="tr('Remove')" :title="tr('Remove')" @click="removeControl(openIndex)"><span class="fa fa-trash-o" aria-hidden="true"></span></button>
+                </span>
+              </div>
+                <div class="fm-control-body">
+                <template v-if="c.kind === 'field'">
+                  <label class="fm-field">
+                    <span>{{ tr('Label on the form') }}</span>
+                    <input v-model="c.label" class="fx-search" :placeholder="fieldOf(c)?.caption" :disabled="!canEdit">
                   </label>
-                </div>
-              </li>
-            </ol>
+                  <label class="fm-field">
+                    <span>{{ tr('Control') }}</span>
+                    <select v-model="c.control" class="fx-select" :disabled="!canEdit">
+                      <option v-for="t in controlsFor(fieldOf(c)?.type ?? 'String')" :key="t" :value="t">{{ tr(controlName(t)) }}</option>
+                    </select>
+                  </label>
+                  <label v-if="c.control === 'dropdown'" class="fm-field">
+                    <span>{{ tr('Data source') }}</span>
+                    <select v-model="c.dataSource" class="fx-select" :disabled="!canEdit">
+                      <option :value="null">{{ fieldOf(c)?.choices.length ? tr('The field\'s own choices') : tr('Choose a data source') }}</option>
+                      <option v-for="s in sources" :key="s.sourceCode" :value="s.sourceCode">{{ s.sourceName }}{{ s.builtIn ? ` (${tr('built-in')})` : '' }}</option>
+                    </select>
+                  </label>
+                  <label v-if="edit.columns === 2" class="fm-field">
+                    <span>{{ tr('Width') }}</span>
+                    <select v-model="c.width" class="fx-select" :disabled="!canEdit">
+                      <option value="full">{{ tr('Whole row') }}</option>
+                      <option value="half">{{ tr('Half row') }}</option>
+                      <option value="left">{{ tr('Left half') }}</option>
+                      <option value="right">{{ tr('Right half') }}</option>
+                    </select>
+                  </label>
+                  <label class="fm-field fm-full">
+                    <span>{{ tr('Help text (optional)') }}</span>
+                    <input v-model="c.help" class="fx-search" :placeholder="fieldOf(c)?.description ?? ''" :disabled="!canEdit">
+                  </label>
+                  <div class="fm-flags fm-full">
+                    <label class="fm-check"><input v-model="c.required" type="checkbox" class="fx-check" :disabled="!canEdit || c.readOnly || fieldOf(c)?.required"> <span>{{ tr('Required') }}</span>
+                      <small v-if="fieldOf(c)?.required">{{ tr('(the field is required)') }}</small></label>
+                    <label class="fm-check"><input v-model="c.readOnly" type="checkbox" class="fx-check" :disabled="!canEdit" @change="c.readOnly && (c.required = false)"> <span>{{ tr('Read-only') }}</span>
+                      <small>{{ tr('shown, not changed') }}</small></label>
+                  </div>
+                </template>
+                <label v-else class="fm-field fm-full">
+                  <span>{{ c.kind === 'heading' ? tr('Heading text') : tr('Note text') }}</span>
+                  <input v-model="c.label" class="fx-search" :disabled="!canEdit">
+                </label>
+              </div>
+            </div>
 
             <div v-if="canEdit" class="fm-add">
               <span class="fm-add-label">{{ tr('Add') }}</span>
@@ -244,7 +276,7 @@ import { useRoute } from 'vue-router'
 import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'
 import WorkflowFormView from '../components/WorkflowFormView.vue'
-import {
+import { autoValues,
   apiErrorText, controlName, controlsFor, dataSourceApi, defaultControl, fieldTypes, formApi,
   type DataField, type DataSource, type DocumentField, type FormControl, type FormControlView, type FormView, type Option, type WorkflowForm
 } from '../services/formService'
@@ -323,7 +355,7 @@ const preview = computed<FormView>(() => ({
     const control = c.control ?? defaultControl(f.type)
     const source = control === 'user' ? 'USERS' : control === 'dropdown' ? c.dataSource : null
     const opts = source ? options.value[source] ?? [] : control === 'dropdown' ? f.choices.map((x) => ({ value: x, label: x })) : []
-    return [{ kind: 'field', field: f.name, label: c.label || f.caption, control, fieldType: f.type, required: !c.readOnly && (c.required || f.required), readOnly: c.readOnly, help: c.help || f.description, width: c.width ?? 'full', value: null, options: opts }]
+    return [{ kind: 'field', field: f.name, label: c.label || f.caption, control, fieldType: f.type, required: !c.readOnly && !f.auto && (c.required || f.required), readOnly: c.readOnly || !!f.auto, help: c.help || f.description || (f.auto ? tr('Filled in automatically') : null), width: c.width ?? 'full', value: null, options: opts }]
   })
 }))
 
@@ -352,7 +384,7 @@ function open(f: WorkflowForm) {
   Object.assign(edit, {
     id: f.formId, formCode: f.formCode, formName: f.formName, description: f.description ?? '',
     isActive: f.isActive, columns: f.layout.columns === 2 ? 2 : 1, controls: f.layout.controls.map((c) => ({ ...c, width: c.width ?? 'full' })),
-    fields: f.fields.map((x) => ({ name: x.name, label: x.label, type: x.type, required: x.required, defaultValue: x.defaultValue, choices: [...x.choices], description: x.description })),
+    fields: f.fields.map((x) => ({ name: x.name, label: x.label, type: x.type, required: x.required, defaultValue: x.defaultValue, choices: [...x.choices], description: x.description, auto: x.auto ?? null })),
     rowVersion: f.rowVersion
   })
   usedAt.value = f.usedAt
@@ -393,6 +425,8 @@ function renameField(i: number) {
 }
 function typeChanged(f: DocumentField) {
   if (f.type !== 'Choice') f.choices = []
+  // an automatic value that does not fit the new type is dropped
+  if (f.auto && !autoValues.find((a) => a.value === f.auto)?.types.includes(f.type)) f.auto = null
   const c = edit.controls.find((x) => x.kind === 'field' && x.field?.toLowerCase() === f.name.trim().toLowerCase())
   if (c && !controlsFor(f.type).includes(c.control ?? 'text')) { c.control = defaultControl(f.type); c.dataSource = null }
 }
@@ -412,6 +446,65 @@ function move(i: number, by: number) {
   const c = edit.controls.splice(i, 1)[0]
   if (c) edit.controls.splice(i + by, 0, c)
   if (openIndex.value === i) openIndex.value = i + by
+}
+// ---------- the layout canvas ----------
+const selectedControl = computed(() => { const c = openIndex.value >= 0 ? edit.controls[openIndex.value] : undefined; return c ? [c] : [] })
+const dragFrom = ref(-1)
+const dropAt = ref(-1)
+const dropSide = ref<'above' | 'below' | 'left' | 'right'>('below')
+function cardWidth(c: FormControl) {
+  if (edit.columns !== 2 || c.kind !== 'field') return 'full'
+  return c.width === 'left' || c.width === 'right' || c.width === 'half' ? c.width : 'full'
+}
+function dragStart(i: number, e: DragEvent) {
+  dragFrom.value = i
+  e.dataTransfer?.setData('text/plain', String(i))
+  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+}
+function dragEnd() {
+  dragFrom.value = -1
+  dropAt.value = -1
+}
+/** Where the pointer is on the box: its top or bottom quarter puts the control above or below; its left or right half beside it. */
+function dragOver(i: number, e: DragEvent) {
+  if (dragFrom.value < 0) return
+  const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const y = (e.clientY - r.top) / r.height
+  const x = (e.clientX - r.left) / r.width
+  const target = edit.controls[i]
+  const dragged = edit.controls[dragFrom.value]
+  const side = dragged?.kind === 'field' && target?.kind === 'field' && y > 0.25 && y < 0.75
+  dropAt.value = i
+  dropSide.value = side ? (x < 0.5 ? 'left' : 'right') : y < 0.5 ? 'above' : 'below'
+}
+function dropOn(i: number) {
+  const from = dragFrom.value
+  const side = dropSide.value
+  dragEnd()
+  if (from < 0 || from === i) return
+  const target = i < edit.controls.length ? edit.controls[i] : undefined
+  const [c] = edit.controls.splice(from, 1)
+  if (!c) return
+  if (!target) {
+    edit.controls.push(c)
+  } else {
+    const at = edit.controls.indexOf(target)
+    if (side === 'left' || side === 'right') {
+      // side by side: a two-column form, the dragged control on the chosen half and the other on the opposite one
+      edit.columns = 2
+      c.width = side
+      target.width = side === 'left' ? 'right' : 'left'
+    } else if (c.width === 'left' || c.width === 'right') {
+      c.width = 'full'
+    }
+    edit.controls.splice(side === 'above' || side === 'left' ? at : at + 1, 0, c)
+  }
+  openIndex.value = edit.controls.indexOf(c)
+}
+/** The arrow buttons: left or right half (the form becomes two columns) or the whole row. */
+function place(c: FormControl, width: 'left' | 'right' | 'full') {
+  if (width !== 'full') edit.columns = 2
+  c.width = width
 }
 function removeControl(i: number) {
   edit.controls.splice(i, 1)
@@ -468,6 +561,43 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* the page buttons stay on the right of the title on every workflow page, however long the description */
+#fxForms .fx-head { flex-wrap: nowrap; }
+#fxForms .fx-head > div:first-child { flex: 1 1 auto; min-width: 0; }
+#fxForms .fx-head .fx-actions { flex: none; }
+@media (max-width: 900px) { #fxForms .fx-head { flex-wrap: wrap; } }
+
+/* the layout canvas */
+.fm-canvas { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px 10px; padding: 12px; border: 1px dashed #c9dadf; border-radius: 12px; background: repeating-linear-gradient(0deg, #f7fbfb 0 23px, #eef5f6 23px 24px); min-height: 80px; }
+.fm-canvas.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fm-canvas > * { grid-column: 1 / -1; min-width: 0; }
+.fm-canvas.two > .w-half { grid-column: auto; }
+.fm-canvas.two > .w-left { grid-column: 1; }
+.fm-canvas.two > .w-right { grid-column: 2; }
+.fm-card { position: relative; display: grid; grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: 'grip icon text' 'grip mock mock'; align-items: center; gap: 4px 8px; padding: 9px 10px; border: 1px solid #d9e6ea; border-radius: 10px; background: #fff; cursor: grab; user-select: none; transition: box-shadow .12s, border-color .12s; }
+.fm-card:hover { border-color: #9cc5c9; }
+.fm-card.sel { border-color: #00636D; box-shadow: 0 0 0 3px rgba(0, 99, 109, .12); }
+.fm-card.ghost { opacity: .4; }
+.fm-card-grip { grid-area: grip; align-self: stretch; display: grid; place-items: center; color: #9db3bc; font-size: 12px; }
+.fm-card-icon { grid-area: icon; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 6px; background: #e7f3f2; color: #00636D; font-size: 12px; }
+.fm-card-text { grid-area: text; display: grid; min-width: 0; }
+.fm-card-text b { font-size: 12.5px; color: #12324a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fm-card-text small { font-size: 11px; color: #5f7787; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fm-card-mock { grid-area: mock; height: 22px; border: 1px solid #dbe7eb; border-radius: 6px; background: #fbfdfd; }
+.fm-card::after { content: ''; position: absolute; pointer-events: none; border-radius: 3px; background: #E87722; opacity: 0; }
+.fm-card.drop-above::after { opacity: 1; left: 0; right: 0; top: -6px; height: 4px; }
+.fm-card.drop-below::after { opacity: 1; left: 0; right: 0; bottom: -6px; height: 4px; }
+.fm-card.drop-left::after { opacity: 1; top: 0; bottom: 0; left: -6px; width: 4px; }
+.fm-card.drop-right::after { opacity: 1; top: 0; bottom: 0; right: -6px; width: 4px; }
+.fm-card-end { padding: 8px; border: 1px dashed transparent; border-radius: 8px; color: #8aa2ad; font-size: 11.5px; text-align: center; }
+.fm-canvas.dragging .fm-card-end { border-color: #c9dadf; }
+.fm-card-end.on { border-color: #E87722; color: #B4570E; background: #FFF7F0; }
+.fm-canvas-hint { margin: 8px 0 12px; }
+.fm-tool[aria-pressed=true] { background: #e7f3f2; color: #00636D; }
+
+.fm-auto { display: grid; gap: 4px; min-width: 190px; }
+.fm-auto-tag { font-size: 11.5px; color: #00636D; }
+
 .wf-msg { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 11px 14px; border-radius: 10px; font-size: 13.5px; background: #e4f6ee; border: 1px solid #bfe5d2; color: #0e5a3c; }
 .wf-msg.is-bad { background: #fdecea; border-color: #f3c3bc; color: #8a2416; }
 .wf-msg > span:nth-child(2) { flex: 1; }

@@ -15,10 +15,29 @@ public sealed record BpmnElement(
     string? RouteParameters,
     string? Actions,
     string? RuleCode = null,
-    string? FormCode = null)
+    string? FormCode = null,
+    BpmnSla? Sla = null)
 {
     public bool IsHumanTask =>
         Type is "userTask" or "manualTask" || string.Equals(StepType, "HumanTask", StringComparison.OrdinalIgnoreCase);
+}
+
+/// <summary>
+/// A step's time limit (SLA), as the designer stores it: finova:slaDuration and finova:slaUnit give the due time; the assignee is
+/// reminded finova:slaRemindHours before it; finova:slaEscalateHours after it the task is escalated (finova:slaEscalation REASSIGN
+/// moves it to finova:slaEscalateTo, a User or Role per finova:slaEscalateType; NOTIFY only tells them).
+/// </summary>
+public sealed record BpmnSla(
+    decimal Duration, string Unit, decimal? RemindHours, decimal? EscalateHours, string Escalation, string? EscalateType, string? EscalateTo)
+{
+    public const string Hours = "HOURS";
+    public const string Days = "DAYS";
+    public const string WorkingDays = "WORKING_DAYS";
+    public const string None = "NONE";
+    public const string Reassign = "REASSIGN";
+    public const string Notify = "NOTIFY";
+
+    public bool Escalates => Escalation is Reassign or Notify && !string.IsNullOrWhiteSpace(EscalateTo);
 }
 
 /// <summary>
@@ -122,7 +141,39 @@ public static class BpmnModel
         Attr(e, "routeParameters"),
         Attr(e, "actions"),
         Attr(e, "ruleCode"),
-        Attr(e, "formCode"));
+        Attr(e, "formCode"),
+        Sla(e));
+
+    /// <summary>The step's time limit, or null when it has none (or the duration is not a positive number).</summary>
+    private static BpmnSla? Sla(XElement e)
+    {
+        if (!decimal.TryParse(Attr(e, "slaDuration"), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var duration)
+            || duration <= 0)
+            return null;
+        var unit = Attr(e, "slaUnit")?.Trim().ToUpperInvariant();
+        var escalation = Attr(e, "slaEscalation")?.Trim().ToUpperInvariant();
+        return new BpmnSla(
+            duration,
+            unit is BpmnSla.Days or BpmnSla.WorkingDays ? unit : BpmnSla.Hours,
+            Hours(Attr(e, "slaRemindHours")),
+            Hours(Attr(e, "slaEscalateHours")),
+            escalation is BpmnSla.Reassign or BpmnSla.Notify ? escalation : BpmnSla.None,
+            string.Equals(Attr(e, "slaEscalateType"), "User", StringComparison.OrdinalIgnoreCase) ? "User" : "Role",
+            string.IsNullOrWhiteSpace(Attr(e, "slaEscalateTo")) ? null : Attr(e, "slaEscalateTo")!.Trim());
+    }
+
+    private static decimal? Hours(string? value) =>
+        decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var h) && h >= 0 ? h : null;
+
+    /// <summary>The raw SLA attributes of every human step, for checking a design before release: (step name, attribute, value).</summary>
+    public static IEnumerable<(string Step, string Name, string Value)> SlaAttributes(string xml)
+    {
+        string[] names = ["slaDuration", "slaUnit", "slaRemindHours", "slaEscalateHours", "slaEscalation", "slaEscalateType", "slaEscalateTo"];
+        foreach (var e in Load(xml).Descendants().Where(x => x.Name.Namespace == Bpmn))
+            foreach (var n in names)
+                if (Attr(e, n) is { } v && v.Trim().Length > 0)
+                    yield return ((string?)e.Attribute("name") ?? (string?)e.Attribute("id") ?? "?", n, v.Trim());
+    }
 
     private static string? Attr(XElement e, string name) => (string?)e.Attribute(Finova + name) ?? (string?)e.Attribute(name);
 }

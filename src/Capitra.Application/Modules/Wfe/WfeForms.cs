@@ -12,7 +12,7 @@ namespace Capitra.Application.Modules.Wfe;
 /// </summary>
 /// <param name="Control">text, textarea, number, amount, date, yesno, dropdown or user.</param>
 /// <param name="DataSource">The drop-down's data source; a Choice field without one offers its own choices.</param>
-/// <param name="Width">full or half (half sits beside the next half control on a two-column form).</param>
+/// <param name="Width">full, half (beside the next half control), left or right (that half of its row) on a two-column form.</param>
 public sealed record WfeFormControl(
     string Kind, string? Field, string? Label, string? Control, string? DataSource, bool Required, bool ReadOnly, string? Help, string? Width);
 
@@ -73,7 +73,7 @@ public sealed record WfeStartedDto(long InstanceId, string? NextStep, string? Ne
 ///   every approval step shows it read-only.
 /// Forms made before documents keep working on their workflow's data fields. A workflow without documents runs as before.
 /// </summary>
-public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentUser, WfeDataSources sources, WfeRuntime runtime)
+public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentUser, WfeDataSources sources, WfeRuntime runtime, IClock? clock = null)
 {
     public static readonly string[] Controls = ["text", "textarea", "number", "amount", "date", "yesno", "dropdown", "user"];
 
@@ -281,7 +281,7 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         foreach (var (c, i) in (layout.Controls ?? []).Select((c, i) => (c, i + 1)))
         {
             var kind = (c.Kind ?? "field").Trim().ToLowerInvariant();
-            var width = string.Equals(c.Width, "half", StringComparison.OrdinalIgnoreCase) ? "half" : "full";
+            var width = c.Width?.Trim().ToLowerInvariant() is "half" or "left" or "right" ? c.Width.Trim().ToLowerInvariant() : "full";
             if (kind is "heading" or "note")
             {
                 if (string.IsNullOrWhiteSpace(c.Label))
@@ -364,12 +364,41 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
             else if (control == "dropdown")
                 opts = f.Choices.Select(x => new WfeOptionDto(x, x)).ToList();
 
+            // a field the system fills in (current user, today) is never typed
+            var locked = c.ReadOnly || f.Auto is not null;
             list.Add(new WfeFormControlViewDto("field", f.Name, string.IsNullOrWhiteSpace(c.Label) ? f.Caption : c.Label!, control, f.Type,
-                !c.ReadOnly && (c.Required || f.Required), c.ReadOnly || !editable, c.Help ?? f.Description, c.Width ?? "full",
+                !locked && (c.Required || f.Required), locked || !editable, c.Help ?? f.Description ?? (f.Auto is null ? null : $"Filled in automatically: {WfeDataFields.AutoText(f.Auto)}."), c.Width ?? "full",
                 values.TryGetValue(f.Name, out var v) ? v : null, opts));
         }
 
         return new WfeFormViewDto(form.FormCode, form.FormName, form.Description, layout.Columns, editable, list);
+    }
+
+    /// <summary>
+    /// The values of the fields the system fills in for the signed-in user (user name, full name, department, employee no., today).
+    /// With <paramref name="existing"/>, only fields the instance has not stored yet: the value is taken once and never changed.
+    /// </summary>
+    public async Task<Dictionary<string, string?>> AutoValuesAsync(
+        IReadOnlyList<WfeDataField> fields, IReadOnlyDictionary<string, string?>? existing, CancellationToken ct)
+    {
+        var result = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        // set once, when the document is first filled: a field already stored (even empty) is never filled again
+        var auto = fields.Where(f => f.Auto is not null && (existing is null || !existing.ContainsKey(f.Name))).ToList();
+        if (auto.Count == 0)
+            return result;
+        var me = currentUser.UserName;
+        var user = auto.Any(f => f.Auto is not (WfeDataFields.CurrentUser or WfeDataFields.Today)) ? await sources.UserAsync(me, ct) : null;
+        var today = clock is null ? DateOnly.FromDateTime(DateTime.UtcNow) : Gl.GlTime.Today(clock);
+        foreach (var f in auto)
+            result[f.Name] = f.Auto switch
+            {
+                WfeDataFields.CurrentUser => me,
+                WfeDataFields.CurrentUserName => user?.FullName ?? me,
+                WfeDataFields.CurrentDepartment => user?.Department,
+                WfeDataFields.CurrentEmployeeNo => user?.EmployeeNo,
+                _ => today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+            };
+        return result;
     }
 
     /// <summary>
@@ -476,6 +505,8 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         var (def, form) = await StartFormOfAsync(workflowCode, ct);
         var fields = FieldsOf(form, def.BpmnXml);
         var defaults = fields.Where(f => f.DefaultValue is not null).ToDictionary(f => f.Name, f => f.DefaultValue, StringComparer.OrdinalIgnoreCase);
+        foreach (var (name, value) in await AutoValuesAsync(fields, null, ct))
+            defaults[name] = value;
         return await ViewAsync(form, fields, defaults, true, ct);
     }
 
@@ -483,7 +514,11 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     public async Task<WfeStartedDto> StartAsync(string workflowCode, WfeStartFromFormRequest r, CancellationToken ct)
     {
         var (def, form) = await StartFormOfAsync(workflowCode, ct);
-        var values = await AcceptAsync(form, FieldsOf(form, def.BpmnXml), r.Values, ct);
+        var fields = FieldsOf(form, def.BpmnXml);
+        var values = await AcceptAsync(form, fields, r.Values, ct);
+        // the automatic values come from the server, never from what the browser sent
+        foreach (var (name, value) in await AutoValuesAsync(fields, null, ct))
+            values[name] = value;
         var reference = string.IsNullOrWhiteSpace(r.BusinessReference) ? null : r.BusinessReference.Trim();
         var instance = await runtime.StartAsync(def.WorkflowDefinitionId, reference, values, Me, ct);
         var next = await db.Set<WfeInboxItem>().AsNoTracking().Include(x => x.StepInstance)
