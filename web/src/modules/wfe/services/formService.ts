@@ -62,11 +62,11 @@ export type DocumentField = {
 
 /** The automatic values a document field can take, and the field types each fits. */
 export const autoValues = [
-  { value: 'CURRENT_USER', label: 'Current user (user name)', types: ['User', 'String'] },
-  { value: 'CURRENT_USER_NAME', label: 'Current user full name', types: ['String'] },
-  { value: 'CURRENT_DEPARTMENT', label: 'Current user department', types: ['String'] },
-  { value: 'CURRENT_EMPLOYEE_NO', label: 'Current user employee no.', types: ['String'] },
-  { value: 'TODAY', label: "Today's date", types: ['Date', 'String'] }
+  { value: 'CURRENT_USER', label: 'Current user (@UserName)', types: ['User', 'String'] },
+  { value: 'CURRENT_USER_NAME', label: 'Full name (@FullName)', types: ['String'] },
+  { value: 'CURRENT_DEPARTMENT', label: 'Department (@Department)', types: ['String'] },
+  { value: 'CURRENT_EMPLOYEE_NO', label: 'Employee no. (@EmployeeNo)', types: ['String'] },
+  { value: 'TODAY', label: "Today's date (@Today)", types: ['Date', 'String'] }
 ]
 
 export type WorkflowType = 'SYSTEM' | 'USER'

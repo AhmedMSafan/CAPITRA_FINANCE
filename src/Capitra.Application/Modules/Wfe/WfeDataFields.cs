@@ -38,6 +38,16 @@ public static class WfeDataFields
     public const string Today = "TODAY";
     public static readonly string[] AutoValues = [CurrentUser, CurrentUserName, CurrentDepartment, CurrentEmployeeNo, Today];
 
+    /// <summary>The tokens a designer can type as a field's value instead of choosing it: @UserName, @FullName, @Department, @EmployeeNo, @Today.</summary>
+    public static readonly IReadOnlyDictionary<string, string> AutoTokens = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["@UserName"] = CurrentUser, ["@User"] = CurrentUser,
+        ["@FullName"] = CurrentUserName,
+        ["@Department"] = CurrentDepartment,
+        ["@EmployeeNo"] = CurrentEmployeeNo,
+        ["@Today"] = Today, ["@TodayDate"] = Today, ["@Date"] = Today,
+    };
+
     private static readonly XNamespace Bpmn = "http://www.omg.org/spec/BPMN/20100524/MODEL";
     private static readonly XNamespace Finova = "http://finova/workflow";
     private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -140,9 +150,14 @@ public static class WfeDataFields
                 string.IsNullOrWhiteSpace(f.Description) ? null : f.Description.Trim());
             if (type == "Choice" && choices.Count == 0)
                 errors.Add($"\"{field.Caption}\" is a Choice field: list its choices.");
-            if (!string.IsNullOrWhiteSpace(f.Auto))
+            // a token typed as the value (@UserName, @Today) is the same as choosing the automatic value
+            var token = f.DefaultValue?.Trim();
+            var requested = !string.IsNullOrWhiteSpace(f.Auto) ? f.Auto.Trim()
+                : token is { Length: > 1 } && token[0] == '@' ? (AutoTokens.TryGetValue(token, out var t) ? t : token) : null;
+            if (requested is not null)
             {
-                var auto = AutoValues.FirstOrDefault(a => string.Equals(a, f.Auto.Trim(), StringComparison.OrdinalIgnoreCase));
+                field = field with { DefaultValue = null };
+                var auto = AutoValues.FirstOrDefault(a => string.Equals(a, requested, StringComparison.OrdinalIgnoreCase));
                 var fits = auto switch
                 {
                     null => false,
@@ -151,7 +166,7 @@ public static class WfeDataFields
                     _ => type == "String",
                 };
                 if (auto is null)
-                    errors.Add($"\"{field.Caption}\": unknown automatic value \"{f.Auto}\".");
+                    errors.Add($"\"{field.Caption}\": unknown automatic value \"{requested}\". Use @UserName, @FullName, @Department, @EmployeeNo or @Today.");
                 else if (!fits)
                     errors.Add($"\"{field.Caption}\": {AutoText(auto)} needs a {(auto == Today ? "Date" : auto == CurrentUser ? "User or String" : "String")} field.");
                 else

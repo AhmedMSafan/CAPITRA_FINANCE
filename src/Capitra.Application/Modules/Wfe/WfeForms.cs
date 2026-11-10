@@ -376,13 +376,14 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
 
     /// <summary>
     /// The values of the fields the system fills in for the signed-in user (user name, full name, department, employee no., today).
-    /// With <paramref name="existing"/>, only fields that have no value yet (a step's document keeps what was filled first).
+    /// With <paramref name="existing"/>, only fields the instance has not stored yet: the value is taken once and never changed.
     /// </summary>
     public async Task<Dictionary<string, string?>> AutoValuesAsync(
         IReadOnlyList<WfeDataField> fields, IReadOnlyDictionary<string, string?>? existing, CancellationToken ct)
     {
         var result = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-        var auto = fields.Where(f => f.Auto is not null && (existing is null || !existing.TryGetValue(f.Name, out var v) || string.IsNullOrWhiteSpace(v))).ToList();
+        // set once, when the document is first filled: a field already stored (even empty) is never filled again
+        var auto = fields.Where(f => f.Auto is not null && (existing is null || !existing.ContainsKey(f.Name))).ToList();
         if (auto.Count == 0)
             return result;
         var me = currentUser.UserName;

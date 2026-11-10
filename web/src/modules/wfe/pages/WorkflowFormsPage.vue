@@ -111,7 +111,7 @@
                         <option :value="null">{{ tr('Typed value') }}</option>
                         <option v-for="a in autoValues.filter((x) => x.types.includes(f.type))" :key="a.value" :value="a.value">{{ tr(a.label) }}</option>
                       </select>
-                      <input v-if="!f.auto" v-model="f.defaultValue" class="fx-search" :placeholder="tr('optional')" :disabled="!canEdit">
+                      <input v-if="!f.auto" v-model="f.defaultValue" class="fx-search" :placeholder="tr('optional, or @UserName, @Today')" :disabled="!canEdit">
                       <span v-else class="fm-auto-tag"><span class="pi pi-lock" aria-hidden="true"></span> {{ tr('Read-only, filled in for the user') }}</span>
                     </div>
                   </td>

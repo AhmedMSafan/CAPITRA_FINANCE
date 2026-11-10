@@ -151,7 +151,8 @@ public sealed class WorkflowDocumentTests
             new("requester", "Requester", "User", false, null, [], null, "current_user"),
             new("requesterName", "Name", "String", false, null, [], null, WfeDataFields.CurrentUserName),
             new("department", "Department", "String", false, null, [], null, WfeDataFields.CurrentDepartment),
-            new("requestDate", "Request date", "Date", false, null, [], null, WfeDataFields.Today),
+            new("requestDate", "Request date", "Date", false, "@TodayDate", [], null),
+            new("createdBy", "Created by", "User", false, "@UserName", [], null),
             new("days", "Days", "Number", true, null, [], null),
         ];
 
@@ -159,8 +160,11 @@ public sealed class WorkflowDocumentTests
             [new("days", null, "Number", false, null, [], null, WfeDataFields.Today)]), default));
         Assert.Contains("needs a Date field", string.Join(" ", bad.Errors["fields"]));
 
-        var saved = await c.Forms.SaveAsync(null, Document("LEAVE_REQUEST", fields, Field("requester"), Field("requesterName"), Field("department"), Field("requestDate"), Field("days")), default);
+        var saved = await c.Forms.SaveAsync(null, Document("LEAVE_REQUEST", fields, Field("requester"), Field("requesterName"), Field("department"), Field("requestDate"), Field("createdBy"), Field("days")), default);
         Assert.Equal(WfeDataFields.CurrentUser, saved.Fields[0].Auto);
+        // typed tokens become automatic values
+        Assert.Equal((WfeDataFields.Today, (string?)null), (saved.Fields[3].Auto, saved.Fields[3].DefaultValue));
+        Assert.Equal(WfeDataFields.CurrentUser, saved.Fields[4].Auto);
 
         var form = await c.Forms.StartFormAsync("LEAVE", default);
         var requester = form.Controls.First(x => x.Field == "requester");
@@ -171,6 +175,10 @@ public sealed class WorkflowDocumentTests
         // what the browser sends for an automatic field is ignored
         var started = await c.Forms.StartAsync("LEAVE", new(null, new Dictionary<string, string?> { ["requester"] = "mona", ["days"] = "2" }), default);
         var vars = await c.Db.Set<WfeInstanceVariable>().Where(x => x.WorkflowInstanceId == started.InstanceId).ToDictionaryAsync(x => x.VariableName, x => x.VariableValue);
-        Assert.Equal(("ahmed", "Ahmed Safan", "Credit", "2026-11-09"), (vars["requester"], vars["requesterName"], vars["department"], vars["requestDate"]));
+        Assert.Equal(("ahmed", "Ahmed Safan", "Credit", "2026-11-09", "ahmed"), (vars["requester"], vars["requesterName"], vars["department"], vars["requestDate"], vars["createdBy"]));
+
+        // taken once: a value already stored, even empty, is never filled again
+        var again = await c.Forms.AutoValuesAsync(saved.Fields, new Dictionary<string, string?> { ["requester"] = "ahmed", ["requesterName"] = null, ["department"] = null, ["requestDate"] = "2026-11-09", ["createdBy"] = "ahmed" }, default);
+        Assert.Empty(again);
     }
 }
