@@ -74,6 +74,7 @@ export const appMenu: MenuGroup[] = [
       { label: 'Workflow Engine', to: '/workflowengine', icon: 'pi pi-sitemap' },
       { label: 'Workflow Registry', to: '/workflowengine/registry', icon: 'pi pi-list' },
       { label: 'Document Designer', to: '/workflowengine/forms', icon: 'pi pi-file-edit' },
+      { label: 'Process monitor', to: '/workflowengine/monitor', icon: 'pi pi-chart-bar' },
       { label: 'Data Sources', to: '/workflowengine/data-sources', icon: 'pi pi-database' },
       { label: 'Administration', to: '/admin', icon: 'pi pi-cog' },
       { label: 'Users', to: '/admin/users', icon: 'pi pi-users' },

@@ -64,6 +64,7 @@ public static class DependencyInjection
         services.AddScoped<WfeDataSources>();
         services.AddScoped<WfeForms>();
         services.AddScoped<WfeSla>();
+        services.AddScoped<WfeMonitor>();
         services.AddScoped<WfeAlerts>();
 
         // Copied APEX pages: every on-demand process found in this assembly, looked up by app, page and name.
