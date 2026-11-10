@@ -12,7 +12,7 @@ namespace Capitra.Application.Modules.Wfe;
 /// </summary>
 /// <param name="Control">text, textarea, number, amount, date, yesno, dropdown or user.</param>
 /// <param name="DataSource">The drop-down's data source; a Choice field without one offers its own choices.</param>
-/// <param name="Width">full or half (half sits beside the next half control on a two-column form).</param>
+/// <param name="Width">full, half (beside the next half control), left or right (that half of its row) on a two-column form.</param>
 public sealed record WfeFormControl(
     string Kind, string? Field, string? Label, string? Control, string? DataSource, bool Required, bool ReadOnly, string? Help, string? Width);
 
@@ -281,7 +281,7 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         foreach (var (c, i) in (layout.Controls ?? []).Select((c, i) => (c, i + 1)))
         {
             var kind = (c.Kind ?? "field").Trim().ToLowerInvariant();
-            var width = string.Equals(c.Width, "half", StringComparison.OrdinalIgnoreCase) ? "half" : "full";
+            var width = c.Width?.Trim().ToLowerInvariant() is "half" or "left" or "right" ? c.Width.Trim().ToLowerInvariant() : "full";
             if (kind is "heading" or "note")
             {
                 if (string.IsNullOrWhiteSpace(c.Label))

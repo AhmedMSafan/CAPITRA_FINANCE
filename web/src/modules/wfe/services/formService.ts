@@ -13,7 +13,7 @@ export type FormControl = {
   required: boolean
   readOnly: boolean
   help: string | null
-  width: 'full' | 'half' | null
+  width: 'full' | 'half' | 'left' | 'right' | null
 }
 
 export type FormLayout = { columns: 1 | 2; controls: FormControl[] }
