@@ -54,6 +54,10 @@ public sealed record BpmnProcessInfo(string? Type, string? DocumentCode)
     public bool IsSystemBuilt => string.Equals(Type, System, StringComparison.OrdinalIgnoreCase);
 }
 
+/// <summary>A path (sequence flow) between two elements, with its action name and its conditions on data fields.</summary>
+public sealed record BpmnFlow(
+    string Id, string? Name, string? Outcome, string SourceId, string SourceName, string TargetId, string TargetName, string? RawConditions, IReadOnlyList<BpmnRule> Rules);
+
 /// <summary>Reads a BPMN 2.0 diagram: its start event and the element a sequence flow leads to.</summary>
 public static class BpmnModel
 {
@@ -107,24 +111,54 @@ public static class BpmnModel
     /// The element after <paramref name="elementId"/>, or null at the end. With several outgoing flows, the flow whose
     /// name (or finova:outcome) matches the outcome is taken, so APPROVE and REJECT route without extra settings.
     /// </summary>
-    public static BpmnElement? Next(string xml, string elementId, string? outcome = null)
+    public static BpmnElement? Next(string xml, string elementId, string? outcome = null) =>
+        Next(xml, elementId, outcome, null).Element;
+
+    /// <summary>
+    /// The element after <paramref name="elementId"/> and the path taken. The paths that answer the outcome (by name or
+    /// finova:outcome) are tried first, or all paths when none does. Among them, the first path whose conditions on data fields
+    /// all hold for <paramref name="values"/> wins; otherwise the first path without conditions. Diagrams without conditions
+    /// route exactly as before.
+    /// </summary>
+    public static (BpmnElement? Element, BpmnFlow? Flow) Next(
+        string xml, string elementId, string? outcome, IReadOnlyDictionary<string, string?>? values)
     {
-        var doc = Load(xml);
-        var flows = doc.Descendants(Bpmn + "sequenceFlow").Where(x => (string?)x.Attribute("sourceRef") == elementId).ToList();
+        var flows = Flows(Load(xml)).Where(x => x.SourceId == elementId).ToList();
         if (flows.Count == 0)
-            return null;
+            return (null, null);
 
-        var selected = flows.Count == 1 || string.IsNullOrWhiteSpace(outcome)
-            ? flows[0]
-            : flows.FirstOrDefault(x => Matches(x, outcome)) ?? flows[0];
+        var answering = string.IsNullOrWhiteSpace(outcome) ? [] : flows.Where(x => string.Equals(x.Name, outcome, StringComparison.OrdinalIgnoreCase) || string.Equals(x.Outcome, outcome, StringComparison.OrdinalIgnoreCase)).ToList();
+        var candidates = answering.Count > 0 ? answering : flows;
+        var data = values ?? new Dictionary<string, string?>();
+        var selected = candidates.FirstOrDefault(x => x.Rules.Count > 0 && WfeRules.Holds(x.Rules, data))
+            ?? candidates.FirstOrDefault(x => x.Rules.Count == 0)
+            ?? throw new Capitra.Application.Common.Exceptions.BusinessRuleException(
+                $"No path out of '{flows[0].SourceName}' fits this request's data: "
+                + string.Join("; ", candidates.Select(x => $"to {x.TargetName} needs {string.Join(" and ", x.Rules.Select(r => r.Text))}"))
+                + ". Add a path without conditions in the designer.");
 
-        var target = (string?)selected.Attribute("targetRef") ?? throw new InvalidOperationException("Sequence flow has no targetRef.");
-        return Element(xml, target);
+        return (Element(xml, selected.TargetId), selected);
     }
 
-    private static bool Matches(XElement flow, string outcome) =>
-        string.Equals((string?)flow.Attribute("name"), outcome, StringComparison.OrdinalIgnoreCase)
-        || string.Equals(Attr(flow, "outcome"), outcome, StringComparison.OrdinalIgnoreCase);
+    /// <summary>Every path of the diagram, with its conditions.</summary>
+    public static IReadOnlyList<BpmnFlow> Flows(string xml) => Flows(Load(xml));
+
+    private static List<BpmnFlow> Flows(XDocument doc)
+    {
+        var names = doc.Descendants().Where(x => x.Attribute("id") is not null)
+            .GroupBy(x => (string)x.Attribute("id")!)
+            .ToDictionary(g => g.Key, g => (string?)g.First().Attribute("name") is { Length: > 0 } n ? n : g.Key);
+        return doc.Descendants(Bpmn + "sequenceFlow").Select(f =>
+        {
+            var source = (string?)f.Attribute("sourceRef") ?? string.Empty;
+            var target = (string?)f.Attribute("targetRef") ?? throw new InvalidOperationException("Sequence flow has no targetRef.");
+            var raw = Attr(f, "conditions");
+            var outcome = Attr(f, "outcome") is { Length: > 0 } o ? o.Trim() : ((string?)f.Attribute("name"))?.Trim();
+            return new BpmnFlow(
+                (string?)f.Attribute("id") ?? string.Empty, ((string?)f.Attribute("name"))?.Trim(), string.IsNullOrEmpty(outcome) ? null : outcome,
+                source, names.GetValueOrDefault(source, source), target, names.GetValueOrDefault(target, target), raw, WfeRules.Parse(raw));
+        }).ToList();
+    }
 
     private static XDocument Load(string xml) =>
         string.IsNullOrWhiteSpace(xml) ? throw new InvalidOperationException("BPMN XML is empty.") : XDocument.Parse(xml);

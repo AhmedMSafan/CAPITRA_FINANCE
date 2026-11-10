@@ -124,6 +124,10 @@ public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUse
             var sla = WfeSla.Check(request.BpmnXml!);
             if (sla.Count > 0)
                 throw new BusinessValidationException(new Dictionary<string, string[]> { ["sla"] = [.. sla] });
+            // conditions on paths must name real data fields and leave a path for all other cases
+            var rules = WfeRules.Check(request.BpmnXml!, await WfeForms.AllFieldsAsync(db, request.BpmnXml!, cancellationToken));
+            if (rules.Count > 0)
+                throw new BusinessValidationException(new Dictionary<string, string[]> { ["rules"] = [.. rules] });
         }
 
         if (await db.Set<WfeWorkflowDefinition>().AnyAsync(x => x.WorkflowCode == code && x.WorkflowDefinitionId != (id ?? 0), cancellationToken))

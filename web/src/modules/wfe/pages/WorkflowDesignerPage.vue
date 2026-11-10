@@ -366,6 +366,42 @@
               </div>
             </section>
 
+            <section class="property-section">
+              <div class="section-title">
+                <span class="section-icon outcome-icon pi pi-filter"></span>
+                <div>
+                  <strong>Conditions (rules on data fields)</strong>
+                  <small>Take this path only when the request's data matches, for example Amount &gt; 1,000,000.</small>
+                </div>
+              </div>
+
+              <div v-if="!ruleFields.length" class="fields-empty">Add data fields to the workflow or its document first.</div>
+              <div v-for="(r,i) in flowRules" :key="i" class="rule-row">
+                <span class="rule-join">{{ i===0 ? 'If' : 'and' }}</span>
+                <select v-model="r.field" class="rule-field" aria-label="Data field" @change="syncFlowRules">
+                  <option value="" disabled>Field...</option>
+                  <option v-if="r.field && !ruleFields.some(f=>f.name.toUpperCase()===r.field.toUpperCase())" :value="r.field">{{ r.field }} (not found)</option>
+                  <option v-for="f in ruleFields" :key="f.name" :value="f.name">{{ f.label||f.name }}</option>
+                </select>
+                <button class="icon-button" type="button" title="Remove this condition" @click="removeFlowRule(i)"><span class="pi pi-times"></span></button>
+                <select v-model="r.op" class="rule-op" aria-label="Test" @change="syncFlowRules">
+                  <option v-for="o in ruleOps(r.field)" :key="o.value" :value="o.value">{{ o.label }}</option>
+                </select>
+                <template v-if="r.op!=='empty'&&r.op!=='notEmpty'">
+                  <select v-if="ruleChoices(r.field).length" v-model="r.value" class="rule-value" aria-label="Value" @change="syncFlowRules">
+                    <option value="" disabled>Value...</option>
+                    <option v-for="c in ruleChoices(r.field)" :key="c" :value="c">{{ c }}</option>
+                  </select>
+                  <input v-else v-model="r.value" class="rule-value" :type="ruleType(r.field)==='Date'?'date':'text'" :inputmode="isNumberField(r.field)?'decimal':undefined" placeholder="Value" aria-label="Value" @change="syncFlowRules" />
+                </template>
+              </div>
+              <button v-if="ruleFields.length" class="btn btn-secondary btn-full" type="button" @click="addFlowRule">
+                <span class="pi pi-plus"></span>
+                Add condition
+              </button>
+              <p class="rule-hint">{{ flowRules.length ? 'All conditions must match. Draw another path with no conditions for all other cases.' : 'No conditions: this path takes every case the other paths do not.' }}</p>
+            </section>
+
             <section class="parallel-card">
               <div class="parallel-icon">
                 <span class="pi pi-clone"></span>
@@ -818,6 +854,8 @@ import { openWorkflowManual } from '../utils/manual'
 type Var={name:string,type:string,required:boolean,label?:string,defaultValue?:string,choices?:string[],description?:string}; type Param={name:string,value:string};
 type Step={stepCode:string,stepName:string,ruleCode:string,formCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[],slaDuration:string,slaUnit:string,slaRemindHours:string,slaEscalateHours:string,slaEscalation:string,slaEscalateType:string,slaEscalateTo:string}
 const route=useRoute(),router=useRouter(),canvas=ref<HTMLElement|null>(null),saving=ref(false),active=ref(true),selectedId=ref(''),selectedType=ref(''),message=ref(''),messageType=ref<'success'|'error'>('success'),showXml=ref(false),xmlPreview=ref(''),customAction=ref(''),flowOutcome=ref(''),customFlowOutcome=ref(''),selectedFlowSource=ref(''),selectedFlowTarget=ref(''),leftPanelOpen=ref(false),rightPanelOpen=ref(false),zoomPercent=ref(100)
+type FlowRule={field:string,op:string,value:string}
+const flowRules=ref<FlowRule[]>([])
 const variables=reactive<Var[]>([]),steps=reactive<Record<string,Step>>({}); let modeler:any=null
 const form=reactive({dgrmId:0,dgrmName:'',dgrmVersion:'1',dgrmStatus:'draft',dgrmContent:'',dgrmCreatedBy:'SYSTEM',dgrmLastUpdateBy:'SYSTEM',workflowCode:'',description:'',isActive:'Y'})
 // active product event rules for the Product Event Rule drop-down; without access to them the field stays free text
@@ -1126,6 +1164,78 @@ function syncStepName(){
   if(el)modeler.get('modeling').updateProperties(el,{name:step.value.stepName})
 }
 
+
+// rules on data fields (K2's line rules): stored on the arrow as finova:conditions; all must match for the path to be taken
+const ruleFields=computed(()=>{
+  const out:{name:string,label:string,type:string,choices:string[]}[]=[]
+  const add=(name:string,label:string|undefined|null,type:string|undefined,choices:string[]|undefined|null)=>{
+    const n=String(name??'').trim();if(!n||out.some(x=>x.name.toUpperCase()===n.toUpperCase()))return
+    out.push({name:n,label:String(label??'').trim()||n,type:type||'String',choices:Array.isArray(choices)?choices:[]})
+  }
+  variables.forEach(v=>add(v.name,v.label,v.type,v.choices))
+  const codes=new Set([wfDocument.value,...Object.values(steps).map(x=>x.formCode)].filter(Boolean).map(x=>String(x).toUpperCase()))
+  documents.value.filter(d=>codes.has(d.formCode.toUpperCase())).forEach(d=>(d.fields||[]).forEach(f=>add(f.name,f.label,f.type,f.choices)))
+  return out
+})
+function ruleField(name:string){return ruleFields.value.find(f=>f.name.toUpperCase()===String(name||'').toUpperCase())}
+function ruleType(name:string){return ruleField(name)?.type||'String'}
+function isNumberField(name:string){return ['Number','Decimal'].includes(ruleType(name))}
+function ruleChoices(name:string){const f=ruleField(name);return f?.type==='Boolean'?['yes','no']:f?.type==='Choice'?f.choices:[]}
+function ruleOps(name:string){
+  const t=ruleType(name)
+  const ops=[{value:'=',label:'is'},{value:'!=',label:'is not'}]
+  if(['Number','Decimal','Date'].includes(t))ops.push({value:'>',label:t==='Date'?'is after':'is more than'},{value:'>=',label:t==='Date'?'is on or after':'is at least'},{value:'<',label:t==='Date'?'is before':'is less than'},{value:'<=',label:t==='Date'?'is on or before':'is at most'})
+  if(['String','User'].includes(t))ops.push({value:'contains',label:'contains'})
+  ops.push({value:'empty',label:'is empty'},{value:'notEmpty',label:'is filled in'})
+  return ops
+}
+function readFlowRules(el:any){
+  try{
+    const raw=JSON.parse(el?.businessObject?.conditions||'[]')
+    flowRules.value=Array.isArray(raw)?raw.map((x:any)=>({field:String(x?.field??''),op:String(x?.op??'='),value:x?.value==null?'':String(x.value)})):[]
+  }catch{flowRules.value=[]}
+}
+function syncFlowRules(){
+  if(selectedType.value!=='bpmn:SequenceFlow')return
+  const el=modeler?.get('elementRegistry').get(selectedId.value)
+  if(!el)return
+  // a test that does not fit the field (e.g. "more than" on text) falls back to "is"
+  flowRules.value.forEach(r=>{if(!ruleOps(r.field).some(o=>o.value===r.op))r.op='='})
+  const keep=flowRules.value.filter(r=>r.field).map(r=>({field:r.field,op:r.op,...(r.op==='empty'||r.op==='notEmpty'?{}:{value:r.value.trim()})}))
+  modeler.get('modeling').updateProperties(el,{conditions:keep.length?JSON.stringify(keep):undefined})
+  refreshRuleBadges()
+}
+// the conditions shown on the canvas next to their arrow, so the routing reads at a glance
+function ruleBadgeText(json:string){
+  try{
+    const raw=JSON.parse(json||'[]');if(!Array.isArray(raw)||!raw.length)return ''
+    const sym:Record<string,string>={'=':'=','!=':'≠','>':'>','>=':'≥','<':'<','<=':'≤',contains:'contains',empty:'is empty',notEmpty:'is filled in'}
+    return raw.map((r:any)=>{
+      const f=ruleField(r?.field)?.label||r?.field||'?'
+      const v=r?.value==null?'':String(r.value),n=Number(v.replace(/,/g,''))
+      const shown=v!==''&&!Number.isNaN(n)&&/^[\d,.]+$/.test(v)?n.toLocaleString('en-US'):v
+      return r?.op==='empty'||r?.op==='notEmpty'?`${f} ${sym[r.op]}`:`${f} ${sym[r?.op]??r?.op} ${shown}`
+    }).join(' and ')
+  }catch{return ''}
+}
+function refreshRuleBadges(){
+  if(!modeler)return
+  const overlays=modeler.get('overlays')
+  overlays.remove({type:'rule'})
+  modeler.get('elementRegistry').filter((e:any)=>e.type==='bpmn:SequenceFlow'&&e.businessObject?.conditions).forEach((e:any)=>{
+    const text=ruleBadgeText(e.businessObject.conditions)
+    const w=e.waypoints||[];if(!text||w.length<2)return
+    // the middle of the longest segment, relative to the arrow's box
+    let best=0,mid={x:w[0].x,y:w[0].y}
+    for(let i=1;i<w.length;i++){const l=Math.hypot(w[i].x-w[i-1].x,w[i].y-w[i-1].y);if(l>best){best=l;mid={x:(w[i].x+w[i-1].x)/2,y:(w[i].y+w[i-1].y)/2}}}
+    const minX=Math.min(...w.map((p:any)=>p.x)),minY=Math.min(...w.map((p:any)=>p.y))
+    const badge=document.createElement('div');badge.className='rule-badge';badge.textContent=text
+    overlays.add(e,'rule',{position:{left:mid.x-minX,top:mid.y-minY},html:badge})
+  })
+}
+function addFlowRule(){flowRules.value.push({field:ruleFields.value[0]?.name||'',op:'=',value:''});syncFlowRules()}
+function removeFlowRule(i:number){flowRules.value.splice(i,1);syncFlowRules()}
+
 function syncFlowOutcome(){
   if(selectedType.value!=='bpmn:SequenceFlow')return
 
@@ -1308,7 +1418,7 @@ function repairSelectedFlow(){
   }
 }
 
-function bindSelection(){modeler.on('selection.changed',(ev:any)=>{
+function bindSelection(){modeler.on(['import.done','commandStack.changed'],()=>setTimeout(refreshRuleBadges));modeler.on('selection.changed',(ev:any)=>{
   const e=ev.newSelection?.[0]
 
   if(!e){
@@ -1330,6 +1440,7 @@ function bindSelection(){modeler.on('selection.changed',(ev:any)=>{
 
     const outcome=(e.businessObject?.name||'').trim().toUpperCase()
     flowOutcome.value=outcome
+    readFlowRules(e)
     customFlowOutcome.value=''
 
     selectedFlowSource.value=
@@ -2513,6 +2624,17 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
 
 /* MODAL */
 .fields-empty { padding: 6px 2px 10px; color: #80919b; font-size: 12px; }
+.rule-row { display: grid; grid-template-columns: 30px minmax(0,1fr) minmax(0,1fr) 30px; gap: 6px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #e3e9ec; }
+.rule-row .rule-field { grid-column: 2 / 4; }
+.rule-row .rule-op { grid-column: 2; }
+.rule-row .rule-value { grid-column: 3; }
+.rule-row .icon-button { grid-column: 4; grid-row: 1; }
+.rule-row select, .rule-row input { min-width: 0; width: 100%; }
+.rule-join { font-size: 12px; font-weight: 700; color: #00636D; }
+.rule-row .icon-button { width: 30px; height: 30px; border: 1px solid #e3e9ec; border-radius: 6px; background: #fff; color: #80919b; cursor: pointer; }
+.rule-row .icon-button:hover { color: #E87722; border-color: #E87722; }
+:deep(.rule-badge) { white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #fff4ec; border: 1px solid #E87722; color: #a24f0f; font: 600 11px/1.4 Inter, Arial, sans-serif; transform: translate(-50%, -50%); pointer-events: none; }
+.rule-hint { margin: 8px 2px 0; font-size: 12px; color: #6b7c86; line-height: 1.45; }
 .field-chips { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
 .field-chips li { display: flex; justify-content: space-between; gap: 8px; padding: 7px 9px; border: 1px solid #e1e8ec; border-radius: 8px; font-size: 12px; }
 .field-chips b { color: #173b57; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
