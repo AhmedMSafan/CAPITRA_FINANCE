@@ -227,7 +227,8 @@ export const AMOUNT_BASES = [
   { value: 'INVOICE_COUNT', label: 'Invoice Count in Disbursement' },
   { value: 'CHEQUE_COUNT', label: 'Cheque Count' },
   { value: 'TENOR_DAYS', label: 'Tenor Days' },
-  { value: 'APPROVED_LIMIT', label: 'Approved Facility Limit' }
+  { value: 'APPROVED_LIMIT', label: 'Approved Facility Limit' },
+  { value: 'LOAN_AMOUNT', label: 'Loan amount (retail loan payout)' }
 ]
 
 export const INCOME_RECOGNITIONS = [
@@ -250,7 +251,9 @@ export const RULE_AMOUNTS = [
   { value: 'MARGIN_DEFERRED', label: 'Margin, pro-rated' },
   { value: 'MARGIN_IMMEDIATE', label: 'Margin, recognised at once' },
   { value: 'PURCHASE_PRICE', label: 'Purchase price (payable to developer)' },
-  { value: 'CHEQUE_AMOUNT', label: 'Cheque amount (cheques received in the wallet)' }
+  { value: 'CHEQUE_AMOUNT', label: 'Cheque amount (cheques received in the wallet)' },
+  { value: 'PRINCIPAL_AMOUNT', label: 'Loan amount (retail loan payout)' },
+  { value: 'NET_PAYOUT_AMOUNT', label: 'Net paid out, after deducted charges (retail loan payout)' }
 ]
 
 /** Figures of one charge a component GL line posts. */

@@ -26,6 +26,8 @@ public sealed record LndInstallmentDto(
 
 public sealed record LndLoanStatusDto(string? FromStatusCode, string ToStatusCode, string? Reason, string By, DateTime At);
 
+public sealed record LndLoanEventDto(string EventCode, DateOnly EventDate, decimal EventAmount, string? GlTranSetId, string? Notes, string By, DateTime At);
+
 public sealed record LndLoanDto(
     long LoanId, string LoanNumber, long ClientId, string ClientName, long ProductId, string ProductCode, string ProductName, int VersionNo,
     string LicenceCode, string StatusCode, bool IsNonAccrual, string CurrencyCode, decimal PrincipalAmount, int TermMonths, int InstallmentCount,
@@ -33,7 +35,7 @@ public sealed record LndLoanDto(
     string RepaymentFrequencyCode, string InterestMethodCode, decimal AnnualRatePct, string DayCountCode, int LateFeeGraceDays, string LateFeeTypeCode,
     decimal? LateFeeRatePct, decimal? LateFeeFlatAmount, string LateFeeBaseCode, IReadOnlyList<string> PaymentOrder, bool IsInsuranceRequired,
     string? Notes, string CreatedBy, DateTime CreatedAt, int RowVersion,
-    IReadOnlyList<LndInstallmentDto> Installments, IReadOnlyList<LndLoanStatusDto> History);
+    IReadOnlyList<LndInstallmentDto> Installments, IReadOnlyList<LndLoanStatusDto> History, IReadOnlyList<LndLoanEventDto> Events);
 
 public sealed record LndOptionDto(long Id, string Code, string Name);
 
@@ -154,6 +156,7 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
         var versionNo = await db.Set<LndProductVersion>().AsNoTracking().Where(x => x.ProductVersionId == l.ProductVersionId).Select(x => x.VersionNo).SingleAsync(cancellationToken);
         var installments = await db.Set<LndInstallment>().AsNoTracking().Where(x => x.LoanId == loanId).OrderBy(x => x.InstallmentNo).ToListAsync(cancellationToken);
         var history = await db.Set<LndLoanStatusHist>().AsNoTracking().Where(x => x.LoanId == loanId).OrderBy(x => x.LoanStatusHistId).ToListAsync(cancellationToken);
+        var events = await db.Set<LndLoanEvent>().AsNoTracking().Where(x => x.LoanId == loanId).OrderBy(x => x.LoanEventId).ToListAsync(cancellationToken);
         return new LndLoanDto(l.LoanId, l.LoanNumber, l.ClientId, client, l.ProductId, product.ProductCode, product.ProductNameEn, versionNo, l.LicenceCode,
             l.StatusCode, l.IsNonAccrual, l.CurrencyCode, l.PrincipalAmount, l.TermMonths, l.InstallmentCount, l.InstallmentAmount, l.TotalInterestAmount,
             l.DisbursementDate, l.FirstDueDate, l.MaturityDate, l.RepaymentFrequencyCode, l.InterestMethodCode, l.AnnualRatePct, l.DayCountCode,
@@ -166,7 +169,8 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
                 return new LndInstallmentDto(i.InstallmentNo, i.DueDate, i.OpeningPrincipalAmount, i.PrincipalDueAmount, i.InterestDueAmount,
                     i.ChargesDueAmount, i.InsuranceDueAmount, i.LateFeeDueAmount, due, paid, i.ClosingPrincipalAmount, i.StatusCode);
             })],
-            [.. history.Select(h => new LndLoanStatusDto(h.FromStatusCode, h.ToStatusCode, h.Reason, h.CreatedBy, h.CreatedAt))]);
+            [.. history.Select(h => new LndLoanStatusDto(h.FromStatusCode, h.ToStatusCode, h.Reason, h.CreatedBy, h.CreatedAt))],
+            [.. events.Select(v => new LndLoanEventDto(v.EventCode, v.EventDate, v.EventAmount, v.GlTranSetId, v.Notes, v.CreatedBy, v.CreatedAt))]);
     }
 
     /// <summary>Cancels a loan that has not been paid out. The schedule is kept as it was, for the record.</summary>

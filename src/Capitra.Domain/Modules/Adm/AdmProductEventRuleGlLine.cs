@@ -41,8 +41,12 @@ public class AdmProductEventRuleGlLine : AuditableEntity
 
     public const string AccountSourceBankAccount = "BANK_ACCOUNT";
 
-    /// <summary>Figures of a purchased portfolio disbursement (PP_DISBURSE) that a rule's own lines can post.</summary>
-    public static readonly string[] RuleAmounts = ["FACE_VALUE", "DISCOUNT", "MARGIN_DEFERRED", "MARGIN_IMMEDIATE", "PURCHASE_PRICE", "CHEQUE_AMOUNT"];
+    /// <summary>
+    /// Figures a rule's own lines can post: a purchased portfolio disbursement (PP_DISBURSE), the cheque amount, and a retail loan payout
+    /// (LND_DISBURSE: the loan amount, and the net paid out once the deducted charges are taken).
+    /// </summary>
+    public static readonly string[] RuleAmounts =
+        ["FACE_VALUE", "DISCOUNT", "MARGIN_DEFERRED", "MARGIN_IMMEDIATE", "PURCHASE_PRICE", "CHEQUE_AMOUNT", "PRINCIPAL_AMOUNT", "NET_PAYOUT_AMOUNT"];
 
     /// <summary>Figures of one charge: the whole amount, or the part taken to income later (pro-rated) or at once.</summary>
     public static readonly string[] ChargeAmounts = ["CHARGE_AMOUNT", "CHARGE_DEFERRED", "CHARGE_IMMEDIATE"];

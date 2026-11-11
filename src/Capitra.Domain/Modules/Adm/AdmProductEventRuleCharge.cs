@@ -57,13 +57,13 @@ public class AdmProductEventRuleCharge : AuditableEntity
 
     /// <summary>
     /// Mortgage portfolio purchasing: FACE_VALUE, PRESENT_VALUE, PV_LESS_MARGIN. Factoring disbursement
-    /// (FNV_DISBURSEMENT_PROCESS_PKG.base_value): the rest.
+    /// (FNV_DISBURSEMENT_PROCESS_PKG.base_value): the rest. Retail loan payout: LOAN_AMOUNT.
     /// </summary>
     public static readonly string[] AmountBases =
     [
         "FACE_VALUE", "PRESENT_VALUE", "PV_LESS_MARGIN",
         "DISBURSEMENT_GROSS_INVOICE_AMOUNT", "DISBURSEMENT_NET_AMOUNT", "ELIGIBLE_INVOICE_AMOUNT", "ADVANCE_AMOUNT", "INVOICE_COUNT",
-        "CHEQUE_COUNT", "TENOR_DAYS", "APPROVED_LIMIT",
+        "CHEQUE_COUNT", "TENOR_DAYS", "APPROVED_LIMIT", "LOAN_AMOUNT",
     ];
 
     /// <summary>PRORATE: deferred and released with the effective interest; IMMEDIATE: income on the event date.</summary>
