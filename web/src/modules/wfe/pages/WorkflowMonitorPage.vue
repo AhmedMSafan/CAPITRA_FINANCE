@@ -7,7 +7,7 @@
         <p>{{ tr('Where every request is, who has it and for how long. Open one to see it on its diagram, step by step.') }}</p>
       </div>
       <div class="fx-actions">
-        <button type="button" class="fx-btn" @click="openWorkflowManual(7)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
+        <button type="button" class="fx-btn" @click="openWorkflowManual(13)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink class="fx-btn" to="/workflowengine/registry"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('Workflow registry') }}</RouterLink>
       </div>
     </div>

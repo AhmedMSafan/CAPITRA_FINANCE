@@ -28,7 +28,14 @@
             <small>{{ w.description || w.workflowCode }}</small>
           </span>
         </button>
-        <div v-if="!items.length && !loading" class="fx-empty"><span class="fa fa-play-circle-o" aria-hidden="true"></span>{{ tr('No request can be started yet. In the workflow designer, make a workflow user-defined and link its document.') }}</div>
+        <div v-if="!items.length && !loading" class="fx-empty"><span class="fa fa-play-circle-o" aria-hidden="true"></span>{{ tr('No request can be started yet. In the workflow designer, make a workflow user-defined, link its document and release it.') }}</div>
+        <div v-if="issues.length" class="st-issues">
+          <h3><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ tr('Not ready to start') }}</h3>
+          <RouterLink v-for="i in issues" :key="i.workflowDefinitionId" class="st-issue" :to="{ name: 'workflow-engine-designer', params: { id: i.workflowDefinitionId } }">
+            <b>{{ i.workflowName }} <small>{{ i.workflowCode }}</small></b>
+            <span>{{ tr(i.reason) }}</span>
+          </RouterLink>
+        </div>
       </div>
 
       <div v-if="view" class="fx-card fx-card-pad st-form">
@@ -90,8 +97,9 @@ import '@/shared/styles/apex-fx-inbox.css'
 import { openWorkflowManual } from '../utils/manual'
 import { onMounted, ref } from 'vue'
 import { tr } from '@/shared/layout/language'
+import { hasPermission } from '@/shared/auth/session'
 import WorkflowFormView from '../components/WorkflowFormView.vue'
-import { apiErrorText, apiFieldErrors, formApi, type FormView, type MyRequest, type StartFormItem, type Started } from '../services/formService'
+import { apiErrorText, apiFieldErrors, formApi, type FormView, type MyRequest, type StartFormItem, type StartIssue, type Started } from '../services/formService'
 
 const mine = ref<MyRequest[]>([])
 const statusText: Record<string, string> = { IN_PROGRESS: 'In progress', APPROVED: 'Approved', REJECTED: 'Rejected', COMPLETED: 'Completed', FAULTED: 'Stopped by an error' }
@@ -103,6 +111,12 @@ async function loadMine() {
 }
 
 const items = ref<StartFormItem[]>([])
+// designers also see the user-defined workflows that are not offered yet, and why
+const issues = ref<StartIssue[]>([])
+async function loadIssues() {
+  if (!hasPermission('WFE.DEFINITION.VIEW')) return
+  try { issues.value = await formApi.startIssues() } catch { issues.value = [] }
+}
 const chosen = ref<StartFormItem | null>(null)
 const view = ref<FormView | null>(null)
 const values = ref<Record<string, string | null>>({})
@@ -152,7 +166,10 @@ async function start() {
     await loadMine()
   } catch (e) {
     errors.value = apiFieldErrors(e)
-    message.value = { bad: true, text: apiErrorText(e) }
+    // when every problem is shown under its own field, the fields say it all: no banner on top
+    const shown = new Set((view.value?.controls ?? []).map((c) => (c.field ?? '').toLowerCase()).filter((f) => f))
+    const keys = Object.keys(errors.value)
+    message.value = keys.length && keys.every((k) => shown.has(k.toLowerCase())) ? null : { bad: true, text: apiErrorText(e) }
   } finally {
     busy.value = false
   }
@@ -160,6 +177,7 @@ async function start() {
 
 onMounted(async () => {
   void loadMine()
+  void loadIssues()
   try {
     items.value = await formApi.startList()
     const only = items.value.length === 1 ? items.value[0] : undefined
@@ -173,6 +191,12 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.st-issues { border-top: 1px solid #e6eef1; padding: 12px 16px 14px; display: grid; gap: 8px; }
+.st-issues h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: #b45a12; text-transform: uppercase; letter-spacing: .04em; }
+.st-issue { display: grid; gap: 2px; padding: 9px 11px; border: 1px solid #f6d7bd; border-left: 3px solid #E87722; border-radius: 8px; background: #fff8f2; color: #33475b; text-decoration: none; font-size: 13px; }
+.st-issue:hover { background: #fff1e4; }
+.st-issue b { color: #00636D; }
+.st-issue small { color: #5f7787; font-weight: 400; }
 .wf-msg { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 11px 14px; border-radius: 10px; font-size: 13.5px; background: #e4f6ee; border: 1px solid #bfe5d2; color: #0e5a3c; }
 .wf-msg.is-bad { background: #fdecea; border-color: #f3c3bc; color: #8a2416; }
 .wf-msg > span:nth-child(2) { flex: 1; }

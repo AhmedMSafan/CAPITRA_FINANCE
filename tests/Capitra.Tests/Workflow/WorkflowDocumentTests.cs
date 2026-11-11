@@ -95,6 +95,17 @@ public sealed class WorkflowDocumentTests
 
         // only the user-defined workflow is offered: never a system-built one, and not one without a document
         Assert.Equal(["LEAVE"], (await c.Forms.StartListAsync(default)).Select(x => x.WorkflowCode));
+        Assert.Empty(await c.Forms.StartIssuesAsync(default));
+
+        // a draft, or one without a document, is not offered, and designers are told why
+        c.Db.Add(new WfeWorkflowDefinition { WorkflowCode = "DRAFT_WF", WorkflowName = "Draft wf", DefinitionStatus = "draft", BpmnXml = Xml("USER", "LEAVE_REQUEST"), CreatedBy = "test" });
+        c.Db.Add(new WfeWorkflowDefinition { WorkflowCode = "NO_DOC", WorkflowName = "No doc", DefinitionStatus = "released", BpmnXml = Xml("USER", null), CreatedBy = "test" });
+        await c.Db.SaveChangesAsync();
+        Assert.Equal(["LEAVE"], (await c.Forms.StartListAsync(default)).Select(x => x.WorkflowCode));
+        var issues = await c.Forms.StartIssuesAsync(default);
+        Assert.Contains(issues, i => i.WorkflowCode == "DRAFT_WF" && i.Reason.Contains("draft"));
+        Assert.Contains(issues, i => i.WorkflowCode == "NO_DOC" && i.Reason.Contains("No document"));
+        Assert.Equal(2, issues.Count);
         await Assert.ThrowsAsync<BusinessRuleException>(() => c.Forms.StartFormAsync("FACTORING", default));
 
         var missing = await Assert.ThrowsAsync<BusinessValidationException>(() => c.Forms.StartAsync("LEAVE", new(null, new Dictionary<string, string?> { ["reason"] = "Family" }), default));
@@ -139,6 +150,54 @@ public sealed class WorkflowDocumentTests
         var draft = await c.Definitions.SaveAsync(null, Req(Xml("USER", null), "draft"), default);
         Assert.Equal("draft", draft.DefinitionStatus);
         await c.Definitions.SaveAsync(null, Req(Xml("SYSTEM", null), "released") with { WorkflowCode = "SYS" }, default);
+    }
+
+    [Fact]
+    public async Task A_required_workflow_field_the_document_lacks_blocks_release_and_is_explained_at_start()
+    {
+        // the workflow requires "amount", which the leave document does not have: nobody could ever fill it in
+        var vars = "[{&quot;name&quot;:&quot;amount&quot;,&quot;label&quot;:&quot;Amount&quot;,&quot;type&quot;:&quot;Number&quot;,&quot;required&quot;:true}]";
+        var xml = Xml("USER", "LEAVE_REQUEST").Replace("<bpmn:process id=\"P\"", $"<bpmn:process id=\"P\" finova:variables=\"{vars}\"");
+        var c = Setup(("LEAVE", xml));
+        await using var _db = c.Db;
+        await c.Forms.SaveAsync(null, Document("LEAVE_REQUEST", LeaveFields, Field("leaveType"), Field("fromDate"), Field("days"), Field("reason")), default);
+        Assert.Equal(["amount"], WfeForms.MissingOnDocument(xml, (await c.Db.Set<WfeForm>().FirstAsync()).FieldsJson).Select(f => f.Name));
+
+        var release = await Assert.ThrowsAsync<BusinessValidationException>(() =>
+            c.Definitions.SaveAsync(null, new("LEAVE2", "Leave 2", null, "released", xml, null, true, 0), default));
+        Assert.Contains("\"Amount\"", release.Errors["dataFields"][0]);
+
+        var start = await Assert.ThrowsAsync<BusinessRuleException>(() => c.Forms.StartAsync("LEAVE", new(null, new Dictionary<string, string?>
+        {
+            ["leaveType"] = "ANNUAL", ["fromDate"] = "2026-12-01", ["days"] = "3",
+        }), default));
+        Assert.Contains("cannot be started yet", start.Message);
+        Assert.Contains("no such fields", (await c.Forms.StartIssuesAsync(default)).Single().Reason);
+    }
+
+    [Fact]
+    public async Task A_user_defined_workflow_rules_read_its_document_and_a_field_they_read_stays_on_the_document()
+    {
+        // a rule on "days" (a document field) is fine; one on "amount" (not on the document) is not
+        static string WithRule(string field) => Xml("USER", "LEAVE_REQUEST").Replace(
+            "<bpmn:sequenceFlow id=\"F2\" sourceRef=\"T\" targetRef=\"E\"/>",
+            $"<bpmn:sequenceFlow id=\"F2\" sourceRef=\"T\" targetRef=\"E\" finova:conditions=\"[{{&quot;field&quot;:&quot;{field}&quot;,&quot;op&quot;:&quot;&gt;&quot;,&quot;value&quot;:&quot;5&quot;}}]\"/><bpmn:sequenceFlow id=\"F3\" sourceRef=\"T\" targetRef=\"E\"/>");
+        var c = Setup();
+        await using var _db = c.Db;
+        var doc = await c.Forms.SaveAsync(null, Document("LEAVE_REQUEST", LeaveFields, Field("leaveType"), Field("fromDate"), Field("days"), Field("reason")), default);
+
+        var bad = await Assert.ThrowsAsync<BusinessValidationException>(() =>
+            c.Definitions.SaveAsync(null, new("LEAVE", "Leave", null, "released", WithRule("amount"), null, true, 0), default));
+        Assert.Contains("no data field 'amount'", bad.Errors["rules"][0]);
+        await c.Definitions.SaveAsync(null, new("LEAVE", "Leave", null, "released", WithRule("days"), null, true, 0), default);
+
+        // "days" cannot leave the document while the released workflow's rule reads it; "reason" can
+        var saved = await c.Db.Set<WfeForm>().AsNoTracking().FirstAsync(x => x.FormId == doc.FormId);
+        var noDays = await Assert.ThrowsAsync<BusinessValidationException>(() => c.Forms.SaveAsync(doc.FormId,
+            Document("LEAVE_REQUEST", [LeaveFields[0], LeaveFields[1], LeaveFields[3]], Field("leaveType"), Field("fromDate"), Field("reason")) with { RowVersion = saved.RowVersion }, default));
+        Assert.Contains("used by a rule in Leave", noDays.Errors["fields"][0]);
+        await c.Forms.SaveAsync(doc.FormId,
+            Document("LEAVE_REQUEST", [LeaveFields[0], LeaveFields[1], LeaveFields[2]], Field("leaveType"), Field("fromDate"), Field("days")) with { RowVersion = saved.RowVersion }, default);
     }
 
     [Fact]

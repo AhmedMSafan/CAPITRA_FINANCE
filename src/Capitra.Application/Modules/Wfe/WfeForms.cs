@@ -57,6 +57,9 @@ public sealed record WfeTaskFormDto(WfeFormViewDto? Form);
 
 public sealed record WfeStartFormItemDto(string WorkflowCode, string WorkflowName, string? Description, string FormCode, string FormName);
 
+/// <summary>A user-defined workflow that cannot be started yet, and why, for the designers on Start a request.</summary>
+public sealed record WfeStartIssueDto(long WorkflowDefinitionId, string WorkflowCode, string WorkflowName, string Reason);
+
 /// <summary>
 /// A request the signed-in user sent, for Start a request: where it is now, and the last decision on it.
 /// </summary>
@@ -161,6 +164,53 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         return fields;
     }
 
+    /// <summary>
+    /// The workflow's required data fields that its start document cannot fill: no field of that name on the document, no default
+    /// and no automatic value. A user-defined workflow with any of these can never be started.
+    /// </summary>
+    public static List<WfeDataField> MissingOnDocument(string xml, string? documentFieldsJson)
+    {
+        // a form without its own fields shows the workflow's fields, so it can fill every one of them
+        if (documentFieldsJson is null)
+            return [];
+        var doc = WfeDataFields.Parse(documentFieldsJson);
+        return WfeDataFields.Of(xml)
+            .Where(f => f.Required && f.DefaultValue is null && string.IsNullOrWhiteSpace(f.Auto)
+                && !doc.Any(d => string.Equals(d.Name, f.Name, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+    }
+
+    /// <summary>The sentence that explains <see cref="MissingOnDocument"/> to the workflow's designer.</summary>
+    public static string MissingText(string documentCode, IReadOnlyList<WfeDataField> missing) =>
+        $"The workflow's data fields {string.Join(", ", missing.Select(f => $"\"{f.Caption}\""))} are required, but document {documentCode} " +
+        "has no such fields, so nobody can fill them in. In the workflow designer, open Data fields and remove them or untick Required, " +
+        "or add them to the document.";
+
+    /// <summary>The rules of released workflows linking the document that read any of the given fields, as sentences for the designer.</summary>
+    private async Task<List<string>> RulesUsingAsync(string documentCode, IReadOnlyList<string> names, CancellationToken ct)
+    {
+        var defs = await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.IsActive && x.DefinitionStatus == "released").ToListAsync(ct);
+        var list = new List<string>();
+        foreach (var d in defs.Where(d => LinkedCodes(d.BpmnXml).Contains(documentCode, StringComparer.OrdinalIgnoreCase)))
+        {
+            IReadOnlyList<BpmnFlow> flows;
+            try
+            {
+                flows = BpmnModel.Flows(d.BpmnXml);
+            }
+            catch (Exception e) when (e is InvalidOperationException or System.Xml.XmlException)
+            {
+                continue;
+            }
+
+            foreach (var f in flows)
+                foreach (var r in f.Rules.Where(r => names.Contains(r.Field, StringComparer.OrdinalIgnoreCase)))
+                    list.Add($"\"{r.Field}\" is used by a rule in {d.WorkflowName} (path from {f.SourceName} to {f.TargetName}: {r.Text}). Change that rule first, then remove the field.");
+        }
+
+        return list.Distinct().ToList();
+    }
+
     /// <summary>The document codes a diagram links: the workflow's document and every step's.</summary>
     private static List<string> LinkedCodes(string xml)
     {
@@ -249,6 +299,14 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
                 throw new BusinessRuleException($"{row.FormCode} is used at {string.Join(", ", used)}, so its code cannot change.");
             if (!document && row.WorkflowDefinitionId != def!.WorkflowDefinitionId && await UsedAtAsync(row, ct) is { Count: > 0 } usedBy)
                 throw new BusinessRuleException($"{row.FormCode} is used at {string.Join(", ", usedBy)}, so its workflow cannot change.");
+            // a field that a released workflow's rule reads cannot be taken off the document, or that rule could never match
+            if (document && row.FieldsJson is not null)
+            {
+                var removed = WfeDataFields.Parse(row.FieldsJson).Select(f => f.Name)
+                    .Where(n => !fields.Any(f => string.Equals(f.Name, n, StringComparison.OrdinalIgnoreCase))).ToList();
+                if (removed.Count > 0 && await RulesUsingAsync(row.FormCode, removed, ct) is { Count: > 0 } rules)
+                    throw new BusinessValidationException(new Dictionary<string, string[]> { ["fields"] = [.. rules] });
+            }
         }
 
         row.FormCode = code;
@@ -486,6 +544,43 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         return list;
     }
 
+    /// <summary>
+    /// The active user-defined workflows that do not appear on Start a request, each with the reason: still a draft, no document
+    /// linked, or a document that is missing, inactive or linked to another workflow.
+    /// </summary>
+    public async Task<IReadOnlyList<WfeStartIssueDto>> StartIssuesAsync(CancellationToken ct)
+    {
+        var defs = await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.WorkflowName).ToListAsync(ct);
+        var forms = await db.Set<WfeForm>().AsNoTracking().ToListAsync(ct);
+        var list = new List<WfeStartIssueDto>();
+        foreach (var d in defs)
+        {
+            var p = BpmnModel.Process(d.BpmnXml);
+            if (!p.IsUserDefined)
+                continue;
+            var released = string.Equals(d.DefinitionStatus, "released", StringComparison.OrdinalIgnoreCase);
+            var code = StartDocumentCode(d.BpmnXml);
+            var same = forms.Where(f => string.Equals(f.FormCode, code, StringComparison.OrdinalIgnoreCase)).ToList();
+            string? reason = null;
+            if (code is null)
+                reason = "No document is linked. In the designer, choose its document under Workflow Type.";
+            else if (same.Count == 0)
+                reason = $"Its document {code} does not exist. Create it in the Document Designer.";
+            else if (!same.Any(f => f.IsActive))
+                reason = $"Its document {code} is not active. Turn it on in the Document Designer.";
+            else if (!same.Any(f => f.IsActive && (f.WorkflowDefinitionId == null || f.WorkflowDefinitionId == d.WorkflowDefinitionId)))
+                reason = $"Its document {code} belongs to another workflow.";
+            else if (!released)
+                reason = "It is still a draft. Open it in the designer and press Release.";
+            else if (MissingOnDocument(d.BpmnXml, same.First(f => f.IsActive && (f.WorkflowDefinitionId == null || f.WorkflowDefinitionId == d.WorkflowDefinitionId)).FieldsJson) is { Count: > 0 } missing)
+                reason = MissingText(code, missing);
+            if (reason is not null)
+                list.Add(new WfeStartIssueDto(d.WorkflowDefinitionId, d.WorkflowCode, d.WorkflowName, reason));
+        }
+
+        return list;
+    }
+
     /// <summary>The requests the signed-in user sent (workflows started on a document), newest first.</summary>
     public async Task<IReadOnlyList<WfeMyRequestDto>> MyRequestsAsync(CancellationToken ct)
     {
@@ -521,6 +616,10 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     public async Task<WfeFormViewDto> StartFormAsync(string workflowCode, CancellationToken ct)
     {
         var (def, form) = await StartFormOfAsync(workflowCode, ct);
+        // a required workflow field the document does not have can never be filled in: say so instead of asking the user for it
+        var missing = MissingOnDocument(def.BpmnXml, form.FieldsJson);
+        if (missing.Count > 0)
+            throw new BusinessRuleException($"{def.WorkflowName} cannot be started yet. " + MissingText(form.FormCode, missing));
         var fields = FieldsOf(form, def.BpmnXml);
         var defaults = fields.Where(f => f.DefaultValue is not null).ToDictionary(f => f.Name, f => f.DefaultValue, StringComparer.OrdinalIgnoreCase);
         foreach (var (name, value) in await AutoValuesAsync(fields, null, ct))
@@ -532,6 +631,9 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     public async Task<WfeStartedDto> StartAsync(string workflowCode, WfeStartFromFormRequest r, CancellationToken ct)
     {
         var (def, form) = await StartFormOfAsync(workflowCode, ct);
+        var missing = MissingOnDocument(def.BpmnXml, form.FieldsJson);
+        if (missing.Count > 0)
+            throw new BusinessRuleException($"{def.WorkflowName} cannot be started yet. " + MissingText(form.FormCode, missing));
         var fields = FieldsOf(form, def.BpmnXml);
         var values = await AcceptAsync(form, fields, r.Values, ct);
         // the automatic values come from the server, never from what the browser sent

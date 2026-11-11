@@ -51,6 +51,11 @@ public sealed class WfeFormController(WfeForms forms) : ControllerBase
     [HttpGet("start")]
     public Task<IReadOnlyList<WfeStartFormItemDto>> StartList(CancellationToken ct) => forms.StartListAsync(ct);
 
+    /// <summary>The user-defined workflows that cannot be started yet, and why (for designers).</summary>
+    [HttpGet("start/issues")]
+    [HasPermission(Permissions.Wfe.DefinitionView)]
+    public Task<IReadOnlyList<WfeStartIssueDto>> StartIssues(CancellationToken ct) => forms.StartIssuesAsync(ct);
+
     /// <summary>The requests the signed-in user sent, with where each one is now.</summary>
     [HttpGet("start/mine")]
     public Task<IReadOnlyList<WfeMyRequestDto>> MyRequests(CancellationToken ct) => forms.MyRequestsAsync(ct);

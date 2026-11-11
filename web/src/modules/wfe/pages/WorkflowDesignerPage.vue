@@ -33,9 +33,9 @@
           Versions
         </button>
 
-        <button class="btn btn-ghost" @click="openFields">
+        <button v-if="wfType==='SYSTEM'" class="btn btn-ghost" @click="openFields">
           <span class="pi pi-database"></span>
-          Data Fields
+          Values from the module
         </button>
 
         <button class="btn btn-ghost" @click="showXml=true">
@@ -274,26 +274,54 @@
               </template>
             </section>
 
-            <section class="property-section">
+            <section v-if="wfType==='USER'" class="property-section">
               <div class="section-title">
                 <span class="section-icon pi pi-database"></span>
                 <div>
-                  <strong>Data Fields</strong>
-                  <small>The values each instance carries (amount, client, decision).</small>
+                  <strong>Fields</strong>
+                  <small>A user-defined workflow uses its document's fields: in the request, on every step and in rules on paths.</small>
                 </div>
               </div>
 
-              <div v-if="!variables.some(x=>x?.name)" class="fields-empty">No data fields yet.</div>
+              <div v-if="!wfDocument" class="fields-empty">Choose the document above to see its fields.</div>
+              <div v-else-if="!docFields.length" class="fields-empty">{{ wfDocument }} has no fields yet. Add them in the Document Designer.</div>
+              <ul v-else class="field-chips">
+                <li v-for="f in docFields" :key="f.name">
+                  <b>{{ f.label || f.name }}</b>
+                  <span>{{ typeLabel(f.type) }}<template v-if="f.required"> · required</template></span>
+                </li>
+              </ul>
+
+              <div v-if="docFields.length && ownExtra.length" class="legacy-fields">
+                <span class="pi pi-exclamation-triangle"></span>
+                <div>
+                  <b>This workflow still has its own data fields:</b> {{ ownExtra.join(', ') }}.
+                  They are not on the document, so nobody can fill them in. Remove them, then save.
+                  <button class="text-button" type="button" @click="removeOwnFields">Remove them</button>
+                </div>
+              </div>
+            </section>
+
+            <section v-else class="property-section">
+              <div class="section-title">
+                <span class="section-icon pi pi-database"></span>
+                <div>
+                  <strong>Values from the module</strong>
+                  <small>What the module sends when it starts this workflow (client, amount…). Shown on each task and in the Process monitor, and used by rules on paths.</small>
+                </div>
+              </div>
+
+              <div v-if="!variables.some(x=>x?.name)" class="fields-empty">None yet.</div>
               <ul v-else class="field-chips">
                 <li v-for="(v,i) in variables.filter(x=>x?.name)" :key="i">
                   <b>{{ v.label || v.name }}</b>
-                  <span>{{ typeLabel(v.type) }}<template v-if="v.required"> · required</template></span>
+                  <span>{{ typeLabel(v.type) }}</span>
                 </li>
               </ul>
 
               <button class="btn btn-secondary btn-full" @click="openFields">
                 <span class="pi pi-pencil"></span>
-                Edit Data Fields
+                Edit values from the module
               </button>
             </section>
 
@@ -375,7 +403,7 @@
                 </div>
               </div>
 
-              <div v-if="!ruleFields.length" class="fields-empty">Add data fields to the workflow or its document first.</div>
+              <div v-if="!ruleFields.length" class="fields-empty">{{ wfType==='USER' ? 'Choose the document and give it fields first.' : 'Add values from the module first.' }}</div>
               <div v-for="(r,i) in flowRules" :key="i" class="rule-row">
                 <span class="rule-join">{{ i===0 ? 'If' : 'and' }}</span>
                 <select v-model="r.field" class="rule-field" aria-label="Data field" @change="syncFlowRules">
@@ -739,8 +767,8 @@
       <div class="modal-card fields-card">
         <div class="modal-head">
           <div>
-            <small>Data fields</small>
-            <h3>What each instance of {{ form.dgrmName || 'this workflow' }} carries</h3>
+            <small>Values from the module</small>
+            <h3>What the module sends when it starts {{ form.dgrmName || 'this workflow' }}</h3>
           </div>
 
           <button class="modal-close" @click="showFields=false">
@@ -750,31 +778,29 @@
 
         <div class="fields-body">
           <p class="versions-note">
-            Fields are filled when the workflow starts (by the screen that starts it, or from the default) and can change as steps complete.
-            A <b>required</b> field must have a value to start. Each value is checked against its type, so an amount is always a number.
-            Rules, recipients and forms in the next steps read these fields. The <b>Name</b> is what screens use; keep it the same once in use.
+            The module fills these in when it starts the workflow; nobody types them. They are shown in <b>Workflow data</b> on each task
+            and in the Process monitor, and rules on paths can read them (for example amount &gt; 5000000). The <b>Name</b> must be the one the module sends.
           </p>
+          <div class="module-values">
+            <span>Add what the module sends:</span>
+            <button v-for="m in moduleValues.filter(m=>!fieldRows.some(f=>f.name.toLowerCase()===m.name.toLowerCase()))" :key="m.name" type="button" class="chip-add" :title="m.from" @click="fieldRows.push({name:m.name,label:m.label,type:m.type,required:false,defaultValue:'',choicesText:''})">
+              <span class="pi pi-plus"></span>{{ m.label }}
+            </button>
+          </div>
 
           <div class="fields-table-wrap">
             <table class="fields-table">
               <thead>
-                <tr><th>Name</th><th>Label</th><th>Type</th><th class="c">Required</th><th>Default</th><th>Choices</th><th></th></tr>
+                <tr><th>Name</th><th>Label</th><th>Type</th><th>Choices</th><th></th></tr>
               </thead>
               <tbody>
                 <tr v-for="(f,i) in fieldRows" :key="i" :class="{ bad: fieldErrors[i] }">
                   <td><input v-model="f.name" placeholder="amount" /></td>
-                  <td><input v-model="f.label" placeholder="Amount" /></td>
+                  <td><input v-model="f.label" placeholder="What people see" /></td>
                   <td>
                     <select v-model="f.type">
                       <option v-for="t in fieldTypes" :key="t.value" :value="t.value">{{ t.label }}</option>
                     </select>
-                  </td>
-                  <td class="c"><input v-model="f.required" type="checkbox" /></td>
-                  <td>
-                    <select v-if="f.type==='Boolean'" v-model="f.defaultValue">
-                      <option value="">(none)</option><option value="true">Yes</option><option value="false">No</option>
-                    </select>
-                    <input v-else v-model="f.defaultValue" :type="f.type==='Date'?'date':'text'" placeholder="(none)" />
                   </td>
                   <td>
                     <input v-if="f.type==='Choice'" v-model="f.choicesText" placeholder="LOW, MEDIUM, HIGH" />
@@ -797,7 +823,7 @@
           <div class="fields-actions">
             <button class="btn btn-secondary" @click="fieldRows.push({name:'',label:'',type:'String',required:false,defaultValue:'',choicesText:''})">
               <span class="pi pi-plus"></span>
-              Add Field
+              Add another value
             </button>
             <span class="spacer"></span>
             <button class="btn btn-ghost" @click="showFields=false">Cancel</button>
@@ -806,7 +832,7 @@
               Apply
             </button>
           </div>
-          <p class="fields-foot">Apply keeps the fields on the diagram. Click <b>Save Workflow</b> to save them.</p>
+          <p class="fields-foot">Apply keeps the values on the diagram. Click <b>Save Workflow</b> to save them.</p>
         </div>
       </div>
     </div>
@@ -1205,12 +1231,31 @@ function syncStepName(){
 
 
 // rules on data fields (K2's line rules): stored on the arrow as finova:conditions; all must match for the path to be taken
+const docFields=computed(()=>documents.value.find(d=>d.formCode.toUpperCase()===wfDocument.value.toUpperCase())?.fields??[])
+const ownExtra=computed(()=>variables.filter(v=>v?.name&&!docFields.value.some(f=>f.name.toUpperCase()===String(v.name).toUpperCase())).map(v=>String(v.label||v.name)))
+function removeOwnFields(){variables.splice(0,variables.length);msg('Own data fields removed. Save the workflow to keep the change.')}
+// what the modules send when they start their workflows (FctApplicationService, CrmDisbursementRequestService, P0201PortfolioCases)
+const moduleValues=[
+  {name:'client_name',label:'Client name',type:'String',from:'Factoring application, Disbursement request'},
+  {name:'client_number',label:'Client number',type:'String',from:'Factoring application'},
+  {name:'client_id',label:'Client id',type:'String',from:'Factoring application, Disbursement request'},
+  {name:'amount',label:'Amount',type:'Decimal',from:'Factoring application (facility limit), Disbursement request (gross amount)'},
+  {name:'currency_code',label:'Currency',type:'String',from:'Factoring application, Disbursement request'},
+  {name:'application_reference',label:'Application reference',type:'String',from:'Factoring application'},
+  {name:'entity_id',label:'Record id',type:'Number',from:'All modules'},
+  {name:'entity_ref',label:'Reference',type:'String',from:'All modules'},
+  {name:'function_code',label:'Function',type:'String',from:'Disbursement request'},
+  {name:'entity_type',label:'Record type',type:'String',from:'All modules'},
+  {name:'module_code',label:'Module',type:'String',from:'All modules'},
+]
 const ruleFields=computed(()=>{
   const out:{name:string,label:string,type:string,choices:string[]}[]=[]
   const add=(name:string,label:string|undefined|null,type:string|undefined,choices:string[]|undefined|null)=>{
     const n=String(name??'').trim();if(!n||out.some(x=>x.name.toUpperCase()===n.toUpperCase()))return
     out.push({name:n,label:String(label??'').trim()||n,type:type||'String',choices:Array.isArray(choices)?choices:[]})
   }
+  // a user-defined workflow's fields are its document's only
+  if(wfType.value==='USER'){docFields.value.forEach(f=>add(f.name,f.label,f.type,f.choices));return out}
   variables.forEach(v=>add(v.name,v.label,v.type,v.choices))
   const codes=new Set([wfDocument.value,...Object.values(steps).map(x=>x.formCode)].filter(Boolean).map(x=>String(x).toUpperCase()))
   documents.value.filter(d=>codes.has(d.formCode.toUpperCase())).forEach(d=>(d.fields||[]).forEach(f=>add(f.name,f.label,f.type,f.choices)))
@@ -1645,15 +1690,15 @@ const fieldProblems=computed(()=>fieldErrors.value.filter(Boolean))
 function applyFields(){
   if(fieldProblems.value.length)return
   variables.splice(0,variables.length,...fieldRows.value.map(f=>{
-    const v:Var={name:f.name.trim(),type:f.type,required:f.required}
+    // values from the module are never required: the module sends them
+    const v:Var={name:f.name.trim(),type:f.type,required:false}
     if(f.label.trim())v.label=f.label.trim()
-    if(f.defaultValue.trim())v.defaultValue=f.defaultValue.trim()
     if(f.type==='Choice')v.choices=choicesOf(f)
     if(f.description)v.description=f.description
     return v
   }))
   showFields.value=false
-  msg('Data fields applied. Save the workflow to keep them.')
+  msg('Values applied. Save the workflow to keep them.')
 }
 
 async function load(){
@@ -2675,6 +2720,13 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
 :deep(.rule-badge) { white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #fff4ec; border: 1px solid #E87722; color: #a24f0f; font: 600 11px/1.4 Inter, Arial, sans-serif; transform: translate(-50%, -50%); pointer-events: none; }
 .rule-hint.warn { color: #a24f0f; }
 .rule-hint { margin: 8px 2px 0; font-size: 12px; color: #6b7c86; line-height: 1.45; }
+.legacy-fields { display: flex; gap: 10px; margin: 4px 0 8px; padding: 10px 12px; border: 1px solid #f6d7bd; border-left: 3px solid #E87722; border-radius: 8px; background: #fff8f2; font-size: 12px; color: #5b3a1d; }
+.legacy-fields .pi { color: #E87722; margin-top: 2px; }
+.legacy-fields .text-button { display: block; margin-top: 6px; color: #00636D; font-weight: 600; }
+.module-values { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; font-size: 12.5px; color: #5f7787; }
+.chip-add { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border: 1px solid #b9d9dc; border-radius: 999px; background: #eef7f7; color: #00636D; font: inherit; font-weight: 600; cursor: pointer; }
+.chip-add:hover { background: #dff0f1; }
+.chip-add .pi { font-size: 10px; }
 .field-chips { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
 .field-chips li { display: flex; justify-content: space-between; gap: 8px; padding: 7px 9px; border: 1px solid #e1e8ec; border-radius: 8px; font-size: 12px; }
 .field-chips b { color: #173b57; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
