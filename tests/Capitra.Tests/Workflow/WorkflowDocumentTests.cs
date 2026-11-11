@@ -95,6 +95,17 @@ public sealed class WorkflowDocumentTests
 
         // only the user-defined workflow is offered: never a system-built one, and not one without a document
         Assert.Equal(["LEAVE"], (await c.Forms.StartListAsync(default)).Select(x => x.WorkflowCode));
+        Assert.Empty(await c.Forms.StartIssuesAsync(default));
+
+        // a draft, or one without a document, is not offered, and designers are told why
+        c.Db.Add(new WfeWorkflowDefinition { WorkflowCode = "DRAFT_WF", WorkflowName = "Draft wf", DefinitionStatus = "draft", BpmnXml = Xml("USER", "LEAVE_REQUEST"), CreatedBy = "test" });
+        c.Db.Add(new WfeWorkflowDefinition { WorkflowCode = "NO_DOC", WorkflowName = "No doc", DefinitionStatus = "released", BpmnXml = Xml("USER", null), CreatedBy = "test" });
+        await c.Db.SaveChangesAsync();
+        Assert.Equal(["LEAVE"], (await c.Forms.StartListAsync(default)).Select(x => x.WorkflowCode));
+        var issues = await c.Forms.StartIssuesAsync(default);
+        Assert.Contains(issues, i => i.WorkflowCode == "DRAFT_WF" && i.Reason.Contains("draft"));
+        Assert.Contains(issues, i => i.WorkflowCode == "NO_DOC" && i.Reason.Contains("No document"));
+        Assert.Equal(2, issues.Count);
         await Assert.ThrowsAsync<BusinessRuleException>(() => c.Forms.StartFormAsync("FACTORING", default));
 
         var missing = await Assert.ThrowsAsync<BusinessValidationException>(() => c.Forms.StartAsync("LEAVE", new(null, new Dictionary<string, string?> { ["reason"] = "Family" }), default));

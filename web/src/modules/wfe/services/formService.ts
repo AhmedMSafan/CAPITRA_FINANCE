@@ -152,6 +152,7 @@ export type DataSource = {
 }
 
 export type StartFormItem = { workflowCode: string; workflowName: string; description: string | null; formCode: string; formName: string }
+export type StartIssue = { workflowDefinitionId: number; workflowCode: string; workflowName: string; reason: string }
 export type MyRequest = {
   instanceId: number
   workflowCode: string
@@ -216,6 +217,7 @@ export const formApi = {
   save: (id: number | null, body: SaveWorkflowForm) => (id ? http.put<WorkflowForm>(`${FORMS}/${id}`, body) : http.post<WorkflowForm>(FORMS, body)),
   remove: (id: number) => http.delete<void>(`${FORMS}/${id}`),
   startList: () => http.get<StartFormItem[]>(`${FORMS}/start`),
+  startIssues: () => http.get<StartIssue[]>(`${FORMS}/start/issues`),
   myRequests: () => http.get<MyRequest[]>(`${FORMS}/start/mine`),
   startForm: (workflowCode: string) => http.get<FormView>(`${FORMS}/start/${encodeURIComponent(workflowCode)}`),
   start: (workflowCode: string, businessReference: string | null, values: Record<string, string | null>) =>

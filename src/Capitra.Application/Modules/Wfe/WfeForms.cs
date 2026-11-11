@@ -57,6 +57,9 @@ public sealed record WfeTaskFormDto(WfeFormViewDto? Form);
 
 public sealed record WfeStartFormItemDto(string WorkflowCode, string WorkflowName, string? Description, string FormCode, string FormName);
 
+/// <summary>A user-defined workflow that cannot be started yet, and why, for the designers on Start a request.</summary>
+public sealed record WfeStartIssueDto(long WorkflowDefinitionId, string WorkflowCode, string WorkflowName, string Reason);
+
 /// <summary>
 /// A request the signed-in user sent, for Start a request: where it is now, and the last decision on it.
 /// </summary>
@@ -481,6 +484,41 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
                 && string.Equals(f.FormCode, code, StringComparison.OrdinalIgnoreCase));
             if (form is not null)
                 list.Add(new WfeStartFormItemDto(d.WorkflowCode, d.WorkflowName, d.Description, form.FormCode, form.FormName));
+        }
+
+        return list;
+    }
+
+    /// <summary>
+    /// The active user-defined workflows that do not appear on Start a request, each with the reason: still a draft, no document
+    /// linked, or a document that is missing, inactive or linked to another workflow.
+    /// </summary>
+    public async Task<IReadOnlyList<WfeStartIssueDto>> StartIssuesAsync(CancellationToken ct)
+    {
+        var defs = await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.WorkflowName).ToListAsync(ct);
+        var forms = await db.Set<WfeForm>().AsNoTracking().ToListAsync(ct);
+        var list = new List<WfeStartIssueDto>();
+        foreach (var d in defs)
+        {
+            var p = BpmnModel.Process(d.BpmnXml);
+            if (!p.IsUserDefined)
+                continue;
+            var released = string.Equals(d.DefinitionStatus, "released", StringComparison.OrdinalIgnoreCase);
+            var code = StartDocumentCode(d.BpmnXml);
+            var same = forms.Where(f => string.Equals(f.FormCode, code, StringComparison.OrdinalIgnoreCase)).ToList();
+            string? reason = null;
+            if (code is null)
+                reason = "No document is linked. In the designer, choose its document under Workflow Type.";
+            else if (same.Count == 0)
+                reason = $"Its document {code} does not exist. Create it in the Document Designer.";
+            else if (!same.Any(f => f.IsActive))
+                reason = $"Its document {code} is not active. Turn it on in the Document Designer.";
+            else if (!same.Any(f => f.IsActive && (f.WorkflowDefinitionId == null || f.WorkflowDefinitionId == d.WorkflowDefinitionId)))
+                reason = $"Its document {code} belongs to another workflow.";
+            else if (!released)
+                reason = "It is still a draft. Open it in the designer and press Release.";
+            if (reason is not null)
+                list.Add(new WfeStartIssueDto(d.WorkflowDefinitionId, d.WorkflowCode, d.WorkflowName, reason));
         }
 
         return list;
