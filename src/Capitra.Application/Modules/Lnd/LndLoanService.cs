@@ -99,8 +99,10 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
         if (!string.IsNullOrWhiteSpace(search))
         {
             var s = search.Trim().ToUpperInvariant();
+#pragma warning disable CA1862 // EF Core translates ToUpper to SQL upper(), so the search ignores case in the database.
             q = q.Where(x => x.ClientName.ToUpper().Contains(s) || x.ClientNameAr.Contains(search.Trim()) || x.ClientNumber.ToUpper().Contains(s)
                 || (x.NationalId != null && x.NationalId.Contains(s)));
+#pragma warning restore CA1862
         }
         return await q.OrderBy(x => x.ClientName).Take(20).Select(x => new LndOptionDto(x.ClientId, x.ClientNumber, x.ClientName)).ToListAsync(cancellationToken);
     }

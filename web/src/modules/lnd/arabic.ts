@@ -222,7 +222,7 @@ export const LND_AR: Record<string, string> = {
   'Overdue principal': 'أصل الدين المتأخر',
   Charges: 'الرسوم',
   Insurance: 'التأمين',
-  Principal: 'أصل الدين',,
+  Principal: 'أصل الدين',
   // Retail Lending > Loans
   Loans: 'التمويلات',
   Loan: 'التمويل',
