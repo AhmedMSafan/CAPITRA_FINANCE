@@ -212,7 +212,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">User manual · Workflow</div>
       <h1>Workflows, tasks and forms</h1>
       <p class="lede">How work moves through Capitra: who gets each task, how to work it, how to build and change a workflow, and how forms, data fields, versions and out of office fit together. Written for everyone who works tasks, and for the workflow administrators who design them.</p>
-      <div class="meta"><span><b>Version</b>1.2</span><span><b>Date</b>10 November 2026</span><span><b>Covers</b>My Inbox · Designer · Workflow types · Deadlines (SLA) and alerts · Versions · Data fields · Document Designer · Automatic values · Data sources · Start a request · My requests · Out of office</span></div>
+      <div class="meta"><span><b>Version</b>1.3</span><span><b>Date</b>11 November 2026</span><span><b>Covers</b>My Inbox · Designer · Workflow types · Deadlines (SLA) and alerts · Versions · Data fields · Document Designer · Sections and frames · Automatic values · Data sources · Start a request · My requests · Out of office · Rules on paths · Parallel approvals · Process monitor</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -239,8 +239,12 @@ figcaption b{color:var(--teal-ink)}
       <li><a href="#en-7"><i>7</i>Working your tasks</a></li>
       <li><a href="#en-8"><i>8</i>Start a request</a></li>
       <li><a href="#en-9"><i>9</i>Out of office</a></li>
-      <li><a href="#en-10"><i>10</i>Messages and what to do</a></li>
-      <li><a href="#en-11"><i>11</i>Permissions, statuses, glossary</a></li>
+      <li><a href="#en-10"><i>10</i>Rules on paths</a></li>
+      <li><a href="#en-11"><i>11</i>Parallel approvals</a></li>
+      <li><a href="#en-12"><i>12</i>Document sections and frames</a></li>
+      <li><a href="#en-13"><i>13</i>Process monitor</a></li>
+      <li><a href="#en-14"><i>14</i>Messages and what to do</a></li>
+      <li><a href="#en-15"><i>15</i>Permissions, statuses, glossary</a></li>
     </ol>
   </nav>
   <main>
@@ -445,6 +449,9 @@ figcaption b{color:var(--teal-ink)}
     <h3>My requests</h3>
     <p class="prose">Under the form, <b>My requests</b> lists what you sent, newest first: <b>In progress</b> with the step it is waiting at, or <b>Approved</b> / <b>Rejected</b> with who decided, when, and their comment.</p>
     <figure><img src="img/9-start-a-request.jpg" alt="Start a request with the vacation request and My requests" loading="lazy"><figcaption><b>Figure 17.</b> A vacation request: Employee, Department and Request date are filled in automatically for Mona; My requests below.</figcaption></figure>
+    <h3>Not ready to start</h3>
+    <p class="prose">Workflow administrators also see, under the list, the user-defined workflows that cannot be started yet and why: still a draft, no document linked, a document missing or switched off, or required data fields the document does not have. Click one to open it in the designer.</p>
+    <figure><img src="img/29-start-not-ready.jpg" alt="Not ready to start list" loading="lazy"><figcaption><b>Figure 29.</b> Test WorkFlow is still a draft: open it and press Release.</figcaption></figure>
   </section>
 
   <section class="sec" id="en-9">
@@ -457,13 +464,71 @@ figcaption b{color:var(--teal-ink)}
   </section>
 
   <section class="sec" id="en-10">
-    <div class="sec-h"><span class="n">10</span><h2>Messages and what to do</h2></div>
+    <div class="sec-h"><span class="n">10</span><h2>Rules on paths</h2></div>
+    <p class="prose">A rule decides which path a request takes from the request's own data, for example "purchases over 1,000,000 also go to the CFO". In the designer, click an arrow and open <b>Conditions (rules on data fields)</b>.</p>
+    <ol class="b"><li>Choose the data field (Amount), the test (<b>is more than</b>) and the value (1000000).</li><li><b>Add condition</b> for more tests: all of them must match for the path to be taken.</li><li>Draw one more path out of the same step with <b>no conditions</b>: it is taken in all other cases.</li><li>Release. The release check stops you if a field does not exist, a value is missing, or no path is left for other cases.</li></ol>
+    <figure><img src="img/20-rules-designer.jpg" alt="Designer with a rule badge on a path" loading="lazy"><figcaption><b>Figure 20.</b> A gateway with a rule: the path to CFO approval carries the badge <i>amount &gt; 1000000</i>; the other path has no conditions.</figcaption></figure>
+    <figure><img src="img/21-conditions.jpg" style="max-width:380px" alt="The conditions editor" loading="lazy"><figcaption><b>Figure 21.</b> The conditions editor on a path.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>Test</th><th>Works on</th></tr>
+      <tr><td>equals · is not</td><td>any field; numbers, dates and yes/no compare by value</td></tr>
+      <tr><td>is more than · at least · is less than · at most</td><td>Number, Decimal and Date fields (dates as yyyy-mm-dd)</td></tr>
+      <tr><td>contains</td><td>text, ignoring upper and lower case</td></tr>
+      <tr><td>is empty · is not empty</td><td>any field; no value needed</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">Tip</span><p>A rule on a path after an approval (APPROVE / REJECT) is checked only for that answer. The history of the request shows which rule chose the path and the value it saw.</p></div>
+  </section>
+
+  <section class="sec" id="en-11">
+    <div class="sec-h"><span class="n">11</span><h2>Parallel approvals</h2></div>
+    <p class="prose">A step can go to several people at the same time, like a committee. Click the step in the designer and open <b>Parallel approval</b>.</p>
+    <div class="tbl"><table>
+      <tr><th>Who approves</th><th>The step is approved when</th></tr>
+      <tr><td>Everyone</td><td>all approvers approve; the first rejection rejects the step</td></tr>
+      <tr><td>Anyone</td><td>the first approver approves; it is rejected only if everyone rejects</td></tr>
+      <tr><td>A number of approvals</td><td>that many approve; it is rejected as soon as that number can no longer be reached</td></tr>
+    </table></div>
+    <ul class="b"><li>Approvers are the users in <b>Assigned to</b>, separated by commas, or every member of a role.</li><li>Each approver gets their own task. When the step is decided, the tasks nobody answered are cancelled.</li><li>The task page shows each approver and their answer (Approved, Rejected, Waiting) and how many answered.</li></ul>
+    <figure><img src="img/22-parallel-setting.jpg" style="max-width:380px" alt="The parallel approval setting" loading="lazy"><figcaption><b>Figure 22.</b> Parallel approval: 2 approvals needed out of admin, mona and checker1.</figcaption></figure>
+    <figure><img src="img/23-parallel-task.jpg" alt="A parallel task with its approvers" loading="lazy"><figcaption><b>Figure 23.</b> The Credit committee task: admin approved, mona and checker1 still waiting.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-12">
+    <div class="sec-h"><span class="n">12</span><h2>Document sections and frames</h2></div>
+    <p class="prose">In the Document Designer, a <b>Heading</b> starts a section: everything below it, up to the next heading, belongs to that section. Click the heading to style it:</p>
+    <ul class="b"><li><b>Draw a frame around this section</b> puts a border around the heading and its fields.</li><li><b>Section background</b> colours the section: teal, orange, grey, green, yellow or sand.</li><li>Add a <b>Separator</b> for a line between groups of fields.</li></ul>
+    <figure><img src="img/24-sections-layout.jpg" alt="Layout with headings, frames and colours" loading="lazy"><figcaption><b>Figure 24.</b> The layout: a framed teal Requester section and a framed Purchase section; the heading’s settings below.</figcaption></figure>
+    <figure><img src="img/25-sections-form.jpg" alt="The document with framed sections" loading="lazy"><figcaption><b>Figure 25.</b> The same document on Start a request.</figcaption></figure>
+    <p class="prose">Documents without styled headings look exactly as before.</p>
+  </section>
+
+  <section class="sec" id="en-13">
+    <div class="sec-h"><span class="n">13</span><h2>Process monitor</h2></div>
+    <p class="prose">Workspace → <b>Process monitor</b>, or <b>Process monitor</b> on the Running workflows card of the Workflow Engine home. It needs <code>WFE.DEFINITION.VIEW</code>.</p>
+    <h3>Requests</h3>
+    <p class="prose">Every request, filtered by Running / Finished / All, workflow and a search: its current step, who has it, how long it has waited and whether it is overdue.</p>
+    <figure><img src="img/26-monitor-requests.jpg" alt="The process monitor list" loading="lazy"><figcaption><b>Figure 26.</b> Requests with their current step, waiting time and overdue flag.</figcaption></figure>
+    <p class="prose">Click a request to open it on its diagram:</p>
+    <ul class="b"><li>Steps are coloured: <b>Done</b> teal, <b>Now here</b> orange, <b>Rejected</b> red, <b>Not reached</b> grey; the path taken is drawn in teal.</li><li>Each step has a badge with the time it took (or has waited so far).</li><li>Below: every step with when it arrived and finished, who did it and the outcome; the request's data; and the full history, including the rule that chose a path and each parallel answer.</li></ul>
+    <figure><img src="img/27-monitor-view.jpg" alt="A finished request on its diagram" loading="lazy"><figcaption><b>Figure 27.</b> A finished purchase: the path through the Credit committee, with times on each step.</figcaption></figure>
+    <h3>Time per step</h3>
+    <p class="prose">For a period (the last 90 days by default) and a workflow: for each step, how many finished, the average, median and longest time, how many are waiting and overdue now, and how many finished late. <b>Time per person</b> shows the same for each approver.</p>
+    <figure><img src="img/28-monitor-times.jpg" alt="Time per step and per person" loading="lazy"><figcaption><b>Figure 28.</b> Time per step and per person.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-14">
+    <div class="sec-h"><span class="n">14</span><h2>Messages and what to do</h2></div>
     <div class="tbl"><table>
       <tr><th>Message</th><th>What to do</th></tr>
       <tr><td>This task is not assigned to you.</td><td>Someone else claimed it, or it is not for your role. Refresh the inbox.</td></tr>
       <tr><td>Fill in "…".</td><td>A required field of the form is empty. Fill it in and press the action again.</td></tr>
       <tr><td>"…" must be one of the listed values.</td><td>Choose a value from the drop-down.</td></tr>
       <tr><td>The workflow needs "…" to start.</td><td>A required data field has no value. Fill it in on the start form.</td></tr>
+      <tr><td>… cannot be started yet. The workflow's data fields … are required, but document … has no such fields.</td><td>In the designer, open Data fields and remove those fields or untick Required, or add them to the document. Then release again.</td></tr>
+      <tr><td>Path from … to …: there is no data field '…'.</td><td>The rule names a field the workflow and its document do not have. Choose an existing field.</td></tr>
+      <tr><td>…: every path out of it has conditions, so add one path without conditions for all other cases.</td><td>Draw one more path from that step with no conditions.</td></tr>
+      <tr><td>…: a parallel approval needs at least two users, or a role.</td><td>Put two or more users in Assigned to, separated by commas, or assign a role.</td></tr>
+      <tr><td>…: it needs N approvals but has only M approvers.</td><td>Lower Approvals needed, or add approvers.</td></tr>
       <tr><td>"…" must be an amount / a whole number / a date.</td><td>The value does not fit the field's type. Correct it.</td></tr>
       <tr><td>Only a released workflow definition can be started.</td><td>In the designer, set Status to Released and save.</td></tr>
       <tr><td>… is a system-built workflow. Its module starts it.</td><td>Start it from its own page, or make it user-defined in the designer.</td></tr>
@@ -481,8 +546,8 @@ figcaption b{color:var(--teal-ink)}
     </table></div>
   </section>
 
-  <section class="sec" id="en-11">
-    <div class="sec-h"><span class="n">11</span><h2>Permissions, statuses, glossary</h2></div>
+  <section class="sec" id="en-15">
+    <div class="sec-h"><span class="n">15</span><h2>Permissions, statuses, glossary</h2></div>
     <h3>Permissions <span style="font-weight:400;color:var(--muted);font-size:14px">Administration → Roles</span></h3>
     <div class="tbl"><table>
       <tr><th>Permission</th><th>Allows</th></tr>
@@ -528,7 +593,7 @@ figcaption b{color:var(--teal-ink)}
       <div class="kicker">دليل المستخدم · سير العمل</div>
       <h1>سير العمل والمهام والنماذج</h1>
       <p class="lede">كيف ينتقل العمل داخل كابيترا: من تصله كل مهمة، وكيف ينجزها، وكيف يُصمَّم سير العمل ويُعدَّل، وكيف تعمل النماذج وحقول البيانات والإصدارات والغياب عن العمل معًا. مكتوب لكل من ينجز المهام، ولمسؤولي سير العمل الذين يصممونها.</p>
-      <div class="meta"><span><b>الإصدار</b>١٫٢</span><span><b>التاريخ</b>١٠ نوفمبر ٢٠٢٦</span><span><b>يغطي</b>صندوق المهام · المصمم · أنواع سير العمل · المهل الزمنية (SLA) والتنبيهات · الإصدارات · حقول البيانات · مصمم المستندات · القيم التلقائية · مصادر البيانات · تقديم طلب · طلباتي · الغياب عن العمل</span></div>
+      <div class="meta"><span><b>الإصدار</b>١٫٣</span><span><b>التاريخ</b>١١ نوفمبر ٢٠٢٦</span><span><b>يغطي</b>صندوق المهام · المصمم · أنواع سير العمل · المهل الزمنية (SLA) والتنبيهات · الإصدارات · حقول البيانات · مصمم المستندات · الأقسام والإطارات · القيم التلقائية · مصادر البيانات · تقديم طلب · طلباتي · الغياب عن العمل · قواعد المسارات · الموافقات المتوازية · مراقبة الإجراءات</span></div>
     </div>
     <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
       <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
@@ -555,8 +620,12 @@ figcaption b{color:var(--teal-ink)}
       <li><a href="#ar-7"><i>٧</i>إنجاز مهامك</a></li>
       <li><a href="#ar-8"><i>٨</i>تقديم طلب</a></li>
       <li><a href="#ar-9"><i>٩</i>الغياب عن العمل</a></li>
-      <li><a href="#ar-10"><i>١٠</i>الرسائل وما تفعله</a></li>
-      <li><a href="#ar-11"><i>١١</i>الصلاحيات والحالات والمصطلحات</a></li>
+      <li><a href="#ar-10"><i>١٠</i>قواعد المسارات</a></li>
+      <li><a href="#ar-11"><i>١١</i>الموافقات المتوازية</a></li>
+      <li><a href="#ar-12"><i>١٢</i>أقسام المستند وإطاراته</a></li>
+      <li><a href="#ar-13"><i>١٣</i>مراقبة الإجراءات</a></li>
+      <li><a href="#ar-14"><i>١٤</i>الرسائل وما تفعله</a></li>
+      <li><a href="#ar-15"><i>١٥</i>الصلاحيات والحالات والمصطلحات</a></li>
     </ol>
   </nav>
   <main>
@@ -761,6 +830,9 @@ figcaption b{color:var(--teal-ink)}
     <h3>طلباتي</h3>
     <p class="prose">أسفل النموذج تعرض <b>طلباتي</b> ما أرسلته، الأحدث أولًا: <b>قيد التنفيذ</b> مع الخطوة التي ينتظر عندها، أو <b>معتمد</b> / <b>مرفوض</b> مع من قرر ومتى وتعليقه.</p>
     <figure><img src="img/9-start-a-request.jpg" alt="تقديم طلب إجازة وقائمة طلباتي" loading="lazy"><figcaption><b>شكل ١٧.</b> طلب إجازة: الموظف والإدارة وتاريخ الطلب مملوءة تلقائيًا لمنى، وطلباتي أسفلها.</figcaption></figure>
+    <h3>غير جاهز للبدء</h3>
+    <p class="prose">يرى مسؤولو سير العمل أيضًا، أسفل القائمة، مسارات العمل المعرّفة من المستخدم التي لا يمكن بدؤها بعد وسبب ذلك: ما زالت مسودة، أو لا يوجد مستند مرتبط، أو المستند غير موجود أو موقوف، أو حقول بيانات إلزامية ليست في المستند. اضغط على أي منها لفتحه في المصمم.</p>
+    <figure><img src="img/29-start-not-ready.jpg" alt="قائمة غير جاهز للبدء" loading="lazy"><figcaption><b>شكل ٢٩.</b> Test WorkFlow ما زال مسودة: افتحه واضغط اعتماد.</figcaption></figure>
   </section>
 
   <section class="sec" id="ar-9">
@@ -773,7 +845,60 @@ figcaption b{color:var(--teal-ink)}
   </section>
 
   <section class="sec" id="ar-10">
-    <div class="sec-h"><span class="n">١٠</span><h2>الرسائل وما تفعله</h2></div>
+    <div class="sec-h"><span class="n">١٠</span><h2>قواعد المسارات</h2></div>
+    <p class="prose">القاعدة تحدد المسار الذي يسلكه الطلب حسب بياناته، مثل «المشتريات التي تزيد على ١٬٠٠٠٬٠٠٠ تذهب أيضًا إلى المدير المالي». في المصمم اضغط على السهم وافتح <b>Conditions (rules on data fields)</b>.</p>
+    <ol class="b"><li>اختر الحقل (المبلغ) والاختبار (<b>is more than</b>) والقيمة (1000000).</li><li><b>Add condition</b> لاختبارات أخرى؛ يجب أن تتحقق كلها ليُسلك المسار.</li><li>ارسم مسارًا آخر من الخطوة نفسها <b>بلا شروط</b>؛ يُسلك في كل الحالات الأخرى.</li><li>اعتمد سير العمل. فحص الاعتماد يوقفك إذا كان الحقل غير موجود أو القيمة ناقصة أو لا يوجد مسار للحالات الأخرى.</li></ol>
+    <figure><img src="img/20-rules-designer.jpg" alt="المصمم مع شارة قاعدة على مسار" loading="lazy"><figcaption><b>شكل ٢٠.</b> بوابة بقاعدة: المسار إلى موافقة المدير المالي عليه شارة <i>amount &gt; 1000000</i>، والمسار الآخر بلا شروط.</figcaption></figure>
+    <figure><img src="img/21-conditions.jpg" style="max-width:380px" alt="محرر الشروط" loading="lazy"><figcaption><b>شكل ٢١.</b> محرر الشروط على المسار.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>الاختبار</th><th>يعمل على</th></tr>
+      <tr><td>يساوي · لا يساوي</td><td>أي حقل؛ الأرقام والتواريخ ونعم/لا تُقارن بقيمتها</td></tr>
+      <tr><td>أكبر من · على الأقل · أقل من · على الأكثر</td><td>حقول الأرقام والتواريخ (التاريخ بصيغة yyyy-mm-dd)</td></tr>
+      <tr><td>يحتوي</td><td>النص، دون تمييز الحروف الكبيرة والصغيرة</td></tr>
+      <tr><td>فارغ · غير فارغ</td><td>أي حقل؛ دون قيمة</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">تلميح</span><p>القاعدة على مسار بعد موافقة (APPROVE / REJECT) تُفحص لذلك الرد فقط. سجل الطلب يبيّن القاعدة التي اختارت المسار والقيمة التي رأتها.</p></div>
+  </section>
+
+  <section class="sec" id="ar-11">
+    <div class="sec-h"><span class="n">١١</span><h2>الموافقات المتوازية</h2></div>
+    <p class="prose">يمكن أن تذهب الخطوة إلى عدة أشخاص في الوقت نفسه مثل اللجنة. اضغط على الخطوة في المصمم وافتح <b>Parallel approval</b>.</p>
+    <div class="tbl"><table>
+      <tr><th>من يوافق</th><th>تُعتمد الخطوة عندما</th></tr>
+      <tr><td>الجميع (Everyone)</td><td>يوافق كل المعتمدين؛ وأول رفض يرفض الخطوة</td></tr>
+      <tr><td>أي واحد (Anyone)</td><td>يوافق أول معتمد؛ وتُرفض فقط إذا رفض الجميع</td></tr>
+      <tr><td>عدد من الموافقات (A number of approvals)</td><td>يوافق العدد المطلوب؛ وتُرفض حين يصبح الوصول إليه مستحيلًا</td></tr>
+    </table></div>
+    <ul class="b"><li>المعتمدون هم المستخدمون في <b>مسندة إلى</b> (Assigned to) مفصولين بفواصل، أو كل أعضاء الدور.</li><li>لكل معتمد مهمته الخاصة. عند البت في الخطوة تُلغى المهام التي لم يرد عليها أحد.</li><li>صفحة المهمة تعرض كل معتمد ورده (موافق، مرفوض، بانتظار) وعدد من ردوا.</li></ul>
+    <figure><img src="img/22-parallel-setting.jpg" style="max-width:380px" alt="إعداد الموافقة المتوازية" loading="lazy"><figcaption><b>شكل ٢٢.</b> موافقة متوازية: موافقتان مطلوبتان من admin وmona وchecker1.</figcaption></figure>
+    <figure><img src="img/23-parallel-task.jpg" alt="مهمة متوازية ومعتمدوها" loading="lazy"><figcaption><b>شكل ٢٣.</b> مهمة لجنة الائتمان: admin وافق، وmona وchecker1 بانتظار الرد.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-12">
+    <div class="sec-h"><span class="n">١٢</span><h2>أقسام المستند وإطاراته</h2></div>
+    <p class="prose">في مصمم المستندات، <b>العنوان</b> يبدأ قسمًا: كل ما تحته حتى العنوان التالي ينتمي إلى القسم. اضغط على العنوان لتنسيقه:</p>
+    <ul class="b"><li><b>ارسم إطاراً حول هذا القسم</b> يضع حدًا حول العنوان وحقوله.</li><li><b>لون خلفية القسم</b> يلوّن القسم: أخضر مزرق، برتقالي، رمادي، أخضر، أصفر أو رملي.</li><li>أضف <b>خط فاصل</b> لخط بين مجموعات الحقول.</li></ul>
+    <figure><img src="img/24-sections-layout.jpg" alt="التخطيط بالعناوين والإطارات والألوان" loading="lazy"><figcaption><b>شكل ٢٤.</b> التخطيط: قسم مقدّم الطلب بإطار وخلفية، وقسم المشتريات بإطار، وإعدادات العنوان أسفلها.</figcaption></figure>
+    <figure><img src="img/25-sections-form.jpg" alt="المستند بأقسام مؤطرة" loading="lazy"><figcaption><b>شكل ٢٥.</b> المستند نفسه في تقديم طلب.</figcaption></figure>
+    <p class="prose">المستندات التي لا تحتوي عناوين منسّقة تظهر كما كانت تمامًا.</p>
+  </section>
+
+  <section class="sec" id="ar-13">
+    <div class="sec-h"><span class="n">١٣</span><h2>مراقبة الإجراءات</h2></div>
+    <p class="prose">مساحة العمل ← <b>مراقبة الإجراءات</b>، أو الرابط في بطاقة مسارات العمل الجارية في الصفحة الرئيسية لمحرك سير العمل. تتطلب <code>WFE.DEFINITION.VIEW</code>.</p>
+    <h3>الطلبات</h3>
+    <p class="prose">كل الطلبات، مع تصفية الجارية / المنتهية / الكل وسير العمل والبحث: الخطوة الحالية، ومن لديه المهمة، ومدة الانتظار، وهل تأخرت.</p>
+    <figure><img src="img/26-monitor-requests.jpg" alt="قائمة مراقبة الإجراءات" loading="lazy"><figcaption><b>شكل ٢٦.</b> الطلبات مع الخطوة الحالية ومدة الانتظار وعلامة التأخير.</figcaption></figure>
+    <p class="prose">اضغط على الطلب لفتحه على مخططه:</p>
+    <ul class="b"><li>الخطوات ملوّنة: <b>منجزة</b> أخضر مزرق، <b>هنا الآن</b> برتقالي، <b>مرفوضة</b> أحمر، <b>لم يتم الوصول</b> رمادي؛ والمسار المسلوك بالأخضر المزرق.</li><li>على كل خطوة شارة بالمدة التي استغرقتها (أو انتظرتها حتى الآن).</li><li>أسفل المخطط: كل خطوة ومتى وصلت وانتهت ومن أنجزها والنتيجة؛ وبيانات الطلب؛ والسجل الكامل، بما فيه القاعدة التي اختارت المسار وكل رد في الموافقة المتوازية.</li></ul>
+    <figure><img src="img/27-monitor-view.jpg" alt="طلب منتهٍ على مخططه" loading="lazy"><figcaption><b>شكل ٢٧.</b> طلب شراء منتهٍ: المسار عبر لجنة الائتمان مع المدة على كل خطوة.</figcaption></figure>
+    <h3>الوقت لكل خطوة</h3>
+    <p class="prose">لفترة (آخر ٩٠ يومًا افتراضيًا) ولسير عمل: لكل خطوة عدد ما انتهى، ومتوسط الوقت والوسيط والأطول، وعدد المنتظر والمتأخر الآن، وعدد ما انتهى متأخرًا. <b>الوقت لكل شخص</b> يعرض المثل لكل معتمد.</p>
+    <figure><img src="img/28-monitor-times.jpg" alt="الوقت لكل خطوة ولكل شخص" loading="lazy"><figcaption><b>شكل ٢٨.</b> الوقت لكل خطوة ولكل شخص.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-14">
+    <div class="sec-h"><span class="n">١٤</span><h2>الرسائل وما تفعله</h2></div>
     <div class="tbl"><table>
       <tr><th>الرسالة</th><th>ما تفعله</th></tr>
       <tr><td>This task is not assigned to you.</td><td>استلمها شخص آخر أو ليست لدورك. حدّث صندوق المهام.</td></tr>
@@ -797,8 +922,8 @@ figcaption b{color:var(--teal-ink)}
     </table></div>
   </section>
 
-  <section class="sec" id="ar-11">
-    <div class="sec-h"><span class="n">١١</span><h2>الصلاحيات والحالات والمصطلحات</h2></div>
+  <section class="sec" id="ar-15">
+    <div class="sec-h"><span class="n">١٥</span><h2>الصلاحيات والحالات والمصطلحات</h2></div>
     <h3>الصلاحيات <span style="font-weight:400;color:var(--muted);font-size:14px">الإدارة ← الأدوار</span></h3>
     <div class="tbl"><table>
       <tr><th>الصلاحية</th><th>تسمح بـ</th></tr>
