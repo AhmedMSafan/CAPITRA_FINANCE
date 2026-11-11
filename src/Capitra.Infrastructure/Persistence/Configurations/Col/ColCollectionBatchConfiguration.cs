@@ -1,14 +1,14 @@
-using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Col;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Capitra.Infrastructure.Persistence.Configurations.Fct;
+namespace Capitra.Infrastructure.Persistence.Configurations.Col;
 
-public sealed class FctCollectionBatchConfiguration : IEntityTypeConfiguration<FctCollectionBatch>
+public sealed class ColCollectionBatchConfiguration : IEntityTypeConfiguration<ColCollectionBatch>
 {
-    public void Configure(EntityTypeBuilder<FctCollectionBatch> builder)
+    public void Configure(EntityTypeBuilder<ColCollectionBatch> builder)
     {
-        builder.ToTable("FCT_COLLECTION_BATCHES");
+        builder.ToTable("COL_COLLECTION_BATCHES");
         builder.HasKey(x => x.CollectionBatchId);
         builder.HasIndex(x => x.BatchNo).IsUnique();
         builder.HasIndex(x => x.GlTranSetId);
@@ -25,11 +25,11 @@ public sealed class FctCollectionBatchConfiguration : IEntityTypeConfiguration<F
     }
 }
 
-public sealed class FctCollectionBatchLineConfiguration : IEntityTypeConfiguration<FctCollectionBatchLine>
+public sealed class ColCollectionBatchLineConfiguration : IEntityTypeConfiguration<ColCollectionBatchLine>
 {
-    public void Configure(EntityTypeBuilder<FctCollectionBatchLine> builder)
+    public void Configure(EntityTypeBuilder<ColCollectionBatchLine> builder)
     {
-        builder.ToTable("FCT_COLLECTION_BATCH_LINES");
+        builder.ToTable("COL_COLLECTION_BATCH_LINES");
         builder.HasKey(x => x.CollectionBatchLineId);
         builder.HasIndex(x => new { x.CollectionBatchId, x.LineNo }).IsUnique();
         builder.HasIndex(x => x.ChequeId);
@@ -46,8 +46,8 @@ public sealed class FctCollectionBatchLineConfiguration : IEntityTypeConfigurati
         builder.Property(x => x.ReasonCode).HasMaxLength(50);
         builder.Property(x => x.Notes).HasMaxLength(2000);
 
-        builder.HasOne<FctCollectionBatch>().WithMany().HasForeignKey(x => x.CollectionBatchId).OnDelete(DeleteBehavior.Cascade);
-        builder.HasOne<FctRepaymentTransaction>().WithMany().HasForeignKey(x => x.RepaymentTxnId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ColCollectionBatch>().WithMany().HasForeignKey(x => x.CollectionBatchId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<ColRepaymentTransaction>().WithMany().HasForeignKey(x => x.RepaymentTxnId).OnDelete(DeleteBehavior.Restrict);
 
         builder.ConfigureAudit();
     }

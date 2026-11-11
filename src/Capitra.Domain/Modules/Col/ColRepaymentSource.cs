@@ -1,11 +1,11 @@
 using Capitra.Domain.Common;
 
-namespace Capitra.Domain.Modules.Fct;
+namespace Capitra.Domain.Modules.Col;
 
 /// <summary>
-/// FCT_REPAYMENT_SOURCES: copy of FINOVA FNV_REPAYMENT_SOURCES (APEX), all columns kept.
+/// COL_REPAYMENT_SOURCES: copy of FINOVA FNV_REPAYMENT_SOURCES (APEX), all columns kept.
 /// </summary>
-public class FctRepaymentSource : AuditableEntity
+public class ColRepaymentSource : AuditableEntity
 {
     public long RepaymentSourceId { get; set; }
 

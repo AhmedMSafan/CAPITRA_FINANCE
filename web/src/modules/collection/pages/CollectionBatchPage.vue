@@ -1,5 +1,5 @@
 <template>
-  <!-- View Collection Batch: the batch header with its GL Tran Set ID and the cheques it applied (FCT_COLLECTION_BATCH_LINES),
+  <!-- View Collection Batch: the batch header with its GL Tran Set ID and the cheques it applied (COL_COLLECTION_BATCH_LINES),
        as View Batch does for the cheque wallet. -->
   <div class="fx fc">
     <div class="fx-head">

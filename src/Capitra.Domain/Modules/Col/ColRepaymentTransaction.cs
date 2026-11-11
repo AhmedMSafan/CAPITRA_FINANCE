@@ -1,13 +1,18 @@
 using Capitra.Domain.Common;
 
-namespace Capitra.Domain.Modules.Fct;
+namespace Capitra.Domain.Modules.Col;
 
 /// <summary>
-/// FCT_REPAYMENT_TRANSACTIONS: copy of FINOVA FNV_REPAYMENT_TRANSACTIONS (APEX), all columns kept.
+/// COL_REPAYMENT_TRANSACTIONS: copy of FINOVA FNV_REPAYMENT_TRANSACTIONS (APEX), all columns kept. The Collection module is shared by
+/// every business line (Ahmed, 11 Nov 2026): BUSINESS_LINE_CODE says whose receipt it is, and each business line keeps its own
+/// allocations (factoring: FCT_REPAYMENT_ALLOCATIONS).
 /// </summary>
-public class FctRepaymentTransaction : AuditableEntity
+public class ColRepaymentTransaction : AuditableEntity
 {
     public long RepaymentTxnId { get; set; }
+
+    /// <summary>The business line the receipt belongs to (ADM_LKP_BUSINESS_LINES): FACTORING today, then the lending lines.</summary>
+    public string BusinessLineCode { get; set; } = BusinessLines.Factoring;
 
     public string RepaymentNumber { get; set; } = string.Empty;
 

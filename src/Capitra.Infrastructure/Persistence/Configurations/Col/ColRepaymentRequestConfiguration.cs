@@ -1,14 +1,14 @@
-using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Col;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Capitra.Infrastructure.Persistence.Configurations.Fct;
+namespace Capitra.Infrastructure.Persistence.Configurations.Col;
 
-public sealed class FctRepaymentRequestConfiguration : IEntityTypeConfiguration<FctRepaymentRequest>
+public sealed class ColRepaymentRequestConfiguration : IEntityTypeConfiguration<ColRepaymentRequest>
 {
-    public void Configure(EntityTypeBuilder<FctRepaymentRequest> builder)
+    public void Configure(EntityTypeBuilder<ColRepaymentRequest> builder)
     {
-        builder.ToTable("FCT_REPAYMENT_REQUESTS");
+        builder.ToTable("COL_REPAYMENT_REQUESTS");
         builder.HasKey(x => x.RepaymentRequestId);
 
         builder.Property(x => x.RepaymentRequestId).UseIdentityByDefaultColumn();

@@ -1240,8 +1240,8 @@
   "pk": "ALLOCATION_ID"
  },
  "FNV_REPAYMENT_REQUESTS": {
-  "table": "FCT_REPAYMENT_REQUESTS",
-  "class": "FctRepaymentRequest",
+  "table": "COL_REPAYMENT_REQUESTS",
+  "class": "ColRepaymentRequest",
   "columns": {
    "REPAYMENT_REQUEST_ID": {
     "column": "REPAYMENT_REQUEST_ID",
@@ -1287,8 +1287,8 @@
   "pk": "REPAYMENT_REQUEST_ID"
  },
  "FNV_REPAYMENT_SOURCES": {
-  "table": "FCT_REPAYMENT_SOURCES",
-  "class": "FctRepaymentSource",
+  "table": "COL_REPAYMENT_SOURCES",
+  "class": "ColRepaymentSource",
   "columns": {
    "REPAYMENT_SOURCE_ID": {
     "column": "REPAYMENT_SOURCE_ID",
@@ -1350,8 +1350,8 @@
   "pk": "REPAYMENT_SOURCE_ID"
  },
  "FNV_REPAYMENT_TRANSACTIONS": {
-  "table": "FCT_REPAYMENT_TRANSACTIONS",
-  "class": "FctRepaymentTransaction",
+  "table": "COL_REPAYMENT_TRANSACTIONS",
+  "class": "ColRepaymentTransaction",
   "columns": {
    "REPAYMENT_TXN_ID": {
     "column": "REPAYMENT_TXN_ID",

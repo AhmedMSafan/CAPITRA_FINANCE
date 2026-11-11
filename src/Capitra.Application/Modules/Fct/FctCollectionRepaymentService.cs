@@ -5,6 +5,7 @@ using Capitra.Application.Modules.Adm.Products;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Gl;
 using Capitra.Domain.Modules.Chq;
+using Capitra.Domain.Modules.Col;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
 using Capitra.Domain.Modules.Gl;
@@ -99,7 +100,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
     // ---- page 5 ----
 
     public async Task<IReadOnlyList<FctRepaymentListDto>> ListAsync(CancellationToken cancellationToken) =>
-        await (from r in db.Set<FctRepaymentTransaction>().AsNoTracking()
+        await (from r in db.Set<ColRepaymentTransaction>().AsNoTracking()
                join c in db.Set<CrmClient>().AsNoTracking() on r.ClientId equals c.ClientId into cs
                from c in cs.DefaultIfEmpty()
                join cur in db.Set<CrmLkpCurrency>().AsNoTracking() on r.CurrencyId equals cur.CurrencyId into curs
@@ -114,11 +115,11 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
 
     public async Task<FctRepaymentFormDto> GetAsync(long repaymentTxnId, CancellationToken cancellationToken)
     {
-        var r = await db.Set<FctRepaymentTransaction>().AsNoTracking().FirstOrDefaultAsync(x => x.RepaymentTxnId == repaymentTxnId, cancellationToken)
+        var r = await db.Set<ColRepaymentTransaction>().AsNoTracking().FirstOrDefaultAsync(x => x.RepaymentTxnId == repaymentTxnId, cancellationToken)
             ?? throw new NotFoundException($"Repayment transaction {repaymentTxnId} was not found.");
         var clientName = await db.Set<CrmClient>().AsNoTracking().Where(x => x.ClientId == r.ClientId).Select(x => x.ClientName)
             .FirstOrDefaultAsync(cancellationToken);
-        var sources = await db.Set<FctRepaymentSource>().AsNoTracking().Where(x => x.RepaymentTxnId == repaymentTxnId)
+        var sources = await db.Set<ColRepaymentSource>().AsNoTracking().Where(x => x.RepaymentTxnId == repaymentTxnId)
             .OrderBy(x => x.RepaymentSourceId)
             .Select(x => new FctRepaymentSourceDto(x.RepaymentSourceId, x.SourceType, x.ChequeId, x.SourceAmount, x.AllocatedAmount, x.StatusCode))
             .ToListAsync(cancellationToken);
@@ -134,7 +135,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
     /// <summary>Page 6 Update (form DML); the button and the fields are off once the transaction is ALLOCATED.</summary>
     public async Task<FctRepaymentFormDto> UpdateAsync(long repaymentTxnId, FctRepaymentUpdateDto dto, CancellationToken cancellationToken)
     {
-        var r = await db.Set<FctRepaymentTransaction>().FirstOrDefaultAsync(x => x.RepaymentTxnId == repaymentTxnId, cancellationToken)
+        var r = await db.Set<ColRepaymentTransaction>().FirstOrDefaultAsync(x => x.RepaymentTxnId == repaymentTxnId, cancellationToken)
             ?? throw new NotFoundException($"Repayment transaction {repaymentTxnId} was not found.");
         if (r.StatusCode == "ALLOCATED")
             throw new BusinessRuleException("An allocated repayment transaction cannot be changed.");
@@ -230,12 +231,12 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
 
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
         var today = GlTime.Today(clock);
-        var batch = new FctCollectionBatch { BatchNo = "PENDING-" + Guid.NewGuid().ToString("N")[..20].ToUpperInvariant(), BatchDate = today };
+        var batch = new ColCollectionBatch { BatchNo = "PENDING-" + Guid.NewGuid().ToString("N")[..20].ToUpperInvariant(), BatchDate = today };
         db.Add(batch);
         await db.SaveChangesAsync(cancellationToken);
         batch.BatchNo = $"COL-{today:yyyyMMdd}-{batch.CollectionBatchId:D6}";
 
-        var lines = new List<FctCollectionBatchLine>();
+        var lines = new List<ColCollectionBatchLine>();
         var customers = new SortedDictionary<string, (int Count, decimal Amount)>(StringComparer.Ordinal);
         for (var i = 0; i < rows.Count; i++)
         {
@@ -248,7 +249,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
             await UpdateChequeStatusAsync(row.ChequeId.Value, status, statusDate, row.BankStatementReference, Trim(row.ReasonCode),
                 Trim(row.Notes), cancellationToken);
             var c = await db.Set<ChqCheque>().AsNoTracking().FirstAsync(x => x.ChequeId == row.ChequeId.Value, cancellationToken);
-            var line = new FctCollectionBatchLine
+            var line = new ColCollectionBatchLine
             {
                 CollectionBatchId = batch.CollectionBatchId,
                 LineNo = i + 1,
@@ -282,12 +283,12 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        var repayments = new List<FctRepaymentTransaction>();
+        var repayments = new List<ColRepaymentTransaction>();
         foreach (var (key, sum) in customers)
         {
             var clientId = long.Parse(key, CultureInfo.InvariantCulture);
             var txn = await SaveRepaymentAsync(clientId, "CHEQUE", today, today, 0, null, null, null, cancellationToken);
-            var request = new FctRepaymentRequest
+            var request = new ColRepaymentRequest
             {
                 ClientId = clientId,
                 ChequesCount = sum.Count,
@@ -344,7 +345,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
     /// A GL refusal rolls back the whole Apply Bank Results.
     /// </summary>
     private async Task<string> PostCollectionGlAsync(
-        FctCollectionBatch batch, List<FctCollectionBatchLine> collected, int repayments, DateOnly today, CancellationToken cancellationToken)
+        ColCollectionBatch batch, List<ColCollectionBatchLine> collected, int repayments, DateOnly today, CancellationToken cancellationToken)
     {
         if (collected.FirstOrDefault(x => x.DepositBankAccountId is null) is { } none)
             throw new BusinessRuleException($"Cheque {none.ChequeRef} has no deposit bank account, so its collection cannot be posted to GL.");
@@ -387,19 +388,19 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
     // ---- collection batches ----
 
     public async Task<IReadOnlyList<FctCollectionBatchDto>> BatchesAsync(CancellationToken cancellationToken) =>
-        await db.Set<FctCollectionBatch>().AsNoTracking().OrderByDescending(x => x.CollectionBatchId)
+        await db.Set<ColCollectionBatch>().AsNoTracking().OrderByDescending(x => x.CollectionBatchId)
             .Select(x => new FctCollectionBatchDto(x.CollectionBatchId, x.BatchNo, x.BatchDate, x.CollectedCount, x.CollectedAmount, x.BouncedCount,
                 x.BouncedAmount, x.RejectedCount, x.RejectedAmount, x.RepaymentsCount, x.GlTranSetId, x.CreatedBy, x.CreatedAt))
             .ToListAsync(cancellationToken);
 
     public async Task<FctCollectionBatchViewDto> BatchAsync(long collectionBatchId, CancellationToken cancellationToken)
     {
-        var b = await db.Set<FctCollectionBatch>().AsNoTracking().Where(x => x.CollectionBatchId == collectionBatchId)
+        var b = await db.Set<ColCollectionBatch>().AsNoTracking().Where(x => x.CollectionBatchId == collectionBatchId)
             .Select(x => new FctCollectionBatchDto(x.CollectionBatchId, x.BatchNo, x.BatchDate, x.CollectedCount, x.CollectedAmount, x.BouncedCount,
                 x.BouncedAmount, x.RejectedCount, x.RejectedAmount, x.RepaymentsCount, x.GlTranSetId, x.CreatedBy, x.CreatedAt))
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException($"Collection batch {collectionBatchId} was not found.");
-        var lines = await (from l in db.Set<FctCollectionBatchLine>().AsNoTracking()
+        var lines = await (from l in db.Set<ColCollectionBatchLine>().AsNoTracking()
                            where l.CollectionBatchId == collectionBatchId
                            join c in db.Set<CrmClient>().AsNoTracking() on l.CustomerId equals c.ClientId.ToString() into cs
                            from c in cs.DefaultIfEmpty()
@@ -407,7 +408,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
                            from a in accs.DefaultIfEmpty()
                            join k in db.Set<TrsBank>().AsNoTracking() on a.BankId equals k.BankId into ks
                            from k in ks.DefaultIfEmpty()
-                           join r in db.Set<FctRepaymentTransaction>().AsNoTracking() on l.RepaymentTxnId equals (long?)r.RepaymentTxnId into rs
+                           join r in db.Set<ColRepaymentTransaction>().AsNoTracking() on l.RepaymentTxnId equals (long?)r.RepaymentTxnId into rs
                            from r in rs.DefaultIfEmpty()
                            orderby l.LineNo
                            select new FctCollectionBatchLineDto(l.LineNo, l.ChequeId, l.ChequeRef, l.ChequeNo, l.DueDate, l.CustomerId,
@@ -421,7 +422,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
     // ---- FNV_COLLECTION_REPAYMENT_PKG ----
 
     /// <summary>save_repayment: a new DRAFT transaction numbered RPT-yyyyMM-id; a bank transfer also gets its source and request.</summary>
-    private async Task<FctRepaymentTransaction> SaveRepaymentAsync(
+    private async Task<ColRepaymentTransaction> SaveRepaymentAsync(
         long clientId, string method, DateOnly transactionDate, DateOnly valueDate, decimal receiptAmount, string? bankStatementReference,
         string? externalReference, string? notes, CancellationToken cancellationToken)
     {
@@ -430,8 +431,9 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
 
         var currencyId = await db.Set<CrmLkpCurrency>().AsNoTracking().Where(x => x.CurrencyCode == CurrencyCode)
             .Select(x => (long?)x.CurrencyId).FirstOrDefaultAsync(cancellationToken);
-        var txn = new FctRepaymentTransaction
+        var txn = new ColRepaymentTransaction
         {
+            BusinessLineCode = BusinessLines.Factoring,
             RepaymentNumber = "PENDING-" + Guid.NewGuid().ToString("N").ToUpperInvariant(),
             ClientId = clientId,
             LegalEntityId = LegalEntityId,
@@ -454,7 +456,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
 
         if (method != "BANK_TRANSFER") return txn;
 
-        db.Add(new FctRepaymentSource
+        db.Add(new ColRepaymentSource
         {
             RepaymentTxnId = txn.RepaymentTxnId,
             SourceType = "BANK_TRANSFER",
@@ -462,7 +464,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
             SourceAmount = receiptAmount,
             AllocatedAmount = 0,
         });
-        var request = new FctRepaymentRequest
+        var request = new ColRepaymentRequest
         {
             ClientId = clientId,
             ChequesCount = 0,
@@ -523,7 +525,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
     }
 
     /// <summary>create_cheque_payment_sources: one collected cheque becomes a source of a CHEQUE transaction.</summary>
-    private async Task CreateChequePaymentSourceAsync(FctRepaymentTransaction txn, long chequeId, CancellationToken cancellationToken)
+    private async Task CreateChequePaymentSourceAsync(ColRepaymentTransaction txn, long chequeId, CancellationToken cancellationToken)
     {
         if (txn.RepaymentMethod != "CHEQUE") throw new BusinessRuleException("Cheque sources require repayment method CHEQUE.");
         if (await db.Set<FctRepaymentAllocation>().AnyAsync(x => x.RepaymentTxnId == txn.RepaymentTxnId && x.StatusCode == "ACTIVE", cancellationToken))
@@ -548,7 +550,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
         if (await ActiveSourceExistsAsync(chequeId, txn.RepaymentTxnId, cancellationToken))
             throw new BusinessRuleException($"Cheque {cheque.ChequeRef} is already linked to another repayment.");
 
-        db.Add(new FctRepaymentSource
+        db.Add(new ColRepaymentSource
         {
             RepaymentTxnId = txn.RepaymentTxnId,
             SourceType = "CHEQUE",
@@ -559,7 +561,7 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
         });
         await db.SaveChangesAsync(cancellationToken);
 
-        txn.ReceiptAmount = await db.Set<FctRepaymentSource>()
+        txn.ReceiptAmount = await db.Set<ColRepaymentSource>()
             .Where(x => x.RepaymentTxnId == txn.RepaymentTxnId && x.SourceType == "CHEQUE" && x.StatusCode == "ACTIVE")
             .SumAsync(x => x.SourceAmount, cancellationToken);
         txn.CurrencyId ??= disbursement?.CurrencyId;
@@ -569,8 +571,8 @@ public sealed class FctCollectionRepaymentService(ICapitraDbContext db, ICurrent
 
     /// <summary>An ACTIVE source on a transaction that is not REVERSED or CANCELLED already uses the cheque.</summary>
     private Task<bool> ActiveSourceExistsAsync(long chequeId, long? exceptTxnId, CancellationToken cancellationToken) =>
-        (from s in db.Set<FctRepaymentSource>()
-         join t in db.Set<FctRepaymentTransaction>() on s.RepaymentTxnId equals t.RepaymentTxnId
+        (from s in db.Set<ColRepaymentSource>()
+         join t in db.Set<ColRepaymentTransaction>() on s.RepaymentTxnId equals t.RepaymentTxnId
          where s.ChequeId == chequeId && s.StatusCode == "ACTIVE" && t.StatusCode != "REVERSED" && t.StatusCode != "CANCELLED"
                && (exceptTxnId == null || t.RepaymentTxnId != exceptTxnId)
          select s).AnyAsync(cancellationToken);

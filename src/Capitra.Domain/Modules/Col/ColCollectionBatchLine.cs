@@ -1,9 +1,9 @@
 using Capitra.Domain.Common;
 
-namespace Capitra.Domain.Modules.Fct;
+namespace Capitra.Domain.Modules.Col;
 
-/// <summary>FCT_COLLECTION_BATCH_LINES: one cheque of a collection batch, the bank's result on it and the repayment it made.</summary>
-public class FctCollectionBatchLine : AuditableEntity
+/// <summary>COL_COLLECTION_BATCH_LINES: one cheque of a collection batch, the bank's result on it and the repayment it made.</summary>
+public class ColCollectionBatchLine : AuditableEntity
 {
     public long CollectionBatchLineId { get; set; }
 
