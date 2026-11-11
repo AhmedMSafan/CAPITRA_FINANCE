@@ -22,6 +22,9 @@ public static class Permissions
         /// <summary>Create, change and delete products, charges and product event rules.</summary>
         public const string ProductEdit = "ADM.PRODUCT.EDIT";
 
+        /// <summary>Approve or reject the lending terms of a product version (four eyes: never one's own version).</summary>
+        public const string ProductApprove = "ADM.PRODUCT.APPROVE";
+
         /// <summary>Read the module settings (Administration > Module Settings).</summary>
         public const string SettingsView = "ADM.SETTINGS.VIEW";
 
