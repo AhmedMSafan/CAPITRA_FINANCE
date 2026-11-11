@@ -107,8 +107,11 @@
             <span class="wh-ico" v-html="svg(DIAGRAM, 21)"></span>
             <div><h3>{{ tr('Running workflows') }}</h3><p>{{ tr('Defined steps in sequence, coloured by progress, with the current step highlighted.') }}</p></div>
           </div>
-          <div v-if="runs.length" class="wh-dsel">
-            <select v-model="instId" aria-label="Running workflow instance">
+          <div class="wh-dsel">
+            <RouterLink class="wh-monlink" :to="{ name: 'workflow-monitor', query: inst ? { id: String(inst.instanceId) } : {} }">
+              <span class="pi pi-chart-bar" aria-hidden="true"></span>{{ tr('Process monitor') }}
+            </RouterLink>
+            <select v-if="runs.length" v-model="instId" aria-label="Running workflow instance">
               <optgroup v-for="g in runGroups" :key="g.id" :label="`${g.name} #${g.id} v${g.version}`">
                 <option v-for="r in g.items" :key="r.instanceId" :value="r.instanceId">{{ (r.businessReference || '#' + r.instanceId) + ' - ' + currentName(r) }}</option>
               </optgroup>
@@ -338,4 +341,7 @@ onMounted(async () => {
 <style scoped>
 /* a smaller greeting than the other homes: it carries the full name */
 .wh-hero h1 { font-size: clamp(20px, 1.9vw, 26px); }
+.wh-dsel { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.wh-monlink { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px; border-radius: 10px; background: #00636D; color: #fff; font-weight: 700; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.wh-monlink:hover { background: #004f57; }
 </style>

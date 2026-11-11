@@ -346,6 +346,12 @@ const router = createRouter({
           meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Document Designer' }
         },
         {
+          path: 'workflowengine/monitor',
+          name: 'workflow-monitor',
+          component: () => import('@/modules/wfe/pages/WorkflowMonitorPage.vue'),
+          meta: { moduleName: 'WORKFLOW ENGINE', functionName: 'Process monitor' }
+        },
+        {
           path: 'workflowengine/data-sources',
           name: 'workflow-data-sources',
           component: () => import('@/modules/wfe/pages/WorkflowDataSourcesPage.vue'),
