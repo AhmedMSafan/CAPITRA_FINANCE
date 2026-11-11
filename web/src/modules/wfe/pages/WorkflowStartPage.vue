@@ -166,7 +166,10 @@ async function start() {
     await loadMine()
   } catch (e) {
     errors.value = apiFieldErrors(e)
-    message.value = { bad: true, text: apiErrorText(e) }
+    // when every problem is shown under its own field, the fields say it all: no banner on top
+    const shown = new Set((view.value?.controls ?? []).map((c) => (c.field ?? '').toLowerCase()).filter((f) => f))
+    const keys = Object.keys(errors.value)
+    message.value = keys.length && keys.every((k) => shown.has(k.toLowerCase())) ? null : { bad: true, text: apiErrorText(e) }
   } finally {
     busy.value = false
   }

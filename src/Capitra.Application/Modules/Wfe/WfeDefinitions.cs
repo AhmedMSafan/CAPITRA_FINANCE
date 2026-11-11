@@ -111,10 +111,19 @@ public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUse
                 {
                     ["documentCode"] = ["A user-defined workflow needs its document. Choose it in Workflow Properties, or save it as a draft."],
                 });
-            if (!await db.Set<WfeForm>().AnyAsync(x => x.FormCode == process.DocumentCode && x.IsActive, cancellationToken))
+            var doc = await db.Set<WfeForm>().AsNoTracking().FirstOrDefaultAsync(x => x.FormCode == process.DocumentCode && x.IsActive
+                && (x.WorkflowDefinitionId == null || x.WorkflowDefinitionId == (id ?? 0)), cancellationToken);
+            if (doc is null)
                 throw new BusinessValidationException(new Dictionary<string, string[]>
                 {
                     ["documentCode"] = [$"Document {process.DocumentCode} does not exist or is switched off."],
+                });
+            // every required data field must be one the document fills in, or nobody can start the workflow
+            var missing = WfeForms.MissingOnDocument(request.BpmnXml!, doc.FieldsJson);
+            if (missing.Count > 0)
+                throw new BusinessValidationException(new Dictionary<string, string[]>
+                {
+                    ["dataFields"] = [WfeForms.MissingText(doc.FormCode, missing)],
                 });
         }
 

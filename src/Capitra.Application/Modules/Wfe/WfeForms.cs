@@ -164,6 +164,28 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         return fields;
     }
 
+    /// <summary>
+    /// The workflow's required data fields that its start document cannot fill: no field of that name on the document, no default
+    /// and no automatic value. A user-defined workflow with any of these can never be started.
+    /// </summary>
+    public static List<WfeDataField> MissingOnDocument(string xml, string? documentFieldsJson)
+    {
+        // a form without its own fields shows the workflow's fields, so it can fill every one of them
+        if (documentFieldsJson is null)
+            return [];
+        var doc = WfeDataFields.Parse(documentFieldsJson);
+        return WfeDataFields.Of(xml)
+            .Where(f => f.Required && f.DefaultValue is null && string.IsNullOrWhiteSpace(f.Auto)
+                && !doc.Any(d => string.Equals(d.Name, f.Name, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+    }
+
+    /// <summary>The sentence that explains <see cref="MissingOnDocument"/> to the workflow's designer.</summary>
+    public static string MissingText(string documentCode, IReadOnlyList<WfeDataField> missing) =>
+        $"The workflow's data fields {string.Join(", ", missing.Select(f => $"\"{f.Caption}\""))} are required, but document {documentCode} " +
+        "has no such fields, so nobody can fill them in. In the workflow designer, open Data fields and remove them or untick Required, " +
+        "or add them to the document.";
+
     /// <summary>The document codes a diagram links: the workflow's document and every step's.</summary>
     private static List<string> LinkedCodes(string xml)
     {
@@ -517,6 +539,8 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
                 reason = $"Its document {code} belongs to another workflow.";
             else if (!released)
                 reason = "It is still a draft. Open it in the designer and press Release.";
+            else if (MissingOnDocument(d.BpmnXml, same.First(f => f.IsActive && (f.WorkflowDefinitionId == null || f.WorkflowDefinitionId == d.WorkflowDefinitionId)).FieldsJson) is { Count: > 0 } missing)
+                reason = MissingText(code, missing);
             if (reason is not null)
                 list.Add(new WfeStartIssueDto(d.WorkflowDefinitionId, d.WorkflowCode, d.WorkflowName, reason));
         }
@@ -559,6 +583,10 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     public async Task<WfeFormViewDto> StartFormAsync(string workflowCode, CancellationToken ct)
     {
         var (def, form) = await StartFormOfAsync(workflowCode, ct);
+        // a required workflow field the document does not have can never be filled in: say so instead of asking the user for it
+        var missing = MissingOnDocument(def.BpmnXml, form.FieldsJson);
+        if (missing.Count > 0)
+            throw new BusinessRuleException($"{def.WorkflowName} cannot be started yet. " + MissingText(form.FormCode, missing));
         var fields = FieldsOf(form, def.BpmnXml);
         var defaults = fields.Where(f => f.DefaultValue is not null).ToDictionary(f => f.Name, f => f.DefaultValue, StringComparer.OrdinalIgnoreCase);
         foreach (var (name, value) in await AutoValuesAsync(fields, null, ct))
@@ -570,6 +598,9 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
     public async Task<WfeStartedDto> StartAsync(string workflowCode, WfeStartFromFormRequest r, CancellationToken ct)
     {
         var (def, form) = await StartFormOfAsync(workflowCode, ct);
+        var missing = MissingOnDocument(def.BpmnXml, form.FieldsJson);
+        if (missing.Count > 0)
+            throw new BusinessRuleException($"{def.WorkflowName} cannot be started yet. " + MissingText(form.FormCode, missing));
         var fields = FieldsOf(form, def.BpmnXml);
         var values = await AcceptAsync(form, fields, r.Values, ct);
         // the automatic values come from the server, never from what the browser sent

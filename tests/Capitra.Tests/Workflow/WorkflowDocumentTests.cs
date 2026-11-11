@@ -153,6 +153,29 @@ public sealed class WorkflowDocumentTests
     }
 
     [Fact]
+    public async Task A_required_workflow_field_the_document_lacks_blocks_release_and_is_explained_at_start()
+    {
+        // the workflow requires "amount", which the leave document does not have: nobody could ever fill it in
+        var vars = "[{&quot;name&quot;:&quot;amount&quot;,&quot;label&quot;:&quot;Amount&quot;,&quot;type&quot;:&quot;Number&quot;,&quot;required&quot;:true}]";
+        var xml = Xml("USER", "LEAVE_REQUEST").Replace("<bpmn:process id=\"P\"", $"<bpmn:process id=\"P\" finova:variables=\"{vars}\"");
+        var c = Setup(("LEAVE", xml));
+        await using var _db = c.Db;
+        await c.Forms.SaveAsync(null, Document("LEAVE_REQUEST", LeaveFields, Field("leaveType"), Field("fromDate"), Field("days"), Field("reason")), default);
+        Assert.Equal(["amount"], WfeForms.MissingOnDocument(xml, (await c.Db.Set<WfeForm>().FirstAsync()).FieldsJson).Select(f => f.Name));
+
+        var release = await Assert.ThrowsAsync<BusinessValidationException>(() =>
+            c.Definitions.SaveAsync(null, new("LEAVE2", "Leave 2", null, "released", xml, null, true, 0), default));
+        Assert.Contains("\"Amount\"", release.Errors["dataFields"][0]);
+
+        var start = await Assert.ThrowsAsync<BusinessRuleException>(() => c.Forms.StartAsync("LEAVE", new(null, new Dictionary<string, string?>
+        {
+            ["leaveType"] = "ANNUAL", ["fromDate"] = "2026-12-01", ["days"] = "3",
+        }), default));
+        Assert.Contains("cannot be started yet", start.Message);
+        Assert.Contains("no such fields", (await c.Forms.StartIssuesAsync(default)).Single().Reason);
+    }
+
+    [Fact]
     public async Task Automatic_fields_take_the_signed_in_user_and_today_and_cannot_be_typed()
     {
         var c = Setup(("LEAVE", Xml("USER", "LEAVE_REQUEST")));
