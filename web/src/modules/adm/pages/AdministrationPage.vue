@@ -67,7 +67,8 @@ const sections: SetupSection[] = [
     items: [
       { title: 'CRM Settings', description: 'Maker-checker, bank account waiting days, KYC warning and review cycles.', icon: 'pi pi-users', route: { path: '/admin/module-settings', query: { tab: 'CRM' } }, perm: 'ADM.SETTINGS.VIEW' },
       { title: 'Treasury Settings', description: 'Bank rule maker-checker, overrides, Suggest order and escrow accounts.', icon: 'pi pi-building-columns', route: { path: '/admin/module-settings', query: { tab: 'TRS' } }, perm: 'ADM.SETTINGS.VIEW' },
-      { title: 'Factoring Settings', description: 'Minimum advance rate and open offers per client.', icon: 'pi pi-file', route: { path: '/admin/module-settings', query: { tab: 'FCT' } }, perm: 'ADM.SETTINGS.VIEW' }
+      { title: 'Factoring Settings', description: 'Minimum advance rate and open offers per client.', icon: 'pi pi-file', route: { path: '/admin/module-settings', query: { tab: 'FCT' } }, perm: 'ADM.SETTINGS.VIEW' },
+      { title: 'Lending Parameters', description: 'Legal limits, provisions and policy values for microfinance and consumer finance, by effective date.', icon: 'pi pi-percentage', route: '/lnd/parameters', perm: 'LND.PARAMETERS.VIEW' }
     ]
   },
   {

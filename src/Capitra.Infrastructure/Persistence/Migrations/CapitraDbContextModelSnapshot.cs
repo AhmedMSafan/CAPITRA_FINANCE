@@ -26878,6 +26878,111 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("GL_YEAR_END_CLOSE_RUNS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndParameterValue", b =>
+                {
+                    b.Property<long>("ParameterValueId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PARAMETER_VALUE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ParameterValueId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DECIDED_AT");
+
+                    b.Property<string>("DecidedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("DECIDED_BY");
+
+                    b.Property<string>("DecisionNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DECISION_NOTES");
+
+                    b.Property<string>("DecisionReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("DECISION_REFERENCE");
+
+                    b.Property<DateOnly>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<string>("ParameterCode")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("PARAMETER_CODE");
+
+                    b.Property<string>("RequestReason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REQUEST_REASON");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REQUESTED_AT");
+
+                    b.Property<string>("RequestedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("REQUESTED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("ScopeCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("SCOPE_CODE");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("ValueText")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("VALUE_TEXT");
+
+                    b.HasKey("ParameterValueId")
+                        .HasName("PK_LND_PARAMETER_VALUES");
+
+                    b.HasIndex("ParameterCode", "ScopeCode", "StatusCode")
+                        .HasDatabaseName("IX_LND_PARAMETER_VALUES_PARAMETER_CODE_SCOPE_CODE_STATUS_CODE");
+
+                    b.ToTable("LND_PARAMETER_VALUES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
                 {
                     b.Property<long>("EntryId")
