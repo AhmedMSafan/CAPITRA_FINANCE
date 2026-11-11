@@ -357,7 +357,9 @@ figcaption b{color:var(--teal-ink)}
 
   <section class="sec" id="en-5">
     <div class="sec-h"><span class="n">5</span><h2>Data fields</h2></div>
-    <p class="prose">Data fields are the values each instance of a workflow carries: the amount, the client, the decision. Open them with <b>Data Fields</b> in the designer. Each field has a name (what screens and forms use, keep it once in use), a label, a type, whether it is required, a default and, for Choice, its choices.</p>
+    <p class="prose">Data fields are the values each instance of a workflow carries: the amount, the client, the decision. Where they come from depends on the workflow type:</p>
+    <ul class="b"><li><b>User-defined:</b> the fields are the document's (section 6), and only those. The workflow has no fields of its own; its <b>Fields</b> box in Workflow Properties lists the document's, and rules on paths read them. A field a released workflow's rule reads cannot be removed from the document.</li><li><b>System-built:</b> <b>Values from the module</b>, the values the module sends when it starts the workflow (client, amount, currency, reference). Nobody types them and they are never required. Pick them from the list of what the module sends; they show in Workflow data on each task and in the Process monitor, and rules on paths can read them.</li></ul>
+    <p class="prose">Each value has a name (what the module sends, keep it once in use), a label and a type.</p>
     <figure><img src="img/5-data-fields.jpg" alt="The data fields editor" loading="lazy"><figcaption><b>Figure 7.</b> The data fields of the Expense claim workflow. <b>Apply</b>, then <b>Save Workflow</b>.</figcaption></figure>
     <div class="tbl"><table>
       <tr><th>Type</th><th>Holds</th><th>Stored as</th></tr>
@@ -738,7 +740,9 @@ figcaption b{color:var(--teal-ink)}
 
   <section class="sec" id="ar-5">
     <div class="sec-h"><span class="n">٥</span><h2>حقول البيانات</h2></div>
-    <p class="prose">حقول البيانات هي القيم التي تحملها كل نسخة من سير العمل: المبلغ والعميل والقرار. افتحها من <b>حقول البيانات</b> في المصمم. لكل حقل اسم (تستخدمه الشاشات والنماذج، فلا تغيّره بعد الاستخدام)، وعنوان، ونوع، وهل هو إلزامي، وقيمة افتراضية، وخيارات لنوع الاختيار.</p>
+    <p class="prose">حقول البيانات هي القيم التي تحملها كل نسخة من سير العمل: المبلغ والعميل والقرار. مصدرها يتوقف على نوع سير العمل:</p>
+    <ul class="b"><li><b>معرّف من المستخدم:</b> الحقول هي حقول المستند (القسم ٦) فقط. ليس لسير العمل حقول خاصة به؛ مربع <b>Fields</b> في خصائص سير العمل يعرض حقول المستند، وقواعد المسارات تقرؤها. لا يمكن حذف حقل من المستند إذا كانت قاعدة في سير عمل معتمد تقرؤه.</li><li><b>مبني في النظام:</b> <b>Values from the module</b>، أي القيم التي ترسلها الوحدة عند بدء سير العمل (العميل والمبلغ والعملة والمرجع). لا يكتبها أحد وليست إلزامية أبدًا. اخترها من قائمة ما ترسله الوحدة؛ تظهر في بيانات سير العمل في كل مهمة وفي مراقبة الإجراءات، ويمكن لقواعد المسارات قراءتها.</li></ul>
+    <p class="prose">لكل قيمة اسم (ما ترسله الوحدة، فلا تغيّره بعد الاستخدام) وعنوان ونوع.</p>
     <figure><img src="img/5-data-fields.jpg" alt="محرر حقول البيانات" loading="lazy"><figcaption><b>شكل ٧.</b> حقول بيانات سير عمل مطالبة المصروفات. <b>تطبيق</b> ثم <b>حفظ سير العمل</b>.</figcaption></figure>
     <div class="tbl"><table>
       <tr><th>النوع</th><th>يحمل</th><th>يُخزَّن بصيغة</th></tr>

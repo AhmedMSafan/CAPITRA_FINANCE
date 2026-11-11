@@ -186,6 +186,31 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
         "has no such fields, so nobody can fill them in. In the workflow designer, open Data fields and remove them or untick Required, " +
         "or add them to the document.";
 
+    /// <summary>The rules of released workflows linking the document that read any of the given fields, as sentences for the designer.</summary>
+    private async Task<List<string>> RulesUsingAsync(string documentCode, IReadOnlyList<string> names, CancellationToken ct)
+    {
+        var defs = await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.IsActive && x.DefinitionStatus == "released").ToListAsync(ct);
+        var list = new List<string>();
+        foreach (var d in defs.Where(d => LinkedCodes(d.BpmnXml).Contains(documentCode, StringComparer.OrdinalIgnoreCase)))
+        {
+            IReadOnlyList<BpmnFlow> flows;
+            try
+            {
+                flows = BpmnModel.Flows(d.BpmnXml);
+            }
+            catch (Exception e) when (e is InvalidOperationException or System.Xml.XmlException)
+            {
+                continue;
+            }
+
+            foreach (var f in flows)
+                foreach (var r in f.Rules.Where(r => names.Contains(r.Field, StringComparer.OrdinalIgnoreCase)))
+                    list.Add($"\"{r.Field}\" is used by a rule in {d.WorkflowName} (path from {f.SourceName} to {f.TargetName}: {r.Text}). Change that rule first, then remove the field.");
+        }
+
+        return list.Distinct().ToList();
+    }
+
     /// <summary>The document codes a diagram links: the workflow's document and every step's.</summary>
     private static List<string> LinkedCodes(string xml)
     {
@@ -274,6 +299,14 @@ public sealed partial class WfeForms(ICapitraDbContext db, ICurrentUser currentU
                 throw new BusinessRuleException($"{row.FormCode} is used at {string.Join(", ", used)}, so its code cannot change.");
             if (!document && row.WorkflowDefinitionId != def!.WorkflowDefinitionId && await UsedAtAsync(row, ct) is { Count: > 0 } usedBy)
                 throw new BusinessRuleException($"{row.FormCode} is used at {string.Join(", ", usedBy)}, so its workflow cannot change.");
+            // a field that a released workflow's rule reads cannot be taken off the document, or that rule could never match
+            if (document && row.FieldsJson is not null)
+            {
+                var removed = WfeDataFields.Parse(row.FieldsJson).Select(f => f.Name)
+                    .Where(n => !fields.Any(f => string.Equals(f.Name, n, StringComparison.OrdinalIgnoreCase))).ToList();
+                if (removed.Count > 0 && await RulesUsingAsync(row.FormCode, removed, ct) is { Count: > 0 } rules)
+                    throw new BusinessValidationException(new Dictionary<string, string[]> { ["fields"] = [.. rules] });
+            }
         }
 
         row.FormCode = code;

@@ -176,6 +176,31 @@ public sealed class WorkflowDocumentTests
     }
 
     [Fact]
+    public async Task A_user_defined_workflow_rules_read_its_document_and_a_field_they_read_stays_on_the_document()
+    {
+        // a rule on "days" (a document field) is fine; one on "amount" (not on the document) is not
+        static string WithRule(string field) => Xml("USER", "LEAVE_REQUEST").Replace(
+            "<bpmn:sequenceFlow id=\"F2\" sourceRef=\"T\" targetRef=\"E\"/>",
+            $"<bpmn:sequenceFlow id=\"F2\" sourceRef=\"T\" targetRef=\"E\" finova:conditions=\"[{{&quot;field&quot;:&quot;{field}&quot;,&quot;op&quot;:&quot;&gt;&quot;,&quot;value&quot;:&quot;5&quot;}}]\"/><bpmn:sequenceFlow id=\"F3\" sourceRef=\"T\" targetRef=\"E\"/>");
+        var c = Setup();
+        await using var _db = c.Db;
+        var doc = await c.Forms.SaveAsync(null, Document("LEAVE_REQUEST", LeaveFields, Field("leaveType"), Field("fromDate"), Field("days"), Field("reason")), default);
+
+        var bad = await Assert.ThrowsAsync<BusinessValidationException>(() =>
+            c.Definitions.SaveAsync(null, new("LEAVE", "Leave", null, "released", WithRule("amount"), null, true, 0), default));
+        Assert.Contains("no data field 'amount'", bad.Errors["rules"][0]);
+        await c.Definitions.SaveAsync(null, new("LEAVE", "Leave", null, "released", WithRule("days"), null, true, 0), default);
+
+        // "days" cannot leave the document while the released workflow's rule reads it; "reason" can
+        var saved = await c.Db.Set<WfeForm>().AsNoTracking().FirstAsync(x => x.FormId == doc.FormId);
+        var noDays = await Assert.ThrowsAsync<BusinessValidationException>(() => c.Forms.SaveAsync(doc.FormId,
+            Document("LEAVE_REQUEST", [LeaveFields[0], LeaveFields[1], LeaveFields[3]], Field("leaveType"), Field("fromDate"), Field("reason")) with { RowVersion = saved.RowVersion }, default));
+        Assert.Contains("used by a rule in Leave", noDays.Errors["fields"][0]);
+        await c.Forms.SaveAsync(doc.FormId,
+            Document("LEAVE_REQUEST", [LeaveFields[0], LeaveFields[1], LeaveFields[2]], Field("leaveType"), Field("fromDate"), Field("days")) with { RowVersion = saved.RowVersion }, default);
+    }
+
+    [Fact]
     public async Task Automatic_fields_take_the_signed_in_user_and_today_and_cannot_be_typed()
     {
         var c = Setup(("LEAVE", Xml("USER", "LEAVE_REQUEST")));

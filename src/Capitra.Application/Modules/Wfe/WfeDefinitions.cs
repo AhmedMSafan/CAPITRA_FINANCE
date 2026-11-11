@@ -104,6 +104,7 @@ public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUse
         // a user-defined workflow is started by a user on its document, so it is released only with one
         var status = string.IsNullOrWhiteSpace(request.DefinitionStatus) ? "draft" : request.DefinitionStatus.Trim().ToLowerInvariant();
         var process = BpmnModel.Process(request.BpmnXml);
+        WfeForm? userDocument = null;
         if (status == "released" && process.IsUserDefined)
         {
             if (process.DocumentCode is null)
@@ -119,6 +120,7 @@ public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUse
                     ["documentCode"] = [$"Document {process.DocumentCode} does not exist or is switched off."],
                 });
             // every required data field must be one the document fills in, or nobody can start the workflow
+            userDocument = doc;
             var missing = WfeForms.MissingOnDocument(request.BpmnXml!, doc.FieldsJson);
             if (missing.Count > 0)
                 throw new BusinessValidationException(new Dictionary<string, string[]>
@@ -134,7 +136,11 @@ public sealed class WfeDefinitions(ICapitraDbContext db, ICurrentUser currentUse
             if (sla.Count > 0)
                 throw new BusinessValidationException(new Dictionary<string, string[]> { ["sla"] = [.. sla] });
             // conditions on paths must name real data fields and leave a path for all other cases
-            var rules = WfeRules.Check(request.BpmnXml!, await WfeForms.AllFieldsAsync(db, request.BpmnXml!, cancellationToken));
+            // a user-defined workflow's fields are its document's: a rule may only read those
+            var ruleFields = userDocument?.FieldsJson is { } docFields
+                ? WfeDataFields.Parse(docFields)
+                : await WfeForms.AllFieldsAsync(db, request.BpmnXml!, cancellationToken);
+            var rules = WfeRules.Check(request.BpmnXml!, ruleFields);
             if (rules.Count > 0)
                 throw new BusinessValidationException(new Dictionary<string, string[]> { ["rules"] = [.. rules] });
             var parallel = WfeParallel.Check(request.BpmnXml!);
