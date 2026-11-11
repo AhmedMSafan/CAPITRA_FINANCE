@@ -1204,9 +1204,11 @@ async function fit(){
   // Margin in screen pixels around the process.
   const marginPx=70
 
+  // never above 100%: a small diagram is shown at its real size instead of blown up
   const scale=Math.min(
     Math.max((visibleWidth-marginPx*2)/boundsWidth,0.05),
-    Math.max((visibleHeight-marginPx*2)/boundsHeight,0.05)
+    Math.max((visibleHeight-marginPx*2)/boundsHeight,0.05),
+    1
   )
 
   const viewWidth=visibleWidth/scale
@@ -1629,7 +1631,90 @@ type FinovaViewbox={
 const VIEWBOX_REGEX=/<!--\s*FINOVA_VIEWBOX:(\{.*?\})\s*-->/s
 
 function removeSavedViewbox(xml:string){
-  return xml.replace(VIEWBOX_REGEX,'')
+  return tidyFlowLabels(xml.replace(VIEWBOX_REGEX,''))
+}
+
+// An arrow's name (APPROVE, REJECT…) is put back beside its arrow when it is missing, lies over a step, or has drifted away from
+// the line: above the middle of the longest flat part, or to the right of an upright one. Labels placed well are left alone.
+function tidyFlowLabels(xml:string){
+  const DI='http://www.omg.org/spec/BPMN/20100524/DI',DC='http://www.omg.org/spec/DD/20100524/DC',DDI='http://www.omg.org/spec/DD/20100524/DI'
+  let doc:Document
+  try{doc=new DOMParser().parseFromString(xml,'application/xml')}catch{return xml}
+  if(doc.getElementsByTagName('parsererror').length)return xml
+  type Box={x:number,y:number,w:number,h:number}
+  const num=(e:Element,a:string)=>Number(e.getAttribute(a))
+  const boxOf=(b:Element|null|undefined):Box|null=>b?{x:num(b,'x'),y:num(b,'y'),w:num(b,'width'),h:num(b,'height')}:null
+  const shapes:Box[]=[]
+  for(const sh of Array.from(doc.getElementsByTagNameNS(DI,'BPMNShape'))){
+    const b=boxOf(Array.from(sh.children).find(c=>c.localName==='Bounds'))
+    if(b)shapes.push(b)
+  }
+  const names=new Map<string,string>()
+  for(const f of Array.from(doc.getElementsByTagNameNS('http://www.omg.org/spec/BPMN/20100524/MODEL','sequenceFlow'))){
+    const n=(f.getAttribute('name')??'').trim(); if(n)names.set(f.getAttribute('id')??'',n)
+  }
+  const overlaps=(a:Box,b:Box)=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h
+  const distToSeg=(px:number,py:number,a:{x:number,y:number},b:{x:number,y:number})=>{
+    const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((px-a.x)*dx+(py-a.y)*dy)/l))
+    return Math.hypot(px-(a.x+t*dx),py-(a.y+t*dy))
+  }
+  let changed=false
+  for(const edge of Array.from(doc.getElementsByTagNameNS(DI,'BPMNEdge'))){
+    const name=names.get(edge.getAttribute('bpmnElement')??'');if(!name)continue
+    const pts=Array.from(edge.getElementsByTagNameNS(DDI,'waypoint')).map(w=>({x:num(w,'x'),y:num(w,'y')})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))
+    if(pts.length<2)continue
+    let label=Array.from(edge.children).find(c=>c.localName==='BPMNLabel')
+    const cur=boxOf(label?Array.from(label.children).find(c=>c.localName==='Bounds'):null)
+    type Pt={x:number,y:number}
+    const segs:[Pt,Pt][]=[]
+    pts.forEach((p,i)=>{const prev=i>0?pts[i-1]:undefined;if(prev)segs.push([prev,p])})
+    if(cur&&Number.isFinite(cur.x)){
+      const cx=cur.x+cur.w/2,cy=cur.y+cur.h/2
+      const near=Math.min(...segs.map(([a,b])=>distToSeg(cx,cy,a,b)))<=30
+      const onLine=segs.some(([a,b])=>{for(let t=0;t<=1;t+=0.05){const x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;if(x>cur.x+2&&x<cur.x+cur.w-2&&y>cur.y+2&&y<cur.y+cur.h-2)return true}return false})
+      if(near&&!onLine&&!shapes.some(s=>overlaps(cur,s)))continue
+    }
+    const len=(s:[Pt,Pt])=>Math.hypot(s[1].x-s[0].x,s[1].y-s[0].y)
+    let best:[Pt,Pt]|undefined
+    for(const sg of segs)if(!best||len(sg)>len(best))best=sg
+    if(!best)continue
+    const [a,b]=best
+    const w=Math.round(name.length*7+6),h=14,mx=(a.x+b.x)/2,my=(a.y+b.y)/2
+    const flat=Math.abs(b.x-a.x)>=Math.abs(b.y-a.y)
+    const box:Box=flat?{x:Math.round(mx-w/2),y:Math.round(my-h-9),w,h}:{x:Math.round(mx+6),y:Math.round(my-h/2),w,h}
+    if(!label){label=doc.createElementNS(DI,'bpmndi:BPMNLabel');edge.appendChild(label)}
+    let bounds=Array.from(label.children).find(c=>c.localName==='Bounds')
+    if(!bounds){bounds=doc.createElementNS(DC,'dc:Bounds');label.appendChild(bounds)}
+    bounds.setAttribute('x',String(box.x));bounds.setAttribute('y',String(box.y));bounds.setAttribute('width',String(box.w));bounds.setAttribute('height',String(box.h))
+    changed=true
+  }
+  // an event's or gateway's name that an arrow runs through moves to the right of it
+  const lines:[{x:number,y:number},{x:number,y:number}][]=[]
+  for(const edge of Array.from(doc.getElementsByTagNameNS(DI,'BPMNEdge'))){
+    const p=Array.from(edge.getElementsByTagNameNS(DDI,'waypoint')).map(w=>({x:num(w,'x'),y:num(w,'y')}))
+    p.forEach((q,i)=>{const prev=i>0?p[i-1]:undefined;if(prev)lines.push([prev,q])})
+  }
+  const crosses=(r:Box)=>lines.some(([a,b])=>{for(let t=0;t<=1;t+=0.05){const x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;if(x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h)return true}return false})
+  const outside=new Map<string,string>()
+  for(const el of Array.from(doc.getElementsByTagNameNS('http://www.omg.org/spec/BPMN/20100524/MODEL','*')))
+    if(/Event$|Gateway$/.test(el.localName)&&(el.getAttribute('name')??'').trim())outside.set(el.getAttribute('id')??'',(el.getAttribute('name')??'').trim())
+  for(const sh of Array.from(doc.getElementsByTagNameNS(DI,'BPMNShape'))){
+    const text=outside.get(sh.getAttribute('bpmnElement')??'');if(!text)continue
+    const shape=boxOf(Array.from(sh.children).find(c=>c.localName==='Bounds'))
+    if(!shape)continue
+    let lb=Array.from(sh.children).find(c=>c.localName==='BPMNLabel')
+    let bounds=lb?Array.from(lb.children).find(c=>c.localName==='Bounds'):undefined
+    // no position saved: bpmn-js puts the name centred under the shape
+    const cur=boxOf(bounds)??{x:shape.x+shape.w/2-(text.length*3.5+3),y:shape.y+shape.h+5,w:text.length*7+6,h:14}
+    if(!crosses(cur))continue
+    const moved:Box={x:Math.round(shape.x+shape.w+6),y:Math.round(shape.y+shape.h/2-cur.h/2),w:cur.w,h:cur.h}
+    if(crosses(moved))continue
+    if(!lb){lb=doc.createElementNS(DI,'bpmndi:BPMNLabel');sh.appendChild(lb)}
+    if(!bounds){bounds=doc.createElementNS(DC,'dc:Bounds');lb.appendChild(bounds)}
+    bounds.setAttribute('x',String(moved.x));bounds.setAttribute('y',String(moved.y));bounds.setAttribute('width',String(Math.round(moved.w)));bounds.setAttribute('height',String(moved.h))
+    changed=true
+  }
+  return changed?new XMLSerializer().serializeToString(doc):xml
 }
 
 function currentViewbox():FinovaViewbox|null{
@@ -1826,7 +1911,7 @@ async function save(){
     saving.value=false
   }
 }
-onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefined,moddleExtensions:{finova:finovaWorkflowModdle},textRenderer:{defaultStyle:{fontFamily:'Inter, Arial, sans-serif',fontSize:15,fontWeight:600,lineHeight:1.2},externalStyle:{fontSize:13,lineHeight:1.2}}});bindSelection();await load();if(canvas.value)canvasObserver.observe(canvas.value)}catch(e){msg(e instanceof Error?e.message:'Designer initialization failed.',true)}});onBeforeUnmount(()=>{canvasObserver.disconnect();clearTimeout(refitTimer);modeler?.destroy()})
+onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefined,moddleExtensions:{finova:finovaWorkflowModdle},textRenderer:{defaultStyle:{fontFamily:'Inter, Arial, sans-serif',fontSize:12,fontWeight:600,lineHeight:1.2},externalStyle:{fontSize:11,lineHeight:1.2}}});bindSelection();await load();if(canvas.value)canvasObserver.observe(canvas.value)}catch(e){msg(e instanceof Error?e.message:'Designer initialization failed.',true)}});onBeforeUnmount(()=>{canvasObserver.disconnect();clearTimeout(refitTimer);modeler?.destroy()})
 </script>
 <style scoped>
 .sla-summary{margin:10px 0 0;padding:8px 10px;border-radius:6px;background:#e8f3f4;color:#00636D;font-size:12px;line-height:1.45}
