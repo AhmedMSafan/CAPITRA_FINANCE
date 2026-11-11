@@ -1659,6 +1659,37 @@ function tidyFlowLabels(xml:string){
     return Math.hypot(px-(a.x+t*dx),py-(a.y+t*dy))
   }
   let changed=false
+  // make room: where a named left-to-right arrow is too short for its name on two lines, everything to the right of the
+  // arrow's middle moves right by the missing width (steps, arrows' points and names alike), so the order and links stay the same
+  const cuts:{x:number,extra:number}[]=[]
+  for(const edge of Array.from(doc.getElementsByTagNameNS(DI,'BPMNEdge'))){
+    const name=names.get(edge.getAttribute('bpmnElement')??'');if(!name)continue
+    const pts=Array.from(edge.getElementsByTagNameNS(DDI,'waypoint')).map(w=>({x:num(w,'x'),y:num(w,'y')}))
+    pts.forEach((q,i)=>{
+      const prev=i>0?pts[i-1]:undefined
+      if(!prev||Math.abs(q.y-prev.y)>2||Math.abs(q.x-prev.x)<1)return
+      const len=Math.abs(q.x-prev.x),need=Math.ceil((name.length*7+6)/2)+16
+      if(len<need&&len===Math.max(...pts.slice(1).map((p2,j)=>{const p1=pts[j];return p1?Math.hypot(p2.x-p1.x,p2.y-p1.y):0})))
+        cuts.push({x:(q.x+prev.x)/2,extra:need-len})
+    })
+  }
+  cuts.sort((m,n)=>n.x-m.x)
+  for(const cut of cuts){
+    // only where the cut runs clear of every step (and every name), so nothing is torn in two
+    if(Array.from(doc.getElementsByTagNameNS(DC,'Bounds')).some(b=>{const x=num(b,'x'),w=num(b,'width');return x<cut.x&&x+w>cut.x}))continue
+    const shift=(el:Element)=>{const x=num(el,'x');if(Number.isFinite(x)&&x>cut.x)el.setAttribute('x',String(Math.round(x+cut.extra)))}
+    for(const b of Array.from(doc.getElementsByTagNameNS(DC,'Bounds')))shift(b)
+    for(const w of Array.from(doc.getElementsByTagNameNS(DDI,'waypoint')))shift(w)
+    changed=true
+  }
+  if(changed){
+    shapes.length=0
+    for(const sh of Array.from(doc.getElementsByTagNameNS(DI,'BPMNShape'))){
+      const b=boxOf(Array.from(sh.children).find(c=>c.localName==='Bounds'))
+      if(b)shapes.push(b)
+    }
+  }
+  const placed:Box[]=[]
   for(const edge of Array.from(doc.getElementsByTagNameNS(DI,'BPMNEdge'))){
     const name=names.get(edge.getAttribute('bpmnElement')??'');if(!name)continue
     const pts=Array.from(edge.getElementsByTagNameNS(DDI,'waypoint')).map(w=>({x:num(w,'x'),y:num(w,'y')})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))
@@ -1672,7 +1703,7 @@ function tidyFlowLabels(xml:string){
       const cx=cur.x+cur.w/2,cy=cur.y+cur.h/2
       const near=Math.min(...segs.map(([a,b])=>distToSeg(cx,cy,a,b)))<=30
       const onLine=segs.some(([a,b])=>{for(let t=0;t<=1;t+=0.05){const x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;if(x>cur.x+2&&x<cur.x+cur.w-2&&y>cur.y+2&&y<cur.y+cur.h-2)return true}return false})
-      if(near&&!onLine&&!shapes.some(s=>overlaps(cur,s)))continue
+      if(near&&!onLine&&!shapes.some(s=>overlaps(cur,s))&&!placed.some(s=>overlaps(cur,s))){placed.push(cur);continue}
     }
     const len=(s:[Pt,Pt])=>Math.hypot(s[1].x-s[0].x,s[1].y-s[0].y)
     let best:[Pt,Pt]|undefined
@@ -1681,7 +1712,20 @@ function tidyFlowLabels(xml:string){
     const [a,b]=best
     const w=Math.round(name.length*7+6),h=14,mx=(a.x+b.x)/2,my=(a.y+b.y)/2
     const flat=Math.abs(b.x-a.x)>=Math.abs(b.y-a.y)
-    const box:Box=flat?{x:Math.round(mx-w/2),y:Math.round(my-h-9),w,h}:{x:Math.round(mx+6),y:Math.round(my-h/2),w,h}
+    // on a short flat arrow the name wraps onto up to three lines that fit the gap, just above the arrow
+    const gap=Math.abs(b.x-a.x)-8
+    const lines=flat&&w>gap&&gap>=40?Math.ceil(w/gap):1
+    const box:Box=flat
+      ?(lines>1&&lines<=3?{x:Math.round(mx-gap/2),y:Math.round(my-lines*h-6),w:Math.round(gap),h:lines*h}:{x:Math.round(mx-w/2),y:Math.round(my-h-9),w,h})
+      :{x:Math.round(mx+6),y:Math.round(my-h/2),w,h}
+    // a name that still lies over a step goes above the steps (or right of them)
+    for(let i=0;i<8;i++){
+      const hit=[...shapes,...placed].filter(sh=>overlaps(box,sh))
+      if(!hit.length)break
+      if(flat)box.y=Math.min(...hit.map(sh=>sh.y))-h-4
+      else box.x=Math.max(...hit.map(sh=>sh.x+sh.w))+4
+    }
+    placed.push(box)
     if(!label){label=doc.createElementNS(DI,'bpmndi:BPMNLabel');edge.appendChild(label)}
     let bounds=Array.from(label.children).find(c=>c.localName==='Bounds')
     if(!bounds){bounds=doc.createElementNS(DC,'dc:Bounds');label.appendChild(bounds)}
