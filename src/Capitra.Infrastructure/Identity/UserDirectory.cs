@@ -16,4 +16,7 @@ public sealed class UserDirectory(CapitraDbContext db) : IUserDirectory
         var byUser = roles.GroupBy(x => x.UserId).ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(x => x.Name!).Where(n => n != null).ToList());
         return users.Select(u => new DirectoryUser(u.Id, u.UserName ?? u.Id, u.FullName, byUser.TryGetValue(u.Id, out var r) ? r : [], u.Department, u.EmployeeNo)).ToList();
     }
+
+    public async Task<IReadOnlyList<string>> RoleNamesAsync(CancellationToken ct) =>
+        (await db.Roles.AsNoTracking().Select(x => x.Name).ToListAsync(ct)).OfType<string>().OrderBy(x => x).ToList();
 }

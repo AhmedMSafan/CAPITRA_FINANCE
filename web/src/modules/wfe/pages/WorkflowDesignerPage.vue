@@ -525,8 +525,38 @@
                 </div>
               </div>
 
-              <label class="field-label">{{ step.parallelMode && step.assignmentType==='User' ? 'Approvers (user names, separated by commas)' : 'Assignee / Role / Variable' }}</label>
-              <input v-model="step.assignee" :placeholder="step.parallelMode && step.assignmentType==='User' ? 'e.g. mona, omar, ahmed' : 'e.g. CREDIT_MANAGER'" />
+              <template v-if="step.assignmentType==='Role'">
+                <label class="field-label">Role</label>
+                <select v-model="step.assignee">
+                  <option value="">- Choose the role -</option>
+                  <option v-if="step.assignee && !dirRoles.some(r=>same(r.name,step.assignee))" :value="step.assignee">{{ step.assignee }} (not a role)</option>
+                  <option v-for="r in dirRoles" :key="r.name" :value="r.name">{{ r.name }} ({{ r.members }} {{ r.members===1?'member':'members' }})</option>
+                </select>
+              </template>
+              <template v-else-if="step.assignmentType==='User' && step.parallelMode">
+                <label class="field-label">Approvers</label>
+                <div class="user-picks">
+                  <label v-for="u in dirUsers" :key="u.userName" :class="{on:pickedUsers.some(x=>same(x,u.userName))}">
+                    <input type="checkbox" :checked="pickedUsers.some(x=>same(x,u.userName))" @change="togglePicked(u.userName)" />
+                    <b>{{ u.fullName || u.userName }}</b><small>{{ u.userName }}</small>
+                  </label>
+                  <label v-for="x in pickedUsers.filter(x=>!dirUsers.some(u=>same(u.userName,x)))" :key="x" class="on missing">
+                    <input type="checkbox" checked @change="togglePicked(x)" /><b>{{ x }}</b><small>not an active user</small>
+                  </label>
+                </div>
+              </template>
+              <template v-else-if="step.assignmentType==='User'">
+                <label class="field-label">User</label>
+                <select v-model="step.assignee">
+                  <option value="">- Choose the user -</option>
+                  <option v-if="step.assignee && !dirUsers.some(u=>same(u.userName,step.assignee))" :value="step.assignee">{{ step.assignee }} (not an active user)</option>
+                  <option v-for="u in dirUsers" :key="u.userName" :value="u.userName">{{ u.fullName ? `${u.fullName} (${u.userName})` : u.userName }}</option>
+                </select>
+              </template>
+              <template v-else-if="step.assignmentType==='Variable'">
+                <label class="field-label">Variable (holds the user name)</label>
+                <input v-model="step.assignee" placeholder="e.g. requester" />
+              </template>
             </section>
 
             <section v-if="step.stepType==='HumanTask'" class="property-section parallel-section">
@@ -608,8 +638,17 @@
                     </select>
                   </div>
                   <div>
-                    <label class="field-label">{{ step.slaEscalateType==='User'?'User name':'Role' }}</label>
-                    <input v-model="step.slaEscalateTo" :placeholder="step.slaEscalateType==='User'?'e.g. mona':'e.g. CREDIT_MANAGER'" />
+                    <label class="field-label">{{ step.slaEscalateType==='User'?'User':'Role' }}</label>
+                    <select v-if="step.slaEscalateType==='User'" v-model="step.slaEscalateTo">
+                      <option value="">- Choose -</option>
+                      <option v-if="step.slaEscalateTo && !dirUsers.some(u=>same(u.userName,step.slaEscalateTo))" :value="step.slaEscalateTo">{{ step.slaEscalateTo }}</option>
+                      <option v-for="u in dirUsers" :key="u.userName" :value="u.userName">{{ u.fullName ? `${u.fullName} (${u.userName})` : u.userName }}</option>
+                    </select>
+                    <select v-else v-model="step.slaEscalateTo">
+                      <option value="">- Choose -</option>
+                      <option v-if="step.slaEscalateTo && !dirRoles.some(r=>same(r.name,step.slaEscalateTo))" :value="step.slaEscalateTo">{{ step.slaEscalateTo }}</option>
+                      <option v-for="r in dirRoles" :key="r.name" :value="r.name">{{ r.name }}</option>
+                    </select>
                   </div>
                 </div>
               </template>
@@ -903,6 +942,7 @@ import {createWorkflowDefinition,getWorkflowDefinition,getWorkflowVersions,getWo
 import {productEventRulesApi,type ProductEventRule} from '@/modules/adm/api/products.api'
 import {apiErrorText,formApi,type WorkflowForm} from '../services/formService'
 import { openWorkflowManual } from '../utils/manual'
+import { http } from '@/shared/api/http'
 
 type Var={name:string,type:string,required:boolean,label?:string,defaultValue?:string,choices?:string[],description?:string}; type Param={name:string,value:string};
 type Step={stepCode:string,stepName:string,ruleCode:string,formCode:string,stepType:string,assignmentType:string,assignee:string,route:string,routeParameters:Param[],actions:string[],slaDuration:string,slaUnit:string,slaRemindHours:string,slaEscalateHours:string,slaEscalation:string,slaEscalateType:string,slaEscalateTo:string,parallelMode:string,parallelCount:string}
@@ -916,6 +956,16 @@ const productRules=ref<ProductEventRule[]>([])
 productEventRulesApi.list().then(x=>productRules.value=x.filter(r=>r.isActive)).catch(()=>{})
 // the documents (Document Designer) a step or the whole workflow can link, with this workflow's older forms
 const documents=ref<WorkflowForm[]>([])
+// the roles and active users a step can be assigned or escalated to
+type DirRole={name:string,members:number}; type DirUser={userName:string,fullName:string|null,roles:string[]}
+const dirRoles=ref<DirRole[]>([]),dirUsers=ref<DirUser[]>([])
+function loadDirectory(){http.get<{roles:DirRole[],users:DirUser[]}>('/api/wfe/directory').then(d=>{dirRoles.value=d.roles;dirUsers.value=d.users}).catch(()=>{dirRoles.value=[];dirUsers.value=[]})}
+function same(a:string,b:string){return String(a??'').toUpperCase()===String(b??'').toUpperCase()}
+const pickedUsers=computed(()=>String(step.value.assignee??'').split(/[,;]/).map(x=>x.trim()).filter(Boolean))
+function togglePicked(name:string){
+  const list=pickedUsers.value
+  step.value.assignee=(list.some(x=>same(x,name))?list.filter(x=>!same(x,name)):[...list,name]).join(', ')
+}
 // the workflow's type (finova:workflowType) and, for a user-defined one, its document (finova:documentCode)
 const wfType=ref<'SYSTEM'|'USER'>('SYSTEM'),wfDocument=ref('')
 function loadForms(){(form.dgrmId?formApi.ofWorkflow(form.dgrmId):formApi.list().then(x=>x.filter(f=>f.isDocument))).then(x=>documents.value=x).catch(()=>documents.value=[])}
@@ -1712,6 +1762,7 @@ async function load(){
     xml=form.dgrmContent||starter
   }
   loadForms()
+  loadDirectory()
 
   await modeler.importXML(removeSavedViewbox(xml))
   loadMetadataFromXml()
@@ -2720,6 +2771,13 @@ onMounted(async()=>{try{modeler=new BpmnModeler({container:canvas.value??undefin
 :deep(.rule-badge) { white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #fff4ec; border: 1px solid #E87722; color: #a24f0f; font: 600 11px/1.4 Inter, Arial, sans-serif; transform: translate(-50%, -50%); pointer-events: none; }
 .rule-hint.warn { color: #a24f0f; }
 .rule-hint { margin: 8px 2px 0; font-size: 12px; color: #6b7c86; line-height: 1.45; }
+.user-picks { display: grid; gap: 4px; max-height: 220px; overflow-y: auto; padding: 4px; border: 1px solid #d9e3e8; border-radius: 10px; }
+.user-picks label { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; font-size: 12.5px; cursor: pointer; }
+.user-picks label.on { background: #e8f4f5; }
+.user-picks label.missing small { color: #b45a12; }
+.user-picks input { accent-color: #00636D; margin: 0; }
+.user-picks b { color: #173b57; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-picks small { color: #5f7787; }
 .legacy-fields { display: flex; gap: 10px; margin: 4px 0 8px; padding: 10px 12px; border: 1px solid #f6d7bd; border-left: 3px solid #E87722; border-radius: 8px; background: #fff8f2; font-size: 12px; color: #5b3a1d; }
 .legacy-fields .pi { color: #E87722; margin-top: 2px; }
 .legacy-fields .text-button { display: block; margin-top: 6px; color: #00636D; font-weight: 600; }
