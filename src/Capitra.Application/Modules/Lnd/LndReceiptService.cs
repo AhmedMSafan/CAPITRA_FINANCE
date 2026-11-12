@@ -300,7 +300,7 @@ public sealed class LndReceiptService(ICapitraDbContext db, IClock clock, AdmPro
     }
 
     /// <summary>The customer's credit balance: what is left on the sources of their lending receipts.</summary>
-    private Task<decimal> CreditAsync(long clientId, CancellationToken cancellationToken) =>
+    public Task<decimal> CreditAsync(long clientId, CancellationToken cancellationToken) =>
         (from s in db.Set<ColRepaymentSource>()
          join t in db.Set<ColRepaymentTransaction>() on s.RepaymentTxnId equals t.RepaymentTxnId
          where t.ClientId == clientId && LendingLines.Contains(t.BusinessLineCode) && t.StatusCode == "POSTED" && s.StatusCode == "ACTIVE"

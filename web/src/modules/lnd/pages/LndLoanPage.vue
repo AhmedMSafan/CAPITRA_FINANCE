@@ -264,7 +264,12 @@ const facts = computed<[string, string][]>(() => {
     ['Disbursement', formatDate(l.disbursementDate)],
     ['First instalment', formatDate(l.firstDueDate)],
     ['Maturity', formatDate(l.maturityDate)],
-    ['Late fee', fee]
+    ['Late fee', fee],
+    ...(l.lastEodDate ? [
+      ['Days late', `${l.daysLate}${l.isNonAccrual ? ' · ' + tr('In non-accrual') : ''}${l.isWriteOffProposed ? ' · ' + tr('Proposed for write-off') : ''}`],
+      ['Interest suspense', `${money(l.interestSuspenseAmount)} · ${tr('Late fee suspense')} ${money(l.lateFeeSuspenseAmount)}`],
+      ['Last end of day', formatDate(l.lastEodDate)]
+    ] as [string, string][] : [])
   ]
 })
 
@@ -272,7 +277,10 @@ const facts = computed<[string, string][]>(() => {
 const METHODS: Record<string, string> = { BANK_TRANSFER: 'Bank transfer', CASH: 'Cash', MERCHANT: 'Paid to merchant', WALLET: 'E-wallet' }
 const PSTATUS = { REQUESTED: 'Waiting', PAID: 'Paid', REJECTED: 'Rejected', WITHDRAWN: 'Withdrawn' } as const
 const PCHIP = { REQUESTED: 'fx-chip--warn', PAID: 'fx-chip--ok', REJECTED: 'fx-chip--bad', WITHDRAWN: 'fx-chip--teal' } as const
-const EVENTS: Record<string, string> = { DISBURSED: 'Paid out', RECEIPT: 'Payment received' }
+const EVENTS: Record<string, string> = {
+  DISBURSED: 'Paid out', RECEIPT: 'Payment received', ACCRUED: 'Interest accrued', LATE_FEE: 'Late fee', NON_ACCRUAL: 'Non-accrual',
+  CURED: 'Cured', SUSPENSE_RELEASED: 'Suspense released', WRITE_OFF_PROPOSED: 'Proposed for write-off'
+}
 const me = (getUser()?.userName ?? '').toLowerCase()
 const payouts = ref<DisbursementPage | null>(null)
 const waiting = computed(() => payouts.value?.disbursements.some((d) => d.statusCode === 'REQUESTED') ?? false)

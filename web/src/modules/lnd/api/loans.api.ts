@@ -31,7 +31,8 @@ export type Installment = {
 
 export type Loan = {
   loanId: number; loanNumber: string; clientId: number; clientName: string; productId: number; productCode: string; productName: string; versionNo: number
-  licenceCode: string; statusCode: string; isNonAccrual: boolean; currencyCode: string; principalAmount: number; termMonths: number; installmentCount: number
+  licenceCode: string; statusCode: string; isNonAccrual: boolean; daysLate: number; interestSuspenseAmount: number; lateFeeSuspenseAmount: number
+  isWriteOffProposed: boolean; lastEodDate: string | null; currencyCode: string; principalAmount: number; termMonths: number; installmentCount: number
   installmentAmount: number; totalInterestAmount: number; disbursementDate: string; firstDueDate: string; maturityDate: string
   repaymentFrequencyCode: string; interestMethodCode: string; annualRatePct: number; dayCountCode: string; lateFeeGraceDays: number; lateFeeTypeCode: string
   lateFeeRatePct: number | null; lateFeeFlatAmount: number | null; lateFeeBaseCode: string; paymentOrder: string[]; isInsuranceRequired: boolean

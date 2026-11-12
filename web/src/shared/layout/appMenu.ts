@@ -55,6 +55,7 @@ export const appMenu: MenuGroup[] = [
     icon: 'pi pi-shopping-cart',
     links: [
       { label: 'Loans', to: { name: 'lnd-loans' } },
+      { label: 'End of Day', to: { name: 'lnd-eod' } },
       { label: 'Lending Parameters', to: { name: 'lnd-parameters' } },
       { label: 'Lending Product Terms', to: { name: 'adm-lending-products' } }
     ]
