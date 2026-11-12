@@ -269,7 +269,14 @@ export const RULE_AMOUNTS = [
   { value: 'INTEREST_TO_SUSPENSE', label: 'Interest income moved to suspense on non-accrual (retail end of day)' },
   { value: 'INTEREST_FROM_SUSPENSE', label: 'Interest suspense released to income on cure (retail end of day)' },
   { value: 'LATE_FEE_TO_SUSPENSE', label: 'Late fee income moved to suspense on non-accrual (retail end of day)' },
-  { value: 'LATE_FEE_FROM_SUSPENSE', label: 'Late fee suspense released to income on cure (retail end of day)' }
+  { value: 'LATE_FEE_FROM_SUSPENSE', label: 'Late fee suspense released to income on cure (retail end of day)' },
+  { value: 'PRINCIPAL_WRITTEN_OFF', label: 'Principal written off (retail write-off)' },
+  { value: 'INTEREST_WRITTEN_OFF', label: 'Interest receivable written off, taken to income before (retail write-off)' },
+  { value: 'INTEREST_SUSPENSE_WRITTEN_OFF', label: 'Interest receivable written off against suspense (retail write-off)' },
+  { value: 'LATE_FEE_WRITTEN_OFF', label: 'Late fee receivable written off, taken to income before (retail write-off)' },
+  { value: 'LATE_FEE_SUSPENSE_WRITTEN_OFF', label: 'Late fee receivable written off against suspense (retail write-off)' },
+  { value: 'CHARGES_WRITTEN_OFF', label: 'Charges due written off (retail write-off)' },
+  { value: 'INSURANCE_WRITTEN_OFF', label: 'Insurance due written off (retail write-off)' }
 ]
 
 /** Figures of one charge a component GL line posts. */

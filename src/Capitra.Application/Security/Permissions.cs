@@ -147,6 +147,12 @@ public static class Permissions
 
         /// <summary>Run Retail Lending end of day for the next business day.</summary>
         public const string EodRun = "LND.EOD.RUN";
+
+        /// <summary>Ask for a loan to be written off, and withdraw one's own request.</summary>
+        public const string WriteOffRequest = "LND.WRITE_OFF.REQUEST";
+
+        /// <summary>Approve or reject a write-off (four eyes: never one's own request).</summary>
+        public const string WriteOffApprove = "LND.WRITE_OFF.APPROVE";
     }
 
     public static class Fct

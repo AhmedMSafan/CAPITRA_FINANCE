@@ -1,6 +1,6 @@
 -- =====================================================================================================================
 -- Capitra: GL setup of Retail Lending (microfinance and consumer finance), for the loan payout (rule LND_DISBURSE) and the
--- customer receipt (rule LND_RECEIPT) and end of day (rule LND_EOD).
+-- customer receipt (rule LND_RECEIPT), end of day (rule LND_EOD) and write-off (rule LND_WRITE_OFF).
 -- Run in pgAdmin > Query Tool on CAPITRA_DB. Press F5. Safe to run again: what exists is kept.
 -- Needs: migrate-lending-disbursement.sql.
 --
@@ -11,7 +11,7 @@
 -- It adds, when missing:
 --   1. the business line segment values MICROFINANCE and CONSUMER_FINANCE (copied from FACTORING), so lending postings carry them
 --   2. the GL journal source LENDING (copied from FACTORING) and its journal categories LND_DISBURSEMENT "Loan Disbursement"
---      LND_RECEIPT "Loan Receipt" and LND_EOD "Loan End of Day"
+--      LND_RECEIPT "Loan Receipt", LND_EOD "Loan End of Day" and LND_WRITE_OFF "Loan Write-off"
 --
 -- Then, for each lending product (Administration > Product Catalog, business line Microfinance or Consumer Finance), add in
 -- Administration > Product Event Rules a rule with code LND_DISBURSE, journal source LENDING, category LND_DISBURSEMENT:
@@ -41,6 +41,17 @@
 --   LATE_FEE_TO_SUSPENSE    DR late fee income      / CR late fee suspense
 --   LATE_FEE_FROM_SUSPENSE  DR late fee suspense    / CR late fee income
 -- Example, a day of 3.23 interest on a loan that is not late: DR Interest receivable 3.23 / CR Interest income 3.23.
+--
+-- and a rule with code LND_WRITE_OFF, journal source LENDING, category LND_WRITE_OFF, all in journal 1, a debit and a credit line each:
+--   PRINCIPAL_WRITTEN_OFF          DR loan loss provision (or write-off expense) / CR loans receivable
+--   INTEREST_SUSPENSE_WRITTEN_OFF  DR interest suspense                          / CR interest receivable
+--   INTEREST_WRITTEN_OFF           DR write-off expense                           / CR interest receivable  (taken to income before)
+--   LATE_FEE_SUSPENSE_WRITTEN_OFF  DR late fee suspense                          / CR late fee receivable
+--   LATE_FEE_WRITTEN_OFF           DR write-off expense                           / CR late fee receivable
+--   CHARGES_WRITTEN_OFF            DR write-off expense                           / CR charges receivable
+--   INSURANCE_WRITTEN_OFF          DR insurance payable (or write-off expense)    / CR the insurance account used on receipt
+-- Example, 2,450 principal and 60 interest in suspense: DR Provision 2,450 / CR Loans receivable 2,450,
+--   DR Interest suspense 60 / CR Interest receivable 60.
 -- =====================================================================================================================
 DO $$
 DECLARE
@@ -89,7 +100,8 @@ BEGIN
   FOR v_cat IN SELECT * FROM (VALUES
       ('LND_DISBURSEMENT', 'Loan Disbursement', 'صرف التمويل', 'A retail loan paid out: loans receivable against the bank account, less the charges taken.'),
       ('LND_RECEIPT', 'Loan Receipt', 'تحصيل التمويل', 'A customer payment on a retail loan: the bank account or credit balance against each part paid.'),
-      ('LND_EOD', 'Loan End of Day', 'إقفال اليوم للتمويل', 'Daily interest accrual, late fees, and moves into and out of suspense of retail loans.')) AS c(code, name_en, name_ar, descr)
+      ('LND_EOD', 'Loan End of Day', 'إقفال اليوم للتمويل', 'Daily interest accrual, late fees, and moves into and out of suspense of retail loans.'),
+      ('LND_WRITE_OFF', 'Loan Write-off', 'إعدام التمويل', 'A retail loan written off: principal, interest and late fees taken off the books.')) AS c(code, name_en, name_ar, descr)
   LOOP
     IF NOT EXISTS (SELECT 1 FROM "GL_JOURNAL_CATEGORIES" WHERE "CATEGORY_CODE" = v_cat.code) THEN
       RAISE NOTICE 'Journal category % will be added', v_cat.code;
@@ -108,6 +120,6 @@ BEGIN
   IF NOT v_apply THEN
     RAISE NOTICE 'Preview only. Nothing was changed. Set v_apply := true and run again.';
   ELSE
-    RAISE NOTICE 'Done. Now add the rules LND_DISBURSE, LND_RECEIPT and LND_EOD to each lending product (see the header).';
+    RAISE NOTICE 'Done. Now add the rules LND_DISBURSE, LND_RECEIPT, LND_EOD and LND_WRITE_OFF to each lending product (see the header).';
   END IF;
 END $$;

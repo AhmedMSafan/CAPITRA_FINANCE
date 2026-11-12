@@ -108,8 +108,8 @@ import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
 import { loansApi, type LoanListItem, type LoanOption, type LoanPreview, type LoanRequest } from '../api/loans.api'
 
-const STATUS: Record<string, string> = { APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', CANCELLED: 'Cancelled' }
-const CHIP: Record<string, string> = { APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', CANCELLED: 'fx-chip--bad' }
+const STATUS: Record<string, string> = { APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', CANCELLED: 'Cancelled', WRITTEN_OFF: 'Written off' }
+const CHIP: Record<string, string> = { APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', CANCELLED: 'fx-chip--bad', WRITTEN_OFF: 'fx-chip--bad' }
 const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const money = (n: number) => egp.format(n)
 
