@@ -62,10 +62,15 @@
       <section v-if="receipts && loan.statusCode !== 'APPROVED' && loan.statusCode !== 'CANCELLED'" class="fx-card">
         <header class="c3-panel-head lp-head">
           <h3><span class="fa fa-download" aria-hidden="true"></span>{{ tr('Payments') }}</h3>
-          <button v-if="receipts.canReceive" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openReceive"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Receive payment') }}</button>
+          <button v-if="receipts.canReceive" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openReceive"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr(receipts.writtenOffAmount !== null ? 'Receive recovery' : 'Receive payment') }}</button>
         </header>
         <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-          {{ tr('Due today:') }} <b>{{ money(receipts.overdueToday) }}</b> · {{ tr('Customer credit balance:') }} <b>{{ money(receipts.creditBalance) }}</b>
+          <template v-if="receipts.writtenOffAmount !== null">
+            {{ tr('Written off:') }} <b>{{ money(receipts.writtenOffAmount) }}</b> · {{ tr('Recovered:') }} <b>{{ money(receipts.recoveredAmount ?? 0) }}</b> ·
+            {{ tr('Still to recover:') }} <b>{{ money(receipts.overdueToday) }}</b>
+          </template>
+          <template v-else>{{ tr('Due today:') }} <b>{{ money(receipts.overdueToday) }}</b></template>
+          · {{ tr('Customer credit balance:') }} <b>{{ money(receipts.creditBalance) }}</b>
         </p>
         <div v-if="receipts.receipts.length" class="fx-table-wrap">
           <table class="fx-table">
@@ -202,7 +207,7 @@
         </p>
         <table class="fx-table">
           <thead><tr><th>#</th><th>{{ tr('Part') }}</th><th class="ln-num">{{ tr('Amount') }}</th></tr></thead>
-          <tbody><tr v-for="(l, n) in rpreview.lines" :key="n"><td>{{ l.installmentNo }}</td><td>{{ tr(PARTS[l.partCode] ?? l.partCode) }}</td><td class="ln-num">{{ money(l.amount) }}</td></tr></tbody>
+          <tbody><tr v-for="(l, n) in rpreview.lines" :key="n"><td>{{ l.installmentNo || '' }}</td><td>{{ tr(PARTS[l.partCode] ?? l.partCode) }}</td><td class="ln-num">{{ money(l.amount) }}</td></tr></tbody>
         </table>
       </div>
       <template #footer>
@@ -291,7 +296,7 @@ const PSTATUS = { REQUESTED: 'Waiting', PAID: 'Paid', REJECTED: 'Rejected', WITH
 const PCHIP = { REQUESTED: 'fx-chip--warn', PAID: 'fx-chip--ok', REJECTED: 'fx-chip--bad', WITHDRAWN: 'fx-chip--teal' } as const
 const EVENTS: Record<string, string> = {
   DISBURSED: 'Paid out', RECEIPT: 'Payment received', ACCRUED: 'Interest accrued', LATE_FEE: 'Late fee', NON_ACCRUAL: 'Non-accrual',
-  CURED: 'Cured', SUSPENSE_RELEASED: 'Suspense released', WRITE_OFF_PROPOSED: 'Proposed for write-off', WRITTEN_OFF: 'Written off'
+  CURED: 'Cured', SUSPENSE_RELEASED: 'Suspense released', WRITE_OFF_PROPOSED: 'Proposed for write-off', WRITTEN_OFF: 'Written off', RECOVERY: 'Recovery'
 }
 const me = (getUser()?.userName ?? '').toLowerCase()
 const payouts = ref<DisbursementPage | null>(null)
@@ -344,7 +349,7 @@ const decide = () => decision.value === 'pay'
 const withdraw = (id: number) => payoutCall(() => loansApi.withdrawPayout(props.loanId, id), 'Payout withdrawn.', () => {})
 
 // ---- receipts
-const PARTS: Record<string, string> = { LATE_FEE: 'Late fee', CHARGES: 'Charges', INSURANCE: 'Insurance', INTEREST: 'Interest', PRINCIPAL: 'Principal' }
+const PARTS: Record<string, string> = { LATE_FEE: 'Late fee', CHARGES: 'Charges', INSURANCE: 'Insurance', INTEREST: 'Interest', PRINCIPAL: 'Principal', RECOVERY: 'Recovery' }
 const receipts = ref<ReceiptsPage | null>(null)
 const receiving = ref(false)
 const rpreview = ref<ReceiptPreview | null>(null)

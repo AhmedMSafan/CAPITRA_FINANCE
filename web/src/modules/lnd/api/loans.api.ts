@@ -62,6 +62,7 @@ export type ReceiptsPage = {
   cheques: { chequeId: number; chequeRef: string; chequeNo: string; dueDate: string; chequeAmount: number; depositAccount: string | null }[]
   receipts: { repaymentTxnId: number; repaymentNumber: string; valueDate: string; transactionDate: string; receiptAmount: number; allocatedAmount: number
     statusCode: string; glTranSetId: string | null; sources: string; createdBy: string }[]
+  writtenOffAmount: number | null; recoveredAmount: number | null
 }
 export type ReceiptPreview = { receiptAmount: number; allocatedAmount: number; creditKeptAmount: number; overdueAmount: number; lines: { installmentNo: number; partCode: string; amount: number }[] }
 export type PayoutRequest = { paidFromAccountId: number | null; payoutMethodCode: string; payeeName: string; payeeAccount: string | null }

@@ -395,4 +395,10 @@ export const LND_AR: Record<string, string> = {
   'You asked for this write-off. Another user must approve it.': 'أنت من طلب هذا الإعدام. يجب أن يعتمده مستخدم آخر.',
   'The loan is no longer active.': 'التمويل لم يعد نشطًا.',
   'Give the reason for the write-off.': 'اذكر سبب الإعدام.',
+  // Recovery
+  'Written off:': 'المُعدم:',
+  'Recovered:': 'المحصل:',
+  'Still to recover:': 'المتبقي للتحصيل:',
+  'Receive recovery': 'تحصيل من تمويل مُعدم',
+  'Recovery': 'تحصيل بعد الإعدام',
 }

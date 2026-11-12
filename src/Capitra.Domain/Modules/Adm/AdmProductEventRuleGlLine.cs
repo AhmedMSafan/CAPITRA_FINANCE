@@ -46,7 +46,8 @@ public class AdmProductEventRuleGlLine : AuditableEntity
     /// (LND_DISBURSE: the loan amount, and the net paid out once the deducted charges are taken), and a retail loan receipt
     /// (LND_RECEIPT: the money received by bank account, credit balance used or kept, and each part paid), and the retail end of day
     /// (LND_EOD: interest accrued, late fees charged, each to income or to suspense, and what moves into or out of suspense), and the
-    /// retail write-off (LND_WRITE_OFF: principal, interest and late fees from income or from suspense, charges and insurance).
+    /// retail write-off (LND_WRITE_OFF: principal, interest and late fees from income or from suspense, charges and insurance), and the
+    /// recovery on a written-off loan (LND_RECOVERY: the receipt amounts above and RECOVERY_AMOUNT, the recovery income).
     /// </summary>
     public static readonly string[] RuleAmounts =
     [
@@ -55,7 +56,7 @@ public class AdmProductEventRuleGlLine : AuditableEntity
         "INTEREST_ACCRUED", "INTEREST_SUSPENDED", "LATE_FEE_CHARGED", "LATE_FEE_SUSPENDED",
         "INTEREST_TO_SUSPENSE", "INTEREST_FROM_SUSPENSE", "LATE_FEE_TO_SUSPENSE", "LATE_FEE_FROM_SUSPENSE",
         "PRINCIPAL_WRITTEN_OFF", "INTEREST_WRITTEN_OFF", "INTEREST_SUSPENSE_WRITTEN_OFF", "LATE_FEE_WRITTEN_OFF", "LATE_FEE_SUSPENSE_WRITTEN_OFF",
-        "CHARGES_WRITTEN_OFF", "INSURANCE_WRITTEN_OFF",
+        "CHARGES_WRITTEN_OFF", "INSURANCE_WRITTEN_OFF", "RECOVERY_AMOUNT",
     ];
 
     /// <summary>Figures of one charge: the whole amount, or the part taken to income later (pro-rated) or at once.</summary>
