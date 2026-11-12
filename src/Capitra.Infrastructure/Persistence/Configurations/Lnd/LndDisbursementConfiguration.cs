@@ -1,3 +1,4 @@
+using Capitra.Domain.Modules.Col;
 using Capitra.Domain.Modules.Lnd;
 using Capitra.Domain.Modules.Trs;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +62,26 @@ public sealed class LndLoanEventConfiguration : IEntityTypeConfiguration<LndLoan
         builder.Property(x => x.SourceDocumentType).HasMaxLength(30);
         builder.Property(x => x.Notes).HasMaxLength(1000);
         builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class LndAllocationConfiguration : IEntityTypeConfiguration<LndAllocation>
+{
+    public void Configure(EntityTypeBuilder<LndAllocation> builder)
+    {
+        builder.ToTable("LND_ALLOCATIONS");
+        builder.HasKey(x => x.AllocationId);
+        builder.HasIndex(x => new { x.LoanId, x.StatusCode });
+        builder.HasIndex(x => x.RepaymentTxnId);
+        builder.HasIndex(x => x.InstallmentId);
+
+        builder.Property(x => x.AllocationId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.PartCode).HasMaxLength(20);
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.HasOne<ColRepaymentTransaction>().WithMany().HasForeignKey(x => x.RepaymentTxnId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<LndInstallment>().WithMany().HasForeignKey(x => x.InstallmentId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }

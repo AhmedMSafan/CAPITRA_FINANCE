@@ -1,5 +1,6 @@
 -- =====================================================================================================================
--- Capitra: GL setup of Retail Lending (microfinance and consumer finance), for the loan payout (rule LND_DISBURSE).
+-- Capitra: GL setup of Retail Lending (microfinance and consumer finance), for the loan payout (rule LND_DISBURSE) and the
+-- customer receipt (rule LND_RECEIPT).
 -- Run in pgAdmin > Query Tool on CAPITRA_DB. Press F5. Safe to run again: what exists is kept.
 -- Needs: migrate-lending-disbursement.sql.
 --
@@ -9,7 +10,8 @@
 --
 -- It adds, when missing:
 --   1. the business line segment values MICROFINANCE and CONSUMER_FINANCE (copied from FACTORING), so lending postings carry them
---   2. the GL journal source LENDING (copied from FACTORING) and its journal category LND_DISBURSEMENT "Loan Disbursement"
+--   2. the GL journal source LENDING (copied from FACTORING) and its journal categories LND_DISBURSEMENT "Loan Disbursement"
+--      and LND_RECEIPT "Loan Receipt"
 --
 -- Then, for each lending product (Administration > Product Catalog, business line Microfinance or Consumer Finance), add in
 -- Administration > Product Event Rules a rule with code LND_DISBURSE, journal source LENDING, category LND_DISBURSEMENT:
@@ -19,6 +21,15 @@
 --   journal 1:         CREDIT fee income (CHARGE_IMMEDIATE) or unearned fee income (CHARGE_DEFERRED)
 -- Example, a loan of 50,000 with a 2% admin fee earned at once:
 --   DR Loans receivable 50,000.00 / CR Bank 49,000.00 / CR Fee income 1,000.00
+--
+-- and a rule with code LND_RECEIPT, journal source LENDING, category LND_RECEIPT, all in journal 1:
+--   DEBIT  account source "GL account of the bank account" BANK_RECEIPT_AMOUNT  (each bank account the money came into)
+--   DEBIT  customer credit balance (liability)             CREDIT_USED_AMOUNT
+--   CREDIT late fee receivable LATE_FEE_PAID, charges receivable CHARGES_PAID, insurance payable INSURANCE_PAID,
+--          interest receivable INTEREST_PAID, loans receivable PRINCIPAL_PAID
+--   CREDIT customer credit balance (liability)             CREDIT_KEPT_AMOUNT   (money beyond what is due on the value date)
+-- Example, 3,000 received against 2,000 interest and 4,800 principal due: DR Bank 3,000 / CR Interest receivable 2,000 /
+--   CR Loans receivable 1,000.
 -- =====================================================================================================================
 DO $$
 DECLARE
@@ -27,6 +38,7 @@ DECLARE
   v_bl     record;
   v_line   text;
   v_source bigint;
+  v_cat    record;
 BEGIN
   -- 1. business lines of the GL
   FOREACH v_line IN ARRAY ARRAY['MICROFINANCE', 'CONSUMER_FINANCE'] LOOP
@@ -63,23 +75,27 @@ BEGIN
   END IF;
   SELECT "SOURCE_ID" INTO v_source FROM "GL_JOURNAL_SOURCES" WHERE "SOURCE_CODE" = 'LENDING';
 
-  IF NOT EXISTS (SELECT 1 FROM "GL_JOURNAL_CATEGORIES" WHERE "CATEGORY_CODE" = 'LND_DISBURSEMENT') THEN
-    RAISE NOTICE 'Journal category LND_DISBURSEMENT will be added';
-    IF v_apply THEN
-      IF v_source IS NULL THEN
-        RAISE EXCEPTION 'Journal source FACTORING is missing, so LENDING could not be copied from it. Nothing changed.';
+  FOR v_cat IN SELECT * FROM (VALUES
+      ('LND_DISBURSEMENT', 'Loan Disbursement', 'صرف التمويل', 'A retail loan paid out: loans receivable against the bank account, less the charges taken.'),
+      ('LND_RECEIPT', 'Loan Receipt', 'تحصيل التمويل', 'A customer payment on a retail loan: the bank account or credit balance against each part paid.')) AS c(code, name_en, name_ar, descr)
+  LOOP
+    IF NOT EXISTS (SELECT 1 FROM "GL_JOURNAL_CATEGORIES" WHERE "CATEGORY_CODE" = v_cat.code) THEN
+      RAISE NOTICE 'Journal category % will be added', v_cat.code;
+      IF v_apply THEN
+        IF v_source IS NULL THEN
+          RAISE EXCEPTION 'Journal source FACTORING is missing, so LENDING could not be copied from it. Nothing changed.';
+        END IF;
+        INSERT INTO "GL_JOURNAL_CATEGORIES" ("CATEGORY_CODE", "CATEGORY_NAME_EN", "CATEGORY_NAME_AR", "CATEGORY_TYPE", "DEFAULT_SOURCE_ID",
+                                             "IS_REVERSAL_REQUIRED", "IS_MANUAL_ALLOWED", "IS_IMPORT_ALLOWED", "IS_ACTIVE", "DESCRIPTION",
+                                             "CREATED_BY", "CREATED_AT", "ROW_VERSION")
+        VALUES (v_cat.code, v_cat.name_en, v_cat.name_ar, 'SOURCE_ACCOUNTING', v_source, false, false, true, true, v_cat.descr, v_by, now(), 1);
       END IF;
-      INSERT INTO "GL_JOURNAL_CATEGORIES" ("CATEGORY_CODE", "CATEGORY_NAME_EN", "CATEGORY_NAME_AR", "CATEGORY_TYPE", "DEFAULT_SOURCE_ID",
-                                           "IS_REVERSAL_REQUIRED", "IS_MANUAL_ALLOWED", "IS_IMPORT_ALLOWED", "IS_ACTIVE", "DESCRIPTION",
-                                           "CREATED_BY", "CREATED_AT", "ROW_VERSION")
-      VALUES ('LND_DISBURSEMENT', 'Loan Disbursement', 'صرف التمويل', 'SOURCE_ACCOUNTING', v_source, false, false, true, true,
-              'A retail loan paid out: loans receivable against the bank account, less the charges taken.', v_by, now(), 1);
     END IF;
-  END IF;
+  END LOOP;
 
   IF NOT v_apply THEN
     RAISE NOTICE 'Preview only. Nothing was changed. Set v_apply := true and run again.';
   ELSE
-    RAISE NOTICE 'Done. Now add the rule LND_DISBURSE to each lending product (see the header).';
+    RAISE NOTICE 'Done. Now add the rules LND_DISBURSE and LND_RECEIPT to each lending product (see the header).';
   END IF;
 END $$;

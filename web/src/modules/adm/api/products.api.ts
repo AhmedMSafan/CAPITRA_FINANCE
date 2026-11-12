@@ -253,7 +253,15 @@ export const RULE_AMOUNTS = [
   { value: 'PURCHASE_PRICE', label: 'Purchase price (payable to developer)' },
   { value: 'CHEQUE_AMOUNT', label: 'Cheque amount (cheques received in the wallet)' },
   { value: 'PRINCIPAL_AMOUNT', label: 'Loan amount (retail loan payout)' },
-  { value: 'NET_PAYOUT_AMOUNT', label: 'Net paid out, after deducted charges (retail loan payout)' }
+  { value: 'NET_PAYOUT_AMOUNT', label: 'Net paid out, after deducted charges (retail loan payout)' },
+  { value: 'BANK_RECEIPT_AMOUNT', label: 'Money received in each bank account (retail loan receipt)' },
+  { value: 'CREDIT_USED_AMOUNT', label: 'Customer credit balance used (retail loan receipt)' },
+  { value: 'CREDIT_KEPT_AMOUNT', label: 'Money kept as customer credit balance (retail loan receipt)' },
+  { value: 'PRINCIPAL_PAID', label: 'Principal paid (retail loan receipt)' },
+  { value: 'INTEREST_PAID', label: 'Interest paid (retail loan receipt)' },
+  { value: 'CHARGES_PAID', label: 'Charges paid (retail loan receipt)' },
+  { value: 'INSURANCE_PAID', label: 'Insurance paid (retail loan receipt)' },
+  { value: 'LATE_FEE_PAID', label: 'Late fee paid (retail loan receipt)' }
 ]
 
 /** Figures of one charge a component GL line posts. */
