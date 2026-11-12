@@ -51,15 +51,17 @@ public sealed class LndReceiptTests
         Assert.Equal([("PRINCIPAL", 900m), ("INTEREST", 50m)], lines.Select(x => (x.PartCode, x.Amount)));
     }
 
-    private static ProductEventPlan Plan(params ProductEventGlLine[] lines) => new(9, "LND_RECEIPT", "LENDING", "LND_RECEIPT", [], lines);
+    private static ProductEventPlan Plan(IReadOnlyList<ProductEventGlLine> lines) => new(9, "LND_RECEIPT", "LENDING", "LND_RECEIPT", [], lines);
 
     private static readonly ProductEventPlan Standard = Plan(
+    [
         new(1, 1, null, null, "D", "BANK_RECEIPT_AMOUNT", true, null, "Received"),
         new(1, 2, null, null, "D", "CREDIT_USED_AMOUNT", false, "220501", "Credit used"),
         new(1, 3, null, null, "C", "LATE_FEE_PAID", false, "120502", "Late fee"),
         new(1, 4, null, null, "C", "INTEREST_PAID", false, "120402", "Interest receivable"),
         new(1, 5, null, null, "C", "PRINCIPAL_PAID", false, "120301", "Loans receivable"),
-        new(1, 6, null, null, "C", "CREDIT_KEPT_AMOUNT", false, "220501", "Credit kept"));
+        new(1, 6, null, null, "C", "CREDIT_KEPT_AMOUNT", false, "220501", "Credit kept"),
+    ]);
 
     [Fact]
     public void A_receipt_posts_each_bank_account_and_each_part()
@@ -85,10 +87,10 @@ public sealed class LndReceiptTests
     [Fact]
     public void A_rule_that_misses_a_part_paid_does_not_balance_and_is_refused()
     {
-        var noInterest = Plan(new(1, 1, null, null, "D", "BANK_RECEIPT_AMOUNT", true, null, null), new(1, 2, null, null, "C", "PRINCIPAL_PAID", false, "120301", null));
+        var noInterest = Plan([new(1, 1, null, null, "D", "BANK_RECEIPT_AMOUNT", true, null, null), new(1, 2, null, null, "C", "PRINCIPAL_PAID", false, "120301", null)]);
         Assert.Throws<BusinessRuleException>(() =>
             LndReceiptService.Lines(noInterest, new Dictionary<string, decimal> { ["INTEREST"] = 100, ["PRINCIPAL"] = 400 }, [("110102", 500m)], 0, 0));
-        var wrong = Plan(new(1, 1, null, null, "D", "FACE_VALUE", false, "1", null));
+        var wrong = Plan([new(1, 1, null, null, "D", "FACE_VALUE", false, "1", null)]);
         Assert.Throws<BusinessRuleException>(() => LndReceiptService.Lines(wrong, new Dictionary<string, decimal>(), [], 0, 0));
     }
 }
