@@ -26,7 +26,7 @@
             <td>{{ w.requestedBy }}<br><small>{{ formatDateTime(w.requestedAt) }}</small></td>
             <td>{{ w.reason }}</td>
             <td class="wo-num">{{ money(w.figures.totalAmount) }}</td>
-            <td><span class="fx-chip" :class="CHIP[w.statusCode]">{{ tr(STATUS[w.statusCode]) }}</span></td>
+            <td><span class="fx-chip" :class="CHIP[w.statusCode]">{{ tr(STATUS[w.statusCode] ?? w.statusCode) }}</span></td>
             <td><template v-if="w.decidedBy">{{ w.decidedBy }}<br><small>{{ w.decidedAt ? formatDateTime(w.decidedAt) : '' }}{{ w.decisionNotes ? ' · ' + w.decisionNotes : '' }}</small></template></td>
             <td>{{ w.glTranSetId ?? '' }}</td>
             <td class="wo-actions">

@@ -4,6 +4,7 @@ using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Adm.Products;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Gl;
+using Capitra.Application.Modules.Gl.Journals;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Lnd;
 using Microsoft.EntityFrameworkCore;
