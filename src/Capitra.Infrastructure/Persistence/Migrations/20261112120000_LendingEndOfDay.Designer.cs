@@ -28041,7 +28041,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("RunDate")
                         .IsUnique()
-                        .HasDatabaseName("IX_LND_EOD_RUNS_RUN_DATE");
+                        .HasDatabaseName("UQ_LND_EOD_RUNS_RUN_DATE");
 
                     b.ToTable("LND_EOD_RUNS", (string)null);
                 });

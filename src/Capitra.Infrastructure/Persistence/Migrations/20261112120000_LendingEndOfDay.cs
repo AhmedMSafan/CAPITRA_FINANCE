@@ -98,7 +98,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_LND_EOD_RUNS_RUN_DATE",
+                name: "UQ_LND_EOD_RUNS_RUN_DATE",
                 table: "LND_EOD_RUNS",
                 column: "RUN_DATE",
                 unique: true);
