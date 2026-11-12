@@ -42,7 +42,7 @@ public sealed record LndReceiptsPageDto(
 /// receipts). LndAllocator applies it in the loan's payment order; the rest stays as credit. GL posts the rule LND_RECEIPT of the
 /// loan's product. The receipt, its sources, the allocations, the instalments, the loan event and GL succeed or fail together.
 /// </summary>
-public sealed class LndReceiptService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, AdmProductEventRuleService rules,
+public sealed class LndReceiptService(ICapitraDbContext db, IClock clock, AdmProductEventRuleService rules,
     ProductActionPosting posting, LndLoanService loans)
 {
     public const string RuleCode = "LND_RECEIPT";
