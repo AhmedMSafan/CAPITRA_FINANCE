@@ -131,6 +131,21 @@
             </div>
 
             <div class="lt-group">
+              <h4>{{ tr('Paying early') }}</h4>
+              <p class="c3-muted">{{ tr('A part prepayment or an early settlement pays the interest of the current period to the day, never later interest. The fee is a percentage of the principal paid early.') }}</p>
+              <div class="c3-grid c3-grid--4">
+                <label class="fc-field lt-check"><input v-model="form.isPrepaymentAllowed" type="checkbox"><span>{{ tr('The customer may pay early') }}</span></label>
+                <template v-if="form.isPrepaymentAllowed">
+                  <label class="fc-field" :class="bad('prepaymentRecalcCode')"><span>{{ tr('After a part prepayment') }}<b> *</b></span>
+                    <select v-model="form.prepaymentRecalcCode" class="fx-select"><option v-for="o in data.options.prepaymentRecalcs" :key="o.value" :value="o.value">{{ tr(o.label) }}</option></select>
+                  </label>
+                  <label class="fc-field" :class="bad('prepaymentFeePct')"><span>{{ tr('Part prepayment fee') }} (%)</span><input v-model.number="form.prepaymentFeePct" type="number" min="0" max="100" step="any" class="fx-search"></label>
+                  <label class="fc-field" :class="bad('earlySettlementFeePct')"><span>{{ tr('Early settlement fee') }} (%)</span><input v-model.number="form.earlySettlementFeePct" type="number" min="0" max="100" step="any" class="fx-search"></label>
+                </template>
+              </div>
+            </div>
+
+            <div class="lt-group">
               <h4>{{ tr('Payment order') }}</h4>
               <p class="c3-muted">{{ tr('A payment clears the oldest instalment first, in this order within it.') }}</p>
               <ol class="lt-order" :class="bad('paymentOrder')">
@@ -225,7 +240,8 @@ function lateFeeText(v: LendingVersion) {
 const form = reactive<Omit<LendingVersionSave, 'rowVersion'>>({
   effectiveFromDate: null, minAmount: null, maxAmount: null, minTermMonths: null, maxTermMonths: null, repaymentFrequencyCode: 'MONTHLY',
   interestMethodCode: 'DECLINING', annualRatePct: null, dayCountCode: 'ACT_365', lateFeeGraceDays: null, lateFeeTypeCode: 'NONE', lateFeeRatePct: null,
-  lateFeeFlatAmount: null, lateFeeBaseCode: 'OVERDUE_INSTALMENT', paymentOrder: [], isInsuranceRequired: false, changeReason: null
+  lateFeeFlatAmount: null, lateFeeBaseCode: 'OVERDUE_INSTALMENT', paymentOrder: [], isInsuranceRequired: false, isPrepaymentAllowed: true,
+  prepaymentRecalcCode: 'REDUCE_INSTALMENT', prepaymentFeePct: 0, earlySettlementFeePct: 0, changeReason: null
 })
 
 function fill(v: LendingVersion | null) {
@@ -235,7 +251,9 @@ function fill(v: LendingVersion | null) {
     effectiveFromDate: v.effectiveFromDate, minAmount: v.minAmount, maxAmount: v.maxAmount, minTermMonths: v.minTermMonths, maxTermMonths: v.maxTermMonths,
     repaymentFrequencyCode: v.repaymentFrequencyCode, interestMethodCode: v.interestMethodCode, annualRatePct: v.annualRatePct, dayCountCode: v.dayCountCode,
     lateFeeGraceDays: v.lateFeeGraceDays, lateFeeTypeCode: v.lateFeeTypeCode, lateFeeRatePct: v.lateFeeRatePct, lateFeeFlatAmount: v.lateFeeFlatAmount,
-    lateFeeBaseCode: v.lateFeeBaseCode, paymentOrder: [...v.paymentOrder], isInsuranceRequired: v.isInsuranceRequired, changeReason: v.changeReason
+    lateFeeBaseCode: v.lateFeeBaseCode, paymentOrder: [...v.paymentOrder], isInsuranceRequired: v.isInsuranceRequired,
+    isPrepaymentAllowed: v.isPrepaymentAllowed, prepaymentRecalcCode: v.prepaymentRecalcCode, prepaymentFeePct: v.prepaymentFeePct,
+    earlySettlementFeePct: v.earlySettlementFeePct, changeReason: v.changeReason
   })
 }
 

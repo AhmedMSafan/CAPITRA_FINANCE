@@ -277,7 +277,8 @@ export const RULE_AMOUNTS = [
   { value: 'LATE_FEE_SUSPENSE_WRITTEN_OFF', label: 'Late fee receivable written off against suspense (retail write-off)' },
   { value: 'CHARGES_WRITTEN_OFF', label: 'Charges due written off (retail write-off)' },
   { value: 'INSURANCE_WRITTEN_OFF', label: 'Insurance due written off (retail write-off)' },
-  { value: 'RECOVERY_AMOUNT', label: 'Recovered on a written-off loan (retail recovery)' }
+  { value: 'RECOVERY_AMOUNT', label: 'Recovered on a written-off loan (retail recovery)' },
+  { value: 'PREPAYMENT_FEE_AMOUNT', label: 'Prepayment or early settlement fee (retail loan receipt)' }
 ]
 
 /** Figures of one charge a component GL line posts. */

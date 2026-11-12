@@ -36,6 +36,7 @@ export type Loan = {
   installmentAmount: number; totalInterestAmount: number; disbursementDate: string; firstDueDate: string; maturityDate: string
   repaymentFrequencyCode: string; interestMethodCode: string; annualRatePct: number; dayCountCode: string; lateFeeGraceDays: number; lateFeeTypeCode: string
   lateFeeRatePct: number | null; lateFeeFlatAmount: number | null; lateFeeBaseCode: string; paymentOrder: string[]; isInsuranceRequired: boolean
+  isPrepaymentAllowed: boolean; prepaymentRecalcCode: string; prepaymentFeePct: number; earlySettlementFeePct: number
   notes: string | null; createdBy: string; createdAt: string; rowVersion: number
   installments: Installment[]
   history: { fromStatusCode: string | null; toStatusCode: string; reason: string | null; by: string; at: string }[]
@@ -86,6 +87,10 @@ export const loansApi = {
   receiptPreview: (id: number, valueDate: string, amount: number) =>
     http.get<ReceiptPreview>(`${API}/${id}/receipts/preview?valueDate=${encodeURIComponent(valueDate)}&amount=${amount}`),
   receive: (id: number, body: { valueDate: string | null; sources: ReceiptSource[]; notes: string | null }) => http.post<ReceiptsPage>(`${API}/${id}/receipts`, body),
+  prepaymentQuote: (id: number, kind: 'PREPAY' | 'SETTLE', principal: number | null) =>
+    http.get<PrepaymentQuote>(`${API}/${id}/receipts/prepayment-quote?kind=${kind}${principal ? `&principal=${principal}` : ''}`),
+  prepay: (id: number, body: { kind: 'PREPAY' | 'SETTLE'; principalAmount: number | null; sources: ReceiptSource[]; notes: string | null }) =>
+    http.post<ReceiptsPage>(`${API}/${id}/receipts/prepayment`, body),
   reversalPreview: (id: number, txnId: number) => http.get<ReversalPreview>(`${API}/${id}/receipts/${txnId}/reversal`),
   reverse: (id: number, txnId: number, reason: string) => http.post<ReceiptsPage>(`${API}/${id}/receipts/${txnId}/reverse`, { reason })
 }
@@ -95,4 +100,11 @@ export type ReversalPreview = {
   blocked: string | null; reopensLoan: boolean
   replayed: { repaymentTxnId: number; repaymentNumber: string; valueDate: string; receiptAmount: number; allocatedBefore: number; allocatedAfter: number
     creditKeptBefore: number; creditKeptAfter: number }[]
+}
+
+export type PrepaymentQuote = {
+  kind: 'PREPAY' | 'SETTLE'; date: string; duesAmount: number; interestToDate: number; principalAmount: number; feeAmount: number; totalAmount: number
+  principalNotDue: number; recalcCode: string; feePct: number
+  newSchedule: { installmentNo: number; dueDate: string; principal: number; interest: number; total: number; closingPrincipal: number }[]
+  problem: string | null
 }

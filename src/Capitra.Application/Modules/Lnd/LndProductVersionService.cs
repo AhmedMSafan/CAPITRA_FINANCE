@@ -13,7 +13,8 @@ public sealed record LndProductVersionDto(
     long ProductVersionId, int VersionNo, DateOnly EffectiveFromDate, string StatusCode, bool IsInForce,
     decimal MinAmount, decimal MaxAmount, int MinTermMonths, int MaxTermMonths, string RepaymentFrequencyCode, string InterestMethodCode,
     decimal AnnualRatePct, string DayCountCode, int LateFeeGraceDays, string LateFeeTypeCode, decimal? LateFeeRatePct, decimal? LateFeeFlatAmount,
-    string LateFeeBaseCode, IReadOnlyList<string> PaymentOrder, bool IsInsuranceRequired, string? ChangeReason,
+    string LateFeeBaseCode, IReadOnlyList<string> PaymentOrder, bool IsInsuranceRequired, bool IsPrepaymentAllowed, string PrepaymentRecalcCode,
+    decimal PrepaymentFeePct, decimal EarlySettlementFeePct, string? ChangeReason,
     string CreatedBy, string? RequestedBy, DateTime? RequestedAt, string? DecidedBy, DateTime? DecidedAt, string? DecisionNotes,
     bool CanApprove, string? ApproveBlockedReason, int RowVersion);
 
@@ -23,7 +24,8 @@ public sealed record LndLendingProductDto(
 
 public sealed record LndProductOptionsDto(
     IReadOnlyList<CrmOptionDto> Frequencies, IReadOnlyList<CrmOptionDto> InterestMethods, IReadOnlyList<CrmOptionDto> DayCounts,
-    IReadOnlyList<CrmOptionDto> LateFeeTypes, IReadOnlyList<CrmOptionDto> LateFeeBases, IReadOnlyList<CrmOptionDto> PaymentParts);
+    IReadOnlyList<CrmOptionDto> LateFeeTypes, IReadOnlyList<CrmOptionDto> LateFeeBases, IReadOnlyList<CrmOptionDto> PaymentParts,
+    IReadOnlyList<CrmOptionDto> PrepaymentRecalcs);
 
 public sealed record LndProductTermsPageDto(
     DateOnly Today, bool CanEdit, bool CanApprove, IReadOnlyList<LndLendingProductDto> Products, LndProductOptionsDto Options);
@@ -31,7 +33,8 @@ public sealed record LndProductTermsPageDto(
 public sealed record LndProductVersionSaveDto(
     DateOnly? EffectiveFromDate, decimal? MinAmount, decimal? MaxAmount, int? MinTermMonths, int? MaxTermMonths, string? RepaymentFrequencyCode,
     string? InterestMethodCode, decimal? AnnualRatePct, string? DayCountCode, int? LateFeeGraceDays, string? LateFeeTypeCode, decimal? LateFeeRatePct,
-    decimal? LateFeeFlatAmount, string? LateFeeBaseCode, IReadOnlyList<string>? PaymentOrder, bool IsInsuranceRequired, string? ChangeReason, int? RowVersion);
+    decimal? LateFeeFlatAmount, string? LateFeeBaseCode, IReadOnlyList<string>? PaymentOrder, bool IsInsuranceRequired, string? ChangeReason, int? RowVersion,
+    bool IsPrepaymentAllowed = true, string? PrepaymentRecalcCode = null, decimal? PrepaymentFeePct = null, decimal? EarlySettlementFeePct = null);
 
 public sealed record LndProductDecisionDto(string? Notes);
 
@@ -69,7 +72,7 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
                         .Select(v => ToDto(v, v.ProductVersionId == inForce?.ProductVersionId, canApprove))]);
             })],
             new LndProductOptionsDto(LndProductTerms.Frequencies, LndProductTerms.InterestMethods, LndProductTerms.DayCounts,
-                LndProductTerms.LateFeeTypes, LndProductTerms.LateFeeBases, LndProductTerms.PaymentParts));
+                LndProductTerms.LateFeeTypes, LndProductTerms.LateFeeBases, LndProductTerms.PaymentParts, LndProductTerms.PrepaymentRecalcs));
     }
 
     /// <summary>A new draft, copied from the latest approved version (or the defaults for a product without one), starting today.</summary>
@@ -115,6 +118,10 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
         v.LateFeeBaseCode = string.IsNullOrWhiteSpace(dto.LateFeeBaseCode) ? "OVERDUE_INSTALMENT" : Code(dto.LateFeeBaseCode);
         v.PaymentOrder = string.Join(",", (dto.PaymentOrder ?? []).Select(Code));
         v.IsInsuranceRequired = dto.IsInsuranceRequired;
+        v.IsPrepaymentAllowed = dto.IsPrepaymentAllowed;
+        v.PrepaymentRecalcCode = string.IsNullOrWhiteSpace(dto.PrepaymentRecalcCode) ? "REDUCE_INSTALMENT" : Code(dto.PrepaymentRecalcCode);
+        v.PrepaymentFeePct = dto.PrepaymentFeePct ?? 0;
+        v.EarlySettlementFeePct = dto.EarlySettlementFeePct ?? 0;
         v.ChangeReason = Blank(dto.ChangeReason);
         if (v.EffectiveFromDate < Today && !missing.ContainsKey("effectiveFromDate"))
             missing["effectiveFromDate"] = ["A version cannot start before today."];
@@ -217,7 +224,8 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
     private LndProductVersionDto ToDto(LndProductVersion v, bool inForce, bool canApprove) =>
         new(v.ProductVersionId, v.VersionNo, v.EffectiveFromDate, v.StatusCode, inForce, v.MinAmount, v.MaxAmount, v.MinTermMonths, v.MaxTermMonths,
             v.RepaymentFrequencyCode, v.InterestMethodCode, v.AnnualRatePct, v.DayCountCode, v.LateFeeGraceDays, v.LateFeeTypeCode, v.LateFeeRatePct,
-            v.LateFeeFlatAmount, v.LateFeeBaseCode, LndProductTerms.Parts(v.PaymentOrder), v.IsInsuranceRequired, v.ChangeReason,
+            v.LateFeeFlatAmount, v.LateFeeBaseCode, LndProductTerms.Parts(v.PaymentOrder), v.IsInsuranceRequired, v.IsPrepaymentAllowed, v.PrepaymentRecalcCode,
+            v.PrepaymentFeePct, v.EarlySettlementFeePct, v.ChangeReason,
             v.CreatedBy, v.RequestedBy, v.RequestedAt, v.DecidedBy, v.DecidedAt, v.DecisionNotes,
             v.StatusCode == S.Pending && canApprove && !SameUser(v.RequestedBy),
             v.StatusCode == S.Pending && SameUser(v.RequestedBy) ? "You sent this version; another user must approve it." : null, v.RowVersion);
@@ -228,7 +236,8 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
         RepaymentFrequencyCode = f.RepaymentFrequencyCode, InterestMethodCode = f.InterestMethodCode, AnnualRatePct = f.AnnualRatePct,
         DayCountCode = f.DayCountCode, LateFeeGraceDays = f.LateFeeGraceDays, LateFeeTypeCode = f.LateFeeTypeCode, LateFeeRatePct = f.LateFeeRatePct,
         LateFeeFlatAmount = f.LateFeeFlatAmount, LateFeeBaseCode = f.LateFeeBaseCode, PaymentOrder = f.PaymentOrder,
-        IsInsuranceRequired = f.IsInsuranceRequired,
+        IsInsuranceRequired = f.IsInsuranceRequired, IsPrepaymentAllowed = f.IsPrepaymentAllowed, PrepaymentRecalcCode = f.PrepaymentRecalcCode,
+        PrepaymentFeePct = f.PrepaymentFeePct, EarlySettlementFeePct = f.EarlySettlementFeePct,
     };
 
     private static string Code(string? s) => (s ?? "").Trim().ToUpperInvariant();

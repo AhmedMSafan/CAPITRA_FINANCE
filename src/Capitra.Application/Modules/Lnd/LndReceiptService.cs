@@ -48,7 +48,7 @@ public sealed record LndReceiptsPageDto(
 /// rule LND_RECOVERY (BANK_RECEIPT_AMOUNT, CREDIT_USED_AMOUNT, RECOVERY_AMOUNT, CREDIT_KEPT_AMOUNT). The loan stays WRITTEN_OFF.
 /// </para>
 /// </summary>
-public sealed class LndReceiptService(ICapitraDbContext db, IClock clock, AdmProductEventRuleService rules,
+public sealed partial class LndReceiptService(ICapitraDbContext db, IClock clock, AdmProductEventRuleService rules,
     ProductActionPosting posting, LndLoanService loans)
 {
     public const string RuleCode = "LND_RECEIPT";
@@ -74,7 +74,8 @@ public sealed class LndReceiptService(ICapitraDbContext db, IClock clock, AdmPro
                               select new LndDepositAccountDto(a.AccountId, b.BankNameEn + " · " + a.AccountRef + " · " + a.AccountNo,
                                   !string.IsNullOrEmpty(a.ErpAccountCode))).ToListAsync(cancellationToken);
         var txnIds = await db.Set<LndLoanEvent>().AsNoTracking()
-            .Where(x => x.LoanId == loanId && (x.EventCode == "RECEIPT" || x.EventCode == "RECOVERY") && x.SourceDocumentId != null).Select(x => x.SourceDocumentId!.Value).ToListAsync(cancellationToken);
+            .Where(x => x.LoanId == loanId && (x.EventCode == "RECEIPT" || x.EventCode == "RECOVERY" || x.EventCode == "PREPAYMENT" || x.EventCode == "SETTLEMENT")
+                && x.SourceDocumentId != null).Select(x => x.SourceDocumentId!.Value).ToListAsync(cancellationToken);
         var txns = await db.Set<ColRepaymentTransaction>().AsNoTracking().Where(x => txnIds.Contains(x.RepaymentTxnId))
             .OrderByDescending(x => x.RepaymentTxnId).ToListAsync(cancellationToken);
         var sources = await db.Set<ColRepaymentSource>().AsNoTracking().Where(x => txnIds.Contains(x.RepaymentTxnId)).ToListAsync(cancellationToken);
@@ -247,16 +248,18 @@ public sealed class LndReceiptService(ICapitraDbContext db, IClock clock, AdmPro
     /// </summary>
     public static IReadOnlyList<ProductEventPostingLine> Lines(
         ProductEventPlan plan, IReadOnlyDictionary<string, decimal> paid, IReadOnlyList<(string GlAccount, decimal Amount)> banks, decimal creditUsed, decimal creditKept,
-        decimal? recovered = null)
+        decimal? recovered = null, decimal fee = 0)
     {
         var allowed = (recovered is null
-            ? new[] { "BANK_RECEIPT_AMOUNT", "CREDIT_USED_AMOUNT", "CREDIT_KEPT_AMOUNT" }.Concat(Parts.Select(p => p + "_PAID"))
+            ? new[] { "BANK_RECEIPT_AMOUNT", "CREDIT_USED_AMOUNT", "CREDIT_KEPT_AMOUNT", "PREPAYMENT_FEE_AMOUNT" }.Concat(Parts.Select(p => p + "_PAID"))
             : new[] { "BANK_RECEIPT_AMOUNT", "CREDIT_USED_AMOUNT", "CREDIT_KEPT_AMOUNT", "RECOVERY_AMOUNT" }).ToHashSet();
         var other = plan.Lines.Where(l => l.ChargeCode is not null || !allowed.Contains(l.AmountCode)).Select(l => l.ChargeCode ?? l.AmountCode).Distinct().ToList();
         if (other.Count > 0)
             throw new BusinessRuleException($"Rule {plan.RuleCode} posts {string.Join(", ", other)}; {(recovered is null ? "a loan receipt" : "a recovery")} gives only {string.Join(", ", allowed)}.");
         if (recovered > 0 && !plan.Lines.Any(l => l.AmountCode == "RECOVERY_AMOUNT"))
             throw new BusinessRuleException($"Rule {plan.RuleCode} has no line for RECOVERY_AMOUNT (CR recovery income).");
+        if (fee > 0 && !plan.Lines.Any(l => l.AmountCode == "PREPAYMENT_FEE_AMOUNT"))
+            throw new BusinessRuleException($"Rule {plan.RuleCode} has no line for PREPAYMENT_FEE_AMOUNT (CR prepayment and settlement fee income).");
         if (banks.Count > 0 && !plan.Lines.Any(l => l.AmountCode == "BANK_RECEIPT_AMOUNT" && l.FromBankAccount))
             throw new BusinessRuleException($"Rule {plan.RuleCode} has no line taking BANK_RECEIPT_AMOUNT into the bank account.");
 
@@ -283,6 +286,7 @@ public sealed class LndReceiptService(ICapitraDbContext db, IClock clock, AdmPro
                 "CREDIT_USED_AMOUNT" => creditUsed,
                 "CREDIT_KEPT_AMOUNT" => creditKept,
                 "RECOVERY_AMOUNT" => recovered ?? 0,
+                "PREPAYMENT_FEE_AMOUNT" => fee,
                 _ => paid.GetValueOrDefault(l.AmountCode[..^"_PAID".Length]),
             };
             if (value == 0) continue;

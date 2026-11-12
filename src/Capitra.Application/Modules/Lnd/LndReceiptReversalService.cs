@@ -114,6 +114,9 @@ public sealed class LndReceiptReversalService(ICapitraDbContext db, IClock clock
     {
         var loan = await db.Set<LndLoan>().SingleOrDefaultAsync(x => x.LoanId == loanId, cancellationToken)
             ?? throw new NotFoundException($"Loan {loanId} was not found.");
+        if (await db.Set<LndLoanEvent>().AsNoTracking().AnyAsync(x => x.LoanId == loanId && x.SourceDocumentId == txnId
+                && (x.EventCode == "PREPAYMENT" || x.EventCode == "SETTLEMENT"), cancellationToken))
+            throw new BusinessRuleException("A part prepayment or early settlement changed the schedule and cannot be reversed here.");
         var ev = await db.Set<LndLoanEvent>().AsNoTracking()
             .Where(x => x.LoanId == loanId && x.SourceDocumentId == txnId && (x.EventCode == "RECEIPT" || x.EventCode == "RECOVERY")).FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException($"Receipt {txnId} is not a receipt of this loan.");
@@ -125,6 +128,8 @@ public sealed class LndReceiptReversalService(ICapitraDbContext db, IClock clock
             : loan.StatusCode == St.WrittenOff && !recovery ? "The loan is written off: only recoveries received after the write-off can be reversed."
             : loan.StatusCode is not (St.Active or St.Closed or St.WrittenOff) ? $"The loan is {loan.StatusCode.ToLowerInvariant()}."
             : await CreditUsedByAsync(txnId, cancellationToken) is { } user ? $"The credit kept by {txn.RepaymentNumber} was used by receipt {user}. Reverse {user} first."
+            : await EarlyPaidSinceAsync(loanId, txn.ValueDate, cancellationToken)
+                ? "A part prepayment or early settlement was made on or after this receipt's value date and rebuilt the schedule: it cannot be reversed here."
             : null;
         if (blocked is not null || recovery)
             return new Plan(loan, txn, recovery, schedule, [], [], [], blocked);
@@ -161,6 +166,13 @@ public sealed class LndReceiptReversalService(ICapitraDbContext db, IClock clock
         }
         return new Plan(loan, txn, false, schedule, later, replay, allocations.Where(a => a.RepaymentTxnId == txnId || later.Any(l => l.RepaymentTxnId == a.RepaymentTxnId)).ToList(), blocked);
     }
+
+    /// <summary>Whether a part prepayment or early settlement of the loan has a value date on or after the day.</summary>
+    private Task<bool> EarlyPaidSinceAsync(long loanId, DateOnly day, CancellationToken cancellationToken) =>
+        (from e in db.Set<LndLoanEvent>().AsNoTracking()
+         join t in db.Set<ColRepaymentTransaction>().AsNoTracking() on e.SourceDocumentId equals (long?)t.RepaymentTxnId
+         where e.LoanId == loanId && (e.EventCode == "PREPAYMENT" || e.EventCode == "SETTLEMENT") && t.StatusCode == "POSTED" && t.ValueDate >= day
+         select e).AnyAsync(cancellationToken);
 
     /// <summary>The receipt that used credit kept by this one, if any (still posted).</summary>
     private async Task<string?> CreditUsedByAsync(long txnId, CancellationToken cancellationToken) =>
