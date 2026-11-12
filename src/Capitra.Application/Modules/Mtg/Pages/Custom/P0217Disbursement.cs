@@ -194,7 +194,7 @@ internal static class P0217Input
         if (string.IsNullOrWhiteSpace(x))
             return null;
         var list = new List<MtgDisbursementChargeInput>();
-        foreach (var e in JsonDocument.Parse(x).RootElement.EnumerateArray())
+        foreach (var e in JsonElement.Parse(x).EnumerateArray())
         {
             string? S(string n) => e.TryGetProperty(n, out var v) && v.ValueKind != JsonValueKind.Null
                 ? v.ValueKind == JsonValueKind.String ? v.GetString() : v.GetRawText() : null;
