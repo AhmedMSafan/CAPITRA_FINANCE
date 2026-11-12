@@ -94,7 +94,7 @@ public sealed class LndReceiptService(ICapitraDbContext db, IClock clock, AdmPro
     public async Task<(decimal WrittenOff, decimal Recovered)> RecoveryAsync(long loanId, CancellationToken cancellationToken)
     {
         var writtenOff = await db.Set<LndWriteOff>().AsNoTracking().Where(x => x.LoanId == loanId && x.StatusCode == "APPROVED").SumAsync(x => x.TotalAmount, cancellationToken);
-        var recovered = await db.Set<LndLoanEvent>().AsNoTracking().Where(x => x.LoanId == loanId && x.EventCode == "RECOVERY").SumAsync(x => x.EventAmount, cancellationToken);
+        var recovered = await db.Set<LndLoanEvent>().AsNoTracking().Where(x => x.LoanId == loanId && (x.EventCode == "RECOVERY" || x.EventCode == "RECOVERY_REVERSED")).SumAsync(x => x.EventAmount, cancellationToken);
         return (writtenOff, recovered);
     }
 
@@ -406,7 +406,7 @@ public sealed class LndReceiptService(ICapitraDbContext db, IClock clock, AdmPro
          select s.SourceAmount - s.AllocatedAmount).SumAsync(cancellationToken);
 
     /// <summary>Uses the credit balance oldest receipt first: each use is a CREDIT_BALANCE source pointing at the receipt it came from.</summary>
-    private async Task UseCreditAsync(ColRepaymentTransaction txn, long clientId, decimal amount, CancellationToken cancellationToken)
+    internal async Task UseCreditAsync(ColRepaymentTransaction txn, long clientId, decimal amount, CancellationToken cancellationToken)
     {
         var open = await (from s in db.Set<ColRepaymentSource>()
                           join t in db.Set<ColRepaymentTransaction>() on s.RepaymentTxnId equals t.RepaymentTxnId
@@ -456,7 +456,7 @@ public sealed class LndReceiptService(ICapitraDbContext db, IClock clock, AdmPro
             .Select(i => new LndInstallmentOwed(i.InstallmentId, i.InstallmentNo, i.DueDate, Owed(i)))];
     }
 
-    private static Dictionary<string, decimal> Owed(LndInstallment i) => new()
+    internal static Dictionary<string, decimal> Owed(LndInstallment i) => new()
     {
         ["LATE_FEE"] = i.LateFeeDueAmount - i.LateFeePaidAmount,
         ["CHARGES"] = i.ChargesDueAmount - i.ChargesPaidAmount,
