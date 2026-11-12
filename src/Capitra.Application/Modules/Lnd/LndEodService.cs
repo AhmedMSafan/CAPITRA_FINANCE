@@ -172,8 +172,8 @@ public sealed class LndEodService(ICapitraDbContext db, IClock clock, ILndParame
     }
 
     /// <summary>Step 2, in one transaction: every loan's day, the events, GL per product, and the run done.</summary>
-    private async Task ProcessAsync(long runId, DateOnly day, decimal creditApplied, IReadOnlyDictionary<string, int> nonAccrualDays,
-        IReadOnlyDictionary<string, int> writeOffDays, CancellationToken cancellationToken)
+    private async Task ProcessAsync(long runId, DateOnly day, decimal creditApplied, Dictionary<string, int> nonAccrualDays,
+        Dictionary<string, int> writeOffDays, CancellationToken cancellationToken)
     {
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
         var loans = await db.Set<LndLoan>()
