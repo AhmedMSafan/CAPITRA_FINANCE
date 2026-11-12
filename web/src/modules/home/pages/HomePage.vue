@@ -27,7 +27,7 @@
     </section>
 
     <div class="fm-sec">
-      <h2>{{ tr(group === 'mortgage' ? 'Mortgage applications' : group === 'collection' ? 'Collection and repayments' : 'Business applications') }}</h2>
+      <h2>{{ tr(group === 'mortgage' ? 'Mortgage applications' : group === 'collection' ? 'Collection and repayments' : group === 'lending' ? 'Retail lending' : 'Business applications') }}</h2>
       <router-link v-if="group" to="/" class="fm-back"><span v-html="icon(BACK, 15)"></span>{{ tr('All applications') }}</router-link>
     </div>
     <div class="fm-grid fm-grid--1">
@@ -63,11 +63,11 @@ import { getUser } from '@/shared/auth/session'
 import { language, tr } from '@/shared/layout/language'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 
-type App = { tier: 1 | 2 | 'mortgage' | 'collection'; name: string; short: string; descr: string; to: string | null; color: string; tint: string; icon: string; feats: string[]; inbox?: boolean }
+type App = { tier: 1 | 2 | 'mortgage' | 'collection' | 'lending'; name: string; short: string; descr: string; to: string | null; color: string; tint: string; icon: string; feats: string[]; inbox?: boolean }
 
 // group 'mortgage' (route /mortgage-applications) shows the three mortgage applications behind the Mortgage card;
 // group 'collection' (route /collection-repayments) the two APEX App 136 functions behind the Collection and Repayments card
-const props = defineProps<{ group?: 'mortgage' | 'collection' }>()
+const props = defineProps<{ group?: 'mortgage' | 'collection' | 'lending' }>()
 
 const user = getUser()
 const displayName = user?.fullName?.trim() || user?.userName?.trim() || 'CAPITRA User'
@@ -91,6 +91,19 @@ const apps: App[] = [
     to: '/factoring', color: '#00636D', tint: '#E6F3F4',
     icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-1M12 11v1"/><path d="M10 16.2c.4.5 1.1.8 2 .8 1.1 0 2-.6 2-1.5s-.9-1.3-2-1.5-2-.6-2-1.5.9-1.5 2-1.5c.9 0 1.6.3 2 .8"/>',
     feats: [] },
+  // Retail Lending (microfinance and consumer finance): its card opens the module's own cards, as Mortgage does
+  { tier: 1, name: 'Retail Lending', short: 'Lending', descr: 'Microfinance and consumer finance loans: payout, repayments, end of day, write-off and recovery.',
+    to: '/retail-lending', color: '#7A3E9D', tint: '#F4ECF9',
+    icon: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/><circle cx="17" cy="15" r="1.5"/>',
+    feats: ['Loans', 'End of Day', 'Lending Parameters', 'Lending Product Terms'] },
+  { tier: 'lending', name: 'Loans', short: 'Loans', descr: 'Microfinance and consumer finance loans: schedule, payout, payments, paying early, write-off and recovery.',
+    to: '/lnd/loans', color: '#7A3E9D', tint: '#F4ECF9', icon: '<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/>', feats: [] },
+  { tier: 'lending', name: 'End of Day', short: 'End of Day', descr: 'Each business day: interest accrual, late fees, non-accrual and suspense, and loans proposed for write-off.',
+    to: '/lnd/eod', color: '#00636D', tint: '#E6F3F4', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', feats: [] },
+  { tier: 'lending', name: 'Lending Parameters', short: 'Parameters', descr: 'The legal limits and policy values of each licence, each with an effective date and a second user\'s approval.',
+    to: '/lnd/parameters', color: '#E87722', tint: '#FFF1E6', icon: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/>', feats: [] },
+  { tier: 'lending', name: 'Lending Product Terms', short: 'Products', descr: 'The versioned terms of each lending product: amounts, terms, rate, late fee, payment order and paying early.',
+    to: '/admin/products/lending', color: '#475569', tint: '#EEF2F6', icon: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><path d="M7 7h.01"/>', feats: [] },
   // APEX App 136 "Collection And Repayments": its Home cards except Cheques Movements; not built yet
   { tier: 1, name: 'Collection and Repayments', short: 'Collection', descr: 'Cheques collection and customer repayment transactions.',
     to: '/collection-repayments', color: '#E87722', tint: '#FFF1E6',
@@ -132,8 +145,8 @@ const apps: App[] = [
 ]
 const tier = (n: App['tier']) => apps.filter((a) => a.tier === n)
 const business = computed(() => tier(props.group ?? 1))
-// the live applications themselves: the Mortgage and Collection and Repayments cards only open their cards
-const live = computed(() => apps.filter((a) => a.to && !['Mortgage', 'Collection and Repayments'].includes(a.name)).length)
+// the live applications themselves: the Mortgage, Collection and Repayments and Retail Lending cards only open their cards
+const live = computed(() => apps.filter((a) => a.to && !['Mortgage', 'Collection and Repayments', 'Retail Lending'].includes(a.name)).length)
 
 const tasks = ref<number | null>(null)
 onMounted(async () => {

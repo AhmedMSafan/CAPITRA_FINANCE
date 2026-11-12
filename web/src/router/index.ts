@@ -47,6 +47,14 @@ const router = createRouter({
           props: { group: 'collection' },
           meta: { moduleName: 'HOME', functionName: 'Collection and Repayments' }
         },
+        // the Retail Lending card of Home: the same page with the lending cards
+        {
+          path: 'retail-lending',
+          name: 'home-lending',
+          component: () => import('@/modules/home/pages/HomePage.vue'),
+          props: { group: 'lending' },
+          meta: { moduleName: 'HOME', functionName: 'Retail Lending' }
+        },
         // the CRM card of Home opens Customers
         { path: 'crm', name: 'home-crm', redirect: { name: 'crm-customers' } },
         // Mortgage (APEX App 105).
