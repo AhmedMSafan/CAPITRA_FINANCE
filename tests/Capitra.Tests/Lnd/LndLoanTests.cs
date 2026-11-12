@@ -74,6 +74,9 @@ public sealed class LndLoanTests
         Assert.True(LndLoanService.CanMove(St.Approved, St.Active));
         Assert.False(LndLoanService.CanMove(St.Active, St.Cancelled));
         Assert.False(LndLoanService.CanMove(St.Cancelled, St.Approved));
-        Assert.False(LndLoanService.CanMove(St.Closed, St.Active));
+        // a closed loan reopens only when one of its receipts is reversed
+        Assert.True(LndLoanService.CanMove(St.Closed, St.Active));
+        Assert.False(LndLoanService.CanMove(St.Closed, St.Cancelled));
+        Assert.False(LndLoanService.CanMove(St.WrittenOff, St.Active));
     }
 }
