@@ -1452,7 +1452,7 @@ public sealed class MtgDisbursementPackage(
 
         // 5. GL: booking + payment journals under one TRAN_SET_ID (no commit inside the GL API)
         var res = await gl.PostTranSetAsync(Payload(g, ts, comment, paymentRef.Trim()), ct);
-        var r = JsonDocument.Parse(res).RootElement;
+        var r = JsonElement.Parse(res);
         var glStatus = Str(r, "status");
         if ((glStatus ?? "ERROR") != "OK")
             throw Fail(-20969, "GL refused the entries: " + Str(r, "message") + " " + FirstError(r));

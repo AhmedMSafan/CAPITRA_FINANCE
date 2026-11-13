@@ -153,6 +153,9 @@ public static class Permissions
 
         /// <summary>Approve or reject a write-off (four eyes: never one's own request).</summary>
         public const string WriteOffApprove = "LND.WRITE_OFF.APPROVE";
+
+        /// <summary>Reverse a customer receipt or recovery on a retail loan; the later receipts are applied again.</summary>
+        public const string ReceiptReverse = "LND.RECEIPT.REVERSE";
     }
 
     public static class Fct

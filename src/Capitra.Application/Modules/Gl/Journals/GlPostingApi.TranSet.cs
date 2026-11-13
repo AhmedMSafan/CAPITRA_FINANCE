@@ -65,7 +65,7 @@ public sealed partial class GlPostingApi
             JsonElement o;
             try
             {
-                o = JsonDocument.Parse(payload ?? string.Empty).RootElement.Clone();
+                o = JsonElement.Parse(payload ?? string.Empty);
             }
             catch (JsonException)
             {
@@ -132,7 +132,7 @@ public sealed partial class GlPostingApi
                     if (key != "#")
                         jo["group"] = key;
                     jo["lines"] = lines;
-                    journals.Add(JsonDocument.Parse(jo.ToJsonString()).RootElement.Clone());
+                    journals.Add(JsonElement.Parse(jo.ToJsonString()));
                 }
             }
             else

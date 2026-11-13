@@ -74,11 +74,15 @@
         </p>
         <div v-if="receipts.receipts.length" class="fx-table-wrap">
           <table class="fx-table">
-            <thead><tr><th>{{ tr('Receipt') }}</th><th>{{ tr('Value date') }}</th><th>{{ tr('From') }}</th><th class="ln-num">{{ tr('Received') }}</th><th class="ln-num">{{ tr('Applied') }}</th><th>{{ tr('GL') }}</th><th>{{ tr('By') }}</th></tr></thead>
+            <thead><tr><th>{{ tr('Receipt') }}</th><th>{{ tr('Value date') }}</th><th>{{ tr('From') }}</th><th class="ln-num">{{ tr('Received') }}</th><th class="ln-num">{{ tr('Applied') }}</th><th>{{ tr('GL') }}</th><th>{{ tr('By') }}</th><th></th></tr></thead>
             <tbody>
               <tr v-for="r in receipts.receipts" :key="r.repaymentTxnId">
                 <td><b>{{ r.repaymentNumber }}</b></td><td>{{ formatDate(r.valueDate) }}</td><td>{{ r.sources }}</td>
                 <td class="ln-num">{{ money(r.receiptAmount) }}</td><td class="ln-num">{{ money(r.allocatedAmount) }}</td><td>{{ r.glTranSetId ?? '' }}</td><td>{{ r.createdBy }}</td>
+                <td>
+                  <span v-if="r.statusCode === 'REVERSED'" class="fx-chip fx-chip--bad">{{ tr('Reversed') }}</span>
+                  <button v-else-if="canReverse && r.statusCode === 'POSTED'" type="button" class="fx-btn fx-btn--sm" @click="openReverse(r.repaymentTxnId)"><span class="fa fa-undo" aria-hidden="true"></span>{{ tr('Reverse') }}</button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -178,6 +182,33 @@
       </template>
     </Crm360Dialog>
 
+    <Crm360Dialog v-model:visible="reversing" :title="tr('Reverse Receipt')" :subtitle="reversal?.repaymentNumber ?? ''" icon="fa-undo" :busy="busy" :width="760">
+      <div v-if="!reversal" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
+      <template v-else>
+        <p v-if="reversal.blocked" class="c3-note lp-bad"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ reversal.blocked }}</p>
+        <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          {{ tr(reversal.kind === 'RECOVERY' ? 'The recovery and its GL are reversed; the money no longer counts as recovered.' : 'The receipt and its GL are reversed, its sources are released, and the later receipts are applied again in order.') }}
+          <template v-if="reversal.reopensLoan"> <b>{{ tr('The loan owes again and becomes active.') }}</b></template>
+        </p>
+        <div v-if="reversal.replayed.length" class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('Applied again') }}</th><th>{{ tr('Value date') }}</th><th class="ln-num">{{ tr('Received') }}</th><th class="ln-num">{{ tr('Applied before') }}</th><th class="ln-num">{{ tr('Applied after') }}</th><th class="ln-num">{{ tr('Credit kept after') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="x in reversal.replayed" :key="x.repaymentTxnId">
+                <td><b>{{ x.repaymentNumber }}</b></td><td>{{ formatDate(x.valueDate) }}</td><td class="ln-num">{{ money(x.receiptAmount) }}</td>
+                <td class="ln-num">{{ money(x.allocatedBefore) }}</td><td class="ln-num">{{ money(x.allocatedAfter) }}</td><td class="ln-num">{{ money(x.creditKeptAfter) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <label class="fc-field" :class="pbad('reason')"><span>{{ tr('Reason') }}<b> *</b></span><input v-model="reverseReason" class="fx-search" maxlength="500"></label>
+      </template>
+      <template #footer>
+        <button type="button" class="fx-btn" :disabled="busy" @click="reversing = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy || !reversal || !!reversal.blocked" @click="reverse"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-undo'" aria-hidden="true"></span>{{ tr('Reverse') }}</button>
+      </template>
+    </Crm360Dialog>
+
     <Crm360Dialog v-model:visible="receiving" :title="tr('Receive Payment')" :subtitle="loan?.loanNumber ?? ''" icon="fa-download" :busy="busy" :width="900">
       <div class="c3-grid c3-grid--2">
         <label class="fc-field" :class="rbad('valueDate')"><span>{{ tr('Value date') }}<b> *</b></span><input v-model="rform.valueDate" type="date" class="fx-search" :max="receipts?.today"></label>
@@ -241,7 +272,7 @@ import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
 import LndWriteOffPanel from '../components/LndWriteOffPanel.vue'
 import { getUser } from '@/shared/auth/session'
-import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage } from '../api/loans.api'
+import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage, type ReversalPreview } from '../api/loans.api'
 
 const props = defineProps<{ loanId: number }>()
 
@@ -296,7 +327,8 @@ const PSTATUS = { REQUESTED: 'Waiting', PAID: 'Paid', REJECTED: 'Rejected', WITH
 const PCHIP = { REQUESTED: 'fx-chip--warn', PAID: 'fx-chip--ok', REJECTED: 'fx-chip--bad', WITHDRAWN: 'fx-chip--teal' } as const
 const EVENTS: Record<string, string> = {
   DISBURSED: 'Paid out', RECEIPT: 'Payment received', ACCRUED: 'Interest accrued', LATE_FEE: 'Late fee', NON_ACCRUAL: 'Non-accrual',
-  CURED: 'Cured', SUSPENSE_RELEASED: 'Suspense released', WRITE_OFF_PROPOSED: 'Proposed for write-off', WRITTEN_OFF: 'Written off', RECOVERY: 'Recovery'
+  CURED: 'Cured', SUSPENSE_RELEASED: 'Suspense released', WRITE_OFF_PROPOSED: 'Proposed for write-off', WRITTEN_OFF: 'Written off', RECOVERY: 'Recovery',
+  RECEIPT_REVERSED: 'Receipt reversed', RECOVERY_REVERSED: 'Recovery reversed', RECEIPT_REPLAYED: 'Receipt applied again'
 }
 const me = (getUser()?.userName ?? '').toLowerCase()
 const payouts = ref<DisbursementPage | null>(null)
@@ -352,6 +384,42 @@ const withdraw = (id: number) => payoutCall(() => loansApi.withdrawPayout(props.
 const PARTS: Record<string, string> = { LATE_FEE: 'Late fee', CHARGES: 'Charges', INSURANCE: 'Insurance', INTEREST: 'Interest', PRINCIPAL: 'Principal', RECOVERY: 'Recovery' }
 const receipts = ref<ReceiptsPage | null>(null)
 const receiving = ref(false)
+const canReverse = hasPermission('LND.RECEIPT.REVERSE')
+const reversing = ref(false)
+const reversal = ref<ReversalPreview | null>(null)
+const reverseReason = ref('')
+
+async function openReverse(txnId: number) {
+  reversal.value = null
+  reverseReason.value = ''
+  perrors.value = {}
+  reversing.value = true
+  try {
+    reversal.value = await loansApi.reversalPreview(props.loanId, txnId)
+  } catch (err) {
+    reversing.value = false
+    showError(err instanceof Error ? err.message : String(err))
+  }
+}
+async function reverse() {
+  if (!reversal.value) return
+  busy.value = true
+  perrors.value = {}
+  try {
+    receipts.value = await loansApi.reverse(props.loanId, reversal.value.repaymentTxnId, reverseReason.value)
+    reversing.value = false
+    showSuccess(tr('Receipt reversed.'))
+    loan.value = await loansApi.get(props.loanId)
+    void writeOffPanel.value?.load()
+  } catch (err) {
+    if (err instanceof ApiError && err.problem?.errors) {
+      perrors.value = err.problem.errors
+      showError(Object.values(err.problem.errors).flat().map((m) => tr(m)).join('\n'))
+    } else showError(err instanceof Error ? err.message : String(err))
+  } finally {
+    busy.value = false
+  }
+}
 const rpreview = ref<ReceiptPreview | null>(null)
 const rerrors = ref<Record<string, string[]>>({})
 const rbad = (f: string) => ({ 'c3-bad': !!rerrors.value[f] })

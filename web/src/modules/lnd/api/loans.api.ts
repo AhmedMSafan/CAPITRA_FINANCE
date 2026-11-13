@@ -85,5 +85,14 @@ export const loansApi = {
   receipts: (id: number) => http.get<ReceiptsPage>(`${API}/${id}/receipts`),
   receiptPreview: (id: number, valueDate: string, amount: number) =>
     http.get<ReceiptPreview>(`${API}/${id}/receipts/preview?valueDate=${encodeURIComponent(valueDate)}&amount=${amount}`),
-  receive: (id: number, body: { valueDate: string | null; sources: ReceiptSource[]; notes: string | null }) => http.post<ReceiptsPage>(`${API}/${id}/receipts`, body)
+  receive: (id: number, body: { valueDate: string | null; sources: ReceiptSource[]; notes: string | null }) => http.post<ReceiptsPage>(`${API}/${id}/receipts`, body),
+  reversalPreview: (id: number, txnId: number) => http.get<ReversalPreview>(`${API}/${id}/receipts/${txnId}/reversal`),
+  reverse: (id: number, txnId: number, reason: string) => http.post<ReceiptsPage>(`${API}/${id}/receipts/${txnId}/reverse`, { reason })
+}
+
+export type ReversalPreview = {
+  repaymentTxnId: number; repaymentNumber: string; kind: 'RECEIPT' | 'RECOVERY'; receiptAmount: number; allocatedAmount: number
+  blocked: string | null; reopensLoan: boolean
+  replayed: { repaymentTxnId: number; repaymentNumber: string; valueDate: string; receiptAmount: number; allocatedBefore: number; allocatedAfter: number
+    creditKeptBefore: number; creditKeptAfter: number }[]
 }

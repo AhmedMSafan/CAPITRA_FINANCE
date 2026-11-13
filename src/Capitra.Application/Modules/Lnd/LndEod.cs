@@ -104,11 +104,13 @@ public static class LndEod
         }
         else if (na)
         {
-            // suspense holds only what is still unpaid: what was paid since is income
-            fromSusp = Math.Max(0, loan.InterestSuspenseAmount - UnpaidAccrued(ordered));
-            feeFromSusp = Math.Max(0, loan.LateFeeSuspenseAmount - UnpaidLateFee(ordered));
-            loan.InterestSuspenseAmount -= fromSusp;
-            loan.LateFeeSuspenseAmount -= feeFromSusp;
+            // suspense holds what is still unpaid: what was paid since is income, and what is owed again (a receipt reversed) goes back
+            var interestGap = loan.InterestSuspenseAmount - UnpaidAccrued(ordered);
+            var feeGap = loan.LateFeeSuspenseAmount - UnpaidLateFee(ordered);
+            if (interestGap > 0) fromSusp = interestGap; else toSusp += -interestGap;
+            if (feeGap > 0) feeFromSusp = feeGap; else feeToSusp += -feeGap;
+            loan.InterestSuspenseAmount -= interestGap;
+            loan.LateFeeSuspenseAmount -= feeGap;
         }
 
         var writeOff = late >= writeOffDays;

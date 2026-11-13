@@ -104,7 +104,7 @@ public sealed class ProductActionPosting(ICapitraDbContext db, AdmProductEventRu
 
         var ts = await tranSetIds.NextAsync(moduleCode, doc.Date, ct);
         var res = await gl.PostTranSetAsync(Payload(title, costCenter, businessLine, doc, ts, plan.SourceCode, plan.CategoryCode, plan.RuleCode, lines), ct);
-        var r = JsonDocument.Parse(res).RootElement;
+        var r = JsonElement.Parse(res);
         if (Str(r, "status") != "OK")
             throw Fail(-20989, "GL refused the entries: " + Str(r, "message") + " " + FirstError(r));
         return ts;
