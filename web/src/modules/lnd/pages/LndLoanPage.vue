@@ -80,6 +80,8 @@
         </div>
       </section>
 
+      <LndWriteOffPanel v-if="loan.statusCode === 'ACTIVE' || loan.statusCode === 'WRITTEN_OFF'" ref="writeOffPanel" :loan-id="loanId" @changed="reloadLoan" />
+
       <section class="fx-card">
         <header class="c3-panel-head"><h3><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Schedule') }}</h3></header>
         <div class="fx-table-wrap">
@@ -232,20 +234,30 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
+import LndWriteOffPanel from '../components/LndWriteOffPanel.vue'
 import { getUser } from '@/shared/auth/session'
 import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage } from '../api/loans.api'
 
 const props = defineProps<{ loanId: number }>()
 
-const STATUS: Record<string, string> = { APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', CANCELLED: 'Cancelled' }
-const CHIP: Record<string, string> = { APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', CANCELLED: 'fx-chip--bad' }
-const INST: Record<string, string> = { DUE: 'Due', PART_PAID: 'Part paid', PAID: 'Paid' }
+const STATUS: Record<string, string> = { APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', CANCELLED: 'Cancelled', WRITTEN_OFF: 'Written off' }
+const CHIP: Record<string, string> = { APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', CANCELLED: 'fx-chip--bad', WRITTEN_OFF: 'fx-chip--bad' }
+const INST: Record<string, string> = { DUE: 'Due', PART_PAID: 'Part paid', PAID: 'Paid', WRITTEN_OFF: 'Written off' }
 const FREQ: Record<string, string> = { WEEKLY: 'Weekly', FORTNIGHTLY: 'Every two weeks', MONTHLY: 'Monthly' }
 const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const money = (n: number) => egp.format(n)
 
 const canEdit = hasPermission('LND.LOAN.EDIT')
 const loan = ref<Loan | null>(null)
+const writeOffPanel = ref<{ load: () => Promise<void> } | null>(null)
+
+async function reloadLoan() {
+  try {
+    loan.value = await loansApi.get(props.loanId)
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err))
+  }
+}
 
 const facts = computed<[string, string][]>(() => {
   const l = loan.value
@@ -279,7 +291,7 @@ const PSTATUS = { REQUESTED: 'Waiting', PAID: 'Paid', REJECTED: 'Rejected', WITH
 const PCHIP = { REQUESTED: 'fx-chip--warn', PAID: 'fx-chip--ok', REJECTED: 'fx-chip--bad', WITHDRAWN: 'fx-chip--teal' } as const
 const EVENTS: Record<string, string> = {
   DISBURSED: 'Paid out', RECEIPT: 'Payment received', ACCRUED: 'Interest accrued', LATE_FEE: 'Late fee', NON_ACCRUAL: 'Non-accrual',
-  CURED: 'Cured', SUSPENSE_RELEASED: 'Suspense released', WRITE_OFF_PROPOSED: 'Proposed for write-off'
+  CURED: 'Cured', SUSPENSE_RELEASED: 'Suspense released', WRITE_OFF_PROPOSED: 'Proposed for write-off', WRITTEN_OFF: 'Written off'
 }
 const me = (getUser()?.userName ?? '').toLowerCase()
 const payouts = ref<DisbursementPage | null>(null)
@@ -368,6 +380,7 @@ async function receive() {
   rerrors.value = {}
   try {
     receipts.value = await loansApi.receive(props.loanId, { valueDate: rform.valueDate || null, sources: rform.sources, notes: rform.notes || null })
+    void writeOffPanel.value?.load()
     receiving.value = false
     showSuccess(tr('Payment received.'))
     loan.value = await loansApi.get(props.loanId)

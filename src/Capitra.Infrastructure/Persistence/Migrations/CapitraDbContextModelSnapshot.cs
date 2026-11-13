@@ -28043,6 +28043,144 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("LND_EOD_RUNS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndWriteOff", b =>
+                {
+                    b.Property<long>("WriteOffId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("WRITE_OFF_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("WriteOffId"));
+
+                    b.Property<decimal>("ChargesAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHARGES_AMOUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DaysLate")
+                        .HasColumnType("integer")
+                        .HasColumnName("DAYS_LATE");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DECIDED_AT");
+
+                    b.Property<string>("DecidedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DECIDED_BY");
+
+                    b.Property<string>("DecisionNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DECISION_NOTES");
+
+                    b.Property<string>("GlTranSetId")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("GL_TRAN_SET_ID");
+
+                    b.Property<decimal>("InsuranceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INSURANCE_AMOUNT");
+
+                    b.Property<decimal>("InterestAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_AMOUNT");
+
+                    b.Property<decimal>("InterestSuspenseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_SUSPENSE_AMOUNT");
+
+                    b.Property<decimal>("LateFeeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LATE_FEE_AMOUNT");
+
+                    b.Property<decimal>("LateFeeSuspenseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LATE_FEE_SUSPENSE_AMOUNT");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<decimal>("PrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PRINCIPAL_AMOUNT");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REASON");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REQUESTED_AT");
+
+                    b.Property<string>("RequestedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REQUESTED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_AMOUNT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly?>("WriteOffDate")
+                        .HasColumnType("date")
+                        .HasColumnName("WRITE_OFF_DATE");
+
+                    b.HasKey("WriteOffId")
+                        .HasName("PK_LND_WRITE_OFFS");
+
+                    b.HasIndex("LoanId", "StatusCode")
+                        .HasDatabaseName("IX_LND_WRITE_OFFS_LOAN_ID_STATUS_CODE");
+
+                    b.HasIndex("StatusCode")
+                        .HasDatabaseName("IX_LND_WRITE_OFFS_STATUS_CODE");
+
+                    b.ToTable("LND_WRITE_OFFS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
                 {
                     b.Property<long>("EntryId")
@@ -45009,6 +45147,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_LND_ALLOCATIONS_LND_INSTALLMENTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndWriteOff", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Lnd.LndLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_LND_WRITE_OFFS_LND_LOANS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>

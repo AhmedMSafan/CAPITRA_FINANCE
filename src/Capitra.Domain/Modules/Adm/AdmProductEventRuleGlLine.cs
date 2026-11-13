@@ -45,7 +45,8 @@ public class AdmProductEventRuleGlLine : AuditableEntity
     /// Figures a rule's own lines can post: a purchased portfolio disbursement (PP_DISBURSE), the cheque amount, and a retail loan payout
     /// (LND_DISBURSE: the loan amount, and the net paid out once the deducted charges are taken), and a retail loan receipt
     /// (LND_RECEIPT: the money received by bank account, credit balance used or kept, and each part paid), and the retail end of day
-    /// (LND_EOD: interest accrued, late fees charged, each to income or to suspense, and what moves into or out of suspense).
+    /// (LND_EOD: interest accrued, late fees charged, each to income or to suspense, and what moves into or out of suspense), and the
+    /// retail write-off (LND_WRITE_OFF: principal, interest and late fees from income or from suspense, charges and insurance).
     /// </summary>
     public static readonly string[] RuleAmounts =
     [
@@ -53,6 +54,8 @@ public class AdmProductEventRuleGlLine : AuditableEntity
         "BANK_RECEIPT_AMOUNT", "CREDIT_USED_AMOUNT", "CREDIT_KEPT_AMOUNT", "PRINCIPAL_PAID", "INTEREST_PAID", "CHARGES_PAID", "INSURANCE_PAID", "LATE_FEE_PAID",
         "INTEREST_ACCRUED", "INTEREST_SUSPENDED", "LATE_FEE_CHARGED", "LATE_FEE_SUSPENDED",
         "INTEREST_TO_SUSPENSE", "INTEREST_FROM_SUSPENSE", "LATE_FEE_TO_SUSPENSE", "LATE_FEE_FROM_SUSPENSE",
+        "PRINCIPAL_WRITTEN_OFF", "INTEREST_WRITTEN_OFF", "INTEREST_SUSPENSE_WRITTEN_OFF", "LATE_FEE_WRITTEN_OFF", "LATE_FEE_SUSPENSE_WRITTEN_OFF",
+        "CHARGES_WRITTEN_OFF", "INSURANCE_WRITTEN_OFF",
     ];
 
     /// <summary>Figures of one charge: the whole amount, or the part taken to income later (pro-rated) or at once.</summary>

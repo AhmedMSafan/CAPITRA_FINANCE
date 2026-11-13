@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<Modules.Lnd.LndDisbursementService>();
         services.AddScoped<Modules.Lnd.LndReceiptService>();
         services.AddScoped<Modules.Lnd.LndEodService>();
+        services.AddScoped<Modules.Lnd.LndWriteOffService>();
         services.AddScoped<Modules.Adm.Products.AdmChargeService>();
         services.AddScoped<Modules.Adm.Products.AdmProductService>();
         services.AddScoped<Modules.Adm.Products.AdmProductEventRuleService>();

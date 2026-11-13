@@ -55,14 +55,16 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
         public const string Active = "ACTIVE";
         public const string Closed = "CLOSED";
         public const string Cancelled = "CANCELLED";
+        public const string WrittenOff = "WRITTEN_OFF";
     }
 
-    /// <summary>The allowed status changes. Disbursement (APPROVED to ACTIVE) and closing come with their own steps.</summary>
+    /// <summary>The allowed status changes. Disbursement (APPROVED to ACTIVE), closing and write-off come with their own steps.</summary>
     public static readonly IReadOnlyDictionary<string, string[]> Transitions = new Dictionary<string, string[]>
     {
         [Statuses.Approved] = [Statuses.Active, Statuses.Cancelled],
-        [Statuses.Active] = [Statuses.Closed],
+        [Statuses.Active] = [Statuses.Closed, Statuses.WrittenOff],
         [Statuses.Closed] = [],
+        [Statuses.WrittenOff] = [],
         [Statuses.Cancelled] = [],
     };
 
