@@ -62,7 +62,8 @@
       <section v-if="receipts && loan.statusCode !== 'APPROVED' && loan.statusCode !== 'CANCELLED'" class="fx-card">
         <header class="c3-panel-head lp-head">
           <h3><span class="fa fa-download" aria-hidden="true"></span>{{ tr('Payments') }}</h3>
-          <button v-if="receipts.canReceive" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openReceive"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr(receipts.writtenOffAmount !== null ? 'Receive recovery' : 'Receive payment') }}</button>
+          <button v-if="receipts.canReceive" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openReceive('RECEIPT')"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr(receipts.writtenOffAmount !== null ? 'Receive recovery' : 'Receive payment') }}</button>
+          <button v-if="receipts.canReceive && loan.statusCode === 'ACTIVE' && loan.isPrepaymentAllowed" type="button" class="fx-btn fx-btn--sm" @click="openReceive('PREPAY')"><span class="fa fa-forward" aria-hidden="true"></span>{{ tr('Pay early') }}</button>
         </header>
         <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
           <template v-if="receipts.writtenOffAmount !== null">
@@ -209,9 +210,37 @@
       </template>
     </Crm360Dialog>
 
-    <Crm360Dialog v-model:visible="receiving" :title="tr('Receive Payment')" :subtitle="loan?.loanNumber ?? ''" icon="fa-download" :busy="busy" :width="900">
+    <Crm360Dialog v-model:visible="receiving" :title="tr(rmode === 'RECEIPT' ? 'Receive Payment' : 'Pay Early')" :subtitle="loan?.loanNumber ?? ''" icon="fa-download" :busy="busy" :width="900">
+      <template v-if="rmode !== 'RECEIPT'">
+        <div class="c3-grid c3-grid--2">
+          <label class="fc-field"><span>{{ tr('What the customer pays') }}</span>
+            <select v-model="rmode" class="fx-select"><option value="PREPAY">{{ tr('Part prepayment') }}</option><option value="SETTLE">{{ tr('Early settlement') }}</option></select>
+          </label>
+          <label v-if="rmode === 'PREPAY'" class="fc-field"><span>{{ tr('Principal paid early') }}<b> *</b></span><input v-model.number="principalEarly" type="number" min="0" step="any" class="fx-search"></label>
+        </div>
+        <div v-if="quote" class="lp-preview">
+          <p v-if="quote.problem" class="c3-note lp-bad"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ tr(quote.problem) }}</p>
+          <p v-else class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+            {{ tr('Today') }}:
+            <template v-if="quote.duesAmount">{{ tr('due and unpaid') }} {{ money(quote.duesAmount) }} + </template>
+            {{ tr('interest to date') }} {{ money(quote.interestToDate) }} + {{ tr('principal') }} {{ money(quote.principalAmount) }}
+            + {{ tr('fee') }} {{ money(quote.feeAmount) }} ({{ quote.feePct }}%) = <b>{{ money(quote.totalAmount) }}</b>
+            <template v-if="quote.kind === 'PREPAY'"> · {{ tr(quote.recalcCode === 'REDUCE_TERM' ? 'Shorter term, same instalment' : 'Lower instalment, same term') }}</template>
+            <template v-else> · {{ tr('The loan closes.') }}</template>
+          </p>
+          <table v-if="!quote.problem && quote.newSchedule.length" class="fx-table">
+            <thead><tr><th>#</th><th>{{ tr('Due date') }}</th><th class="ln-num">{{ tr('Principal') }}</th><th class="ln-num">{{ tr('Interest') }}</th><th class="ln-num">{{ tr('Instalment') }}</th><th class="ln-num">{{ tr('Balance after') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="l in quote.newSchedule" :key="l.installmentNo">
+                <td>{{ l.installmentNo }}</td><td>{{ formatDate(l.dueDate) }}</td><td class="ln-num">{{ money(l.principal) }}</td><td class="ln-num">{{ money(l.interest) }}</td>
+                <td class="ln-num">{{ money(l.total) }}</td><td class="ln-num">{{ money(l.closingPrincipal) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
       <div class="c3-grid c3-grid--2">
-        <label class="fc-field" :class="rbad('valueDate')"><span>{{ tr('Value date') }}<b> *</b></span><input v-model="rform.valueDate" type="date" class="fx-search" :max="receipts?.today"></label>
+        <label v-if="rmode === 'RECEIPT'" class="fc-field" :class="rbad('valueDate')"><span>{{ tr('Value date') }}<b> *</b></span><input v-model="rform.valueDate" type="date" class="fx-search" :max="receipts?.today"></label>
         <label class="fc-field"><span>{{ tr('Notes') }}</span><input v-model="rform.notes" class="fx-search" maxlength="1000"></label>
       </div>
       <div class="lp-sources" :class="rbad('sources')">
@@ -232,7 +261,7 @@
         </div>
         <button type="button" class="fx-btn fx-btn--sm" @click="addSource"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Add source') }}</button>
       </div>
-      <div v-if="rpreview" class="lp-preview">
+      <div v-if="rpreview && rmode === 'RECEIPT'" class="lp-preview">
         <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
           {{ tr('Received') }} <b>{{ money(rpreview.receiptAmount) }}</b> · {{ tr('applied') }} <b>{{ money(rpreview.allocatedAmount) }}</b> · {{ tr('kept as credit') }} <b>{{ money(rpreview.creditKeptAmount) }}</b>
         </p>
@@ -243,8 +272,11 @@
       </div>
       <template #footer>
         <button type="button" class="fx-btn" :disabled="busy" @click="receiving = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
-        <button type="button" class="fx-btn" :disabled="busy" @click="previewReceipt"><span class="fa fa-table" aria-hidden="true"></span>{{ tr('Show allocation') }}</button>
-        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy || !rpreview" @click="receive"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-check'" aria-hidden="true"></span>{{ tr('Receive') }}</button>
+        <template v-if="rmode === 'RECEIPT'">
+          <button type="button" class="fx-btn" :disabled="busy" @click="previewReceipt"><span class="fa fa-table" aria-hidden="true"></span>{{ tr('Show allocation') }}</button>
+        </template>
+        <button v-else type="button" class="fx-btn" :disabled="busy" @click="getQuote"><span class="fa fa-calculator" aria-hidden="true"></span>{{ tr('Get quote') }}</button>
+        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy || (rmode === 'RECEIPT' ? !rpreview : !quote || !!quote.problem)" @click="receive"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-check'" aria-hidden="true"></span>{{ tr('Receive') }}</button>
       </template>
     </Crm360Dialog>
 
@@ -272,7 +304,7 @@ import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
 import LndWriteOffPanel from '../components/LndWriteOffPanel.vue'
 import { getUser } from '@/shared/auth/session'
-import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage, type ReversalPreview } from '../api/loans.api'
+import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage, type ReversalPreview, type PrepaymentQuote } from '../api/loans.api'
 
 const props = defineProps<{ loanId: number }>()
 
@@ -328,7 +360,8 @@ const PCHIP = { REQUESTED: 'fx-chip--warn', PAID: 'fx-chip--ok', REJECTED: 'fx-c
 const EVENTS: Record<string, string> = {
   DISBURSED: 'Paid out', RECEIPT: 'Payment received', ACCRUED: 'Interest accrued', LATE_FEE: 'Late fee', NON_ACCRUAL: 'Non-accrual',
   CURED: 'Cured', SUSPENSE_RELEASED: 'Suspense released', WRITE_OFF_PROPOSED: 'Proposed for write-off', WRITTEN_OFF: 'Written off', RECOVERY: 'Recovery',
-  RECEIPT_REVERSED: 'Receipt reversed', RECOVERY_REVERSED: 'Recovery reversed', RECEIPT_REPLAYED: 'Receipt applied again'
+  RECEIPT_REVERSED: 'Receipt reversed', RECOVERY_REVERSED: 'Recovery reversed', RECEIPT_REPLAYED: 'Receipt applied again',
+  PREPAYMENT: 'Part prepayment', SETTLEMENT: 'Early settlement'
 }
 const me = (getUser()?.userName ?? '').toLowerCase()
 const payouts = ref<DisbursementPage | null>(null)
@@ -427,7 +460,29 @@ const blankSource = (): ReceiptSource => ({ sourceType: 'BANK_DEPOSIT', depositA
 const rform = reactive<{ valueDate: string; notes: string; sources: ReceiptSource[] }>({ valueDate: '', notes: '', sources: [] })
 watch(() => JSON.stringify([rform.valueDate, rform.sources]), () => (rpreview.value = null))
 
-function openReceive() {
+const rmode = ref<'RECEIPT' | 'PREPAY' | 'SETTLE'>('RECEIPT')
+const principalEarly = ref<number | null>(null)
+const quote = ref<PrepaymentQuote | null>(null)
+watch(() => [rmode.value, principalEarly.value], () => (quote.value = null))
+
+async function getQuote() {
+  if (rmode.value === 'RECEIPT') return
+  busy.value = true
+  try {
+    quote.value = await loansApi.prepaymentQuote(props.loanId, rmode.value, rmode.value === 'PREPAY' ? principalEarly.value : null)
+    const first = rform.sources[0]
+    if (!quote.value.problem && rform.sources.length === 1 && first && !first.amount && first.sourceType !== 'CHEQUE') first.amount = quote.value.totalAmount
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err))
+  } finally {
+    busy.value = false
+  }
+}
+
+function openReceive(mode: 'RECEIPT' | 'PREPAY' | 'SETTLE') {
+  rmode.value = mode
+  principalEarly.value = null
+  quote.value = null
   rform.valueDate = receipts.value?.today ?? ''
   rform.notes = ''
   rform.sources = [blankSource()]
@@ -452,10 +507,12 @@ async function receive() {
   busy.value = true
   rerrors.value = {}
   try {
-    receipts.value = await loansApi.receive(props.loanId, { valueDate: rform.valueDate || null, sources: rform.sources, notes: rform.notes || null })
+    receipts.value = rmode.value === 'RECEIPT'
+      ? await loansApi.receive(props.loanId, { valueDate: rform.valueDate || null, sources: rform.sources, notes: rform.notes || null })
+      : await loansApi.prepay(props.loanId, { kind: rmode.value, principalAmount: rmode.value === 'PREPAY' ? principalEarly.value : null, sources: rform.sources, notes: rform.notes || null })
     void writeOffPanel.value?.load()
     receiving.value = false
-    showSuccess(tr('Payment received.'))
+    showSuccess(tr(rmode.value === 'RECEIPT' ? 'Payment received.' : rmode.value === 'SETTLE' ? 'Loan settled.' : 'Prepayment received. The schedule is rebuilt.'))
     loan.value = await loansApi.get(props.loanId)
   } catch (err) {
     if (err instanceof ApiError && err.problem?.errors) {

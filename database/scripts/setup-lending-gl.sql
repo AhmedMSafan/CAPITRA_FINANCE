@@ -28,6 +28,8 @@
 --   CREDIT late fee receivable LATE_FEE_PAID, charges receivable CHARGES_PAID, insurance payable INSURANCE_PAID,
 --          interest receivable INTEREST_PAID, loans receivable PRINCIPAL_PAID
 --   CREDIT customer credit balance (liability)             CREDIT_KEPT_AMOUNT   (money beyond what is due on the value date)
+--   CREDIT prepayment fee income                           PREPAYMENT_FEE_AMOUNT (the fee of a part prepayment or early settlement;
+--                                                          needed only when a product charges one)
 -- Example, 3,000 received against 2,000 interest and 4,800 principal due: DR Bank 3,000 / CR Interest receivable 2,000 /
 --   CR Loans receivable 1,000.
 --

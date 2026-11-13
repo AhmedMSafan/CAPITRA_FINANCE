@@ -24,6 +24,10 @@ export type LendingVersion = {
   lateFeeBaseCode: string
   paymentOrder: string[]
   isInsuranceRequired: boolean
+  isPrepaymentAllowed: boolean
+  prepaymentRecalcCode: string
+  prepaymentFeePct: number
+  earlySettlementFeePct: number
   changeReason: string | null
   createdBy: string
   requestedBy: string | null
@@ -55,7 +59,7 @@ export type LendingProductsPage = {
   canApprove: boolean
   products: LendingProduct[]
   options: {
-    frequencies: Option[]; interestMethods: Option[]; dayCounts: Option[]; lateFeeTypes: Option[]; lateFeeBases: Option[]; paymentParts: Option[]
+    frequencies: Option[]; interestMethods: Option[]; dayCounts: Option[]; lateFeeTypes: Option[]; lateFeeBases: Option[]; paymentParts: Option[]; prepaymentRecalcs: Option[]
   }
 }
 
@@ -76,6 +80,10 @@ export type LendingVersionSave = {
   lateFeeBaseCode: string
   paymentOrder: string[]
   isInsuranceRequired: boolean
+  isPrepaymentAllowed: boolean
+  prepaymentRecalcCode: string
+  prepaymentFeePct: number
+  earlySettlementFeePct: number
   changeReason: string | null
   rowVersion: number
 }

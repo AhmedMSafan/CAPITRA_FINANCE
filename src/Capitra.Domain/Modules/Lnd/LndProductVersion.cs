@@ -63,6 +63,18 @@ public class LndProductVersion : AuditableEntity
     /// <summary>Life and disability insurance is required (and its premium is billed with the instalment).</summary>
     public bool IsInsuranceRequired { get; set; }
 
+    /// <summary>The customer may pay principal before it falls due (part prepayment or full early settlement).</summary>
+    public bool IsPrepaymentAllowed { get; set; } = true;
+
+    /// <summary>After a part prepayment: REDUCE_INSTALMENT (same number of instalments, smaller) or REDUCE_TERM (same instalment, fewer).</summary>
+    public string PrepaymentRecalcCode { get; set; } = "REDUCE_INSTALMENT";
+
+    /// <summary>Fee on the principal paid early by a part prepayment, in % (0 for none).</summary>
+    public decimal PrepaymentFeePct { get; set; }
+
+    /// <summary>Fee on the principal settled by a full early settlement, in % (0 for none).</summary>
+    public decimal EarlySettlementFeePct { get; set; }
+
     /// <summary>What changed in this version and why.</summary>
     public string? ChangeReason { get; set; }
 

@@ -35,6 +35,7 @@ public sealed record LndLoanDto(
     decimal InstallmentAmount, decimal TotalInterestAmount, DateOnly DisbursementDate, DateOnly FirstDueDate, DateOnly MaturityDate,
     string RepaymentFrequencyCode, string InterestMethodCode, decimal AnnualRatePct, string DayCountCode, int LateFeeGraceDays, string LateFeeTypeCode,
     decimal? LateFeeRatePct, decimal? LateFeeFlatAmount, string LateFeeBaseCode, IReadOnlyList<string> PaymentOrder, bool IsInsuranceRequired,
+    bool IsPrepaymentAllowed, string PrepaymentRecalcCode, decimal PrepaymentFeePct, decimal EarlySettlementFeePct,
     string? Notes, string CreatedBy, DateTime CreatedAt, int RowVersion,
     IReadOnlyList<LndInstallmentDto> Installments, IReadOnlyList<LndLoanStatusDto> History, IReadOnlyList<LndLoanEventDto> Events);
 
@@ -133,7 +134,8 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             RepaymentFrequencyCode = version.RepaymentFrequencyCode, InterestMethodCode = version.InterestMethodCode, AnnualRatePct = version.AnnualRatePct,
             DayCountCode = version.DayCountCode, LateFeeGraceDays = version.LateFeeGraceDays, LateFeeTypeCode = version.LateFeeTypeCode,
             LateFeeRatePct = version.LateFeeRatePct, LateFeeFlatAmount = version.LateFeeFlatAmount, LateFeeBaseCode = version.LateFeeBaseCode,
-            PaymentOrder = version.PaymentOrder, IsInsuranceRequired = version.IsInsuranceRequired,
+            PaymentOrder = version.PaymentOrder, IsInsuranceRequired = version.IsInsuranceRequired, IsPrepaymentAllowed = version.IsPrepaymentAllowed,
+            PrepaymentRecalcCode = version.PrepaymentRecalcCode, PrepaymentFeePct = version.PrepaymentFeePct, EarlySettlementFeePct = version.EarlySettlementFeePct,
             Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim(),
         };
         db.Set<LndLoan>().Add(loan);
@@ -164,7 +166,7 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             l.StatusCode, l.IsNonAccrual, l.DaysLate, l.InterestSuspenseAmount, l.LateFeeSuspenseAmount, l.IsWriteOffProposed, l.LastEodDate, l.CurrencyCode, l.PrincipalAmount, l.TermMonths, l.InstallmentCount, l.InstallmentAmount, l.TotalInterestAmount,
             l.DisbursementDate, l.FirstDueDate, l.MaturityDate, l.RepaymentFrequencyCode, l.InterestMethodCode, l.AnnualRatePct, l.DayCountCode,
             l.LateFeeGraceDays, l.LateFeeTypeCode, l.LateFeeRatePct, l.LateFeeFlatAmount, l.LateFeeBaseCode, LndProductTerms.Parts(l.PaymentOrder),
-            l.IsInsuranceRequired, l.Notes, l.CreatedBy, l.CreatedAt, l.RowVersion,
+            l.IsInsuranceRequired, l.IsPrepaymentAllowed, l.PrepaymentRecalcCode, l.PrepaymentFeePct, l.EarlySettlementFeePct, l.Notes, l.CreatedBy, l.CreatedAt, l.RowVersion,
             [.. installments.Select(i =>
             {
                 var due = i.PrincipalDueAmount + i.InterestDueAmount + i.ChargesDueAmount + i.InsuranceDueAmount + i.LateFeeDueAmount;

@@ -38,7 +38,7 @@ public static class LndReplay
         var rest = LndReceiptService.Owed(i).Values.Sum();
         var paid = i.PrincipalPaidAmount + i.InterestPaidAmount + i.ChargesPaidAmount + i.InsurancePaidAmount + i.LateFeePaidAmount;
         i.StatusCode = rest == 0 ? "PAID" : paid > 0 ? "PART_PAID" : "DUE";
-        i.PaidDate = rest == 0 ? paidOn ?? i.PaidDate : null;
+        i.PaidDate = rest == 0 ? i.PaidDate ?? paidOn : null;
     }
 
     /// <summary>Applies the receipts again, in order, to the schedule (changed in place) and says what each one now pays.</summary>

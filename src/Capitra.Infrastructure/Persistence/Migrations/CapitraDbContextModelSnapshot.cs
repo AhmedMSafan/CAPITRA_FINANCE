@@ -27041,6 +27041,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("DECISION_NOTES");
 
+                    b.Property<decimal>("EarlySettlementFeePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("EARLY_SETTLEMENT_FEE_PCT");
+
                     b.Property<DateOnly>("EffectiveFromDate")
                         .HasColumnType("date")
                         .HasColumnName("EFFECTIVE_FROM_DATE");
@@ -27054,6 +27059,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsInsuranceRequired")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_INSURANCE_REQUIRED");
+
+                    b.Property<bool>("IsPrepaymentAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_PREPAYMENT_ALLOWED");
 
                     b.Property<string>("LateFeeBaseCode")
                         .IsRequired()
@@ -27104,6 +27113,17 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("PAYMENT_ORDER");
+
+                    b.Property<decimal>("PrepaymentFeePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PREPAYMENT_FEE_PCT");
+
+                    b.Property<string>("PrepaymentRecalcCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PREPAYMENT_RECALC_CODE");
 
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint")
@@ -27346,6 +27366,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("DISBURSEMENT_DATE");
 
+                    b.Property<decimal>("EarlySettlementFeePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("EARLY_SETTLEMENT_FEE_PCT");
+
                     b.Property<DateOnly>("FirstDueDate")
                         .HasColumnType("date")
                         .HasColumnName("FIRST_DUE_DATE");
@@ -27377,6 +27402,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsNonAccrual")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_NON_ACCRUAL");
+
+                    b.Property<bool>("IsPrepaymentAllowed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_PREPAYMENT_ALLOWED");
 
                     b.Property<bool>("IsWriteOffProposed")
                         .HasColumnType("boolean")
@@ -27443,6 +27472,17 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("PAYMENT_ORDER");
+
+                    b.Property<decimal>("PrepaymentFeePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("PREPAYMENT_FEE_PCT");
+
+                    b.Property<string>("PrepaymentRecalcCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PREPAYMENT_RECALC_CODE");
 
                     b.Property<decimal>("PrincipalAmount")
                         .HasPrecision(18, 2)

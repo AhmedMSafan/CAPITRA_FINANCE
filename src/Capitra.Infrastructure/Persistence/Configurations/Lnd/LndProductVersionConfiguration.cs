@@ -27,6 +27,7 @@ public sealed class LndProductVersionConfiguration : IEntityTypeConfiguration<Ln
         builder.Property(x => x.LateFeeFlatAmount).HasPrecision(18, 2);
         builder.Property(x => x.LateFeeBaseCode).HasMaxLength(30);
         builder.Property(x => x.PaymentOrder).HasMaxLength(200);
+        builder.Property(x => x.PrepaymentRecalcCode).HasMaxLength(20);
         builder.Property(x => x.ChangeReason).HasMaxLength(1000);
         builder.Property(x => x.RequestedBy).HasMaxLength(256);
         builder.Property(x => x.DecidedBy).HasMaxLength(256);

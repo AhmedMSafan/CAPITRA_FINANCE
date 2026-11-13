@@ -47,6 +47,10 @@ public static class LndProductTerms
     public static readonly IReadOnlyList<CrmOptionDto> PaymentParts =
         [new("LATE_FEE", "Late fee"), new("CHARGES", "Charges"), new("INSURANCE", "Insurance"), new("INTEREST", "Interest"), new("PRINCIPAL", "Principal")];
 
+    /// <summary>What a part prepayment changes (design deck: a product setting).</summary>
+    public static readonly IReadOnlyList<CrmOptionDto> PrepaymentRecalcs =
+        [new("REDUCE_INSTALMENT", "Lower instalment, same term"), new("REDUCE_TERM", "Shorter term, same instalment")];
+
     public static string DefaultPaymentOrder => string.Join(",", PaymentParts.Select(x => x.Value));
 
     public static IReadOnlyList<string> Parts(string? order) =>
@@ -87,6 +91,9 @@ public static class LndProductTerms
         var parts = Parts(v.PaymentOrder);
         if (parts.Count != PaymentParts.Count || parts.Distinct().Count() != parts.Count || parts.Any(p => !In(PaymentParts, p)))
             Add("paymentOrder", "The payment order must list late fee, charges, insurance, interest and principal, each once.");
+        if (!In(PrepaymentRecalcs, v.PrepaymentRecalcCode)) Add("prepaymentRecalcCode", "Choose what a part prepayment changes.");
+        if (v.PrepaymentFeePct is < 0 or > 100) Add("prepaymentFeePct", "Enter a prepayment fee from 0 to 100%.");
+        if (v.EarlySettlementFeePct is < 0 or > 100) Add("earlySettlementFeePct", "Enter an early settlement fee from 0 to 100%.");
         return e;
     }
 

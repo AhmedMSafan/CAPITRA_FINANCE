@@ -81,6 +81,45 @@ public static class LndSchedule
         return lines;
     }
 
+    /// <summary>
+    /// A schedule of a given number of instalments (used to rebuild what is left after a part prepayment): DECLINING with equal
+    /// instalments, FLAT with the interest of n periods on the amount spread equally.
+    /// </summary>
+    public static IReadOnlyList<LndScheduleLine> BuildCount(decimal amount, int n, string frequency, string interestMethod, decimal annualRatePct, DateOnly firstDueDate)
+    {
+        if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount), "The amount must be more than zero.");
+        if (n < 1) throw new ArgumentOutOfRangeException(nameof(n), "At least one instalment.");
+        var lines = new List<LndScheduleLine>(n);
+        var balance = amount;
+        if (interestMethod == "FLAT")
+        {
+            var totalInterest = R(amount * annualRatePct / 100m * n / PeriodsPerYear(frequency));
+            var principalEach = R(amount / n);
+            var interestEach = R(totalInterest / n);
+            var interestLeft = totalInterest;
+            for (var i = 1; i <= n; i++)
+            {
+                var last = i == n;
+                var principal = last ? balance : principalEach;
+                var interest = last ? interestLeft : interestEach;
+                lines.Add(new LndScheduleLine(i, DueDate(firstDueDate, i, frequency), balance, principal, interest, balance - principal));
+                balance -= principal;
+                interestLeft -= interest;
+            }
+            return lines;
+        }
+        var rate = annualRatePct / 100m / PeriodsPerYear(frequency);
+        var instalment = rate == 0 ? R(amount / n) : R(amount * rate / (1 - 1 / Power(1 + rate, n)));
+        for (var i = 1; i <= n; i++)
+        {
+            var interest = R(balance * rate);
+            var principal = i == n ? balance : Math.Min(balance, instalment - interest);
+            lines.Add(new LndScheduleLine(i, DueDate(firstDueDate, i, frequency), balance, principal, interest, balance - principal));
+            balance -= principal;
+        }
+        return lines;
+    }
+
     private static decimal R(decimal value) => Math.Round(value, 2, MidpointRounding.AwayFromZero);
 
     private static decimal Power(decimal value, int n)
