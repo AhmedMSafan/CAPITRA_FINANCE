@@ -85,3 +85,19 @@ public sealed class LndAllocationConfiguration : IEntityTypeConfiguration<LndAll
         builder.ConfigureAudit();
     }
 }
+
+public sealed class LndEodRunConfiguration : IEntityTypeConfiguration<LndEodRun>
+{
+    public void Configure(EntityTypeBuilder<LndEodRun> builder)
+    {
+        builder.ToTable("LND_EOD_RUNS");
+        builder.HasKey(x => x.EodRunId);
+        builder.HasIndex(x => x.RunDate).IsUnique();
+
+        builder.Property(x => x.EodRunId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.Property(x => x.GlTranSetIds).HasMaxLength(2000);
+        builder.Property(x => x.ErrorMessage).HasMaxLength(2000);
+        builder.ConfigureAudit();
+    }
+}

@@ -30,7 +30,8 @@ public sealed record LndLoanEventDto(string EventCode, DateOnly EventDate, decim
 
 public sealed record LndLoanDto(
     long LoanId, string LoanNumber, long ClientId, string ClientName, long ProductId, string ProductCode, string ProductName, int VersionNo,
-    string LicenceCode, string StatusCode, bool IsNonAccrual, string CurrencyCode, decimal PrincipalAmount, int TermMonths, int InstallmentCount,
+    string LicenceCode, string StatusCode, bool IsNonAccrual, int DaysLate, decimal InterestSuspenseAmount, decimal LateFeeSuspenseAmount,
+    bool IsWriteOffProposed, DateOnly? LastEodDate, string CurrencyCode, decimal PrincipalAmount, int TermMonths, int InstallmentCount,
     decimal InstallmentAmount, decimal TotalInterestAmount, DateOnly DisbursementDate, DateOnly FirstDueDate, DateOnly MaturityDate,
     string RepaymentFrequencyCode, string InterestMethodCode, decimal AnnualRatePct, string DayCountCode, int LateFeeGraceDays, string LateFeeTypeCode,
     decimal? LateFeeRatePct, decimal? LateFeeFlatAmount, string LateFeeBaseCode, IReadOnlyList<string> PaymentOrder, bool IsInsuranceRequired,
@@ -158,7 +159,7 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
         var history = await db.Set<LndLoanStatusHist>().AsNoTracking().Where(x => x.LoanId == loanId).OrderBy(x => x.LoanStatusHistId).ToListAsync(cancellationToken);
         var events = await db.Set<LndLoanEvent>().AsNoTracking().Where(x => x.LoanId == loanId).OrderBy(x => x.LoanEventId).ToListAsync(cancellationToken);
         return new LndLoanDto(l.LoanId, l.LoanNumber, l.ClientId, client, l.ProductId, product.ProductCode, product.ProductNameEn, versionNo, l.LicenceCode,
-            l.StatusCode, l.IsNonAccrual, l.CurrencyCode, l.PrincipalAmount, l.TermMonths, l.InstallmentCount, l.InstallmentAmount, l.TotalInterestAmount,
+            l.StatusCode, l.IsNonAccrual, l.DaysLate, l.InterestSuspenseAmount, l.LateFeeSuspenseAmount, l.IsWriteOffProposed, l.LastEodDate, l.CurrencyCode, l.PrincipalAmount, l.TermMonths, l.InstallmentCount, l.InstallmentAmount, l.TotalInterestAmount,
             l.DisbursementDate, l.FirstDueDate, l.MaturityDate, l.RepaymentFrequencyCode, l.InterestMethodCode, l.AnnualRatePct, l.DayCountCode,
             l.LateFeeGraceDays, l.LateFeeTypeCode, l.LateFeeRatePct, l.LateFeeFlatAmount, l.LateFeeBaseCode, LndProductTerms.Parts(l.PaymentOrder),
             l.IsInsuranceRequired, l.Notes, l.CreatedBy, l.CreatedAt, l.RowVersion,

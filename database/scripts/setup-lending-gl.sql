@@ -1,6 +1,6 @@
 -- =====================================================================================================================
 -- Capitra: GL setup of Retail Lending (microfinance and consumer finance), for the loan payout (rule LND_DISBURSE) and the
--- customer receipt (rule LND_RECEIPT).
+-- customer receipt (rule LND_RECEIPT) and end of day (rule LND_EOD).
 -- Run in pgAdmin > Query Tool on CAPITRA_DB. Press F5. Safe to run again: what exists is kept.
 -- Needs: migrate-lending-disbursement.sql.
 --
@@ -11,7 +11,7 @@
 -- It adds, when missing:
 --   1. the business line segment values MICROFINANCE and CONSUMER_FINANCE (copied from FACTORING), so lending postings carry them
 --   2. the GL journal source LENDING (copied from FACTORING) and its journal categories LND_DISBURSEMENT "Loan Disbursement"
---      and LND_RECEIPT "Loan Receipt"
+--      LND_RECEIPT "Loan Receipt" and LND_EOD "Loan End of Day"
 --
 -- Then, for each lending product (Administration > Product Catalog, business line Microfinance or Consumer Finance), add in
 -- Administration > Product Event Rules a rule with code LND_DISBURSE, journal source LENDING, category LND_DISBURSEMENT:
@@ -30,6 +30,17 @@
 --   CREDIT customer credit balance (liability)             CREDIT_KEPT_AMOUNT   (money beyond what is due on the value date)
 -- Example, 3,000 received against 2,000 interest and 4,800 principal due: DR Bank 3,000 / CR Interest receivable 2,000 /
 --   CR Loans receivable 1,000.
+--
+-- and a rule with code LND_EOD, journal source LENDING, category LND_EOD, all in journal 1, a debit and a credit line for each:
+--   INTEREST_ACCRUED        DR interest receivable  / CR interest income        (each day's interest, loan accruing)
+--   INTEREST_SUSPENDED      DR interest receivable  / CR interest suspense      (each day's interest, loan in non-accrual)
+--   LATE_FEE_CHARGED        DR late fee receivable  / CR late fee income
+--   LATE_FEE_SUSPENDED      DR late fee receivable  / CR late fee suspense
+--   INTEREST_TO_SUSPENSE    DR interest income      / CR interest suspense      (the loan goes into non-accrual)
+--   INTEREST_FROM_SUSPENSE  DR interest suspense    / CR interest income        (paid while in non-accrual, cured, or closed)
+--   LATE_FEE_TO_SUSPENSE    DR late fee income      / CR late fee suspense
+--   LATE_FEE_FROM_SUSPENSE  DR late fee suspense    / CR late fee income
+-- Example, a day of 3.23 interest on a loan that is not late: DR Interest receivable 3.23 / CR Interest income 3.23.
 -- =====================================================================================================================
 DO $$
 DECLARE
@@ -77,7 +88,8 @@ BEGIN
 
   FOR v_cat IN SELECT * FROM (VALUES
       ('LND_DISBURSEMENT', 'Loan Disbursement', 'صرف التمويل', 'A retail loan paid out: loans receivable against the bank account, less the charges taken.'),
-      ('LND_RECEIPT', 'Loan Receipt', 'تحصيل التمويل', 'A customer payment on a retail loan: the bank account or credit balance against each part paid.')) AS c(code, name_en, name_ar, descr)
+      ('LND_RECEIPT', 'Loan Receipt', 'تحصيل التمويل', 'A customer payment on a retail loan: the bank account or credit balance against each part paid.'),
+      ('LND_EOD', 'Loan End of Day', 'إقفال اليوم للتمويل', 'Daily interest accrual, late fees, and moves into and out of suspense of retail loans.')) AS c(code, name_en, name_ar, descr)
   LOOP
     IF NOT EXISTS (SELECT 1 FROM "GL_JOURNAL_CATEGORIES" WHERE "CATEGORY_CODE" = v_cat.code) THEN
       RAISE NOTICE 'Journal category % will be added', v_cat.code;
@@ -96,6 +108,6 @@ BEGIN
   IF NOT v_apply THEN
     RAISE NOTICE 'Preview only. Nothing was changed. Set v_apply := true and run again.';
   ELSE
-    RAISE NOTICE 'Done. Now add the rules LND_DISBURSE and LND_RECEIPT to each lending product (see the header).';
+    RAISE NOTICE 'Done. Now add the rules LND_DISBURSE, LND_RECEIPT and LND_EOD to each lending product (see the header).';
   END IF;
 END $$;

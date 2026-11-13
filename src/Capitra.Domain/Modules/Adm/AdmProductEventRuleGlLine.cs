@@ -44,12 +44,15 @@ public class AdmProductEventRuleGlLine : AuditableEntity
     /// <summary>
     /// Figures a rule's own lines can post: a purchased portfolio disbursement (PP_DISBURSE), the cheque amount, and a retail loan payout
     /// (LND_DISBURSE: the loan amount, and the net paid out once the deducted charges are taken), and a retail loan receipt
-    /// (LND_RECEIPT: the money received by bank account, credit balance used or kept, and each part paid).
+    /// (LND_RECEIPT: the money received by bank account, credit balance used or kept, and each part paid), and the retail end of day
+    /// (LND_EOD: interest accrued, late fees charged, each to income or to suspense, and what moves into or out of suspense).
     /// </summary>
     public static readonly string[] RuleAmounts =
     [
         "FACE_VALUE", "DISCOUNT", "MARGIN_DEFERRED", "MARGIN_IMMEDIATE", "PURCHASE_PRICE", "CHEQUE_AMOUNT", "PRINCIPAL_AMOUNT", "NET_PAYOUT_AMOUNT",
         "BANK_RECEIPT_AMOUNT", "CREDIT_USED_AMOUNT", "CREDIT_KEPT_AMOUNT", "PRINCIPAL_PAID", "INTEREST_PAID", "CHARGES_PAID", "INSURANCE_PAID", "LATE_FEE_PAID",
+        "INTEREST_ACCRUED", "INTEREST_SUSPENDED", "LATE_FEE_CHARGED", "LATE_FEE_SUSPENDED",
+        "INTEREST_TO_SUSPENSE", "INTEREST_FROM_SUSPENSE", "LATE_FEE_TO_SUSPENSE", "LATE_FEE_FROM_SUSPENSE",
     ];
 
     /// <summary>Figures of one charge: the whole amount, or the part taken to income later (pro-rated) or at once.</summary>

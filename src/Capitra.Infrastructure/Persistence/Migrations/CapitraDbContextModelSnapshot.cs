@@ -27213,6 +27213,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("INSURANCE_PAID_AMOUNT");
 
+                    b.Property<decimal>("InterestAccruedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_ACCRUED_AMOUNT");
+
                     b.Property<decimal>("InterestDueAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -27222,6 +27227,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("INTEREST_PAID_AMOUNT");
+
+                    b.Property<int>("LateFeeDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("LATE_FEE_DAYS");
 
                     b.Property<decimal>("LateFeeDueAmount")
                         .HasPrecision(18, 2)
@@ -27329,6 +27338,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("DAY_COUNT_CODE");
 
+                    b.Property<int>("DaysLate")
+                        .HasColumnType("integer")
+                        .HasColumnName("DAYS_LATE");
+
                     b.Property<DateOnly>("DisbursementDate")
                         .HasColumnType("date")
                         .HasColumnName("DISBURSEMENT_DATE");
@@ -27352,6 +27365,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("INTEREST_METHOD_CODE");
 
+                    b.Property<decimal>("InterestSuspenseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_SUSPENSE_AMOUNT");
+
                     b.Property<bool>("IsInsuranceRequired")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_INSURANCE_REQUIRED");
@@ -27359,6 +27377,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsNonAccrual")
                         .HasColumnType("boolean")
                         .HasColumnName("IS_NON_ACCRUAL");
+
+                    b.Property<bool>("IsWriteOffProposed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_WRITE_OFF_PROPOSED");
+
+                    b.Property<DateOnly?>("LastEodDate")
+                        .HasColumnType("date")
+                        .HasColumnName("LAST_EOD_DATE");
 
                     b.Property<string>("LateFeeBaseCode")
                         .IsRequired()
@@ -27379,6 +27405,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("LATE_FEE_RATE_PCT");
+
+                    b.Property<decimal>("LateFeeSuspenseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LATE_FEE_SUSPENSE_AMOUNT");
 
                     b.Property<string>("LateFeeTypeCode")
                         .IsRequired()
@@ -27903,6 +27934,113 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_LND_ALLOCATIONS_REPAYMENT_TXN_ID");
 
                     b.ToTable("LND_ALLOCATIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndEodRun", b =>
+                {
+                    b.Property<long>("EodRunId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("EOD_RUN_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("EodRunId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal>("CreditAppliedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CREDIT_APPLIED_AMOUNT");
+
+                    b.Property<int>("CuredCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("CURED_COUNT");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("ERROR_MESSAGE");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("FINISHED_AT");
+
+                    b.Property<string>("GlTranSetIds")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("GL_TRAN_SET_IDS");
+
+                    b.Property<decimal>("InterestAccruedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_ACCRUED_AMOUNT");
+
+                    b.Property<decimal>("InterestSuspendedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_SUSPENDED_AMOUNT");
+
+                    b.Property<decimal>("LateFeeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LATE_FEE_AMOUNT");
+
+                    b.Property<int>("LoansCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("LOANS_COUNT");
+
+                    b.Property<int>("NonAccrualCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("NON_ACCRUAL_COUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly>("RunDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RUN_DATE");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("STARTED_AT");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<int>("WriteOffProposedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("WRITE_OFF_PROPOSED_COUNT");
+
+                    b.HasKey("EodRunId")
+                        .HasName("PK_LND_EOD_RUNS");
+
+                    b.HasIndex("RunDate")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_LND_EOD_RUNS_RUN_DATE");
+
+                    b.ToTable("LND_EOD_RUNS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>

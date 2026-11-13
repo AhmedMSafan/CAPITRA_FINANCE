@@ -144,6 +144,9 @@ public static class Permissions
 
         /// <summary>Receive a customer's payment on a loan (bank deposit, collected cheque or credit balance).</summary>
         public const string LoanReceive = "LND.LOAN.RECEIVE";
+
+        /// <summary>Run Retail Lending end of day for the next business day.</summary>
+        public const string EodRun = "LND.EOD.RUN";
     }
 
     public static class Fct

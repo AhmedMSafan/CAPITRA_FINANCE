@@ -7,6 +7,7 @@ const meta = (functionName: string) => ({ moduleName: 'RETAIL LENDING', function
 export const lndRoutes: RouteRecordRaw[] = [
   { path: 'lnd', redirect: { name: 'lnd-loans' } },
   { path: 'lnd/parameters', name: 'lnd-parameters', component: () => import('./pages/LndParametersPage.vue'), meta: meta('Lending Parameters') },
+  { path: 'lnd/eod', name: 'lnd-eod', component: () => import('./pages/LndEodPage.vue'), meta: meta('End of Day') },
   { path: 'lnd/loans', name: 'lnd-loans', component: () => import('./pages/LndLoansPage.vue'), meta: meta('Loans') },
   {
     path: 'lnd/loans/:loanId(\\d+)', name: 'lnd-loan', component: () => import('./pages/LndLoanPage.vue'),

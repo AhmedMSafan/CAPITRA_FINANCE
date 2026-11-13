@@ -30,6 +30,21 @@ public class LndLoan : AuditableEntity
     /// <summary>Interest goes to suspense instead of income (set by end of day from the non-accrual days).</summary>
     public bool IsNonAccrual { get; set; }
 
+    /// <summary>Days the oldest unpaid instalment is late, as of LAST_EOD_DATE (set by end of day).</summary>
+    public int DaysLate { get; set; }
+
+    /// <summary>Interest taken to suspense while the loan is in non-accrual, released to income when it cures.</summary>
+    public decimal InterestSuspenseAmount { get; set; }
+
+    /// <summary>Late fees taken to suspense while the loan is in non-accrual.</summary>
+    public decimal LateFeeSuspenseAmount { get; set; }
+
+    /// <summary>End of day found the loan at or beyond the write-off days: it waits for a write-off decision.</summary>
+    public bool IsWriteOffProposed { get; set; }
+
+    /// <summary>The last business day end of day processed this loan.</summary>
+    public DateOnly? LastEodDate { get; set; }
+
     public string CurrencyCode { get; set; } = "EGP";
 
     public decimal PrincipalAmount { get; set; }
@@ -106,6 +121,12 @@ public class LndInstallment : AuditableEntity
     public decimal InsurancePaidAmount { get; set; }
 
     public decimal LateFeePaidAmount { get; set; }
+
+    /// <summary>Interest of this instalment accrued so far by end of day; it reaches INTEREST_DUE_AMOUNT on the due date.</summary>
+    public decimal InterestAccruedAmount { get; set; }
+
+    /// <summary>Days of late fee charged so far (a fee charged once counts the days late when it was charged).</summary>
+    public int LateFeeDays { get; set; }
 
     public decimal ClosingPrincipalAmount { get; set; }
 

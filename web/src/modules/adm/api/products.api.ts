@@ -261,7 +261,15 @@ export const RULE_AMOUNTS = [
   { value: 'INTEREST_PAID', label: 'Interest paid (retail loan receipt)' },
   { value: 'CHARGES_PAID', label: 'Charges paid (retail loan receipt)' },
   { value: 'INSURANCE_PAID', label: 'Insurance paid (retail loan receipt)' },
-  { value: 'LATE_FEE_PAID', label: 'Late fee paid (retail loan receipt)' }
+  { value: 'LATE_FEE_PAID', label: 'Late fee paid (retail loan receipt)' },
+  { value: 'INTEREST_ACCRUED', label: 'Interest accrued to income (retail end of day)' },
+  { value: 'INTEREST_SUSPENDED', label: 'Interest accrued to suspense, loan in non-accrual (retail end of day)' },
+  { value: 'LATE_FEE_CHARGED', label: 'Late fee charged to income (retail end of day)' },
+  { value: 'LATE_FEE_SUSPENDED', label: 'Late fee charged to suspense, loan in non-accrual (retail end of day)' },
+  { value: 'INTEREST_TO_SUSPENSE', label: 'Interest income moved to suspense on non-accrual (retail end of day)' },
+  { value: 'INTEREST_FROM_SUSPENSE', label: 'Interest suspense released to income on cure (retail end of day)' },
+  { value: 'LATE_FEE_TO_SUSPENSE', label: 'Late fee income moved to suspense on non-accrual (retail end of day)' },
+  { value: 'LATE_FEE_FROM_SUSPENSE', label: 'Late fee suspense released to income on cure (retail end of day)' }
 ]
 
 /** Figures of one charge a component GL line posts. */

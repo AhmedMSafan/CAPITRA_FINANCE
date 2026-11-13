@@ -119,3 +119,41 @@ public class LndAllocation : AuditableEntity
     /// <summary>ACTIVE, or REVERSED once the receipt is reversed.</summary>
     public string StatusCode { get; set; } = "ACTIVE";
 }
+
+/// <summary>
+/// LND_EOD_RUNS: one end of day of Retail Lending for one business day (design deck: the daily batch). Days run in order; a failed
+/// day can be run again. Its totals and GL transaction sets are kept for reconciliation.
+/// </summary>
+public class LndEodRun : AuditableEntity
+{
+    public long EodRunId { get; set; }
+
+    public DateOnly RunDate { get; set; }
+
+    /// <summary>RUNNING, DONE or FAILED.</summary>
+    public string StatusCode { get; set; } = "RUNNING";
+
+    public int LoansCount { get; set; }
+
+    public decimal CreditAppliedAmount { get; set; }
+
+    public decimal InterestAccruedAmount { get; set; }
+
+    public decimal InterestSuspendedAmount { get; set; }
+
+    public decimal LateFeeAmount { get; set; }
+
+    public int NonAccrualCount { get; set; }
+
+    public int CuredCount { get; set; }
+
+    public int WriteOffProposedCount { get; set; }
+
+    public string? GlTranSetIds { get; set; }
+
+    public string? ErrorMessage { get; set; }
+
+    public DateTime StartedAt { get; set; }
+
+    public DateTime? FinishedAt { get; set; }
+}
