@@ -26992,6 +26992,175 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("LND_PARAMETER_VALUES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndProductVersion", b =>
+                {
+                    b.Property<long>("ProductVersionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_VERSION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProductVersionId"));
+
+                    b.Property<decimal>("AnnualRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("ANNUAL_RATE_PCT");
+
+                    b.Property<string>("ChangeReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("CHANGE_REASON");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DayCountCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("DAY_COUNT_CODE");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DECIDED_AT");
+
+                    b.Property<string>("DecidedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("DECIDED_BY");
+
+                    b.Property<string>("DecisionNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DECISION_NOTES");
+
+                    b.Property<DateOnly>("EffectiveFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_FROM_DATE");
+
+                    b.Property<string>("InterestMethodCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("INTEREST_METHOD_CODE");
+
+                    b.Property<bool>("IsInsuranceRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_INSURANCE_REQUIRED");
+
+                    b.Property<string>("LateFeeBaseCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("LATE_FEE_BASE_CODE");
+
+                    b.Property<decimal?>("LateFeeFlatAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LATE_FEE_FLAT_AMOUNT");
+
+                    b.Property<int>("LateFeeGraceDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("LATE_FEE_GRACE_DAYS");
+
+                    b.Property<decimal?>("LateFeeRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("LATE_FEE_RATE_PCT");
+
+                    b.Property<string>("LateFeeTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("LATE_FEE_TYPE_CODE");
+
+                    b.Property<decimal>("MaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MAX_AMOUNT");
+
+                    b.Property<int>("MaxTermMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("MAX_TERM_MONTHS");
+
+                    b.Property<decimal>("MinAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("MIN_AMOUNT");
+
+                    b.Property<int>("MinTermMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("MIN_TERM_MONTHS");
+
+                    b.Property<string>("PaymentOrder")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("PAYMENT_ORDER");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRODUCT_ID");
+
+                    b.Property<string>("RepaymentFrequencyCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("REPAYMENT_FREQUENCY_CODE");
+
+                    b.Property<DateTime?>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REQUESTED_AT");
+
+                    b.Property<string>("RequestedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("REQUESTED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<int>("VersionNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("VERSION_NO");
+
+                    b.HasKey("ProductVersionId")
+                        .HasName("PK_LND_PRODUCT_VERSIONS");
+
+                    b.HasIndex("ProductId", "StatusCode", "EffectiveFromDate")
+                        .HasDatabaseName("IX_LND_PRODUCT_VERSIONS_PRODUCT_ID_STATUS_CODE");
+
+                    b.HasIndex("ProductId", "VersionNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_LND_PRODUCT_VERSIONS_PRODUCT_ID_VERSION_NO");
+
+                    b.ToTable("LND_PRODUCT_VERSIONS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
                 {
                     b.Property<long>("EntryId")
@@ -43843,6 +44012,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("TargetFiscalYearId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_GL_YEAR_END_CLOSE_RUNS_GL_FISCAL_YEARS_TARGET_FISCAL_YEAR_ID");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndProductVersion", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Adm.AdmProduct", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_LND_PRODUCT_VERSIONS_ADM_PRODUCTS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>

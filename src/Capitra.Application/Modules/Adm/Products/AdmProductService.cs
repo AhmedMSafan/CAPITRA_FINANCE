@@ -2,6 +2,7 @@ using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Gl;
+using Capitra.Domain.Modules.Lnd;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Adm.Products;
@@ -53,7 +54,8 @@ public sealed class AdmProductService(ICapitraDbContext db)
         var entity = await FindAsync(id, cancellationToken);
         if (rowVersion != entity.RowVersion)
             throw ChangedByAnotherUser();
-        if (await db.Set<AdmProductEventRule>().AnyAsync(x => x.ProductId == id, cancellationToken))
+        if (await db.Set<AdmProductEventRule>().AnyAsync(x => x.ProductId == id, cancellationToken)
+            || await db.Set<LndProductVersion>().AnyAsync(x => x.ProductId == id, cancellationToken))
             throw new ConflictException("This product is referenced by other records and cannot be deleted. Deactivate it instead.");
 
         db.Remove(entity);

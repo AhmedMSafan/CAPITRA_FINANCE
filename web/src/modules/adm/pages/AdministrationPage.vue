@@ -76,7 +76,8 @@ const sections: SetupSection[] = [
     items: [
       { title: 'Product Catalog', description: 'Maintain product catalog and product definitions.', icon: 'pi pi-box', route: '/admin/products', perm: 'ADM.PRODUCT.VIEW' },
       { title: 'Product Event Rules', description: 'Define each product\'s rules, charges and GL entries.', icon: 'pi pi-sitemap', route: '/admin/product-event-rules', perm: 'ADM.PRODUCT.VIEW' },
-      { title: 'Product Parameters', description: 'Maintain product-level configuration and defaults.', icon: 'pi pi-sliders-h', route: '/admin/products/mortgage-portfolio-purchasing', perm: 'ADM.PRODUCT.VIEW' }
+      { title: 'Product Parameters', description: 'Maintain product-level configuration and defaults.', icon: 'pi pi-sliders-h', route: '/admin/products/mortgage-portfolio-purchasing', perm: 'ADM.PRODUCT.VIEW' },
+      { title: 'Lending Product Terms', description: 'Amounts, terms, interest, late fees and payment order of the microfinance and consumer finance products, by version.', icon: 'pi pi-calculator', route: '/admin/products/lending', perm: 'ADM.PRODUCT.VIEW' }
     ]
   },
   {
