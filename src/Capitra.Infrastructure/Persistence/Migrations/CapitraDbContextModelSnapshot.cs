@@ -6045,7 +6045,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("FCT_AGREEMENT_DOCUMENTS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctCollectionBatch", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Col.ColCollectionBatch", b =>
                 {
                     b.Property<long>("CollectionBatchId")
                         .ValueGeneratedOnAdd()
@@ -6130,19 +6130,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("CollectionBatchId")
-                        .HasName("PK_FCT_COLLECTION_BATCHES");
+                        .HasName("PK_COL_COLLECTION_BATCHES");
 
                     b.HasIndex("BatchNo")
                         .IsUnique()
-                        .HasDatabaseName("UQ_FCT_COLLECTION_BATCHES_BATCH_NO");
+                        .HasDatabaseName("UQ_COL_COLLECTION_BATCHES_BATCH_NO");
 
                     b.HasIndex("GlTranSetId")
-                        .HasDatabaseName("IX_FCT_COLLECTION_BATCHES_GL_TRAN_SET_ID");
+                        .HasDatabaseName("IX_COL_COLLECTION_BATCHES_GL_TRAN_SET_ID");
 
-                    b.ToTable("FCT_COLLECTION_BATCHES", (string)null);
+                    b.ToTable("COL_COLLECTION_BATCHES", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctCollectionBatchLine", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Col.ColCollectionBatchLine", b =>
                 {
                     b.Property<long>("CollectionBatchLineId")
                         .ValueGeneratedOnAdd()
@@ -6251,19 +6251,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("CollectionBatchLineId")
-                        .HasName("PK_FCT_COLLECTION_BATCH_LINES");
+                        .HasName("PK_COL_COLLECTION_BATCH_LINES");
 
                     b.HasIndex("ChequeId")
-                        .HasDatabaseName("IX_FCT_COLLECTION_BATCH_LINES_CHEQUE_ID");
+                        .HasDatabaseName("IX_COL_COLLECTION_BATCH_LINES_CHEQUE_ID");
 
                     b.HasIndex("RepaymentTxnId")
-                        .HasDatabaseName("IX_FCT_COLLECTION_BATCH_LINES_REPAYMENT_TXN_ID");
+                        .HasDatabaseName("IX_COL_COLLECTION_BATCH_LINES_REPAYMENT_TXN_ID");
 
                     b.HasIndex("CollectionBatchId", "LineNo")
                         .IsUnique()
-                        .HasDatabaseName("UQ_FCT_COLLECTION_BATCH_LINES_COLLECTION_BATCH_ID_LINE_NO");
+                        .HasDatabaseName("UQ_COL_COLLECTION_BATCH_LINES_COLLECTION_BATCH_ID_LINE_NO");
 
-                    b.ToTable("FCT_COLLECTION_BATCH_LINES", (string)null);
+                    b.ToTable("COL_COLLECTION_BATCH_LINES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctCreditLimit", b =>
@@ -9574,7 +9574,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("FCT_REPAYMENT_ALLOCATIONS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentRequest", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Col.ColRepaymentRequest", b =>
                 {
                     b.Property<long>("RepaymentRequestId")
                         .ValueGeneratedOnAdd()
@@ -9650,12 +9650,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("RepaymentRequestId")
-                        .HasName("PK_FCT_REPAYMENT_REQUESTS");
+                        .HasName("PK_COL_REPAYMENT_REQUESTS");
 
-                    b.ToTable("FCT_REPAYMENT_REQUESTS", (string)null);
+                    b.ToTable("COL_REPAYMENT_REQUESTS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentSource", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Col.ColRepaymentSource", b =>
                 {
                     b.Property<long>("RepaymentSourceId")
                         .ValueGeneratedOnAdd()
@@ -9732,21 +9732,21 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("UPDATED_BY");
 
                     b.HasKey("RepaymentSourceId")
-                        .HasName("PK_FCT_REPAYMENT_SOURCES");
+                        .HasName("PK_COL_REPAYMENT_SOURCES");
 
                     b.HasIndex("ChequeId", "StatusCode")
-                        .HasDatabaseName("IX_FCT_REPAYMENT_SOURCES_CHEQUE_ID_STATUS_CODE");
+                        .HasDatabaseName("IX_COL_REPAYMENT_SOURCES_CHEQUE_ID_STATUS_CODE");
 
                     b.HasIndex("RepaymentTxnId", "StatusCode")
-                        .HasDatabaseName("IX_FCT_REPAYMENT_SOURCES_REPAYMENT_TXN_ID_STATUS_CODE");
+                        .HasDatabaseName("IX_COL_REPAYMENT_SOURCES_REPAYMENT_TXN_ID_STATUS_CODE");
 
                     b.HasIndex("SourceRepaymentTxnId", "StatusCode")
-                        .HasDatabaseName("IX_FCT_REPAYMENT_SOURCES_SOURCE_REPAYMENT_TXN_ID_STATUS_CODE");
+                        .HasDatabaseName("IX_COL_REPAYMENT_SOURCES_SOURCE_REPAYMENT_TXN_ID_STATUS_CODE");
 
-                    b.ToTable("FCT_REPAYMENT_SOURCES", (string)null);
+                    b.ToTable("COL_REPAYMENT_SOURCES", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Col.ColRepaymentTransaction", b =>
                 {
                     b.Property<long>("RepaymentTxnId")
                         .ValueGeneratedOnAdd()
@@ -9776,6 +9776,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<long>("ClientId")
                         .HasColumnType("bigint")
                         .HasColumnName("CLIENT_ID");
+
+                    b.Property<string>("BusinessLineCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BUSINESS_LINE_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -9888,16 +9894,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("VALUE_DATE");
 
                     b.HasKey("RepaymentTxnId")
-                        .HasName("PK_FCT_REPAYMENT_TRANSACTIONS");
+                        .HasName("PK_COL_REPAYMENT_TRANSACTIONS");
+
+                    b.HasIndex("BusinessLineCode")
+                        .HasDatabaseName("IX_COL_REPAYMENT_TRANSACTIONS_BUSINESS_LINE_CODE");
 
                     b.HasIndex("RepaymentNumber")
                         .IsUnique()
-                        .HasDatabaseName("UQ_FCT_REPAYMENT_TRANSACTIONS_REPAYMENT_NUMBER");
+                        .HasDatabaseName("UQ_COL_REPAYMENT_TRANSACTIONS_REPAYMENT_NUMBER");
 
                     b.HasIndex("ClientId", "LegalEntityId", "ValueDate", "StatusCode")
-                        .HasDatabaseName("IX_FCT_REPAYMENT_TRANSACTIONS_CLIENT_ID_LEGAL_ENTITY_ID");
+                        .HasDatabaseName("IX_COL_REPAYMENT_TRANSACTIONS_CLIENT_ID_LEGAL_ENTITY_ID");
 
-                    b.ToTable("FCT_REPAYMENT_TRANSACTIONS", (string)null);
+                    b.ToTable("COL_REPAYMENT_TRANSACTIONS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fin.FinBranch", b =>
@@ -40601,20 +40610,20 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_FCT_AGREEMENT_DOCUMENTS_ADM_LKP_DOCUMENT_STATUS_CODES");
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctCollectionBatchLine", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Col.ColCollectionBatchLine", b =>
                 {
-                    b.HasOne("Capitra.Domain.Modules.Fct.FctCollectionBatch", null)
+                    b.HasOne("Capitra.Domain.Modules.Col.ColCollectionBatch", null)
                         .WithMany()
                         .HasForeignKey("CollectionBatchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_FCT_COLLECTION_BATCH_LINES_FCT_COLLECTION_BATCHES");
+                        .HasConstraintName("FK_COL_COLLECTION_BATCH_LINES_COL_COLLECTION_BATCHES");
 
-                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", null)
+                    b.HasOne("Capitra.Domain.Modules.Col.ColRepaymentTransaction", null)
                         .WithMany()
                         .HasForeignKey("RepaymentTxnId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_FCT_COLLECTION_BATCH_LINES_FCT_REPAYMENT_TRANSACTIONS");
+                        .HasConstraintName("FK_COL_COLLECTION_BATCH_LINES_COL_REPAYMENT_TRANSACTIONS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctCreditLimit", b =>
@@ -40700,19 +40709,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_FCT_CUSTOMER_CLAIM_PAYMENTS_FCT_CUSTOMER_CLAIMS");
 
-                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentSource", null)
+                    b.HasOne("Capitra.Domain.Modules.Col.ColRepaymentSource", null)
                         .WithMany()
                         .HasForeignKey("RepaymentSourceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_FCT_CUSTOMER_CLAIM_PAYMENTS_FCT_REPAYMENT_SOURCES");
+                        .HasConstraintName("FK_FCT_CUSTOMER_CLAIM_PAYMENTS_COL_REPAYMENT_SOURCES");
 
-                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", null)
+                    b.HasOne("Capitra.Domain.Modules.Col.ColRepaymentTransaction", null)
                         .WithMany()
                         .HasForeignKey("RepaymentTxnId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_FCT_CUSTOMER_CLAIM_PAYMENTS_FCT_REPAYMENT_TRANSACTIONS");
+                        .HasConstraintName("FK_FCT_CUSTOMER_CLAIM_PAYMENTS_COL_REPAYMENT_TRANSACTIONS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctDisbursement", b =>
@@ -40845,41 +40854,41 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_FCT_REPAYMENT_ALLOCATIONS_FCT_DISBURSEMENTS");
 
-                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentSource", null)
+                    b.HasOne("Capitra.Domain.Modules.Col.ColRepaymentSource", null)
                         .WithMany()
                         .HasForeignKey("RepaymentSourceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_FCT_REPAYMENT_ALLOCATIONS_FCT_REPAYMENT_SOURCES");
+                        .HasConstraintName("FK_FCT_REPAYMENT_ALLOCATIONS_COL_REPAYMENT_SOURCES");
 
-                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", null)
+                    b.HasOne("Capitra.Domain.Modules.Col.ColRepaymentTransaction", null)
                         .WithMany()
                         .HasForeignKey("RepaymentTxnId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_FCT_REPAYMENT_ALLOCATIONS_FCT_REPAYMENT_TRANSACTIONS");
+                        .HasConstraintName("FK_FCT_REPAYMENT_ALLOCATIONS_COL_REPAYMENT_TRANSACTIONS");
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctRepaymentSource", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Col.ColRepaymentSource", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Chq.ChqCheque", null)
                         .WithMany()
                         .HasForeignKey("ChequeId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_FCT_REPAYMENT_SOURCES_CHQ_CHEQUES");
+                        .HasConstraintName("FK_COL_REPAYMENT_SOURCES_CHQ_CHEQUES");
 
-                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", null)
+                    b.HasOne("Capitra.Domain.Modules.Col.ColRepaymentTransaction", null)
                         .WithMany()
                         .HasForeignKey("RepaymentTxnId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_FCT_REPAYMENT_SOURCES_FCT_REPAYMENT_TRANSACTIONS_RE_10F8E45A");
+                        .HasConstraintName("FK_COL_REPAYMENT_SOURCES_COL_REPAYMENT_TRANSACTIONS_RE_E00F5DA6");
 
-                    b.HasOne("Capitra.Domain.Modules.Fct.FctRepaymentTransaction", null)
+                    b.HasOne("Capitra.Domain.Modules.Col.ColRepaymentTransaction", null)
                         .WithMany()
                         .HasForeignKey("SourceRepaymentTxnId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_FCT_REPAYMENT_SOURCES_FCT_REPAYMENT_TRANSACTIONS_SO_9FCB51DD");
+                        .HasConstraintName("FK_COL_REPAYMENT_SOURCES_COL_REPAYMENT_TRANSACTIONS_SO_EC080C4A");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Fin.FinBranch", b =>

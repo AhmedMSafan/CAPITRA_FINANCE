@@ -1,12 +1,12 @@
 using Capitra.Domain.Common;
 
-namespace Capitra.Domain.Modules.Fct;
+namespace Capitra.Domain.Modules.Col;
 
 /// <summary>
-/// FCT_COLLECTION_BATCHES: one run of Apply Bank Results on the Cheques Collection page (agreed with Ahmed, 1 Nov 2026): the
+/// COL_COLLECTION_BATCHES: one run of Apply Bank Results on the Cheques Collection page (agreed with Ahmed, 1 Nov 2026): the
 /// bank's results it applied and the one GL transaction set of its collected cheques.
 /// </summary>
-public class FctCollectionBatch : AuditableEntity
+public class ColCollectionBatch : AuditableEntity
 {
     public long CollectionBatchId { get; set; }
 

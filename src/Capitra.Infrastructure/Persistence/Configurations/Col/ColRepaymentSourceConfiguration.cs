@@ -1,15 +1,15 @@
 using Capitra.Domain.Modules.Chq;
-using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Col;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Capitra.Infrastructure.Persistence.Configurations.Fct;
+namespace Capitra.Infrastructure.Persistence.Configurations.Col;
 
-public sealed class FctRepaymentSourceConfiguration : IEntityTypeConfiguration<FctRepaymentSource>
+public sealed class ColRepaymentSourceConfiguration : IEntityTypeConfiguration<ColRepaymentSource>
 {
-    public void Configure(EntityTypeBuilder<FctRepaymentSource> builder)
+    public void Configure(EntityTypeBuilder<ColRepaymentSource> builder)
     {
-        builder.ToTable("FCT_REPAYMENT_SOURCES");
+        builder.ToTable("COL_REPAYMENT_SOURCES");
         builder.HasKey(x => x.RepaymentSourceId);
         builder.HasIndex(x => new { x.RepaymentTxnId, x.StatusCode });
         builder.HasIndex(x => new { x.ChequeId, x.StatusCode });
@@ -22,9 +22,9 @@ public sealed class FctRepaymentSourceConfiguration : IEntityTypeConfiguration<F
         builder.Property(x => x.AllocatedAmount).HasPrecision(18, 2);
         builder.Property(x => x.StatusCode).HasMaxLength(20);
 
-        builder.HasOne<FctRepaymentTransaction>().WithMany().HasForeignKey(x => x.RepaymentTxnId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ColRepaymentTransaction>().WithMany().HasForeignKey(x => x.RepaymentTxnId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ChqCheque>().WithMany().HasForeignKey(x => x.ChequeId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<FctRepaymentTransaction>().WithMany().HasForeignKey(x => x.SourceRepaymentTxnId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ColRepaymentTransaction>().WithMany().HasForeignKey(x => x.SourceRepaymentTxnId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }

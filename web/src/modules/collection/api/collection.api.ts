@@ -104,7 +104,7 @@ export type ChequeResult = {
 /** The result of Apply Bank Results: the collection batch it made and its GL transaction set */
 export type CollectionApplied = { message: string; collectionBatchId: number; batchNo: string; glTranSetId: string | null }
 
-/** A collection batch: one run of Apply Bank Results (FCT_COLLECTION_BATCHES) */
+/** A collection batch: one run of Apply Bank Results (COL_COLLECTION_BATCHES) */
 export type CollectionBatch = {
   collectionBatchId: number
   batchNo: string
@@ -121,7 +121,7 @@ export type CollectionBatch = {
   createdAt: string | null
 }
 
-/** A cheque of a collection batch (FCT_COLLECTION_BATCH_LINES) */
+/** A cheque of a collection batch (COL_COLLECTION_BATCH_LINES) */
 export type CollectionBatchLine = {
   lineNo: number
   chequeId: number

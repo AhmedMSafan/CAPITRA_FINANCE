@@ -1,5 +1,5 @@
 <template>
-  <!-- Collection Batches: one row per Apply Bank Results run (FCT_COLLECTION_BATCHES), with its counts, amounts and the one
+  <!-- Collection Batches: one row per Apply Bank Results run (COL_COLLECTION_BATCHES), with its counts, amounts and the one
        GL transaction set of the batch. The row link opens the batch's cheques. -->
   <div class="fx fc">
     <div class="fx-head">

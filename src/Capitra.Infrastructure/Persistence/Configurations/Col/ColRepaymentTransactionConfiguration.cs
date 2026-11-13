@@ -1,20 +1,22 @@
-using Capitra.Domain.Modules.Fct;
+using Capitra.Domain.Modules.Col;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Capitra.Infrastructure.Persistence.Configurations.Fct;
+namespace Capitra.Infrastructure.Persistence.Configurations.Col;
 
-public sealed class FctRepaymentTransactionConfiguration : IEntityTypeConfiguration<FctRepaymentTransaction>
+public sealed class ColRepaymentTransactionConfiguration : IEntityTypeConfiguration<ColRepaymentTransaction>
 {
-    public void Configure(EntityTypeBuilder<FctRepaymentTransaction> builder)
+    public void Configure(EntityTypeBuilder<ColRepaymentTransaction> builder)
     {
-        builder.ToTable("FCT_REPAYMENT_TRANSACTIONS");
+        builder.ToTable("COL_REPAYMENT_TRANSACTIONS");
         builder.HasKey(x => x.RepaymentTxnId);
         builder.HasIndex(x => x.RepaymentNumber).IsUnique();
+        builder.HasIndex(x => x.BusinessLineCode);
         builder.HasIndex(x => new { x.ClientId, x.LegalEntityId, x.ValueDate, x.StatusCode });
 
         builder.Property(x => x.RepaymentTxnId).UseIdentityByDefaultColumn();
         builder.Property(x => x.RepaymentNumber).HasMaxLength(40);
+        builder.Property(x => x.BusinessLineCode).HasMaxLength(30);
         builder.Property(x => x.RepaymentMethod).HasMaxLength(30);
         builder.Property(x => x.CurrencyCode).HasMaxLength(3);
         builder.Property(x => x.ReceiptAmount).HasPrecision(18, 2);

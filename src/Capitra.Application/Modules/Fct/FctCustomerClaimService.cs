@@ -7,6 +7,7 @@ using Capitra.Application.Modules.Crm;
 using Capitra.Application.Modules.Gl;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Chq;
+using Capitra.Domain.Modules.Col;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Fct;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ public sealed record FctClaimDto(FctClaimRowDto Claim, IReadOnlyList<FctClaimLin
 /// <summary>The Claim section of the Invoice Upload page: the request's claim status and its claim, if any.</summary>
 public sealed record FctDisbursementClaimDto(string ClaimStatusCode, decimal ChargesTotal, bool IsCompleted, FctClaimDto? Claim);
 
-/// <summary>A payment source of the customer with balance left (FCT_REPAYMENT_SOURCES of an active repayment).</summary>
+/// <summary>A payment source of the customer with balance left (COL_REPAYMENT_SOURCES of an active repayment).</summary>
 public sealed record FctClaimSourceDto(
     long RepaymentSourceId, string RepaymentNumber, string SourceType, string? Reference, DateOnly ValueDate, decimal SourceAmount, decimal UsedAmount,
     decimal AvailableAmount);
@@ -181,8 +182,8 @@ public sealed class FctCustomerClaimService(
                 x.PaidAmount, x.TotalAmount - x.PaidAmount))
             .ToListAsync(cancellationToken);
         var payments = await (from p in db.Set<FctCustomerClaimPayment>().AsNoTracking()
-                              join s in db.Set<FctRepaymentSource>() on p.RepaymentSourceId equals s.RepaymentSourceId
-                              join t in db.Set<FctRepaymentTransaction>() on p.RepaymentTxnId equals t.RepaymentTxnId
+                              join s in db.Set<ColRepaymentSource>() on p.RepaymentSourceId equals s.RepaymentSourceId
+                              join t in db.Set<ColRepaymentTransaction>() on p.RepaymentTxnId equals t.RepaymentTxnId
                               join c in db.Set<ChqCheque>() on s.ChequeId equals c.ChequeId into cs
                               from c in cs.DefaultIfEmpty()
                               where p.ClaimId == claimId
@@ -196,8 +197,8 @@ public sealed class FctCustomerClaimService(
 
     /// <summary>The customer's payment sources with balance left, oldest first.</summary>
     public async Task<IReadOnlyList<FctClaimSourceDto>> SourcesAsync(long clientId, CancellationToken cancellationToken) =>
-        await (from s in db.Set<FctRepaymentSource>().AsNoTracking()
-               join t in db.Set<FctRepaymentTransaction>() on s.RepaymentTxnId equals t.RepaymentTxnId
+        await (from s in db.Set<ColRepaymentSource>().AsNoTracking()
+               join t in db.Set<ColRepaymentTransaction>() on s.RepaymentTxnId equals t.RepaymentTxnId
                join c in db.Set<ChqCheque>() on s.ChequeId equals c.ChequeId into cs
                from c in cs.DefaultIfEmpty()
                where t.ClientId == clientId && s.StatusCode == "ACTIVE" && t.StatusCode != "REVERSED" && t.StatusCode != "CANCELLED"
@@ -232,9 +233,9 @@ public sealed class FctCustomerClaimService(
             ?? throw new NotFoundException($"Claim {claimId} was not found.");
         if (claim.StatusCode is not (FctCustomerClaim.Open or FctCustomerClaim.PartiallyPaid))
             throw new BusinessRuleException($"Claim {claim.ClaimNumber} is {claim.StatusCode.ToLowerInvariant().Replace('_', ' ')}; it cannot be paid.");
-        var source = await db.Set<FctRepaymentSource>().FirstOrDefaultAsync(x => x.RepaymentSourceId == dto.RepaymentSourceId, cancellationToken)
+        var source = await db.Set<ColRepaymentSource>().FirstOrDefaultAsync(x => x.RepaymentSourceId == dto.RepaymentSourceId, cancellationToken)
             ?? throw new NotFoundException($"Payment source {dto.RepaymentSourceId} was not found.");
-        var txn = await db.Set<FctRepaymentTransaction>().FirstAsync(x => x.RepaymentTxnId == source.RepaymentTxnId, cancellationToken);
+        var txn = await db.Set<ColRepaymentTransaction>().FirstAsync(x => x.RepaymentTxnId == source.RepaymentTxnId, cancellationToken);
         if (txn.ClientId != claim.ClientId) throw new BusinessRuleException("The payment source belongs to another customer.");
         if (source.StatusCode != "ACTIVE" || txn.StatusCode is "REVERSED" or "CANCELLED")
             throw new BusinessRuleException("The payment source is not active.");
@@ -313,7 +314,7 @@ public sealed class FctCustomerClaimService(
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        var held = await db.Set<FctRepaymentSource>().Where(x => x.RepaymentTxnId == txn.RepaymentTxnId && x.StatusCode == "ACTIVE")
+        var held = await db.Set<ColRepaymentSource>().Where(x => x.RepaymentTxnId == txn.RepaymentTxnId && x.StatusCode == "ACTIVE")
             .SumAsync(x => (decimal?)x.SourceAmount, cancellationToken) ?? 0;
         txn.StatusCode = txn.AllocatedAmount <= 0 ? "DRAFT" : txn.AllocatedAmount >= held ? "ALLOCATED" : "PARTIALLY_ALLOCATED";
 

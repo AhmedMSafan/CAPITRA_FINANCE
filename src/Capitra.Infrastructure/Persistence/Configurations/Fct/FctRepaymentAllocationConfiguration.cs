@@ -1,3 +1,4 @@
+using Capitra.Domain.Modules.Col;
 using Capitra.Domain.Modules.Fct;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -23,8 +24,8 @@ public sealed class FctRepaymentAllocationConfiguration : IEntityTypeConfigurati
         builder.Property(x => x.ReversalReason).HasMaxLength(1000);
         builder.Property(x => x.ReversedBy).HasMaxLength(100);
 
-        builder.HasOne<FctRepaymentTransaction>().WithMany().HasForeignKey(x => x.RepaymentTxnId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<FctRepaymentSource>().WithMany().HasForeignKey(x => x.RepaymentSourceId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ColRepaymentTransaction>().WithMany().HasForeignKey(x => x.RepaymentTxnId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ColRepaymentSource>().WithMany().HasForeignKey(x => x.RepaymentSourceId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<FctDisbursement>().WithMany().HasForeignKey(x => x.DisbursementId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
