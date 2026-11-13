@@ -94,3 +94,28 @@ public class LndLoanEvent : AuditableEntity
 
     public string? Notes { get; set; }
 }
+
+/// <summary>
+/// LND_ALLOCATIONS: one part of one instalment paid by a receipt of the shared Collection module (COL_REPAYMENT_TRANSACTIONS).
+/// Each business line keeps its own allocations; this is Retail Lending's (factoring: FCT_REPAYMENT_ALLOCATIONS).
+/// </summary>
+public class LndAllocation : AuditableEntity
+{
+    public long AllocationId { get; set; }
+
+    public long RepaymentTxnId { get; set; }
+
+    public long LoanId { get; set; }
+
+    public long InstallmentId { get; set; }
+
+    /// <summary>One of: LATE_FEE, CHARGES, INSURANCE, INTEREST, PRINCIPAL.</summary>
+    public string PartCode { get; set; } = string.Empty;
+
+    public decimal AllocatedAmount { get; set; }
+
+    public DateOnly ValueDate { get; set; }
+
+    /// <summary>ACTIVE, or REVERSED once the receipt is reversed.</summary>
+    public string StatusCode { get; set; } = "ACTIVE";
+}

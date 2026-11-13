@@ -59,6 +59,27 @@
         </div>
       </section>
 
+      <section v-if="receipts && loan.statusCode !== 'APPROVED' && loan.statusCode !== 'CANCELLED'" class="fx-card">
+        <header class="c3-panel-head lp-head">
+          <h3><span class="fa fa-download" aria-hidden="true"></span>{{ tr('Payments') }}</h3>
+          <button v-if="receipts.canReceive" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openReceive"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Receive payment') }}</button>
+        </header>
+        <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          {{ tr('Due today:') }} <b>{{ money(receipts.overdueToday) }}</b> · {{ tr('Customer credit balance:') }} <b>{{ money(receipts.creditBalance) }}</b>
+        </p>
+        <div v-if="receipts.receipts.length" class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('Receipt') }}</th><th>{{ tr('Value date') }}</th><th>{{ tr('From') }}</th><th class="ln-num">{{ tr('Received') }}</th><th class="ln-num">{{ tr('Applied') }}</th><th>{{ tr('GL') }}</th><th>{{ tr('By') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="r in receipts.receipts" :key="r.repaymentTxnId">
+                <td><b>{{ r.repaymentNumber }}</b></td><td>{{ formatDate(r.valueDate) }}</td><td>{{ r.sources }}</td>
+                <td class="ln-num">{{ money(r.receiptAmount) }}</td><td class="ln-num">{{ money(r.allocatedAmount) }}</td><td>{{ r.glTranSetId ?? '' }}</td><td>{{ r.createdBy }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="fx-card">
         <header class="c3-panel-head"><h3><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Schedule') }}</h3></header>
         <div class="fx-table-wrap">
@@ -150,6 +171,45 @@
       </template>
     </Crm360Dialog>
 
+    <Crm360Dialog v-model:visible="receiving" :title="tr('Receive Payment')" :subtitle="loan?.loanNumber ?? ''" icon="fa-download" :busy="busy" :width="900">
+      <div class="c3-grid c3-grid--2">
+        <label class="fc-field" :class="rbad('valueDate')"><span>{{ tr('Value date') }}<b> *</b></span><input v-model="rform.valueDate" type="date" class="fx-search" :max="receipts?.today"></label>
+        <label class="fc-field"><span>{{ tr('Notes') }}</span><input v-model="rform.notes" class="fx-search" maxlength="1000"></label>
+      </div>
+      <div class="lp-sources" :class="rbad('sources')">
+        <div v-for="(s, n) in rform.sources" :key="n" class="lp-source">
+          <select v-model="s.sourceType" class="fx-select lp-type">
+            <option value="BANK_DEPOSIT">{{ tr('Bank deposit') }}</option><option value="CHEQUE">{{ tr('Collected cheque') }}</option><option value="CREDIT_BALANCE">{{ tr('Credit balance') }}</option>
+          </select>
+          <template v-if="s.sourceType === 'BANK_DEPOSIT'">
+            <select v-model="s.depositAccountId" class="fx-select"><option v-for="a in receipts?.depositAccounts ?? []" :key="a.accountId" :value="a.accountId" :disabled="!a.hasGlAccount">{{ a.label }}</option></select>
+            <input v-model="s.reference" class="fx-search" :placeholder="tr('Bank reference')" maxlength="100">
+            <input v-model.number="s.amount" type="number" min="0" step="any" class="fx-search lp-amount" :placeholder="tr('Amount')">
+          </template>
+          <select v-else-if="s.sourceType === 'CHEQUE'" v-model="s.chequeId" class="fx-select">
+            <option v-for="c in receipts?.cheques ?? []" :key="c.chequeId" :value="c.chequeId">{{ c.chequeRef }} · {{ c.chequeNo }} · {{ formatDate(c.dueDate) }} · {{ money(c.chequeAmount) }}</option>
+          </select>
+          <input v-else v-model.number="s.amount" type="number" min="0" step="any" class="fx-search lp-amount" :placeholder="tr('Amount')">
+          <button type="button" class="fx-btn fx-btn--sm" :aria-label="tr('Remove')" :disabled="rform.sources.length === 1" @click="rform.sources.splice(n, 1)"><span class="fa fa-trash" aria-hidden="true"></span></button>
+        </div>
+        <button type="button" class="fx-btn fx-btn--sm" @click="addSource"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Add source') }}</button>
+      </div>
+      <div v-if="rpreview" class="lp-preview">
+        <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          {{ tr('Received') }} <b>{{ money(rpreview.receiptAmount) }}</b> · {{ tr('applied') }} <b>{{ money(rpreview.allocatedAmount) }}</b> · {{ tr('kept as credit') }} <b>{{ money(rpreview.creditKeptAmount) }}</b>
+        </p>
+        <table class="fx-table">
+          <thead><tr><th>#</th><th>{{ tr('Part') }}</th><th class="ln-num">{{ tr('Amount') }}</th></tr></thead>
+          <tbody><tr v-for="(l, n) in rpreview.lines" :key="n"><td>{{ l.installmentNo }}</td><td>{{ tr(PARTS[l.partCode] ?? l.partCode) }}</td><td class="ln-num">{{ money(l.amount) }}</td></tr></tbody>
+        </table>
+      </div>
+      <template #footer>
+        <button type="button" class="fx-btn" :disabled="busy" @click="receiving = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+        <button type="button" class="fx-btn" :disabled="busy" @click="previewReceipt"><span class="fa fa-table" aria-hidden="true"></span>{{ tr('Show allocation') }}</button>
+        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy || !rpreview" @click="receive"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-check'" aria-hidden="true"></span>{{ tr('Receive') }}</button>
+      </template>
+    </Crm360Dialog>
+
     <Crm360Dialog v-model:visible="cancelling" :title="tr('Cancel Loan')" :subtitle="loan?.loanNumber ?? ''" icon="fa-ban" :busy="busy" :width="520">
       <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('A loan can be cancelled until it is paid out. Its schedule is kept for the record.') }}</p>
       <label class="fc-field" :class="{ 'c3-bad': !!errors.reason }"><span>{{ tr('Reason') }}<b> *</b></span><input v-model="reason" class="fx-search" maxlength="1000"></label>
@@ -165,7 +225,7 @@
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ApiError } from '@/shared/api/http'
 import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
@@ -173,7 +233,7 @@ import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
 import { getUser } from '@/shared/auth/session'
-import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest } from '../api/loans.api'
+import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage } from '../api/loans.api'
 
 const props = defineProps<{ loanId: number }>()
 
@@ -212,7 +272,7 @@ const facts = computed<[string, string][]>(() => {
 const METHODS: Record<string, string> = { BANK_TRANSFER: 'Bank transfer', CASH: 'Cash', MERCHANT: 'Paid to merchant', WALLET: 'E-wallet' }
 const PSTATUS = { REQUESTED: 'Waiting', PAID: 'Paid', REJECTED: 'Rejected', WITHDRAWN: 'Withdrawn' } as const
 const PCHIP = { REQUESTED: 'fx-chip--warn', PAID: 'fx-chip--ok', REJECTED: 'fx-chip--bad', WITHDRAWN: 'fx-chip--teal' } as const
-const EVENTS: Record<string, string> = { DISBURSED: 'Paid out' }
+const EVENTS: Record<string, string> = { DISBURSED: 'Paid out', RECEIPT: 'Payment received' }
 const me = (getUser()?.userName ?? '').toLowerCase()
 const payouts = ref<DisbursementPage | null>(null)
 const waiting = computed(() => payouts.value?.disbursements.some((d) => d.statusCode === 'REQUESTED') ?? false)
@@ -263,6 +323,56 @@ const decide = () => decision.value === 'pay'
   : payoutCall(() => loansApi.rejectPayout(props.loanId, decidingId.value, notes.value), 'Payout rejected.', () => (deciding.value = false))
 const withdraw = (id: number) => payoutCall(() => loansApi.withdrawPayout(props.loanId, id), 'Payout withdrawn.', () => {})
 
+// ---- receipts
+const PARTS: Record<string, string> = { LATE_FEE: 'Late fee', CHARGES: 'Charges', INSURANCE: 'Insurance', INTEREST: 'Interest', PRINCIPAL: 'Principal' }
+const receipts = ref<ReceiptsPage | null>(null)
+const receiving = ref(false)
+const rpreview = ref<ReceiptPreview | null>(null)
+const rerrors = ref<Record<string, string[]>>({})
+const rbad = (f: string) => ({ 'c3-bad': !!rerrors.value[f] })
+const blankSource = (): ReceiptSource => ({ sourceType: 'BANK_DEPOSIT', depositAccountId: receipts.value?.depositAccounts.find((a) => a.hasGlAccount)?.accountId ?? null, chequeId: null, amount: null, reference: null })
+const rform = reactive<{ valueDate: string; notes: string; sources: ReceiptSource[] }>({ valueDate: '', notes: '', sources: [] })
+watch(() => JSON.stringify([rform.valueDate, rform.sources]), () => (rpreview.value = null))
+
+function openReceive() {
+  rform.valueDate = receipts.value?.today ?? ''
+  rform.notes = ''
+  rform.sources = [blankSource()]
+  rpreview.value = null
+  rerrors.value = {}
+  receiving.value = true
+}
+const addSource = () => rform.sources.push(blankSource())
+/** The money of the sources: a cheque counts its amount, the others what is entered. */
+const sourcesTotal = () => rform.sources.reduce((a, s) => a + (s.sourceType === 'CHEQUE'
+  ? receipts.value?.cheques.find((c) => c.chequeId === s.chequeId)?.chequeAmount ?? 0
+  : Number(s.amount ?? 0)), 0)
+
+async function previewReceipt() {
+  try {
+    rpreview.value = await loansApi.receiptPreview(props.loanId, rform.valueDate, sourcesTotal())
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err))
+  }
+}
+async function receive() {
+  busy.value = true
+  rerrors.value = {}
+  try {
+    receipts.value = await loansApi.receive(props.loanId, { valueDate: rform.valueDate || null, sources: rform.sources, notes: rform.notes || null })
+    receiving.value = false
+    showSuccess(tr('Payment received.'))
+    loan.value = await loansApi.get(props.loanId)
+  } catch (err) {
+    if (err instanceof ApiError && err.problem?.errors) {
+      rerrors.value = err.problem.errors
+      showError(Object.values(err.problem.errors).flat().map((m) => tr(m)).join('\n'))
+    } else showError(err instanceof Error ? err.message : String(err))
+  } finally {
+    busy.value = false
+  }
+}
+
 const sum = (k: keyof Installment) => (loan.value?.installments ?? []).reduce((a, i) => a + Number(i[k]), 0)
 
 const cancelling = ref(false)
@@ -292,6 +402,7 @@ onMounted(async () => {
   try {
     loan.value = await loansApi.get(props.loanId)
     payouts.value = await loansApi.payouts(props.loanId)
+    receipts.value = await loansApi.receipts(props.loanId)
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err))
   }
@@ -308,6 +419,12 @@ h1 .fx-chip { vertical-align: middle; font-size: 12px; }
 .lp-head { display: flex; justify-content: space-between; align-items: center; }
 .lp-bad { background: var(--fin-bad-50); color: var(--fin-ink); }
 .lp-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.lp-sources { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.lp-source { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.lp-source > .fx-select, .lp-source > .fx-search { flex: 1; min-width: 160px; }
+.lp-source > .lp-type { flex: 0 0 180px; }
+.lp-source > .lp-amount { flex: 0 0 140px; }
+.lp-preview { margin-top: 12px; }
 .c3-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 900px) { .ln-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>

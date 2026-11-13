@@ -141,6 +141,9 @@ public static class Permissions
 
         /// <summary>Pay a loan out, or reject a payout (four eyes: never one's own request).</summary>
         public const string LoanDisburse = "LND.LOAN.DISBURSE";
+
+        /// <summary>Receive a customer's payment on a loan (bank deposit, collected cheque or credit balance).</summary>
+        public const string LoanReceive = "LND.LOAN.RECEIVE";
     }
 
     public static class Fct

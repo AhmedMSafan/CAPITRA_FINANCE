@@ -54,6 +54,15 @@ export type DisbursementPage = {
   preview: { ruleCode: string | null; principalAmount: number; charges: Charge[]; chargesAmount: number; netPayoutAmount: number; problem: string | null }
   disbursements: Disbursement[]
 }
+export type ReceiptSource = { sourceType: 'BANK_DEPOSIT' | 'CHEQUE' | 'CREDIT_BALANCE'; depositAccountId: number | null; chequeId: number | null; amount: number | null; reference: string | null }
+export type ReceiptsPage = {
+  loanId: number; loanStatusCode: string; canReceive: boolean; today: string; overdueToday: number; creditBalance: number
+  depositAccounts: { accountId: number; label: string; hasGlAccount: boolean }[]
+  cheques: { chequeId: number; chequeRef: string; chequeNo: string; dueDate: string; chequeAmount: number; depositAccount: string | null }[]
+  receipts: { repaymentTxnId: number; repaymentNumber: string; valueDate: string; transactionDate: string; receiptAmount: number; allocatedAmount: number
+    statusCode: string; glTranSetId: string | null; sources: string; createdBy: string }[]
+}
+export type ReceiptPreview = { receiptAmount: number; allocatedAmount: number; creditKeptAmount: number; overdueAmount: number; lines: { installmentNo: number; partCode: string; amount: number }[] }
 export type PayoutRequest = { paidFromAccountId: number | null; payoutMethodCode: string; payeeName: string; payeeAccount: string | null }
 
 const API = '/api/lnd/loans'
@@ -70,5 +79,9 @@ export const loansApi = {
   requestPayout: (id: number, body: PayoutRequest) => http.post<DisbursementPage>(`${API}/${id}/disbursements`, body),
   pay: (id: number, d: number, notes: string | null) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/pay`, { notes }),
   rejectPayout: (id: number, d: number, notes: string) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/reject`, { notes }),
-  withdrawPayout: (id: number, d: number) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/withdraw`, {})
+  withdrawPayout: (id: number, d: number) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/withdraw`, {}),
+  receipts: (id: number) => http.get<ReceiptsPage>(`${API}/${id}/receipts`),
+  receiptPreview: (id: number, valueDate: string, amount: number) =>
+    http.get<ReceiptPreview>(`${API}/${id}/receipts/preview?valueDate=${encodeURIComponent(valueDate)}&amount=${amount}`),
+  receive: (id: number, body: { valueDate: string | null; sources: ReceiptSource[]; notes: string | null }) => http.post<ReceiptsPage>(`${API}/${id}/receipts`, body)
 }

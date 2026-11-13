@@ -27824,6 +27824,87 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("LND_LOAN_EVENTS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndAllocation", b =>
+                {
+                    b.Property<long>("AllocationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ALLOCATION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AllocationId"));
+
+                    b.Property<decimal>("AllocatedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ALLOCATED_AMOUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("InstallmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("INSTALLMENT_ID");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<string>("PartCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PART_CODE");
+
+                    b.Property<long>("RepaymentTxnId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_TXN_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly>("ValueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VALUE_DATE");
+
+                    b.HasKey("AllocationId")
+                        .HasName("PK_LND_ALLOCATIONS");
+
+                    b.HasIndex("InstallmentId")
+                        .HasDatabaseName("IX_LND_ALLOCATIONS_INSTALLMENT_ID");
+
+                    b.HasIndex("LoanId", "StatusCode")
+                        .HasDatabaseName("IX_LND_ALLOCATIONS_LOAN_ID_STATUS_CODE");
+
+                    b.HasIndex("RepaymentTxnId")
+                        .HasDatabaseName("IX_LND_ALLOCATIONS_REPAYMENT_TXN_ID");
+
+                    b.ToTable("LND_ALLOCATIONS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
                 {
                     b.Property<long>("EntryId")
@@ -44766,6 +44847,30 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_LND_LOAN_EVENTS_LND_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndAllocation", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Col.ColRepaymentTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("RepaymentTxnId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_LND_ALLOCATIONS_COL_REPAYMENT_TRANSACTIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Lnd.LndLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_LND_ALLOCATIONS_LND_LOANS");
+
+                    b.HasOne("Capitra.Domain.Modules.Lnd.LndInstallment", null)
+                        .WithMany()
+                        .HasForeignKey("InstallmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_LND_ALLOCATIONS_LND_INSTALLMENTS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
