@@ -16,6 +16,8 @@ public static class DependencyInjection
         services.AddScoped<Modules.Adm.Rates.AdmRateIndexService>();
         services.AddScoped<Modules.Adm.Settings.IModuleSettings, Modules.Adm.Settings.ModuleSettings>();
         services.AddScoped<Modules.Adm.Settings.AdmModuleSettingService>();
+        services.AddScoped<Modules.Lnd.LndParameterService>();
+        services.AddScoped<Modules.Lnd.ILndParameters>(sp => sp.GetRequiredService<Modules.Lnd.LndParameterService>());
         services.AddScoped<Modules.Adm.Products.AdmChargeService>();
         services.AddScoped<Modules.Adm.Products.AdmProductService>();
         services.AddScoped<Modules.Adm.Products.AdmProductEventRuleService>();

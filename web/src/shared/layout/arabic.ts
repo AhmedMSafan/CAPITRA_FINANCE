@@ -1,8 +1,11 @@
+import { LND_AR } from '@/modules/lnd/arabic'
+
 // Arabic texts of the pages copied from APEX, keyed by their English text.
 // App 100 page 1 (Home) and the header: finova-home-lang.js. App 100 page 920 (My Inbox): the page's t('en','ar') pairs.
 // App 100 page 2 (Admin Setup) and App 118 page 1 (Workflow Engine home) have no Arabic in APEX; their texts below
 // were added for this app in the same wording style.
 export const AR: Record<string, string> = {
+  ...LND_AR,
   'Cancel': 'إلغاء',
   'Working...': 'جارٍ التنفيذ...',
   'Comment (optional)': 'تعليق (اختياري)',

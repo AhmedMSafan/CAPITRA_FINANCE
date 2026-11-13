@@ -1,0 +1,141 @@
+// Arabic texts of Retail Lending, keyed by their English text. Spread first into the app's AR table, so a text the app already
+// translates keeps its existing wording.
+const S = 'ملخص منشور، يؤكده قسم الامتثال من نص القرار'
+
+export const LND_AR: Record<string, string> = {
+  // pages, menu and cards
+  'Retail Lending': 'التمويل للأفراد',
+  'Lending Parameters': 'معايير التمويل',
+  'Legal limits, provisions and policy values for microfinance and consumer finance, by effective date.':
+    'الحدود القانونية والمخصصات وقيم السياسة للتمويل متناهي الصغر والاستهلاكي، حسب تاريخ السريان.',
+  Microfinance: 'التمويل متناهي الصغر',
+  'Consumer Finance': 'التمويل الاستهلاكي',
+  'Loading parameters...': 'جارٍ تحميل المعايير...',
+  'This licence cannot lend yet.': 'لا يمكن لهذا الترخيص منح التمويل بعد.',
+  'item to resolve': 'بند يجب معالجته',
+  'items to resolve': 'بنود يجب معالجتها',
+  'Every value of this licence is approved and in force. It passes the go-live check.': 'كل قيم هذا الترخيص معتمدة وسارية، وهو يجتاز فحص بدء التشغيل.',
+  'FRA rule': 'قاعدة الهيئة',
+  'In force from': 'سارٍ من',
+  'Changes to': 'يتغير إلى',
+  on: 'في',
+  from: 'من',
+  'Suggested:': 'القيمة المقترحة:',
+  'No value': 'لا توجد قيمة',
+  'Enter value': 'إدخال القيمة',
+  'New value': 'قيمة جديدة',
+  'New Value': 'قيمة جديدة',
+  Asked: 'الطلب',
+  Licence: 'الترخيص',
+  Parameter: 'المعيار',
+  Value: 'القيمة',
+  'FRA decision': 'قرار الهيئة',
+  Decided: 'القرار',
+  Waiting: 'بانتظار الاعتماد',
+  'No values recorded yet.': 'لم تُسجَّل أي قيم بعد.',
+  'Another user must approve the value before it is used. It is used from its start date; earlier days keep the value they had.':
+    'يجب أن يعتمد مستخدم آخر القيمة قبل استخدامها. تُستخدم من تاريخ بدايتها، وتحتفظ الأيام السابقة بالقيمة التي كانت سارية.',
+  'FRA decision or policy': 'قرار الهيئة أو السياسة',
+  'e.g. FRA Decision 1 of 2026': 'مثال: قرار الهيئة رقم 1 لسنة 2026',
+  'Use suggestion': 'استخدام المقترح',
+  'Approve Value': 'اعتماد القيمة',
+  'Reject Value': 'رفض القيمة',
+  'Check the value against the FRA decision itself before approving.': 'راجع القيمة مقابل نص قرار الهيئة قبل الاعتماد.',
+  'Value sent for approval. Another user must approve it.': 'أُرسلت القيمة للاعتماد. يجب أن يعتمدها مستخدم آخر.',
+  'Value approved.': 'اعتُمدت القيمة.',
+  'Value rejected.': 'رُفضت القيمة.',
+  'Request withdrawn.': 'سُحب الطلب.',
+  'You asked for this value; another user must approve it.': 'أنت من طلب هذه القيمة؛ يجب أن يعتمدها مستخدم آخر.',
+  'no approved value.': 'لا توجد قيمة معتمدة.',
+  'Enter the date the value starts.': 'أدخل تاريخ بدء القيمة.',
+  'A value cannot start before today.': 'لا يمكن أن تبدأ القيمة قبل اليوم.',
+  'Enter the FRA decision this value comes from.': 'أدخل قرار الهيئة الذي جاءت منه هذه القيمة.',
+  'Give the reason for the change.': 'اذكر سبب التغيير.',
+  'Give the reason for the rejection.': 'اذكر سبب الرفض.',
+
+  // groups
+  'Financing limits': 'حدود التمويل',
+  'Group lending': 'التمويل الجماعي',
+  'Customer protection': 'حماية العملاء',
+  'Credit reporting': 'الاستعلام الائتماني',
+  Collections: 'التحصيل',
+  'Income recognition': 'الاعتراف بالإيراد',
+  Provisions: 'المخصصات',
+
+  // units
+  EGP: 'ج.م',
+  '% of capital': '% من رأس المال',
+  members: 'أعضاء',
+  years: 'سنة',
+  'days late': 'يوم تأخير',
+
+  // parameters
+  'Maximum financing per customer': 'الحد الأقصى للتمويل لكل عميل',
+  'No microfinance application can be approved above this amount.': 'لا يُعتمد أي طلب تمويل متناهي الصغر بأكثر من هذا المبلغ.',
+  'Maximum instalments to income': 'الحد الأقصى للأقساط إلى الدخل',
+  "All the customer's instalments, with the new one, cannot be more than this share of verified monthly income.":
+    'لا يجوز أن تزيد كل أقساط العميل، ومعها القسط الجديد، على هذه النسبة من دخله الشهري الموثق.',
+  'Maximum cash financing per customer': 'الحد الأقصى للتمويل النقدي لكل عميل',
+  'A cash advance cannot be above this amount.': 'لا يجوز أن تزيد السلفة النقدية على هذا المبلغ.',
+  'Maximum cash share of the portfolio': 'الحد الأقصى لنسبة التمويل النقدي من المحفظة',
+  'Cash financing cannot be more than this share of the consumer finance portfolio.': 'لا يجوز أن يزيد التمويل النقدي على هذه النسبة من محفظة التمويل الاستهلاكي.',
+  'Maximum exposure to one customer': 'الحد الأقصى للتعرض لعميل واحد',
+  "Financing to one customer cannot be more than this share of the company's capital.": 'لا يجوز أن يزيد التمويل لعميل واحد على هذه النسبة من رأس مال الشركة.',
+  'Minimum members in a group': 'الحد الأدنى لأعضاء المجموعة',
+  'A group loan cannot start with fewer members.': 'لا يبدأ التمويل الجماعي بعدد أقل من الأعضاء.',
+  'Maximum members in a group': 'الحد الأقصى لأعضاء المجموعة',
+  'A group loan cannot have more members.': 'لا يجوز أن يزيد عدد أعضاء التمويل الجماعي على ذلك.',
+  'One-time password at signing': 'رمز تحقق لمرة واحدة عند التوقيع',
+  'Yes: the customer confirms the contract with a code sent to their own phone line, kept as evidence.':
+    'نعم: يؤكد العميل العقد برمز يُرسل إلى خط هاتفه الشخصي، ويُحفظ كدليل.',
+  'One-time password when the financing is used': 'رمز تحقق لمرة واحدة عند استخدام التمويل',
+  'Yes: the customer confirms again with a code before the money is paid out or the merchant is settled.':
+    'نعم: يؤكد العميل مرة أخرى برمز قبل صرف المبلغ أو التسوية مع التاجر.',
+  'Life and disability cover up to age': 'تغطية الوفاة والعجز حتى سن',
+  'The customer must be covered by death and disability insurance up to this age.': 'يجب أن يكون العميل مؤمّنًا ضد الوفاة والعجز حتى هذا السن.',
+  'Monthly I-Score file due within': 'موعد ملف آي-سكور الشهري خلال',
+  'The monthly data file is sent to I-Score within this many days of month end. Live events are sent as they happen.':
+    'يُرسل ملف البيانات الشهري إلى آي-سكور خلال هذا العدد من الأيام بعد نهاية الشهر. وتُرسل الأحداث الفورية عند وقوعها.',
+  'Registered collection firms only': 'شركات التحصيل المسجلة فقط',
+  'Yes: a collection case can only be given to a firm and collector in the agent registry. Enter it with effective date 22 Jan 2027.':
+    'نعم: لا تُسند حالة التحصيل إلا لشركة ومحصل مسجلين في سجل الوكلاء. أدخلها بتاريخ سريان 22 يناير 2027.',
+  'Stop accruing interest after': 'إيقاف استحقاق العائد بعد',
+  'From this many days late, interest goes to suspense instead of income, and income already booked moves to suspense.':
+    'من هذا العدد من أيام التأخير، يُقيد العائد في حساب معلق بدلًا من الإيراد، ويُنقل الإيراد المسجل سابقًا إلى الحساب المعلق.',
+  'Propose write-off after': 'اقتراح الإعدام بعد',
+  'From this many days late, end of day lists the loan for a write-off decision through Workflow.':
+    'من هذا العدد من أيام التأخير، تُدرج عملية نهاية اليوم التمويل لقرار إعدام عبر سير العمل.',
+  'Bucket 1 ends at': 'نهاية الشريحة 1',
+  'Bucket 2 ends at': 'نهاية الشريحة 2',
+  'Bucket 3 ends at': 'نهاية الشريحة 3',
+  'Bucket 4 ends at': 'نهاية الشريحة 4',
+  'Bucket 1 is from 0 to this many days late.': 'الشريحة 1 من صفر حتى هذا العدد من أيام التأخير.',
+  'Bucket 2 runs from the day after bucket 1 to this many days late.': 'الشريحة 2 من اليوم التالي لنهاية الشريحة 1 حتى هذا العدد من أيام التأخير.',
+  'Bucket 5 is everything later.': 'الشريحة 5 هي كل ما بعد ذلك.',
+  'Provision rate, bucket 1': 'نسبة المخصص، الشريحة 1',
+  'Provision rate, bucket 2': 'نسبة المخصص، الشريحة 2',
+  'Provision rate, bucket 3': 'نسبة المخصص، الشريحة 3',
+  'Provision rate, bucket 4': 'نسبة المخصص، الشريحة 4',
+  'Provision rate, bucket 5': 'نسبة المخصص، الشريحة 5',
+  'Share of the balance provided for while the loan is in this bucket.': 'نسبة الرصيد التي يُكوَّن لها مخصص ما دام التمويل في هذه الشريحة.',
+
+  // go-live problems that are not a missing value
+  'Bucket 2 must end later than bucket 1.': 'يجب أن تنتهي الشريحة 2 بعد الشريحة 1.',
+  'Bucket 3 must end later than bucket 2.': 'يجب أن تنتهي الشريحة 3 بعد الشريحة 2.',
+  'Bucket 4 must end later than bucket 3.': 'يجب أن تنتهي الشريحة 4 بعد الشريحة 3.',
+  'Minimum members in a group cannot be more than the maximum.': 'لا يجوز أن يزيد الحد الأدنى لأعضاء المجموعة على الحد الأقصى.',
+  'Write-off cannot be proposed before interest stops accruing.': 'لا يُقترح الإعدام قبل إيقاف استحقاق العائد.',
+
+  // sources of the suggested values
+  'FRA Decision 1 of 2026. Public summary, to be confirmed against the decision by compliance.': `قرار الهيئة رقم 1 لسنة 2026. ${S}.`,
+  'FRA consumer finance guide. Public summary, to be confirmed against the decision by compliance; no public microfinance figure found.':
+    `دليل الهيئة للتمويل الاستهلاكي. ${S}؛ لم يُعثر على رقم منشور للتمويل متناهي الصغر.`,
+  'FRA consumer finance guide. Public summary, to be confirmed against the decision by compliance.': `دليل الهيئة للتمويل الاستهلاكي. ${S}.`,
+  'No public FRA figure found; compliance to provide.': 'لم يُعثر على رقم منشور للهيئة؛ يقدمه قسم الامتثال.',
+  'FRA Decision 133 of 2026. Public summary, to be confirmed against the decision by compliance.': `قرار الهيئة رقم 133 لسنة 2026. ${S}.`,
+  'FRA Decisions 27 and 28 of 2026. Public summary, to be confirmed against the decision by compliance.': `قرارا الهيئة رقما 27 و28 لسنة 2026. ${S}.`,
+  'FRA Decisions 174 and 175 of 2026. Public summary, to be confirmed against the decision by compliance.': `قرارا الهيئة رقما 174 و175 لسنة 2026. ${S}.`,
+  'FRA Decision 139 of 2026, from 22 January 2027. Public summary, to be confirmed against the decision by compliance.':
+    `قرار الهيئة رقم 139 لسنة 2026، اعتبارًا من 22 يناير 2027. ${S}.`,
+  'Finance policy, to be confirmed with the auditors.': 'سياسة الإدارة المالية، تُؤكد مع المراجعين.'
+}

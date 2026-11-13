@@ -119,6 +119,18 @@ public static class Permissions
         public const string Edit = "COLLECTION.EDIT";
     }
 
+    public static class Lnd
+    {
+        /// <summary>Read the Retail Lending parameters, their history and the go-live check.</summary>
+        public const string ParametersView = "LND.PARAMETERS.VIEW";
+
+        /// <summary>Ask for a new parameter value, and withdraw one's own request.</summary>
+        public const string ParametersEdit = "LND.PARAMETERS.EDIT";
+
+        /// <summary>Approve or reject a parameter value (compliance; four eyes: never one's own request).</summary>
+        public const string ParametersApprove = "LND.PARAMETERS.APPROVE";
+    }
+
     public static class Fct
     {
         /// <summary>Read the factoring customers, their applications, agreements and limits.</summary>
