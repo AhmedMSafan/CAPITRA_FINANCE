@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<Modules.Lnd.ILndParameters>(sp => sp.GetRequiredService<Modules.Lnd.LndParameterService>());
         services.AddScoped<Modules.Lnd.LndProductVersionService>();
         services.AddScoped<Modules.Lnd.LndLoanService>();
+        services.AddScoped<Modules.Lnd.LndDisbursementService>();
         services.AddScoped<Modules.Adm.Products.AdmChargeService>();
         services.AddScoped<Modules.Adm.Products.AdmProductService>();
         services.AddScoped<Modules.Adm.Products.AdmProductEventRuleService>();

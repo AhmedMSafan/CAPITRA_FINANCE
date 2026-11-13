@@ -22,6 +22,43 @@
         <div v-for="f in facts" :key="f[0]"><small>{{ tr(f[0]) }}</small><b>{{ f[1] }}</b></div>
       </section>
 
+      <section v-if="payouts" class="fx-card">
+        <header class="c3-panel-head lp-head">
+          <h3><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Payout') }}</h3>
+          <button v-if="payouts.canRequest && loan.statusCode === 'APPROVED' && !waiting" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openRequest">
+            <span class="fa fa-paper-plane" aria-hidden="true"></span>{{ tr('Ask for payout') }}
+          </button>
+        </header>
+        <p v-if="loan.statusCode === 'APPROVED' && payouts.preview.problem" class="c3-note lp-bad"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ payouts.preview.problem }}</p>
+        <p v-else-if="loan.statusCode === 'APPROVED'" class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          {{ tr('Paid out today:') }} {{ money(payouts.preview.principalAmount) }} − {{ tr('charges') }} {{ money(payouts.preview.chargesAmount) }} = <b>{{ money(payouts.preview.netPayoutAmount) }}</b>
+          <template v-for="c in payouts.preview.charges" :key="c.chargeCode"> · {{ c.chargeName }} {{ money(c.amount) }}</template>
+        </p>
+        <div v-if="payouts.disbursements.length" class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('Asked') }}</th><th>{{ tr('Paid from') }}</th><th>{{ tr('Paid to') }}</th><th class="ln-num">{{ tr('Net paid') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('GL') }}</th><th></th></tr></thead>
+            <tbody>
+              <tr v-for="d in payouts.disbursements" :key="d.disbursementId">
+                <td>{{ d.requestedBy }}<br><small class="c3-muted">{{ formatDateTime(d.requestedAt) }}</small></td>
+                <td>{{ d.paidFromAccount ?? d.paidFromAccountId }}</td>
+                <td>{{ d.payeeName }}<br><small class="c3-muted">{{ tr(METHODS[d.payoutMethodCode] ?? d.payoutMethodCode) }}<template v-if="d.payeeAccount"> · {{ d.payeeAccount }}</template></small></td>
+                <td class="ln-num">{{ money(d.netPayoutAmount) }}<br><small class="c3-muted">{{ tr('charges') }} {{ money(d.chargesAmount) }}</small></td>
+                <td><span class="fx-chip" :class="PCHIP[d.statusCode]">{{ tr(PSTATUS[d.statusCode]) }}</span><template v-if="d.decidedBy"><br><small class="c3-muted">{{ d.decidedBy }} · {{ formatDateTime(d.decidedAt) }}</small></template></td>
+                <td>{{ d.glTranSetId ?? '' }}</td>
+                <td class="lp-actions">
+                  <template v-if="d.statusCode === 'REQUESTED'">
+                    <button v-if="d.canPay" type="button" class="fx-btn fx-btn--sm fx-btn--teal" :disabled="busy" @click="openDecision(d.disbursementId, 'pay')"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Pay') }}</button>
+                    <button v-if="payouts.canPay && !mine(d)" type="button" class="fx-btn fx-btn--sm" :disabled="busy" @click="openDecision(d.disbursementId, 'reject')"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Reject') }}</button>
+                    <button v-if="mine(d)" type="button" class="fx-btn fx-btn--sm" :disabled="busy" @click="withdraw(d.disbursementId)"><span class="fa fa-undo" aria-hidden="true"></span>{{ tr('Withdraw') }}</button>
+                    <small v-if="d.payBlockedReason" class="c3-muted">{{ tr(d.payBlockedReason) }}</small>
+                  </template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="fx-card">
         <header class="c3-panel-head"><h3><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Schedule') }}</h3></header>
         <div class="fx-table-wrap">
@@ -51,6 +88,21 @@
         </div>
       </section>
 
+      <section v-if="loan.events.length" class="fx-card">
+        <header class="c3-panel-head"><h3><span class="fa fa-book" aria-hidden="true"></span>{{ tr('Loan events') }}</h3></header>
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('Date') }}</th><th>{{ tr('Event') }}</th><th class="ln-num">{{ tr('Amount') }}</th><th>{{ tr('GL') }}</th><th>{{ tr('Notes') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="(e, n) in loan.events" :key="n">
+                <td>{{ formatDate(e.eventDate) }}</td><td>{{ tr(EVENTS[e.eventCode] ?? e.eventCode) }}</td><td class="ln-num">{{ money(e.eventAmount) }}</td>
+                <td>{{ e.glTranSetId ?? '' }}</td><td>{{ e.notes ?? '' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="fx-card">
         <header class="c3-panel-head"><h3><span class="fa fa-history" aria-hidden="true"></span>{{ tr('Status history') }}</h3></header>
         <div class="fx-table-wrap">
@@ -67,6 +119,37 @@
       </section>
     </template>
 
+    <Crm360Dialog v-model:visible="requesting" :title="tr('Ask for Payout')" :subtitle="loan?.loanNumber ?? ''" icon="fa-paper-plane" :busy="busy" :width="640">
+      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Another user pays it. Paying posts the GL and makes the loan active.') }}</p>
+      <div class="c3-grid c3-grid--2">
+        <label class="fc-field c3-wide" :class="pbad('paidFromAccountId')"><span>{{ tr('Paid from') }}<b> *</b></span>
+          <select v-model="payout.paidFromAccountId" class="fx-select">
+            <option v-for="a in payouts?.accounts ?? []" :key="a.accountId" :value="a.accountId" :disabled="!a.glAccountCode">{{ a.bankName }} · {{ a.accountRef }} · {{ a.accountNo }}{{ a.glAccountCode ? '' : ' (' + tr('no GL account') + ')' }}</option>
+          </select>
+        </label>
+        <label class="fc-field" :class="pbad('payoutMethodCode')"><span>{{ tr('Paid by') }}<b> *</b></span>
+          <select v-model="payout.payoutMethodCode" class="fx-select"><option v-for="(l, k) in METHODS" :key="k" :value="k">{{ tr(l) }}</option></select>
+        </label>
+        <label class="fc-field" :class="pbad('payeeName')"><span>{{ tr('Paid to') }}<b> *</b></span><input v-model="payout.payeeName" class="fx-search" maxlength="200"></label>
+        <label class="fc-field c3-wide" :class="pbad('payeeAccount')"><span>{{ tr('Account, IBAN or wallet') }}</span><input v-model="payout.payeeAccount" class="fx-search" maxlength="100"></label>
+      </div>
+      <template #footer>
+        <button type="button" class="fx-btn" :disabled="busy" @click="requesting = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="requestPayout"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-paper-plane'" aria-hidden="true"></span>{{ tr('Ask for payout') }}</button>
+      </template>
+    </Crm360Dialog>
+
+    <Crm360Dialog v-model:visible="deciding" :title="tr(decision === 'pay' ? 'Pay Loan' : 'Reject Payout')" :subtitle="loan?.loanNumber ?? ''" :icon="decision === 'pay' ? 'fa-check-circle' : 'fa-times-circle'" :busy="busy" :width="520">
+      <p v-if="decision === 'pay'" class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Paying posts the GL today and makes the loan active. A payout on another day than planned rebuilds the schedule from today.') }}</p>
+      <label class="fc-field" :class="pbad('notes')"><span>{{ tr(decision === 'pay' ? 'Notes' : 'Reason') }}<b v-if="decision === 'reject'"> *</b></span><input v-model="notes" class="fx-search" maxlength="1000"></label>
+      <template #footer>
+        <button type="button" class="fx-btn" :disabled="busy" @click="deciding = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+        <button type="button" class="fx-btn" :class="decision === 'pay' ? 'fx-btn--teal' : 'fx-btn--primary'" :disabled="busy" @click="decide">
+          <span class="fa" :class="busy ? 'fa-spinner fa-spin' : decision === 'pay' ? 'fa-check' : 'fa-times'" aria-hidden="true"></span>{{ tr(decision === 'pay' ? 'Pay' : 'Reject') }}
+        </button>
+      </template>
+    </Crm360Dialog>
+
     <Crm360Dialog v-model:visible="cancelling" :title="tr('Cancel Loan')" :subtitle="loan?.loanNumber ?? ''" icon="fa-ban" :busy="busy" :width="520">
       <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('A loan can be cancelled until it is paid out. Its schedule is kept for the record.') }}</p>
       <label class="fc-field" :class="{ 'c3-bad': !!errors.reason }"><span>{{ tr('Reason') }}<b> *</b></span><input v-model="reason" class="fx-search" maxlength="1000"></label>
@@ -82,14 +165,15 @@
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ApiError } from '@/shared/api/http'
 import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
-import { loansApi, type Installment, type Loan } from '../api/loans.api'
+import { getUser } from '@/shared/auth/session'
+import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest } from '../api/loans.api'
 
 const props = defineProps<{ loanId: number }>()
 
@@ -124,6 +208,61 @@ const facts = computed<[string, string][]>(() => {
   ]
 })
 
+// ---- payout
+const METHODS: Record<string, string> = { BANK_TRANSFER: 'Bank transfer', CASH: 'Cash', MERCHANT: 'Paid to merchant', WALLET: 'E-wallet' }
+const PSTATUS = { REQUESTED: 'Waiting', PAID: 'Paid', REJECTED: 'Rejected', WITHDRAWN: 'Withdrawn' } as const
+const PCHIP = { REQUESTED: 'fx-chip--warn', PAID: 'fx-chip--ok', REJECTED: 'fx-chip--bad', WITHDRAWN: 'fx-chip--teal' } as const
+const EVENTS: Record<string, string> = { DISBURSED: 'Paid out' }
+const me = (getUser()?.userName ?? '').toLowerCase()
+const payouts = ref<DisbursementPage | null>(null)
+const waiting = computed(() => payouts.value?.disbursements.some((d) => d.statusCode === 'REQUESTED') ?? false)
+const mine = (d: Disbursement) => !!me && d.requestedBy.toLowerCase() === me
+const requesting = ref(false)
+const deciding = ref(false)
+const decision = ref<'pay' | 'reject'>('pay')
+const decidingId = ref(0)
+const notes = ref('')
+const payout = reactive<PayoutRequest>({ paidFromAccountId: null, payoutMethodCode: 'BANK_TRANSFER', payeeName: '', payeeAccount: null })
+const perrors = ref<Record<string, string[]>>({})
+const pbad = (f: string) => ({ 'c3-bad': !!perrors.value[f] })
+
+function openRequest() {
+  Object.assign(payout, { paidFromAccountId: payouts.value?.accounts.find((a) => a.glAccountCode)?.accountId ?? null, payoutMethodCode: 'BANK_TRANSFER',
+    payeeName: loan.value?.clientName ?? '', payeeAccount: null })
+  perrors.value = {}
+  requesting.value = true
+}
+function openDecision(id: number, d: 'pay' | 'reject') {
+  decidingId.value = id
+  decision.value = d
+  notes.value = ''
+  perrors.value = {}
+  deciding.value = true
+}
+async function payoutCall(action: () => Promise<DisbursementPage>, done: string, close: () => void) {
+  busy.value = true
+  perrors.value = {}
+  try {
+    payouts.value = await action()
+    close()
+    showSuccess(tr(done))
+    loan.value = await loansApi.get(props.loanId)
+  } catch (err) {
+    if (err instanceof ApiError && err.problem?.errors) {
+      perrors.value = err.problem.errors
+      showError(Object.values(err.problem.errors).flat().map((m) => tr(m)).join('\n'))
+    } else showError(err instanceof Error ? err.message : String(err))
+  } finally {
+    busy.value = false
+  }
+}
+const requestPayout = () => payoutCall(() => loansApi.requestPayout(props.loanId, { ...payout, payeeAccount: payout.payeeAccount || null }),
+  'Payout sent. Another user must pay it.', () => (requesting.value = false))
+const decide = () => decision.value === 'pay'
+  ? payoutCall(() => loansApi.pay(props.loanId, decidingId.value, notes.value || null), 'Loan paid out. It is now active.', () => (deciding.value = false))
+  : payoutCall(() => loansApi.rejectPayout(props.loanId, decidingId.value, notes.value), 'Payout rejected.', () => (deciding.value = false))
+const withdraw = (id: number) => payoutCall(() => loansApi.withdrawPayout(props.loanId, id), 'Payout withdrawn.', () => {})
+
 const sum = (k: keyof Installment) => (loan.value?.installments ?? []).reduce((a, i) => a + Number(i[k]), 0)
 
 const cancelling = ref(false)
@@ -152,6 +291,7 @@ async function cancel() {
 onMounted(async () => {
   try {
     loan.value = await loansApi.get(props.loanId)
+    payouts.value = await loansApi.payouts(props.loanId)
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err))
   }
@@ -165,5 +305,9 @@ onMounted(async () => {
 .ln-facts small { color: var(--fin-muted); }
 .ln-num { text-align: end; white-space: nowrap; }
 h1 .fx-chip { vertical-align: middle; font-size: 12px; }
+.lp-head { display: flex; justify-content: space-between; align-items: center; }
+.lp-bad { background: var(--fin-bad-50); color: var(--fin-ink); }
+.lp-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.c3-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 900px) { .ln-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>

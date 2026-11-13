@@ -138,6 +138,9 @@ public static class Permissions
 
         /// <summary>Create retail loans from a lending product's terms, and cancel one not yet paid out.</summary>
         public const string LoanEdit = "LND.LOAN.EDIT";
+
+        /// <summary>Pay a loan out, or reject a payout (four eyes: never one's own request).</summary>
+        public const string LoanDisburse = "LND.LOAN.DISBURSE";
     }
 
     public static class Fct

@@ -1,0 +1,96 @@
+using Capitra.Domain.Common;
+
+namespace Capitra.Domain.Modules.Lnd;
+
+/// <summary>
+/// LND_DISBURSEMENTS: paying a loan out. A user asks for it (REQUESTED) with the account we pay from and the payee; another user
+/// pays it (PAID): the charges are worked out, GL posts the rule LND_DISBURSE of the loan's product, and the loan becomes ACTIVE.
+/// It can be REJECTED by the payer or WITHDRAWN by the requester.
+/// </summary>
+public class LndDisbursement : AuditableEntity
+{
+    public long DisbursementId { get; set; }
+
+    public long LoanId { get; set; }
+
+    /// <summary>One of: REQUESTED, PAID, REJECTED, WITHDRAWN.</summary>
+    public string StatusCode { get; set; } = "REQUESTED";
+
+    /// <summary>TRS_BANK_ACCOUNTS: our account the money is paid from (its GL account is the credit of the payout).</summary>
+    public long PaidFromAccountId { get; set; }
+
+    /// <summary>One of: BANK_TRANSFER, CASH, MERCHANT, WALLET.</summary>
+    public string PayoutMethodCode { get; set; } = "BANK_TRANSFER";
+
+    public string PayeeName { get; set; } = string.Empty;
+
+    /// <summary>The customer's or merchant's account, IBAN or wallet number.</summary>
+    public string? PayeeAccount { get; set; }
+
+    public decimal PrincipalAmount { get; set; }
+
+    /// <summary>The charges taken from the payout (the rule's charges, deducted from the disbursement).</summary>
+    public decimal ChargesAmount { get; set; }
+
+    public decimal NetPayoutAmount { get; set; }
+
+    /// <summary>The day it was paid (the GL accounting date); empty until paid.</summary>
+    public DateOnly? PaidDate { get; set; }
+
+    /// <summary>The GL transaction set of the payout, CAP-LND-...</summary>
+    public string? GlTranSetId { get; set; }
+
+    public string RequestedBy { get; set; } = string.Empty;
+
+    public DateTime RequestedAt { get; set; }
+
+    public string? DecidedBy { get; set; }
+
+    public DateTime? DecidedAt { get; set; }
+
+    public string? DecisionNotes { get; set; }
+}
+
+/// <summary>LND_DISBURSEMENT_CHARGES: each charge taken from a payout, and how its income is recognised (later, by end of day, when pro-rated).</summary>
+public class LndDisbursementCharge : AuditableEntity
+{
+    public long DisbursementChargeId { get; set; }
+
+    public long DisbursementId { get; set; }
+
+    public string ChargeCode { get; set; } = string.Empty;
+
+    public string ChargeName { get; set; } = string.Empty;
+
+    public decimal ChargeAmount { get; set; }
+
+    /// <summary>PRORATE: deferred and earned over the loan; IMMEDIATE: income on the payout date.</summary>
+    public string IncomeRecognitionCode { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// LND_LOAN_EVENTS: the permanent record of what happened to a loan and its GL (design deck: the sub-ledger behind GL, I-Score and
+/// audit). Every money event of a loan writes one row with the transaction set it posted.
+/// </summary>
+public class LndLoanEvent : AuditableEntity
+{
+    public long LoanEventId { get; set; }
+
+    public long LoanId { get; set; }
+
+    /// <summary>DISBURSED today; ACCRUED, RECEIPT, LATE_FEE, NON_ACCRUAL, WRITTEN_OFF... with the next steps.</summary>
+    public string EventCode { get; set; } = string.Empty;
+
+    public DateOnly EventDate { get; set; }
+
+    public decimal EventAmount { get; set; }
+
+    public string? GlTranSetId { get; set; }
+
+    /// <summary>The document behind the event, e.g. DISBURSEMENT 12.</summary>
+    public string? SourceDocumentType { get; set; }
+
+    public long? SourceDocumentId { get; set; }
+
+    public string? Notes { get; set; }
+}
