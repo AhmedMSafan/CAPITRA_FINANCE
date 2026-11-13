@@ -132,6 +132,12 @@ public static class Permissions
 
         /// <summary>Approve or reject a parameter value (compliance; four eyes: never one's own request).</summary>
         public const string ParametersApprove = "LND.PARAMETERS.APPROVE";
+
+        /// <summary>Read retail loans and their schedules.</summary>
+        public const string LoanView = "LND.LOAN.VIEW";
+
+        /// <summary>Create retail loans from a lending product's terms, and cancel one not yet paid out.</summary>
+        public const string LoanEdit = "LND.LOAN.EDIT";
     }
 
     public static class Fct
