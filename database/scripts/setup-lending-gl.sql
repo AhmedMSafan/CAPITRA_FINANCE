@@ -1,6 +1,6 @@
 -- =====================================================================================================================
 -- Capitra: GL setup of Retail Lending (microfinance and consumer finance), for the loan payout (rule LND_DISBURSE) and the
--- customer receipt (rule LND_RECEIPT), end of day (rule LND_EOD) and write-off (rule LND_WRITE_OFF).
+-- customer receipt (rule LND_RECEIPT), end of day (rule LND_EOD), write-off (rule LND_WRITE_OFF) and recovery (rule LND_RECOVERY).
 -- Run in pgAdmin > Query Tool on CAPITRA_DB. Press F5. Safe to run again: what exists is kept.
 -- Needs: migrate-lending-disbursement.sql.
 --
@@ -11,7 +11,7 @@
 -- It adds, when missing:
 --   1. the business line segment values MICROFINANCE and CONSUMER_FINANCE (copied from FACTORING), so lending postings carry them
 --   2. the GL journal source LENDING (copied from FACTORING) and its journal categories LND_DISBURSEMENT "Loan Disbursement"
---      LND_RECEIPT "Loan Receipt", LND_EOD "Loan End of Day" and LND_WRITE_OFF "Loan Write-off"
+--      LND_RECEIPT "Loan Receipt", LND_EOD "Loan End of Day", LND_WRITE_OFF "Loan Write-off" and LND_RECOVERY "Loan Recovery"
 --
 -- Then, for each lending product (Administration > Product Catalog, business line Microfinance or Consumer Finance), add in
 -- Administration > Product Event Rules a rule with code LND_DISBURSE, journal source LENDING, category LND_DISBURSEMENT:
@@ -52,6 +52,14 @@
 --   INSURANCE_WRITTEN_OFF          DR insurance payable (or write-off expense)    / CR the insurance account used on receipt
 -- Example, 2,450 principal and 60 interest in suspense: DR Provision 2,450 / CR Loans receivable 2,450,
 --   DR Interest suspense 60 / CR Interest receivable 60.
+--
+-- and a rule with code LND_RECOVERY, journal source LENDING, category LND_RECOVERY, all in journal 1 (money received on a written-off
+-- loan; the loan stays written off):
+--   DEBIT  account source "GL account of the bank account" BANK_RECEIPT_AMOUNT
+--   DEBIT  customer credit balance (liability)             CREDIT_USED_AMOUNT
+--   CREDIT recovery income (or the loan loss provision)    RECOVERY_AMOUNT      (up to what was written off and not yet recovered)
+--   CREDIT customer credit balance (liability)             CREDIT_KEPT_AMOUNT   (anything beyond)
+-- Example, 500 received on a loan written off at 2,560: DR Bank 500 / CR Recovery income 500.
 -- =====================================================================================================================
 DO $$
 DECLARE
@@ -101,7 +109,8 @@ BEGIN
       ('LND_DISBURSEMENT', 'Loan Disbursement', 'صرف التمويل', 'A retail loan paid out: loans receivable against the bank account, less the charges taken.'),
       ('LND_RECEIPT', 'Loan Receipt', 'تحصيل التمويل', 'A customer payment on a retail loan: the bank account or credit balance against each part paid.'),
       ('LND_EOD', 'Loan End of Day', 'إقفال اليوم للتمويل', 'Daily interest accrual, late fees, and moves into and out of suspense of retail loans.'),
-      ('LND_WRITE_OFF', 'Loan Write-off', 'إعدام التمويل', 'A retail loan written off: principal, interest and late fees taken off the books.')) AS c(code, name_en, name_ar, descr)
+      ('LND_WRITE_OFF', 'Loan Write-off', 'إعدام التمويل', 'A retail loan written off: principal, interest and late fees taken off the books.'),
+      ('LND_RECOVERY', 'Loan Recovery', 'تحصيل تمويل مُعدم', 'Money received on a written-off retail loan.')) AS c(code, name_en, name_ar, descr)
   LOOP
     IF NOT EXISTS (SELECT 1 FROM "GL_JOURNAL_CATEGORIES" WHERE "CATEGORY_CODE" = v_cat.code) THEN
       RAISE NOTICE 'Journal category % will be added', v_cat.code;
@@ -120,6 +129,6 @@ BEGIN
   IF NOT v_apply THEN
     RAISE NOTICE 'Preview only. Nothing was changed. Set v_apply := true and run again.';
   ELSE
-    RAISE NOTICE 'Done. Now add the rules LND_DISBURSE, LND_RECEIPT, LND_EOD and LND_WRITE_OFF to each lending product (see the header).';
+    RAISE NOTICE 'Done. Now add the rules LND_DISBURSE, LND_RECEIPT, LND_EOD, LND_WRITE_OFF and LND_RECOVERY to each lending product (see the header).';
   END IF;
 END $$;
