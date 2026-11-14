@@ -18,6 +18,8 @@ const RECOURSE: FieldOption[] = [
   { value: 'N', label: 'Without recourse' }
 ]
 
+// products of these business lines are retail lending products: their terms open from their row
+const LENDING = ['MICROFINANCE', 'CONSUMER_FINANCE']
 const router = useRouter()
 const businessLines = ref<FieldOption[]>([])
 const currencies = ref<FieldOption[]>([])
@@ -94,6 +96,10 @@ onMounted(async () => {
       <RouterLink to="/admin" class="fx-btn fx-btn--ghost"><i class="pi pi-arrow-left"></i><span>{{ tr('Admin Setup') }}</span></RouterLink>
     </template>
     <template #row-actions="{ row }">
+      <button v-if="LENDING.includes(row.businessLineCode)" type="button" class="fx-btn fx-btn--sm pc-actions" :title="tr('Amounts, terms, interest, late fee, payment order and paying early, by version')"
+              @click="router.push(`/admin/products/${row.productId}/lending-terms`)">
+        <i class="pi pi-calculator"></i>{{ tr('Lending Terms') }}
+      </button>
       <button type="button" class="fx-btn fx-btn--sm pc-actions" :title="tr('Actions of the product outside the workflow and the rule each one posts')"
               @click="router.push(`/admin/products/${row.productId}/actions`)">
         <i class="pi pi-bolt"></i>{{ tr('Actions') }}

@@ -95,15 +95,13 @@ const apps: App[] = [
   { tier: 1, name: 'Retail Lending', short: 'Lending', descr: 'Microfinance and consumer finance loans: payout, repayments, end of day, write-off and recovery.',
     to: '/retail-lending', color: '#7A3E9D', tint: '#F4ECF9',
     icon: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/><circle cx="17" cy="15" r="1.5"/>',
-    feats: ['Loans', 'End of Day', 'Lending Parameters', 'Lending Product Terms'] },
+    feats: ['Loans', 'End of Day', 'Lending Parameters'] },
   { tier: 'lending', name: 'Loans', short: 'Loans', descr: 'Microfinance and consumer finance loans: schedule, payout, payments, paying early, write-off and recovery.',
     to: '/lnd/loans', color: '#7A3E9D', tint: '#F4ECF9', icon: '<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/>', feats: [] },
   { tier: 'lending', name: 'End of Day', short: 'End of Day', descr: 'Each business day: interest accrual, late fees, non-accrual and suspense, and loans proposed for write-off.',
     to: '/lnd/eod', color: '#00636D', tint: '#E6F3F4', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', feats: [] },
   { tier: 'lending', name: 'Lending Parameters', short: 'Parameters', descr: 'The legal limits and policy values of each licence, each with an effective date and a second user\'s approval.',
     to: '/lnd/parameters', color: '#E87722', tint: '#FFF1E6', icon: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/>', feats: [] },
-  { tier: 'lending', name: 'Lending Product Terms', short: 'Products', descr: 'The versioned terms of each lending product: amounts, terms, rate, late fee, payment order and paying early.',
-    to: '/admin/products/lending', color: '#475569', tint: '#EEF2F6', icon: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><path d="M7 7h.01"/>', feats: [] },
   // APEX App 136 "Collection And Repayments": its Home cards except Cheques Movements; not built yet
   { tier: 1, name: 'Collection and Repayments', short: 'Collection', descr: 'Cheques collection and customer repayment transactions.',
     to: '/collection-repayments', color: '#E87722', tint: '#FFF1E6',
@@ -165,6 +163,29 @@ onMounted(async () => {
 .fm-hero h1 { font-size: clamp(20px, 1.9vw, 26px); }
 /* five shared services (CRM after Admin) on one row on wide screens */
 @media (min-width: 1201px) { .fm-grid--2 { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+/* compact cards: an application is a small tile, four on a row on wide screens */
+.fm-grid { gap: 12px; }
+.fm-grid--1 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1200px) { .fm-grid--1 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .fm-grid--1, .fm-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .fm-grid--1, .fm-grid--2 { grid-template-columns: 1fr; } }
+.fm-card, .fm-card--t1 { min-height: 0; gap: 8px; padding: 14px 16px; border-radius: 14px; }
+.fm-card::before { height: 3px; }
+a.fm-card:hover { transform: translateY(-2px); }
+.fm-card--t1::after { width: 110px; height: 110px; right: -45px; bottom: -55px; }
+.fm-ico, .fm-card--t1 .fm-ico { width: 36px; height: 36px; border-radius: 10px; }
+.fm-ico :deep(svg), .fm-card--t1 .fm-ico :deep(svg) { width: 19px; height: 19px; }
+.fm-card--t1 .fm-ico { box-shadow: 0 8px 16px -10px var(--c); }
+.fm-pill { height: 20px; padding: 0 8px; font-size: 10.5px; }
+.fm-body small { font-size: 10.5px; }
+.fm-body h3, .fm-card--t1 .fm-body h3 { margin-top: 2px; font-size: 16px; }
+.fm-body p { margin-top: 4px; font-size: 12.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fm-feats { flex-direction: row; flex-wrap: wrap; gap: 2px 12px; margin-top: 6px; }
+.fm-feats li { font-size: 12px; padding-inline-start: 15px; }
+.fm-feats li::before { width: 8px; height: 4px; top: 5px; }
+.fm-note { padding: 4px 8px; font-size: 12px; }
+.fm-foot { padding-top: 8px; }
+.fm-go { font-size: 12.5px; }
 .fm-btn--request { background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .35); color: #fff !important; }
 .fm-btn--request:hover { background: rgba(255, 255, 255, .18); border-color: #fff; }
 </style>

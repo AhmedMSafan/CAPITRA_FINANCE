@@ -285,13 +285,15 @@ const router = createRouter({
           component: () => import('@/modules/adm/pages/MortgagePortfolioPurchasingProductPage.vue'),
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Product Parameters' }
         },
-        // Lending Product Terms: the versioned terms of the Microfinance and Consumer Finance products
+        // a Microfinance or Consumer Finance product's versioned terms: its Lending Terms row action in the Product Catalog
         {
-          path: 'admin/products/lending',
-          name: 'adm-lending-products',
+          path: 'admin/products/:productId(\\d+)/lending-terms',
+          name: 'adm-product-lending-terms',
           component: () => import('@/modules/adm/pages/LendingProductTermsPage.vue'),
-          meta: { moduleName: 'ADMINISTRATION', functionName: 'Lending Product Terms' }
+          props: route => ({ productId: Number(route.params.productId) }),
+          meta: { moduleName: 'ADMINISTRATION', functionName: 'Lending Terms' }
         },
+        { path: 'admin/products/lending', redirect: { name: 'adm-products' } },
         {
           path: 'admin/products/:productId(\\d+)/actions',
           name: 'adm-product-actions',
