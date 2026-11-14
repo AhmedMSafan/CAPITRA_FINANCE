@@ -1,0 +1,453 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>CAPITRA Module Settings Manual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --teal:#00636D; --teal-deep:#0B3E44; --teal-ink:#004C54; --orange:#E87722; --gold:#E0B04A;
+  --bg:#F6F8F8; --paper:#FFFFFF; --fg:#1B2A2C; --muted:#5A6B6D; --line:#DCE4E4; --soft:#EAF3F3;
+  --orange-soft:#FDF0E5; --ok:#1E7F4F; --ok-soft:#E5F4EC; --bad:#B42318; --bad-soft:#FBEAE8;
+  --cover-fg:#FFFFFF; --code-bg:#EEF3F3;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+[lang="ar"]{font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;line-height:1.85}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+p{margin:0}
+b{font-weight:600}
+code,.code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;background:var(--code-bg);padding:.1em .4em;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--teal-deep)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--teal-deep);color:var(--cover-fg);border-bottom:3px solid var(--orange)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.bar .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.14em;font-size:13px}
+.bar .brand svg{width:28px;height:28px}
+.bar .doc{opacity:.75;font-size:13px;letter-spacing:.02em}
+.bar .sp{flex:1}
+.lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden}
+.lang a{color:var(--cover-fg);text-decoration:none;font-size:13px;padding:5px 14px;font-weight:500}
+.lang a.on{background:var(--orange);color:#fff}
+
+/* cover */
+.cover{background:radial-gradient(1200px 500px at 85% -10%,rgba(232,119,34,.28),transparent 60%),linear-gradient(160deg,var(--teal-deep),#00535B 70%);color:var(--cover-fg);position:relative;overflow:hidden}
+.cover .wrap{padding-block:72px 64px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:end}
+.cover .mark{width:84px;height:84px;margin-bottom:28px}
+.cover .kicker{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+[lang="ar"] .cover .kicker{letter-spacing:0}
+.cover h1{font-size:clamp(34px,5.4vw,60px);font-weight:700;margin-top:10px;max-width:15ch}
+.cover .lede{margin-top:18px;font-size:18px;max-width:52ch;opacity:.88}
+.cover .meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:34px;font-size:13px;opacity:.85}
+.cover .meta span b{color:var(--gold);font-weight:600;margin-inline-end:6px}
+.cover .rings{width:230px;height:230px;opacity:.9}
+.cover::after{content:"";position:absolute;inset:auto 0 0;height:6px;background:linear-gradient(90deg,var(--orange) 0 34%,var(--gold) 34% 52%,transparent 52%)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:40px 80px}
+nav.toc{position:sticky;top:76px;align-self:start;font-size:14px}
+nav.toc .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+[lang="ar"] nav.toc .t{letter-spacing:0}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:flex;gap:10px;color:var(--fg);text-decoration:none;padding:6px 10px;border-radius:6px;border-inline-start:2px solid transparent}
+nav.toc a:hover{background:var(--soft);border-inline-start-color:var(--teal)}
+nav.toc a i{font-style:normal;color:var(--orange);font-weight:600;min-width:1.4em}
+main{min-width:0;display:grid;gap:28px}
+
+section.sec{scroll-margin-top:84px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:36px clamp(18px,4vw,44px);display:grid;gap:18px;min-width:0}
+.sec-h{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sec-h .n{font-size:13px;font-weight:700;color:#fff;background:var(--teal);border-radius:6px;padding:3px 9px;letter-spacing:.06em}
+.sec-h h2{font-size:clamp(22px,2.6vw,28px);font-weight:700;color:var(--teal-ink)}
+h3{font-size:18px;font-weight:600;color:var(--fg);margin-top:8px;display:flex;align-items:center;gap:10px}
+h3::before{content:"";width:14px;height:3px;background:var(--orange);border-radius:2px;flex:none}
+.prose{max-width:72ch;display:grid;gap:12px}
+p.prose{display:block}
+ul.b,ol.b{margin:0;padding-inline-start:1.3em;display:grid;gap:8px;max-width:72ch}
+ul.b li::marker{color:var(--orange)}
+ol.b li::marker{color:var(--teal);font-weight:700}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th,td{text-align:start;padding:10px 14px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);color:var(--teal-ink);font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+[lang="ar"] th{letter-spacing:0;text-transform:none;font-size:13.5px}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{background:var(--soft);font-weight:600}
+tr.dim td{color:var(--muted)}
+
+/* callouts */
+.note{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:14px 16px;border-radius:10px;background:var(--soft);border-inline-start:4px solid var(--teal);max-width:78ch}
+.note.warn{background:var(--orange-soft);border-inline-start-color:var(--orange)}
+.note .ic{font-weight:700;color:var(--teal-ink);font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.note.warn .ic{color:var(--orange)}
+[lang="ar"] .note .ic{letter-spacing:0}
+
+/* quick start */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.qs .card{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:8px;align-content:start;background:var(--paper);position:relative}
+.qs .card .k{font-size:12px;font-weight:700;color:var(--orange);letter-spacing:.1em;text-transform:uppercase}
+[lang="ar"] .qs .card .k{letter-spacing:0}
+.qs .card h4{margin:0;font-size:16px;color:var(--teal-ink)}
+.qs .card ol{margin:0;padding-inline-start:1.2em;display:grid;gap:4px;font-size:14.5px}
+
+/* money tree */
+.tree{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;background:linear-gradient(var(--paper),var(--paper)) padding-box}
+.node{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr) auto;gap:14px;align-items:center}
+.node .nm{font-weight:600;font-size:14.5px}
+.node .nm small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.node.l1 .nm{padding-inline-start:20px}
+.node.l2 .nm{padding-inline-start:40px}
+.node.l1 .nm,.node.l2 .nm{position:relative}
+.node.l1 .nm::before,.node.l2 .nm::before{content:"";position:absolute;inset-inline-start:calc(var(--i) - 12px);top:.7em;width:8px;height:8px;border-inline-start:2px solid var(--line);border-bottom:2px solid var(--line)}
+.node.l1{--i:20px}.node.l2{--i:40px}
+.track{height:14px;border-radius:999px;background:var(--soft);overflow:hidden;display:flex;border:1px solid var(--line)}
+.track .o{background:var(--teal)}
+.track .r{background:var(--orange)}
+.track.draft{background:repeating-linear-gradient(135deg,var(--soft) 0 6px,var(--line) 6px 8px)}
+.node .av{font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap;text-align:end;min-width:110px}
+.node .av b{color:var(--ok)}
+.node .av b.tight{color:var(--orange)}
+.node .av b.zero{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);padding-top:6px;border-top:1px dashed var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* gates */
+.gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:g}
+.gate{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.gate .who{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+[lang="ar"] .gate .who{letter-spacing:0}
+.gate h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+.gate.bank{border-color:var(--orange);background:var(--orange-soft)}
+.gate.bank h4{color:var(--orange)}
+.steps{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 14px;border:1px solid var(--line);border-radius:10px}
+.step .g{font-size:12px;font-weight:700;color:var(--teal-ink);background:var(--soft);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--orange-soft);color:var(--orange)}
+
+/* screenshots */
+figure{margin:0;display:grid;gap:8px}
+figure img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(0,40,45,.45)}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--teal-ink)}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.box h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+
+.badge-row{display:flex;flex-wrap:wrap;gap:8px}
+.foot{color:var(--muted);font-size:13px;text-align:center;padding-block:10px 40px}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.toc{position:static}
+  nav.toc ol{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .cover .rings{display:none}
+  .cover .wrap{grid-template-columns:minmax(0,1fr)}
+  .gates,.shots,.two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .node{grid-template-columns:minmax(0,1fr) auto}
+  .node .track{grid-column:1 / -1;order:3}
+  .bar .doc{display:none}
+  .step{grid-template-columns:minmax(0,1fr) auto}
+  .step .g{grid-column:1 / -1;justify-self:start}
+}
+@media print{
+  :root{--bg:#fff;--paper:#fff}
+  .bar,nav.toc{display:none}
+  .layout{display:block;padding:0}
+  section.sec{border:0;border-radius:0;padding:0 0 24px;break-before:page}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:265mm;break-after:page}
+  .cover::after{display:none}
+  .cover .wrap{height:100%;align-content:center}
+  .cover .rings{display:block}
+  .track,.pill,.sec-h .n,th,tr.total td,.note,.gate.bank{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  figure,table,.tree,.step,.gate{break-inside:avoid}
+}
+</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#134E4A"/><path d="M44 20.5A16 16 0 1 0 44 43.5" fill="none" stroke="#E0B04A" stroke-width="7" stroke-linecap="round"/><circle cx="32" cy="32" r="4.5" fill="#ffffff"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand"><svg><use href="#mark"/></svg>CAPITRA</div>
+    <div class="doc" data-en="Module Settings Manual" data-ar="دليل إعدادات الوحدات">Module Settings Manual</div>
+    <div class="sp"></div>
+    <div class="lang" role="group" aria-label="Language">
+      <a href="#en" data-l="en" class="on">English</a>
+      <a href="#ar" data-l="ar" lang="ar">العربية</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== ENGLISH ============================== -->
+<div id="doc-en" lang="en" dir="ltr">
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">User manual · Administration</div>
+      <h1>Module Settings</h1>
+      <p class="lede">The rules of CRM, Treasury and Factoring that an administrator can change without a new release. Every change takes effect only when a second user approves it.</p>
+      <div class="meta"><span><b>Version</b>1.0</span><span><b>Date</b>7 November 2026</span><span><b>Covers</b>CRM · Treasury · Factoring</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="t">Contents</div>
+    <ol>
+      <li><a href="#en-qs"><i>0</i>Quick start</a></li>
+      <li><a href="#en-1"><i>1</i>How a change works</a></li>
+      <li><a href="#en-2"><i>2</i>CRM settings</a></li>
+      <li><a href="#en-3"><i>3</i>Treasury settings</a></li>
+      <li><a href="#en-4"><i>4</i>Factoring settings</a></li>
+      <li><a href="#en-5"><i>5</i>Permissions and history</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="en-qs">
+    <div class="sec-h"><span class="n">0</span><h2>Quick start</h2></div>
+    <div class="qs">
+      <div class="card"><div class="k">Maker</div><h4>Change a setting</h4>
+        <ol><li>Home → Administration → Module Setup</li><li>Open the module tab</li><li><b>Change</b>, enter the new value and the reason</li><li><b>Ask for approval</b></li></ol></div>
+      <div class="card"><div class="k">Checker</div><h4>Approve or reject</h4>
+        <ol><li>Open Module Settings: the tab shows how many changes wait</li><li>Read the orange box: old value → new value and the reason</li><li><b>Approve</b>: the new value is in force at once</li><li>or <b>Reject</b> with the reason</li></ol></div>
+    </div>
+    <figure><img src="img/0-admin-card.jpg" alt="" loading="lazy"><figcaption><b>Figure 1.</b> Administration: the Module Setup card opens each module's tab.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-1">
+    <div class="sec-h"><span class="n">1</span><h2>How a change works</h2></div>
+    <ol class="b">
+      <li>A change is a <b>request</b>. Until it is approved the current value stays in force everywhere.</li>
+      <li>Another user approves it. The user who asked cannot approve their own change, whatever the module settings say.</li>
+      <li>The user who asked can <b>Withdraw</b> the request. A setting has one request at a time.</li>
+      <li>After approval each row shows who changed it and who approved it, with the date.</li>
+      <li>A setting never changed shows <b>Default value</b>: the rule as it was before the setting existed.</li>
+    </ol>
+    <figure><img src="img/1-crm-tab.jpg" alt="" loading="lazy"><figcaption><b>Figure 2.</b> The CRM tab. Each setting shows its value; a request waiting for approval shows in orange.</figcaption></figure>
+    <div class="two">
+      <figure><img src="img/2-change-dialog.jpg" alt="" loading="lazy"><figcaption><b>Figure 3.</b> Change Setting: the new value, the default and the reason.</figcaption></figure>
+      <figure><img src="img/3-approve.jpg" alt="" loading="lazy"><figcaption><b>Figure 4.</b> A second user sees Approve and Reject.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sec" id="en-2">
+    <div class="sec-h"><span class="n">2</span><h2>CRM settings</h2></div>
+    <div class="tbl"><table>
+<tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+<tr><td><b>Compliance profile needs a maker and a checker</b></td><td>Yes</td><td>Yes: another user verifies every change to KYC, AML, sanctions and risk grade. No: the user who made the change may verify it.</td></tr>
+<tr><td><b>Warn before KYC expires</b></td><td>30 days</td><td>A customer whose KYC expires within these days shows <span class="pill warn">Due for review</span> on Customer 360.</td></tr>
+<tr><td><b>Review cycle: low / medium / high risk</b></td><td>36 / 24 / 12 months</td><td>When a compliance profile is verified without a next review date, the next review is set this many months ahead by the risk grade (medium when there is none).</td></tr>
+<tr><td><b>Bank account needs a maker and a checker</b></td><td>Yes (recommended)</td><td>Yes: another user verifies a new or changed bank account. No: the user who made the change may verify it. The verification method is still recorded.</td></tr>
+<tr><td><b>Wait after a bank account change</b></td><td>Yes</td><td>Yes: a verified account can be paid only after the waiting days. No: it can be paid once verified.</td></tr>
+<tr><td><b>Waiting days</b></td><td>2 days</td><td>Shown only while the waiting period is Yes. From 1 to 90 days after the last change.</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">Where</span><p>Customer 360 → Compliance and Bank Accounts. The note on the Bank Accounts tab says the rule in force, for example "needs another user's verification, then waits 3 day(s)".</p></div>
+  </section>
+
+  <section class="sec" id="en-3">
+    <div class="sec-h"><span class="n">3</span><h2>Treasury settings</h2></div>
+    <div class="tbl"><table>
+<tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+<tr><td><b>Bank rule needs a maker and a checker</b></td><td>Yes</td><td>Yes: a new or changed bank rule is checked only after another user verifies it. No: the user who saved it may verify it.</td></tr>
+<tr><td><b>Override needs a second user</b></td><td>Yes</td><td>Yes: a disbursement that breaks a rule marked Needs override waits for another user to approve. No: the user who chose the sources may approve it. The reason is always required.</td></tr>
+<tr><td><b>Suggest fills first</b></td><td>Bank lines first</td><td>Bank lines first: the bank lines with the most available, within every rule, then own funds with the rest. Own funds first: the whole amount on own funds.</td></tr>
+<tr><td><b>Escrow accounts may pay</b></td><td>Yes</td><td>Yes: an escrow account pays only when we have no other account at that bank. No: an escrow account never pays a disbursement.</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">Where</span><p>Treasury → Bank Limits (rules) and Treasury Disburse (Suggest, override, Payment panel). See the Treasury manual, sections 3 and 6.</p></div>
+  </section>
+
+  <section class="sec" id="en-4">
+    <div class="sec-h"><span class="n">4</span><h2>Factoring settings</h2></div>
+    <div class="tbl"><table>
+<tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+<tr><td><b>Minimum advance rate</b></td><td>50%</td><td>The pricing calculator never gives an advance rate below this, whatever the dilution and risk buffer.</td></tr>
+<tr><td><b>A client can have several open offers</b></td><td>No</td><td>No: a client has one open offer at a time (draft, submitted or accepted). Use In Offer loads the open draft, and stops when an offer is already submitted or accepted. Yes: Use In Offer always creates a new offer.</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">Where</span><p>Factoring → the pricing calculator and its Use In Offer button.</p></div>
+  </section>
+
+  <section class="sec" id="en-5">
+    <div class="sec-h"><span class="n">5</span><h2>Permissions and history</h2></div>
+    <div class="tbl"><table>
+      <tr><th>Permission</th><th>Allows</th></tr>
+      <tr><td><code>ADM.SETTINGS.VIEW</code></td><td>Open Module Settings and read the values and history</td></tr>
+      <tr><td><code>ADM.SETTINGS.EDIT</code></td><td>Ask for a change, withdraw it, and approve or reject another user's change</td></tr>
+    </table></div>
+    <p class="prose">The <b>History</b> tab lists every request, approval, rejection and withdrawal: when, who, the setting, the old and new value, and the reason.</p>
+    <figure><img src="img/4-history.jpg" alt="" loading="lazy"><figcaption><b>Figure 5.</b> The History tab.</figcaption></figure>
+  </section>
+  <p class="foot">CAPITRA · Module Settings Manual · v1.0 · November 2026</p>
+  </main>
+</div>
+</div>
+
+<!-- ============================== ARABIC ============================== -->
+<div id="doc-ar" lang="ar" dir="rtl" hidden>
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">دليل المستخدم · الإدارة</div>
+      <h1>إعدادات الوحدات</h1>
+      <p class="lede">قواعد إدارة العملاء والخزينة والتخصيم التي يمكن لمسؤول النظام تغييرها دون إصدار جديد. لا يسري أي تغيير إلا بعد أن يعتمده مستخدم ثانٍ.</p>
+      <div class="meta"><span><b>الإصدار</b>١٫٠</span><span><b>التاريخ</b>٧ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>إدارة العملاء · الخزينة · التخصيم</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="المحتويات">
+    <div class="t">المحتويات</div>
+    <ol>
+      <li><a href="#ar-qs"><i>٠</i>البدء السريع</a></li>
+      <li><a href="#ar-1"><i>١</i>كيف يتم التغيير</a></li>
+      <li><a href="#ar-2"><i>٢</i>إعدادات إدارة العملاء</a></li>
+      <li><a href="#ar-3"><i>٣</i>إعدادات الخزينة</a></li>
+      <li><a href="#ar-4"><i>٤</i>إعدادات التخصيم</a></li>
+      <li><a href="#ar-5"><i>٥</i>الصلاحيات والسجل</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="ar-qs">
+    <div class="sec-h"><span class="n">٠</span><h2>البدء السريع</h2></div>
+    <div class="qs">
+      <div class="card"><div class="k">المُدخل</div><h4>تغيير إعداد</h4>
+        <ol><li>الرئيسية ← الإدارة ← إعداد الوحدات</li><li>افتح تبويب الوحدة</li><li><b>تغيير</b> ثم أدخل القيمة الجديدة والسبب</li><li><b>طلب الاعتماد</b></li></ol></div>
+      <div class="card"><div class="k">المُراجع</div><h4>الاعتماد أو الرفض</h4>
+        <ol><li>افتح إعدادات الوحدات: يظهر على التبويب عدد التغييرات المنتظرة</li><li>اقرأ المربع البرتقالي: القيمة القديمة ← الجديدة والسبب</li><li><b>اعتماد</b>: تسري القيمة الجديدة فورًا</li><li>أو <b>رفض</b> مع ذكر السبب</li></ol></div>
+    </div>
+    <figure><img src="img/0-admin-card.jpg" alt="" loading="lazy"><figcaption><b>شكل ١.</b> الإدارة: بطاقة إعداد الوحدات تفتح تبويب كل وحدة.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-1">
+    <div class="sec-h"><span class="n">١</span><h2>كيف يتم التغيير</h2></div>
+    <ol class="b">
+      <li>التغيير <b>طلب</b>. وحتى يُعتمد تبقى القيمة الحالية سارية في كل مكان.</li>
+      <li>يعتمده مستخدم آخر. لا يمكن لمن طلب التغيير أن يعتمده، أيًا كانت إعدادات الوحدات.</li>
+      <li>يمكن لمن طلب التغيير أن <b>يسحبه</b>. للإعداد طلب واحد في كل مرة.</li>
+      <li>بعد الاعتماد يعرض كل سطر من غيّره ومن اعتمده مع التاريخ.</li>
+      <li>الإعداد الذي لم يتغير يظهر <b>القيمة الافتراضية</b>: القاعدة كما كانت قبل وجود الإعداد.</li>
+    </ol>
+    <figure><img src="img/1-crm-tab.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢.</b> تبويب إدارة العملاء. يظهر لكل إعداد قيمته؛ والطلب المنتظر للاعتماد يظهر باللون البرتقالي.</figcaption></figure>
+    <div class="two">
+      <figure><img src="img/2-change-dialog.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣.</b> تغيير الإعداد: القيمة الجديدة والافتراضية والسبب.</figcaption></figure>
+      <figure><img src="img/3-approve.jpg" alt="" loading="lazy"><figcaption><b>شكل ٤.</b> يرى المستخدم الثاني زري الاعتماد والرفض.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sec" id="ar-2">
+    <div class="sec-h"><span class="n">٢</span><h2>إعدادات إدارة العملاء</h2></div>
+    <div class="tbl"><table>
+<tr><th>الإعداد</th><th>الافتراضي</th><th>ما يفعله</th></tr>
+<tr><td><b>ملف الامتثال يحتاج مُدخلًا ومُراجعًا</b></td><td>نعم</td><td>نعم: يتحقق مستخدم آخر من كل تغيير في اعرف عميلك ومكافحة غسل الأموال والعقوبات ودرجة المخاطر. لا: يمكن لمن أجرى التغيير أن يتحقق منه.</td></tr>
+<tr><td><b>التنبيه قبل انتهاء اعرف عميلك</b></td><td>٣٠ يومًا</td><td>يظهر العميل الذي ينتهي ملفه خلال هذه الأيام <span class="pill warn">مستحق للمراجعة</span> في شاشة العميل ٣٦٠.</td></tr>
+<tr><td><b>دورة المراجعة: مخاطر منخفضة / متوسطة / مرتفعة</b></td><td>٣٦ / ٢٤ / ١٢ شهرًا</td><td>عند التحقق من ملف امتثال بلا تاريخ مراجعة قادم، تُحدد المراجعة القادمة بعد هذا العدد من الأشهر حسب درجة المخاطر (المتوسطة إن لم توجد).</td></tr>
+<tr><td><b>الحساب البنكي يحتاج مُدخلًا ومُراجعًا</b></td><td>نعم (موصى به)</td><td>نعم: يتحقق مستخدم آخر من الحساب البنكي الجديد أو المعدل. لا: يمكن لمن أجرى التغيير أن يتحقق منه. وتبقى طريقة التحقق مسجلة.</td></tr>
+<tr><td><b>الانتظار بعد تغيير الحساب البنكي</b></td><td>نعم</td><td>نعم: لا يُدفع إلى الحساب الموثق إلا بعد أيام الانتظار. لا: يُدفع إليه بعد التحقق مباشرة.</td></tr>
+<tr><td><b>أيام الانتظار</b></td><td>يومان</td><td>تظهر فقط عندما يكون الانتظار نعم. من ١ إلى ٩٠ يومًا بعد آخر تغيير.</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">أين</span><p>العميل ٣٦٠ ← الامتثال والحسابات البنكية. توضح الملاحظة في تبويب الحسابات البنكية القاعدة السارية.</p></div>
+  </section>
+
+  <section class="sec" id="ar-3">
+    <div class="sec-h"><span class="n">٣</span><h2>إعدادات الخزينة</h2></div>
+    <div class="tbl"><table>
+<tr><th>الإعداد</th><th>الافتراضي</th><th>ما يفعله</th></tr>
+<tr><td><b>قاعدة البنك تحتاج مُدخلًا ومُراجعًا</b></td><td>نعم</td><td>نعم: لا تُطبق القاعدة الجديدة أو المعدلة إلا بعد أن يتحقق منها مستخدم آخر. لا: يمكن لمن حفظها أن يتحقق منها.</td></tr>
+<tr><td><b>التجاوز يحتاج مستخدمًا ثانيًا</b></td><td>نعم</td><td>نعم: الصرف الذي يخالف قاعدة تتطلب تجاوزًا ينتظر اعتماد مستخدم آخر. لا: يمكن لمن اختار المصادر أن يعتمده. والسبب مطلوب دائمًا.</td></tr>
+<tr><td><b>زر الاقتراح يملأ أولًا</b></td><td>خطوط البنوك أولًا</td><td>خطوط البنوك أولًا: الخطوط الأكثر إتاحة في حدود كل القواعد ثم الأموال الذاتية للباقي. الأموال الذاتية أولًا: المبلغ كله على الأموال الذاتية.</td></tr>
+<tr><td><b>يمكن الدفع من حسابات الضمان</b></td><td>نعم</td><td>نعم: يدفع حساب الضمان فقط عندما لا يكون لدينا حساب آخر لدى البنك. لا: لا يدفع حساب الضمان أي صرف.</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">أين</span><p>الخزينة ← حدود البنوك (القواعد) وصرف الخزينة (الاقتراح والتجاوز ولوحة الدفع). راجع دليل الخزينة، القسمين ٣ و٦.</p></div>
+  </section>
+
+  <section class="sec" id="ar-4">
+    <div class="sec-h"><span class="n">٤</span><h2>إعدادات التخصيم</h2></div>
+    <div class="tbl"><table>
+<tr><th>الإعداد</th><th>الافتراضي</th><th>ما يفعله</th></tr>
+<tr><td><b>الحد الأدنى لنسبة التمويل</b></td><td>50%</td><td>لا تعطي حاسبة التسعير نسبة تمويل أقل من هذه مهما كان التخفيف وهامش المخاطر.</td></tr>
+<tr><td><b>يمكن أن يكون للعميل عدة عروض مفتوحة</b></td><td>لا</td><td>لا: للعميل عرض مفتوح واحد في كل مرة (مسودة أو مقدم أو مقبول). يحمّل "استخدام في عرض" المسودة المفتوحة، ويتوقف إذا كان هناك عرض مقدم أو مقبول. نعم: ينشئ "استخدام في عرض" عرضًا جديدًا دائمًا.</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">أين</span><p>التخصيم ← حاسبة التسعير وزر "استخدام في عرض".</p></div>
+  </section>
+
+  <section class="sec" id="ar-5">
+    <div class="sec-h"><span class="n">٥</span><h2>الصلاحيات والسجل</h2></div>
+    <div class="tbl"><table>
+      <tr><th>الصلاحية</th><th>تسمح بـ</th></tr>
+      <tr><td><code>ADM.SETTINGS.VIEW</code></td><td>فتح إعدادات الوحدات وقراءة القيم والسجل</td></tr>
+      <tr><td><code>ADM.SETTINGS.EDIT</code></td><td>طلب تغيير وسحبه، واعتماد أو رفض تغيير مستخدم آخر</td></tr>
+    </table></div>
+    <p class="prose">يعرض تبويب <b>السجل</b> كل طلب واعتماد ورفض وسحب: التاريخ والمستخدم والإعداد والقيمة القديمة والجديدة والسبب.</p>
+    <figure><img src="img/4-history.jpg" alt="" loading="lazy"><figcaption><b>شكل ٥.</b> تبويب السجل.</figcaption></figure>
+  </section>
+  <p class="foot">CAPITRA · دليل إعدادات الوحدات · الإصدار ١٫٠ · نوفمبر ٢٠٢٦</p>
+  </main>
+</div>
+</div>
+
+<script>
+(function(){
+  var docs={en:document.getElementById('doc-en'),ar:document.getElementById('doc-ar')};
+  var label=document.querySelector('.bar .doc');
+  var bar=document.querySelector('.bar');
+  function langOf(h){h=(h||'').replace('#','');if(h==='ar'||h.indexOf('ar-')===0)return 'ar';return 'en';}
+  function show(){
+    var h=location.hash, l=langOf(h);
+    docs.en.hidden=l!=='en'; docs.ar.hidden=l!=='ar';
+    bar.setAttribute('dir',l==='ar'?'rtl':'ltr');
+    label.textContent=label.getAttribute('data-'+l);
+    label.setAttribute('lang',l);
+    document.querySelectorAll('.lang a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-l')===l)});
+    document.title=l==='ar'?'دليل إعدادات الوحدات · CAPITRA':'CAPITRA Module Settings Manual';
+    var id=h.replace('#','');
+    if(id && id!=='en' && id!=='ar'){var t=document.getElementById(id); if(t) t.scrollIntoView();}
+    else window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body></html>

@@ -1,0 +1,860 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>CAPITRA Workflow Manual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --teal:#00636D; --teal-deep:#0B3E44; --teal-ink:#004C54; --orange:#E87722; --gold:#E0B04A;
+  --bg:#F6F8F8; --paper:#FFFFFF; --fg:#1B2A2C; --muted:#5A6B6D; --line:#DCE4E4; --soft:#EAF3F3;
+  --orange-soft:#FDF0E5; --ok:#1E7F4F; --ok-soft:#E5F4EC; --bad:#B42318; --bad-soft:#FBEAE8;
+  --cover-fg:#FFFFFF; --code-bg:#EEF3F3;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+[lang="ar"]{font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;line-height:1.85}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+p{margin:0}
+b{font-weight:600}
+code,.code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;background:var(--code-bg);padding:.1em .4em;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--teal-deep)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--teal-deep);color:var(--cover-fg);border-bottom:3px solid var(--orange)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.bar .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.14em;font-size:13px}
+.bar .brand svg{width:28px;height:28px}
+.bar .doc{opacity:.75;font-size:13px;letter-spacing:.02em}
+.bar .sp{flex:1}
+.lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden}
+.lang a{color:var(--cover-fg);text-decoration:none;font-size:13px;padding:5px 14px;font-weight:500}
+.lang a.on{background:var(--orange);color:#fff}
+
+/* cover */
+.cover{background:radial-gradient(1200px 500px at 85% -10%,rgba(232,119,34,.28),transparent 60%),linear-gradient(160deg,var(--teal-deep),#00535B 70%);color:var(--cover-fg);position:relative;overflow:hidden}
+.cover .wrap{padding-block:72px 64px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:end}
+.cover .mark{width:84px;height:84px;margin-bottom:28px}
+.cover .kicker{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+[lang="ar"] .cover .kicker{letter-spacing:0}
+.cover h1{font-size:clamp(34px,5.4vw,60px);font-weight:700;margin-top:10px;max-width:15ch}
+.cover .lede{margin-top:18px;font-size:18px;max-width:52ch;opacity:.88}
+.cover .meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:34px;font-size:13px;opacity:.85}
+.cover .meta span b{color:var(--gold);font-weight:600;margin-inline-end:6px}
+.cover .rings{width:230px;height:230px;opacity:.9}
+.cover::after{content:"";position:absolute;inset:auto 0 0;height:6px;background:linear-gradient(90deg,var(--orange) 0 34%,var(--gold) 34% 52%,transparent 52%)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:40px 80px}
+nav.toc{position:sticky;top:76px;align-self:start;font-size:14px}
+nav.toc .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+[lang="ar"] nav.toc .t{letter-spacing:0}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:flex;gap:10px;color:var(--fg);text-decoration:none;padding:6px 10px;border-radius:6px;border-inline-start:2px solid transparent}
+nav.toc a:hover{background:var(--soft);border-inline-start-color:var(--teal)}
+nav.toc a i{font-style:normal;color:var(--orange);font-weight:600;min-width:1.4em}
+main{min-width:0;display:grid;gap:28px}
+
+section.sec{scroll-margin-top:84px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:36px clamp(18px,4vw,44px);display:grid;gap:18px;min-width:0}
+.sec-h{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sec-h .n{font-size:13px;font-weight:700;color:#fff;background:var(--teal);border-radius:6px;padding:3px 9px;letter-spacing:.06em}
+.sec-h h2{font-size:clamp(22px,2.6vw,28px);font-weight:700;color:var(--teal-ink)}
+h3{font-size:18px;font-weight:600;color:var(--fg);margin-top:8px;display:flex;align-items:center;gap:10px}
+h3::before{content:"";width:14px;height:3px;background:var(--orange);border-radius:2px;flex:none}
+.prose{max-width:72ch;display:grid;gap:12px}
+p.prose{display:block}
+ul.b,ol.b{margin:0;padding-inline-start:1.3em;display:grid;gap:8px;max-width:72ch}
+ul.b li::marker{color:var(--orange)}
+ol.b li::marker{color:var(--teal);font-weight:700}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th,td{text-align:start;padding:10px 14px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);color:var(--teal-ink);font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+[lang="ar"] th{letter-spacing:0;text-transform:none;font-size:13.5px}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{background:var(--soft);font-weight:600}
+tr.dim td{color:var(--muted)}
+
+/* callouts */
+.note{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:14px 16px;border-radius:10px;background:var(--soft);border-inline-start:4px solid var(--teal);max-width:78ch}
+.note.warn{background:var(--orange-soft);border-inline-start-color:var(--orange)}
+.note .ic{font-weight:700;color:var(--teal-ink);font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.note.warn .ic{color:var(--orange)}
+[lang="ar"] .note .ic{letter-spacing:0}
+
+/* quick start */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.qs .card{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:8px;align-content:start;background:var(--paper);position:relative}
+.qs .card .k{font-size:12px;font-weight:700;color:var(--orange);letter-spacing:.1em;text-transform:uppercase}
+[lang="ar"] .qs .card .k{letter-spacing:0}
+.qs .card h4{margin:0;font-size:16px;color:var(--teal-ink)}
+.qs .card ol{margin:0;padding-inline-start:1.2em;display:grid;gap:4px;font-size:14.5px}
+
+/* money tree */
+.tree{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;background:linear-gradient(var(--paper),var(--paper)) padding-box}
+.node{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr) auto;gap:14px;align-items:center}
+.node .nm{font-weight:600;font-size:14.5px}
+.node .nm small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.node.l1 .nm{padding-inline-start:20px}
+.node.l2 .nm{padding-inline-start:40px}
+.node.l1 .nm,.node.l2 .nm{position:relative}
+.node.l1 .nm::before,.node.l2 .nm::before{content:"";position:absolute;inset-inline-start:calc(var(--i) - 12px);top:.7em;width:8px;height:8px;border-inline-start:2px solid var(--line);border-bottom:2px solid var(--line)}
+.node.l1{--i:20px}.node.l2{--i:40px}
+.track{height:14px;border-radius:999px;background:var(--soft);overflow:hidden;display:flex;border:1px solid var(--line)}
+.track .o{background:var(--teal)}
+.track .r{background:var(--orange)}
+.track.draft{background:repeating-linear-gradient(135deg,var(--soft) 0 6px,var(--line) 6px 8px)}
+.node .av{font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap;text-align:end;min-width:110px}
+.node .av b{color:var(--ok)}
+.node .av b.tight{color:var(--orange)}
+.node .av b.zero{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);padding-top:6px;border-top:1px dashed var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* gates */
+.gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:g}
+.gate{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.gate .who{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+[lang="ar"] .gate .who{letter-spacing:0}
+.gate h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+.gate.bank{border-color:var(--orange);background:var(--orange-soft)}
+.gate.bank h4{color:var(--orange)}
+.steps{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 14px;border:1px solid var(--line);border-radius:10px}
+.step .g{font-size:12px;font-weight:700;color:var(--teal-ink);background:var(--soft);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--orange-soft);color:var(--orange)}
+
+/* screenshots */
+figure{margin:0;display:grid;gap:8px}
+figure img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(0,40,45,.45)}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--teal-ink)}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.box h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+
+.badge-row{display:flex;flex-wrap:wrap;gap:8px}
+.foot{color:var(--muted);font-size:13px;text-align:center;padding-block:10px 40px}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.toc{position:static}
+  nav.toc ol{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .cover .rings{display:none}
+  .cover .wrap{grid-template-columns:minmax(0,1fr)}
+  .gates,.shots,.two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .node{grid-template-columns:minmax(0,1fr) auto}
+  .node .track{grid-column:1 / -1;order:3}
+  .bar .doc{display:none}
+  .step{grid-template-columns:minmax(0,1fr) auto}
+  .step .g{grid-column:1 / -1;justify-self:start}
+}
+@media print{
+  :root{--bg:#fff;--paper:#fff}
+  .bar,nav.toc{display:none}
+  .layout{display:block;padding:0}
+  section.sec{border:0;border-radius:0;padding:0 0 24px;break-before:page}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:265mm;break-after:page}
+  .cover::after{display:none}
+  .cover .wrap{height:100%;align-content:center}
+  .cover .rings{display:block}
+  .track,.pill,.sec-h .n,th,tr.total td,.note,.gate.bank{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  figure,table,.tree,.step,.gate,ul.b li,ol.b li,.note{break-inside:avoid}
+}
+.qs .card > a{font-size:13px;font-weight:600;color:var(--teal);text-decoration:none}
+.qs .card > a:hover{text-decoration:underline}
+@media print{.qs .card > a{display:none}}
+</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#134E4A"/><path d="M44 20.5A16 16 0 1 0 44 43.5" fill="none" stroke="#E0B04A" stroke-width="7" stroke-linecap="round"/><circle cx="32" cy="32" r="4.5" fill="#ffffff"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand"><svg><use href="#mark"/></svg>CAPITRA</div>
+    <div class="doc" data-en="Workflow User Manual" data-ar="دليل مستخدم سير العمل">Workflow User Manual</div>
+    <div class="sp"></div>
+    <div class="lang" role="group" aria-label="Language">
+      <a href="#en" data-l="en" class="on">English</a>
+      <a href="#ar" data-l="ar" lang="ar">العربية</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== ENGLISH ============================== -->
+<div id="doc-en" lang="en" dir="ltr">
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">User manual · Workflow</div>
+      <h1>Workflows, tasks and forms</h1>
+      <p class="lede">How work moves through Capitra: who gets each task, how to work it, how to build and change a workflow, and how forms, data fields, versions and out of office fit together. Written for everyone who works tasks, and for the workflow administrators who design them.</p>
+      <div class="meta"><span><b>Version</b>1.2</span><span><b>Date</b>10 November 2026</span><span><b>Covers</b>My Inbox · Designer · Workflow types · Deadlines (SLA) and alerts · Versions · Data fields · Document Designer · Automatic values · Data sources · Start a request · My requests · Out of office</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="t">Contents</div>
+    <ol>
+      <li><a href="#en-qs"><i>0</i>Quick start</a></li>
+      <li><a href="#en-1"><i>1</i>About this manual</a></li>
+      <li><a href="#en-2"><i>2</i>Key ideas</a></li>
+      <li><a href="#en-3"><i>3</i>Designing a workflow</a></li>
+      <li><a href="#en-4"><i>4</i>Versions</a></li>
+      <li><a href="#en-5"><i>5</i>Data fields</a></li>
+      <li><a href="#en-6"><i>6</i>Documents and data sources</a></li>
+      <li><a href="#en-7"><i>7</i>Working your tasks</a></li>
+      <li><a href="#en-8"><i>8</i>Start a request</a></li>
+      <li><a href="#en-9"><i>9</i>Out of office</a></li>
+      <li><a href="#en-10"><i>10</i>Messages and what to do</a></li>
+      <li><a href="#en-11"><i>11</i>Permissions, statuses, glossary</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="en-qs">
+    <div class="sec-h"><span class="n">0</span><h2>Quick start</h2></div>
+    <p class="prose">The four jobs people do most often. Each one links to the full explanation.</p>
+    <div class="qs">
+      <div class="card"><div class="k">Every day</div><h4>Work a task</h4>
+        <ol><li>Inbox (top bar) or Workspace → My Inbox</li><li><b>Claim</b> the task</li><li><b>Start work</b></li><li>Do the work on its screen or form, then <b>Approve</b>, <b>Reject</b> or <b>Complete</b></li></ol><a href="#en-7">Section 7</a></div>
+      <div class="card"><div class="k">When you need something</div><h4>Send a request</h4>
+        <ol><li>Home → <b>Start a request</b></li><li>Choose the request (vacation, expense…)</li><li>Fill in its document</li><li><b>Send request</b>, then follow it under <b>My requests</b></li></ol><a href="#en-8">Section 8</a></div>
+      <div class="card"><div class="k">Before leave</div><h4>Set out of office</h4>
+        <ol><li>Workspace → Out of Office</li><li>Choose who works your tasks</li><li>All workflows or one, and the dates</li><li><b>Save</b>: your tasks go to them while you are away</li></ol><a href="#en-9">Section 9</a></div>
+      <div class="card"><div class="k">Workflow administrators</div><h4>Make a new request type</h4>
+        <ol><li>Workspace → Document Designer → <b>New document</b>: its fields and layout</li><li>Draw the workflow, make it <b>User-defined</b></li><li>Pick the document in Workflow Properties</li><li>Release it: it appears on Start a request</li></ol><a href="#en-6">Section 6</a></div>
+    </div>
+  </section>
+
+  <section class="sec" id="en-1">
+    <div class="sec-h"><span class="n">1</span><h2>About this manual</h2></div>
+    <p class="prose">The workflow engine moves work between people. Each workflow is a diagram of steps; each human step becomes a <b>task</b> in someone's inbox. When the task is done, the workflow moves to the next step on its own. The engine also keeps a full history: who did what, when, and with what decision.</p>
+    <div class="tbl"><table>
+      <tr><th>Page</th><th>Where</th><th>Who uses it</th></tr>
+      <tr><td>My Inbox</td><td>Inbox button in the top bar, or Workspace → My Inbox</td><td>Everyone who works tasks</td></tr>
+      <tr><td>Start a request</td><td><b>Start a request</b> on Home, or Workspace → Start a request</td><td>Everyone: send a request (vacation, expense…) and follow it under My requests</td></tr>
+      <tr><td>Out of Office</td><td>Workspace → Out of Office, or the button on My Inbox</td><td>Everyone; administrators can set it for others</td></tr>
+      <tr><td>Workflow Engine</td><td>Workspace → Workflow Engine</td><td>Administrators: live tasks and their SLA</td></tr>
+      <tr><td>Workflow Registry and Designer</td><td>Workspace → Workflow Registry</td><td>Workflow administrators</td></tr>
+      <tr><td>Document Designer and Data Sources</td><td>Workspace → Document Designer / Data Sources</td><td>Workflow administrators</td></tr>
+    </table></div>
+    <figure><img src="img/1-engine-home.jpg" alt="The Workflow Engine home page with counts and live tasks" loading="lazy"><figcaption><b>Figure 1.</b> Workflow Engine home: how many workflows and steps exist, the open tasks and the SLA of claimed tasks.</figcaption></figure>
+    <div class="note"><span class="ic">Note</span><p>Everything in sections 4 to 6 and 8 to 9 was added on top of the existing engine. A workflow that does not use versions, data fields, documents or out of office runs exactly as before.</p></div>
+  </section>
+
+  <section class="sec" id="en-2">
+    <div class="sec-h"><span class="n">2</span><h2>Key ideas</h2></div>
+    <div class="tbl"><table>
+      <tr><th>Idea</th><th>What it means</th></tr>
+      <tr><td><b>Workflow</b></td><td>A diagram of steps (BPMN) with a code, e.g. <code>DISBURSEMENT_REQUEST_WF</code>. Only a <b>released</b>, active workflow can start.</td></tr>
+      <tr><td><b>Workflow type</b></td><td><b>System-built</b>: started by the system (factoring, portfolios, disbursements). <b>User-defined</b>: started by a user from Start a request, on one document (vacation, expense claim).</td></tr>
+      <tr><td><b>Instance</b></td><td>One run of a workflow for one business record (a disbursement, a claim). It carries its own data and history.</td></tr>
+      <tr><td><b>Step</b></td><td>A box in the diagram. A human step creates a task; a system step or a decision runs on its own.</td></tr>
+      <tr><td><b>Task</b></td><td>The work waiting at a human step, shown in the inbox of a role or one user.</td></tr>
+      <tr><td><b>Claim</b></td><td>Taking a task so that it is yours. A role task is visible to everyone in the role until someone claims it.</td></tr>
+      <tr><td><b>Outcome</b></td><td>How a task ended: APPROVE, REJECT, RETURN, COMPLETE… The arrow with the same name decides the next step.</td></tr>
+      <tr><td><b>Business screen</b></td><td>A Capitra page a step opens (its <b>Route</b>), such as Treasury Disburse. The task is completed from that page.</td></tr>
+      <tr><td><b>Version</b></td><td>A frozen copy of a released workflow. Running instances keep their version when the workflow changes.</td></tr>
+      <tr><td><b>Data field</b></td><td>A value each instance carries (amount, client, decision), with a type that is checked.</td></tr>
+      <tr><td><b>Document</b></td><td>A form designed once in the Document Designer, with its own fields and which of them are required. A user-defined workflow links one document to the whole workflow; a system-built workflow can link a document to any step.</td></tr>
+      <tr><td><b>Request</b></td><td>One run of a user-defined workflow, sent by a user on its document. The requester follows it under My requests.</td></tr>
+      <tr><td><b>Data source</b></td><td>A list of values a form's drop-down offers: users, clients, currencies, or a list you keep.</td></tr>
+      <tr><td><b>Out of office</b></td><td>Who works your tasks while you are away, between two dates.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="en-3">
+    <div class="sec-h"><span class="n">3</span><h2>Designing a workflow</h2></div>
+    <p class="prose">Workspace → <b>Workflow Registry</b> lists every workflow with its code, version, status and whether it is active. Open one to edit it in the designer, or use <b>New workflow</b>.</p>
+    <figure><img src="img/2-registry.jpg" alt="The workflow registry list" loading="lazy"><figcaption><b>Figure 2.</b> Workflow Registry.</figcaption></figure>
+    <h3>The designer</h3>
+    <p class="prose">Drag elements from <b>Tools</b> onto the canvas and connect them with arrows. Click an element to open its <b>Properties</b> on the right; click the empty canvas for the <b>Workflow Properties</b>. The header holds Fit, <b>Versions</b> (section 4), <b>Data Fields</b> (section 5), BPMN XML and <b>Save Workflow</b>.</p>
+    <figure><img src="img/3-designer.jpg" alt="The workflow designer with a step selected and its properties" loading="lazy"><figcaption><b>Figure 3.</b> The designer with the Initiation step selected. The version chip shows <b>v3</b>.</figcaption></figure>
+    <h3>Workflow type</h3>
+    <p class="prose">In <b>Workflow Properties</b>, under <b>Workflow Type</b>, choose who starts the workflow:</p>
+    <div class="tbl"><table>
+      <tr><th>Type</th><th>Started by</th><th>Documents</th></tr>
+      <tr><td><b>System-built</b></td><td>The system, from its module (factoring, portfolios, disbursements). Never offered on Start a request.</td><td>Optional, on any human step (step setting <b>Document</b>).</td></tr>
+      <tr><td><b>User-defined</b></td><td>A user, from <b>Start a request</b> (section 8).</td><td>Exactly one, for the whole workflow, chosen under <b>Document</b> in Workflow Properties. The requester fills it in; every approval step shows it read-only.</td></tr>
+    </table></div>
+    <figure><img src="img/6-workflow-type.jpg" alt="Workflow Properties with the workflow type and its document" loading="lazy"><figcaption><b>Figure 4.</b> The Vacation request workflow is <b>User-defined</b> and uses the <b>Vacation request</b> document.</figcaption></figure>
+    <div class="note warn"><span class="ic">Remember</span><p>A user-defined workflow can be saved as a Draft without a document, but it is released only once its document is chosen. Workflows made before types count as user-defined when their Start had a form, and system-built otherwise.</p></div>
+    <h3>Step settings</h3>
+    <div class="tbl"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td>Step Code</td><td>A stable code such as <code>TREASURY_DISBURSE</code>. Modules recognise steps by it, so keep it once in use.</td></tr>
+      <tr><td>Step Name</td><td>What people see in the inbox.</td></tr>
+      <tr><td>Step Type</td><td>HumanTask (creates a task), SystemTask, Decision, Start, End.</td></tr>
+      <tr><td>Assignment</td><td><b>Role</b> (everyone in the role sees it) or <b>User</b> (one person, by user name in Assignee).</td></tr>
+      <tr><td>Product Event Rule</td><td>The product rule posted when the step completes: its charges and GL entries.</td></tr>
+      <tr><td>Document</td><td>System-built workflows only: the document people work on at this step (section 6). In a user-defined workflow every step shows the workflow's document.</td></tr>
+      <tr><td>Route / Page</td><td>The business screen the task opens, with its parameters. Leave empty for a step worked on its form.</td></tr>
+      <tr><td>Actions</td><td>The buttons that complete the task: APPROVE, REJECT, RETURN, COMPLETE… CLAIM is the claim button, not an outcome.</td></tr>
+      <tr><td>Deadline (SLA)</td><td>Optional: how long the task may take, a reminder before it is due, and what happens when it is overdue (below).</td></tr>
+    </table></div>
+    <h3>Deadlines (SLA)</h3>
+    <p class="prose">A human step can have a time limit. Each task of the step is then <b>due</b> at a set time, and Capitra watches it every minute: it reminds the person who has it, tells them when it is overdue, and can escalate it. Set it in the step's <b>Deadline (SLA)</b> section; the sentence at the bottom says in plain words what will happen.</p>
+    <div class="tbl"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td>Time limit and unit</td><td>How long after the task is created it is due: <b>Hours</b>, <b>Days</b>, or <b>Working days</b>. Working days skip Friday, Saturday and the holidays in the Treasury calendar, and keep the time of day.</td></tr>
+      <tr><td>Remind the assignee</td><td>Hours before the due time. The person (or everyone in the role) gets a <b>Due soon</b> alert, and the task shows <b>Due soon</b>.</td></tr>
+      <tr><td>When overdue</td><td><b>Alert the assignee only</b>: an <b>Overdue</b> alert at the due time.<br><b>Move the task (escalate)</b>: after the grace hours the task goes to the chosen user or role, unclaimed, and everyone involved is told.<br><b>Tell someone else</b>: after the grace hours the chosen user or role is told; the task stays where it is.</td></tr>
+      <tr><td>After (hours)</td><td>The grace period after the due time before escalating. 0 means at the due time.</td></tr>
+      <tr><td>To a Role / User</td><td>Who the overdue task is escalated to. Out of office applies: a user who is away is replaced by their delegate.</td></tr>
+    </table></div>
+    <figure><img src="img/17-step-deadline.jpg" alt="The Deadline (SLA) settings of a step" loading="lazy" style="max-width:420px"><figcaption><b>Figure 5.</b> Manager approval is due 2 working days after the request; a reminder 4 hours before; 4 hours after it is overdue it moves to admin.</figcaption></figure>
+    <div class="note warn"><span class="ic">Remember</span><p>A workflow is released only when its deadlines are complete: a time limit above 0, working days as a whole number, and a user or role when the task is escalated. A deadline applies to tasks created after the release; tasks already waiting keep theirs. A step without a time limit has no due date.</p></div>
+    <h3>Arrows and outcomes</h3>
+    <p class="prose">When a step has more than one arrow out, name each arrow after an outcome (APPROVE, REJECT). The task's outcome picks the arrow. With one arrow, any outcome follows it.</p>
+    <h3>Saving and releasing</h3>
+    <ol class="b"><li>Set <b>Status</b> to <b>Released</b> and leave <b>Active</b> on, so the workflow can start.</li><li><b>Save Workflow</b>. If the steps or arrows changed, Capitra makes a new version (section 4).</li><li>A Draft workflow can be saved as often as you like; it cannot start.</li></ol>
+  </section>
+
+  <section class="sec" id="en-4">
+    <div class="sec-h"><span class="n">4</span><h2>Versions</h2></div>
+    <p class="prose">Each time a released workflow is saved with changed steps or arrows, Capitra keeps the old one as a version and the change becomes the new current version. Instances already running stay on the version they started with, so a change never breaks work in progress. Moving boxes around (layout only) does not make a new version.</p>
+    <figure><img src="img/4-versions.jpg" alt="The versions list of a workflow" loading="lazy"><figcaption><b>Figure 6.</b> Versions: who released each one and when, how many instances run on it, and which is current.</figcaption></figure>
+    <ul class="b"><li><b>View</b> opens an old version read-only. A banner says so; <b>Back to current workflow</b> returns.</li><li>Save is off while you look at an old version.</li><li>The version number is set by Capitra and shown in the chip beside the code.</li></ul>
+  </section>
+
+  <section class="sec" id="en-5">
+    <div class="sec-h"><span class="n">5</span><h2>Data fields</h2></div>
+    <p class="prose">Data fields are the values each instance of a workflow carries: the amount, the client, the decision. Open them with <b>Data Fields</b> in the designer. Each field has a name (what screens and forms use, keep it once in use), a label, a type, whether it is required, a default and, for Choice, its choices.</p>
+    <figure><img src="img/5-data-fields.jpg" alt="The data fields editor" loading="lazy"><figcaption><b>Figure 7.</b> The data fields of the Expense claim workflow. <b>Apply</b>, then <b>Save Workflow</b>.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>Type</th><th>Holds</th><th>Stored as</th></tr>
+      <tr><td>Text</td><td>Any text</td><td>As typed</td></tr>
+      <tr><td>Number</td><td>A whole number</td><td><code>1250</code></td></tr>
+      <tr><td>Amount</td><td>An amount with decimals</td><td><code>1250.50</code></td></tr>
+      <tr><td>Yes / No</td><td>Yes or No</td><td><code>true</code> / <code>false</code></td></tr>
+      <tr><td>Date</td><td>A date</td><td><code>2026-11-08</code></td></tr>
+      <tr><td>Choice</td><td>One of the listed choices</td><td>The choice</td></tr>
+      <tr><td>User</td><td>A user of Capitra</td><td>The user name</td></tr>
+    </table></div>
+    <ul class="b"><li>When an instance starts, empty fields take their default, every value is checked against its type, and a required field must have a value.</li><li>When a task completes, the values it sends are checked the same way.</li><li>The task page shows the fields under <b>Workflow data</b>.</li></ul>
+  </section>
+
+  <section class="sec" id="en-6">
+    <div class="sec-h"><span class="n">6</span><h2>Documents and data sources</h2></div>
+    <p class="prose">A <b>document</b> is a form you design once in the <b>Document Designer</b>: its own fields, which of them are required, and how it looks. It does not belong to any workflow. Workflows link it in the designer: a user-defined workflow on the whole workflow, a system-built workflow on a step (section 3).</p>
+    <h3>Designing a document</h3>
+    <ol class="b"><li>Workspace → <b>Document Designer</b> → <b>New document</b>. Give it a name and a code, e.g. <code>VACATION_REQUEST</code>.</li><li>Under <b>Fields</b>, <b>Add field</b> for each value: its label (the name fills in by itself), its type, the choices of a Choice list, a default or an <b>automatic value</b> (below), and whether it is <b>Required</b>.</li><li>Each field appears as a box under <b>Layout</b>. Drag the boxes to arrange the document (below). Click a box to set its label on the form, its control, its data source (for a drop-down), its width, help text, and <b>Read-only</b>. Add <b>Headings</b> and <b>Notes</b> between fields.</li><li>The <b>Preview</b> shows the document as people will see it.</li><li><b>Create document</b>. <b>Used by</b> shows the workflows that link it.</li></ol>
+    <figure><img src="img/7-document-designer.jpg" alt="The Document Designer with the Vacation request document" loading="lazy"><figcaption><b>Figure 8.</b> The fields of the Vacation request document. Employee, Department and Request date are filled in automatically.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>Field type</th><th>Controls it can use</th><th>Stored as</th></tr>
+      <tr><td>Text</td><td>Text box, text area, drop-down</td><td>As typed</td></tr>
+      <tr><td>Whole number</td><td>Number, drop-down</td><td><code>5</code></td></tr>
+      <tr><td>Amount</td><td>Amount</td><td><code>1250.50</code></td></tr>
+      <tr><td>Yes / No</td><td>Yes / No buttons</td><td><code>true</code> / <code>false</code></td></tr>
+      <tr><td>Date</td><td>Date picker</td><td><code>2026-12-20</code></td></tr>
+      <tr><td>Choice list</td><td>Drop-down (its own choices, or a data source)</td><td>The choice</td></tr>
+      <tr><td>User</td><td>User picker</td><td>The user name</td></tr>
+    </table></div>
+    <h3>Automatic values</h3>
+    <p class="prose">A field can take its value from the system instead of the user. Choose it in <b>Default or automatic value</b>, or type its token as the default. The value is taken <b>once</b>, when the person creates the document (sends the request, or first fills in a step's document), from their login. The field is read-only, the server sets it, and it never changes afterwards: approvers cannot change it, and later steps never fill it again.</p>
+    <div class="tbl"><table>
+      <tr><th>Token</th><th>Becomes</th><th>Field type</th></tr>
+      <tr><td><code>@UserName</code></td><td>The user name of the person creating the document</td><td>User or Text</td></tr>
+      <tr><td><code>@FullName</code></td><td>Their full name</td><td>Text</td></tr>
+      <tr><td><code>@Department</code></td><td>Their department (Administration → Users)</td><td>Text</td></tr>
+      <tr><td><code>@EmployeeNo</code></td><td>Their employee number</td><td>Text</td></tr>
+      <tr><td><code>@Today</code> (or <code>@TodayDate</code>)</td><td>Today's date (Cairo time)</td><td>Date or Text</td></tr>
+    </table></div>
+    <h3>Arranging the layout</h3>
+    <p class="prose">The <b>Layout</b> shows each field, heading and note as a box, in the shape of the document. Drag a box:</p>
+    <ul class="b"><li><b>Above or below</b> another box (an orange line shows where) to move it there on its own row.</li><li><b>Onto the left or right half</b> of another field to sit beside it. The document becomes two columns, the two fields share the row.</li><li>To the dashed area at the end to put it last.</li></ul>
+    <p class="prose">Or click a box and use the arrows in its settings: <b>up</b>, <b>down</b>, <b>left half</b>, <b>right half</b>, or <b>whole row</b>. The <b>Preview</b> follows every change.</p>
+    <figure><img src="img/18-layout-canvas.jpg" alt="The layout canvas with Reason dragged beside Request date, and the preview" loading="lazy"><figcaption><b>Figure 9.</b> Reason was dragged onto the right half of Request date. Its settings show the arrows and <b>Width: Right half</b>.</figcaption></figure>
+    <h3>Data sources</h3>
+    <p class="prose">Workspace → <b>Data Sources</b>. The lists a document's drop-downs offer. Three are built in and always current: <b>Users</b>, <b>Clients</b> and <b>Currencies</b>. Make your own for anything else: a code, a name and items, each with the value that is stored and the label people see.</p>
+    <figure><img src="img/8-data-sources.jpg" alt="The data sources page with a list being edited" loading="lazy"><figcaption><b>Figure 10.</b> A data source with its items. Switch an item off to stop offering it without losing it.</figcaption></figure>
+    <div class="note warn"><span class="ic">Remember</span><p>A document in use cannot be deleted, and its code cannot change; switch it off instead. A form made before documents shows <b>older form of</b> its workflow: open it and save it once to make it a document of its own; the workflow keeps using it.</p></div>
+  </section>
+
+  <section class="sec" id="en-7">
+    <div class="sec-h"><span class="n">7</span><h2>Working your tasks</h2></div>
+    <p class="prose"><b>My Inbox</b> lists the tasks you may work: those assigned to you, to one of your roles, the ones you claimed, and those of people you cover (section 9). Overdue tasks come first. Filter by All, Claimed by me, Unclaimed or Overdue, search, or pick a workflow.</p>
+    <figure><img src="img/10-inbox.jpg" alt="My Inbox with three tasks" loading="lazy"><figcaption><b>Figure 11.</b> My Inbox. The SLA column shows each task's deadline. Tick several unclaimed tasks and use <b>Claim selected</b> to claim them at once.</figcaption></figure>
+    <h3>The steps of a task</h3>
+    <div class="steps">
+      <div class="step"><span class="g">1</span><div><b>Claim.</b> The task becomes yours; others in the role no longer see it.</div><span class="pill warn">Claimed</span></div>
+      <div class="step"><span class="g">2</span><div><b>Start work.</b> Opens the business screen, or opens the step's form for filling in. <b>Continue work</b> returns to the screen later.</div><span class="pill warn">In progress</span></div>
+      <div class="step"><span class="g">3</span><div><b>Complete.</b> On the business screen, or with the action buttons under the form (Approve, Reject…). Add an optional comment.</div><span class="pill ok">Completed</span></div>
+    </div>
+    <figure><img src="img/11-task-open.jpg" alt="A task page before it is claimed" loading="lazy"><figcaption><b>Figure 12.</b> The task page: workflow, customer, amount and reference, who has it, and the workflow data.</figcaption></figure>
+    <h3>A step worked on its form</h3>
+    <p class="prose">After <b>Start work</b> the form opens for filling in. Required fields carry an orange star. If one is empty, the task is not completed: the message says which field, and what you typed stays on the page. Rejecting or returning a task does not need the form filled in.</p>
+    <figure><img src="img/12-task-form.jpg" alt="The Expense review form on a task" loading="lazy"><figcaption><b>Figure 13.</b> The Expense review form: the claim read-only, the decision to fill in.</figcaption></figure>
+    <h3>Approving a request</h3>
+    <p class="prose">A task of a user-defined workflow shows the request as the requester sent it, marked <b>The request as sent: read-only</b>. Read it, add a comment, then <b>Approve</b> or <b>Reject</b>. The requester sees your decision and comment under My requests (section 8).</p>
+    <figure><img src="img/16-approver-request.jpg" alt="The approver's task with the vacation request read-only" loading="lazy"><figcaption><b>Figure 14.</b> Manager approval of a vacation request.</figcaption></figure>
+    <h3>Deadlines and alerts</h3>
+    <p class="prose">A task of a step with a deadline (section 3) shows it in the inbox's <b>SLA</b> column and beside <b>Due Date</b> on the task page:</p>
+    <div class="tbl"><table>
+      <tr><th>Shows</th><th>Means</th></tr>
+      <tr><td>A date, e.g. <code>12-NOV 11:36</code> / <b>On time</b></td><td>Due then; not yet in the reminder window.</td></tr>
+      <tr><td><b>Due soon</b></td><td>The step's reminder time has passed (two days before, for a due date without one).</td></tr>
+      <tr><td><b>Overdue 5h</b> / <b>Overdue 1d</b></td><td>Past its due time, by that long. Overdue tasks are listed first.</td></tr>
+      <tr><td><b>Escalated</b></td><td>It was overdue and moved to you. Hover it (or see the task page) for who had it before.</td></tr>
+      <tr><td><b>No due date</b></td><td>The step has no time limit.</td></tr>
+    </table></div>
+    <p class="prose">The <b>bell</b> in the top bar shows your deadline alerts and how many are unread: <b>Due soon</b>, <b>Overdue</b>, and <b>Escalated</b> (moved to you, or moved away from you). Click an alert to open its task, or <b>Mark all read</b>. Alerts are checked every minute.</p>
+    <figure><img src="img/19-deadline-alerts.jpg" alt="The bell open with deadline alerts" loading="lazy"><figcaption><b>Figure 15.</b> Deadline alerts: a task escalated to you, one due soon, and one overdue.</figcaption></figure>
+    <div class="note"><span class="ic">Tip</span><p>A task finished after its due time is still completed; its history notes that it was late. Reminders, overdue notices and escalations are in the instance history too.</p></div>
+  </section>
+
+  <section class="sec" id="en-8">
+    <div class="sec-h"><span class="n">8</span><h2>Start a request</h2></div>
+    <p class="prose">Anyone can send a request (a vacation, an expense claim…) with <b>Start a request</b> on Home, or Workspace → <b>Start a request</b>. The page lists the user-defined workflows only; system-built workflows are started by their modules.</p>
+    <figure><img src="img/15-home-request.jpg" alt="The Start a request button on Home" loading="lazy"><figcaption><b>Figure 16.</b> Start a request on Home, beside Open my inbox.</figcaption></figure>
+    <ol class="b"><li>Choose the request on the left.</li><li>Enter a business reference if you have one.</li><li>Fill in the document. Defaults are already there, automatic values (your name, department, today) are filled in and locked; required fields carry an orange star.</li><li><b>Send request</b>. The message says which step comes next and who has it.</li></ol>
+    <h3>My requests</h3>
+    <p class="prose">Under the form, <b>My requests</b> lists what you sent, newest first: <b>In progress</b> with the step it is waiting at, or <b>Approved</b> / <b>Rejected</b> with who decided, when, and their comment.</p>
+    <figure><img src="img/9-start-a-request.jpg" alt="Start a request with the vacation request and My requests" loading="lazy"><figcaption><b>Figure 17.</b> A vacation request: Employee, Department and Request date are filled in automatically for Mona; My requests below.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-9">
+    <div class="sec-h"><span class="n">9</span><h2>Out of office</h2></div>
+    <p class="prose">Workspace → <b>Out of Office</b>, or the button on My Inbox. Choose who works your tasks, for all workflows or one, and the first and last day away. While the dates run:</p>
+    <ul class="b"><li>New tasks meant for you go to your delegate.</li><li>Your delegate also sees the tasks already waiting for you and for your roles, with a <b>For &lt;you&gt;</b> tag, and a banner says whom they cover.</li><li>A task you had claimed shows <b>Take over</b>: the delegate claims it from you.</li><li>A rule for one workflow wins over the rule for all workflows. If your delegate is away too, the task passes to their delegate (up to five steps, never back to you).</li></ul>
+    <figure><img src="img/13-out-of-office.jpg" alt="The out of office page" loading="lazy"><figcaption><b>Figure 18.</b> Out of office: the form, and your entries with their state (Away now, Planned, Ended, Off).</figcaption></figure>
+    <figure><img src="img/14-delegate-inbox.jpg" alt="The delegate's inbox showing the covered user's tasks" loading="lazy"><figcaption><b>Figure 19.</b> The delegate's inbox: the banner, the <b>For admin</b> tags and <b>Take over</b>.</figcaption></figure>
+    <div class="note"><span class="ic">Tip</span><p>Switch an entry <b>Off</b> to keep it for next time without using it. Workflow administrators can choose <b>Everyone</b> to see and set entries for other people.</p></div>
+  </section>
+
+  <section class="sec" id="en-10">
+    <div class="sec-h"><span class="n">10</span><h2>Messages and what to do</h2></div>
+    <div class="tbl"><table>
+      <tr><th>Message</th><th>What to do</th></tr>
+      <tr><td>This task is not assigned to you.</td><td>Someone else claimed it, or it is not for your role. Refresh the inbox.</td></tr>
+      <tr><td>Fill in "…".</td><td>A required field of the form is empty. Fill it in and press the action again.</td></tr>
+      <tr><td>"…" must be one of the listed values.</td><td>Choose a value from the drop-down.</td></tr>
+      <tr><td>The workflow needs "…" to start.</td><td>A required data field has no value. Fill it in on the start form.</td></tr>
+      <tr><td>"…" must be an amount / a whole number / a date.</td><td>The value does not fit the field's type. Correct it.</td></tr>
+      <tr><td>Only a released workflow definition can be started.</td><td>In the designer, set Status to Released and save.</td></tr>
+      <tr><td>… is a system-built workflow. Its module starts it.</td><td>Start it from its own page, or make it user-defined in the designer.</td></tr>
+      <tr><td>… has no document to start it on.</td><td>In Workflow Properties, choose the workflow's document and save.</td></tr>
+      <tr><td>A user-defined workflow needs its document.</td><td>Choose the document in Workflow Properties, or save the workflow as a Draft.</td></tr>
+      <tr><td>"…" is a Choice field: list its choices.</td><td>In the Document Designer, type the choices separated by commas.</td></tr>
+      <tr><td>"…" is not a data field of this document.</td><td>Add the field under Fields first, or remove it from the layout.</td></tr>
+      <tr><td>… is used at …</td><td>Take the document off those workflows or steps in the designer, or switch it off.</td></tr>
+      <tr><td>… is already out of office … Change that entry instead.</td><td>Only one entry per person, workflow and dates. Change the existing one.</td></tr>
+      <tr><td>…: give the time limit, or clear the deadline settings.</td><td>A step has reminder or escalation settings but no time limit. Enter the time limit, or clear the others.</td></tr>
+      <tr><td>…: working days must be a whole number.</td><td>Use 1, 2, 3… working days, or switch the unit to Hours or Days.</td></tr>
+      <tr><td>…: choose the user or role the overdue task is escalated to.</td><td>Fill in To a Role / User, or set When overdue to Alert the assignee only.</td></tr>
+      <tr><td>"…": unknown automatic value "@…".</td><td>Use @UserName, @FullName, @Department, @EmployeeNo or @Today.</td></tr>
+      <tr><td>"…": today's date needs a Date field.</td><td>An automatic value must fit the field's type: change the type, or choose another value.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="en-11">
+    <div class="sec-h"><span class="n">11</span><h2>Permissions, statuses, glossary</h2></div>
+    <h3>Permissions <span style="font-weight:400;color:var(--muted);font-size:14px">Administration → Roles</span></h3>
+    <div class="tbl"><table>
+      <tr><th>Permission</th><th>Allows</th></tr>
+      <tr><td><i>(signed in)</i></td><td>My Inbox, working your tasks, Start a request and My requests, your own out of office</td></tr>
+      <tr><td><code>WFE.DEFINITION.VIEW</code></td><td>Open the registry, designer, versions, Document Designer and data sources; see all open tasks</td></tr>
+      <tr><td><code>WFE.DEFINITION.EDIT</code></td><td>Create, change, release and delete workflows, documents and data sources; set out of office for others</td></tr>
+    </table></div>
+    <h3>Statuses</h3>
+    <div class="tbl"><table>
+      <tr><th>Item</th><th>Statuses</th></tr>
+      <tr><td>Workflow</td><td>Draft · Released, and Active on or off</td></tr>
+      <tr><td>Instance</td><td>Running · Waiting (at a task) · Completed</td></tr>
+      <tr><td>Request (My requests)</td><td>In progress · Approved · Rejected · Completed</td></tr>
+      <tr><td>Task</td><td>Open (not claimed) · Claimed · In progress · Completed</td></tr>
+      <tr><td>Task deadline</td><td>No due date · On time · Due soon · Overdue · Escalated</td></tr>
+      <tr><td>Alert</td><td>Due soon · Overdue · Escalated, each unread or read</td></tr>
+      <tr><td>Out of office entry</td><td>Away now · Planned · Ended · Off</td></tr>
+    </table></div>
+    <h3>Glossary</h3>
+    <div class="tbl"><table>
+      <tr><th>Term</th><th>Meaning</th></tr>
+      <tr><td>BPMN</td><td>The standard drawing language of the designer</td></tr>
+      <tr><td>Automatic value</td><td>A document field the system fills in once, from the person creating the document: @UserName, @FullName, @Department, @EmployeeNo, @Today</td></tr>
+      <tr><td>Delegate</td><td>The person who works your tasks while you are out of office</td></tr>
+      <tr><td>Escalation</td><td>What happens to an overdue task after its grace period: moved to another user or role, or someone else told</td></tr>
+      <tr><td>History</td><td>The record of every step of an instance: started, entered, claimed, delegated, taken over, reminded, overdue, escalated, completed</td></tr>
+      <tr><td>Route</td><td>The business screen a step opens</td></tr>
+      <tr><td>SLA</td><td>A step's deadline: the time limit to finish its task, with reminder and escalation</td></tr>
+      <tr><td>Take over</td><td>A delegate claiming a task the away person had claimed</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">CAPITRA · Workflow User Manual · Version 1.2 · November 2026</p>
+  </main>
+</div>
+</div>
+
+<!-- ============================== ARABIC ============================== -->
+<div id="doc-ar" lang="ar" dir="rtl" hidden>
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">دليل المستخدم · سير العمل</div>
+      <h1>سير العمل والمهام والنماذج</h1>
+      <p class="lede">كيف ينتقل العمل داخل كابيترا: من تصله كل مهمة، وكيف ينجزها، وكيف يُصمَّم سير العمل ويُعدَّل، وكيف تعمل النماذج وحقول البيانات والإصدارات والغياب عن العمل معًا. مكتوب لكل من ينجز المهام، ولمسؤولي سير العمل الذين يصممونها.</p>
+      <div class="meta"><span><b>الإصدار</b>١٫٢</span><span><b>التاريخ</b>١٠ نوفمبر ٢٠٢٦</span><span><b>يغطي</b>صندوق المهام · المصمم · أنواع سير العمل · المهل الزمنية (SLA) والتنبيهات · الإصدارات · حقول البيانات · مصمم المستندات · القيم التلقائية · مصادر البيانات · تقديم طلب · طلباتي · الغياب عن العمل</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="المحتويات">
+    <div class="t">المحتويات</div>
+    <ol>
+      <li><a href="#ar-qs"><i>٠</i>البدء السريع</a></li>
+      <li><a href="#ar-1"><i>١</i>عن هذا الدليل</a></li>
+      <li><a href="#ar-2"><i>٢</i>مفاهيم أساسية</a></li>
+      <li><a href="#ar-3"><i>٣</i>تصميم سير العمل</a></li>
+      <li><a href="#ar-4"><i>٤</i>الإصدارات</a></li>
+      <li><a href="#ar-5"><i>٥</i>حقول البيانات</a></li>
+      <li><a href="#ar-6"><i>٦</i>المستندات ومصادر البيانات</a></li>
+      <li><a href="#ar-7"><i>٧</i>إنجاز مهامك</a></li>
+      <li><a href="#ar-8"><i>٨</i>تقديم طلب</a></li>
+      <li><a href="#ar-9"><i>٩</i>الغياب عن العمل</a></li>
+      <li><a href="#ar-10"><i>١٠</i>الرسائل وما تفعله</a></li>
+      <li><a href="#ar-11"><i>١١</i>الصلاحيات والحالات والمصطلحات</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="ar-qs">
+    <div class="sec-h"><span class="n">٠</span><h2>البدء السريع</h2></div>
+    <p class="prose">أكثر أربع مهام يقوم بها المستخدمون، وكل منها يحيل إلى الشرح الكامل.</p>
+    <div class="qs">
+      <div class="card"><div class="k">كل يوم</div><h4>إنجاز مهمة</h4>
+        <ol><li>زر صندوق المهام في الشريط العلوي أو مساحة العمل ← صندوق مهامي</li><li><b>استلام</b> المهمة</li><li><b>بدء العمل</b></li><li>أنجز العمل على شاشتها أو نموذجها ثم <b>اعتماد</b> أو <b>رفض</b> أو <b>إكمال</b></li></ol><a href="#ar-7">القسم ٧</a></div>
+      <div class="card"><div class="k">عند الحاجة</div><h4>تقديم طلب</h4>
+        <ol><li>الصفحة الرئيسية ← <b>تقديم طلب</b></li><li>اختر الطلب (إجازة، مصروفات…)</li><li>املأ مستنده</li><li><b>إرسال الطلب</b>، ثم تابعه في <b>طلباتي</b></li></ol><a href="#ar-8">القسم ٨</a></div>
+      <div class="card"><div class="k">قبل الإجازة</div><h4>تسجيل الغياب</h4>
+        <ol><li>مساحة العمل ← الغياب عن العمل</li><li>اختر من ينجز مهامك</li><li>كل مسارات العمل أو واحد منها، والتواريخ</li><li><b>حفظ</b>: تذهب مهامك إليه أثناء غيابك</li></ol><a href="#ar-9">القسم ٩</a></div>
+      <div class="card"><div class="k">مسؤولو سير العمل</div><h4>إنشاء نوع طلب جديد</h4>
+        <ol><li>مساحة العمل ← مصمم المستندات ← <b>مستند جديد</b>: حقوله وشكله</li><li>ارسم سير العمل واجعله <b>معرّفًا من المستخدم</b></li><li>اختر المستند في خصائص سير العمل</li><li>انشره فيظهر في تقديم طلب</li></ol><a href="#ar-6">القسم ٦</a></div>
+    </div>
+  </section>
+
+  <section class="sec" id="ar-1">
+    <div class="sec-h"><span class="n">١</span><h2>عن هذا الدليل</h2></div>
+    <p class="prose">محرك سير العمل ينقل العمل بين الأشخاص. كل سير عمل مخطط من الخطوات، وكل خطوة بشرية تصبح <b>مهمة</b> في صندوق مهام شخص ما. وعند إنجاز المهمة ينتقل سير العمل إلى الخطوة التالية تلقائيًا، ويحتفظ المحرك بسجل كامل: من فعل ماذا ومتى وبأي قرار.</p>
+    <div class="tbl"><table>
+      <tr><th>الصفحة</th><th>مكانها</th><th>من يستخدمها</th></tr>
+      <tr><td>صندوق مهامي</td><td>زر صندوق المهام في الشريط العلوي، أو مساحة العمل ← صندوق مهامي</td><td>كل من ينجز المهام</td></tr>
+      <tr><td>تقديم طلب</td><td>زر <b>تقديم طلب</b> في الصفحة الرئيسية، أو مساحة العمل ← تقديم طلب</td><td>الجميع: إرسال طلب (إجازة، مصروفات…) ومتابعته في طلباتي</td></tr>
+      <tr><td>الغياب عن العمل</td><td>مساحة العمل ← الغياب عن العمل، أو الزر في صندوق المهام</td><td>الجميع، ويمكن للمسؤولين تسجيله لغيرهم</td></tr>
+      <tr><td>محرك سير العمل</td><td>مساحة العمل ← محرك سير العمل</td><td>المسؤولون: المهام الجارية وزمن إنجازها</td></tr>
+      <tr><td>سجل مسارات العمل والمصمم</td><td>مساحة العمل ← سجل مسارات العمل</td><td>مسؤولو سير العمل</td></tr>
+      <tr><td>مصمم المستندات ومصادر البيانات</td><td>مساحة العمل ← مصمم المستندات / مصادر البيانات</td><td>مسؤولو سير العمل</td></tr>
+    </table></div>
+    <figure><img src="img/1-engine-home.jpg" alt="الصفحة الرئيسية لمحرك سير العمل" loading="lazy"><figcaption><b>شكل ١.</b> الصفحة الرئيسية لمحرك سير العمل: عدد مسارات العمل والخطوات، والمهام المفتوحة، وزمن المهام المستلمة.</figcaption></figure>
+    <div class="note"><span class="ic">ملاحظة</span><p>كل ما في الأقسام من ٤ إلى ٦ ومن ٨ إلى ٩ أُضيف فوق المحرك القائم. سير العمل الذي لا يستخدم الإصدارات أو حقول البيانات أو المستندات أو الغياب يعمل كما كان تمامًا.</p></div>
+  </section>
+
+  <section class="sec" id="ar-2">
+    <div class="sec-h"><span class="n">٢</span><h2>مفاهيم أساسية</h2></div>
+    <div class="tbl"><table>
+      <tr><th>المفهوم</th><th>معناه</th></tr>
+      <tr><td><b>سير العمل</b></td><td>مخطط خطوات (BPMN) له رمز، مثل <code>DISBURSEMENT_REQUEST_WF</code>. لا يبدأ إلا سير عمل <b>منشور</b> ومفعّل.</td></tr>
+      <tr><td><b>نوع سير العمل</b></td><td><b>مبني في النظام</b>: يبدؤه النظام (التخصيم، المحافظ، الصرف). <b>معرّف من المستخدم</b>: يبدؤه المستخدم من تقديم طلب على مستند واحد (إجازة، مطالبة مصروفات).</td></tr>
+      <tr><td><b>النسخة الجارية</b></td><td>تشغيل واحد لسير العمل لسجل عمل واحد (صرف، مطالبة)، ولها بياناتها وسجلها.</td></tr>
+      <tr><td><b>الخطوة</b></td><td>مربع في المخطط. الخطوة البشرية تنشئ مهمة، وخطوة النظام أو القرار تعمل تلقائيًا.</td></tr>
+      <tr><td><b>المهمة</b></td><td>العمل المنتظر عند خطوة بشرية، ويظهر في صندوق مهام دور أو مستخدم واحد.</td></tr>
+      <tr><td><b>الاستلام</b></td><td>أخذ المهمة لتصبح لك. مهمة الدور يراها كل أفراد الدور حتى يستلمها أحدهم.</td></tr>
+      <tr><td><b>النتيجة</b></td><td>كيف انتهت المهمة: اعتماد، رفض، إرجاع، إكمال… والسهم الذي يحمل الاسم نفسه يحدد الخطوة التالية.</td></tr>
+      <tr><td><b>شاشة العمل</b></td><td>صفحة في كابيترا تفتحها الخطوة (<b>المسار</b>)، مثل صرف الخزينة، وتُكمل المهمة منها.</td></tr>
+      <tr><td><b>الإصدار</b></td><td>نسخة مجمّدة من سير عمل منشور. النسخ الجارية تبقى على إصدارها عند تغيير سير العمل.</td></tr>
+      <tr><td><b>حقل البيانات</b></td><td>قيمة تحملها كل نسخة (المبلغ، العميل، القرار) بنوع يتم التحقق منه.</td></tr>
+      <tr><td><b>المستند</b></td><td>نموذج يُصمَّم مرة واحدة في مصمم المستندات، بحقوله الخاصة وأيها إلزامي. سير العمل المعرّف من المستخدم يربط مستندًا واحدًا بسير العمل كله، وسير العمل المبني في النظام يمكنه ربط مستند بأي خطوة.</td></tr>
+      <tr><td><b>الطلب</b></td><td>تشغيل واحد لسير عمل معرّف من المستخدم، يرسله المستخدم على مستنده ويتابعه في طلباتي.</td></tr>
+      <tr><td><b>مصدر البيانات</b></td><td>قائمة قيم تعرضها القائمة المنسدلة في النموذج: المستخدمون أو العملاء أو العملات أو قائمة تحتفظ بها.</td></tr>
+      <tr><td><b>الغياب عن العمل</b></td><td>من ينجز مهامك أثناء غيابك بين تاريخين.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="ar-3">
+    <div class="sec-h"><span class="n">٣</span><h2>تصميم سير العمل</h2></div>
+    <p class="prose">مساحة العمل ← <b>سجل مسارات العمل</b> يعرض كل مسارات العمل برمزها وإصدارها وحالتها وتفعيلها. افتح أحدها لتعديله في المصمم، أو استخدم <b>سير عمل جديد</b>.</p>
+    <figure><img src="img/2-registry.jpg" alt="سجل مسارات العمل" loading="lazy"><figcaption><b>شكل ٢.</b> سجل مسارات العمل.</figcaption></figure>
+    <h3>المصمم</h3>
+    <p class="prose">اسحب العناصر من <b>الأدوات</b> إلى لوحة الرسم وصِل بينها بالأسهم. اضغط على عنصر لفتح <b>خصائصه</b> على الجانب، واضغط على مساحة فارغة لفتح <b>خصائص سير العمل</b>. في أعلى الصفحة: ملاءمة، <b>الإصدارات</b> (القسم ٤)، <b>حقول البيانات</b> (القسم ٥)، BPMN XML و<b>حفظ سير العمل</b>.</p>
+    <figure><img src="img/3-designer.jpg" alt="مصمم سير العمل مع خطوة محددة وخصائصها" loading="lazy"><figcaption><b>شكل ٣.</b> المصمم مع تحديد خطوة البدء (Initiation). شارة الإصدار تعرض <b>v3</b>.</figcaption></figure>
+    <h3>نوع سير العمل</h3>
+    <p class="prose">في <b>خصائص سير العمل</b> تحت <b>نوع سير العمل</b> اختر من يبدأ سير العمل:</p>
+    <div class="tbl"><table>
+      <tr><th>النوع</th><th>يبدؤه</th><th>المستندات</th></tr>
+      <tr><td><b>مبني في النظام</b></td><td>النظام من وحدته (التخصيم، المحافظ، الصرف). لا يظهر في تقديم طلب.</td><td>اختياري على أي خطوة بشرية (إعداد <b>المستند</b> في الخطوة).</td></tr>
+      <tr><td><b>معرّف من المستخدم</b></td><td>المستخدم من <b>تقديم طلب</b> (القسم ٨).</td><td>مستند واحد لسير العمل كله، يُختار تحت <b>المستند</b> في خصائص سير العمل. يملؤه مقدم الطلب، وتعرضه كل خطوات الاعتماد للقراءة فقط.</td></tr>
+    </table></div>
+    <figure><img src="img/6-workflow-type.jpg" alt="خصائص سير العمل مع النوع والمستند" loading="lazy"><figcaption><b>شكل ٤.</b> سير عمل طلب الإجازة <b>معرّف من المستخدم</b> ويستخدم مستند <b>طلب إجازة</b>.</figcaption></figure>
+    <div class="note warn"><span class="ic">تذكّر</span><p>يمكن حفظ سير العمل المعرّف من المستخدم كمسودة بلا مستند، لكنه لا يُنشر إلا بعد اختيار مستنده. مسارات العمل المنشأة قبل الأنواع تُعد معرّفة من المستخدم إذا كان لحدث بدايتها نموذج، ومبنية في النظام في غير ذلك.</p></div>
+    <h3>إعدادات الخطوة</h3>
+    <div class="tbl"><table>
+      <tr><th>الإعداد</th><th>وظيفته</th></tr>
+      <tr><td>رمز الخطوة</td><td>رمز ثابت مثل <code>TREASURY_DISBURSE</code> تتعرّف به الوحدات على الخطوة، فلا تغيّره بعد الاستخدام.</td></tr>
+      <tr><td>اسم الخطوة</td><td>ما يراه المستخدمون في صندوق المهام.</td></tr>
+      <tr><td>نوع الخطوة</td><td>مهمة بشرية (تنشئ مهمة)، مهمة نظام، قرار، بداية، نهاية.</td></tr>
+      <tr><td>الإسناد</td><td><b>دور</b> (يراها كل أفراد الدور) أو <b>مستخدم</b> (شخص واحد باسم المستخدم في خانة المسند إليه).</td></tr>
+      <tr><td>قاعدة حدث المنتج</td><td>قاعدة المنتج التي تُرحَّل عند إكمال الخطوة: رسومها وقيودها المحاسبية.</td></tr>
+      <tr><td>المستند</td><td>لمسارات العمل المبنية في النظام فقط: المستند الذي يُعمل عليه في هذه الخطوة (القسم ٦). في سير العمل المعرّف من المستخدم تعرض كل خطوة مستند سير العمل.</td></tr>
+      <tr><td>المسار / الصفحة</td><td>شاشة العمل التي تفتحها المهمة ومعاملاتها. اتركه فارغًا لخطوة تُنجز على نموذجها.</td></tr>
+      <tr><td>الإجراءات</td><td>الأزرار التي تُكمل المهمة: اعتماد، رفض، إرجاع، إكمال… أما الاستلام فهو زر الاستلام وليس نتيجة.</td></tr>
+      <tr><td>المهلة (SLA)</td><td>اختياري: المدة المسموح بها للمهمة، وتذكير قبل موعدها، وما يحدث عند تأخرها (أدناه).</td></tr>
+    </table></div>
+    <h3>المهل الزمنية (SLA)</h3>
+    <p class="prose">يمكن أن يكون للخطوة البشرية حد زمني، فتصبح كل مهمة منها <b>مستحقة</b> في وقت محدد، ويراقبها النظام كل دقيقة: يذكّر من لديه المهمة، ويبلغه عند تأخرها، ويمكنه تصعيدها. اضبط ذلك في قسم <b>Deadline (SLA)</b> في إعدادات الخطوة؛ والجملة أسفل القسم تشرح ما سيحدث بكلمات بسيطة.</p>
+    <div class="tbl"><table>
+      <tr><th>الإعداد</th><th>ما يفعله</th></tr>
+      <tr><td>الحد الزمني ووحدته</td><td>بعد كم من إنشاء المهمة تستحق: <b>ساعات</b> أو <b>أيام</b> أو <b>أيام عمل</b>. أيام العمل تتخطى الجمعة والسبت والعطلات المسجلة في تقويم الخزينة، وتحتفظ بالساعة نفسها.</td></tr>
+      <tr><td>تذكير المكلّف</td><td>عدد الساعات قبل موعد الاستحقاق. يصل صاحب المهمة (أو كل أفراد الدور) تنبيه <b>تستحق قريبًا</b>، وتظهر المهمة بالحالة نفسها.</td></tr>
+      <tr><td>عند التأخر</td><td><b>تنبيه المكلّف فقط</b>: تنبيه <b>متأخرة</b> عند موعد الاستحقاق.<br><b>نقل المهمة (تصعيد)</b>: بعد ساعات السماح تنتقل المهمة إلى المستخدم أو الدور المحدد غير مستلمة، ويُبلَّغ كل المعنيين.<br><b>إبلاغ شخص آخر</b>: بعد ساعات السماح يُبلَّغ المستخدم أو الدور المحدد، وتبقى المهمة مكانها.</td></tr>
+      <tr><td>بعد (ساعات)</td><td>مهلة السماح بعد موعد الاستحقاق قبل التصعيد. صفر تعني عند الموعد نفسه.</td></tr>
+      <tr><td>إلى دور / مستخدم</td><td>من تُصعَّد إليه المهمة المتأخرة. يُطبَّق الغياب عن العمل: المستخدم الغائب يحل محله نائبه.</td></tr>
+    </table></div>
+    <figure><img src="img/17-step-deadline.jpg" alt="إعدادات المهلة الزمنية لخطوة" loading="lazy" style="max-width:420px"><figcaption><b>شكل ٥.</b> اعتماد المدير يستحق بعد يومي عمل من الطلب، مع تذكير قبله بأربع ساعات، وبعد تأخره بأربع ساعات ينتقل إلى admin.</figcaption></figure>
+    <div class="note warn"><span class="ic">تذكّر</span><p>لا يُنشر سير العمل إلا إذا اكتملت مهله: حد زمني أكبر من صفر، وأيام العمل عدد صحيح، ومستخدم أو دور عند التصعيد. المهلة تنطبق على المهام التي تُنشأ بعد النشر؛ والمهام المنتظرة تحتفظ بمهلتها. الخطوة بلا حد زمني ليس لمهامها موعد استحقاق.</p></div>
+    <h3>الأسهم والنتائج</h3>
+    <p class="prose">إذا خرج من الخطوة أكثر من سهم، فسمِّ كل سهم باسم نتيجة (APPROVE، REJECT)، ونتيجة المهمة تختار السهم. ومع سهم واحد تتبعه أي نتيجة.</p>
+    <h3>الحفظ والنشر</h3>
+    <ol class="b"><li>اجعل <b>الحالة</b> <b>منشور</b> واترك <b>مفعّل</b> مشغّلًا ليمكن بدء سير العمل.</li><li><b>حفظ سير العمل</b>. إذا تغيّرت الخطوات أو الأسهم ينشئ كابيترا إصدارًا جديدًا (القسم ٤).</li><li>يمكن حفظ سير العمل المسودة متى شئت، لكنه لا يبدأ.</li></ol>
+  </section>
+
+  <section class="sec" id="ar-4">
+    <div class="sec-h"><span class="n">٤</span><h2>الإصدارات</h2></div>
+    <p class="prose">في كل مرة يُحفظ فيها سير عمل منشور بخطوات أو أسهم متغيرة، يحتفظ كابيترا بالقديم كإصدار، ويصبح التعديل هو الإصدار الحالي. النسخ الجارية تبقى على الإصدار الذي بدأت به، فلا يكسر التعديل عملًا قائمًا. تحريك المربعات فقط (الشكل) لا ينشئ إصدارًا جديدًا.</p>
+    <figure><img src="img/4-versions.jpg" alt="قائمة إصدارات سير العمل" loading="lazy"><figcaption><b>شكل ٦.</b> الإصدارات: من نشر كل إصدار ومتى، وكم نسخة تعمل عليه، وأيها الحالي.</figcaption></figure>
+    <ul class="b"><li><b>عرض</b> يفتح إصدارًا قديمًا للقراءة فقط مع شريط يوضح ذلك، و<b>الرجوع إلى سير العمل الحالي</b> يعيدك.</li><li>الحفظ متوقف أثناء عرض إصدار قديم.</li><li>رقم الإصدار يحدده كابيترا ويظهر في الشارة بجوار الرمز.</li></ul>
+  </section>
+
+  <section class="sec" id="ar-5">
+    <div class="sec-h"><span class="n">٥</span><h2>حقول البيانات</h2></div>
+    <p class="prose">حقول البيانات هي القيم التي تحملها كل نسخة من سير العمل: المبلغ والعميل والقرار. افتحها من <b>حقول البيانات</b> في المصمم. لكل حقل اسم (تستخدمه الشاشات والنماذج، فلا تغيّره بعد الاستخدام)، وعنوان، ونوع، وهل هو إلزامي، وقيمة افتراضية، وخيارات لنوع الاختيار.</p>
+    <figure><img src="img/5-data-fields.jpg" alt="محرر حقول البيانات" loading="lazy"><figcaption><b>شكل ٧.</b> حقول بيانات سير عمل مطالبة المصروفات. <b>تطبيق</b> ثم <b>حفظ سير العمل</b>.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>النوع</th><th>يحمل</th><th>يُخزَّن بصيغة</th></tr>
+      <tr><td>نص</td><td>أي نص</td><td>كما كُتب</td></tr>
+      <tr><td>رقم</td><td>عدد صحيح</td><td><code>1250</code></td></tr>
+      <tr><td>مبلغ</td><td>مبلغ بكسور عشرية</td><td><code>1250.50</code></td></tr>
+      <tr><td>نعم / لا</td><td>نعم أو لا</td><td><code>true</code> / <code>false</code></td></tr>
+      <tr><td>تاريخ</td><td>تاريخ</td><td><code>2026-11-08</code></td></tr>
+      <tr><td>اختيار</td><td>أحد الخيارات المدرجة</td><td>الخيار</td></tr>
+      <tr><td>مستخدم</td><td>مستخدم في كابيترا</td><td>اسم المستخدم</td></tr>
+    </table></div>
+    <ul class="b"><li>عند بدء النسخة تأخذ الحقول الفارغة قيمتها الافتراضية، وتُفحص كل قيمة مقابل نوعها، ويجب أن يكون للحقل الإلزامي قيمة.</li><li>عند إكمال مهمة تُفحص القيم التي ترسلها بالطريقة نفسها.</li><li>صفحة المهمة تعرض الحقول تحت <b>بيانات سير العمل</b>.</li></ul>
+  </section>
+
+  <section class="sec" id="ar-6">
+    <div class="sec-h"><span class="n">٦</span><h2>المستندات ومصادر البيانات</h2></div>
+    <p class="prose"><b>المستند</b> نموذج تصممه مرة واحدة في <b>مصمم المستندات</b>: حقوله الخاصة، وأيها إلزامي، وشكله. لا ينتمي المستند إلى سير عمل بعينه، بل تربطه مسارات العمل في المصمم: سير العمل المعرّف من المستخدم على مستوى سير العمل كله، والمبني في النظام على خطوة (القسم ٣).</p>
+    <h3>تصميم مستند</h3>
+    <ol class="b"><li>مساحة العمل ← <b>مصمم المستندات</b> ← <b>مستند جديد</b>. أعطه اسمًا ورمزًا، مثل <code>VACATION_REQUEST</code>.</li><li>تحت <b>الحقول</b> اضغط <b>إضافة حقل</b> لكل قيمة: عنوانها (يُملأ الاسم تلقائيًا)، ونوعها، وخيارات قائمة الاختيار، وقيمة افتراضية أو <b>قيمة تلقائية</b> (أدناه)، وهل هو <b>إلزامي</b>.</li><li>يظهر كل حقل كمربع تحت <b>التخطيط</b>. اسحب المربعات لترتيب المستند (أدناه). اضغط المربع لضبط عنوانه في المستند وأداته ومصدر بياناته (للقائمة المنسدلة) وعرضه ونص المساعدة و<b>للقراءة فقط</b>. أضف <b>عناوين</b> و<b>ملاحظات</b> بين الحقول.</li><li><b>المعاينة</b> تعرض المستند كما سيراه المستخدمون.</li><li><b>إنشاء المستند</b>. خانة <b>مستخدم في</b> تعرض مسارات العمل التي تربطه.</li></ol>
+    <figure><img src="img/7-document-designer.jpg" alt="مصمم المستندات مع مستند طلب إجازة" loading="lazy"><figcaption><b>شكل ٨.</b> حقول مستند طلب الإجازة. الموظف والإدارة وتاريخ الطلب تُملأ تلقائيًا.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>نوع الحقل</th><th>الأدوات المتاحة له</th><th>يُخزَّن بصيغة</th></tr>
+      <tr><td>نص</td><td>مربع نص، منطقة نص، قائمة منسدلة</td><td>كما كُتب</td></tr>
+      <tr><td>عدد صحيح</td><td>رقم، قائمة منسدلة</td><td><code>5</code></td></tr>
+      <tr><td>مبلغ</td><td>مبلغ</td><td><code>1250.50</code></td></tr>
+      <tr><td>نعم / لا</td><td>زرا نعم / لا</td><td><code>true</code> / <code>false</code></td></tr>
+      <tr><td>تاريخ</td><td>منتقي التاريخ</td><td><code>2026-12-20</code></td></tr>
+      <tr><td>قائمة اختيار</td><td>قائمة منسدلة (بخياراتها أو من مصدر بيانات)</td><td>الخيار</td></tr>
+      <tr><td>مستخدم</td><td>منتقي المستخدم</td><td>اسم المستخدم</td></tr>
+    </table></div>
+    <h3>القيم التلقائية</h3>
+    <p class="prose">يمكن أن يأخذ الحقل قيمته من النظام بدلًا من المستخدم. اخترها في <b>Default or automatic value</b>، أو اكتب رمزها كقيمة افتراضية. تؤخذ القيمة <b>مرة واحدة</b> عند إنشاء المستند (إرسال الطلب، أو أول تعبئة لمستند الخطوة) من بيانات دخول المستخدم. الحقل للقراءة فقط، والخادم هو من يضبطه، ولا يتغير بعد ذلك أبدًا: لا يستطيع المعتمدون تغييره، ولا تعيد الخطوات اللاحقة تعبئته.</p>
+    <div class="tbl"><table>
+      <tr><th>الرمز</th><th>يصبح</th><th>نوع الحقل</th></tr>
+      <tr><td><code>@UserName</code></td><td>اسم المستخدم لمن ينشئ المستند</td><td>مستخدم أو نص</td></tr>
+      <tr><td><code>@FullName</code></td><td>اسمه الكامل</td><td>نص</td></tr>
+      <tr><td><code>@Department</code></td><td>إدارته (الإدارة ← المستخدمون)</td><td>نص</td></tr>
+      <tr><td><code>@EmployeeNo</code></td><td>رقمه الوظيفي</td><td>نص</td></tr>
+      <tr><td><code>@Today</code> (أو <code>@TodayDate</code>)</td><td>تاريخ اليوم (بتوقيت القاهرة)</td><td>تاريخ أو نص</td></tr>
+    </table></div>
+    <h3>ترتيب التخطيط</h3>
+    <p class="prose">يعرض <b>التخطيط</b> كل حقل وعنوان وملاحظة كمربع، بشكل المستند نفسه. اسحب المربع:</p>
+    <ul class="b"><li><b>فوق أو تحت</b> مربع آخر (يظهر خط برتقالي مكانه) لنقله إلى سطر مستقل هناك.</li><li><b>إلى النصف الأيسر أو الأيمن</b> من حقل آخر ليكون بجانبه. يصبح المستند من عمودين ويتشارك الحقلان السطر.</li><li>إلى المنطقة المنقطة في النهاية ليكون الأخير.</li></ul>
+    <p class="prose">أو اضغط المربع واستخدم الأسهم في إعداداته: <b>أعلى</b>، <b>أسفل</b>، <b>النصف الأيسر</b>، <b>النصف الأيمن</b>، أو <b>السطر كاملًا</b>. <b>المعاينة</b> تتبع كل تغيير.</p>
+    <figure><img src="img/18-layout-canvas.jpg" alt="لوحة التخطيط والمعاينة" loading="lazy"><figcaption><b>شكل ٩.</b> سُحب حقل السبب إلى النصف الأيمن من تاريخ الطلب. إعداداته تعرض الأسهم و<b>Width: Right half</b>.</figcaption></figure>
+    <h3>مصادر البيانات</h3>
+    <p class="prose">مساحة العمل ← <b>مصادر البيانات</b>: القوائم التي تعرضها القوائم المنسدلة في المستندات. ثلاثة منها مدمجة ومحدّثة دائمًا: <b>المستخدمون</b> و<b>العملاء</b> و<b>العملات</b>. وأنشئ قائمتك لأي شيء آخر: رمز واسم وعناصر، لكل عنصر قيمة تُخزَّن وعنوان يراه المستخدم.</p>
+    <figure><img src="img/8-data-sources.jpg" alt="صفحة مصادر البيانات" loading="lazy"><figcaption><b>شكل ١٠.</b> مصدر بيانات وعناصره. أوقف عنصرًا لتتوقف عن عرضه دون حذفه.</figcaption></figure>
+    <div class="note warn"><span class="ic">تذكّر</span><p>لا يمكن حذف مستند مستخدم ولا تغيير رمزه؛ أوقفه بدلًا من ذلك. النموذج المنشأ قبل المستندات يظهر عليه <b>older form of</b> مع اسم سير عمله: افتحه واحفظه مرة واحدة ليصبح مستندًا مستقلًا، ويستمر سير العمل في استخدامه.</p></div>
+  </section>
+
+  <section class="sec" id="ar-7">
+    <div class="sec-h"><span class="n">٧</span><h2>إنجاز مهامك</h2></div>
+    <p class="prose"><b>صندوق مهامي</b> يعرض المهام التي يمكنك إنجازها: المسندة إليك أو إلى أحد أدوارك، وما استلمته، ومهام من تنوب عنهم (القسم ٩). المتأخرة أولًا. صفِّ حسب الكل أو المستلمة مني أو غير المستلمة أو المتأخرة، أو ابحث، أو اختر سير عمل.</p>
+    <figure><img src="img/10-inbox.jpg" alt="صندوق مهامي" loading="lazy"><figcaption><b>شكل ١١.</b> صندوق مهامي. عمود SLA يعرض مهلة كل مهمة. حدد عدة مهام غير مستلمة واستخدم <b>استلام المحدد</b> لاستلامها مرة واحدة.</figcaption></figure>
+    <h3>مراحل المهمة</h3>
+    <div class="steps">
+      <div class="step"><span class="g">١</span><div><b>الاستلام.</b> تصبح المهمة لك ولا يراها باقي أفراد الدور.</div><span class="pill warn">مستلمة</span></div>
+      <div class="step"><span class="g">٢</span><div><b>بدء العمل.</b> يفتح شاشة العمل، أو يفتح نموذج الخطوة للتعبئة. <b>متابعة العمل</b> يعيدك إلى الشاشة لاحقًا.</div><span class="pill warn">قيد التنفيذ</span></div>
+      <div class="step"><span class="g">٣</span><div><b>الإكمال.</b> من شاشة العمل، أو بأزرار الإجراءات أسفل النموذج (اعتماد، رفض…)، مع تعليق اختياري.</div><span class="pill ok">مكتملة</span></div>
+    </div>
+    <figure><img src="img/11-task-open.jpg" alt="صفحة مهمة قبل استلامها" loading="lazy"><figcaption><b>شكل ١٢.</b> صفحة المهمة: سير العمل والعميل والمبلغ والمرجع، ومن لديه المهمة، وبيانات سير العمل.</figcaption></figure>
+    <h3>خطوة تُنجز على نموذجها</h3>
+    <p class="prose">بعد <b>بدء العمل</b> يُفتح النموذج للتعبئة. الحقول الإلزامية عليها نجمة برتقالية، وإذا كان أحدها فارغًا لا تكتمل المهمة: الرسالة تحدد الحقل، ويبقى ما كتبته في الصفحة. رفض المهمة أو إرجاعها لا يحتاج إلى تعبئة النموذج.</p>
+    <figure><img src="img/12-task-form.jpg" alt="نموذج مراجعة المصروفات على مهمة" loading="lazy"><figcaption><b>شكل ١٣.</b> نموذج مراجعة المصروفات: المطالبة للقراءة فقط، والقرار للتعبئة.</figcaption></figure>
+    <h3>اعتماد طلب</h3>
+    <p class="prose">مهمة سير العمل المعرّف من المستخدم تعرض الطلب كما أرسله مقدمه، وعليه <b>The request as sent: read-only</b>. اقرأه وأضف تعليقًا ثم <b>اعتماد</b> أو <b>رفض</b>. يرى مقدم الطلب قرارك وتعليقك في طلباتي (القسم ٨).</p>
+    <figure><img src="img/16-approver-request.jpg" alt="مهمة المعتمد وطلب الإجازة للقراءة فقط" loading="lazy"><figcaption><b>شكل ١٤.</b> اعتماد المدير لطلب إجازة.</figcaption></figure>
+    <h3>المهل والتنبيهات</h3>
+    <p class="prose">مهمة الخطوة التي لها مهلة (القسم ٣) تعرضها في عمود <b>SLA</b> في صندوق المهام وبجوار <b>Due Date</b> في صفحة المهمة:</p>
+    <div class="tbl"><table>
+      <tr><th>يظهر</th><th>المعنى</th></tr>
+      <tr><td>تاريخ، مثل <code>12-NOV 11:36</code> / <b>On time</b></td><td>تستحق حينها، ولم تدخل فترة التذكير بعد.</td></tr>
+      <tr><td><b>تستحق قريبًا</b></td><td>مضى وقت التذكير المحدد للخطوة (قبل يومين إن لم يُحدد).</td></tr>
+      <tr><td><b>متأخرة 5h</b> / <b>متأخرة 1d</b></td><td>تجاوزت موعدها بهذه المدة. المتأخرة تظهر أولًا.</td></tr>
+      <tr><td><b>تم التصعيد</b></td><td>تأخرت فنُقلت إليك. مرّر المؤشر عليها (أو انظر صفحة المهمة) لمعرفة من كانت لديه.</td></tr>
+      <tr><td><b>بدون موعد</b></td><td>الخطوة بلا حد زمني.</td></tr>
+    </table></div>
+    <p class="prose"><b>الجرس</b> في الشريط العلوي يعرض تنبيهات المهل وعدد غير المقروء منها: <b>تستحق قريبًا</b> و<b>متأخرة</b> و<b>تم التصعيد</b> (نُقلت إليك، أو نُقلت منك). اضغط التنبيه لفتح مهمته، أو <b>تعليم الكل كمقروء</b>. تُفحص التنبيهات كل دقيقة.</p>
+    <figure><img src="img/19-deadline-alerts.jpg" alt="الجرس مفتوحًا بتنبيهات المهل" loading="lazy"><figcaption><b>شكل ١٥.</b> تنبيهات المهل: مهمة صُعّدت إليك، وأخرى تستحق قريبًا، وثالثة متأخرة.</figcaption></figure>
+    <div class="note"><span class="ic">نصيحة</span><p>المهمة المنجزة بعد موعدها تكتمل عاديًا، ويسجل تاريخها أنها تأخرت. التذكيرات وإشعارات التأخير والتصعيد موجودة أيضًا في سجل النسخة.</p></div>
+  </section>
+
+  <section class="sec" id="ar-8">
+    <div class="sec-h"><span class="n">٨</span><h2>تقديم طلب</h2></div>
+    <p class="prose">يمكن لأي مستخدم إرسال طلب (إجازة، مطالبة مصروفات…) بزر <b>تقديم طلب</b> في الصفحة الرئيسية، أو مساحة العمل ← <b>تقديم طلب</b>. تعرض الصفحة مسارات العمل المعرّفة من المستخدم فقط؛ أما المبنية في النظام فتبدؤها وحداتها.</p>
+    <figure><img src="img/15-home-request.jpg" alt="زر تقديم طلب في الصفحة الرئيسية" loading="lazy"><figcaption><b>شكل ١٦.</b> زر تقديم طلب في الصفحة الرئيسية بجوار فتح صندوق مهامي.</figcaption></figure>
+    <ol class="b"><li>اختر الطلب من القائمة.</li><li>أدخل مرجع العمل إن وُجد.</li><li>املأ المستند؛ القيم الافتراضية موجودة مسبقًا، والقيم التلقائية (اسمك وإدارتك وتاريخ اليوم) مملوءة ومقفلة، والحقول الإلزامية عليها نجمة برتقالية.</li><li><b>إرسال الطلب</b>. الرسالة تحدد الخطوة التالية ومن لديه المهمة.</li></ol>
+    <h3>طلباتي</h3>
+    <p class="prose">أسفل النموذج تعرض <b>طلباتي</b> ما أرسلته، الأحدث أولًا: <b>قيد التنفيذ</b> مع الخطوة التي ينتظر عندها، أو <b>معتمد</b> / <b>مرفوض</b> مع من قرر ومتى وتعليقه.</p>
+    <figure><img src="img/9-start-a-request.jpg" alt="تقديم طلب إجازة وقائمة طلباتي" loading="lazy"><figcaption><b>شكل ١٧.</b> طلب إجازة: الموظف والإدارة وتاريخ الطلب مملوءة تلقائيًا لمنى، وطلباتي أسفلها.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-9">
+    <div class="sec-h"><span class="n">٩</span><h2>الغياب عن العمل</h2></div>
+    <p class="prose">مساحة العمل ← <b>الغياب عن العمل</b>، أو الزر في صندوق المهام. اختر من ينجز مهامك، لكل مسارات العمل أو لواحد منها، وأول وآخر يوم غياب. أثناء هذه الفترة:</p>
+    <ul class="b"><li>المهام الجديدة الموجهة إليك تذهب إلى من ينوب عنك.</li><li>يرى من ينوب عنك أيضًا المهام المنتظرة لك ولأدوارك، عليها وسم <b>نيابة عن…</b>، وشريط يوضح عمّن ينوب.</li><li>المهمة التي كنت قد استلمتها يظهر عليها <b>تولّي المهمة</b> فيستلمها النائب منك.</li><li>قاعدة سير العمل الواحد تسبق قاعدة كل مسارات العمل. وإذا كان النائب غائبًا أيضًا تنتقل المهمة إلى نائبه (حتى خمس خطوات، ولا تعود إليك).</li></ul>
+    <figure><img src="img/13-out-of-office.jpg" alt="صفحة الغياب عن العمل" loading="lazy"><figcaption><b>شكل ١٨.</b> الغياب عن العمل: النموذج وسجلاتك بحالتها (غائب الآن، مخطط، انتهى، موقوف).</figcaption></figure>
+    <figure><img src="img/14-delegate-inbox.jpg" alt="صندوق مهام النائب" loading="lazy"><figcaption><b>شكل ١٩.</b> صندوق مهام النائب: الشريط ووسوم <b>For admin</b> وزر <b>Take over</b>.</figcaption></figure>
+    <div class="note"><span class="ic">نصيحة</span><p>أوقف السجل لتحتفظ به للمرة القادمة دون استخدامه. ويمكن لمسؤولي سير العمل اختيار <b>الجميع</b> لرؤية سجلات غيرهم وتسجيلها.</p></div>
+  </section>
+
+  <section class="sec" id="ar-10">
+    <div class="sec-h"><span class="n">١٠</span><h2>الرسائل وما تفعله</h2></div>
+    <div class="tbl"><table>
+      <tr><th>الرسالة</th><th>ما تفعله</th></tr>
+      <tr><td>This task is not assigned to you.</td><td>استلمها شخص آخر أو ليست لدورك. حدّث صندوق المهام.</td></tr>
+      <tr><td>Fill in "…".</td><td>حقل إلزامي في النموذج فارغ. املأه واضغط الإجراء مرة أخرى.</td></tr>
+      <tr><td>"…" must be one of the listed values.</td><td>اختر قيمة من القائمة المنسدلة.</td></tr>
+      <tr><td>The workflow needs "…" to start.</td><td>حقل بيانات إلزامي بلا قيمة. املأه في نموذج البدء.</td></tr>
+      <tr><td>"…" must be an amount / a whole number / a date.</td><td>القيمة لا تناسب نوع الحقل. صحّحها.</td></tr>
+      <tr><td>Only a released workflow definition can be started.</td><td>في المصمم اجعل الحالة منشور واحفظ.</td></tr>
+      <tr><td>… is a system-built workflow. Its module starts it.</td><td>ابدأه من صفحته، أو اجعله معرّفًا من المستخدم في المصمم.</td></tr>
+      <tr><td>… has no document to start it on.</td><td>اختر مستند سير العمل في خصائص سير العمل واحفظ.</td></tr>
+      <tr><td>A user-defined workflow needs its document.</td><td>اختر المستند في خصائص سير العمل، أو احفظ سير العمل كمسودة.</td></tr>
+      <tr><td>"…" is a Choice field: list its choices.</td><td>في مصمم المستندات اكتب الخيارات مفصولة بفواصل.</td></tr>
+      <tr><td>"…" is not a data field of this document.</td><td>أضف الحقل تحت الحقول أولًا، أو احذفه من التخطيط.</td></tr>
+      <tr><td>… is used at …</td><td>أزل المستند من تلك المسارات أو الخطوات في المصمم، أو أوقفه.</td></tr>
+      <tr><td>… is already out of office … Change that entry instead.</td><td>سجل واحد فقط لكل شخص وسير عمل وفترة. عدّل السجل الموجود.</td></tr>
+      <tr><td>…: give the time limit, or clear the deadline settings.</td><td>للخطوة إعدادات تذكير أو تصعيد بلا حد زمني. أدخل الحد الزمني أو امسح الباقي.</td></tr>
+      <tr><td>…: working days must be a whole number.</td><td>استخدم ١ أو ٢ أو ٣… أيام عمل، أو غيّر الوحدة إلى ساعات أو أيام.</td></tr>
+      <tr><td>…: choose the user or role the overdue task is escalated to.</td><td>املأ إلى دور / مستخدم، أو اجعل عند التأخر: تنبيه المكلّف فقط.</td></tr>
+      <tr><td>"…": unknown automatic value "@…".</td><td>استخدم @UserName أو @FullName أو @Department أو @EmployeeNo أو @Today.</td></tr>
+      <tr><td>"…": today's date needs a Date field.</td><td>القيمة التلقائية يجب أن تناسب نوع الحقل: غيّر النوع أو اختر قيمة أخرى.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="ar-11">
+    <div class="sec-h"><span class="n">١١</span><h2>الصلاحيات والحالات والمصطلحات</h2></div>
+    <h3>الصلاحيات <span style="font-weight:400;color:var(--muted);font-size:14px">الإدارة ← الأدوار</span></h3>
+    <div class="tbl"><table>
+      <tr><th>الصلاحية</th><th>تسمح بـ</th></tr>
+      <tr><td><i>(مسجّل الدخول)</i></td><td>صندوق مهامي، إنجاز مهامك، تقديم طلب وطلباتي، غيابك أنت</td></tr>
+      <tr><td><code>WFE.DEFINITION.VIEW</code></td><td>فتح السجل والمصمم والإصدارات ومصمم المستندات ومصادر البيانات، ورؤية كل المهام المفتوحة</td></tr>
+      <tr><td><code>WFE.DEFINITION.EDIT</code></td><td>إنشاء وتعديل ونشر وحذف مسارات العمل والمستندات ومصادر البيانات، وتسجيل الغياب للآخرين</td></tr>
+    </table></div>
+    <h3>الحالات</h3>
+    <div class="tbl"><table>
+      <tr><th>العنصر</th><th>الحالات</th></tr>
+      <tr><td>سير العمل</td><td>مسودة · منشور، مع مفعّل أو موقوف</td></tr>
+      <tr><td>النسخة الجارية</td><td>قيد التشغيل · بانتظار مهمة · مكتملة</td></tr>
+      <tr><td>الطلب (طلباتي)</td><td>قيد التنفيذ · معتمد · مرفوض · مكتمل</td></tr>
+      <tr><td>المهمة</td><td>مفتوحة (غير مستلمة) · مستلمة · قيد التنفيذ · مكتملة</td></tr>
+      <tr><td>مهلة المهمة</td><td>بدون موعد · في الموعد · تستحق قريبًا · متأخرة · تم التصعيد</td></tr>
+      <tr><td>التنبيه</td><td>تستحق قريبًا · متأخرة · تم التصعيد، مقروء أو غير مقروء</td></tr>
+      <tr><td>سجل الغياب</td><td>غائب الآن · مخطط · انتهى · موقوف</td></tr>
+    </table></div>
+    <h3>المصطلحات</h3>
+    <div class="tbl"><table>
+      <tr><th>المصطلح</th><th>المعنى</th></tr>
+      <tr><td>BPMN</td><td>لغة الرسم القياسية للمصمم</td></tr>
+      <tr><td>القيمة التلقائية</td><td>حقل في المستند يملؤه النظام مرة واحدة من بيانات منشئ المستند: @UserName، @FullName، @Department، @EmployeeNo، @Today</td></tr>
+      <tr><td>النائب</td><td>الشخص الذي ينجز مهامك أثناء غيابك</td></tr>
+      <tr><td>التصعيد</td><td>ما يحدث للمهمة المتأخرة بعد مهلة السماح: تُنقل إلى مستخدم أو دور آخر، أو يُبلَّغ شخص آخر</td></tr>
+      <tr><td>السجل</td><td>تاريخ كل خطوة في النسخة: البدء، الدخول، الاستلام، الإنابة، التولي، التذكير، التأخر، التصعيد، الإكمال</td></tr>
+      <tr><td>المسار</td><td>شاشة العمل التي تفتحها الخطوة</td></tr>
+      <tr><td>SLA</td><td>مهلة الخطوة: الحد الزمني لإنجاز مهمتها، مع التذكير والتصعيد</td></tr>
+      <tr><td>تولّي المهمة</td><td>استلام النائب لمهمة كان الغائب قد استلمها</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">CAPITRA · دليل مستخدم سير العمل · الإصدار ١٫٢ · نوفمبر ٢٠٢٦</p>
+  </main>
+</div>
+</div>
+
+<script>
+(function(){
+  var docs={en:document.getElementById('doc-en'),ar:document.getElementById('doc-ar')};
+  var label=document.querySelector('.bar .doc');
+  var bar=document.querySelector('.bar');
+  function langOf(h){h=(h||'').replace('#','');if(h==='ar'||h.indexOf('ar-')===0)return 'ar';return 'en';}
+  function show(){
+    var h=location.hash, l=langOf(h);
+    docs.en.hidden=l!=='en'; docs.ar.hidden=l!=='ar';
+    bar.setAttribute('dir',l==='ar'?'rtl':'ltr');
+    label.textContent=label.getAttribute('data-'+l);
+    label.setAttribute('lang',l);
+    document.querySelectorAll('.lang a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-l')===l)});
+    document.title=l==='ar'?'دليل سير العمل · CAPITRA':'CAPITRA Workflow Manual';
+    var id=h.replace('#','');
+    if(id && id!=='en' && id!=='ar'){var t=document.getElementById(id); if(t) t.scrollIntoView();}
+    else window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body></html>

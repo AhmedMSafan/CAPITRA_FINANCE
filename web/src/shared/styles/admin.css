@@ -1,0 +1,418 @@
+/* =========================================================
+   CAPITRA ADMIN
+   User / Role Management
+   ========================================================= */
+
+.capitra-admin-page {
+  padding: 18px;
+  font-size: 13px;
+}
+
+.capitra-admin-page__header,
+.capitra-admin-toolbar,
+.capitra-admin-panel__title,
+.capitra-admin-dialog__header,
+.capitra-admin-dialog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.capitra-admin-page__header {
+  margin-bottom: 14px;
+}
+
+.capitra-admin-page__eyebrow,
+.capitra-admin-dialog__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .7;
+}
+
+.capitra-admin-page h1,
+.capitra-admin-dialog h2 {
+  margin: 2px 0 3px;
+}
+
+.capitra-admin-page h1 {
+  font-size: 22px;
+}
+
+.capitra-admin-dialog h2 {
+  font-size: 18px;
+}
+
+.capitra-admin-page p,
+.capitra-admin-dialog p {
+  margin: 0;
+  opacity: .72;
+}
+
+.capitra-admin-toolbar {
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--cap-border);
+  background: #fff;
+  border-radius: 8px;
+}
+
+.capitra-admin-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 300px;
+}
+
+.capitra-admin-search input,
+.capitra-admin-field input,
+.capitra-admin-role-create input {
+  width: 100%;
+  min-height: 34px;
+  box-sizing: border-box;
+  border: 1px solid var(--cap-border);
+  border-radius: 6px;
+  padding: 7px 9px;
+  font: inherit;
+  background: #fff;
+}
+
+.capitra-admin-toolbar__meta {
+  font-size: 12px;
+  opacity: .7;
+}
+
+.capitra-admin-panel {
+  border: 1px solid var(--cap-border);
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.capitra-admin-panel__title {
+  min-height: 40px;
+  padding: 0 12px;
+  background: var(--cap-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.capitra-admin-panel__title > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.capitra-admin-table-wrap {
+  overflow-x: auto;
+}
+
+.capitra-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.capitra-admin-table th {
+  padding: 9px 10px;
+  text-align: left;
+  white-space: nowrap;
+  background: var(--cap-bg);
+  border-bottom: 1px solid var(--cap-border);
+  font-size: 12px;
+}
+
+.capitra-admin-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--cap-border-soft);
+  vertical-align: middle;
+}
+
+.capitra-admin-table tbody tr:hover {
+  background: var(--cap-bg);
+}
+
+.capitra-admin-table__actions {
+  width: 90px;
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+.capitra-admin-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 220px;
+}
+
+.capitra-admin-user-cell strong,
+.capitra-admin-user-cell span,
+.capitra-admin-user-cell small,
+.capitra-admin-two-line span,
+.capitra-admin-two-line small {
+  display: block;
+}
+
+.capitra-admin-user-cell span,
+.capitra-admin-two-line small {
+  opacity: .72;
+}
+
+.capitra-admin-user-cell small {
+  opacity: .55;
+}
+
+.capitra-admin-avatar {
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--cap-bg);
+  flex: 0 0 auto;
+}
+
+.capitra-admin-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.capitra-admin-chip {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--cap-bg);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.capitra-admin-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.capitra-admin-status--active {
+  background: var(--cap-success-bg);
+}
+
+.capitra-admin-status--inactive {
+  background: var(--cap-danger-bg);
+}
+
+.capitra-admin-icon-button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--cap-border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  margin: 0 2px;
+}
+
+.capitra-admin-icon-button:hover {
+  background: var(--cap-bg);
+}
+
+.capitra-admin-inline-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 9px 10px;
+  border: 1px solid var(--cap-danger-border);
+  border-radius: 6px;
+  background: var(--cap-danger-bg);
+}
+
+.capitra-admin-loading,
+.capitra-admin-empty {
+  padding: 22px;
+  text-align: center;
+  opacity: .7;
+}
+
+.capitra-admin-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(16, 24, 40, .42);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.capitra-admin-dialog {
+  width: min(820px, 96vw);
+  max-height: 92vh;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, .24);
+  display: flex;
+  flex-direction: column;
+}
+
+.capitra-admin-dialog--small {
+  width: min(500px, 96vw);
+}
+
+.capitra-admin-dialog__header {
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--cap-border-soft);
+}
+
+.capitra-admin-dialog__body {
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.capitra-admin-dialog__footer {
+  padding: 11px 15px;
+  border-top: 1px solid var(--cap-border-soft);
+}
+
+.capitra-admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px 14px;
+}
+
+.capitra-admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.capitra-admin-field > span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.capitra-admin-field--toggle {
+  justify-content: flex-end;
+}
+
+.capitra-admin-toggle-row {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.capitra-admin-toggle-row input {
+  width: auto;
+  min-height: auto;
+}
+
+.capitra-admin-role-section {
+  margin-top: 5px;
+  border-top: 1px solid var(--cap-border-soft);
+  padding-top: 12px;
+}
+
+.capitra-admin-role-section__title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.capitra-admin-role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.capitra-admin-role-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px;
+  border: 1px solid var(--cap-border-soft);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.capitra-admin-empty-mini {
+  font-size: 12px;
+  opacity: .65;
+}
+
+.capitra-admin-role-create {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid var(--cap-border-soft);
+}
+
+.capitra-admin-role-create input {
+  max-width: 420px;
+}
+
+.capitra-admin-role-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+}
+
+.capitra-admin-role-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid var(--cap-border-soft);
+  border-radius: 7px;
+}
+
+.capitra-admin-role-card__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  background: var(--cap-bg);
+}
+
+.capitra-admin-role-card strong,
+.capitra-admin-role-card span {
+  display: block;
+}
+
+.capitra-admin-role-card span {
+  margin-top: 2px;
+  font-size: 10px;
+  opacity: .48;
+  word-break: break-all;
+}
+
+.capitra-action-secondary {
+  background: #fff;
+  border: 1px solid var(--cap-border);
+}
+
+@media (max-width: 800px) {
+  .capitra-admin-form-grid,
+  .capitra-admin-role-grid,
+  .capitra-admin-role-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .capitra-admin-page__header,
+  .capitra-admin-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .capitra-admin-search {
+    min-width: 0;
+  }
+}

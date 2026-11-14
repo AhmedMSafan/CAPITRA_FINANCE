@@ -1,0 +1,999 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>CAPITRA Treasury Manual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --teal:#00636D; --teal-deep:#0B3E44; --teal-ink:#004C54; --orange:#E87722; --gold:#E0B04A;
+  --bg:#F6F8F8; --paper:#FFFFFF; --fg:#1B2A2C; --muted:#5A6B6D; --line:#DCE4E4; --soft:#EAF3F3;
+  --orange-soft:#FDF0E5; --ok:#1E7F4F; --ok-soft:#E5F4EC; --bad:#B42318; --bad-soft:#FBEAE8;
+  --cover-fg:#FFFFFF; --code-bg:#EEF3F3;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+[lang="ar"]{font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;line-height:1.85}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+p{margin:0}
+b{font-weight:600}
+code,.code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;background:var(--code-bg);padding:.1em .4em;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--teal-deep)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--teal-deep);color:var(--cover-fg);border-bottom:3px solid var(--orange)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.bar .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.14em;font-size:13px}
+.bar .brand svg{width:28px;height:28px}
+.bar .doc{opacity:.75;font-size:13px;letter-spacing:.02em}
+.bar .sp{flex:1}
+.lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden}
+.lang a{color:var(--cover-fg);text-decoration:none;font-size:13px;padding:5px 14px;font-weight:500}
+.lang a.on{background:var(--orange);color:#fff}
+
+/* cover */
+.cover{background:radial-gradient(1200px 500px at 85% -10%,rgba(232,119,34,.28),transparent 60%),linear-gradient(160deg,var(--teal-deep),#00535B 70%);color:var(--cover-fg);position:relative;overflow:hidden}
+.cover .wrap{padding-block:72px 64px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:end}
+.cover .mark{width:84px;height:84px;margin-bottom:28px}
+.cover .kicker{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+[lang="ar"] .cover .kicker{letter-spacing:0}
+.cover h1{font-size:clamp(34px,5.4vw,60px);font-weight:700;margin-top:10px;max-width:15ch}
+.cover .lede{margin-top:18px;font-size:18px;max-width:52ch;opacity:.88}
+.cover .meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:34px;font-size:13px;opacity:.85}
+.cover .meta span b{color:var(--gold);font-weight:600;margin-inline-end:6px}
+.cover .rings{width:230px;height:230px;opacity:.9}
+.cover::after{content:"";position:absolute;inset:auto 0 0;height:6px;background:linear-gradient(90deg,var(--orange) 0 34%,var(--gold) 34% 52%,transparent 52%)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:40px 80px}
+nav.toc{position:sticky;top:76px;align-self:start;font-size:14px}
+nav.toc .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+[lang="ar"] nav.toc .t{letter-spacing:0}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:flex;gap:10px;color:var(--fg);text-decoration:none;padding:6px 10px;border-radius:6px;border-inline-start:2px solid transparent}
+nav.toc a:hover{background:var(--soft);border-inline-start-color:var(--teal)}
+nav.toc a i{font-style:normal;color:var(--orange);font-weight:600;min-width:1.4em}
+main{min-width:0;display:grid;gap:28px}
+
+section.sec{scroll-margin-top:84px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:36px clamp(18px,4vw,44px);display:grid;gap:18px;min-width:0}
+.sec-h{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sec-h .n{font-size:13px;font-weight:700;color:#fff;background:var(--teal);border-radius:6px;padding:3px 9px;letter-spacing:.06em}
+.sec-h h2{font-size:clamp(22px,2.6vw,28px);font-weight:700;color:var(--teal-ink)}
+h3{font-size:18px;font-weight:600;color:var(--fg);margin-top:8px;display:flex;align-items:center;gap:10px}
+h3::before{content:"";width:14px;height:3px;background:var(--orange);border-radius:2px;flex:none}
+.prose{max-width:72ch;display:grid;gap:12px}
+p.prose{display:block}
+ul.b,ol.b{margin:0;padding-inline-start:1.3em;display:grid;gap:8px;max-width:72ch}
+ul.b li::marker{color:var(--orange)}
+ol.b li::marker{color:var(--teal);font-weight:700}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th,td{text-align:start;padding:10px 14px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);color:var(--teal-ink);font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+[lang="ar"] th{letter-spacing:0;text-transform:none;font-size:13.5px}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{background:var(--soft);font-weight:600}
+tr.dim td{color:var(--muted)}
+
+/* callouts */
+.note{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:14px 16px;border-radius:10px;background:var(--soft);border-inline-start:4px solid var(--teal);max-width:78ch}
+.note.warn{background:var(--orange-soft);border-inline-start-color:var(--orange)}
+.note .ic{font-weight:700;color:var(--teal-ink);font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.note.warn .ic{color:var(--orange)}
+[lang="ar"] .note .ic{letter-spacing:0}
+
+/* quick start */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.qs .card{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:8px;align-content:start;background:var(--paper);position:relative}
+.qs .card .k{font-size:12px;font-weight:700;color:var(--orange);letter-spacing:.1em;text-transform:uppercase}
+[lang="ar"] .qs .card .k{letter-spacing:0}
+.qs .card h4{margin:0;font-size:16px;color:var(--teal-ink)}
+.qs .card ol{margin:0;padding-inline-start:1.2em;display:grid;gap:4px;font-size:14.5px}
+
+/* money tree */
+.tree{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;background:linear-gradient(var(--paper),var(--paper)) padding-box}
+.node{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr) auto;gap:14px;align-items:center}
+.node .nm{font-weight:600;font-size:14.5px}
+.node .nm small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.node.l1 .nm{padding-inline-start:20px}
+.node.l2 .nm{padding-inline-start:40px}
+.node.l1 .nm,.node.l2 .nm{position:relative}
+.node.l1 .nm::before,.node.l2 .nm::before{content:"";position:absolute;inset-inline-start:calc(var(--i) - 12px);top:.7em;width:8px;height:8px;border-inline-start:2px solid var(--line);border-bottom:2px solid var(--line)}
+.node.l1{--i:20px}.node.l2{--i:40px}
+.track{height:14px;border-radius:999px;background:var(--soft);overflow:hidden;display:flex;border:1px solid var(--line)}
+.track .o{background:var(--teal)}
+.track .r{background:var(--orange)}
+.track.draft{background:repeating-linear-gradient(135deg,var(--soft) 0 6px,var(--line) 6px 8px)}
+.node .av{font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap;text-align:end;min-width:110px}
+.node .av b{color:var(--ok)}
+.node .av b.tight{color:var(--orange)}
+.node .av b.zero{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);padding-top:6px;border-top:1px dashed var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* gates */
+.gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:g}
+.gate{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.gate .who{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+[lang="ar"] .gate .who{letter-spacing:0}
+.gate h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+.gate.bank{border-color:var(--orange);background:var(--orange-soft)}
+.gate.bank h4{color:var(--orange)}
+.steps{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 14px;border:1px solid var(--line);border-radius:10px}
+.step .g{font-size:12px;font-weight:700;color:var(--teal-ink);background:var(--soft);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--orange-soft);color:var(--orange)}
+
+/* screenshots */
+figure{margin:0;display:grid;gap:8px}
+figure img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(0,40,45,.45)}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--teal-ink)}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.box h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+
+.badge-row{display:flex;flex-wrap:wrap;gap:8px}
+.foot{color:var(--muted);font-size:13px;text-align:center;padding-block:10px 40px}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.toc{position:static}
+  nav.toc ol{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .cover .rings{display:none}
+  .cover .wrap{grid-template-columns:minmax(0,1fr)}
+  .gates,.shots,.two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .node{grid-template-columns:minmax(0,1fr) auto}
+  .node .track{grid-column:1 / -1;order:3}
+  .bar .doc{display:none}
+  .step{grid-template-columns:minmax(0,1fr) auto}
+  .step .g{grid-column:1 / -1;justify-self:start}
+}
+@media print{
+  :root{--bg:#fff;--paper:#fff}
+  .bar,nav.toc{display:none}
+  .layout{display:block;padding:0}
+  section.sec{border:0;border-radius:0;padding:0 0 24px;break-before:page}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:265mm;break-after:page}
+  .cover::after{display:none}
+  .cover .wrap{height:100%;align-content:center}
+  .cover .rings{display:block}
+  .track,.pill,.sec-h .n,th,tr.total td,.note,.gate.bank{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  figure,table,.tree,.step,.gate,ul.b li,ol.b li,.note{break-inside:avoid}
+}
+</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#134E4A"/><path d="M44 20.5A16 16 0 1 0 44 43.5" fill="none" stroke="#E0B04A" stroke-width="7" stroke-linecap="round"/><circle cx="32" cy="32" r="4.5" fill="#ffffff"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand"><svg><use href="#mark"/></svg>CAPITRA</div>
+    <div class="doc" data-en="Treasury User Manual" data-ar="دليل مستخدم الخزينة">Treasury User Manual</div>
+    <div class="sp"></div>
+    <div class="lang" role="group" aria-label="Language">
+      <a href="#en" data-l="en" class="on">English</a>
+      <a href="#ar" data-l="ar" lang="ar">العربية</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== ENGLISH ============================== -->
+<div id="doc-en" lang="en" dir="ltr">
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">User manual · Treasury module</div>
+      <h1>Bank limits and source of funds</h1>
+      <p class="lede">How much bank money Capitra can use today, on what conditions, and which money pays each disbursement. Written for Treasury, Finance and Credit staff, and the checkers who verify their work.</p>
+      <div class="meta"><span><b>Version</b>1.8</span><span><b>Date</b>7 November 2026</span><span><b>Covers</b>Step 1 Bank Limits · Bank rules · Step 2 Treasury Disburse · Payment and GL</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="t">Contents</div>
+    <ol>
+      <li><a href="#en-qs"><i>0</i>Quick start</a></li>
+      <li><a href="#en-1"><i>1</i>About this manual</a></li>
+      <li><a href="#en-2"><i>2</i>Key concepts</a></li>
+      <li><a href="#en-3"><i>3</i>Bank rules</a></li>
+      <li><a href="#en-4"><i>4</i>Debtor and supplier concentration</a></li>
+      <li><a href="#en-5"><i>5</i>Step 1: Bank Limits</a></li>
+      <li><a href="#en-6"><i>6</i>Step 2: Treasury Disburse</a></li>
+      <li><a href="#en-7"><i>7</i>Messages and what to do</a></li>
+      <li><a href="#en-8"><i>8</i>Permissions, statuses, glossary</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="en-qs">
+    <div class="sec-h"><span class="n">0</span><h2>Quick start</h2></div>
+    <p class="prose">The four jobs you will do most often. Each one links to the full explanation.</p>
+    <div class="qs">
+      <div class="card"><div class="k">Once per facility</div><h4>Set up a bank's limits</h4>
+        <ol><li>Home → Treasury → Bank Limits</li><li><b>New Facility</b>: limit, currency, dates</li><li><b>+ Tranche</b> for what the bank released</li><li><b>+ Sublimit</b>, tick its business lines</li></ol></div>
+      <div class="card"><div class="k">From the term sheet</div><h4>Add a bank rule</h4>
+        <ol><li>Select the facility → <b>+ Rule</b></li><li>Choose the rule, what it is on, and the limit</li><li>Read the sentence at the top: it says what the rule will do</li><li>Ask a checker to <b>Verify</b></li></ol></div>
+      <div class="card"><div class="k">When the bank releases money</div><h4>Release a tranche</h4>
+        <ol><li>Select the Draft tranche → <b>Edit</b></li><li>Status <b>Active</b></li><li>Enter the release date</li><li>Save: Available goes up at once</li></ol></div>
+      <div class="card"><div class="k">Every disbursement</div><h4>Choose the source of funds</h4>
+        <ol><li>Open the task from the inbox</li><li><b>Suggest</b>, or type amounts</li><li>Fix any red badge</li><li><b>Execute</b>, then <b>Complete</b></li></ol></div>
+    </div>
+  </section>
+
+  <section class="sec" id="en-1">
+    <div class="sec-h"><span class="n">1</span><h2>About this manual</h2></div>
+    <p class="prose">Treasury tells you how much bank money Capitra can use today, on what conditions, and which money pays each disbursement. The module has two screens:</p>
+    <div class="tbl"><table>
+      <tr><th>Step</th><th>Screen</th><th>What you do there</th></tr>
+      <tr><td>1</td><td><b>Bank Limits</b></td><td>Record each bank's facilities, the tranches the bank released, the sublimits for each business line, and the bank's rules. See live usage.</td></tr>
+      <tr><td>2</td><td><b>Treasury Disburse</b></td><td>At the last step of a disbursement, choose the source of funds: own funds, one bank sublimit, or a split across several.</td></tr>
+    </table></div>
+    <figure><img src="img/1-home-card.jpg" alt="Capitra home page with the Treasury card after General Ledger" loading="lazy"><figcaption><b>Figure 1.</b> Open Treasury from Home (the card after General Ledger) or from Menu → Treasury.</figcaption></figure>
+    <div class="note"><span class="ic">Example</span><p>One running example, <b>Bank A</b>, is used throughout, so every number links to the next.</p></div>
+  </section>
+
+  <section class="sec" id="en-2">
+    <div class="sec-h"><span class="n">2</span><h2>Key concepts</h2></div>
+    <p class="prose">Bank money is organized as a tree with four levels. Money can be drawn only from the lowest level, the sublimit, and only up to what is free at every level above it.</p>
+    <div class="tree" role="img" aria-label="Bank A money tree">
+      <div class="node"><div class="nm">Facility A-RCF-2026<small>Bank A · limit 100M · revolving</small></div><div class="track"><span class="o" style="width:32%"></span><span class="r" style="width:4%"></span></div><div class="av">available <b class="tight">24M</b></div></div>
+      <div class="node l1"><div class="nm">Tranche 1 · Active<small>60M, released 1 Jan 2026</small></div><div class="track"><span class="o" style="width:53.3%"></span><span class="r" style="width:6.7%"></span></div><div class="av">available <b>24M</b></div></div>
+      <div class="node l2"><div class="nm">Factoring sublimit<small>40M · Factoring, Reverse factoring</small></div><div class="track"><span class="o" style="width:70%"></span><span class="r" style="width:10%"></span></div><div class="av">available <b>8M</b></div></div>
+      <div class="node l2"><div class="nm">Leasing sublimit<small>20M · Leasing</small></div><div class="track"><span class="o" style="width:20%"></span></div><div class="av">available <b>16M</b></div></div>
+      <div class="node l1"><div class="nm">Tranche 2 · Draft<small>40M, not released</small></div><div class="track draft"></div><div class="av">available <b class="zero">0</b></div></div>
+      <div class="legend"><span><i style="background:var(--teal)"></i>Outstanding</span><span><i style="background:var(--orange)"></i>Reserved</span><span><i style="background:var(--soft);border:1px solid var(--line)"></i>Free</span><span><i style="background:repeating-linear-gradient(135deg,var(--soft) 0 3px,var(--line) 3px 4px)"></i>Not released</span></div>
+    </div>
+    <div class="tbl"><table>
+      <tr><th>Level</th><th>What it is</th><th>Bank A example</th></tr>
+      <tr><td><b>Bank</b></td><td>A bank that lends to us.</td><td>Bank A</td></tr>
+      <tr><td><b>Facility</b></td><td>The agreement the bank signed with us: the approved limit, the rate and the dates.</td><td>A-RCF-2026, limit <b>100M</b>, revolving, ends 31 Dec 2028</td></tr>
+      <tr><td><b>Tranche</b></td><td>The part of the facility the bank has actually released. A tranche not released yet is <b>Draft</b> and cannot be drawn.</td><td>Tranche 1 = <b>60M</b> Active · Tranche 2 = <b>40M</b> Draft</td></tr>
+      <tr><td><b>Sublimit</b></td><td>A slice of a tranche that may fund only certain business lines (its <b>scope</b>). No line ticked means all lines.</td><td>Factoring <b>40M</b> · Leasing <b>20M</b></td></tr>
+    </table></div>
+
+    <h3>Three amounts on every level</h3>
+    <ul class="b">
+      <li><b>Outstanding</b> (teal): drawn and not yet repaid.</li>
+      <li><b>Reserved</b> (orange): held for a disbursement that is approved but not yet paid.</li>
+      <li><b>Available</b>: the smallest of (limit − outstanding − reserved) on this level and on every level above it.</li>
+    </ul>
+
+    <h3>Bank A today, worked through</h3>
+    <div class="tbl"><table>
+      <tr><th>Level</th><th class="num">Limit</th><th class="num">Outstanding</th><th class="num">Reserved</th><th class="num">Free on this level</th><th class="num">Available to draw</th></tr>
+      <tr><td>Factoring sublimit</td><td class="num">40M</td><td class="num">28M</td><td class="num">4M</td><td class="num">8M</td><td class="num"><b>8M</b></td></tr>
+      <tr><td>Leasing sublimit</td><td class="num">20M</td><td class="num">4M</td><td class="num">0</td><td class="num">16M</td><td class="num"><b>16M</b></td></tr>
+      <tr><td>Tranche 1</td><td class="num">60M</td><td class="num">32M</td><td class="num">4M</td><td class="num">24M</td><td class="num"><b>24M</b></td></tr>
+      <tr class="dim"><td>Tranche 2 (Draft)</td><td class="num">40M</td><td class="num">0</td><td class="num">0</td><td class="num">40M</td><td class="num"><b>0</b> not released</td></tr>
+      <tr class="total"><td>Facility</td><td class="num">100M</td><td class="num">32M</td><td class="num">4M</td><td class="num">64M</td><td class="num">24M</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">Why 24M</span><p>The facility has 64M unused, but only <b>24M</b> can be drawn, because 40M sits in Tranche 2, which the bank has not released. When it is released, change Tranche 2 to <b>Active</b> and the 40M becomes available.</p></div>
+
+    <div class="two">
+      <div class="box"><h4>Dedicated pool</h4><p>Its own money. The dedicated sublimits of a tranche cannot add up to more than the tranche: 40M + 20M = 60M = Tranche 1.</p></div>
+      <div class="box"><h4>Shared cap</h4><p>No money of its own. It only caps how much its business lines may take from the tranche, for example "Leasing may use at most 15M of Tranche 1".</p></div>
+    </div>
+    <p class="prose"><b>Revolving</b> means a repaid amount can be drawn again. In a non-revolving facility, a repayment does not free the limit.</p>
+  </section>
+
+  <section class="sec" id="en-3">
+    <div class="sec-h"><span class="n">3</span><h2>Bank rules</h2></div>
+    <p class="prose">A bank rule is a condition from the bank's term sheet on how its money may be used. Capitra checks every active rule each time money is drawn from that bank. A rule covers all of the bank's facilities, or one facility.</p>
+    <div class="tbl"><table>
+      <tr><th>Rule</th><th>Meaning</th><th>Bank A example</th></tr>
+      <tr><td><b>Maximum share</b> (concentration)</td><td>One debtor, seller, debtor group, business line, product or client segment may not take more than a percent or an amount of the bank's money.</td><td>Any debtor at most <b>15%</b> of the funded pool, warn at <b>12%</b></td></tr>
+      <tr><td><b>Exclude</b></td><td>A named debtor, seller, debtor group, business line, product or client segment may not be financed with this bank's money.</td><td>Debtor group <i>Government entities</i></td></tr>
+      <tr><td><b>Maximum invoice tenor</b></td><td>The invoice may not be longer than a number of days.</td><td>At most <b>120 days</b></td></tr>
+    </table></div>
+
+    <h3>What a rule can be on</h3>
+    <div class="tbl"><table>
+      <tr><th>Rule on</th><th>Taken from the disbursement</th><th>Example from a term sheet</th></tr>
+      <tr><td><b>Debtor</b>, <b>Seller</b>, <b>Debtor group</b></td><td>The invoices' debtors and the client</td><td>Any debtor at most 15%</td></tr>
+      <tr><td><b>Business line</b></td><td>The agreement: Factoring or Reverse Factoring</td><td>On one facility: Leasing at most <b>70%</b>, Factoring at most <b>30%</b> of the facility limit (two rules)</td></tr>
+      <tr><td><b>Product</b></td><td>The disbursement's product</td><td>The bank does not fund product <i>Reverse Factoring</i></td></tr>
+      <tr><td><b>Client segment</b></td><td>The client's segment: SME, Corporate, Large corporate</td><td>The bank does not fund <i>Corporate</i> clients</td></tr>
+    </table></div>
+    <p class="prose">For a business line, product or client segment the whole disbursement counts, because the whole disbursement is one business line, one product and one client. Activity (industry) and asset rules will follow when those lists are added to Capitra.</p>
+
+    <h3>Percent of what?</h3>
+    <div class="two">
+      <div class="box"><h4>Funded pool</h4><p>What we have actually drawn from this bank (outstanding + reserved). We drew 200M from Bank A, so 15% = <b>30M</b> per debtor.</p></div>
+      <div class="box"><h4>Facility limit</h4><p>The approved limit, used or not. On a 100M facility, 15% = <b>15M</b> per debtor.</p></div>
+    </div>
+    <p class="prose">Take the basis from the term sheet's wording.</p>
+
+    <h3>What happens on a breach</h3>
+    <div class="tbl"><table>
+      <tr><th>Setting</th><th>Effect</th></tr>
+      <tr><td><span class="pill bad">Block</span></td><td>This bank's money cannot be used. Choose another source.</td></tr>
+      <tr><td><span class="pill warn">Needs override</span></td><td>Allowed only if a second user approves an exception.</td></tr>
+      <tr><td><span class="pill ok">Warn</span></td><td>Allowed, with a visible warning.</td></tr>
+      <tr><td><b>Warn at %</b></td><td>An early warning before the limit, for example at 12% when the limit is 15%.</td></tr>
+    </table></div>
+
+    <div class="note"><span class="ic">Four eyes</span><p>A new or changed rule is <b>Waiting for verification</b> and is not checked until a second user verifies it. The person who made the change cannot verify it. To end a rule, use <b>Stop</b> and give the reason. Stopped rules stay in history.</p></div>
+    <div class="note"><span class="ic">Module Settings</span><p>Administration → Module Settings → Treasury decides two of these controls: <b>Bank rule needs a maker and a checker</b> (No lets the person who saved a rule verify it) and <b>Override needs a second user</b> (No lets the person who chose the sources approve the override). Both are Yes unless an administrator changes them, and changing them needs a second administrator's approval.</p></div>
+    <div class="note"><span class="ic">Highest now</span><p>Under each concentration rule the screen shows who is closest to the limit today, for example "Highest now: LG Electronics 11.4%". <span class="pill ok">within</span> <span class="pill warn">above warning</span> <span class="pill bad">breach</span></p></div>
+    <figure><img src="img/4-add-rule.jpg" alt="The Add bank rule dialog" loading="lazy"><figcaption><b>Figure 2.</b> Add Bank Rule shows only the fields the rule needs. The line at the top says what the rule will do, here "funds at most 70% of its funded pool for Business line: Leasing. If broken: Block."</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-4">
+    <div class="sec-h"><span class="n">4</span><h2>Debtor and supplier concentration</h2></div>
+    <p class="prose">There are two different concentration limits, and they answer two different questions.</p>
+    <div class="tbl"><table>
+      <tr><th></th><th>Our own concentration</th><th>Bank concentration</th></tr>
+      <tr><td><b>Question</b></td><td>Should we finance this invoice at all?</td><td>Whose money can pay for it?</td></tr>
+      <tr><td><b>Set by</b></td><td>Our credit policy, in each factoring agreement</td><td>The bank, in its term sheet (section 3)</td></tr>
+      <tr><td><b>Measured on</b></td><td>The customer's factoring agreement</td><td>The money we drew from that bank</td></tr>
+      <tr><td><b>Checked at</b></td><td>Invoice upload (warning) and approval (block)</td><td>Treasury Disburse (step 2)</td></tr>
+      <tr><td><b>If it fails</b></td><td>The invoice stops, unless management approves an exception</td><td>Use another bank or own funds</td></tr>
+    </table></div>
+
+    <p class="prose">Every invoice passes three gates in order.</p>
+    <div class="gates">
+      <div class="gate"><div class="who">Ours · gate 1</div><h4>Agreement limit</h4><p>The client's total stays within its factoring agreement.</p></div>
+      <div class="gate"><div class="who">Ours · gate 2</div><h4>Debtor or supplier share</h4><p>No single debtor (or supplier) takes too much of that agreement.</p></div>
+      <div class="gate bank"><div class="who">Bank · gate 3</div><h4>Bank rule</h4><p>The bank whose money we use allows this debtor and invoice.</p></div>
+    </div>
+
+    <h3>Classic factoring example</h3>
+    <p class="prose">Our client <b>ABC</b> sells us its invoices. Many debtors owe ABC. ABC's agreement: limit <b>100M</b>, no debtor above <b>25%</b> (= 25M). The debtor LG already uses <b>20M</b>. A new LG invoice of <b>4M</b> arrives.</p>
+    <div class="steps">
+      <div class="step"><span class="g">Gate 1</span><p>ABC uses 50M. 50M + 4M = 54M, below 100M.</p><span class="pill ok">Pass</span></div>
+      <div class="step"><span class="g">Gate 2</span><p>LG goes from 20M to 24M, below 25M. (An invoice of 10M would take LG to 30M and stop.)</p><span class="pill ok">Pass</span></div>
+      <div class="step"><span class="g">Gate 3</span><p>Bank A: any debtor at most 15% of a 200M funded pool = 30M. LG holds 28M: 28M + 4M = 32M. Pay 2M from Bank A and 2M from Bank B, or all from Bank B or own funds.</p><span class="pill bad">Bank A blocked</span></div>
+    </div>
+
+    <h3>Reverse factoring example</h3>
+    <p class="prose">Our client is the <b>buyer, LG</b>. LG's suppliers sell us the invoices LG owes them, and LG pays us at maturity. LG's agreement: limit <b>100M</b>, no supplier above <b>40%</b> (= 40M). Today: ABC 30M, XYZ 15M, GHI 5M, total <b>50M</b>. ABC sends a new invoice of <b>15M</b>.</p>
+    <div class="steps">
+      <div class="step"><span class="g">Gate 1</span><p>50M + 15M = 65M, below 100M.</p><span class="pill ok">Pass</span></div>
+      <div class="step"><span class="g">Gate 2</span><p>ABC goes from 30M to 45M, above 40M. We finance <b>10M</b> now; the other 5M needs a management exception.</p><span class="pill warn">10M of 15M</span></div>
+      <div class="step"><span class="g">Gate 3</span><p>LG is the debtor, so Bank A's debtor rule applies: cap 30M, LG holds 28M. Pay 2M from Bank A (LG reaches exactly 30M) and 8M from Bank B.</p><span class="pill warn">Split</span></div>
+    </div>
+    <div class="note warn"><span class="ic">The difference</span><p>In classic factoring the debtors change, so we cap each debtor inside the client's agreement. In reverse factoring the debtor is always the buyer, so we watch the buyer's total and cap each supplier. Bank rules see the buyer on every reverse-factoring drawing, so one large buyer can use up a bank's room quickly.</p></div>
+  </section>
+
+  <section class="sec" id="en-5">
+    <div class="sec-h"><span class="n">5</span><h2>Step 1: Bank Limits screen</h2></div>
+    <p class="prose">Bank Limits shows every bank's money on one page, and it is where all limits and rules are maintained.</p>
+    <figure><img src="img/2-bank-limits.jpg" alt="Bank Limits screen with top cards, banks list, tree and side panel" loading="lazy"><figcaption><b>Figure 3.</b> Top cards, banks list (left), tree (middle) and side panel (right).</figcaption></figure>
+    <ul class="b">
+      <li><b>Top cards</b>: approved limits, outstanding, reserved and available to draw for all banks. The last card also shows what is not yet released.</li>
+      <li><b>Banks list</b>: one card per bank with its usage bar. Click a bank to open its tree.</li>
+      <li><b>Tree</b>: facility → tranche → sublimit, each with its bar, approved and available amount. Available in <b style="color:var(--ok)">green</b> is the row's own free amount; in <b style="color:var(--orange)">orange</b>, a level above is the tighter limit.</li>
+      <li><b>Side panel</b>: details of the selected row, the bank's rules (when a facility is selected), and the action buttons.</li>
+    </ul>
+    <h3>Tasks</h3>
+    <div class="tbl"><table>
+      <tr><th>To do this</th><th>Do this</th><th>Capitra checks</th></tr>
+      <tr><td>Add a facility</td><td><b>New Facility</b>, then the bank, reference, type, limit, currency, rate and dates</td><td>Unique reference; maturity after start</td></tr>
+      <tr><td>Add a tranche</td><td>Select the facility → <b>+ Tranche</b></td><td>Tranches together ≤ facility limit</td></tr>
+      <tr><td>Release a tranche</td><td>Select the tranche → <b>Edit</b> → Status <b>Active</b>, enter the release date</td><td>A release date is required</td></tr>
+      <tr><td>Add a sublimit</td><td>Select the tranche → <b>+ Sublimit</b>, tick its business lines</td><td>Dedicated sublimits ≤ tranche</td></tr>
+      <tr><td>Change a limit</td><td>Select the row → <b>Edit</b></td><td>Not below what is used or reserved</td></tr>
+      <tr><td>Add a bank rule</td><td>Select the facility → <b>+ Rule</b></td><td>Values fit the type; warning below limit</td></tr>
+      <tr><td>Verify a rule</td><td>Second user: <b>Verify</b> on the rule</td><td>Not the user who made the change</td></tr>
+      <tr><td>End a rule</td><td><b>Stop</b>, then give the reason</td><td>A reason is required</td></tr>
+    </table></div>
+    <div class="shots">
+      <figure><img src="img/3-sublimit-selected.jpg" alt="A sublimit selected, with its details and scope in the side panel" loading="lazy"><figcaption><b>Figure 4.</b> A sublimit selected: amounts, scope and actions.</figcaption></figure>
+      <figure><img src="img/5-edit-tranche.jpg" alt="The Edit tranche dialog" loading="lazy"><figcaption><b>Figure 5.</b> Edit tranche: set Active and the release date to release it.</figcaption></figure>
+    </div>
+    <div class="note"><span class="ic">Existing facilities</span><p>When Treasury was installed, every open facility received <b>Tranche 1</b> (its whole limit, Active) and a <b>General</b> sublimit (all business lines), with its balance carried in. Reshape them to match the term sheet, for example reduce Tranche 1 to 60M and add a 40M Draft Tranche 2.</p></div>
+  </section>
+
+  <section class="sec" id="en-6">
+    <div class="sec-h"><span class="n">6</span><h2>Step 2: Treasury Disburse</h2></div>
+    <p class="prose">Treasury Disburse is the last step of a disbursement. Treasury chooses which money pays the net amount, and Capitra checks each choice against the limits and bank rules before anything is paid.</p>
+    <figure><img src="img/6-disburse-suggest.jpg" alt="Treasury Disburse with the sources filled by Suggest" loading="lazy"><figcaption><b>Figure 6.</b> The limits as a tree: bank › facility › tranche › sublimit. Each sublimit says whether it can be used and why. The rule checks are on the right.</figcaption></figure>
+    <h3>What the screen shows</h3>
+    <ul class="b">
+      <li><b>Header</b>: the disbursement, the client, the debtor (or the buyer in reverse factoring), the business line and the <b>net amount to fund</b>.</li>
+      <li><b>Factoring or reverse factoring</b>: the page follows the deal's product. In factoring it lists the <b>Debtors</b> (who owe the invoices) and the <b>Seller</b> (our client). In reverse factoring it lists the <b>Buyer (debtor)</b>, who is our client and pays us at maturity, and the <b>Suppliers</b>, who sold the invoices and are paid now. The bank rule checks use the same words.</li>
+      <li><b>Limits tree</b>: <b>Own funds</b> first, then each bank → facility → tranche → sublimit in the disbursement's currency. Each bank and facility shows how many of its sublimits can be used, and the total you chose under it.</li>
+      <li><b>Each sublimit</b> says why in one line: <span class="pill ok">✓ Can be used</span> with what it funds, or <span class="pill bad">⊘ Cannot be used</span> with the reason. A sublimit that cannot be used is grey and has no amount box.</li>
+      <li><b>A usable line</b>: available amount, an amount box, a <b>Max</b> button and a live badge for each bank rule that applies.</li>
+      <li><b>Checks and total</b>: covered against net, and any line that is blocked or needs an override.</li>
+    </ul>
+    <h3>Who is paid: the party popup</h3>
+    <p class="prose">Click any name under <b>Buyer and suppliers</b> (or <b>Debtors and seller</b>) to open its details. In reverse factoring this is how you check each supplier before Execute.</p>
+    <ul class="b">
+      <li><b>Amount to receive</b>: the supplier's share of the net amount, and the bank account it will be paid into. An orange box means the supplier has no verified bank account that can be paid yet: add and verify one in Customer 360 first.</li>
+      <li><b>Bills to be paid</b>: the supplier's invoices in this disbursement, with invoice date, due date, invoice amount and amount financed. Not-eligible invoices are grey with their reason, and are not paid.</li>
+      <li><b>Bank accounts</b>: every account of the supplier. <span class="pill ok">Can be paid</span> means verified and the waiting days have passed.</li>
+    </ul>
+    <figure><img src="img/6b-supplier-popup.jpg" alt="The supplier popup with bills, amount to receive and bank account" loading="lazy"><figcaption><b>Figure 6b.</b> A supplier in reverse factoring: what it receives, where it is paid, and the bills behind it.</figcaption></figure>
+    <h3>Invoice summary</h3>
+    <p class="prose">Press <b>Invoice summary</b> at the top of Treasury Disburse, the Disbursement Request or Invoice Upload. It shows, read only:</p>
+    <ul class="b">
+      <li><b>Four boxes</b>: invoices received, minus not eligible, equals eligible, and the <b>value we finance</b> after the advance rate (for example 88% of the eligible amount). The disbursement net amount is shown under them, with any difference.</li>
+      <li><b>Eligible bills by supplier</b> (by debtor in factoring): one line per supplier with its number of bills and totals; click it to show or hide its bills. The last line is the total eligible.</li>
+      <li><b>Not eligible</b>: each invoice left out, with its reason and the total.</li>
+    </ul>
+    <figure><img src="img/6c-invoice-summary.jpg" alt="The invoice summary popup" loading="lazy"><figcaption><b>Figure 6c.</b> Invoice summary: from invoices received to the value we finance, then the eligible bills by supplier.</figcaption></figure>
+    <h3>Completed steps, view only</h3>
+    <p class="prose">In the Factoring Customer Workspace, the <b>Disbursements</b> tab shows the open step and, under it, a button for each <b>completed step</b> (Initiation, Invoice Upload, Treasury Disburse). The button opens that step's page in <b>view-only</b> mode: a teal strip says so, every field is locked and the step's buttons are hidden.</p>
+    <figure><img src="img/6d-completed-steps.jpg" alt="Completed step buttons on the Disbursements tab" loading="lazy"><figcaption><b>Figure 6d.</b> The completed steps of each disbursement; each one opens view only.</figcaption></figure>
+    <div class="shots">
+      <figure><img src="img/7-disburse-override.jpg" alt="A line that needs an override, with the reason box" loading="lazy"><figcaption><b>Figure 7.</b> A line above an override rule turns orange. Enter the reason and press Save and reserve.</figcaption></figure>
+      <figure><img src="img/8-disburse-approve.jpg" alt="A checker sees Approve override" loading="lazy"><figcaption><b>Figure 8.</b> A second user with TRS.VERIFY opens the same page and presses Approve override.</figcaption></figure>
+    </div>
+    <h3>Worked example</h3>
+    <p class="prose">Disbursement for ABC, debtor LG, business line Factoring, net <b>12M</b>.</p>
+    <div class="tbl"><table>
+      <tr><th>Source</th><th class="num">Available</th><th>Bank rule result</th><th class="num">Amount</th></tr>
+      <tr><td>Own funds</td><td class="num">6M</td><td>No bank rules</td><td class="num">0</td></tr>
+      <tr><td>Bank A › Tranche 1 › Factoring</td><td class="num">8M</td><td>LG holds 28M of a 30M cap: up to about 2.3M passes (the pool grows with the drawing) <span class="pill bad">more blocked</span></td><td class="num"><b>2M</b></td></tr>
+      <tr><td>Bank B › Tranche 1 › Factoring</td><td class="num">18M</td><td>LG at 6% of a 20% cap <span class="pill ok">pass</span></td><td class="num"><b>10M</b></td></tr>
+      <tr class="total"><td>Total</td><td></td><td></td><td class="num">12M = net ✓</td></tr>
+    </table></div>
+    <p class="prose">Bank A's Leasing sublimit is shown in grey: <i>Cannot be used: It funds Leasing only.</i></p>
+    <h3>Why a sublimit cannot be used</h3>
+    <div class="tbl"><table>
+      <tr><th>Reason on the line</th><th>What to do</th></tr>
+      <tr><td>The facility is suspended (or under renewal, expired …)</td><td>Use another facility, or make the facility Active in Bank Limits.</td></tr>
+      <tr><td>The bank has not released this tranche yet</td><td>When the bank's letter arrives, make the tranche Active with its release date.</td></tr>
+      <tr><td>The sublimit is suspended</td><td>Use another sublimit, or make it Active again.</td></tr>
+      <tr><td>It funds Leasing only (or other business lines)</td><td>The sublimit is for another business line. Use one that funds this one.</td></tr>
+      <tr><td>Nothing is left to draw</td><td>The sublimit, tranche or facility is fully used or reserved.</td></tr>
+      <tr><td>Bank rule: Exclude …</td><td>The bank does not fund this debtor, group, business line, product or client segment. Use another bank or own funds.</td></tr>
+    </table></div>
+    <h3>The step guide</h3>
+    <p class="prose">Under the top cards, the <b>step guide</b> lists the steps of this page in order, ticks the ones done and highlights the current one. <b>What to do now</b> says the next action in one sentence, with a button for it (Suggest, Save and reserve, Execute, Go to the transfers). When something blocks the way, such as a red bank rule, an override waiting for a second user, or a supplier without a verified bank account, it turns orange and says what to fix.</p>
+    <figure><img src="img/6e-step-guide.jpg" alt="The step guide" loading="lazy"><figcaption><b>Figure 6e.</b> The step guide in reverse factoring: executed, two suppliers left to confirm.</figcaption></figure>
+    <h3>How to fund a disbursement</h3>
+    <ol class="b">
+      <li>Open the disbursement at its Treasury Disburse step from the inbox.</li>
+      <li>Press <b>Suggest</b> to fill the lines within every rule, or type amounts. <b>Max</b> fills a line with the most it allows. Suggest fills the bank lines first (most available first) and puts the rest on own funds; when Module Settings says <b>Own funds first</b>, it puts the whole amount on own funds.</li>
+      <li>Read the line under each sublimit: ✓ can be used, ⊘ cannot be used and why. Then watch the badges: green passes, orange warns, red blocks. A line that needs an override shows who must approve it.</li>
+      <li>When the total equals the net amount and nothing is red, <b>Execute</b> becomes active.</li>
+      <li><b>Execute</b> records a drawdown on each chosen sublimit with the debtor and seller, so Bank Limits and "Highest now" update at once. In the same moment it pays the client and posts the GL (see below). Then <b>Complete</b> the step.</li>
+    </ol>
+    <figure><img src="img/9-disburse-executed.jpg" alt="An executed disbursement" loading="lazy"><figcaption><b>Figure 9.</b> Executed: who executed it and when. The choice can no longer be changed.</figcaption></figure>
+    <h3>Payment and GL on Execute</h3>
+    <p class="prose">Execute does everything at once, or nothing. Each bank puts its money in <b>our account at that bank</b>, and the client is paid from there. Own funds are paid from the main operating account. The <b>Payment</b> panel shows the account for each line before you press Execute.</p>
+    <div class="note"><span class="ic">Escrow</span><p>An escrow account pays only when we have no other account at that bank. Module Settings → Treasury → <b>Escrow accounts may pay</b> set to No stops escrow accounts paying at all; the Payment panel then asks for another account.</p></div>
+    <figure style="max-width:320px;margin-inline:auto"><img src="img/10-payment-gl.jpg" alt="The Payment panel after Execute" loading="lazy"><figcaption><b>Figure 10.</b> The Payment panel: the account that pays each line and its GL account; after Execute, the date and the GL transaction set.</figcaption></figure>
+    <p class="prose">For the 12M example above (Bank A 2M, Bank B 10M) the GL entries, under one number CAP-TRS-…, are:</p>
+    <div class="tbl"><table>
+      <tr><th>Journal</th><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr>
+      <tr><td rowspan="3">1 · Bank drawdown</td><td>Bank A account</td><td class="num">2M</td><td></td></tr>
+      <tr><td>Bank B account</td><td class="num">10M</td><td></td></tr>
+      <tr><td>220101 Bank Facilities - Short Term</td><td></td><td class="num">12M</td></tr>
+      <tr><td rowspan="3">2 · Payment to the client</td><td>120101 Factoring Receivable - Principal</td><td class="num">12M</td><td></td></tr>
+      <tr><td>Bank A account</td><td></td><td class="num">2M</td></tr>
+      <tr><td>Bank B account</td><td></td><td class="num">10M</td></tr>
+    </table></div>
+    <ul class="b">
+      <li>Own funds appear only in journal 2: we pay from our own account, with no bank borrowing.</li>
+      <li>The invoices become <b>FUNDED</b> with their funded amount and date, and the disbursement becomes <b>DISBURSED</b>.</li>
+      <li>The accounts come from the rule the <b>Treasury Disburse</b> workflow step names (Workflow designer › the step › Product Event Rule, normally <b>TRS_DISBURSE</b>). When the step names none, the rule linked to the action in Admin Setup › Product Catalog › TREASURY_FUNDING is used. If no rule is found, or the GL refuses (for example a closed period), Execute shows the reason and saves nothing.</li>
+    </ul>
+    <h3>Reverse factoring: supplier transfers</h3>
+    <p class="prose">In reverse factoring we pay the <b>suppliers</b>, not the buyer, and each supplier may bank somewhere else. So the money moves in stages, with GL accounts kept apart from factoring, and the whole GL posts once, under <b>one Tran Set ID</b>:</p>
+    <ol class="b">
+      <li>Before Execute the table shows the <b>Planned</b> transfers. A supplier without a verified bank account in Customer 360 shows in red, and Execute stays blocked until each one has an account.</li>
+      <li><b>Execute</b> saves one transfer per supplier with its bank, IBAN and amount, as <b>Sent</b>. Nothing posts to the GL yet. The <b>Confirmed</b> boxes appear now.</li>
+      <li>When the bank confirms a transfer, tick its box and press <b>Confirm</b> (a bank reference is optional). The box in the header ticks every supplier at once.</li>
+      <li>When the <b>last</b> supplier is confirmed, the GL posts under one Tran Set ID: journal 1 the bank drawdown (rule <b>TRS_RF_DRAWDOWN</b>: DR our bank account / CR reverse factoring bank borrowings), then one journal per supplier (rule <b>TRS_RF_TRANSFER</b>: DR reverse factoring receivable / CR our bank account), named after the supplier. If the GL refuses, nothing is confirmed.</li>
+      <li><b>Complete</b> works only when every supplier is confirmed. To complete now, tick all of them.</li>
+    </ol>
+    <figure><img src="img/10b-supplier-transfers.jpg" alt="The supplier transfers with their Confirmed boxes" loading="lazy"><figcaption><b>Figure 10b.</b> Supplier transfers after Execute: one confirmed, one ticked and ready to confirm, one still waiting for the bank.</figcaption></figure>
+    <h3>GL to be posted</h3>
+    <p class="prose">Below the sources, <b>GL to be posted</b> lists every line the step will post, from the saved sources: journal, account, description, debit and credit, with the totals. It shows for factoring (posted at Execute) and for reverse factoring (posted at the last confirmation). Once posted, the title becomes <b>GL posted</b> and shows the Tran Set ID. If a rule is missing or a bank account has no GL account code, it says so here before you press anything.</p>
+    <figure><img src="img/10d-gl-preview.jpg" alt="The GL to be posted section" loading="lazy"><figcaption><b>Figure 10d.</b> GL to be posted for a reverse factoring disbursement: the drawdown, then one journal per supplier, all under one Tran Set ID.</figcaption></figure>
+    <div class="note"><span class="ic">GL Tran Set ID</span><p>Every completed step shows the GL transaction sets it posted: on its button in the customer's Disbursements tab, and at the top of its view-only page. For reverse factoring, Treasury Disburse shows its single Tran Set ID.</p></div>
+    <figure><img src="img/10c-completed-gl.jpg" alt="Completed step buttons with their GL Tran Set IDs" loading="lazy"><figcaption><b>Figure 10c.</b> The Treasury Disburse step with the GL transaction sets it posted.</figcaption></figure>
+    <h3>Rules to remember</h3>
+    <ul class="b">
+      <li>One disbursement may be split across several sources.</li>
+      <li>A line can never take more than its available amount, which already respects the tranche and facility above it.</li>
+      <li>Money chosen but not executed shows as <b>reserved</b> (orange), so two people cannot use the same room.</li>
+      <li>Gates 1 and 2 were checked before this step. Only bank rules (gate 3) are checked here.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="en-7">
+    <div class="sec-h"><span class="n">7</span><h2>Messages and what to do</h2></div>
+    <p class="prose">Capitra shows these messages in a pop-up when a save is refused.</p>
+    <div class="tbl"><table>
+      <tr><th>Message</th><th>What it means and what to do</th></tr>
+      <tr><td>The tranches would add up to …, above the facility limit</td><td>The new tranche is too large. Reduce it, or raise the facility limit first.</td></tr>
+      <tr><td>The tranches already add up to …; the limit cannot be lower</td><td>Reduce or close a tranche before lowering the facility.</td></tr>
+      <tr><td>Enter the date the bank released the tranche</td><td>An Active tranche needs its release date from the bank's letter.</td></tr>
+      <tr><td>The tranche has money drawn or reserved; it must stay Active</td><td>Wait until it is repaid, or move the usage, before making it Draft or Closed.</td></tr>
+      <tr><td>The dedicated sublimits would add up to …, above the tranche</td><td>Make this sublimit smaller, make it a shared cap, or enlarge the tranche.</td></tr>
+      <tr><td>A sublimit cannot be above its tranche</td><td>Even a shared cap cannot exceed the tranche it sits in.</td></tr>
+      <tr><td>The sublimit has money drawn or reserved; it cannot be closed</td><td>Suspend it instead to stop new drawings.</td></tr>
+      <tr><td>Enter the limit as a percent or as an amount</td><td>A concentration rule needs one of the two.</td></tr>
+      <tr><td>The warning must be above 0 and below the limit</td><td>For a 15% limit, a warning of 12% is valid; 15% or more is not.</td></tr>
+      <tr><td>You made the last change; another user must verify it</td><td>Ask a colleague with TRS.VERIFY to verify the rule.</td></tr>
+      <tr><td>Enter why the rule no longer applies</td><td>Stopping a rule needs a reason, kept in history.</td></tr>
+      <tr><td>Another facility has this reference</td><td>Facility references are unique. Check for a duplicate entry.</td></tr>
+      <tr><td>Choose what is excluded / Choose which one the limit is for</td><td>A business line, product or client segment rule needs the one it is for.</td></tr>
+      <tr><td>… cannot fund this disbursement. (reason)</td><td>The sublimit cannot be used, for the reason given. Choose another source.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="en-8">
+    <div class="sec-h"><span class="n">8</span><h2>Permissions, statuses and glossary</h2></div>
+    <h3>Permissions <span style="font-weight:400;color:var(--muted);font-size:14px">Admin Setup → Roles</span></h3>
+    <div class="tbl"><table>
+      <tr><th>Permission</th><th>Allows</th></tr>
+      <tr><td><code>TRS.VIEW</code></td><td>Open Bank Limits and see the tree and rules</td></tr>
+      <tr><td><code>TRS.EDIT</code></td><td>Add and change facilities, tranches, sublimits and rules; stop a rule</td></tr>
+      <tr><td><code>TRS.VERIFY</code></td><td>Verify a rule entered by another user</td></tr>
+    </table></div>
+    <h3>Statuses</h3>
+    <div class="tbl"><table>
+      <tr><th>Item</th><th>Statuses</th></tr>
+      <tr><td>Facility</td><td>Term sheet · Active · Suspended · Under renewal · Expired · Closed. Only Active can be drawn.</td></tr>
+      <tr><td>Tranche</td><td>Draft (not released) · Active (released) · Closed</td></tr>
+      <tr><td>Sublimit</td><td>Active · Suspended · Closed</td></tr>
+      <tr><td>Bank rule</td><td>Waiting for verification · Active (checked) · Stopped</td></tr>
+    </table></div>
+    <h3>Glossary</h3>
+    <div class="tbl"><table>
+      <tr><th>Term</th><th>Meaning</th></tr>
+      <tr><td>Available</td><td>What can still be drawn, after the limits above are respected</td></tr>
+      <tr><td>Debtor</td><td>The company that owes the invoice and pays it at maturity</td></tr>
+      <tr><td>Funded pool</td><td>What we have drawn from a bank (outstanding + reserved)</td></tr>
+      <tr><td>Outstanding</td><td>Drawn and not yet repaid</td></tr>
+      <tr><td>Reserved</td><td>Held for an approved disbursement that is not yet paid</td></tr>
+      <tr><td>Scope</td><td>The business lines a sublimit may fund</td></tr>
+      <tr><td>Seller / supplier</td><td>The company that sells the invoice: our client in classic factoring, the buyer's supplier in reverse factoring</td></tr>
+      <tr><td>Source of funds</td><td>Own funds or a bank sublimit chosen to pay a disbursement</td></tr>
+      <tr><td>Tenor</td><td>Days from the invoice date to its due date</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">CAPITRA · Treasury User Manual · v1.8 · November 2026</p>
+  </main>
+</div>
+</div>
+
+<!-- ============================== ARABIC ============================== -->
+<div id="doc-ar" lang="ar" dir="rtl" hidden>
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">دليل المستخدم · وحدة الخزينة</div>
+      <h1>حدود البنوك ومصدر التمويل</h1>
+      <p class="lede">كم من أموال البنوك يمكن لـ CAPITRA استخدامه اليوم، وبأي شروط، ومن أي مصدر تُموَّل كل عملية صرف. لموظفي الخزينة والمالية والائتمان، وللمراجعين الذين يعتمدون أعمالهم.</p>
+      <div class="meta"><span><b>الإصدار</b>١٫٨</span><span><b>التاريخ</b>٧ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطوة ١ حدود البنوك · شروط البنوك · الخطوة ٢ صرف الخزينة · الدفع والقيود</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="المحتويات">
+    <div class="t">المحتويات</div>
+    <ol>
+      <li><a href="#ar-qs"><i>٠</i>البدء السريع</a></li>
+      <li><a href="#ar-1"><i>١</i>عن هذا الدليل</a></li>
+      <li><a href="#ar-2"><i>٢</i>المفاهيم الأساسية</a></li>
+      <li><a href="#ar-3"><i>٣</i>شروط البنك</a></li>
+      <li><a href="#ar-4"><i>٤</i>تركز المدين والمورد</a></li>
+      <li><a href="#ar-5"><i>٥</i>الخطوة ١: حدود البنوك</a></li>
+      <li><a href="#ar-6"><i>٦</i>الخطوة ٢: صرف الخزينة</a></li>
+      <li><a href="#ar-7"><i>٧</i>الرسائل وماذا تفعل</a></li>
+      <li><a href="#ar-8"><i>٨</i>الصلاحيات والحالات والمصطلحات</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="ar-qs">
+    <div class="sec-h"><span class="n">٠</span><h2>البدء السريع</h2></div>
+    <p class="prose">أكثر أربع مهام ستقوم بها، وكل منها مشروح بالتفصيل في الأقسام التالية.</p>
+    <div class="qs">
+      <div class="card"><div class="k">مرة لكل تسهيل</div><h4>إعداد حدود بنك</h4>
+        <ol><li>الرئيسية ← الخزينة ← حدود البنوك</li><li><b>تسهيل جديد</b>: الحد والعملة والتواريخ</li><li><b>+ شريحة</b> لما أفرج عنه البنك</li><li><b>+ حد فرعي</b> واختر أنشطته</li></ol></div>
+      <div class="card"><div class="k">من خطاب الشروط</div><h4>إضافة شرط بنك</h4>
+        <ol><li>اختر التسهيل ← <b>+ شرط</b></li><li>الشرط وعلى ماذا يكون والحد</li><li>اقرأ الجملة في الأعلى: تقول ما سيفعله الشرط</li><li>اطلب من مراجع <b>الاعتماد</b></li></ol></div>
+      <div class="card"><div class="k">عند إفراج البنك عن أموال</div><h4>الإفراج عن شريحة</h4>
+        <ol><li>اختر الشريحة المسودة ← <b>تعديل</b></li><li>الحالة <b>نشطة</b></li><li>أدخل تاريخ الإفراج</li><li>احفظ فيرتفع المتاح فورًا</li></ol></div>
+      <div class="card"><div class="k">كل عملية صرف</div><h4>اختيار مصدر التمويل</h4>
+        <ol><li>افتح المهمة من صندوق المهام</li><li><b>اقتراح</b> أو أدخل المبالغ</li><li>عالج أي شارة حمراء</li><li><b>تنفيذ</b> ثم <b>إكمال</b></li></ol></div>
+    </div>
+  </section>
+
+  <section class="sec" id="ar-1">
+    <div class="sec-h"><span class="n">١</span><h2>عن هذا الدليل</h2></div>
+    <p class="prose">توضح الخزينة كم من أموال البنوك يمكن لـ CAPITRA استخدامه اليوم، وبأي شروط، ومن أي مصدر تُموَّل كل عملية صرف. تتكون الوحدة من شاشتين:</p>
+    <div class="tbl"><table>
+      <tr><th>الخطوة</th><th>الشاشة</th><th>ماذا تفعل فيها</th></tr>
+      <tr><td>١</td><td><b>حدود البنوك</b></td><td>تسجيل تسهيلات كل بنك، والشرائح التي أفرج عنها، والحدود الفرعية لكل نشاط، وشروط البنك، ومتابعة الاستخدام لحظيًا.</td></tr>
+      <tr><td>٢</td><td><b>صرف الخزينة</b></td><td>في آخر خطوة من عملية الصرف تختار مصدر التمويل: أموالنا الذاتية، أو حد فرعي لبنك واحد، أو التقسيم على أكثر من مصدر.</td></tr>
+    </table></div>
+    <figure><img src="img/1-home-card.jpg" alt="الصفحة الرئيسية وبطاقة الخزينة بعد الأستاذ العام" loading="lazy"><figcaption><b>شكل ١.</b> تُفتح الخزينة من الرئيسية (البطاقة بعد الأستاذ العام) أو من القائمة ← الخزينة.</figcaption></figure>
+    <div class="note"><span class="ic">مثال</span><p>نستخدم مثالًا واحدًا هو <b>البنك أ</b> في كل الدليل، حتى ترتبط كل الأرقام ببعضها.</p></div>
+  </section>
+
+  <section class="sec" id="ar-2">
+    <div class="sec-h"><span class="n">٢</span><h2>المفاهيم الأساسية</h2></div>
+    <p class="prose">أموال البنك منظمة في شجرة من أربعة مستويات. السحب يكون من أدنى مستوى فقط، وهو الحد الفرعي، وفي حدود المتاح في كل مستوى أعلى منه.</p>
+    <div class="tree" role="img" aria-label="شجرة أموال البنك أ">
+      <div class="node"><div class="nm">تسهيل A-RCF-2026<small>البنك أ · حد ١٠٠ م · متجدد</small></div><div class="track"><span class="o" style="width:32%"></span><span class="r" style="width:4%"></span></div><div class="av">المتاح <b class="tight">٢٤ م</b></div></div>
+      <div class="node l1"><div class="nm">الشريحة ١ · نشطة<small>٦٠ م، أُفرج عنها ١ يناير ٢٠٢٦</small></div><div class="track"><span class="o" style="width:53.3%"></span><span class="r" style="width:6.7%"></span></div><div class="av">المتاح <b>٢٤ م</b></div></div>
+      <div class="node l2"><div class="nm">حد التخصيم<small>٤٠ م · تخصيم، تخصيم عكسي</small></div><div class="track"><span class="o" style="width:70%"></span><span class="r" style="width:10%"></span></div><div class="av">المتاح <b>٨ م</b></div></div>
+      <div class="node l2"><div class="nm">حد التأجير<small>٢٠ م · تأجير</small></div><div class="track"><span class="o" style="width:20%"></span></div><div class="av">المتاح <b>١٦ م</b></div></div>
+      <div class="node l1"><div class="nm">الشريحة ٢ · مسودة<small>٤٠ م، غير مفرج عنها</small></div><div class="track draft"></div><div class="av">المتاح <b class="zero">٠</b></div></div>
+      <div class="legend"><span><i style="background:var(--teal)"></i>القائم</span><span><i style="background:var(--orange)"></i>المحجوز</span><span><i style="background:var(--soft);border:1px solid var(--line)"></i>الحر</span><span><i style="background:repeating-linear-gradient(135deg,var(--soft) 0 3px,var(--line) 3px 4px)"></i>غير مفرج عنه</span></div>
+    </div>
+    <div class="tbl"><table>
+      <tr><th>المستوى</th><th>المعنى</th><th>مثال البنك أ</th></tr>
+      <tr><td><b>البنك</b></td><td>بنك يقرضنا.</td><td>البنك أ</td></tr>
+      <tr><td><b>التسهيل</b></td><td>الاتفاق الموقّع مع البنك: الحد المعتمد والسعر والتواريخ.</td><td>A-RCF-2026، حد <b>١٠٠ مليون</b>، متجدد، ينتهي ٣١ ديسمبر ٢٠٢٨</td></tr>
+      <tr><td><b>الشريحة</b></td><td>الجزء الذي أفرج عنه البنك فعلًا. الشريحة غير المفرج عنها حالتها <b>مسودة</b> ولا يمكن السحب منها.</td><td>الشريحة ١ = <b>٦٠ مليون</b> نشطة · الشريحة ٢ = <b>٤٠ مليون</b> مسودة</td></tr>
+      <tr><td><b>الحد الفرعي</b></td><td>جزء من الشريحة لا يموّل إلا أنشطة معينة (<b>النطاق</b>). عدم اختيار أي نشاط يعني كل الأنشطة.</td><td>التخصيم <b>٤٠ مليون</b> · التأجير <b>٢٠ مليون</b></td></tr>
+    </table></div>
+
+    <h3>ثلاثة مبالغ في كل مستوى</h3>
+    <ul class="b">
+      <li><b>القائم</b> (الأخضر المزرق): ما تم سحبه ولم يُسدَّد بعد.</li>
+      <li><b>المحجوز</b> (البرتقالي): مبلغ محجوز لعملية صرف معتمدة لم تُدفع بعد.</li>
+      <li><b>المتاح</b>: أقل قيمة لـ (الحد − القائم − المحجوز) في هذا المستوى وفي كل مستوى أعلى منه.</li>
+    </ul>
+
+    <h3>البنك أ اليوم بالأرقام</h3>
+    <div class="tbl"><table>
+      <tr><th>المستوى</th><th class="num">الحد</th><th class="num">القائم</th><th class="num">المحجوز</th><th class="num">الحر في المستوى</th><th class="num">المتاح للسحب</th></tr>
+      <tr><td>حد التخصيم</td><td class="num">٤٠ م</td><td class="num">٢٨ م</td><td class="num">٤ م</td><td class="num">٨ م</td><td class="num"><b>٨ م</b></td></tr>
+      <tr><td>حد التأجير</td><td class="num">٢٠ م</td><td class="num">٤ م</td><td class="num">٠</td><td class="num">١٦ م</td><td class="num"><b>١٦ م</b></td></tr>
+      <tr><td>الشريحة ١</td><td class="num">٦٠ م</td><td class="num">٣٢ م</td><td class="num">٤ م</td><td class="num">٢٤ م</td><td class="num"><b>٢٤ م</b></td></tr>
+      <tr class="dim"><td>الشريحة ٢ (مسودة)</td><td class="num">٤٠ م</td><td class="num">٠</td><td class="num">٠</td><td class="num">٤٠ م</td><td class="num"><b>٠</b> غير مفرج عنها</td></tr>
+      <tr class="total"><td>التسهيل</td><td class="num">١٠٠ م</td><td class="num">٣٢ م</td><td class="num">٤ م</td><td class="num">٦٤ م</td><td class="num">٢٤ م</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">لماذا ٢٤</span><p>في التسهيل ٦٤ مليون غير مستخدمة، لكن المتاح للسحب <b>٢٤ مليون</b> فقط، لأن ٤٠ مليون في الشريحة ٢ التي لم يفرج عنها البنك. عند الإفراج غيّر حالتها إلى <b>نشطة</b> فتصبح الـ ٤٠ مليون متاحة.</p></div>
+
+    <div class="two">
+      <div class="box"><h4>محفظة مخصصة</h4><p>لها أموالها الخاصة. مجموع الحدود المخصصة في الشريحة لا يتجاوزها: ٤٠ + ٢٠ = ٦٠ = الشريحة ١.</p></div>
+      <div class="box"><h4>سقف مشترك</h4><p>ليس له أموال خاصة، بل يحدد أقصى ما تأخذه أنشطته من الشريحة، مثل «التأجير بحد أقصى ١٥ مليون من الشريحة ١».</p></div>
+    </div>
+    <p class="prose"><b>المتجدد</b> يعني أن المبلغ المسدَّد يمكن سحبه مرة أخرى. في التسهيل غير المتجدد لا يعيد السداد فتح الحد.</p>
+  </section>
+
+  <section class="sec" id="ar-3">
+    <div class="sec-h"><span class="n">٣</span><h2>شروط البنك</h2></div>
+    <p class="prose">شرط البنك قيد من خطاب الشروط على طريقة استخدام أمواله. يفحص CAPITRA كل شرط نشط في كل مرة نسحب فيها من هذا البنك. يسري الشرط على كل تسهيلات البنك أو على تسهيل واحد.</p>
+    <div class="tbl"><table>
+      <tr><th>الشرط</th><th>المعنى</th><th>مثال البنك أ</th></tr>
+      <tr><td><b>أقصى حصة</b> (تركز)</td><td>لا يأخذ مدين أو بائع أو مجموعة مدينين أو نشاط أو منتج أو شريحة عملاء أكثر من نسبة أو مبلغ من أموال البنك.</td><td>أي مدين بحد أقصى <b>١٥٪</b> من المحفظة الممولة، وتنبيه عند <b>١٢٪</b></td></tr>
+      <tr><td><b>استبعاد</b></td><td>مدين أو بائع أو مجموعة أو نشاط أو منتج أو شريحة عملاء محددة لا تُموَّل من أموال هذا البنك.</td><td>مجموعة <i>الجهات الحكومية</i></td></tr>
+      <tr><td><b>أقصى مدة للفاتورة</b></td><td>لا تزيد مدة الفاتورة عن عدد أيام محدد.</td><td>بحد أقصى <b>١٢٠ يومًا</b></td></tr>
+    </table></div>
+
+    <h3>على ماذا يكون الشرط</h3>
+    <div class="tbl"><table>
+      <tr><th>الشرط على</th><th>يؤخذ من عملية الصرف</th><th>مثال من خطاب الشروط</th></tr>
+      <tr><td><b>مدين</b>، <b>بائع</b>، <b>مجموعة مدينين</b></td><td>مدينو الفواتير والعميل</td><td>أي مدين بحد أقصى ١٥٪</td></tr>
+      <tr><td><b>النشاط</b></td><td>العقد: تخصيم أو تخصيم عكسي</td><td>على تسهيل واحد: التأجير بحد أقصى <b>٧٠٪</b> والتخصيم بحد أقصى <b>٣٠٪</b> من حد التسهيل (شرطان)</td></tr>
+      <tr><td><b>المنتج</b></td><td>منتج عملية الصرف</td><td>البنك لا يمول منتج <i>التخصيم العكسي</i></td></tr>
+      <tr><td><b>شريحة العملاء</b></td><td>شريحة العميل: صغيرة ومتوسطة، شركات، شركات كبرى</td><td>البنك لا يمول عملاء <i>الشركات</i></td></tr>
+    </table></div>
+    <p class="prose">في شروط النشاط والمنتج وشريحة العملاء تُحسب عملية الصرف كلها، لأنها نشاط واحد ومنتج واحد وعميل واحد. شروط النشاط الاقتصادي (القطاع) والأصل تأتي لاحقًا عند إضافة قوائمها إلى CAPITRA.</p>
+
+    <h3>النسبة من ماذا؟</h3>
+    <div class="two">
+      <div class="box"><h4>المحفظة الممولة</h4><p>ما سحبناه فعلًا من البنك (القائم + المحجوز). سحبنا ٢٠٠ مليون من البنك أ، إذن ١٥٪ = <b>٣٠ مليون</b> لكل مدين.</p></div>
+      <div class="box"><h4>حد التسهيل</h4><p>الحد المعتمد سواء استُخدم أم لا. في تسهيل ١٠٠ مليون، ١٥٪ = <b>١٥ مليون</b> لكل مدين.</p></div>
+    </div>
+    <p class="prose">اختر الأساس حسب صياغة خطاب الشروط.</p>
+
+    <h3>ماذا يحدث عند المخالفة</h3>
+    <div class="tbl"><table>
+      <tr><th>الإعداد</th><th>الأثر</th></tr>
+      <tr><td><span class="pill bad">منع</span></td><td>لا يمكن استخدام أموال هذا البنك، فاختر مصدرًا آخر.</td></tr>
+      <tr><td><span class="pill warn">يحتاج استثناء</span></td><td>مسموح فقط إذا اعتمد مستخدم ثانٍ الاستثناء.</td></tr>
+      <tr><td><span class="pill ok">تنبيه</span></td><td>مسموح مع تنبيه ظاهر.</td></tr>
+      <tr><td><b>تنبيه عند ٪</b></td><td>إنذار مبكر قبل الحد، مثل ١٢٪ والحد ١٥٪.</td></tr>
+    </table></div>
+
+    <div class="note"><span class="ic">العينان الأربع</span><p>الشرط الجديد أو المعدَّل حالته <b>بانتظار الاعتماد</b> ولا يُفحص حتى يعتمده مستخدم ثانٍ. من أجرى التغيير لا يعتمده. لإنهاء شرط استخدم <b>إيقاف</b> واذكر السبب، ويبقى في السجل.</p></div>
+    <div class="note"><span class="ic">إعدادات الوحدات</span><p>تحدد شاشة الإدارة ← إعدادات الوحدات ← الخزينة اثنين من هذه الضوابط: <b>قاعدة البنك تحتاج مُدخلًا ومُراجعًا</b> (لا: يمكن لمن حفظ الشرط أن يعتمده) و<b>التجاوز يحتاج مستخدمًا ثانيًا</b> (لا: يمكن لمن اختار المصادر أن يعتمد الاستثناء). كلاهما نعم ما لم يغيرهما مسؤول النظام، وتغييرهما يحتاج اعتماد مسؤول ثانٍ.</p></div>
+    <div class="note"><span class="ic">الأعلى الآن</span><p>تحت كل شرط تركز تعرض الشاشة الأقرب إلى الحد اليوم، مثل «الأعلى الآن: LG Electronics ‏١١٫٤٪». <span class="pill ok">داخل الحد</span> <span class="pill warn">فوق التنبيه</span> <span class="pill bad">مخالفة</span></p></div>
+    <figure><img src="img/4-add-rule.jpg" alt="نافذة إضافة شرط بنك" loading="lazy"><figcaption><b>شكل ٢.</b> نافذة إضافة شرط البنك تعرض الحقول التي يحتاجها الشرط فقط، والسطر في الأعلى يقول ما سيفعله الشرط بجملة واحدة.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-4">
+    <div class="sec-h"><span class="n">٤</span><h2>تركز المدين والمورد</h2></div>
+    <p class="prose">هناك نوعان مختلفان من حدود التركز، وكل منهما يجيب عن سؤال مختلف.</p>
+    <div class="tbl"><table>
+      <tr><th></th><th>تركزنا الداخلي</th><th>تركز البنك</th></tr>
+      <tr><td><b>السؤال</b></td><td>هل نموّل هذه الفاتورة أصلًا؟</td><td>بأموال من نموّلها؟</td></tr>
+      <tr><td><b>يحدده</b></td><td>سياستنا الائتمانية في كل اتفاقية تخصيم</td><td>البنك في خطاب الشروط (القسم ٣)</td></tr>
+      <tr><td><b>يُقاس على</b></td><td>اتفاقية تخصيم العميل</td><td>الأموال التي سحبناها من هذا البنك</td></tr>
+      <tr><td><b>يُفحص عند</b></td><td>رفع الفواتير (تنبيه) والاعتماد (منع)</td><td>صرف الخزينة (الخطوة ٢)</td></tr>
+      <tr><td><b>عند الفشل</b></td><td>تتوقف الفاتورة إلا باستثناء من الإدارة</td><td>استخدم بنكًا آخر أو أموالنا الذاتية</td></tr>
+    </table></div>
+
+    <p class="prose">تمر كل فاتورة بثلاث بوابات بالترتيب.</p>
+    <div class="gates">
+      <div class="gate"><div class="who">لنا · البوابة ١</div><h4>حد الاتفاقية</h4><p>إجمالي العميل يبقى داخل اتفاقية التخصيم.</p></div>
+      <div class="gate"><div class="who">لنا · البوابة ٢</div><h4>حصة المدين أو المورد</h4><p>لا يأخذ مدين (أو مورد) واحد نصيبًا كبيرًا من الاتفاقية.</p></div>
+      <div class="gate bank"><div class="who">البنك · البوابة ٣</div><h4>شرط البنك</h4><p>البنك الذي نستخدم أمواله يسمح بهذا المدين وهذه الفاتورة.</p></div>
+    </div>
+
+    <h3>مثال التخصيم التقليدي</h3>
+    <p class="prose">عميلنا <b>ABC</b> يبيع لنا فواتيره، وله مدينون كثيرون. اتفاقية ABC: حد <b>١٠٠ مليون</b>، ولا يزيد أي مدين عن <b>٢٥٪</b> (= ٢٥ مليون). المدين LG يستخدم حاليًا <b>٢٠ مليون</b>. وصلت فاتورة جديدة على LG بـ <b>٤ مليون</b>.</p>
+    <div class="steps">
+      <div class="step"><span class="g">البوابة ١</span><p>ABC يستخدم ٥٠ مليون. ٥٠ + ٤ = ٥٤ مليون، أقل من ١٠٠.</p><span class="pill ok">مقبول</span></div>
+      <div class="step"><span class="g">البوابة ٢</span><p>LG يصبح ٢٤ مليون، أقل من ٢٥. (فاتورة بـ ١٠ مليون تجعله ٣٠ فتتوقف.)</p><span class="pill ok">مقبول</span></div>
+      <div class="step"><span class="g">البوابة ٣</span><p>البنك أ: أي مدين بحد أقصى ١٥٪ من محفظة ممولة ٢٠٠ مليون = ٣٠ مليون. LG لديه ٢٨: ٢٨ + ٤ = ٣٢. ندفع ٢ مليون من البنك أ و٢ مليون من البنك ب، أو الكل من البنك ب أو من أموالنا.</p><span class="pill bad">البنك أ ممنوع</span></div>
+    </div>
+
+    <h3>مثال التخصيم العكسي</h3>
+    <p class="prose">عميلنا هو <b>المشتري LG</b>. يبيع لنا موردو LG فواتيرهم على LG، وتسدد لنا LG في الاستحقاق. اتفاقية LG: حد <b>١٠٠ مليون</b>، ولا يزيد أي مورد عن <b>٤٠٪</b> (= ٤٠ مليون). اليوم: ABC ‏٣٠ مليون، XYZ ‏١٥ مليون، GHI ‏٥ مليون، الإجمالي <b>٥٠ مليون</b>. يرسل ABC فاتورة جديدة بـ <b>١٥ مليون</b>.</p>
+    <div class="steps">
+      <div class="step"><span class="g">البوابة ١</span><p>٥٠ + ١٥ = ٦٥ مليون، أقل من ١٠٠.</p><span class="pill ok">مقبول</span></div>
+      <div class="step"><span class="g">البوابة ٢</span><p>ABC يصبح ٤٥ مليون، أعلى من ٤٠. نموّل <b>١٠ مليون</b> الآن، والـ ٥ مليون الباقية تحتاج استثناء من الإدارة.</p><span class="pill warn">١٠ من ١٥</span></div>
+      <div class="step"><span class="g">البوابة ٣</span><p>LG هو المدين، فينطبق شرط المدين في البنك أ: السقف ٣٠ مليون وLG لديه ٢٨. ندفع ٢ مليون من البنك أ (فيصل LG إلى ٣٠ بالضبط) و٨ مليون من البنك ب.</p><span class="pill warn">تقسيم</span></div>
+    </div>
+    <div class="note warn"><span class="ic">الفرق</span><p>في التخصيم التقليدي يتغير المدينون، فنضع حدًا لكل مدين داخل اتفاقية العميل. في التخصيم العكسي المدين دائمًا هو المشتري، فنراقب إجمالي مديونيته ونضع حدًا لكل مورد. شروط البنوك ترى المشتري في كل سحب للتخصيم العكسي، لذلك قد يستهلك مشترٍ كبير واحد مساحة البنك بسرعة.</p></div>
+  </section>
+
+  <section class="sec" id="ar-5">
+    <div class="sec-h"><span class="n">٥</span><h2>الخطوة ١: شاشة حدود البنوك</h2></div>
+    <p class="prose">تعرض شاشة حدود البنوك أموال كل البنوك في صفحة واحدة، ومنها تُدار كل الحدود والشروط. (الصور من الواجهة الإنجليزية.)</p>
+    <figure><img src="img/2-bank-limits.jpg" alt="شاشة حدود البنوك" loading="lazy"><figcaption><b>شكل ٣.</b> البطاقات العلوية، قائمة البنوك، الشجرة، واللوحة الجانبية.</figcaption></figure>
+    <ul class="b">
+      <li><b>البطاقات العلوية</b>: الحدود المعتمدة والقائم والمحجوز والمتاح للسحب لكل البنوك، مع ما لم يُفرج عنه بعد.</li>
+      <li><b>قائمة البنوك</b>: بطاقة لكل بنك بشريط استخدامه. اضغط على البنك لفتح شجرته.</li>
+      <li><b>الشجرة</b>: تسهيل ← شريحة ← حد فرعي، لكل سطر شريط ومبلغ معتمد ومتاح. المتاح <b style="color:var(--ok)">بالأخضر</b> هو الحر للسطر نفسه، و<b style="color:var(--orange)">بالبرتقالي</b> يعني أن مستوى أعلى هو القيد الأضيق.</li>
+      <li><b>اللوحة الجانبية</b>: تفاصيل السطر المختار، وشروط البنك (عند اختيار تسهيل)، وأزرار الإجراءات.</li>
+    </ul>
+    <h3>المهام</h3>
+    <div class="tbl"><table>
+      <tr><th>المهمة</th><th>الخطوات</th><th>ما يفحصه CAPITRA</th></tr>
+      <tr><td>إضافة تسهيل</td><td><b>تسهيل جديد</b> ثم البنك والمرجع والنوع والحد والعملة والسعر والتواريخ</td><td>المرجع غير مكرر، والاستحقاق بعد البداية</td></tr>
+      <tr><td>إضافة شريحة</td><td>اختر التسهيل ← <b>+ شريحة</b></td><td>مجموع الشرائح ≤ حد التسهيل</td></tr>
+      <tr><td>الإفراج عن شريحة</td><td>اختر الشريحة ← <b>تعديل</b> ← الحالة <b>نشطة</b> مع تاريخ الإفراج</td><td>تاريخ الإفراج إلزامي</td></tr>
+      <tr><td>إضافة حد فرعي</td><td>اختر الشريحة ← <b>+ حد فرعي</b> ثم الأنشطة</td><td>الحدود المخصصة ≤ الشريحة</td></tr>
+      <tr><td>تغيير حد</td><td>اختر السطر ← <b>تعديل</b></td><td>لا يقل عن المستخدم أو المحجوز</td></tr>
+      <tr><td>إضافة شرط بنك</td><td>اختر التسهيل ← <b>+ شرط</b></td><td>القيم تناسب النوع، والتنبيه أقل من الحد</td></tr>
+      <tr><td>اعتماد شرط</td><td>مستخدم ثانٍ: <b>اعتماد</b></td><td>ليس من أجرى التغيير</td></tr>
+      <tr><td>إنهاء شرط</td><td><b>إيقاف</b> مع ذكر السبب</td><td>السبب إلزامي</td></tr>
+    </table></div>
+    <div class="shots">
+      <figure><img src="img/3-sublimit-selected.jpg" alt="حد فرعي مختار وتفاصيله" loading="lazy"><figcaption><b>شكل ٤.</b> حد فرعي مختار: المبالغ والنطاق والإجراءات.</figcaption></figure>
+      <figure><img src="img/5-edit-tranche.jpg" alt="نافذة تعديل الشريحة" loading="lazy"><figcaption><b>شكل ٥.</b> تعديل الشريحة: اجعلها نشطة مع تاريخ الإفراج.</figcaption></figure>
+    </div>
+    <div class="note"><span class="ic">التسهيلات القائمة</span><p>عند تشغيل الخزينة حصل كل تسهيل مفتوح على <b>الشريحة ١</b> (كامل الحد، نشطة) وحد فرعي <b>عام</b> (كل الأنشطة) مع رصيده الحالي. عدّلها لتطابق خطاب الشروط، مثل تخفيض الشريحة ١ إلى ٦٠ مليون وإضافة شريحة ٢ مسودة بـ ٤٠ مليون.</p></div>
+  </section>
+
+  <section class="sec" id="ar-6">
+    <div class="sec-h"><span class="n">٦</span><h2>الخطوة ٢: صرف الخزينة</h2></div>
+    <p class="prose">صرف الخزينة هو آخر خطوة في عملية الصرف. تختار الخزينة الأموال التي تدفع صافي المبلغ، ويفحص CAPITRA كل اختيار مقابل الحدود وشروط البنوك قبل أي دفع.</p>
+    <figure><img src="img/6-disburse-suggest.jpg" alt="شاشة صرف الخزينة بعد الاقتراح" loading="lazy"><figcaption><b>شكل ٦.</b> الحدود كشجرة: بنك › تسهيل › شريحة › حد فرعي. كل حد فرعي يقول هل يمكن استخدامه ولماذا، وفحوصات الشروط على الجانب.</figcaption></figure>
+    <h3>ما تعرضه الشاشة</h3>
+    <ul class="b">
+      <li><b>الرأس</b>: عملية الصرف، والعميل، والمدين (أو المشتري في التخصيم العكسي)، والنشاط، و<b>صافي المبلغ المطلوب تمويله</b>.</li>
+      <li><b>تخصيم أم تخصيم عكسي</b>: تتبع الصفحة منتج الصفقة. في التخصيم تعرض <b>المدينين</b> (المستحق عليهم الفواتير) و<b>البائع</b> (عميلنا). وفي التخصيم العكسي تعرض <b>المشتري (المدين)</b> وهو عميلنا ويسدد لنا عند الاستحقاق، و<b>الموردين</b> الذين باعوا الفواتير ويُدفع لهم الآن. وتستخدم فحوصات شروط البنك نفس المسميات.</li>
+      <li><b>شجرة الحدود</b>: <b>أموالنا الذاتية</b> أولًا، ثم كل بنك ← تسهيل ← شريحة ← حد فرعي بعملة الصرف. يعرض كل بنك وتسهيل عدد الحدود الفرعية القابلة للاستخدام وإجمالي ما اخترته تحته.</li>
+      <li><b>كل حد فرعي</b> يذكر السبب في سطر واحد: <span class="pill ok">✓ يمكن استخدامه</span> مع ما يموله، أو <span class="pill bad">⊘ لا يمكن استخدامه</span> مع السبب. الحد الذي لا يمكن استخدامه رمادي وبلا خانة مبلغ.</li>
+      <li><b>السطر القابل للاستخدام</b>: المتاح، وخانة المبلغ، وزر <b>الحد الأقصى</b>، وشارة لحظية لكل شرط بنك ينطبق.</li>
+      <li><b>الفحوصات والإجمالي</b>: المغطى مقابل الصافي، وأي سطر ممنوع أو يحتاج استثناء.</li>
+    </ul>
+    <h3>من يُدفع له: نافذة الطرف</h3>
+    <p class="prose">اضغط أي اسم تحت <b>المشتري والموردون</b> (أو <b>المدينون والبائع</b>) لفتح تفاصيله. في التخصيم العكسي هكذا تراجع كل مورد قبل التنفيذ.</p>
+    <ul class="b">
+      <li><b>المبلغ المستحق له</b>: نصيب المورد من صافي المبلغ، والحساب البنكي الذي سيُدفع إليه. المربع البرتقالي يعني أن المورد ليس له حساب معتمد يمكن الدفع إليه بعد: أضف حسابًا واعتمده في Customer 360 أولًا.</li>
+      <li><b>الفواتير المطلوب سدادها</b>: فواتير المورد في هذه العملية، مع تاريخ الفاتورة وتاريخ الاستحقاق ومبلغ الفاتورة والمبلغ الممول. الفواتير غير المؤهلة رمادية مع السبب ولا تُدفع.</li>
+      <li><b>الحسابات البنكية</b>: كل حسابات المورد. <span class="pill ok">يمكن الدفع</span> تعني معتمد ومرت أيام الانتظار.</li>
+    </ul>
+    <figure><img src="img/6b-supplier-popup.jpg" alt="نافذة المورد بالفواتير والمبلغ والحساب البنكي" loading="lazy"><figcaption><b>شكل ٦ب.</b> مورد في التخصيم العكسي: ما يستحقه، وأين يُدفع، والفواتير التي وراءه.</figcaption></figure>
+    <h3>ملخص الفواتير</h3>
+    <p class="prose">اضغط <b>ملخص الفواتير</b> أعلى شاشة صرف الخزينة أو طلب الصرف أو رفع الفواتير. يعرض للقراءة فقط:</p>
+    <ul class="b">
+      <li><b>أربعة مربعات</b>: الفواتير المستلمة، ناقص غير المؤهلة، يساوي المؤهلة، ثم <b>القيمة التي نمولها</b> بعد نسبة التمويل (مثل ٨٨٪ من المبلغ المؤهل). ويظهر صافي مبلغ الصرف تحتها مع أي فرق.</li>
+      <li><b>الفواتير المؤهلة حسب المورد</b> (حسب المدين في التخصيم): سطر لكل مورد بعدد فواتيره وإجمالياتها؛ اضغطه لإظهار أو إخفاء فواتيره. والسطر الأخير هو إجمالي المؤهل.</li>
+      <li><b>غير المؤهلة</b>: كل فاتورة مستبعدة مع السبب والإجمالي.</li>
+    </ul>
+    <figure><img src="img/6c-invoice-summary.jpg" alt="نافذة ملخص الفواتير" loading="lazy"><figcaption><b>شكل ٦ج.</b> ملخص الفواتير: من الفواتير المستلمة إلى القيمة التي نمولها، ثم الفواتير المؤهلة حسب المورد.</figcaption></figure>
+    <h3>الخطوات المكتملة للعرض فقط</h3>
+    <p class="prose">في مساحة عمل عميل التخصيم، يعرض تبويب <b>الصرف</b> الخطوة المفتوحة وتحتها زر لكل <b>خطوة مكتملة</b> (البدء، رفع الفواتير، صرف الخزينة). يفتح الزر صفحة الخطوة <b>للعرض فقط</b>: شريط أخضر يوضح ذلك، وكل الحقول مقفلة وأزرار الخطوة مخفية.</p>
+    <figure><img src="img/6d-completed-steps.jpg" alt="أزرار الخطوات المكتملة في تبويب الصرف" loading="lazy"><figcaption><b>شكل ٦د.</b> الخطوات المكتملة لكل عملية صرف؛ كل واحدة تفتح للعرض فقط.</figcaption></figure>
+    <div class="shots">
+      <figure><img src="img/7-disburse-override.jpg" alt="سطر يحتاج استثناء مع خانة السبب" loading="lazy"><figcaption><b>شكل ٧.</b> السطر الذي يتجاوز شرط استثناء يصبح برتقاليًا. اكتب السبب واضغط حفظ وحجز.</figcaption></figure>
+      <figure><img src="img/8-disburse-approve.jpg" alt="المراجع يرى زر اعتماد الاستثناء" loading="lazy"><figcaption><b>شكل ٨.</b> مستخدم ثانٍ لديه TRS.VERIFY يفتح نفس الصفحة ويضغط اعتماد الاستثناء.</figcaption></figure>
+    </div>
+    <h3>مثال عملي</h3>
+    <p class="prose">صرف لـ ABC، المدين LG، النشاط تخصيم، الصافي <b>١٢ مليون</b>.</p>
+    <div class="tbl"><table>
+      <tr><th>المصدر</th><th class="num">المتاح</th><th>نتيجة شرط البنك</th><th class="num">المبلغ</th></tr>
+      <tr><td>أموالنا الذاتية</td><td class="num">٦ م</td><td>لا توجد شروط بنك</td><td class="num">٠</td></tr>
+      <tr><td>البنك أ › الشريحة ١ › التخصيم</td><td class="num">٨ م</td><td>LG لديه ٢٨ من سقف ٣٠: حتى نحو ٢٫٣ م مقبول (المحفظة تكبر مع السحب) <span class="pill bad">الزيادة ممنوعة</span></td><td class="num"><b>٢ م</b></td></tr>
+      <tr><td>البنك ب › الشريحة ١ › التخصيم</td><td class="num">١٨ م</td><td>LG عند ٦٪ من سقف ٢٠٪ <span class="pill ok">مقبول</span></td><td class="num"><b>١٠ م</b></td></tr>
+      <tr class="total"><td>الإجمالي</td><td></td><td></td><td class="num">١٢ م = الصافي ✓</td></tr>
+    </table></div>
+    <p class="prose">يظهر حد التأجير في البنك أ رماديًا: <i>لا يمكن استخدامه: يموّل التأجير فقط.</i></p>
+    <h3>لماذا لا يمكن استخدام حد فرعي</h3>
+    <div class="tbl"><table>
+      <tr><th>السبب على السطر</th><th>ماذا تفعل</th></tr>
+      <tr><td>التسهيل موقوف (أو قيد التجديد أو منتهٍ …)</td><td>استخدم تسهيلًا آخر، أو اجعل التسهيل نشطًا في حدود البنوك.</td></tr>
+      <tr><td>البنك لم يُفرج عن هذه الشريحة بعد</td><td>عند وصول خطاب البنك اجعل الشريحة نشطة مع تاريخ الإفراج.</td></tr>
+      <tr><td>الحد الفرعي موقوف</td><td>استخدم حدًا آخر أو أعد تنشيطه.</td></tr>
+      <tr><td>يموّل التأجير فقط (أو أنشطة أخرى)</td><td>الحد لنشاط آخر. استخدم حدًا يموّل هذا النشاط.</td></tr>
+      <tr><td>لم يتبقَّ شيء للسحب</td><td>الحد الفرعي أو الشريحة أو التسهيل مستخدم أو محجوز بالكامل.</td></tr>
+      <tr><td>شرط البنك: استبعاد …</td><td>البنك لا يموّل هذا المدين أو المجموعة أو النشاط أو المنتج أو شريحة العملاء. استخدم بنكًا آخر أو أموالنا الذاتية.</td></tr>
+    </table></div>
+    <h3>دليل الخطوات</h3>
+    <p class="prose">أسفل البطاقات العلوية يعرض <b>دليل الخطوات</b> خطوات هذه الصفحة بالترتيب، ويضع علامة على ما تم، ويبرز الخطوة الحالية. وتقول <b>ما المطلوب الآن</b> الإجراء التالي في جملة واحدة مع زر له (اقتراح، حفظ وحجز، تنفيذ، الذهاب إلى التحويلات). وعندما يمنعك شيء، مثل شرط بنك أحمر أو تجاوز ينتظر مستخدمًا ثانيًا أو مورد بلا حساب بنكي معتمد، يتحول إلى البرتقالي ويقول ما يجب إصلاحه.</p>
+    <figure><img src="img/6e-step-guide.jpg" alt="دليل الخطوات" loading="lazy"><figcaption><b>شكل ٦هـ.</b> دليل الخطوات في التخصيم العكسي: تم التنفيذ، ويتبقى تأكيد موردين اثنين.</figcaption></figure>
+    <h3>طريقة تمويل عملية صرف</h3>
+    <ol class="b">
+      <li>افتح عملية الصرف على خطوة صرف الخزينة من صندوق المهام.</li>
+      <li>اضغط <b>اقتراح</b> لتعبئة الأسطر في حدود كل الشروط، أو أدخل المبالغ بنفسك. زر <b>الحد الأقصى</b> يملأ السطر بأكبر مبلغ مسموح. يملأ الاقتراح خطوط البنوك أولًا (الأكثر إتاحة أولًا) ويضع الباقي على الأموال الذاتية؛ وإذا كانت إعدادات الوحدات <b>الأموال الذاتية أولًا</b> يضع المبلغ كله على الأموال الذاتية.</li>
+      <li>اقرأ السطر تحت كل حد فرعي: ✓ يمكن استخدامه، ⊘ لا يمكن ولماذا. ثم راقب الشارات: الأخضر مقبول، والبرتقالي تنبيه، والأحمر منع. السطر الذي يحتاج استثناءً يوضح من يعتمده.</li>
+      <li>عندما يساوي الإجمالي الصافي ولا يوجد سطر أحمر يصبح زر <b>تنفيذ</b> متاحًا.</li>
+      <li><b>تنفيذ</b> يسجل سحبًا على كل حد فرعي مختار مع المدين والبائع، فتتحدث حدود البنوك و«الأعلى الآن» فورًا، وفي نفس اللحظة يُدفع للعميل وتُرحّل القيود (انظر أدناه). ثم <b>أكمل</b> الخطوة.</li>
+    </ol>
+    <figure><img src="img/9-disburse-executed.jpg" alt="عملية صرف منفذة" loading="lazy"><figcaption><b>شكل ٩.</b> بعد التنفيذ: من نفّذ ومتى، ولا يمكن تغيير الاختيار.</figcaption></figure>
+    <h3>الدفع والقيود عند التنفيذ</h3>
+    <p class="prose">التنفيذ يتم كله مرة واحدة أو لا يتم. يضع كل بنك أمواله في <b>حسابنا لدى نفس البنك</b>، ويُدفع للعميل منه. أما أموالنا الذاتية فتُدفع من الحساب التشغيلي الرئيسي. لوحة <b>الدفع</b> تعرض حساب كل سطر قبل الضغط على تنفيذ.</p>
+    <div class="note"><span class="ic">حساب الضمان</span><p>لا يدفع حساب الضمان إلا عندما لا يكون لدينا حساب آخر لدى ذلك البنك. وإذا ضُبط إعداد <b>يمكن الدفع من حسابات الضمان</b> في إعدادات الوحدات ← الخزينة على لا، فلا يدفع حساب الضمان أبدًا، وتطلب لوحة الدفع حسابًا آخر.</p></div>
+    <figure style="max-width:320px;margin-inline:auto"><img src="img/10-payment-gl.jpg" alt="لوحة الدفع بعد التنفيذ" loading="lazy"><figcaption><b>شكل ١٠.</b> لوحة الدفع: الحساب الذي يدفع كل سطر وحسابه في الأستاذ العام، وبعد التنفيذ التاريخ ورقم مجموعة القيود.</figcaption></figure>
+    <p class="prose">في مثال ١٢ مليون أعلاه (البنك أ ٢ م، البنك ب ١٠ م) تكون القيود، تحت رقم واحد CAP-TRS-…، كالتالي:</p>
+    <div class="tbl"><table>
+      <tr><th>القيد</th><th>الحساب</th><th class="num">مدين</th><th class="num">دائن</th></tr>
+      <tr><td rowspan="3">١ · سحب من البنك</td><td>حساب البنك أ</td><td class="num">٢ م</td><td></td></tr>
+      <tr><td>حساب البنك ب</td><td class="num">١٠ م</td><td></td></tr>
+      <tr><td>220101 تسهيلات بنكية قصيرة الأجل</td><td></td><td class="num">١٢ م</td></tr>
+      <tr><td rowspan="3">٢ · الدفع للعميل</td><td>120101 مديونية التخصيم - أصل</td><td class="num">١٢ م</td><td></td></tr>
+      <tr><td>حساب البنك أ</td><td></td><td class="num">٢ م</td></tr>
+      <tr><td>حساب البنك ب</td><td></td><td class="num">١٠ م</td></tr>
+    </table></div>
+    <ul class="b">
+      <li>الأموال الذاتية تظهر في القيد ٢ فقط: ندفع من حسابنا بدون اقتراض من بنك.</li>
+      <li>تصبح الفواتير <b>ممولة</b> (FUNDED) بمبلغها وتاريخ تمويلها، وتصبح عملية الصرف <b>مصروفة</b> (DISBURSED).</li>
+      <li>الحسابات تأتي من القاعدة التي تحددها خطوة <b>صرف الخزينة</b> في سير العمل (مصمم سير العمل › الخطوة › قاعدة حدث المنتج، وعادةً <b>TRS_DISBURSE</b>). وإذا لم تحدد الخطوة قاعدة تُستخدم القاعدة المربوطة بالإجراء في الإعدادات › كتالوج المنتجات › TREASURY_FUNDING. إذا لم توجد قاعدة أو رفض الأستاذ العام (مثل فترة مغلقة) يظهر السبب ولا يُحفظ شيء.</li>
+    </ul>
+    <h3>التخصيم العكسي: التحويلات للموردين</h3>
+    <p class="prose">في التخصيم العكسي ندفع <b>للموردين</b> وليس للمشتري، وقد يتعامل كل مورد مع بنك مختلف. لذلك تتحرك الأموال على مراحل، بحسابات أستاذ عام منفصلة عن التخصيم، ويُقيد كل شيء مرة واحدة تحت <b>رقم مجموعة قيود واحد</b>:</p>
+    <ol class="b">
+      <li>قبل التنفيذ يعرض الجدول التحويلات <b>المخططة</b>. المورد الذي ليس له حساب بنكي معتمد في Customer 360 يظهر بالأحمر، ويبقى التنفيذ متوقفًا حتى يُضاف حساب لكل مورد.</li>
+      <li><b>التنفيذ</b> يحفظ تحويلًا لكل مورد ببنكه ورقم الآيبان والمبلغ بحالة <b>مُرسل</b>، ولا يُقيد شيء في الأستاذ العام بعد. وتظهر الآن خانات <b>مؤكد</b>.</li>
+      <li>عندما يؤكد البنك التحويل، ضع علامة في خانته واضغط <b>تأكيد</b> (مرجع البنك اختياري). والخانة في رأس الجدول تحدد كل الموردين مرة واحدة.</li>
+      <li>عند تأكيد <b>آخر</b> مورد تُقيد القيود كلها تحت رقم مجموعة قيود واحد: القيد ١ السحب من البنك (القاعدة <b>TRS_RF_DRAWDOWN</b>: مدين حسابنا البنكي / دائن اقتراض بنكي للتخصيم العكسي)، ثم قيد لكل مورد (القاعدة <b>TRS_RF_TRANSFER</b>: مدين مديونية التخصيم العكسي / دائن حسابنا البنكي) باسم المورد. وإذا رفض الأستاذ العام لا يُؤكد شيء.</li>
+      <li>لا يمكن <b>إكمال</b> الخطوة إلا بعد تأكيد كل الموردين. وللإكمال الآن حدد الجميع.</li>
+    </ol>
+    <figure><img src="img/10b-supplier-transfers.jpg" alt="تحويلات الموردين وخانات التأكيد" loading="lazy"><figcaption><b>شكل ١٠ب.</b> تحويلات الموردين بعد التنفيذ: واحد مؤكد، وواحد محدد وجاهز للتأكيد، وواحد ما زال في انتظار البنك.</figcaption></figure>
+    <h3>القيود المتوقعة</h3>
+    <p class="prose">أسفل المصادر يعرض قسم <b>القيود المتوقعة</b> كل سطر ستقيده الخطوة من المصادر المحفوظة: رقم القيد والحساب والوصف والمدين والدائن مع الإجماليات. ويظهر للتخصيم (يُقيد عند التنفيذ) وللتخصيم العكسي (يُقيد عند تأكيد آخر مورد). وبعد القيد يصبح العنوان <b>القيود المقيدة</b> ويظهر رقم مجموعة القيود. وإذا كانت هناك قاعدة غير مربوطة أو حساب بنكي بلا حساب أستاذ عام يظهر ذلك هنا قبل الضغط على أي زر.</p>
+    <figure><img src="img/10d-gl-preview.jpg" alt="قسم القيود المتوقعة" loading="lazy"><figcaption><b>شكل ١٠د.</b> القيود المتوقعة لعملية تخصيم عكسي: السحب من البنك ثم قيد لكل مورد، كلها تحت رقم مجموعة قيود واحد.</figcaption></figure>
+    <div class="note"><span class="ic">رقم مجموعة القيود</span><p>كل خطوة مكتملة تعرض مجموعات القيود التي قيدتها: على زرها في تبويب الصرف للعميل، وأعلى صفحتها للعرض فقط. وفي التخصيم العكسي تعرض خطوة صرف الخزينة رقم مجموعة القيود الوحيد.</p></div>
+    <figure><img src="img/10c-completed-gl.jpg" alt="أزرار الخطوات المكتملة بأرقام مجموعات القيود" loading="lazy"><figcaption><b>شكل ١٠ج.</b> خطوة صرف الخزينة ومجموعات القيود التي قيدتها.</figcaption></figure>
+    <h3>قواعد يجب تذكرها</h3>
+    <ul class="b">
+      <li>يمكن تقسيم عملية الصرف الواحدة على أكثر من مصدر.</li>
+      <li>لا يأخذ أي سطر أكثر من متاحه، والمتاح يراعي الشريحة والتسهيل فوقه.</li>
+      <li>المبالغ المختارة قبل التنفيذ تظهر <b>محجوزة</b> (بالبرتقالي) حتى لا يستخدم شخصان نفس المساحة.</li>
+      <li>البوابتان ١ و٢ فُحصتا قبل هذه الخطوة، وهنا تُفحص شروط البنوك فقط (البوابة ٣).</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="ar-7">
+    <div class="sec-h"><span class="n">٧</span><h2>الرسائل وماذا تفعل</h2></div>
+    <p class="prose">تظهر هذه الرسائل في نافذة منبثقة عند رفض الحفظ. (نص الرسالة كما يظهر في الواجهة الإنجليزية.)</p>
+    <div class="tbl"><table>
+      <tr><th>الرسالة</th><th>المعنى وماذا تفعل</th></tr>
+      <tr><td dir="ltr">The tranches would add up to …, above the facility limit</td><td>الشريحة الجديدة كبيرة. خفّضها أو ارفع حد التسهيل أولًا.</td></tr>
+      <tr><td dir="ltr">The tranches already add up to …; the limit cannot be lower</td><td>خفّض شريحة أو أغلقها قبل تخفيض التسهيل.</td></tr>
+      <tr><td dir="ltr">Enter the date the bank released the tranche</td><td>الشريحة النشطة تحتاج تاريخ الإفراج من خطاب البنك.</td></tr>
+      <tr><td dir="ltr">The tranche has money drawn or reserved; it must stay Active</td><td>انتظر السداد أو انقل الاستخدام قبل جعلها مسودة أو مغلقة.</td></tr>
+      <tr><td dir="ltr">The dedicated sublimits would add up to …, above the tranche</td><td>صغّر الحد الفرعي، أو اجعله سقفًا مشتركًا، أو كبّر الشريحة.</td></tr>
+      <tr><td dir="ltr">A sublimit cannot be above its tranche</td><td>حتى السقف المشترك لا يتجاوز شريحته.</td></tr>
+      <tr><td dir="ltr">The sublimit has money drawn or reserved; it cannot be closed</td><td>أوقفه بدلًا من ذلك لمنع سحوبات جديدة.</td></tr>
+      <tr><td dir="ltr">Enter the limit as a percent or as an amount</td><td>شرط التركز يحتاج نسبة أو مبلغًا.</td></tr>
+      <tr><td dir="ltr">The warning must be above 0 and below the limit</td><td>لحد ١٥٪ يصح تنبيه ١٢٪، ولا يصح ١٥٪ أو أكثر.</td></tr>
+      <tr><td dir="ltr">You made the last change; another user must verify it</td><td>اطلب من زميل لديه TRS.VERIFY اعتماد الشرط.</td></tr>
+      <tr><td dir="ltr">Enter why the rule no longer applies</td><td>إيقاف الشرط يحتاج سببًا يُحفظ في السجل.</td></tr>
+      <tr><td dir="ltr">Another facility has this reference</td><td>مرجع التسهيل لا يتكرر. تحقق من وجود إدخال مكرر.</td></tr>
+      <tr><td dir="ltr">Choose what is excluded / Choose which one the limit is for</td><td>شرط النشاط أو المنتج أو شريحة العملاء يحتاج تحديد الجهة.</td></tr>
+      <tr><td dir="ltr">… cannot fund this disbursement. (reason)</td><td>لا يمكن استخدام الحد الفرعي للسبب المذكور. اختر مصدرًا آخر.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="ar-8">
+    <div class="sec-h"><span class="n">٨</span><h2>الصلاحيات والحالات والمصطلحات</h2></div>
+    <h3>الصلاحيات <span style="font-weight:400;color:var(--muted);font-size:14px">إعداد النظام ← الأدوار</span></h3>
+    <div class="tbl"><table>
+      <tr><th>الصلاحية</th><th>تسمح بـ</th></tr>
+      <tr><td><code>TRS.VIEW</code></td><td>فتح حدود البنوك ورؤية الشجرة والشروط</td></tr>
+      <tr><td><code>TRS.EDIT</code></td><td>إضافة وتعديل التسهيلات والشرائح والحدود الفرعية والشروط، وإيقاف شرط</td></tr>
+      <tr><td><code>TRS.VERIFY</code></td><td>اعتماد شرط أدخله مستخدم آخر</td></tr>
+    </table></div>
+    <h3>الحالات</h3>
+    <div class="tbl"><table>
+      <tr><th>العنصر</th><th>الحالات</th></tr>
+      <tr><td>التسهيل</td><td>خطاب شروط · نشط · موقوف · قيد التجديد · منتهٍ · مغلق. السحب من النشط فقط.</td></tr>
+      <tr><td>الشريحة</td><td>مسودة (غير مفرج عنها) · نشطة (مفرج عنها) · مغلقة</td></tr>
+      <tr><td>الحد الفرعي</td><td>نشط · موقوف · مغلق</td></tr>
+      <tr><td>شرط البنك</td><td>بانتظار الاعتماد · نشط (يُفحص) · موقوف</td></tr>
+    </table></div>
+    <h3>المصطلحات</h3>
+    <div class="tbl"><table>
+      <tr><th>المصطلح</th><th>المعنى</th></tr>
+      <tr><td>المتاح</td><td>ما يمكن سحبه بعد مراعاة الحدود الأعلى</td></tr>
+      <tr><td>المدين</td><td>الشركة الملتزمة بالفاتورة والتي تسددها في الاستحقاق</td></tr>
+      <tr><td>المحفظة الممولة</td><td>ما سحبناه من البنك (القائم + المحجوز)</td></tr>
+      <tr><td>القائم</td><td>ما سُحب ولم يُسدَّد</td></tr>
+      <tr><td>المحجوز</td><td>مبلغ محجوز لعملية صرف معتمدة لم تُدفع</td></tr>
+      <tr><td>النطاق</td><td>الأنشطة التي يموّلها الحد الفرعي</td></tr>
+      <tr><td>البائع / المورد</td><td>الشركة التي تبيع الفاتورة: عميلنا في التخصيم التقليدي، ومورد المشتري في التخصيم العكسي</td></tr>
+      <tr><td>مصدر التمويل</td><td>أموالنا الذاتية أو حد فرعي لبنك يُختار لدفع عملية صرف</td></tr>
+      <tr><td>المدة</td><td>عدد الأيام من تاريخ الفاتورة حتى استحقاقها</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">CAPITRA · دليل مستخدم الخزينة · الإصدار ١٫٦ · نوفمبر ٢٠٢٦</p>
+  </main>
+</div>
+</div>
+
+<script>
+(function(){
+  var docs={en:document.getElementById('doc-en'),ar:document.getElementById('doc-ar')};
+  var label=document.querySelector('.bar .doc');
+  var bar=document.querySelector('.bar');
+  function langOf(h){h=(h||'').replace('#','');if(h==='ar'||h.indexOf('ar-')===0)return 'ar';return 'en';}
+  function show(){
+    var h=location.hash, l=langOf(h);
+    docs.en.hidden=l!=='en'; docs.ar.hidden=l!=='ar';
+    bar.setAttribute('dir',l==='ar'?'rtl':'ltr');
+    label.textContent=label.getAttribute('data-'+l);
+    label.setAttribute('lang',l);
+    document.querySelectorAll('.lang a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-l')===l)});
+    document.title=l==='ar'?'دليل الخزينة · CAPITRA':'CAPITRA Treasury Manual';
+    var id=h.replace('#','');
+    if(id && id!=='en' && id!=='ar'){var t=document.getElementById(id); if(t) t.scrollIntoView();}
+    else window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body></html>
