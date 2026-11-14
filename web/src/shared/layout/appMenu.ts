@@ -56,8 +56,7 @@ export const appMenu: MenuGroup[] = [
     links: [
       { label: 'Loans', to: { name: 'lnd-loans' } },
       { label: 'End of Day', to: { name: 'lnd-eod' } },
-      { label: 'Lending Parameters', to: { name: 'lnd-parameters' } },
-      { label: 'Lending Product Terms', to: { name: 'adm-lending-products' } }
+      { label: 'Lending Parameters', to: { name: 'lnd-parameters' } }
     ]
   },
   {

@@ -1,43 +1,33 @@
 <template>
-  <!-- Administration > Product Setup > Lending Product Terms. The lending products are the Product Catalog products of business line
-       Microfinance or Consumer Finance. Their terms are versions: a draft is prepared, sent for approval and approved by another user;
-       an approved version is used from its start date and never changes. -->
+  <!-- Administration > Product Catalog > a product's Lending Terms (its row action, for products of business line Microfinance or
+       Consumer Finance). The terms are versions: a draft is prepared, sent for approval and approved by another user; an approved
+       version is used from its start date and never changes. -->
   <div class="fx fc">
     <div class="fx-head">
       <div>
         <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
           <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span>
           <RouterLink :to="{ name: 'adm-home' }">{{ tr('Administration') }}</RouterLink><span aria-hidden="true">›</span>
-          <b>{{ tr('Lending Product Terms') }}</b>
+          <RouterLink :to="{ name: 'adm-products' }">{{ tr('Product Catalog') }}</RouterLink><span aria-hidden="true">›</span>
+          <b>{{ product?.productCode ?? tr('Lending Terms') }}</b>
         </nav>
-        <h1>{{ tr('Lending Product Terms') }}</h1>
+        <h1>{{ tr('Lending Terms') }}<template v-if="product"> · {{ product.productNameEn }}</template></h1>
       </div>
       <div class="fx-actions">
-        <RouterLink :to="{ name: 'adm-products' }" class="fx-btn"><span class="fa fa-cubes" aria-hidden="true"></span>{{ tr('Product Catalog') }}</RouterLink>
-        <RouterLink :to="{ name: 'adm-home' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Administration') }}</RouterLink>
+        <RouterLink :to="{ name: 'adm-products' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Product Catalog') }}</RouterLink>
       </div>
     </div>
 
     <div v-if="loading && !data" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading products...') }}</div>
 
-    <section v-else-if="data && !data.products.length" class="fx-card lt-none">
+    <section v-else-if="data && !product" class="fx-card lt-none">
       <span class="fa fa-cube" aria-hidden="true"></span>
-      <b>{{ tr('No lending products yet.') }}</b>
-      <p>{{ tr('Create a product in the Product Catalog with business line Microfinance or Consumer Finance; its terms are then set here.') }}</p>
-      <RouterLink :to="{ name: 'adm-products' }" class="fx-btn fx-btn--teal"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Open Product Catalog') }}</RouterLink>
+      <b>{{ tr('This product has no lending terms.') }}</b>
+      <p>{{ tr('Lending terms are set for products of business line Microfinance or Consumer Finance.') }}</p>
+      <RouterLink :to="{ name: 'adm-products' }" class="fx-btn fx-btn--teal"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Product Catalog') }}</RouterLink>
     </section>
 
     <div v-else-if="data" class="lt-layout">
-      <aside class="fx-card lt-products">
-        <button v-for="p in data.products" :key="p.productId" type="button" class="lt-product" :class="{ 'lt-product--on': p.productId === productId }" @click="selectProduct(p.productId)">
-          <b>{{ p.productNameEn }}</b>
-          <small>{{ p.productCode }} · {{ tr(LINES[p.businessLineCode] ?? p.businessLineCode) }}</small>
-          <span class="fx-chip" :class="p.versionInForce ? 'fx-chip--ok' : 'fx-chip--warn'">
-            {{ p.versionInForce ? `${tr('Version')} ${p.versionInForce} ${tr('in force')}` : tr('No terms in force') }}
-          </span>
-        </button>
-      </aside>
-
       <section v-if="product" class="fx-card lt-main">
         <header class="lt-main-head">
           <div>
@@ -215,6 +205,7 @@ const STATUS_CHIP = { DRAFT: 'fx-chip--teal', PENDING: 'fx-chip--warn', APPROVED
 const me = (getUser()?.userName ?? '').toLowerCase()
 const egp = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
 
+const props = defineProps<{ lendingProductId: number }>()
 const data = ref<LendingProductsPage | null>(null)
 const loading = ref(false)
 const busy = ref(false)
@@ -329,8 +320,7 @@ async function load() {
   loading.value = true
   try {
     data.value = await lendingProductsApi.get()
-    const first = data.value.products[0]
-    if (first) selectProduct(first.productId)
+    if (data.value.products.some((p) => p.productId === props.lendingProductId)) selectProduct(props.lendingProductId)
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err))
   } finally {
@@ -342,7 +332,7 @@ onMounted(load)
 
 <style scoped>
 @import '@/modules/crm/components/crm360.css';
-.lt-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.lt-layout { display: block; }
 .lt-products { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
 .lt-product { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px; border: 1px solid var(--fin-line); border-radius: var(--fin-radius-sm);
   background: transparent; text-align: start; cursor: pointer; color: var(--fin-ink); }
