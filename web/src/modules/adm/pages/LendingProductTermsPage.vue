@@ -205,7 +205,7 @@ const STATUS_CHIP = { DRAFT: 'fx-chip--teal', PENDING: 'fx-chip--warn', APPROVED
 const me = (getUser()?.userName ?? '').toLowerCase()
 const egp = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
 
-const props = defineProps<{ productId: number }>()
+const props = defineProps<{ lendingProductId: number }>()
 const data = ref<LendingProductsPage | null>(null)
 const loading = ref(false)
 const busy = ref(false)
@@ -320,7 +320,7 @@ async function load() {
   loading.value = true
   try {
     data.value = await lendingProductsApi.get()
-    if (data.value.products.some((p) => p.productId === props.productId)) selectProduct(props.productId)
+    if (data.value.products.some((p) => p.productId === props.lendingProductId)) selectProduct(props.lendingProductId)
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err))
   } finally {

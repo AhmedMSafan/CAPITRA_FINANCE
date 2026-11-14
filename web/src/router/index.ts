@@ -290,7 +290,7 @@ const router = createRouter({
           path: 'admin/products/:productId(\\d+)/lending-terms',
           name: 'adm-product-lending-terms',
           component: () => import('@/modules/adm/pages/LendingProductTermsPage.vue'),
-          props: route => ({ productId: Number(route.params.productId) }),
+          props: route => ({ lendingProductId: Number(route.params.productId) }),
           meta: { moduleName: 'ADMINISTRATION', functionName: 'Lending Terms' }
         },
         { path: 'admin/products/lending', redirect: { name: 'adm-products' } },
