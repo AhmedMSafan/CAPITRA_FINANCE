@@ -261,9 +261,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+@import '@/modules/crm/components/crm360.css';
 .ln-goods { margin: 12px 0 0; padding: 10px 12px 12px; border: 1px solid var(--fin-border, #dbe3ea); border-radius: var(--fin-radius-sm, 8px); }
 .ln-goods legend { padding: 0 6px; font-weight: 700; font-size: 13px; }
-@import '@/modules/crm/components/crm360.css';
 .ln-filter { display: flex; gap: 10px; padding: 12px 4px; flex-wrap: wrap; }
 .ln-filter .fx-search { flex: 1; min-width: 220px; }
 .ln-row { cursor: pointer; }
