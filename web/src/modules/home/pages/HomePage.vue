@@ -93,9 +93,9 @@ const apps: App[] = [
     feats: [] },
   // Retail Lending (microfinance and consumer finance): its card opens the module's own cards, as Mortgage does
   { tier: 1, name: 'Retail Lending', short: 'Lending', descr: 'Microfinance and consumer finance loans: payout, repayments, end of day, write-off and recovery.',
-    to: '/retail-lending', color: '#7A3E9D', tint: '#F4ECF9',
+    to: '/lending', color: '#7A3E9D', tint: '#F4ECF9',
     icon: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/><circle cx="17" cy="15" r="1.5"/>',
-    feats: ['Loans', 'End of Day', 'Lending Parameters'] },
+    feats: ['Lending Workspace', 'Loans', 'End of Day', 'Lending Parameters'] },
   { tier: 'lending', name: 'Loans', short: 'Loans', descr: 'Microfinance and consumer finance loans: schedule, payout, payments, paying early, write-off and recovery.',
     to: '/lnd/loans', color: '#7A3E9D', tint: '#F4ECF9', icon: '<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/>', feats: [] },
   { tier: 'lending', name: 'End of Day', short: 'End of Day', descr: 'Each business day: interest accrual, late fees, non-accrual and suspense, and loans proposed for write-off.',
@@ -143,8 +143,8 @@ const apps: App[] = [
 ]
 const tier = (n: App['tier']) => apps.filter((a) => a.tier === n)
 const business = computed(() => tier(props.group ?? 1))
-// the live applications themselves: the Mortgage, Collection and Repayments and Retail Lending cards only open their cards
-const live = computed(() => apps.filter((a) => a.to && !['Mortgage', 'Collection and Repayments', 'Retail Lending'].includes(a.name)).length)
+// the live applications themselves: the Mortgage and Collection and Repayments cards only open their cards
+const live = computed(() => apps.filter((a) => a.to && !['Mortgage', 'Collection and Repayments'].includes(a.name)).length)
 
 const tasks = ref<number | null>(null)
 onMounted(async () => {

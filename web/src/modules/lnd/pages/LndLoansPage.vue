@@ -99,7 +99,7 @@ import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ApiError } from '@/shared/api/http'
 import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
@@ -114,6 +114,7 @@ const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFr
 const money = (n: number) => egp.format(n)
 
 const router = useRouter()
+const route = useRoute()
 const canEdit = hasPermission('LND.LOAN.EDIT')
 const loans = ref<LoanListItem[]>([])
 const loading = ref(false)
@@ -207,7 +208,18 @@ async function load() {
     loading.value = false
   }
 }
-onMounted(load)
+onMounted(async () => {
+  await load()
+  // from the Lending Customer Workspace: New Loan with the customer filled in
+  const id = Number(route.query.clientId)
+  if (route.query.new === '1' && canEdit && id) {
+    await openNew()
+    const label = String(route.query.client ?? '')
+    const [code, ...name] = label.split(' · ')
+    clients.value = [{ id, code: code ?? '', name: name.join(' · ') }]
+    form.clientId = id
+  }
+})
 </script>
 
 <style scoped>
