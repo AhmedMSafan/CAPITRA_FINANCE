@@ -12,7 +12,8 @@ namespace Capitra.Application.Modules.Lnd;
 /// <item>Early settlement = dues not paid (instalments due by today, with late fees) + interest to date + principal not yet due + the
 /// settlement fee on that principal. The interest of later periods is not owed. The loan closes.</item>
 /// <item>Part prepayment = interest to date + the principal paid early + the prepayment fee on it, with nothing due unpaid. What is left
-/// is rebuilt from today over the remaining instalments (lower instalment) or with the same instalment over fewer (shorter term); the
+/// is rebuilt from today over the remaining instalments (lower instalment) or with the same instalment over fewer (shorter term), on the
+/// instalments' own due dates; the
 /// first rebuilt instalment carries only the interest from today to its due date.</item>
 /// </list>
 /// </summary>
@@ -105,6 +106,8 @@ public static class LndPrepayment
             }
         }
         var lines = LndSchedule.BuildCount(balance, count, loan.RepaymentFrequencyCode, loan.InterestMethodCode, loan.AnnualRatePct, first).ToList();
+        // the due dates stay as they are (a schedule from the Finance Calculator may have month-end or other dates); only the amounts change
+        for (var k = 0; k < lines.Count; k++) lines[k] = lines[k] with { DueDate = rest[k].DueDate };
         var period = first.DayNumber - start.DayNumber;
         if (period > 0 && day > start)
             lines[0] = lines[0] with { Interest = R(lines[0].Interest * (first.DayNumber - day.DayNumber) / period) };

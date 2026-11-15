@@ -8,7 +8,7 @@
     </header>
     <p v-if="page.loanStatusCode === 'ACTIVE'" class="c3-note">
       <span class="fa fa-info-circle" aria-hidden="true"></span>
-      <template v-if="page.isWriteOffProposed">{{ tr('End of day proposed this loan for write-off.') }} </template>
+      <template v-if="page.isWriteOffProposed">{{ tr('End of day proposed this finance for write-off.') }} </template>
       {{ tr('Written off today:') }} <b>{{ money(page.figures.totalAmount) }}</b>
       ({{ tr('principal') }} {{ money(page.figures.principalAmount) }}, {{ tr('interest') }} {{ money(page.figures.interestAmount + page.figures.interestSuspenseAmount) }},
       {{ tr('late fees') }} {{ money(page.figures.lateFeeAmount + page.figures.lateFeeSuspenseAmount) }}, {{ tr('charges and insurance') }}
@@ -45,7 +45,7 @@
     </div>
 
     <Crm360Dialog v-model:visible="asking" :title="tr('Ask for Write-off')" icon="fa-ban" :busy="busy" :width="560">
-      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Another user approves it. Approving posts the GL and the loan becomes written off; the amounts are worked out again on that day.') }}</p>
+      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Another user approves it. Approving posts the GL and the finance becomes written off; the amounts are worked out again on that day.') }}</p>
       <label class="fc-field" :class="{ 'c3-bad': !!errors.reason }"><span>{{ tr('Reason') }}<b> *</b></span><textarea v-model="reason" class="fx-search" rows="3" maxlength="1000"></textarea></label>
       <template #footer>
         <button type="button" class="fx-btn" :disabled="busy" @click="asking = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
@@ -54,7 +54,7 @@
     </Crm360Dialog>
 
     <Crm360Dialog v-model:visible="deciding" :title="tr(decision === 'approve' ? 'Approve Write-off' : 'Reject Write-off')" :icon="decision === 'approve' ? 'fa-check-circle' : 'fa-times-circle'" :busy="busy" :width="520">
-      <p v-if="decision === 'approve'" class="c3-note"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ tr('Approving posts the GL today and the loan becomes written off. This cannot be undone here.') }}</p>
+      <p v-if="decision === 'approve'" class="c3-note"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ tr('Approving posts the GL today and the finance becomes written off. This cannot be undone here.') }}</p>
       <label class="fc-field" :class="{ 'c3-bad': !!errors.notes }"><span>{{ tr(decision === 'approve' ? 'Notes' : 'Reason') }}<b v-if="decision === 'reject'"> *</b></span><input v-model="notes" class="fx-search" maxlength="1000"></label>
       <template #footer>
         <button type="button" class="fx-btn" :disabled="busy" @click="deciding = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
@@ -125,7 +125,7 @@ async function call(action: () => Promise<WriteOffsPage>, done: string, close?: 
 }
 const ask = () => call(() => writeOffsApi.request(props.loanId, reason.value), 'Write-off sent. Another user must approve it.', () => (asking.value = false))
 const decide = () => decision.value === 'approve'
-  ? call(() => writeOffsApi.approve(props.loanId, decidingId.value, notes.value || null), 'Loan written off.', () => (deciding.value = false))
+  ? call(() => writeOffsApi.approve(props.loanId, decidingId.value, notes.value || null), 'Finance written off.', () => (deciding.value = false))
   : call(() => writeOffsApi.reject(props.loanId, decidingId.value, notes.value || null), 'Write-off rejected.', () => (deciding.value = false))
 
 async function load() {

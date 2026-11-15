@@ -26,6 +26,10 @@ public sealed class LndLoanController(LndLoanService loans) : ControllerBase
     [HasPermission(Permissions.Lnd.LoanEdit)]
     public Task<IReadOnlyList<LndOptionDto>> GoodsCategories(CancellationToken cancellationToken) => loans.GoodsCategoriesAsync(cancellationToken);
 
+    [HttpGet("scenarios")]
+    [HasPermission(Permissions.Lnd.LoanEdit)]
+    public Task<IReadOnlyList<LndOptionDto>> Scenarios(CancellationToken cancellationToken) => loans.ScenariosAsync(cancellationToken);
+
     [HttpGet("clients")]
     [HasPermission(Permissions.Lnd.LoanEdit)]
     public Task<IReadOnlyList<LndOptionDto>> Clients([FromQuery] string? q, CancellationToken cancellationToken) => loans.ClientsAsync(q, cancellationToken);

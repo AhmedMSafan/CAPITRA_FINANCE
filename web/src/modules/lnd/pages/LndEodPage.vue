@@ -13,7 +13,7 @@
         <h1>{{ tr('End of Day') }}</h1>
       </div>
       <div class="fx-actions">
-        <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('Loans') }}</RouterLink>
+        <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('Finances') }}</RouterLink>
         <button v-if="page?.canRun" type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="confirming = true">
           <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-play'" aria-hidden="true"></span>{{ tr('Run') }} {{ formatDate(page.nextDate!) }}
         </button>
@@ -37,7 +37,7 @@
         <table class="fx-table">
           <thead>
             <tr>
-              <th>{{ tr('Business day') }}</th><th>{{ tr('Status') }}</th><th class="ln-num">{{ tr('Loans') }}</th><th class="ln-num">{{ tr('Credit applied') }}</th>
+              <th>{{ tr('Business day') }}</th><th>{{ tr('Status') }}</th><th class="ln-num">{{ tr('Finances') }}</th><th class="ln-num">{{ tr('Credit applied') }}</th>
               <th class="ln-num">{{ tr('Interest accrued') }}</th><th class="ln-num">{{ tr('To suspense') }}</th><th class="ln-num">{{ tr('Late fees') }}</th>
               <th>{{ tr('Non-accrual / cured / write-off') }}</th><th>{{ tr('GL') }}</th><th>{{ tr('By') }}</th>
             </tr>
@@ -72,7 +72,7 @@
         <table class="fx-table">
           <thead>
             <tr>
-              <th>{{ tr('Loan') }}</th><th>{{ tr('Customer') }}</th><th>{{ tr('Product') }}</th><th class="ln-num">{{ tr('Days late') }}</th>
+              <th>{{ tr('Finance') }}</th><th>{{ tr('Customer') }}</th><th>{{ tr('Product') }}</th><th class="ln-num">{{ tr('Days late') }}</th>
               <th class="ln-num">{{ tr('Principal outstanding') }}</th><th class="ln-num">{{ tr('Interest suspense') }}</th><th class="ln-num">{{ tr('Late fee suspense') }}</th>
             </tr>
           </thead>
@@ -92,7 +92,7 @@
       <p>{{ tr('End of day will run for') }} <b>{{ page?.nextDate ? formatDate(page.nextDate) : '' }}</b>.</p>
       <ol class="ln-steps">
         <li>{{ tr('Customer credit balances pay what fell due, as credit balance receipts.') }}</li>
-        <li>{{ tr('Interest accrues, late fees are charged after the grace days, and late loans move into or out of non-accrual.') }}</li>
+        <li>{{ tr('Interest accrues, late fees are charged after the grace days, and late finances move into or out of non-accrual.') }}</li>
         <li>{{ tr('GL posts each product\'s rule LND_EOD.') }}</li>
       </ol>
       <p class="c3-muted">{{ tr('Days run in order and a day runs once. A day that failed can be run again after the cause is fixed.') }}</p>
@@ -127,7 +127,7 @@ const loading = ref(false)
 const busy = ref(false)
 const confirming = ref(false)
 const lists = computed(() => [
-  { title: 'Loans in non-accrual', help: 'Late at or beyond the non-accrual days: their interest and late fees go to suspense until they are no longer late.', rows: page.value?.nonAccrual ?? [] },
+  { title: 'Finances in non-accrual', help: 'Late at or beyond the non-accrual days: their interest and late fees go to suspense until they are no longer late.', rows: page.value?.nonAccrual ?? [] },
   { title: 'Proposed for write-off', help: 'Late at or beyond the write-off days: they wait for a write-off decision.', rows: page.value?.writeOffProposed ?? [] }
 ])
 

@@ -33,7 +33,7 @@
     </section>
 
     <section v-if="ws" class="lw-kpis">
-      <div class="fx-card lw-kpi"><small>{{ tr('Active loans') }}</small><b>{{ ws.summary.activeLoans }}</b></div>
+      <div class="fx-card lw-kpi"><small>{{ tr('Active finances') }}</small><b>{{ ws.summary.activeLoans }}</b></div>
       <div class="fx-card lw-kpi"><small>{{ tr('Principal outstanding') }}</small><b>{{ money(ws.summary.outstandingPrincipal) }}</b></div>
       <div class="fx-card lw-kpi" :class="{ 'lw-kpi--bad': ws.summary.overdueAmount > 0 }"><small>{{ tr('Overdue today') }}</small><b>{{ money(ws.summary.overdueAmount) }}</b></div>
       <div class="fx-card lw-kpi" :class="{ 'lw-kpi--bad': ws.summary.maxDaysLate > 0 }"><small>{{ tr('Days late') }}</small><b>{{ ws.summary.maxDaysLate }}</b></div>
@@ -41,9 +41,9 @@
     </section>
 
     <section v-if="canEdit" class="fc-quick fc-quick--3">
-      <RouterLink :to="{ name: 'lnd-loans', query: { new: '1', clientId: String(clientId), client: ws ? `${ws.clientNumber} · ${ws.clientName}` : '' } }" class="fx-card fc-quick-card fc-quick-card--calc">
+      <RouterLink :to="{ name: 'lnd-finance-new', query: { clientId: String(clientId) } }" class="fx-card fc-quick-card fc-quick-card--calc">
         <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-plus-circle"></span></span>
-        <span class="fc-quick-copy"><b>{{ tr('New Loan') }}</b><small>{{ tr('A microfinance or consumer finance loan for this customer, with its schedule') }}</small></span>
+        <span class="fc-quick-copy"><b>{{ tr('New Finance') }}</b><small>{{ tr('A consumer finance for this customer, from a saved calculator scenario') }}</small></span>
         <span class="fa fa-arrow-right" aria-hidden="true"></span>
       </RouterLink>
     </section>
@@ -61,7 +61,7 @@
         <table v-if="ws?.loans.length" class="fx-table">
           <thead>
             <tr>
-              <th>{{ tr('Loan') }}</th><th>{{ tr('Product') }}</th><th>{{ tr('Status') }}</th><th class="fx-r">{{ tr('Principal') }}</th>
+              <th>{{ tr('Finance') }}</th><th>{{ tr('Product') }}</th><th>{{ tr('Status') }}</th><th class="fx-r">{{ tr('Principal') }}</th>
               <th class="fx-r">{{ tr('Outstanding') }}</th><th class="fx-r">{{ tr('Overdue') }}</th><th class="fx-r">{{ tr('Days late') }}</th>
               <th>{{ tr('Next due') }}</th><th>{{ tr('Paid out') }}</th><th>{{ tr('Maturity') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
             </tr>
@@ -89,14 +89,14 @@
             </tr>
           </tbody>
         </table>
-        <div v-else class="fx-empty"><span class="fa fa-folder-open-o" aria-hidden="true"></span>{{ tr('No loans for this customer yet.') }}</div>
+        <div v-else class="fx-empty"><span class="fa fa-folder-open-o" aria-hidden="true"></span>{{ tr('No finances for this customer yet.') }}</div>
       </div>
 
       <div v-else class="fx-table-wrap">
         <table v-if="ws?.payments.length" class="fx-table">
           <thead>
             <tr>
-              <th>{{ tr('Receipt') }}</th><th>{{ tr('Loan') }}</th><th>{{ tr('Kind') }}</th><th>{{ tr('Value date') }}</th><th>{{ tr('Method') }}</th>
+              <th>{{ tr('Receipt') }}</th><th>{{ tr('Finance') }}</th><th>{{ tr('Kind') }}</th><th>{{ tr('Value date') }}</th><th>{{ tr('Method') }}</th>
               <th class="fx-r">{{ tr('Received') }}</th><th class="fx-r">{{ tr('Applied') }}</th><th>{{ tr('Status') }}</th>
             </tr>
           </thead>
@@ -144,7 +144,7 @@ const ws = ref<LwCustomerWorkspace | null>(null)
 const loading = ref(false)
 const tab = ref<'loans' | 'payments'>('loans')
 const tabs = computed(() => [
-  { key: 'loans' as const, label: 'Loans', count: ws.value?.loans.length ?? 0, icon: 'fa-list' },
+  { key: 'loans' as const, label: 'Finances', count: ws.value?.loans.length ?? 0, icon: 'fa-list' },
   { key: 'payments' as const, label: 'Payments', count: ws.value?.payments.length ?? 0, icon: 'fa-money' }
 ])
 

@@ -7,7 +7,7 @@
         <span class="fc-title-ic" aria-hidden="true"><span class="fa fa-users"></span></span>
         <div>
           <h1>{{ tr('Lending Workspace') }}</h1>
-          <p>{{ tr('Microfinance and consumer finance customers, their loans and payments.') }}</p>
+          <p>{{ tr('Microfinance and consumer finance customers, their finances and payments.') }}</p>
         </div>
       </div>
       <RouterLink to="/workflow/inbox" class="fc-inbox">
@@ -19,10 +19,10 @@
     </div>
 
     <nav class="lw-links" :aria-label="tr('Retail Lending')">
-      <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('All loans') }}</RouterLink>
+      <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('All finances') }}</RouterLink>
       <RouterLink :to="{ name: 'lnd-eod' }" class="fx-btn"><span class="fa fa-clock-o" aria-hidden="true"></span>{{ tr('End of Day') }}</RouterLink>
       <RouterLink :to="{ name: 'lnd-parameters' }" class="fx-btn"><span class="fa fa-sliders" aria-hidden="true"></span>{{ tr('Lending Parameters') }}</RouterLink>
-      <label class="lw-only"><input v-model="withLoans" type="checkbox" @change="page = 1"> {{ tr('Only customers with active loans') }}</label>
+      <label class="lw-only"><input v-model="withLoans" type="checkbox" @change="page = 1"> {{ tr('Only customers with active finances') }}</label>
     </nav>
 
     <div class="fx-card fx-card-pad fc-filters">
@@ -60,7 +60,7 @@
               <th>{{ tr('Customer Name') }}</th>
               <th>{{ tr('Client Type') }}</th>
               <th>{{ tr('Phone') }}</th>
-              <th class="fx-r">{{ tr('Active loans') }}</th>
+              <th class="fx-r">{{ tr('Active finances') }}</th>
               <th class="fx-r">{{ tr('Principal outstanding') }}</th>
               <th>{{ tr('Status') }}</th>
               <th class="fx-r">{{ tr('Actions') }}</th>
