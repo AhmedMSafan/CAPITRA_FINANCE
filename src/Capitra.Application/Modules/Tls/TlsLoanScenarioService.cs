@@ -72,8 +72,10 @@ public sealed class TlsLoanScenarioService(ICapitraDbContext db, IClock clock, I
         if (name.Length == 0) throw new BusinessRuleException("Scenario name is required before saving.");
         if (name.Length > 200) throw new BusinessRuleException("Scenario name can be at most 200 characters.");
         var id = request.ScenarioId is > 0 ? request.ScenarioId : null;
-        var upper = name.ToUpperInvariant();
-        if (await db.Set<TlsLoanScenario>().AnyAsync(x => x.CreatedBy == User && x.ScenarioName.ToUpper() == upper && x.ScenarioId != id, cancellationToken))
+        // names are unique per user, whatever the case (a user has few scenarios, so they are compared here)
+        var names = await db.Set<TlsLoanScenario>().AsNoTracking().Where(x => x.CreatedBy == User && x.ScenarioId != id)
+            .Select(x => x.ScenarioName).ToListAsync(cancellationToken);
+        if (names.Any(x => string.Equals(x, name, StringComparison.OrdinalIgnoreCase)))
             throw new BusinessRuleException($"Scenario name '{name}' already exists.");
         if (request.RateIndexId is { } rateIndexId && !await db.Set<AdmRateIndex>().AnyAsync(x => x.RateIndexId == rateIndexId, cancellationToken))
             throw new BusinessRuleException($"Rate index {rateIndexId} was not found.");
