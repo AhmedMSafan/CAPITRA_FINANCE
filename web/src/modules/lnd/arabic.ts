@@ -484,6 +484,7 @@ export const LND_AR: Record<string, string> = {
   'Financed': 'المبلغ الممول',
   'Price less down payment.': 'السعر مطروحًا منه المقدم.',
   'Goods Categories': 'فئات السلع',
+  'Consumer Finance Goods Categories': 'فئات سلع التمويل الاستهلاكي',
   'What consumer finance finances: electronics, mobile phones, appliances, furniture and more.': 'ما يموله التمويل الاستهلاكي: الأجهزة الإلكترونية والهواتف والأجهزة المنزلية والأثاث وغيرها.',
   'Electronics & electrical devices': 'الأجهزة الإلكترونية والكهربائية',
   'Mobile phones': 'الهواتف المحمولة',

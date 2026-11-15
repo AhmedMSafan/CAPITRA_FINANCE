@@ -76,7 +76,8 @@ const sections: SetupSection[] = [
     items: [
       { title: 'Product Catalog', description: 'Maintain product catalog and product definitions.', icon: 'pi pi-box', route: '/admin/products', perm: 'ADM.PRODUCT.VIEW' },
       { title: 'Product Event Rules', description: 'Define each product\'s rules, charges and GL entries.', icon: 'pi pi-sitemap', route: '/admin/product-event-rules', perm: 'ADM.PRODUCT.VIEW' },
-      { title: 'Product Parameters', description: 'Maintain product-level configuration and defaults.', icon: 'pi pi-sliders-h', route: '/admin/products/mortgage-portfolio-purchasing', perm: 'ADM.PRODUCT.VIEW' }
+      { title: 'Product Parameters', description: 'Maintain product-level configuration and defaults.', icon: 'pi pi-sliders-h', route: '/admin/products/mortgage-portfolio-purchasing', perm: 'ADM.PRODUCT.VIEW' },
+      { title: 'Consumer Finance Goods Categories', description: 'What consumer finance finances: electronics, mobile phones, appliances, furniture and more.', icon: 'pi pi-shopping-cart', route: '/admin/reference-data/goods-category' }
     ]
   },
   {
@@ -84,7 +85,6 @@ const sections: SetupSection[] = [
     items: [
       { title: 'Charge Components', description: 'Maintain reusable charge components.', icon: 'pi pi-wallet', route: '/admin/charges', perm: 'ADM.PRODUCT.VIEW' },
       { title: 'Charge Component Types', description: 'Maintain charge component classifications.', icon: 'pi pi-tags', route: '/admin/reference-data/charge-type' },
-      { title: 'Goods Categories', description: 'What consumer finance finances: electronics, mobile phones, appliances, furniture and more.', icon: 'pi pi-shopping-cart', route: '/admin/reference-data/goods-category' },
       { title: 'Rate Maintenance', description: 'Maintain rate indexes and the rate of each period.', icon: 'pi pi-percentage', route: '/admin/rate-indexes', perm: 'ADM.PRODUCT.VIEW' },
       { title: 'Charge Parameters', description: 'Configure charge defaults and calculation settings.', icon: 'pi pi-sliders-h' }
     ]
