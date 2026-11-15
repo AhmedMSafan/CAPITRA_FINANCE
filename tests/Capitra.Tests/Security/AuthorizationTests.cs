@@ -75,6 +75,7 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
     [InlineData("GET", "/api/lnd/loans/1/receipts/prepayment-quote", Permissions.Lnd.ParametersView)]
     [InlineData("GET", "/api/lnd/customers", Permissions.Lnd.ParametersView)]
     [InlineData("GET", "/api/lnd/customers/1", Permissions.Lnd.ParametersView)]
+    [InlineData("GET", "/api/lnd/loans/goods-categories", Permissions.Lnd.LoanView)]
     [InlineData("GET", "/api/lnd/loans/1/receipts", Permissions.Lnd.ParametersView)]
     [InlineData("POST", "/api/lnd/loans/1/disbursements", Permissions.Lnd.LoanView)]
     [InlineData("POST", "/api/lnd/loans/1/disbursements/1/pay", Permissions.Lnd.LoanEdit)]

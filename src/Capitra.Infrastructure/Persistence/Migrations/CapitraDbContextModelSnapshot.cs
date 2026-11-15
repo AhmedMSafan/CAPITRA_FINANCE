@@ -27366,6 +27366,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("DISBURSEMENT_DATE");
 
+                    b.Property<decimal?>("DownPaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DOWN_PAYMENT_AMOUNT");
+
                     b.Property<decimal>("EarlySettlementFeePct")
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
@@ -27374,6 +27379,26 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<DateOnly>("FirstDueDate")
                         .HasColumnType("date")
                         .HasColumnName("FIRST_DUE_DATE");
+
+                    b.Property<string>("GoodsBrandModel")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("GOODS_BRAND_MODEL");
+
+                    b.Property<string>("GoodsCategoryCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("GOODS_CATEGORY_CODE");
+
+                    b.Property<string>("GoodsDescription")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("GOODS_DESCRIPTION");
+
+                    b.Property<decimal?>("GoodsPriceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("GOODS_PRICE_AMOUNT");
 
                     b.Property<decimal>("InstallmentAmount")
                         .HasPrecision(18, 2)
@@ -27462,6 +27487,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("MATURITY_DATE");
 
+                    b.Property<string>("MerchantName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("MERCHANT_NAME");
+
                     b.Property<string>("Notes")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
@@ -27537,6 +27567,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ClientId", "StatusCode")
                         .HasDatabaseName("IX_LND_LOANS_CLIENT_ID_STATUS_CODE");
+
+                    b.HasIndex("GoodsCategoryCode")
+                        .HasDatabaseName("IX_LND_LOANS_GOODS_CATEGORY_CODE");
 
                     b.HasIndex("LoanNumber")
                         .IsUnique()
@@ -28219,6 +28252,68 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_LND_WRITE_OFFS_STATUS_CODE");
 
                     b.ToTable("LND_WRITE_OFFS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLkpGoodsCategory", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CODE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("DISPLAY_ORDER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("Code")
+                        .HasName("PK_LND_LKP_GOODS_CATEGORIES");
+
+                    b.ToTable("LND_LKP_GOODS_CATEGORIES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
@@ -45102,6 +45197,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_LND_LOANS_CRM_CLIENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Lnd.LndLkpGoodsCategory", null)
+                        .WithMany()
+                        .HasForeignKey("GoodsCategoryCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_LND_LOANS_LND_LKP_GOODS_CATEGORIES");
 
                     b.HasOne("Capitra.Domain.Modules.Adm.AdmProduct", null)
                         .WithMany()

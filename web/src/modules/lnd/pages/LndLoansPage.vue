@@ -58,11 +58,28 @@
           <small v-if="!products.length" class="c3-muted">{{ tr('No lending product has approved terms in force.') }}</small>
         </label>
         <label class="fc-field"><span>{{ tr('Notes') }}</span><input v-model="form.notes" class="fx-search" maxlength="2000"></label>
-        <label class="fc-field" :class="bad('principalAmount')"><span>{{ tr('Amount') }} ({{ tr('EGP') }})<b> *</b></span><input v-model.number="form.principalAmount" type="number" min="0" step="any" class="fx-search"></label>
+        <label class="fc-field" :class="bad('principalAmount')"><span>{{ tr('Amount') }} ({{ tr('EGP') }})<b> *</b></span>
+          <input v-model.number="form.principalAmount" type="number" min="0" step="any" class="fx-search" :readonly="isCf">
+          <small v-if="isCf" class="c3-muted">{{ tr('Price less down payment.') }}</small>
+        </label>
         <label class="fc-field" :class="bad('termMonths')"><span>{{ tr('Term') }} ({{ tr('months') }})<b> *</b></span><input v-model.number="form.termMonths" type="number" min="1" class="fx-search"></label>
         <label class="fc-field" :class="bad('disbursementDate')"><span>{{ tr('Disbursement date') }}</span><input v-model="form.disbursementDate" type="date" class="fx-search"></label>
         <label class="fc-field" :class="bad('firstDueDate')"><span>{{ tr('First instalment') }}</span><input v-model="form.firstDueDate" type="date" class="fx-search"><small class="c3-muted">{{ tr('Blank: one period after the disbursement.') }}</small></label>
       </div>
+
+      <fieldset v-if="isCf" class="ln-goods">
+        <legend><span class="fa fa-shopping-cart" aria-hidden="true"></span> {{ tr('Financed item') }}</legend>
+        <div class="c3-grid c3-grid--3">
+          <label class="fc-field" :class="bad('goodsCategoryCode')"><span>{{ tr('Category') }}<b> *</b></span>
+            <select v-model="form.goodsCategoryCode" class="fx-select"><option v-for="g in goods" :key="g.code" :value="g.code">{{ tr(g.name) }}</option></select>
+          </label>
+          <label class="fc-field" :class="bad('goodsDescription')"><span>{{ tr('Item description') }}<b> *</b></span><input v-model="form.goodsDescription" class="fx-search" maxlength="300" :placeholder="tr('e.g. Samsung 55 inch TV')"></label>
+          <label class="fc-field" :class="bad('goodsBrandModel')"><span>{{ tr('Brand / model') }}</span><input v-model="form.goodsBrandModel" class="fx-search" maxlength="200"></label>
+          <label class="fc-field" :class="bad('merchantName')"><span>{{ tr('Merchant') }}</span><input v-model="form.merchantName" class="fx-search" maxlength="200"></label>
+          <label class="fc-field" :class="bad('goodsPriceAmount')"><span>{{ tr('Item price') }} ({{ tr('EGP') }})<b> *</b></span><input v-model.number="form.goodsPriceAmount" type="number" min="0" step="any" class="fx-search"></label>
+          <label class="fc-field" :class="bad('downPaymentAmount')"><span>{{ tr('Down payment') }} ({{ tr('EGP') }})</span><input v-model.number="form.downPaymentAmount" type="number" min="0" step="any" class="fx-search"></label>
+        </div>
+      </fieldset>
 
       <div v-if="preview" class="ln-preview">
         <div class="ln-facts">
@@ -135,8 +152,20 @@ const clientSearch = ref('')
 const preview = ref<LoanPreview | null>(null)
 const errors = ref<Record<string, string[]>>({})
 const bad = (f: string) => ({ 'c3-bad': !!errors.value[f] })
-const blank = (): LoanRequest => ({ clientId: null, productId: null, principalAmount: null, termMonths: null, disbursementDate: todayInCairo(), firstDueDate: null, notes: null })
+const blank = (): LoanRequest => ({
+  clientId: null, productId: null, principalAmount: null, termMonths: null, disbursementDate: todayInCairo(), firstDueDate: null, notes: null,
+  goodsCategoryCode: null, goodsDescription: null, goodsBrandModel: null, merchantName: null, goodsPriceAmount: null, downPaymentAmount: null
+})
 const form = reactive<LoanRequest>(blank())
+const goods = ref<LoanOption[]>([])
+// consumer finance: the financed item, and the amount is the price less the down payment
+const isCf = computed(() => products.value.find((p) => p.id === form.productId)?.licenceCode === 'CF')
+watch(() => [isCf.value, form.goodsPriceAmount, form.downPaymentAmount], () => {
+  if (!isCf.value) return
+  const price = Number(form.goodsPriceAmount) || 0
+  const down = Number(form.downPaymentAmount) || 0
+  form.principalAmount = price > 0 ? Math.round((price - down) * 100) / 100 : null
+})
 // any change of the request makes the shown schedule stale
 watch(() => ({ ...form, notes: null }), () => (preview.value = null), { deep: true })
 
@@ -149,6 +178,7 @@ async function openNew() {
   creating.value = true
   try {
     products.value = await loansApi.products()
+    goods.value = await loansApi.goodsCategories()
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err))
   }
@@ -167,7 +197,15 @@ function findClients() {
   }, 300)
 }
 
-const body = (): LoanRequest => ({ ...form, firstDueDate: form.firstDueDate || null, disbursementDate: form.disbursementDate || null, notes: form.notes || null })
+const body = (): LoanRequest => {
+  const cf = isCf.value
+  return {
+    ...form, firstDueDate: form.firstDueDate || null, disbursementDate: form.disbursementDate || null, notes: form.notes || null,
+    goodsCategoryCode: cf ? form.goodsCategoryCode : null, goodsDescription: cf ? form.goodsDescription || null : null,
+    goodsBrandModel: cf ? form.goodsBrandModel || null : null, merchantName: cf ? form.merchantName || null : null,
+    goodsPriceAmount: cf ? form.goodsPriceAmount : null, downPaymentAmount: cf ? form.downPaymentAmount || 0 : null
+  }
+}
 
 async function call<T>(action: () => Promise<T>): Promise<T | null> {
   busy.value = true
@@ -223,6 +261,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.ln-goods { margin: 12px 0 0; padding: 10px 12px 12px; border: 1px solid var(--fin-border, #dbe3ea); border-radius: var(--fin-radius-sm, 8px); }
+.ln-goods legend { padding: 0 6px; font-weight: 700; font-size: 13px; }
 @import '@/modules/crm/components/crm360.css';
 .ln-filter { display: flex; gap: 10px; padding: 12px 4px; flex-wrap: wrap; }
 .ln-filter .fx-search { flex: 1; min-width: 220px; }

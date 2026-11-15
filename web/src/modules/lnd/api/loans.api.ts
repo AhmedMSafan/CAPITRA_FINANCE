@@ -1,6 +1,6 @@
 import { http } from '@/shared/api/http'
 
-export type LoanOption = { id: number; code: string; name: string }
+export type LoanOption = { id: number; code: string; name: string; licenceCode?: string | null }
 
 export type LoanRequest = {
   clientId: number | null
@@ -10,6 +10,13 @@ export type LoanRequest = {
   disbursementDate: string | null
   firstDueDate: string | null
   notes: string | null
+  // consumer finance: the financed item
+  goodsCategoryCode: string | null
+  goodsDescription: string | null
+  goodsBrandModel: string | null
+  merchantName: string | null
+  goodsPriceAmount: number | null
+  downPaymentAmount: number | null
 }
 
 export type ScheduleLine = { installmentNo: number; dueDate: string; openingPrincipal: number; principal: number; interest: number; total: number; closingPrincipal: number }
@@ -41,6 +48,7 @@ export type Loan = {
   installments: Installment[]
   history: { fromStatusCode: string | null; toStatusCode: string; reason: string | null; by: string; at: string }[]
   events: { eventCode: string; eventDate: string; eventAmount: number; glTranSetId: string | null; notes: string | null; by: string; at: string }[]
+  goods: { categoryCode: string; categoryName: string; description: string; brandModel: string | null; merchantName: string | null; priceAmount: number; downPaymentAmount: number } | null
 }
 
 export type PayingAccount = { accountId: number; bankName: string; accountRef: string; accountNo: string; accountTypeCode: string; glAccountCode: string | null }
@@ -74,6 +82,7 @@ export const loansApi = {
   list: () => http.get<LoanListItem[]>(API),
   get: (id: number) => http.get<Loan>(`${API}/${id}`),
   products: () => http.get<LoanOption[]>(`${API}/products`),
+  goodsCategories: () => http.get<LoanOption[]>(`${API}/goods-categories`),
   clients: (q: string) => http.get<LoanOption[]>(`${API}/clients?q=${encodeURIComponent(q)}`),
   preview: (body: LoanRequest) => http.post<LoanPreview>(`${API}/preview`, body),
   create: (body: LoanRequest) => http.post<Loan>(API, body),

@@ -98,6 +98,22 @@ public class LndLoan : AuditableEntity
     /// <summary>Fee on the principal settled by a full early settlement, in % (0 for none).</summary>
     public decimal EarlySettlementFeePct { get; set; }
 
+    /// <summary>Consumer finance: the financed item's category (LND_LKP_GOODS_CATEGORIES).</summary>
+    public string? GoodsCategoryCode { get; set; }
+
+    /// <summary>Consumer finance: what is financed, e.g. "Samsung 55 inch TV".</summary>
+    public string? GoodsDescription { get; set; }
+
+    public string? GoodsBrandModel { get; set; }
+
+    /// <summary>The shop or seller, as written for now (no merchant list yet).</summary>
+    public string? MerchantName { get; set; }
+
+    /// <summary>Consumer finance: the item's price; the loan amount is the price less the down payment.</summary>
+    public decimal? GoodsPriceAmount { get; set; }
+
+    public decimal? DownPaymentAmount { get; set; }
+
     public string? Notes { get; set; }
 }
 
