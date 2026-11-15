@@ -31,5 +31,11 @@ public static class LookupRegistry
             LookupDefinition.For<AdmLkpBusinessLine>("business-line", "GL", "Business Lines", "") with { NameMaxLength = 240 },
             // Classes of the Admin Setup charges (FINOVA_FINANCEING Charge Component Types).
             LookupDefinition.For<AdmLkpChargeType>("charge-type", "ADM", "Charge Types", "") with { NameMaxLength = 100, ShowDescription = true },
+            // What consumer finance finances: the financed item's category on a consumer finance loan.
+            LookupDefinition.For<Capitra.Domain.Modules.Lnd.LndLkpGoodsCategory>("goods-category", "LND", "Goods Categories", "") with
+            {
+                NameMaxLength = 100,
+                ShowDescription = true,
+            },
         }.ToDictionary(x => x.LookupName, StringComparer.OrdinalIgnoreCase);
 }

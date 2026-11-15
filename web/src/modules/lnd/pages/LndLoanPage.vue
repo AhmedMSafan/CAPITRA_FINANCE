@@ -22,6 +22,19 @@
         <div v-for="f in facts" :key="f[0]"><small>{{ tr(f[0]) }}</small><b>{{ f[1] }}</b></div>
       </section>
 
+      <section v-if="loan.goods" class="fx-card">
+        <header class="c3-panel-head"><h3><span class="fa fa-shopping-cart" aria-hidden="true"></span>{{ tr('Financed item') }}</h3></header>
+        <div class="ln-facts">
+          <div><small>{{ tr('Category') }}</small><b>{{ tr(loan.goods.categoryName) }}</b></div>
+          <div><small>{{ tr('Item description') }}</small><b>{{ loan.goods.description }}</b></div>
+          <div><small>{{ tr('Brand / model') }}</small><b>{{ loan.goods.brandModel || '—' }}</b></div>
+          <div><small>{{ tr('Merchant') }}</small><b>{{ loan.goods.merchantName || '—' }}</b></div>
+          <div><small>{{ tr('Item price') }}</small><b>{{ money(loan.goods.priceAmount) }}</b></div>
+          <div><small>{{ tr('Down payment') }}</small><b>{{ money(loan.goods.downPaymentAmount) }}</b></div>
+          <div><small>{{ tr('Financed') }}</small><b>{{ money(loan.principalAmount) }}</b></div>
+        </div>
+      </section>
+
       <section v-if="payouts" class="fx-card">
         <header class="c3-panel-head lp-head">
           <h3><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Payout') }}</h3>

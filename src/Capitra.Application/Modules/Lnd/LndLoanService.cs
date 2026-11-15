@@ -8,7 +8,13 @@ using PS = Capitra.Application.Modules.Lnd.LndProductTerms.Statuses;
 
 namespace Capitra.Application.Modules.Lnd;
 
-public sealed record LndLoanRequestDto(long? ClientId, long? ProductId, decimal? PrincipalAmount, int? TermMonths, DateOnly? DisbursementDate, DateOnly? FirstDueDate, string? Notes);
+public sealed record LndLoanRequestDto(long? ClientId, long? ProductId, decimal? PrincipalAmount, int? TermMonths, DateOnly? DisbursementDate, DateOnly? FirstDueDate, string? Notes,
+    string? GoodsCategoryCode = null, string? GoodsDescription = null, string? GoodsBrandModel = null, string? MerchantName = null,
+    decimal? GoodsPriceAmount = null, decimal? DownPaymentAmount = null);
+
+/// <summary>The financed item of a consumer finance loan.</summary>
+public sealed record LndGoodsDto(string CategoryCode, string CategoryName, string Description, string? BrandModel, string? MerchantName,
+    decimal PriceAmount, decimal DownPaymentAmount);
 
 public sealed record LndScheduleLineDto(int InstallmentNo, DateOnly DueDate, decimal OpeningPrincipal, decimal Principal, decimal Interest, decimal Total, decimal ClosingPrincipal);
 
@@ -37,9 +43,10 @@ public sealed record LndLoanDto(
     decimal? LateFeeRatePct, decimal? LateFeeFlatAmount, string LateFeeBaseCode, IReadOnlyList<string> PaymentOrder, bool IsInsuranceRequired,
     bool IsPrepaymentAllowed, string PrepaymentRecalcCode, decimal PrepaymentFeePct, decimal EarlySettlementFeePct,
     string? Notes, string CreatedBy, DateTime CreatedAt, int RowVersion,
-    IReadOnlyList<LndInstallmentDto> Installments, IReadOnlyList<LndLoanStatusDto> History, IReadOnlyList<LndLoanEventDto> Events);
+    IReadOnlyList<LndInstallmentDto> Installments, IReadOnlyList<LndLoanStatusDto> History, IReadOnlyList<LndLoanEventDto> Events,
+    LndGoodsDto? Goods = null);
 
-public sealed record LndOptionDto(long Id, string Code, string Name);
+public sealed record LndOptionDto(long Id, string Code, string Name, string? LicenceCode = null);
 
 public sealed record LndLoanStatusChangeDto(string? Reason, int? RowVersion);
 
@@ -95,7 +102,15 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             .ToListAsync(cancellationToken);
         var today = Today;
         return [.. products.Where(p => LndProductTerms.InForce(versions, p.ProductId, today) is not null)
-            .Select(p => new LndOptionDto(p.ProductId, p.ProductCode, p.ProductNameEn))];
+            .Select(p => new LndOptionDto(p.ProductId, p.ProductCode, p.ProductNameEn, LndProductTerms.Licences[p.BusinessLineCode]))];
+    }
+
+    /// <summary>The active goods categories, for the financed item of a consumer finance loan.</summary>
+    public async Task<IReadOnlyList<LndOptionDto>> GoodsCategoriesAsync(CancellationToken cancellationToken)
+    {
+        var rows = await db.Set<LndLkpGoodsCategory>().AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.DisplayOrder).ThenBy(x => x.NameEn)
+            .ToListAsync(cancellationToken);
+        return [.. rows.Select(x => new LndOptionDto(0, x.Code, x.NameEn))];
     }
 
     /// <summary>Customers whose name, number or national ID contains the text (the first 20).</summary>
@@ -138,6 +153,15 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             PrepaymentRecalcCode = version.PrepaymentRecalcCode, PrepaymentFeePct = version.PrepaymentFeePct, EarlySettlementFeePct = version.EarlySettlementFeePct,
             Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim(),
         };
+        if (loan.LicenceCode == "CF")
+        {
+            loan.GoodsCategoryCode = dto.GoodsCategoryCode!.Trim().ToUpperInvariant();
+            loan.GoodsDescription = dto.GoodsDescription!.Trim();
+            loan.GoodsBrandModel = Blank(dto.GoodsBrandModel);
+            loan.MerchantName = Blank(dto.MerchantName);
+            loan.GoodsPriceAmount = Math.Round(dto.GoodsPriceAmount!.Value, 2);
+            loan.DownPaymentAmount = Math.Round(dto.DownPaymentAmount ?? 0, 2);
+        }
         db.Set<LndLoan>().Add(loan);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -175,7 +199,10 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
                     i.ChargesDueAmount, i.InsuranceDueAmount, i.LateFeeDueAmount, due, paid, i.ClosingPrincipalAmount, i.StatusCode);
             })],
             [.. history.Select(h => new LndLoanStatusDto(h.FromStatusCode, h.ToStatusCode, h.Reason, h.CreatedBy, h.CreatedAt))],
-            [.. events.Select(v => new LndLoanEventDto(v.EventCode, v.EventDate, v.EventAmount, v.GlTranSetId, v.Notes, v.CreatedBy, v.CreatedAt))]);
+            [.. events.Select(v => new LndLoanEventDto(v.EventCode, v.EventDate, v.EventAmount, v.GlTranSetId, v.Notes, v.CreatedBy, v.CreatedAt))],
+            l.GoodsCategoryCode is null ? null : new LndGoodsDto(l.GoodsCategoryCode,
+                await db.Set<LndLkpGoodsCategory>().AsNoTracking().Where(x => x.Code == l.GoodsCategoryCode).Select(x => x.NameEn).SingleOrDefaultAsync(cancellationToken) ?? l.GoodsCategoryCode,
+                l.GoodsDescription ?? "", l.GoodsBrandModel, l.MerchantName, l.GoodsPriceAmount ?? 0, l.DownPaymentAmount ?? 0));
     }
 
     /// <summary>Cancels a loan that has not been paid out. The schedule is kept as it was, for the record.</summary>
@@ -221,12 +248,41 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             ?? throw BusinessValidationException.For("productId", "The product has no approved terms in force on the disbursement date.");
 
         var amount = Math.Round(dto.PrincipalAmount!.Value, 2);
+        if (LndProductTerms.Licences[product.BusinessLineCode] == "CF")
+        {
+            var categories = await db.Set<LndLkpGoodsCategory>().AsNoTracking().Where(x => x.IsActive).Select(x => x.Code).ToListAsync(cancellationToken);
+            e = CheckGoods(dto, amount, categories);
+            if (e.Count > 0) throw new BusinessValidationException(e);
+        }
         var term = dto.TermMonths!.Value;
         var first = dto.FirstDueDate ?? LndSchedule.DefaultFirstDueDate(disbursement, version.RepaymentFrequencyCode);
         e = CheckTerms(version, amount, term, disbursement, first);
         if (e.Count > 0) throw new BusinessValidationException(e);
         return (product, version, amount, term, disbursement, first);
     }
+
+    /// <summary>
+    /// The financed item of a consumer finance loan: an active category, a description, the price, and a down payment below it; the
+    /// loan amount is the price less the down payment.
+    /// </summary>
+    public static Dictionary<string, string[]> CheckGoods(LndLoanRequestDto dto, decimal amount, IReadOnlyCollection<string> activeCategories)
+    {
+        var e = new Dictionary<string, string[]>();
+        if (string.IsNullOrWhiteSpace(dto.GoodsCategoryCode)) e["goodsCategoryCode"] = ["Choose what is financed."];
+        else if (!activeCategories.Contains(dto.GoodsCategoryCode.Trim().ToUpperInvariant())) e["goodsCategoryCode"] = ["The goods category is not active."];
+        if (string.IsNullOrWhiteSpace(dto.GoodsDescription)) e["goodsDescription"] = ["Describe the financed item."];
+        else if (dto.GoodsDescription.Trim().Length > 300) e["goodsDescription"] = ["The description is longer than 300 characters."];
+        if (dto.GoodsBrandModel?.Trim().Length > 200) e["goodsBrandModel"] = ["The brand / model is longer than 200 characters."];
+        if (dto.MerchantName?.Trim().Length > 200) e["merchantName"] = ["The merchant is longer than 200 characters."];
+        var down = Math.Round(dto.DownPaymentAmount ?? 0, 2);
+        if (dto.GoodsPriceAmount is not > 0) e["goodsPriceAmount"] = ["Enter the item's price."];
+        else if (down < 0 || down >= dto.GoodsPriceAmount) e["downPaymentAmount"] = ["The down payment must be from 0 to less than the price."];
+        else if (amount != Math.Round(dto.GoodsPriceAmount.Value, 2) - down)
+            e["principalAmount"] = [$"The amount must be the price less the down payment ({Math.Round(dto.GoodsPriceAmount.Value, 2) - down:#,0.00})."];
+        return e;
+    }
+
+    private static string? Blank(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
     /// <summary>The amount and term must be within the version's ranges; the first instalment falls after the disbursement, within 3 months.</summary>
     public static Dictionary<string, string[]> CheckTerms(LndProductVersion v, decimal amount, int term, DateOnly disbursement, DateOnly first)
