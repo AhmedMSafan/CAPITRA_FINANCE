@@ -9,6 +9,7 @@ import { fctRoutes } from '@/modules/fct/routes'
 import { collectionRoutes } from '@/modules/collection/routes'
 import { trsRoutes } from '@/modules/trs/routes'
 import { lndRoutes } from '@/modules/lnd/routes'
+import { tlsRoutes } from '@/modules/tls/routes'
 
 // Every page lives under AppLayout and needs a signed-in user, except the login page.
 // Module routes are added here as each module is built (src/modules/{module}).
@@ -65,6 +66,8 @@ const router = createRouter({
         ...trsRoutes,
         // Retail Lending: microfinance and consumer finance.
         ...lndRoutes,
+        // Tools: the Loan Calculator.
+        ...tlsRoutes,
         // General ledger (APEX App 120).
         {
           path: 'gl',
