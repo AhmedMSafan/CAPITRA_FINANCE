@@ -17,6 +17,8 @@ export type LoanRequest = {
   merchantName: string | null
   goodsPriceAmount: number | null
   downPaymentAmount: number | null
+  // New Finance: a saved scenario of the Finance Calculator gives the amount, dates, rate and schedule
+  scenarioId?: number | null
 }
 
 export type ScheduleLine = { installmentNo: number; dueDate: string; openingPrincipal: number; principal: number; interest: number; total: number; closingPrincipal: number }
@@ -83,6 +85,7 @@ export const loansApi = {
   get: (id: number) => http.get<Loan>(`${API}/${id}`),
   products: () => http.get<LoanOption[]>(`${API}/products`),
   goodsCategories: () => http.get<LoanOption[]>(`${API}/goods-categories`),
+  scenarios: () => http.get<LoanOption[]>(`${API}/scenarios`),
   clients: (q: string) => http.get<LoanOption[]>(`${API}/clients?q=${encodeURIComponent(q)}`),
   preview: (body: LoanRequest) => http.post<LoanPreview>(`${API}/preview`, body),
   create: (body: LoanRequest) => http.post<Loan>(API, body),

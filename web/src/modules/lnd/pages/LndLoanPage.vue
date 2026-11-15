@@ -5,18 +5,18 @@
       <div>
         <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
           <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span>
-          <RouterLink :to="{ name: 'lnd-loans' }">{{ tr('Loans') }}</RouterLink><span aria-hidden="true">›</span>
+          <RouterLink :to="{ name: 'lnd-loans' }">{{ tr('Finances') }}</RouterLink><span aria-hidden="true">›</span>
           <b>{{ loan?.loanNumber ?? '' }}</b>
         </nav>
-        <h1>{{ loan?.loanNumber ?? tr('Loan') }} <span v-if="loan" class="fx-chip" :class="CHIP[loan.statusCode] ?? 'fx-chip--teal'">{{ tr(STATUS[loan.statusCode] ?? loan.statusCode) }}</span></h1>
+        <h1>{{ loan?.loanNumber ?? tr('Finance') }} <span v-if="loan" class="fx-chip" :class="CHIP[loan.statusCode] ?? 'fx-chip--teal'">{{ tr(STATUS[loan.statusCode] ?? loan.statusCode) }}</span></h1>
       </div>
       <div class="fx-actions">
-        <button v-if="loan && canEdit && loan.statusCode === 'APPROVED'" type="button" class="fx-btn" @click="cancelling = true"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel loan') }}</button>
-        <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Loans') }}</RouterLink>
+        <button v-if="loan && canEdit && loan.statusCode === 'APPROVED'" type="button" class="fx-btn" @click="cancelling = true"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel finance') }}</button>
+        <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Finances') }}</RouterLink>
       </div>
     </div>
 
-    <div v-if="!loan" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading loan...') }}</div>
+    <div v-if="!loan" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading finance...') }}</div>
     <template v-else>
       <section class="fx-card ln-facts">
         <div v-for="f in facts" :key="f[0]"><small>{{ tr(f[0]) }}</small><b>{{ f[1] }}</b></div>
@@ -135,7 +135,7 @@
       </section>
 
       <section v-if="loan.events.length" class="fx-card">
-        <header class="c3-panel-head"><h3><span class="fa fa-book" aria-hidden="true"></span>{{ tr('Loan events') }}</h3></header>
+        <header class="c3-panel-head"><h3><span class="fa fa-book" aria-hidden="true"></span>{{ tr('Finance events') }}</h3></header>
         <div class="fx-table-wrap">
           <table class="fx-table">
             <thead><tr><th>{{ tr('Date') }}</th><th>{{ tr('Event') }}</th><th class="ln-num">{{ tr('Amount') }}</th><th>{{ tr('GL') }}</th><th>{{ tr('Notes') }}</th></tr></thead>
@@ -166,7 +166,7 @@
     </template>
 
     <Crm360Dialog v-model:visible="requesting" :title="tr('Ask for Payout')" :subtitle="loan?.loanNumber ?? ''" icon="fa-paper-plane" :busy="busy" :width="640">
-      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Another user pays it. Paying posts the GL and makes the loan active.') }}</p>
+      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Another user pays it. Paying posts the GL and makes the finance active.') }}</p>
       <div class="c3-grid c3-grid--2">
         <label class="fc-field c3-wide" :class="pbad('paidFromAccountId')"><span>{{ tr('Paid from') }}<b> *</b></span>
           <select v-model="payout.paidFromAccountId" class="fx-select">
@@ -185,8 +185,8 @@
       </template>
     </Crm360Dialog>
 
-    <Crm360Dialog v-model:visible="deciding" :title="tr(decision === 'pay' ? 'Pay Loan' : 'Reject Payout')" :subtitle="loan?.loanNumber ?? ''" :icon="decision === 'pay' ? 'fa-check-circle' : 'fa-times-circle'" :busy="busy" :width="520">
-      <p v-if="decision === 'pay'" class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Paying posts the GL today and makes the loan active. A payout on another day than planned rebuilds the schedule from today.') }}</p>
+    <Crm360Dialog v-model:visible="deciding" :title="tr(decision === 'pay' ? 'Pay Finance' : 'Reject Payout')" :subtitle="loan?.loanNumber ?? ''" :icon="decision === 'pay' ? 'fa-check-circle' : 'fa-times-circle'" :busy="busy" :width="520">
+      <p v-if="decision === 'pay'" class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Paying posts the GL today and makes the finance active. A payout on another day than planned rebuilds the schedule from today.') }}</p>
       <label class="fc-field" :class="pbad('notes')"><span>{{ tr(decision === 'pay' ? 'Notes' : 'Reason') }}<b v-if="decision === 'reject'"> *</b></span><input v-model="notes" class="fx-search" maxlength="1000"></label>
       <template #footer>
         <button type="button" class="fx-btn" :disabled="busy" @click="deciding = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
@@ -202,7 +202,7 @@
         <p v-if="reversal.blocked" class="c3-note lp-bad"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ reversal.blocked }}</p>
         <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
           {{ tr(reversal.kind === 'RECOVERY' ? 'The recovery and its GL are reversed; the money no longer counts as recovered.' : 'The receipt and its GL are reversed, its sources are released, and the later receipts are applied again in order.') }}
-          <template v-if="reversal.reopensLoan"> <b>{{ tr('The loan owes again and becomes active.') }}</b></template>
+          <template v-if="reversal.reopensLoan"> <b>{{ tr('The finance owes again and becomes active.') }}</b></template>
         </p>
         <div v-if="reversal.replayed.length" class="fx-table-wrap">
           <table class="fx-table">
@@ -239,7 +239,7 @@
             {{ tr('interest to date') }} {{ money(quote.interestToDate) }} + {{ tr('principal') }} {{ money(quote.principalAmount) }}
             + {{ tr('fee') }} {{ money(quote.feeAmount) }} ({{ quote.feePct }}%) = <b>{{ money(quote.totalAmount) }}</b>
             <template v-if="quote.kind === 'PREPAY'"> · {{ tr(quote.recalcCode === 'REDUCE_TERM' ? 'Shorter term, same instalment' : 'Lower instalment, same term') }}</template>
-            <template v-else> · {{ tr('The loan closes.') }}</template>
+            <template v-else> · {{ tr('The finance closes.') }}</template>
           </p>
           <table v-if="!quote.problem && quote.newSchedule.length" class="fx-table">
             <thead><tr><th>#</th><th>{{ tr('Due date') }}</th><th class="ln-num">{{ tr('Principal') }}</th><th class="ln-num">{{ tr('Interest') }}</th><th class="ln-num">{{ tr('Instalment') }}</th><th class="ln-num">{{ tr('Balance after') }}</th></tr></thead>
@@ -293,12 +293,12 @@
       </template>
     </Crm360Dialog>
 
-    <Crm360Dialog v-model:visible="cancelling" :title="tr('Cancel Loan')" :subtitle="loan?.loanNumber ?? ''" icon="fa-ban" :busy="busy" :width="520">
-      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('A loan can be cancelled until it is paid out. Its schedule is kept for the record.') }}</p>
+    <Crm360Dialog v-model:visible="cancelling" :title="tr('Cancel Finance')" :subtitle="loan?.loanNumber ?? ''" icon="fa-ban" :busy="busy" :width="520">
+      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('A finance can be cancelled until it is paid out. Its schedule is kept for the record.') }}</p>
       <label class="fc-field" :class="{ 'c3-bad': !!errors.reason }"><span>{{ tr('Reason') }}<b> *</b></span><input v-model="reason" class="fx-search" maxlength="1000"></label>
       <template #footer>
         <button type="button" class="fx-btn" :disabled="busy" @click="cancelling = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
-        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="cancel"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-ban'" aria-hidden="true"></span>{{ tr('Cancel loan') }}</button>
+        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="cancel"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-ban'" aria-hidden="true"></span>{{ tr('Cancel finance') }}</button>
       </template>
     </Crm360Dialog>
   </div>
@@ -422,7 +422,7 @@ async function payoutCall(action: () => Promise<DisbursementPage>, done: string,
 const requestPayout = () => payoutCall(() => loansApi.requestPayout(props.loanId, { ...payout, payeeAccount: payout.payeeAccount || null }),
   'Payout sent. Another user must pay it.', () => (requesting.value = false))
 const decide = () => decision.value === 'pay'
-  ? payoutCall(() => loansApi.pay(props.loanId, decidingId.value, notes.value || null), 'Loan paid out. It is now active.', () => (deciding.value = false))
+  ? payoutCall(() => loansApi.pay(props.loanId, decidingId.value, notes.value || null), 'Finance paid out. It is now active.', () => (deciding.value = false))
   : payoutCall(() => loansApi.rejectPayout(props.loanId, decidingId.value, notes.value), 'Payout rejected.', () => (deciding.value = false))
 const withdraw = (id: number) => payoutCall(() => loansApi.withdrawPayout(props.loanId, id), 'Payout withdrawn.', () => {})
 
@@ -525,7 +525,7 @@ async function receive() {
       : await loansApi.prepay(props.loanId, { kind: rmode.value, principalAmount: rmode.value === 'PREPAY' ? principalEarly.value : null, sources: rform.sources, notes: rform.notes || null })
     void writeOffPanel.value?.load()
     receiving.value = false
-    showSuccess(tr(rmode.value === 'RECEIPT' ? 'Payment received.' : rmode.value === 'SETTLE' ? 'Loan settled.' : 'Prepayment received. The schedule is rebuilt.'))
+    showSuccess(tr(rmode.value === 'RECEIPT' ? 'Payment received.' : rmode.value === 'SETTLE' ? 'Finance settled.' : 'Prepayment received. The schedule is rebuilt.'))
     loan.value = await loansApi.get(props.loanId)
   } catch (err) {
     if (err instanceof ApiError && err.problem?.errors) {
@@ -551,7 +551,7 @@ async function cancel() {
   try {
     loan.value = await loansApi.cancel(loan.value.loanId, reason.value, loan.value.rowVersion)
     cancelling.value = false
-    showSuccess(tr('Loan cancelled.'))
+    showSuccess(tr('Finance cancelled.'))
   } catch (err) {
     if (err instanceof ApiError && err.problem?.errors) {
       errors.value = err.problem.errors

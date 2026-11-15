@@ -3,6 +3,7 @@ using Capitra.Application.Common.Exceptions;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Lnd;
+using Capitra.Domain.Modules.Tls;
 using Microsoft.EntityFrameworkCore;
 using PS = Capitra.Application.Modules.Lnd.LndProductTerms.Statuses;
 
@@ -10,7 +11,7 @@ namespace Capitra.Application.Modules.Lnd;
 
 public sealed record LndLoanRequestDto(long? ClientId, long? ProductId, decimal? PrincipalAmount, int? TermMonths, DateOnly? DisbursementDate, DateOnly? FirstDueDate, string? Notes,
     string? GoodsCategoryCode = null, string? GoodsDescription = null, string? GoodsBrandModel = null, string? MerchantName = null,
-    decimal? GoodsPriceAmount = null, decimal? DownPaymentAmount = null);
+    decimal? GoodsPriceAmount = null, decimal? DownPaymentAmount = null, long? ScenarioId = null);
 
 /// <summary>The financed item of a consumer finance loan.</summary>
 public sealed record LndGoodsDto(string CategoryCode, string CategoryName, string Description, string? BrandModel, string? MerchantName,
@@ -131,14 +132,14 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
     /// <summary>The schedule the request would make, without saving anything.</summary>
     public async Task<LndLoanPreviewDto> PreviewAsync(LndLoanRequestDto dto, CancellationToken cancellationToken)
     {
-        var (_, version, amount, term, _, first) = await CheckAsync(dto, cancellationToken);
-        return Preview(version, amount, term, first);
+        var t = await CheckAsync(dto, cancellationToken);
+        return Preview(t.Version, t.Amount, t.Lines, t.RatePct);
     }
 
     public async Task<long> CreateAsync(LndLoanRequestDto dto, CancellationToken cancellationToken)
     {
-        var (product, version, amount, term, disbursement, first) = await CheckAsync(dto, cancellationToken);
-        var lines = LndSchedule.Build(amount, term, version.RepaymentFrequencyCode, version.InterestMethodCode, version.AnnualRatePct, first);
+        var t = await CheckAsync(dto, cancellationToken);
+        var (product, version, amount, term, disbursement, first, lines) = (t.Product, t.Version, t.Amount, t.Term, t.Disbursement, t.First, t.Lines);
         var loan = new LndLoan
         {
             LoanNumber = "PENDING-" + Guid.NewGuid().ToString("N")[..20].ToUpperInvariant(),
@@ -146,8 +147,8 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             LicenceCode = LndProductTerms.Licences[product.BusinessLineCode], StatusCode = Statuses.Approved,
             PrincipalAmount = amount, TermMonths = term, InstallmentCount = lines.Count, InstallmentAmount = lines[0].Total,
             TotalInterestAmount = lines.Sum(x => x.Interest), DisbursementDate = disbursement, FirstDueDate = first, MaturityDate = lines[^1].DueDate,
-            RepaymentFrequencyCode = version.RepaymentFrequencyCode, InterestMethodCode = version.InterestMethodCode, AnnualRatePct = version.AnnualRatePct,
-            DayCountCode = version.DayCountCode, LateFeeGraceDays = version.LateFeeGraceDays, LateFeeTypeCode = version.LateFeeTypeCode,
+            RepaymentFrequencyCode = version.RepaymentFrequencyCode, InterestMethodCode = version.InterestMethodCode, AnnualRatePct = t.RatePct,
+            DayCountCode = t.DayCountCode ?? version.DayCountCode, LateFeeGraceDays = version.LateFeeGraceDays, LateFeeTypeCode = version.LateFeeTypeCode,
             LateFeeRatePct = version.LateFeeRatePct, LateFeeFlatAmount = version.LateFeeFlatAmount, LateFeeBaseCode = version.LateFeeBaseCode,
             PaymentOrder = version.PaymentOrder, IsInsuranceRequired = version.IsInsuranceRequired, IsPrepaymentAllowed = version.IsPrepaymentAllowed,
             PrepaymentRecalcCode = version.PrepaymentRecalcCode, PrepaymentFeePct = version.PrepaymentFeePct, EarlySettlementFeePct = version.EarlySettlementFeePct,
@@ -171,7 +172,7 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             LoanId = loan.LoanId, InstallmentNo = x.InstallmentNo, DueDate = x.DueDate, OpeningPrincipalAmount = x.OpeningPrincipal,
             PrincipalDueAmount = x.Principal, InterestDueAmount = x.Interest, ClosingPrincipalAmount = x.ClosingPrincipal,
         }));
-        db.Set<LndLoanStatusHist>().Add(new LndLoanStatusHist { LoanId = loan.LoanId, ToStatusCode = Statuses.Approved, Reason = "Loan created." });
+        db.Set<LndLoanStatusHist>().Add(new LndLoanStatusHist { LoanId = loan.LoanId, ToStatusCode = Statuses.Approved, Reason = t.ScenarioName is null ? "Loan created." : $"Created from the saved scenario '{t.ScenarioName}'." });
         await db.SaveChangesAsync(cancellationToken);
         return loan.LoanId;
     }
@@ -225,41 +226,154 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
 
     public static bool CanMove(string from, string to) => Transitions.TryGetValue(from, out var next) && next.Contains(to);
 
-    /// <summary>The terms a request can be made on, checked against the product version in force on the disbursement date.</summary>
-    private async Task<(AdmProduct Product, LndProductVersion Version, decimal Amount, int Term, DateOnly Disbursement, DateOnly First)> CheckAsync(
-        LndLoanRequestDto dto, CancellationToken cancellationToken)
+    /// <summary>What a request is made on: the product version in force, the amount, term and dates, and the schedule.</summary>
+    private sealed record Terms(
+        AdmProduct Product, LndProductVersion Version, decimal Amount, int Term, DateOnly Disbursement, DateOnly First,
+        IReadOnlyList<LndScheduleLine> Lines, decimal RatePct, string? DayCountCode, string? ScenarioName);
+
+    /// <summary>
+    /// The terms a request can be made on, checked against the product version in force on the disbursement date. With a saved
+    /// scenario of the Finance Calculator (Ahmed, 15 Nov 2026) the amount, dates, rate and schedule are the scenario's; the product,
+    /// when not given, is the consumer finance product with terms in force.
+    /// </summary>
+    private async Task<Terms> CheckAsync(LndLoanRequestDto dto, CancellationToken cancellationToken)
     {
         var e = new Dictionary<string, string[]>();
+        TlsScenario? scenario = null;
+        if (dto.ScenarioId is { } scenarioId)
+        {
+            scenario = await ScenarioAsync(scenarioId, cancellationToken);
+            if (scenario is null) e["scenarioId"] = ["The saved scenario was not found among yours."];
+        }
         if (dto.ClientId is null) e["clientId"] = ["Choose the customer."];
         else if (!await db.Set<CrmClient>().AnyAsync(x => x.ClientId == dto.ClientId, cancellationToken)) e["clientId"] = ["The customer was not found."];
-        if (dto.ProductId is null) e["productId"] = ["Choose the product."];
-        if (dto.PrincipalAmount is not > 0) e["principalAmount"] = ["Enter the amount."];
-        if (dto.TermMonths is not > 0) e["termMonths"] = ["Enter the term in months."];
-        var disbursement = dto.DisbursementDate ?? Today;
-        if (disbursement < Today) e["disbursementDate"] = ["The disbursement date cannot be before today."];
+        if (dto.ScenarioId is null)
+        {
+            if (dto.ProductId is null) e["productId"] = ["Choose the product."];
+            if (dto.PrincipalAmount is not > 0) e["principalAmount"] = ["Enter the amount."];
+            if (dto.TermMonths is not > 0) e["termMonths"] = ["Enter the term in months."];
+        }
+        var disbursement = scenario?.Scenario.ContractDate ?? dto.DisbursementDate ?? Today;
+        if (disbursement < Today)
+            e[scenario is null ? "disbursementDate" : "scenarioId"] = [scenario is null ? "The disbursement date cannot be before today."
+                : "The scenario's contract date is before today. Change it in the Finance Calculator and save the scenario again."];
         if (e.Count > 0) throw new BusinessValidationException(e);
 
-        var product = await db.Set<AdmProduct>().AsNoTracking().SingleOrDefaultAsync(x => x.ProductId == dto.ProductId, cancellationToken);
+        var product = dto.ProductId is { } productId
+            ? await db.Set<AdmProduct>().AsNoTracking().SingleOrDefaultAsync(x => x.ProductId == productId, cancellationToken)
+            : await ConsumerProductAsync(disbursement, cancellationToken);
         if (product is null || !LndProductTerms.Licences.ContainsKey(product.BusinessLineCode) || !product.IsActive)
-            throw BusinessValidationException.For("productId", "Choose an active lending product.");
+            throw BusinessValidationException.For("productId", dto.ProductId is null
+                ? "No consumer finance product has approved terms in force." : "Choose an active lending product.");
         var versions = await db.Set<LndProductVersion>().AsNoTracking().Where(x => x.ProductId == product.ProductId && x.StatusCode == PS.Approved)
             .ToListAsync(cancellationToken);
         var version = LndProductTerms.InForce(versions, product.ProductId, disbursement)
             ?? throw BusinessValidationException.For("productId", "The product has no approved terms in force on the disbursement date.");
 
-        var amount = Math.Round(dto.PrincipalAmount!.Value, 2);
+        IReadOnlyList<LndScheduleLine> lines;
+        decimal amount, rate;
+        int term;
+        DateOnly first;
+        string? dayCount = null;
+        if (scenario is not null)
+        {
+            e = CheckScenario(scenario.Scenario, scenario.Rates, scenario.Lines);
+            if (e.Count > 0) throw new BusinessValidationException(e);
+            var s = scenario.Scenario;
+            amount = s.PrincipalAmount;
+            term = TermMonths(s.ContractDate, s.MaturityDate);
+            rate = scenario.Rates[0].InterestRatePct;
+            dayCount = DayCount(s.DayCountMethod);
+            lines = [.. scenario.Lines.Select(x => new LndScheduleLine(x.InstallmentNo, x.PaymentDate, x.OpeningPrincipalAmount, x.PrincipalAmount,
+                x.InterestAmount, x.ClosingPrincipalAmount))];
+            first = lines[0].DueDate;
+        }
+        else
+        {
+            amount = Math.Round(dto.PrincipalAmount!.Value, 2);
+            term = dto.TermMonths!.Value;
+            rate = version.AnnualRatePct;
+            first = dto.FirstDueDate ?? LndSchedule.DefaultFirstDueDate(disbursement, version.RepaymentFrequencyCode);
+            lines = [];
+        }
+
         if (LndProductTerms.Licences[product.BusinessLineCode] == "CF")
         {
             var categories = await db.Set<LndLkpGoodsCategory>().AsNoTracking().Where(x => x.IsActive).Select(x => x.Code).ToListAsync(cancellationToken);
             e = CheckGoods(dto, amount, categories);
             if (e.Count > 0) throw new BusinessValidationException(e);
         }
-        var term = dto.TermMonths!.Value;
-        var first = dto.FirstDueDate ?? LndSchedule.DefaultFirstDueDate(disbursement, version.RepaymentFrequencyCode);
         e = CheckTerms(version, amount, term, disbursement, first);
+        if (scenario is not null && e.Count > 0)
+            e = new Dictionary<string, string[]> { ["scenarioId"] = [.. e.Values.SelectMany(x => x).Select(x => "Scenario: " + x)] };
         if (e.Count > 0) throw new BusinessValidationException(e);
-        return (product, version, amount, term, disbursement, first);
+        if (scenario is null) lines = LndSchedule.Build(amount, term, version.RepaymentFrequencyCode, version.InterestMethodCode, version.AnnualRatePct, first);
+        return new Terms(product, version, amount, term, disbursement, first, lines, rate, dayCount, scenario?.Scenario.ScenarioName);
     }
+
+    private sealed record TlsScenario(TlsLoanScenario Scenario, List<TlsLoanScenarioRate> Rates, List<TlsLoanScenarioLine> Lines);
+
+    /// <summary>A saved scenario of the Finance Calculator, only if the user created it.</summary>
+    private async Task<TlsScenario?> ScenarioAsync(long scenarioId, CancellationToken cancellationToken)
+    {
+        var owner = currentUser.UserName ?? "SYSTEM";
+        var s = await db.Set<TlsLoanScenario>().AsNoTracking().SingleOrDefaultAsync(x => x.ScenarioId == scenarioId && x.CreatedBy == owner, cancellationToken);
+        if (s is null) return null;
+        var rates = await db.Set<TlsLoanScenarioRate>().AsNoTracking().Where(x => x.ScenarioId == scenarioId).OrderBy(x => x.EffectiveDate).ToListAsync(cancellationToken);
+        var lines = await db.Set<TlsLoanScenarioLine>().AsNoTracking().Where(x => x.ScenarioId == scenarioId).OrderBy(x => x.InstallmentNo).ToListAsync(cancellationToken);
+        return new TlsScenario(s, rates, lines);
+    }
+
+    /// <summary>The user's saved scenarios of the Finance Calculator, for the New Finance page.</summary>
+    public async Task<IReadOnlyList<LndOptionDto>> ScenariosAsync(CancellationToken cancellationToken)
+    {
+        var owner = currentUser.UserName ?? "SYSTEM";
+        return await db.Set<TlsLoanScenario>().AsNoTracking().Where(x => x.CreatedBy == owner).OrderBy(x => x.ScenarioName)
+            .Select(x => new LndOptionDto(x.ScenarioId, x.ScenarioName, x.ScenarioName)).ToListAsync(cancellationToken);
+    }
+
+    /// <summary>The active consumer finance product with approved terms in force on the day (the first by name).</summary>
+    private async Task<AdmProduct?> ConsumerProductAsync(DateOnly day, CancellationToken cancellationToken)
+    {
+        var products = await db.Set<AdmProduct>().AsNoTracking()
+            .Where(x => x.IsActive && x.BusinessLineCode == LndProductTerms.BusinessLines.ConsumerFinance).OrderBy(x => x.ProductNameEn).ToListAsync(cancellationToken);
+        var ids = products.Select(x => x.ProductId).ToList();
+        var versions = await db.Set<LndProductVersion>().AsNoTracking().Where(x => ids.Contains(x.ProductId) && x.StatusCode == PS.Approved).ToListAsync(cancellationToken);
+        return products.FirstOrDefault(p => LndProductTerms.InForce(versions, p.ProductId, day) is not null);
+    }
+
+    /// <summary>
+    /// A saved scenario can make a finance only if every payment carries principal and interest together (one invoice: principal and
+    /// interest on the same dates) and one rate runs for the whole term.
+    /// </summary>
+    public static Dictionary<string, string[]> CheckScenario(TlsLoanScenario s, IReadOnlyList<TlsLoanScenarioRate> rates, IReadOnlyList<TlsLoanScenarioLine> lines)
+    {
+        var problems = new List<string>();
+        if (lines.Count == 0) problems.Add("The scenario has no schedule. Open it in the Finance Calculator and save it again.");
+        if (rates.Count == 0) problems.Add("The scenario has no rate. Open it in the Finance Calculator and save it again.");
+        if (rates.Select(x => x.InterestRatePct).Distinct().Count() > 1) problems.Add("The scenario changes its rate during the term; a finance uses one rate for the whole term.");
+        var rate = rates.Count > 0 ? rates[0].InterestRatePct : 0;
+        if (lines.Any(x => x.PrincipalAmount <= 0 || (rate > 0 && x.InterestAmount <= 0)))
+            problems.Add("Principal and interest are not paid on the same dates. Use a scenario where every payment has both (Combined Principal + Interest).");
+        var e = new Dictionary<string, string[]>();
+        if (problems.Count > 0) e["scenarioId"] = [.. problems];
+        return e;
+    }
+
+    /// <summary>Whole months from the contract date to maturity, a part month counting as one.</summary>
+    public static int TermMonths(DateOnly from, DateOnly to)
+    {
+        var months = (to.Year - from.Year) * 12 + to.Month - from.Month;
+        return to.Day > from.Day ? months + 1 : months;
+    }
+
+    /// <summary>The calculator's day count as the loan's (used by end of day): 30-day bases are THIRTY_360, ACT/ACT is ACT_365.</summary>
+    public static string DayCount(string method) => method switch
+    {
+        "ACT_360" => "ACT_360",
+        "30_360" or "30_365" or "30_ACT" => "THIRTY_360",
+        _ => "ACT_365",
+    };
 
     /// <summary>
     /// The financed item of a consumer finance loan: an active category, a description, the price, and a down payment below it; the
@@ -295,12 +409,11 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
         return e;
     }
 
-    public static LndLoanPreviewDto Preview(LndProductVersion v, decimal amount, int term, DateOnly first)
+    public static LndLoanPreviewDto Preview(LndProductVersion v, decimal amount, IReadOnlyList<LndScheduleLine> lines, decimal ratePct)
     {
-        var lines = LndSchedule.Build(amount, term, v.RepaymentFrequencyCode, v.InterestMethodCode, v.AnnualRatePct, first);
         var interest = lines.Sum(x => x.Interest);
-        return new LndLoanPreviewDto(v.VersionNo, v.RepaymentFrequencyCode, v.InterestMethodCode, v.AnnualRatePct, lines.Count, lines[0].Total,
-            interest, amount + interest, first, lines[^1].DueDate,
+        return new LndLoanPreviewDto(v.VersionNo, v.RepaymentFrequencyCode, v.InterestMethodCode, ratePct, lines.Count, lines[0].Total,
+            interest, amount + interest, lines[0].DueDate, lines[^1].DueDate,
             [.. lines.Select(x => new LndScheduleLineDto(x.InstallmentNo, x.DueDate, x.OpeningPrincipal, x.Principal, x.Interest, x.Total, x.ClosingPrincipal))]);
     }
 }
