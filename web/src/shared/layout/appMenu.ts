@@ -57,8 +57,14 @@ export const appMenu: MenuGroup[] = [
       { label: 'Lending Workspace', to: { name: 'lnd-workspace' } },
       { label: 'Loans', to: { name: 'lnd-loans' } },
       { label: 'End of Day', to: { name: 'lnd-eod' } },
-      { label: 'Lending Parameters', to: { name: 'lnd-parameters' } }
+      { label: 'Lending Parameters', to: { name: 'lnd-parameters' } },
+      { label: 'Finance Calculator', to: { name: 'tls-loan-calculator' } }
     ]
+  },
+  {
+    title: 'Tools',
+    icon: 'pi pi-calculator',
+    links: [{ label: 'Finance Calculator', to: { name: 'tls-loan-calculator' } }]
   },
   {
     title: 'Cheques Wallet',

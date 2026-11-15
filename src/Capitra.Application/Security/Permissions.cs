@@ -122,6 +122,12 @@ public static class Permissions
         public const string Edit = "COLLECTION.EDIT";
     }
 
+    public static class Tls
+    {
+        /// <summary>Tools > Loan Calculator: calculate schedules and keep one's own saved scenarios.</summary>
+        public const string Calculator = "TLS.CALCULATOR.USE";
+    }
+
     public static class Lnd
     {
         /// <summary>Read the Retail Lending parameters, their history and the go-live check.</summary>

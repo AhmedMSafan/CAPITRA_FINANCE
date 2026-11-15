@@ -28316,6 +28316,318 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("LND_LKP_GOODS_CATEGORIES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Tls.TlsLoanScenario", b =>
+                {
+                    b.Property<long>("ScenarioId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SCENARIO_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ScenarioId"));
+
+                    b.Property<string>("CombinedDateRule")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("COMBINED_DATE_RULE");
+
+                    b.Property<string>("CombinedFrequencyUnit")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("COMBINED_FREQUENCY_UNIT");
+
+                    b.Property<int?>("CombinedFrequencyValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("COMBINED_FREQUENCY_VALUE");
+
+                    b.Property<DateOnly>("ContractDate")
+                        .HasColumnType("date")
+                        .HasColumnName("CONTRACT_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DayCountMethod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("DAY_COUNT_METHOD");
+
+                    b.Property<string>("InterestDateRule")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("INTEREST_DATE_RULE");
+
+                    b.Property<string>("InterestFrequencyUnit")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("INTEREST_FREQUENCY_UNIT");
+
+                    b.Property<int?>("InterestFrequencyValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("INTEREST_FREQUENCY_VALUE");
+
+                    b.Property<string>("InterestPaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("INTEREST_PAYMENT_METHOD");
+
+                    b.Property<DateOnly>("InterestPaymentStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("INTEREST_PAYMENT_START_DATE");
+
+                    b.Property<DateOnly>("MaturityDate")
+                        .HasColumnType("date")
+                        .HasColumnName("MATURITY_DATE");
+
+                    b.Property<long?>("ParentScenarioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PARENT_SCENARIO_ID");
+
+                    b.Property<decimal>("PrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PRINCIPAL_AMOUNT");
+
+                    b.Property<string>("PrincipalDateRule")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PRINCIPAL_DATE_RULE");
+
+                    b.Property<string>("PrincipalFrequencyUnit")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PRINCIPAL_FREQUENCY_UNIT");
+
+                    b.Property<int?>("PrincipalFrequencyValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("PRINCIPAL_FREQUENCY_VALUE");
+
+                    b.Property<string>("PrincipalMethod")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PRINCIPAL_METHOD");
+
+                    b.Property<DateOnly>("PrincipalPaymentStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PRINCIPAL_PAYMENT_START_DATE");
+
+                    b.Property<long?>("RateIndexId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("RATE_INDEX_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("ScenarioName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("SCENARIO_NAME");
+
+                    b.Property<string>("ScheduleMode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("SCHEDULE_MODE");
+
+                    b.Property<string>("TenorUnit")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("TENOR_UNIT");
+
+                    b.Property<int>("TenorValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("TENOR_VALUE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ScenarioId")
+                        .HasName("PK_TLS_LOAN_SCENARIOS");
+
+                    b.HasIndex("CreatedBy", "ScenarioName")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_TLS_LOAN_SCENARIOS_CREATED_BY_SCENARIO_NAME");
+
+                    b.ToTable("TLS_LOAN_SCENARIOS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Tls.TlsLoanScenarioRate", b =>
+                {
+                    b.Property<long>("ScenarioRateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SCENARIO_RATE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ScenarioRateId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date")
+                        .HasColumnName("EFFECTIVE_DATE");
+
+                    b.Property<decimal>("InterestRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("INTEREST_RATE_PCT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long>("ScenarioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SCENARIO_ID");
+
+                    b.Property<int>("SequenceNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEQUENCE_NO");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ScenarioRateId")
+                        .HasName("PK_TLS_LOAN_SCENARIO_RATES");
+
+                    b.HasIndex("ScenarioId", "EffectiveDate")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_TLS_LOAN_SCENARIO_RATES_SCENARIO_ID_EFFECTIVE_DATE");
+
+                    b.ToTable("TLS_LOAN_SCENARIO_RATES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Tls.TlsLoanScenarioLine", b =>
+                {
+                    b.Property<long>("ScheduleLineId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SCHEDULE_LINE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ScheduleLineId"));
+
+                    b.Property<DateOnly>("AccrualEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ACCRUAL_END_DATE");
+
+                    b.Property<DateOnly>("AccrualStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ACCRUAL_START_DATE");
+
+                    b.Property<decimal>("ClosingPrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CLOSING_PRINCIPAL_AMOUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal>("DayCountFraction")
+                        .HasPrecision(18, 12)
+                        .HasColumnType("numeric(18,12)")
+                        .HasColumnName("DAY_COUNT_FRACTION");
+
+                    b.Property<int>("InstallmentNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("INSTALLMENT_NO");
+
+                    b.Property<decimal>("InterestAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INTEREST_AMOUNT");
+
+                    b.Property<decimal>("InterestRatePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("INTEREST_RATE_PCT");
+
+                    b.Property<decimal>("OpeningPrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("OPENING_PRINCIPAL_AMOUNT");
+
+                    b.Property<DateOnly>("PaymentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PAYMENT_DATE");
+
+                    b.Property<decimal>("PrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PRINCIPAL_AMOUNT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<long>("ScenarioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SCENARIO_ID");
+
+                    b.Property<decimal>("TotalPaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_PAYMENT_AMOUNT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ScheduleLineId")
+                        .HasName("PK_TLS_LOAN_SCENARIO_LINES");
+
+                    b.HasIndex("ScenarioId", "InstallmentNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_TLS_LOAN_SCENARIO_LINES_SCENARIO_ID_INSTALLMENT_NO");
+
+                    b.ToTable("TLS_LOAN_SCENARIO_LINES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
                 {
                     b.Property<long>("EntryId")
@@ -45298,6 +45610,26 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_LND_WRITE_OFFS_LND_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Tls.TlsLoanScenarioRate", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Tls.TlsLoanScenario", null)
+                        .WithMany()
+                        .HasForeignKey("ScenarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_TLS_LOAN_SCENARIO_RATES_TLS_LOAN_SCENARIOS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Tls.TlsLoanScenarioLine", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Tls.TlsLoanScenario", null)
+                        .WithMany()
+                        .HasForeignKey("ScenarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_TLS_LOAN_SCENARIO_LINES_TLS_LOAN_SCENARIOS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Mff.MffAccountingEntry", b =>
