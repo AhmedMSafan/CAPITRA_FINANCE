@@ -68,8 +68,8 @@
           <small v-if="!scenarios.length" class="c3-muted">{{ tr('You have no saved scenarios yet.') }}</small>
         </label>
         <div class="nf-calc">
-          <RouterLink :to="{ name: 'tls-loan-calculator' }" target="_blank" class="fx-btn">
-            <span class="fa fa-external-link" aria-hidden="true"></span>{{ tr('Open Finance Calculator') }}
+          <RouterLink :to="{ name: 'tls-loan-calculator', query: fixedClientId ? { from: 'finance', clientId: String(fixedClientId) } : { from: 'finance' } }" class="fx-btn">
+            <span class="fa fa-external-link" aria-hidden="true"></span>{{ tr('Make a scenario in the Finance Calculator') }}
           </RouterLink>
           <button type="button" class="fx-btn" :disabled="busy" @click="loadScenarios"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Refresh list') }}</button>
         </div>

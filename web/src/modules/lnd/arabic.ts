@@ -513,7 +513,7 @@ export const LND_AR: Record<string, string> = {
   'Choose one of your saved scenarios': 'اختر أحد سيناريوهاتك المحفوظة',
   'Choose one of your saved scenarios.': 'اختر أحد سيناريوهاتك المحفوظة.',
   'You have no saved scenarios yet.': 'لا توجد لديك سيناريوهات محفوظة بعد.',
-  'Open Finance Calculator': 'فتح حاسبة التمويل',
+  'Make a scenario in the Finance Calculator': 'إنشاء سيناريو في حاسبة التمويل',
   'Refresh list': 'تحديث القائمة',
   'The scenario gives the amount, contract date, payment dates, rate and schedule. Each payment must have principal and interest together, with one rate for the whole term.': 'يحدد السيناريو المبلغ وتاريخ العقد وتواريخ السداد والسعر والجدول. يجب أن يجمع كل قسط بين الأصل والعائد، بسعر واحد طوال المدة.',
   'First payment': 'أول قسط',

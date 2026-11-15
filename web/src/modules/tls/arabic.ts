@@ -2,6 +2,7 @@
 export const TLS_AR: Record<string, string> = {
   Tools: 'الأدوات',
   Calculator: 'الحاسبة',
+  'Back to New Finance': 'العودة إلى تمويل جديد',
   'Finance Calculator': 'حاسبة التمويل',
   'Generate, review and save finance repayment scenarios.': 'إنشاء جداول سداد التمويل ومراجعتها وحفظها كسيناريوهات.',
   'Repayment schedules with saved scenarios, starting from the rate in force in Rate Maintenance.':

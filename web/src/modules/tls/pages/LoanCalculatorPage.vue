@@ -11,6 +11,10 @@
           <b>{{ tr('Finance Calculator') }}</b>
         </nav>
         <h1>{{ tr('Finance Calculator') }}</h1>
+        <!-- opened from New Finance: save the scenario, then go back and pick it -->
+        <RouterLink v-if="fromFinance" :to="backToFinance" class="fx-btn back-to-finance">
+          <span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to New Finance') }}
+        </RouterLink>
         <p class="loan-sub">{{ tr('Generate, review and save finance repayment scenarios.') }}</p>
       </div>
 
@@ -294,7 +298,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { tr } from '@/shared/layout/language'
 import {
   loanScenariosApi, type LoanScenarioListItem, type LoanScenarioResult, type LoanScenarioWorkspaceRate,
@@ -410,6 +414,10 @@ const dayCountMethods = [
   { value: '30_360', label: '30 / 360' },
   { value: '30_365', label: '30 / 365' }
 ]
+
+const route = useRoute()
+const fromFinance = route.query.from === 'finance'
+const backToFinance = { name: 'lnd-finance-new', query: route.query.clientId ? { clientId: String(route.query.clientId) } : {} }
 
 const loading = ref(false)
 const successMessage = ref('')
@@ -800,6 +808,10 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.back-to-finance {
+  margin-top: 8px;
 }
 
 .loan-sub {
