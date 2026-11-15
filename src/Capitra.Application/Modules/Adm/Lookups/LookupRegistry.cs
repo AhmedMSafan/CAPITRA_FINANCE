@@ -32,7 +32,7 @@ public static class LookupRegistry
             // Classes of the Admin Setup charges (FINOVA_FINANCEING Charge Component Types).
             LookupDefinition.For<AdmLkpChargeType>("charge-type", "ADM", "Charge Types", "") with { NameMaxLength = 100, ShowDescription = true },
             // What consumer finance finances: the financed item's category on a consumer finance loan.
-            LookupDefinition.For<Capitra.Domain.Modules.Lnd.LndLkpGoodsCategory>("goods-category", "LND", "Goods Categories", "") with
+            LookupDefinition.For<Capitra.Domain.Modules.Lnd.LndLkpGoodsCategory>("goods-category", "LND", "Consumer Finance Goods Categories", "") with
             {
                 NameMaxLength = 100,
                 ShowDescription = true,
