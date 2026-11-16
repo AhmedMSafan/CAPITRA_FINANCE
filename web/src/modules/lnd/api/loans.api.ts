@@ -1,3 +1,4 @@
+import type { LoanScenarioWorkspaceRequest } from '@/modules/tls/api/loanScenarios.api'
 import { http } from '@/shared/api/http'
 
 export type LoanOption = { id: number; code: string; name: string; licenceCode?: string | null }
@@ -21,6 +22,8 @@ export type LoanRequest = {
   scenarioId?: number | null
   // the rate for this finance only; when it differs from the scenario's, the schedule is worked out again (the scenario is unchanged)
   ratePct?: number | null
+  // or a schedule the Finance Calculator handed back without saving it (its terms; the server works it out again)
+  calculation?: LoanScenarioWorkspaceRequest | null
 }
 
 export type ScenarioOption = { id: number; name: string; principalAmount: number; ratePct: number; scheduleMode: string; principalMethod: string }

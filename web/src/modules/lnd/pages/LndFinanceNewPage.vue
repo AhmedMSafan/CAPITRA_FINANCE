@@ -60,22 +60,27 @@
     <section class="fx-card nf-card">
       <h2 class="nf-title"><span class="fa fa-calculator" aria-hidden="true"></span>{{ tr('Schedule') }}</h2>
       <div class="nf-grid">
-        <label class="fc-field" :class="bad('scenarioId')"><span>{{ tr('Saved scenario') }}<b> *</b></span>
-          <select v-model="form.scenarioId" class="fx-select">
+        <label class="fc-field" :class="bad('scenarioId')"><span>{{ tr(calculation ? 'Schedule from the calculator' : 'Saved scenario') }}<b> *</b></span>
+          <div v-if="calculation" class="nf-calc-chip">
+            <span class="fa fa-calculator" aria-hidden="true"></span>
+            <span>{{ tr('Unsaved schedule from the calculator') }} · {{ money(calculation.principalAmount) }} · {{ calculation.interestRatePct }}%</span>
+            <button type="button" class="nf-chip-x" :title="tr('Remove')" :aria-label="tr('Remove')" @click="dropCalculation"><span class="fa fa-times" aria-hidden="true"></span></button>
+          </div>
+          <select v-else v-model="form.scenarioId" class="fx-select" @change="onScenario">
             <option :value="null" disabled>{{ tr('Choose one of your saved scenarios') }}</option>
             <option v-for="s in scenarios" :key="s.id" :value="s.id">{{ s.name }} · {{ money(s.principalAmount) }} · {{ s.ratePct }}%</option>
           </select>
-          <small v-if="!scenarios.length" class="c3-muted">{{ tr('You have no saved scenarios yet.') }}</small>
+          <small v-if="!calculation && !scenarios.length" class="c3-muted">{{ tr('You have no saved scenarios yet.') }}</small>
         </label>
         <label class="fc-field" :class="bad('ratePct')"><span>{{ tr('Rate %') }}</span>
-          <input v-model.number="form.ratePct" type="number" min="0" max="100" step="0.0001" class="fx-search" :disabled="!chosen">
-          <small v-if="chosen && rateChanged" class="nf-warn">{{ tr('Changed from the scenario rate') }} {{ chosen.ratePct }}%. {{ tr('The schedule is worked out again for this finance; the saved scenario is not changed.') }}</small>
-          <small v-else-if="chosen" class="c3-muted">{{ tr('From the scenario. Change it for this finance if needed.') }}</small>
+          <input v-model.number="form.ratePct" type="number" min="0" max="100" step="0.0001" class="fx-search" :disabled="baseRate === null">
+          <small v-if="rateChanged" class="nf-warn">{{ tr('Changed from the scenario rate') }} {{ baseRate }}%. {{ tr('The schedule is worked out again for this finance; the saved scenario is not changed.') }}</small>
+          <small v-else-if="baseRate !== null" class="c3-muted">{{ tr('From the scenario. Change it for this finance if needed.') }}</small>
         </label>
         <div class="nf-calc">
-          <RouterLink :to="{ name: 'tls-loan-calculator', query: fixedClientId ? { from: 'finance', clientId: String(fixedClientId) } : { from: 'finance' } }" class="fx-btn">
-            <span class="fa fa-external-link" aria-hidden="true"></span>{{ tr('Make a scenario in the Finance Calculator') }}
-          </RouterLink>
+          <button type="button" class="fx-btn" @click="goCalculator">
+            <span class="fa fa-calculator" aria-hidden="true"></span>{{ tr('Make a scenario in the Finance Calculator') }}
+          </button>
           <button type="button" class="fx-btn" :disabled="busy" @click="loadScenarios"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Refresh list') }}</button>
         </div>
       </div>
@@ -126,6 +131,7 @@ import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import { loansApi, type LoanOption, type LoanPreview, type LoanRequest, type ScenarioOption } from '../api/loans.api'
 import { lendingWsApi } from '../api/workspace.api'
+import { FINANCE_CALCULATION_KEY, FINANCE_DRAFT_KEY, keep, take, type FinanceCalculation } from '../financeDraft'
 
 const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const money = (n: number) => egp.format(n)
@@ -153,11 +159,32 @@ const form = reactive<LoanRequest>({
   scenarioId: null, ratePct: null
 })
 
+// or a schedule handed back by the calculator without saving it
+const calculation = ref<FinanceCalculation | null>(null)
+
 const chosen = computed(() => scenarios.value.find((s) => s.id === form.scenarioId) ?? null)
-const rateChanged = computed(() => chosen.value !== null && form.ratePct !== null && Number(form.ratePct) !== chosen.value.ratePct)
+const baseRate = computed(() => chosen.value?.ratePct ?? calculation.value?.interestRatePct ?? null)
+const rateChanged = computed(() => baseRate.value !== null && form.ratePct !== null && (form.ratePct as unknown) !== ''
+  && Number(form.ratePct) !== baseRate.value)
 
 // a scenario brings its own rate; the user may change it for this finance
-watch(() => form.scenarioId, () => (form.ratePct = chosen.value?.ratePct ?? null))
+function onScenario() {
+  form.ratePct = chosen.value?.ratePct ?? null
+}
+
+function dropCalculation() {
+  calculation.value = null
+  form.ratePct = null
+}
+
+/** Keeps what was typed here, then opens the calculator with the finance amount. */
+function goCalculator() {
+  keep(FINANCE_DRAFT_KEY, { clientId: fixedClientId, form: { ...form }, clientSearch: clientSearch.value, clients: clients.value })
+  const query: Record<string, string> = { from: 'finance' }
+  if (fixedClientId) query.clientId = String(fixedClientId)
+  if (financeAmount.value && financeAmount.value > 0) query.amount = String(financeAmount.value)
+  router.push({ name: 'tls-loan-calculator', query })
+}
 
 const financeAmount = computed(() => {
   const price = Number(form.goodsPriceAmount) || 0
@@ -183,7 +210,8 @@ function findClients() {
 const body = (): LoanRequest => ({
   ...form, principalAmount: financeAmount.value, notes: form.notes || null, goodsDescription: form.goodsDescription || null,
   goodsBrandModel: form.goodsBrandModel || null, merchantName: form.merchantName || null, downPaymentAmount: form.downPaymentAmount || 0,
-  ratePct: form.ratePct === null || (form.ratePct as unknown) === '' ? null : Number(form.ratePct)
+  ratePct: form.ratePct === null || (form.ratePct as unknown) === '' ? null : Number(form.ratePct),
+  scenarioId: calculation.value ? null : form.scenarioId, calculation: calculation.value
 })
 
 async function call<T>(action: () => Promise<T>): Promise<T | null> {
@@ -203,7 +231,7 @@ async function call<T>(action: () => Promise<T>): Promise<T | null> {
 }
 
 async function showPreview() {
-  if (!form.scenarioId) {
+  if (!form.scenarioId && !calculation.value) {
     errors.value = { scenarioId: ['Choose one of your saved scenarios.'] }
     showError(tr('Choose one of your saved scenarios.'))
     return
@@ -231,6 +259,19 @@ onMounted(async () => {
   try {
     const [g] = await Promise.all([loansApi.goodsCategories(), loadScenarios()])
     goods.value = g
+    // back from the calculator: what was typed before, and the schedule it handed back (if any)
+    const draft = take<{ clientId: number | null; form: LoanRequest; clientSearch: string; clients: LoanOption[] }>(FINANCE_DRAFT_KEY)
+    if (draft && draft.clientId === fixedClientId) {
+      Object.assign(form, draft.form, { clientId: fixedClientId ?? draft.form.clientId })
+      clientSearch.value = draft.clientSearch
+      clients.value = draft.clients
+    }
+    const handed = take<FinanceCalculation>(FINANCE_CALCULATION_KEY)
+    if (handed) {
+      calculation.value = handed
+      form.scenarioId = null
+      form.ratePct = handed.interestRatePct
+    }
     if (fixedClientId) {
       const ws = await lendingWsApi.customer(fixedClientId)
       clientLabel.value = `${ws.clientName} · ${ws.clientNumber}`
@@ -248,6 +289,9 @@ onMounted(async () => {
 .nf-title .fa { color: var(--fin-teal, #00636d); }
 .nf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 18px; }
 .nf-warn { color: #b45309; }
+.nf-calc-chip { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 10px; border: 1px solid var(--fin-teal, #00636d); border-radius: var(--fin-radius-sm, 8px); background: var(--fin-teal-50, #eef9f8); font-size: 13px; }
+.nf-calc-chip > span:nth-child(2) { flex: 1; }
+.nf-chip-x { border: 0; background: transparent; color: var(--fin-muted); cursor: pointer; }
 .nf-calc { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 .nf-hint { margin: 10px 0 0; font-size: 12px; }
 .nf-preview { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }

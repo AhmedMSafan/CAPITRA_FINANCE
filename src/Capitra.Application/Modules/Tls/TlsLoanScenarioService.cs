@@ -133,7 +133,7 @@ public sealed class TlsLoanScenarioService(ICapitraDbContext db, IClock clock, I
         await db.Set<TlsLoanScenario>().AsNoTracking().FirstOrDefaultAsync(x => x.ScenarioId == id && x.CreatedBy == User, cancellationToken)
         ?? throw new NotFoundException($"Scenario {id} was not found.");
 
-    private static void Apply(TlsLoanScenario s, TlsTerms t, long? rateIndexId)
+    internal static void Apply(TlsLoanScenario s, TlsTerms t, long? rateIndexId)
     {
         s.RateIndexId = rateIndexId;
         s.PrincipalAmount = t.PrincipalAmount;
