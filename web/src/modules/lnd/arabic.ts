@@ -522,4 +522,7 @@ export const LND_AR: Record<string, string> = {
   'Finance created:': 'أُنشئ التمويل:',
   'A consumer finance for this customer, from a saved calculator scenario': 'تمويل استهلاكي لهذا العميل من سيناريو محفوظ في الحاسبة',
   'Back': 'رجوع',
+  'Changed from the scenario rate': 'تم التغيير من سعر السيناريو',
+  'The schedule is worked out again for this finance; the saved scenario is not changed.': 'يُعاد حساب الجدول لهذا التمويل فقط؛ لا يتغير السيناريو المحفوظ.',
+  'From the scenario. Change it for this finance if needed.': 'من السيناريو. يمكن تغييره لهذا التمويل عند الحاجة.',
 }

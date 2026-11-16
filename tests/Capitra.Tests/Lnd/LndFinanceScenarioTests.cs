@@ -1,4 +1,5 @@
 using Capitra.Application.Modules.Lnd;
+using Capitra.Application.Modules.Tls;
 using Capitra.Domain.Modules.Tls;
 using Xunit;
 
@@ -39,5 +40,20 @@ public sealed class LndFinanceScenarioTests
         Assert.Equal("THIRTY_360", LndLoanService.DayCount("30_360"));
         Assert.Equal("ACT_360", LndLoanService.DayCount("ACT_360"));
         Assert.Equal("ACT_365", LndLoanService.DayCount("ACT_ACT"));
+    
+    [Fact]
+    public void A_new_rate_works_the_schedule_out_again_on_the_same_dates()
+    {
+        var s = new TlsLoanScenario
+        {
+            ScenarioName = "Level", PrincipalAmount = 12000, ContractDate = new(2026, 11, 16), TenorValue = 12, TenorUnit = "MONTH", ScheduleMode = "COMBINED",
+            PrincipalMethod = "EQUAL_INSTALLMENT", DayCountMethod = "ACT_365", PrincipalPaymentStartDate = new(2026, 12, 31), InterestPaymentStartDate = new(2026, 12, 31),
+            CombinedFrequencyValue = 1, CombinedFrequencyUnit = "EOM",
+        };
+        var at22 = TlsLoanCalculator.Generate(TlsLoanCalculator.Terms(LndLoanService.Request(s, 22)));
+        var at18 = TlsLoanCalculator.Generate(TlsLoanCalculator.Terms(LndLoanService.Request(s, 18)));
+        Assert.Equal(at22.Select(x => x.PaymentDate), at18.Select(x => x.PaymentDate));
+        Assert.True(at18.Sum(x => x.InterestAmount) < at22.Sum(x => x.InterestAmount));
+        Assert.Equal(12000m, at18.Sum(x => x.PrincipalAmount));
     }
 }
