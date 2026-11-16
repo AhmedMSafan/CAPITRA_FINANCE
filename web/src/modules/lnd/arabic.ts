@@ -523,6 +523,9 @@ export const LND_AR: Record<string, string> = {
   'A consumer finance for this customer, from a saved calculator scenario': 'تمويل استهلاكي لهذا العميل من سيناريو محفوظ في الحاسبة',
   'Back': 'رجوع',
   'Schedule from the calculator': 'جدول من الحاسبة',
+  'The schedule from the calculator. Click Check and show schedule to check it with this finance before creating it.':
+    'الجدول القادم من الحاسبة. اضغط التحقق وعرض الجدول للتحقق منه مع هذا التمويل قبل إنشائه.',
+  'Checked for this finance. You can create it.': 'تم التحقق لهذا التمويل. يمكنك إنشاؤه.',
   'Unsaved schedule from the calculator': 'جدول غير محفوظ من الحاسبة',
   'Changed from the scenario rate': 'تم التغيير من سعر السيناريو',
   'The schedule is worked out again for this finance; the saved scenario is not changed.': 'يُعاد حساب الجدول لهذا التمويل فقط؛ لا يتغير السيناريو المحفوظ.',

@@ -4,6 +4,8 @@ import type { LoanScenarioWorkspaceRequest } from '@/modules/tls/api/loanScenari
 
 export const FINANCE_DRAFT_KEY = 'capitra.newFinance.draft'
 export const FINANCE_CALCULATION_KEY = 'capitra.newFinance.calculation'
+// the schedule the calculator showed, so New Finance shows it at once on return
+export const FINANCE_CALCULATION_RESULT_KEY = 'capitra.newFinance.calculationResult'
 
 export type FinanceCalculation = LoanScenarioWorkspaceRequest
 

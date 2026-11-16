@@ -86,20 +86,22 @@
       </div>
       <p class="c3-muted nf-hint">{{ tr('The scenario gives the amount, contract date, payment dates, rate and schedule. Each payment must have principal and interest together, with one rate for the whole term.') }}</p>
 
-      <div v-if="preview" class="nf-preview">
+      <div v-if="shown" ref="scheduleBox" class="nf-preview">
+        <p v-if="!preview" class="nf-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('The schedule from the calculator. Click Check and show schedule to check it with this finance before creating it.') }}</p>
+        <p v-else class="nf-ok"><span class="fa fa-check-circle" aria-hidden="true"></span>{{ tr('Checked for this finance. You can create it.') }}</p>
         <div class="nf-facts">
-          <div><small>{{ tr('Instalments') }}</small><b>{{ preview.installmentCount }}</b></div>
-          <div><small>{{ tr('Yearly rate') }}</small><b>{{ preview.annualRatePct }}%</b></div>
-          <div><small>{{ tr('Total interest') }}</small><b>{{ money(preview.totalInterestAmount) }}</b></div>
-          <div><small>{{ tr('Total to repay') }}</small><b>{{ money(preview.totalRepayableAmount) }}</b></div>
-          <div><small>{{ tr('First payment') }}</small><b>{{ formatDate(preview.firstDueDate) }}</b></div>
-          <div><small>{{ tr('Maturity') }}</small><b>{{ formatDate(preview.maturityDate) }}</b></div>
+          <div><small>{{ tr('Instalments') }}</small><b>{{ shown.installmentCount }}</b></div>
+          <div><small>{{ tr('Yearly rate') }}</small><b>{{ shown.annualRatePct }}%</b></div>
+          <div><small>{{ tr('Total interest') }}</small><b>{{ money(shown.totalInterestAmount) }}</b></div>
+          <div><small>{{ tr('Total to repay') }}</small><b>{{ money(shown.totalRepayableAmount) }}</b></div>
+          <div><small>{{ tr('First payment') }}</small><b>{{ formatDate(shown.firstDueDate) }}</b></div>
+          <div><small>{{ tr('Maturity') }}</small><b>{{ formatDate(shown.maturityDate) }}</b></div>
         </div>
         <div class="fx-table-wrap nf-schedule">
           <table class="fx-table">
             <thead><tr><th>#</th><th>{{ tr('Due date') }}</th><th class="nf-num">{{ tr('Principal') }}</th><th class="nf-num">{{ tr('Interest') }}</th><th class="nf-num">{{ tr('Instalment') }}</th><th class="nf-num">{{ tr('Balance after') }}</th></tr></thead>
             <tbody>
-              <tr v-for="s in preview.schedule" :key="s.installmentNo">
+              <tr v-for="s in shown.schedule" :key="s.installmentNo">
                 <td>{{ s.installmentNo }}</td><td>{{ formatDate(s.dueDate) }}</td><td class="nf-num">{{ money(s.principal) }}</td>
                 <td class="nf-num">{{ money(s.interest) }}</td><td class="nf-num"><b>{{ money(s.total) }}</b></td><td class="nf-num">{{ money(s.closingPrincipal) }}</td>
               </tr>
@@ -123,15 +125,16 @@
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ApiError } from '@/shared/api/http'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
+import type { LoanScenarioResult } from '@/modules/tls/api/loanScenarios.api'
 import { loansApi, type LoanOption, type LoanPreview, type LoanRequest, type ScenarioOption } from '../api/loans.api'
 import { lendingWsApi } from '../api/workspace.api'
-import { FINANCE_CALCULATION_KEY, FINANCE_DRAFT_KEY, keep, take, type FinanceCalculation } from '../financeDraft'
+import { FINANCE_CALCULATION_KEY, FINANCE_CALCULATION_RESULT_KEY, FINANCE_DRAFT_KEY, keep, take, type FinanceCalculation } from '../financeDraft'
 
 const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const money = (n: number) => egp.format(n)
@@ -150,6 +153,9 @@ const clientSearch = ref('')
 const goods = ref<LoanOption[]>([])
 const scenarios = ref<ScenarioOption[]>([])
 const preview = ref<LoanPreview | null>(null)
+// the schedule the calculator showed, shown at once on return until it is checked for this finance
+const handed = ref<LoanPreview | null>(null)
+const scheduleBox = ref<HTMLElement | null>(null)
 const errors = ref<Record<string, string[]>>({})
 const bad = (f: string) => ({ 'c3-bad': !!errors.value[f] })
 
@@ -163,6 +169,24 @@ const form = reactive<LoanRequest>({
 const calculation = ref<FinanceCalculation | null>(null)
 
 const chosen = computed(() => scenarios.value.find((s) => s.id === form.scenarioId) ?? null)
+const shown = computed(() => preview.value ?? (calculation.value && !rateChanged.value ? handed.value : null))
+
+function asPreview(r: LoanScenarioResult): LoanPreview | null {
+  const first = r.schedule[0]
+  const last = r.schedule[r.schedule.length - 1]
+  if (!first || !last) return null
+  const interest = r.schedule.reduce((t, x) => t + x.interestAmount, 0)
+  return {
+    versionNo: 0, repaymentFrequencyCode: '', interestMethodCode: '', annualRatePct: r.rates[0]?.interestRatePct ?? 0,
+    installmentCount: r.schedule.length, installmentAmount: first.totalPaymentAmount, totalInterestAmount: interest,
+    totalRepayableAmount: r.principalAmount + interest, firstDueDate: first.paymentDate, maturityDate: last.paymentDate,
+    schedule: r.schedule.map((x) => ({
+      installmentNo: x.installmentNo, dueDate: x.paymentDate, openingPrincipal: x.openingPrincipal, principal: x.principalAmount,
+      interest: x.interestAmount, total: x.totalPaymentAmount, closingPrincipal: x.closingPrincipal
+    }))
+  }
+}
+
 const baseRate = computed(() => chosen.value?.ratePct ?? calculation.value?.interestRatePct ?? null)
 const rateChanged = computed(() => baseRate.value !== null && form.ratePct !== null && (form.ratePct as unknown) !== ''
   && Number(form.ratePct) !== baseRate.value)
@@ -174,6 +198,7 @@ function onScenario() {
 
 function dropCalculation() {
   calculation.value = null
+  handed.value = null
   form.ratePct = null
 }
 
@@ -266,11 +291,17 @@ onMounted(async () => {
       clientSearch.value = draft.clientSearch
       clients.value = draft.clients
     }
-    const handed = take<FinanceCalculation>(FINANCE_CALCULATION_KEY)
-    if (handed) {
-      calculation.value = handed
+    const terms = take<FinanceCalculation>(FINANCE_CALCULATION_KEY)
+    const result = take<LoanScenarioResult>(FINANCE_CALCULATION_RESULT_KEY)
+    if (terms) {
+      calculation.value = terms
       form.scenarioId = null
-      form.ratePct = handed.interestRatePct
+      form.ratePct = terms.interestRatePct
+      handed.value = result ? asPreview(result) : null
+      // the schedule is shown at once; when the finance is filled in, it is checked straight away too
+      await nextTick()
+      scheduleBox.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (form.clientId && form.goodsCategoryCode && form.goodsDescription && form.goodsPriceAmount) await showPreview()
     }
     if (fixedClientId) {
       const ws = await lendingWsApi.customer(fixedClientId)
@@ -289,6 +320,9 @@ onMounted(async () => {
 .nf-title .fa { color: var(--fin-teal, #00636d); }
 .nf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 18px; }
 .nf-warn { color: #b45309; }
+.nf-note, .nf-ok { display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px 10px; border-radius: var(--fin-radius-sm, 8px); font-size: 13px; }
+.nf-note { background: #fff7ed; color: #9a3412; }
+.nf-ok { background: #f0fdf4; color: #166534; }
 .nf-calc-chip { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 10px; border: 1px solid var(--fin-teal, #00636d); border-radius: var(--fin-radius-sm, 8px); background: var(--fin-teal-50, #eef9f8); font-size: 13px; }
 .nf-calc-chip > span:nth-child(2) { flex: 1; }
 .nf-chip-x { border: 0; background: transparent; color: var(--fin-muted); cursor: pointer; }
