@@ -203,6 +203,10 @@
         <button type="button" class="fx-btn fx-btn--teal" :disabled="loading" @click="generateSchedule">
           <span class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-calculator'" aria-hidden="true"></span>{{ tr('Generate Schedule') }}
         </button>
+        <!-- opened from New Finance: take the generated schedule back without saving a scenario -->
+        <button v-if="fromFinance" type="button" class="fx-btn fx-btn--teal" :disabled="loading || !workingResult" @click="useForFinance">
+          <span class="fa fa-share" aria-hidden="true"></span>{{ tr('Use this schedule for the finance') }}
+        </button>
       </div>
     </section>
 
@@ -306,7 +310,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { FINANCE_CALCULATION_KEY, keep } from '@/modules/lnd/financeDraft'
 import { tr } from '@/shared/layout/language'
 import {
   loanScenariosApi, type LoanScenarioListItem, type LoanScenarioResult, type LoanScenarioWorkspaceRate,
@@ -424,6 +429,7 @@ const dayCountMethods = [
 ]
 
 const route = useRoute()
+const router = useRouter()
 const fromFinance = route.query.from === 'finance'
 const backToFinance = { name: 'lnd-finance-new', query: route.query.clientId ? { clientId: String(route.query.clientId) } : {} }
 
@@ -675,6 +681,23 @@ function upsertWorkingRate() {
   workingRates.value.sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate))
 }
 
+/** Hands the generated schedule's terms back to New Finance, without saving a scenario (the server works it out again). */
+async function useForFinance() {
+  clearMessages()
+  try {
+    checkDates()
+    loading.value = true
+    // checks the terms as they are on the screen now
+    workingResult.value = await loanScenariosApi.preview(buildWorkspaceRequest(saveScenarioName.value || null))
+    keep(FINANCE_CALCULATION_KEY, buildWorkspaceRequest(null))
+    await router.push(backToFinance)
+  } catch (error) {
+    errorMessage.value = message(error, 'Unable to generate schedule.')
+  } finally {
+    loading.value = false
+  }
+}
+
 async function regenerateForRateChange() {
   clearMessages()
   try {
@@ -769,6 +792,9 @@ async function resetNewScenario() {
   form.combinedFrequencyValue = 1
   form.combinedFrequencyUnit = 'MONTH'
   form.combinedDateRule = 'ACTUAL'
+  // opened from New Finance with its finance amount
+  const handedAmount = Number(route.query.amount)
+  if (fromFinance && handedAmount > 0) form.principalAmount = handedAmount
   await nextTick()
   suspendDefaults.value = false
   applyDefaultDates()
@@ -1065,6 +1091,7 @@ onMounted(async () => {
 
 .actions {
   display: flex;
+  gap: 8px;
   justify-content: flex-end;
   margin-top: 22px;
 }

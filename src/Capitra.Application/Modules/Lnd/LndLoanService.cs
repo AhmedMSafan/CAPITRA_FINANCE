@@ -12,7 +12,8 @@ namespace Capitra.Application.Modules.Lnd;
 
 public sealed record LndLoanRequestDto(long? ClientId, long? ProductId, decimal? PrincipalAmount, int? TermMonths, DateOnly? DisbursementDate, DateOnly? FirstDueDate, string? Notes,
     string? GoodsCategoryCode = null, string? GoodsDescription = null, string? GoodsBrandModel = null, string? MerchantName = null,
-    decimal? GoodsPriceAmount = null, decimal? DownPaymentAmount = null, long? ScenarioId = null, decimal? RatePct = null);
+    decimal? GoodsPriceAmount = null, decimal? DownPaymentAmount = null, long? ScenarioId = null, decimal? RatePct = null,
+    TlsScenarioRequest? Calculation = null);
 
 /// <summary>A saved Finance Calculator scenario offered on New Finance, with its amount and rate.</summary>
 public sealed record LndScenarioOptionDto(long Id, string Name, decimal PrincipalAmount, decimal RatePct, string ScheduleMode, string PrincipalMethod);
@@ -176,9 +177,7 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             LoanId = loan.LoanId, InstallmentNo = x.InstallmentNo, DueDate = x.DueDate, OpeningPrincipalAmount = x.OpeningPrincipal,
             PrincipalDueAmount = x.Principal, InterestDueAmount = x.Interest, ClosingPrincipalAmount = x.ClosingPrincipal,
         }));
-        db.Set<LndLoanStatusHist>().Add(new LndLoanStatusHist { LoanId = loan.LoanId, ToStatusCode = Statuses.Approved, Reason = t.ScenarioName is null ? "Loan created." : t.ScenarioRatePct == t.RatePct
-                ? $"Created from the saved scenario '{t.ScenarioName}'."
-                : $"Created from the saved scenario '{t.ScenarioName}', rate changed from {t.ScenarioRatePct:0.######}% to {t.RatePct:0.######}% for this finance (the scenario is unchanged)." });
+        db.Set<LndLoanStatusHist>().Add(new LndLoanStatusHist { LoanId = loan.LoanId, ToStatusCode = Statuses.Approved, Reason = History(t) });
         await db.SaveChangesAsync(cancellationToken);
         return loan.LoanId;
     }
@@ -251,9 +250,11 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             scenario = await ScenarioAsync(scenarioId, cancellationToken);
             if (scenario is null) e["scenarioId"] = ["The saved scenario was not found among yours."];
         }
+        else if (dto.Calculation is { } calculation)
+            scenario = FromCalculation(calculation);
         if (dto.ClientId is null) e["clientId"] = ["Choose the customer."];
         else if (!await db.Set<CrmClient>().AnyAsync(x => x.ClientId == dto.ClientId, cancellationToken)) e["clientId"] = ["The customer was not found."];
-        if (dto.ScenarioId is null)
+        if (scenario is null && dto.ScenarioId is null)
         {
             if (dto.ProductId is null) e["productId"] = ["Choose the product."];
             if (dto.PrincipalAmount is not > 0) e["principalAmount"] = ["Enter the amount."];
@@ -328,6 +329,37 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
     }
 
     private sealed record TlsScenario(TlsLoanScenario Scenario, List<TlsLoanScenarioRate> Rates, List<TlsLoanScenarioLine> Lines);
+
+    private const string Unsaved = "(unsaved calculator schedule)";
+
+    private static string History(Terms t)
+    {
+        if (t.ScenarioName is null) return "Loan created.";
+        var source = t.ScenarioName == Unsaved ? "a Finance Calculator schedule (not saved as a scenario)" : $"the saved scenario '{t.ScenarioName}'";
+        return t.ScenarioRatePct == t.RatePct
+            ? $"Created from {source}."
+            : $"Created from {source}, rate changed from {t.ScenarioRatePct:0.######}% to {t.RatePct:0.######}% for this finance.";
+    }
+
+    /// <summary>
+    /// A schedule the Finance Calculator handed back without saving it: its terms are worked out here again, so what is created is
+    /// what the calculator showed, and then checked as a saved scenario would be.
+    /// </summary>
+    private static TlsScenario FromCalculation(TlsScenarioRequest request)
+    {
+        var terms = TlsLoanCalculator.Terms(request with { ScenarioId = null });
+        var s = new TlsLoanScenario { ScenarioName = Unsaved };
+        TlsLoanScenarioService.Apply(s, terms, request.RateIndexId);
+        var rates = terms.Rates.Select(r => new TlsLoanScenarioRate { EffectiveDate = r.EffectiveDate, InterestRatePct = r.InterestRatePct, SequenceNo = r.SequenceNo }).ToList();
+        var lines = TlsLoanCalculator.Generate(terms).Select(l => new TlsLoanScenarioLine
+        {
+            InstallmentNo = l.InstallmentNo, AccrualStartDate = l.AccrualStartDate, AccrualEndDate = l.AccrualEndDate, PaymentDate = l.PaymentDate,
+            OpeningPrincipalAmount = l.OpeningPrincipal, PrincipalAmount = l.PrincipalAmount, InterestAmount = l.InterestAmount,
+            TotalPaymentAmount = l.TotalPaymentAmount, ClosingPrincipalAmount = l.ClosingPrincipal, InterestRatePct = l.InterestRatePct,
+            DayCountFraction = l.DayCountFraction,
+        }).ToList();
+        return new TlsScenario(s, rates, lines);
+    }
 
     /// <summary>A saved scenario of the Finance Calculator, only if the user created it.</summary>
     private async Task<TlsScenario?> ScenarioAsync(long scenarioId, CancellationToken cancellationToken)
