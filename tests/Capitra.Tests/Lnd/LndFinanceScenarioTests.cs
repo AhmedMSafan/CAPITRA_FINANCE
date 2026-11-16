@@ -40,7 +40,8 @@ public sealed class LndFinanceScenarioTests
         Assert.Equal("THIRTY_360", LndLoanService.DayCount("30_360"));
         Assert.Equal("ACT_360", LndLoanService.DayCount("ACT_360"));
         Assert.Equal("ACT_365", LndLoanService.DayCount("ACT_ACT"));
-    
+    }
+
     [Fact]
     public void A_new_rate_works_the_schedule_out_again_on_the_same_dates()
     {
