@@ -311,7 +311,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import { FINANCE_CALCULATION_KEY, keep } from '@/modules/lnd/financeDraft'
+import { FINANCE_CALCULATION_KEY, FINANCE_CALCULATION_RESULT_KEY, keep } from '@/modules/lnd/financeDraft'
 import { tr } from '@/shared/layout/language'
 import {
   loanScenariosApi, type LoanScenarioListItem, type LoanScenarioResult, type LoanScenarioWorkspaceRate,
@@ -690,6 +690,7 @@ async function useForFinance() {
     // checks the terms as they are on the screen now
     workingResult.value = await loanScenariosApi.preview(buildWorkspaceRequest(saveScenarioName.value || null))
     keep(FINANCE_CALCULATION_KEY, buildWorkspaceRequest(null))
+    keep(FINANCE_CALCULATION_RESULT_KEY, workingResult.value)
     await router.push(backToFinance)
   } catch (error) {
     errorMessage.value = message(error, 'Unable to generate schedule.')
