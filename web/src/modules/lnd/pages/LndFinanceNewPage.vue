@@ -63,13 +63,18 @@
         <label class="fc-field" :class="bad('scenarioId')"><span>{{ tr('Saved scenario') }}<b> *</b></span>
           <select v-model="form.scenarioId" class="fx-select">
             <option :value="null" disabled>{{ tr('Choose one of your saved scenarios') }}</option>
-            <option v-for="s in scenarios" :key="s.id" :value="s.id">{{ s.name }}</option>
+            <option v-for="s in scenarios" :key="s.id" :value="s.id">{{ s.name }} · {{ money(s.principalAmount) }} · {{ s.ratePct }}%</option>
           </select>
           <small v-if="!scenarios.length" class="c3-muted">{{ tr('You have no saved scenarios yet.') }}</small>
         </label>
+        <label class="fc-field" :class="bad('ratePct')"><span>{{ tr('Rate %') }}</span>
+          <input v-model.number="form.ratePct" type="number" min="0" max="100" step="0.0001" class="fx-search" :disabled="!chosen">
+          <small v-if="chosen && rateChanged" class="nf-warn">{{ tr('Changed from the scenario rate') }} {{ chosen.ratePct }}%. {{ tr('The schedule is worked out again for this finance; the saved scenario is not changed.') }}</small>
+          <small v-else-if="chosen" class="c3-muted">{{ tr('From the scenario. Change it for this finance if needed.') }}</small>
+        </label>
         <div class="nf-calc">
-          <RouterLink :to="{ name: 'tls-loan-calculator' }" target="_blank" class="fx-btn">
-            <span class="fa fa-external-link" aria-hidden="true"></span>{{ tr('Open Finance Calculator') }}
+          <RouterLink :to="{ name: 'tls-loan-calculator', query: fixedClientId ? { from: 'finance', clientId: String(fixedClientId) } : { from: 'finance' } }" class="fx-btn">
+            <span class="fa fa-external-link" aria-hidden="true"></span>{{ tr('Make a scenario in the Finance Calculator') }}
           </RouterLink>
           <button type="button" class="fx-btn" :disabled="busy" @click="loadScenarios"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Refresh list') }}</button>
         </div>
@@ -119,7 +124,7 @@ import { ApiError } from '@/shared/api/http'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
-import { loansApi, type LoanOption, type LoanPreview, type LoanRequest } from '../api/loans.api'
+import { loansApi, type LoanOption, type LoanPreview, type LoanRequest, type ScenarioOption } from '../api/loans.api'
 import { lendingWsApi } from '../api/workspace.api'
 
 const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -137,7 +142,7 @@ const busy = ref(false)
 const clients = ref<LoanOption[]>([])
 const clientSearch = ref('')
 const goods = ref<LoanOption[]>([])
-const scenarios = ref<LoanOption[]>([])
+const scenarios = ref<ScenarioOption[]>([])
 const preview = ref<LoanPreview | null>(null)
 const errors = ref<Record<string, string[]>>({})
 const bad = (f: string) => ({ 'c3-bad': !!errors.value[f] })
@@ -145,8 +150,14 @@ const bad = (f: string) => ({ 'c3-bad': !!errors.value[f] })
 const form = reactive<LoanRequest>({
   clientId: fixedClientId, productId: null, principalAmount: null, termMonths: null, disbursementDate: null, firstDueDate: null, notes: null,
   goodsCategoryCode: null, goodsDescription: null, goodsBrandModel: null, merchantName: null, goodsPriceAmount: null, downPaymentAmount: null,
-  scenarioId: null
+  scenarioId: null, ratePct: null
 })
+
+const chosen = computed(() => scenarios.value.find((s) => s.id === form.scenarioId) ?? null)
+const rateChanged = computed(() => chosen.value !== null && form.ratePct !== null && Number(form.ratePct) !== chosen.value.ratePct)
+
+// a scenario brings its own rate; the user may change it for this finance
+watch(() => form.scenarioId, () => (form.ratePct = chosen.value?.ratePct ?? null))
 
 const financeAmount = computed(() => {
   const price = Number(form.goodsPriceAmount) || 0
@@ -171,7 +182,8 @@ function findClients() {
 
 const body = (): LoanRequest => ({
   ...form, principalAmount: financeAmount.value, notes: form.notes || null, goodsDescription: form.goodsDescription || null,
-  goodsBrandModel: form.goodsBrandModel || null, merchantName: form.merchantName || null, downPaymentAmount: form.downPaymentAmount || 0
+  goodsBrandModel: form.goodsBrandModel || null, merchantName: form.merchantName || null, downPaymentAmount: form.downPaymentAmount || 0,
+  ratePct: form.ratePct === null || (form.ratePct as unknown) === '' ? null : Number(form.ratePct)
 })
 
 async function call<T>(action: () => Promise<T>): Promise<T | null> {
@@ -235,6 +247,7 @@ onMounted(async () => {
 .nf-title { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 15px; font-weight: 800; }
 .nf-title .fa { color: var(--fin-teal, #00636d); }
 .nf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 18px; }
+.nf-warn { color: #b45309; }
 .nf-calc { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 .nf-hint { margin: 10px 0 0; font-size: 12px; }
 .nf-preview { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }

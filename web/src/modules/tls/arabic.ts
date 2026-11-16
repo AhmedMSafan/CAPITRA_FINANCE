@@ -2,6 +2,7 @@
 export const TLS_AR: Record<string, string> = {
   Tools: 'الأدوات',
   Calculator: 'الحاسبة',
+  'Back to New Finance': 'العودة إلى تمويل جديد',
   'Finance Calculator': 'حاسبة التمويل',
   'Generate, review and save finance repayment scenarios.': 'إنشاء جداول سداد التمويل ومراجعتها وحفظها كسيناريوهات.',
   'Repayment schedules with saved scenarios, starting from the rate in force in Rate Maintenance.':
@@ -22,8 +23,16 @@ export const TLS_AR: Record<string, string> = {
   'Interest Rate %': 'نسبة العائد %',
   'Day Count Basis': 'أساس حساب الأيام',
   'Schedule Type': 'نوع الجدول',
-  'Separate Principal and Interest': 'أصل وعائد منفصلان',
-  'Combined Principal + Interest': 'أصل + عائد في قسط واحد',
+  'Regular P&I': 'أصل وعائد منتظم',
+  'Separate P&I - Regular': 'أصل وعائد منفصلان - منتظم',
+  'One start date and one frequency; each bill has principal and interest together.': 'تاريخ بداية واحد ودورية واحدة؛ كل فاتورة تشمل الأصل والعائد معاً.',
+  'One schedule for principal (equal principal) and one for interest.': 'جدول للأصل (أصل متساوٍ) وجدول للعائد.',
+  Fixed: 'ثابت',
+  Level: 'متساوٍ',
+  'Level: the total payment is the same each time; the principal part grows and the interest part falls.':
+    'متساوٍ: إجمالي القسط ثابت؛ يزيد جزء الأصل ويقل جزء العائد.',
+  'Fixed: the principal part is the same each time; the total payment falls as interest falls.':
+    'ثابت: جزء الأصل ثابت؛ يقل إجمالي القسط مع انخفاض العائد.',
   'Principal and Interest Rules': 'قواعد الأصل والعائد',
   'Regular Principal Schedule': 'جدول سداد الأصل',
   'Principal is divided equally across all principal installments.': 'يقسم الأصل بالتساوي على كل أقساط الأصل.',

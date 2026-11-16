@@ -11,6 +11,10 @@
           <b>{{ tr('Finance Calculator') }}</b>
         </nav>
         <h1>{{ tr('Finance Calculator') }}</h1>
+        <!-- opened from New Finance: save the scenario, then go back and pick it -->
+        <RouterLink v-if="fromFinance" :to="backToFinance" class="fx-btn back-to-finance">
+          <span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to New Finance') }}
+        </RouterLink>
         <p class="loan-sub">{{ tr('Generate, review and save finance repayment scenarios.') }}</p>
       </div>
 
@@ -79,18 +83,23 @@
           </select>
         </div>
 
-        <div class="field">
-          <label for="lc-mode">{{ tr('Schedule Type') }}</label>
-          <select id="lc-mode" v-model="form.scheduleMode">
-            <option value="SEPARATE">{{ tr('Separate Principal and Interest') }}</option>
-            <option value="COMBINED">{{ tr('Combined Principal + Interest') }}</option>
-          </select>
-        </div>
       </div>
     </section>
 
+    <!-- the two kinds of schedule (Ahmed, 16 Nov 2026): Regular P&I (one bill with principal and interest) or Separate P&I - Regular -->
+    <div class="mode-switch" role="radiogroup" :aria-label="tr('Schedule Type')">
+      <button type="button" role="radio" :aria-checked="isCombined" class="mode-option" :class="{ active: isCombined }" @click="form.scheduleMode = 'COMBINED'">
+        <span class="fa fa-file-text-o" aria-hidden="true"></span>
+        <span><b>{{ tr('Regular P&I') }}</b><small>{{ tr('One start date and one frequency; each bill has principal and interest together.') }}</small></span>
+      </button>
+      <button type="button" role="radio" :aria-checked="!isCombined" class="mode-option" :class="{ active: !isCombined }" @click="form.scheduleMode = 'SEPARATE'">
+        <span class="fa fa-columns" aria-hidden="true"></span>
+        <span><b>{{ tr('Separate P&I - Regular') }}</b><small>{{ tr('One schedule for principal (equal principal) and one for interest.') }}</small></span>
+      </button>
+    </div>
+
     <section class="loan-card principal-interest-card">
-      <div class="loan-section-title"><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Principal and Interest Rules') }}</div>
+      <div class="loan-section-title"><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr(isCombined ? 'Regular P&I' : 'Separate P&I - Regular') }}</div>
 
       <!-- Separate P&I: the calculation stays on the server -->
       <template v-if="!isCombined">
@@ -157,9 +166,12 @@
           <div class="field">
             <label for="lc-ptype">{{ tr('Payment Type') }}</label>
             <select id="lc-ptype" v-model="form.principalMethod">
-              <option value="EQUAL_PRINCIPAL">{{ tr('Equal Principal') }}</option>
-              <option value="EQUAL_INSTALLMENT">{{ tr('Equal Total Installment') }}</option>
+              <option value="EQUAL_PRINCIPAL">{{ tr('Fixed') }}</option>
+              <option value="EQUAL_INSTALLMENT">{{ tr('Level') }}</option>
             </select>
+            <small class="field-note neutral">{{ tr(form.principalMethod === 'EQUAL_INSTALLMENT'
+              ? 'Level: the total payment is the same each time; the principal part grows and the interest part falls.'
+              : 'Fixed: the principal part is the same each time; the total payment falls as interest falls.') }}</small>
           </div>
 
           <div v-if="!combinedAtMaturity" class="field">
@@ -294,7 +306,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { tr } from '@/shared/layout/language'
 import {
   loanScenariosApi, type LoanScenarioListItem, type LoanScenarioResult, type LoanScenarioWorkspaceRate,
@@ -411,6 +423,10 @@ const dayCountMethods = [
   { value: '30_365', label: '30 / 365' }
 ]
 
+const route = useRoute()
+const fromFinance = route.query.from === 'finance'
+const backToFinance = { name: 'lnd-finance-new', query: route.query.clientId ? { clientId: String(route.query.clientId) } : {} }
+
 const loading = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
@@ -439,7 +455,7 @@ const form = reactive<LoanScenarioForm>({
   rateIndexId: null,
   interestRatePct: 0,
   dayCountMethod: 'ACT_365',
-  scheduleMode: 'SEPARATE',
+  scheduleMode: 'COMBINED',
   principalMethod: 'EQUAL_PRINCIPAL',
   interestPaymentMethod: 'REGULAR',
   principalPaymentStartDate: '',
@@ -741,7 +757,7 @@ async function resetNewScenario() {
   form.rateIndexId = null
   form.interestRatePct = 0
   form.dayCountMethod = 'ACT_365'
-  form.scheduleMode = 'SEPARATE'
+  form.scheduleMode = 'COMBINED'
   form.principalMethod = 'EQUAL_PRINCIPAL'
   form.interestPaymentMethod = 'REGULAR'
   form.principalFrequencyValue = 1
@@ -800,6 +816,10 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.back-to-finance {
+  margin-top: 8px;
 }
 
 .loan-sub {
@@ -953,6 +973,60 @@ onMounted(async () => {
   margin-top: 4px;
   color: #b45309;
   font-size: 11px;
+}
+
+.field-note.neutral {
+  color: var(--lc-muted);
+}
+
+.mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mode-option {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid var(--lc-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--lc-text);
+  text-align: start;
+  cursor: pointer;
+}
+
+.mode-option > .fa {
+  margin-top: 2px;
+  color: var(--lc-muted);
+  font-size: 18px;
+}
+
+.mode-option b,
+.mode-option small {
+  display: block;
+}
+
+.mode-option b {
+  font-size: 14px;
+}
+
+.mode-option small {
+  margin-top: 3px;
+  color: var(--lc-muted);
+  font-size: 12px;
+}
+
+.mode-option.active {
+  border-color: var(--lc-primary);
+  background: #eef9f8;
+  box-shadow: 0 0 0 2px rgba(0, 99, 109, 0.15);
+}
+
+.mode-option.active > .fa {
+  color: var(--lc-primary);
 }
 
 .inline-field {
@@ -1223,6 +1297,10 @@ onMounted(async () => {
 }
 
 @media (max-width: 650px) {
+  .mode-switch {
+    grid-template-columns: 1fr;
+  }
+
   .loan-grid {
     grid-template-columns: 1fr;
   }
