@@ -61,6 +61,7 @@ public sealed class SecAuthController(
         {
             new(CapitraClaimTypes.UserId, user.Id),
             new(CapitraClaimTypes.UserName, user.UserName!),
+            new(UserAccessCheck.SecurityStampClaim, user.SecurityStamp ?? string.Empty),
         };
         if (!string.IsNullOrWhiteSpace(user.FullName))
             claims.Add(new Claim(CapitraClaimTypes.FullName, user.FullName));

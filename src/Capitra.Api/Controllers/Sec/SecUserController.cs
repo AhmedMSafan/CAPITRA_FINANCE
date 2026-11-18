@@ -29,7 +29,7 @@ public sealed record SecOperationResult(bool Success, string Message, string? Us
 [ApiController]
 [Route("api/sec/users")]
 [HasPermission(Permissions.Sec.UserAdmin)]
-public sealed class SecUserController(UserManager<SecUser> users, RoleManager<SecRole> roles) : ControllerBase
+public sealed class SecUserController(UserManager<SecUser> users, RoleManager<SecRole> roles, UserAccessCache access) : ControllerBase
 {
     [HttpGet]
     public async Task<IReadOnlyList<SecUserDto>> List(CancellationToken cancellationToken)
@@ -87,6 +87,7 @@ public sealed class SecUserController(UserManager<SecUser> users, RoleManager<Se
         user.JobTitle = Clean(request.JobTitle);
         user.IsActive = request.IsActive;
         Ensure(await users.UpdateAsync(user), "user");
+        access.Clear();
         return new SecOperationResult(true, $"User '{user.UserName}' updated successfully.");
     }
 
@@ -108,6 +109,7 @@ public sealed class SecUserController(UserManager<SecUser> users, RoleManager<Se
             Ensure(added, "roles");
         }
 
+        access.Clear();
         return new SecOperationResult(true, $"Roles for user '{user.UserName}' updated successfully.");
     }
 
@@ -117,6 +119,7 @@ public sealed class SecUserController(UserManager<SecUser> users, RoleManager<Se
         var user = await FindAsync(userId);
         var token = await users.GeneratePasswordResetTokenAsync(user);
         Ensure(await users.ResetPasswordAsync(user, token, request.NewPassword), "newPassword");
+        access.Clear();
         return new SecOperationResult(true, $"Password for user '{user.UserName}' reset successfully.");
     }
 

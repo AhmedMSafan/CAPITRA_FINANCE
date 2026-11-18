@@ -25,7 +25,7 @@ public sealed record RenameSecRoleRequest([Required] string RoleName);
 [ApiController]
 [Route("api/sec/roles")]
 [HasPermission(Permissions.Sec.UserAdmin)]
-public sealed class SecRoleController(RoleManager<SecRole> roles, UserManager<SecUser> users) : ControllerBase
+public sealed class SecRoleController(RoleManager<SecRole> roles, UserManager<SecUser> users, UserAccessCache access) : ControllerBase
 {
     [HttpGet]
     public async Task<IReadOnlyList<SecRoleDto>> List(CancellationToken cancellationToken)
@@ -86,6 +86,7 @@ public sealed class SecRoleController(RoleManager<SecRole> roles, UserManager<Se
             Ensure(await roles.RemoveClaimAsync(role, claim));
         foreach (var code in wanted.Where(w => current.All(c => c.Value != w)))
             Ensure(await roles.AddClaimAsync(role, new Claim(Permissions.ClaimType, code)));
+        access.Clear();
         return await MapAsync(role);
     }
 

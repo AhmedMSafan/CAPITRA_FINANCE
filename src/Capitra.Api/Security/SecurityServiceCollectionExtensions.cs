@@ -21,6 +21,9 @@ public static class SecurityServiceCollectionExtensions
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddSingleton<JwtTokenService>();
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        services.AddMemoryCache();
+        services.AddSingleton<UserAccessCache>();
+        services.AddScoped<IUserAccessSource, IdentityUserAccessSource>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
@@ -39,6 +42,26 @@ public static class SecurityServiceCollectionExtensions
                     ClockSkew = TimeSpan.FromMinutes(1),
                     NameClaimType = CapitraClaimTypes.UserName,
                     RoleClaimType = CapitraClaimTypes.Role,
+                };
+                // The token is checked against the user's current access on every request (kept 30 seconds): a deactivated user, a
+                // removed role or a reset password stops working within that time, not when the token expires.
+                bearer.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var userId = context.Principal?.FindFirst(CapitraClaimTypes.UserId)?.Value;
+                        if (context.Principal is null || string.IsNullOrEmpty(userId))
+                        {
+                            context.Fail("The token has no user.");
+                            return;
+                        }
+
+                        var services = context.HttpContext.RequestServices;
+                        var access = await services.GetRequiredService<UserAccessCache>()
+                            .GetAsync(userId, services.GetRequiredService<IUserAccessSource>(), context.HttpContext.RequestAborted);
+                        if (UserAccessCheck.Apply(context.Principal, access) is { } failure)
+                            context.Fail(failure);
+                    },
                 };
             });
 
