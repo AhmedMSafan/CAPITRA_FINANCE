@@ -142,8 +142,11 @@ public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUs
             : throw BusinessValidationException.For("roleCode", $"A company user is {CompanyUserRole} or {CompanyAdminRole}.");
     }
 
-    private async Task<ScrCompanyUserDto> ToDtoAsync(SecUser u) =>
-        new(u.Id, u.UserName ?? u.Id, u.Email, u.FullName, u.IsActive, (await users.GetRolesAsync(u)).FirstOrDefault() ?? "-", u.LastLoginAt);
+    private async Task<ScrCompanyUserDto> ToDtoAsync(SecUser u)
+    {
+        var roles = await users.GetRolesAsync(u);
+        return new(u.Id, u.UserName ?? u.Id, u.Email, u.FullName, u.IsActive, roles.Count > 0 ? roles[0] : "-", u.LastLoginAt);
+    }
 
     private static string? Clean(string? v) => string.IsNullOrWhiteSpace(v) ? null : v.Trim();
 
