@@ -22,7 +22,12 @@ public static class DatabaseStartup
         var provider = scope.ServiceProvider;
 
         if (configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
-            await provider.GetRequiredService<CapitraDbContext>().Database.MigrateAsync();
+        {
+            var db = provider.GetRequiredService<CapitraDbContext>();
+            // a database built by the squashed migrations keeps its data: the Baseline is recorded, not run
+            await BaselineAdoption.AdoptAsync(db);
+            await db.Database.MigrateAsync();
+        }
 
         var adminUserName = configuration["Seed:AdminUserName"];
         var adminPassword = configuration["Seed:AdminPassword"];
