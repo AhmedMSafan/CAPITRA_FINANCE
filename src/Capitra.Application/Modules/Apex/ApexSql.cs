@@ -77,6 +77,25 @@ internal sealed class ApexSqlReportProcess(ApexSqlReport report, IApexSqlReader 
         var o = doc.RootElement;
         var items = ApexItems.Read(o.TryGetProperty("items", out var i) ? i : null);
         items["APP_USER"] = user.UserName;
+
+        // without a search, the database sorts, pages and counts: only the page's rows are read (the search matches the shown
+        // text of every column, dates and numbers as formatted, so it still runs here on all rows)
+        var search = o.TryGetProperty("search", out var s) && s.ValueKind == JsonValueKind.String ? s.GetString()?.Trim() : null;
+        if (string.IsNullOrEmpty(search))
+        {
+            string? Str(string key) => o.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+            int Int(string key, int fallback) => o.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt32() : fallback;
+            var first = Math.Max(1, Int("first", 1));
+            var count = Math.Clamp(Int("rows", 15), 1, 1000);
+            var page = await reader.QueryPageAsync(report.Sql, items, Str("sort"), Str("dir") == "desc", first - 1, count, ct);
+            return new
+            {
+                ok = true,
+                total = page.Total,
+                rows = page.Rows.Select(r => r.ToDictionary(v => v.Key, v => ApexReport.Show(v.Value, report.App))).ToList(),
+            };
+        }
+
         var rows = await reader.QueryAsync(report.Sql, items, ct);
 
         // the query's own order is the report's default order
