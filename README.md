@@ -17,6 +17,13 @@ The naming standard (v1.0) is enforced by `tests/Capitra.Tests/Persistence/Namin
 UPPERCASE table and column names with a module prefix (`ADM_`, `MTG_`, `WFE_`, `GL_`, `SEC_`...), audit columns on every table,
 and type rules by suffix (`IS_`, `_AT`, `_DATE`, `_AMOUNT`, `_PCT`). A table that breaks the standard fails the build.
 
+## Engineering standards
+
+- [docs/engineering/STANDARDS.md](docs/engineering/STANDARDS.md): branches and pull requests, money rounding, tests, migrations, security, front end.
+- [docs/engineering/APEX-REWRITE-PLAN.md](docs/engineering/APEX-REWRITE-PLAN.md): how the copied APEX pages (GL, Cheques, MFF, Mortgage) are replaced by native modules.
+
+Work happens on a branch from `develop` and is merged by pull request once CI passes. `main` is what is released.
+
 ## Requirements
 
 - .NET SDK 10
