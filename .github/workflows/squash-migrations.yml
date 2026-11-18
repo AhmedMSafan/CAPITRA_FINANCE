@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: squash-migrations
+  cancel-in-progress: true
+
 env:
   M: src/Capitra.Infrastructure/Persistence/Migrations
   EF: dotnet ef --project src/Capitra.Infrastructure --startup-project src/Capitra.Infrastructure
@@ -55,8 +59,7 @@ jobs:
           psql -c 'CREATE DATABASE old'
           dotnet build -c Release
           $EF database update --no-build --configuration Release
-          dump --data-only --column-inserts --exclude-table='"__EFMigrationsHistory"' --exclude-table='"__ef_migrations_history"' \
-            --exclude-table='"EF_MIGRATIONS_HISTORY"' old | grep -v -E '^(--|SET |SELECT pg_catalog.set_config)' | sed '/^$/N;/^\n$/D' > /tmp/seed.sql
+          dump --data-only --column-inserts --exclude-table='"SYS_EF_MIGRATION_HISTORY"' old | grep -v -E '^(--|SET |SELECT pg_catalog.set_config)' | sed '/^$/N;/^\n$/D' > /tmp/seed.sql
           wc -l /tmp/seed.sql
       - name: Replace the migrations with one Baseline
         if: steps.mode.outputs.mode == 'generate'
@@ -92,8 +95,8 @@ jobs:
         run: |
           . /tmp/pg.sh
           for db in old new; do
-            dump --schema-only $db | grep -v -E '^(--|SET |SELECT pg_catalog)' | grep -v -i 'migrations_\?history\|__EFMigrationsHistory' | sed '/^$/d' > /tmp/$db.schema.sql
-            dump --data-only --column-inserts $db | grep -v -E '^(--|SET |SELECT pg_catalog)' | grep -v -i 'migrations_\?history\|__EFMigrationsHistory' \
+            dump --schema-only $db | grep -v -E '^(--|SET |SELECT pg_catalog)' | grep -v 'SYS_EF_MIGRATION_HISTORY' | sed '/^$/d' > /tmp/$db.schema.sql
+            dump --data-only --column-inserts $db | grep -v -E '^(--|SET |SELECT pg_catalog)' | grep -v 'SYS_EF_MIGRATION_HISTORY' \
               | sed -E "s/'[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+(\+00)?'/'<ts>'/g" | sed '/^$/d' > /tmp/$db.data.sql
           done
           wc -l /tmp/*.sql
