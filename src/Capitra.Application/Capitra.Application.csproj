@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <!-- the tests reach internal calculation helpers (FinancialReviewMath, MtgAjax) without making them public -->
+    <InternalsVisibleTo Include="Capitra.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Capitra.Domain\Capitra.Domain.csproj" />
   </ItemGroup>
 
