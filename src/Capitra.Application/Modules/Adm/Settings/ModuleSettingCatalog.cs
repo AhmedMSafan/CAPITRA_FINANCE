@@ -1,4 +1,5 @@
 using System.Globalization;
+using Capitra.Application.Common;
 using Capitra.Application.Modules.Crm;
 
 namespace Capitra.Application.Modules.Adm.Settings;
@@ -118,7 +119,7 @@ public static class ModuleSettingCatalog
                 return InRange(d, i) ?? (i.ToString(CultureInfo.InvariantCulture), null);
             case ModuleSettingType.Number:
                 if (!decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out var m)) return (null, "Enter a number.");
-                m = Math.Round(m, 4);
+                m = Money.Round(m, 4);
                 return InRange(d, m) ?? (m.ToString("0.####", CultureInfo.InvariantCulture), null);
             default:
                 var c = s.ToUpperInvariant();

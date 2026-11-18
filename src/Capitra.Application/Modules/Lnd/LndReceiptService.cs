@@ -1,5 +1,6 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Adm.Products;
 using Capitra.Application.Modules.Apex;
@@ -371,7 +372,7 @@ public sealed partial class LndReceiptService(ICapitraDbContext db, IClock clock
                         throw BusinessValidationException.For("sources", "Choose one of our active accounts in the loan's currency for each bank deposit.");
                     if (string.IsNullOrWhiteSpace(a.ErpAccountCode)) throw BusinessValidationException.For("sources", $"Bank account {a.AccountRef} has no GL account code. Set it in Treasury.");
                     if (string.IsNullOrWhiteSpace(r.Reference)) throw BusinessValidationException.For("sources", "Enter the bank reference of each deposit.");
-                    result.Add(new Source(type, Math.Round(r.Amount!.Value, 2), null, r.Reference.Trim(), a.ErpAccountCode.Trim()));
+                    result.Add(new Source(type, Money.Round(r.Amount!.Value, 2), null, r.Reference.Trim(), a.ErpAccountCode.Trim()));
                     break;
                 }
                 case "CHEQUE":
@@ -390,7 +391,7 @@ public sealed partial class LndReceiptService(ICapitraDbContext db, IClock clock
                     if (r.Amount is not > 0) throw BusinessValidationException.For("sources", "Enter how much of the credit balance is used.");
                     var credit = await CreditAsync(loan.ClientId, cancellationToken);
                     if (r.Amount > credit) throw BusinessValidationException.For("sources", $"The customer's credit balance is {credit:#,0.00}.");
-                    result.Add(new Source(type, Math.Round(r.Amount!.Value, 2), null, null, null));
+                    result.Add(new Source(type, Money.Round(r.Amount!.Value, 2), null, null, null));
                     break;
                 }
                 default:

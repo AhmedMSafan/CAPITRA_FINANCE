@@ -1,4 +1,5 @@
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Modules.Apex;
 using Capitra.Domain.Modules.Mff;
 using Microsoft.EntityFrameworkCore;
@@ -56,7 +57,7 @@ public sealed class MffCalcPackage(ICapitraDbContext db, MffParamPackage param, 
     /// <summary>The calculation itself, without the database.</summary>
     public static Outputs Calculate(Inputs i)
     {
-        var months = (int)Math.Round(i.TermYears * 12);
+        var months = (int)Money.Round(i.TermYears * 12, 0);
         var payment = i.Income * i.MaxPaymentIncomePct / 100;
         var basic = PresentValue(i.RatePct, months, m => GrowingPayment(payment, i.GrowthPct, i.GrowthYears, m));
         var subMonths = Math.Min(i.SubsidyMonths, months);
@@ -151,7 +152,7 @@ public sealed class MffCalcPackage(ICapitraDbContext db, MffParamPackage param, 
         foreach (var x in await db.Set<MffCalculationSchedule>().Where(x => x.CalcRunId == calcRunId).ToListAsync(ct))
             db.Remove(x);
 
-        var months = (int)Math.Round((run.TermYears ?? 0) * 12);
+        var months = (int)Money.Round((run.TermYears ?? 0) * 12, 0);
         var r = (run.MortgageRatePct ?? 0) / 1200;
         var open = run.OutMortgageLoan ?? 0;
         var first = DateOnly.FromDateTime(clock.UtcNow);

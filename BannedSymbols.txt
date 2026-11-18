@@ -1,0 +1,2 @@
+M:System.Math.Round(System.Decimal);Use Capitra.Application.Common.Money.Round (half away from zero)
+M:System.Math.Round(System.Decimal,System.Int32);Use Capitra.Application.Common.Money.Round (half away from zero)

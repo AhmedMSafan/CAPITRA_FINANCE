@@ -1,4 +1,5 @@
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Adm.Settings;
 using Capitra.Domain.Modules.Adm;
@@ -266,7 +267,7 @@ public sealed class TrsLimitsService(ICapitraDbContext db, ICurrentUser currentU
                     var denominator = r.BasisCode == "FACILITY_LIMIT"
                         ? facilities.Where(f => inScope.Contains(f.FacilityId)).Sum(f => f.ApprovedLimit)
                         : poolBySub.Where(x => subFacility.TryGetValue(x.Key, out var fid) && inScope.Contains(fid)).Sum(x => x.Value);
-                    decimal? pct = denominator > 0 ? Math.Round(top.Amount / denominator * 100, 1) : null;
+                    decimal? pct = denominator > 0 ? Money.Round(top.Amount / denominator * 100, 1) : null;
                     var level = (r.LimitPct, r.LimitAmount) switch
                     {
                         (decimal lp, _) when pct > lp => "BREACH",

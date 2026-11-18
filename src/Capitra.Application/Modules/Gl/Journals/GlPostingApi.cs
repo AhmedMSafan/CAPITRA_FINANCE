@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Gl.Setup;
@@ -372,7 +373,7 @@ public sealed partial class GlPostingApi(
         var cr = await lines.SumAsync(l => l.AccountedCr, ct);
         if (n == 0)
             throw new ApexProcessException($"Journal {h.JournalNo} has no lines.");
-        if (Math.Round(dr, 5) != Math.Round(cr, 5) || dr == 0)
+        if (Money.Round(dr, 5) != Money.Round(cr, 5) || dr == 0)
             throw new ApexProcessException($"Journal {h.JournalNo} is not balanced: debit {Money(dr)}, credit {Money(cr)}.");
 
         var source = await SourceCodeOfAsync(h.SourceId, ct);

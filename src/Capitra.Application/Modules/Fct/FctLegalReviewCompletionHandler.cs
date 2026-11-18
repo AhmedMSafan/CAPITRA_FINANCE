@@ -1,4 +1,5 @@
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Fct;
@@ -77,7 +78,7 @@ public sealed class FctLegalReviewCompletionHandler(ICapitraDbContext db, IClock
             UtilizedAmount = utilized,
             AvailableAmount = a.AvailableAmount ?? Math.Max(limit - utilized, 0),
             ExcessAmount = Math.Max(utilized - limit, 0),
-            UtilizationPct = limit == 0 ? null : Math.Round(utilized / limit * 100, 4),
+            UtilizationPct = limit == 0 ? null : Money.Round(utilized / limit * 100, 4),
             SublimitAmount = a.SublimitAmount,
             RiskGrade = a.AmlRiskBand,
             RiskScore = a.CreditBureauScore,

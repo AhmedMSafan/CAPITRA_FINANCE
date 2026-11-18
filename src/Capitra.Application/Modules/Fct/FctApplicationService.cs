@@ -1,5 +1,6 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Adm.Settings;
 using Capitra.Application.Modules.Wfe;
@@ -182,7 +183,7 @@ public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser cur
             SpreadPct = r.OperatingSpread,
             EffectiveRatePct = r.DiscountRatePct,
             MarginPct = r.SpreadOverLcrPct,
-            AvgTenorDays = (int)Math.Round(r.AverageTenorDays),
+            AvgTenorDays = (int)Money.Round(r.AverageTenorDays, 0),
             MaxDebtorConcentrationPct = 25,
             DilutionReservePct = r.AdvanceDilutionPct,
             RiskBand = r.RiskBand,
@@ -253,7 +254,7 @@ public sealed class FctApplicationService(ICapitraDbContext db, ICurrentUser cur
             SpreadPct = offer.SpreadPct,
             MarginPct = offer.MarginPct,
             ApplicationAt = now,
-            TenorMonths = offer.MaxLimitTenorMth is { } months ? (int)Math.Round(months) : null,
+            TenorMonths = offer.MaxLimitTenorMth is { } months ? (int)Money.Round(months, 0) : null,
             MaxDebtorConcentrationPct = offer.MaxDebtorConcentrationPct,
             StatusCode = "DRAFT",
             RelationshipManager = offer.RelationshipManager,

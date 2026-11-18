@@ -1,4 +1,5 @@
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Gl;
 using Capitra.Domain.Modules.Adm;
@@ -111,7 +112,7 @@ public sealed class TlsLoanScenarioService(ICapitraDbContext db, IClock clock, I
                 ScenarioId = s.ScenarioId, InstallmentNo = l.InstallmentNo, AccrualStartDate = l.AccrualStartDate, AccrualEndDate = l.AccrualEndDate,
                 PaymentDate = l.PaymentDate, OpeningPrincipalAmount = l.OpeningPrincipal, PrincipalAmount = l.PrincipalAmount,
                 InterestAmount = l.InterestAmount, TotalPaymentAmount = l.TotalPaymentAmount, ClosingPrincipalAmount = l.ClosingPrincipal,
-                InterestRatePct = l.InterestRatePct, DayCountFraction = Math.Round(l.DayCountFraction, 12),
+                InterestRatePct = l.InterestRatePct, DayCountFraction = Money.Round(l.DayCountFraction, 12),
             });
         await db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
