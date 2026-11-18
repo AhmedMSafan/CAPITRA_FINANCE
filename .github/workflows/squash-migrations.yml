@@ -1,0 +1,101 @@
+# One-off: squashes the EF migrations into one Baseline and proves the result matches.
+# Removed again once the squash is merged.
+#  - no *_Baseline.cs yet: run the old migrations on an empty database, dump its seed data, replace the migrations with a
+#    generated Baseline, add the seed as Baseline.Seed.sql, and commit both to this branch.
+#  - Baseline present: build one database from develop's migrations and one from this branch, and fail on any difference
+#    in schema or data (timestamps masked).
+name: Squash migrations
+
+on:
+  push:
+    branches: [chore/squash-migrations]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  M: src/Capitra.Infrastructure/Persistence/Migrations
+  EF: dotnet ef --project src/Capitra.Infrastructure --startup-project src/Capitra.Infrastructure
+
+jobs:
+  squash:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: pg
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet tool install --global dotnet-ef --version 10.0.13
+      - name: Mode
+        id: mode
+        run: |
+          if ls $M/*_Baseline.cs >/dev/null 2>&1; then echo "mode=verify" >> "$GITHUB_OUTPUT"; else echo "mode=generate" >> "$GITHUB_OUTPUT"; fi
+      - name: Helpers
+        run: |
+          cat > /tmp/pg.sh <<'SH'
+          psql() { docker exec -i ${{ job.services.postgres.id }} psql -v ON_ERROR_STOP=1 -U postgres "$@"; }
+          dump() { docker exec -i ${{ job.services.postgres.id }} pg_dump -U postgres --no-owner --no-privileges "$@"; }
+          SH
+
+      # ---------------------------------------------------------------- generate
+      - name: Old migrations on an empty database
+        if: steps.mode.outputs.mode == 'generate'
+        env:
+          CAPITRA_DB_CONNECTION: Host=localhost;Port=5432;Database=old;Username=postgres;Password=pg
+        run: |
+          . /tmp/pg.sh
+          psql -c 'CREATE DATABASE old'
+          dotnet build -c Release
+          $EF database update --no-build --configuration Release
+          dump --data-only --column-inserts --exclude-table='"__EFMigrationsHistory"' --exclude-table='"__ef_migrations_history"' \
+            --exclude-table='"EF_MIGRATIONS_HISTORY"' old | grep -v -E '^(--|SET |SELECT pg_catalog.set_config)' | sed '/^$/N;/^\n$/D' > /tmp/seed.sql
+          wc -l /tmp/seed.sql
+      - name: Replace the migrations with one Baseline
+        if: steps.mode.outputs.mode == 'generate'
+        env:
+          CAPITRA_DB_CONNECTION: Host=localhost;Port=5432;Database=unused;Username=postgres;Password=pg
+        run: |
+          git rm -q "$M"/*.cs
+          $EF migrations add Baseline --output-dir Persistence/Migrations
+          cp /tmp/seed.sql "$M/Baseline.Seed.sql"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A "$M"
+          git commit -m "Squash 74 migrations into one generated Baseline (+ seed data dumped from the old migrations)"
+          git push
+
+      # ---------------------------------------------------------------- verify
+      - uses: actions/checkout@v4
+        if: steps.mode.outputs.mode == 'verify'
+        with:
+          ref: develop
+          path: old
+      - name: One database from develop, one from this branch
+        if: steps.mode.outputs.mode == 'verify'
+        run: |
+          . /tmp/pg.sh
+          psql -c 'CREATE DATABASE old' -c 'CREATE DATABASE new'
+          (cd old && dotnet build -c Release && CAPITRA_DB_CONNECTION="Host=localhost;Port=5432;Database=old;Username=postgres;Password=pg" \
+            $EF database update --no-build --configuration Release)
+          dotnet build -c Release
+          CAPITRA_DB_CONNECTION="Host=localhost;Port=5432;Database=new;Username=postgres;Password=pg" $EF database update --no-build --configuration Release
+      - name: Same schema and data
+        if: steps.mode.outputs.mode == 'verify'
+        run: |
+          . /tmp/pg.sh
+          for db in old new; do
+            dump --schema-only $db | grep -v -E '^(--|SET |SELECT pg_catalog)' | grep -v -i 'migrations_\?history\|__EFMigrationsHistory' | sed '/^$/d' > /tmp/$db.schema.sql
+            dump --data-only --column-inserts $db | grep -v -E '^(--|SET |SELECT pg_catalog)' | grep -v -i 'migrations_\?history\|__EFMigrationsHistory' \
+              | sed -E "s/'[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+(\+00)?'/'<ts>'/g" | sed '/^$/d' > /tmp/$db.data.sql
+          done
+          wc -l /tmp/*.sql
+          diff -u /tmp/old.schema.sql /tmp/new.schema.sql > /tmp/schema.diff && echo "schema identical" || { head -200 /tmp/schema.diff; exit 1; }
+          diff -u <(sort /tmp/old.data.sql) <(sort /tmp/new.data.sql) > /tmp/data.diff && echo "data identical" || { head -200 /tmp/data.diff; exit 1; }
