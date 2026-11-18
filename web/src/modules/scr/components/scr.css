@@ -36,3 +36,24 @@
   .scr-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .fx-btn.fx-btn--bad { border-color: #f1b4ae; color: #b42318; }
+
+/* Form controls as in the rest of CAPITRA (.fx-search / .fx-select) */
+.fx .scr-field input:not([type='checkbox']):not([type='file']),
+.fx .scr-field select,
+.fx .scr-field textarea {
+  height: 36px; box-sizing: border-box; border: 1px solid var(--fin-line); border-radius: 8px; padding-inline: 12px;
+  font: inherit; font-size: var(--fs-sm); color: var(--fin-ink); background: var(--fin-surface);
+}
+.fx .scr-field select { padding-inline: 10px; }
+.fx .scr-field textarea { height: auto; min-height: 72px; padding-block: 8px; resize: vertical; line-height: 1.6; }
+.fx .scr-field input:focus, .fx .scr-field select:focus, .fx .scr-field textarea:focus {
+  outline: 2px solid var(--fin-teal-100); border-color: var(--fin-teal-600);
+}
+.fx .scr-field input:disabled, .fx .scr-field select:disabled, .fx .scr-field textarea:disabled {
+  background: var(--fin-bg, #f4f6f7); color: var(--fin-muted); cursor: not-allowed;
+}
+.fx .scr-field input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--fin-teal-600); }
+.fx .scr-field > span b, .fx .scr-req { color: #b42318; }
+.fx section.fx-card { padding: 16px 18px; }
+.fx section.fx-card + section.fx-card { margin-top: 14px; }
+.scr-grid { margin-bottom: 4px; }
