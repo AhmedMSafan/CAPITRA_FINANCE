@@ -121,6 +121,6 @@ public static class ScrNames
     {
         var s = new string((value ?? string.Empty).Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
         var trimmed = s.TrimStart('0');
-        return trimmed.Length == 0 ? s : trimmed;
+        return trimmed.Length == 0 ? (s.Length == 0 ? s : "0") : trimmed;
     }
 }
