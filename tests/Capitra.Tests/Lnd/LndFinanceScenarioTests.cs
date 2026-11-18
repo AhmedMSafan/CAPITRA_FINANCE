@@ -39,7 +39,11 @@ public sealed class LndFinanceScenarioTests
         Assert.Equal(13, LndLoanService.TermMonths(new(2026, 11, 15), new(2027, 11, 30)));
         Assert.Equal("THIRTY_360", LndLoanService.DayCount("30_360"));
         Assert.Equal("ACT_360", LndLoanService.DayCount("ACT_360"));
-        Assert.Equal("ACT_365", LndLoanService.DayCount("ACT_ACT"));
+        Assert.Equal("ACT_ACT", LndLoanService.DayCount("ACT_ACT"));
+        Assert.Equal("THIRTY_365", LndLoanService.DayCount("30_365"));
+        Assert.Equal("THIRTY_ACT", LndLoanService.DayCount("30_ACT"));
+        foreach (var m in new[] { "ACT_ACT", "ACT_360", "ACT_365", "30_ACT", "30_360", "30_365" })
+            Assert.Equal(m, LndLoanService.CalculatorDayCount(LndLoanService.DayCount(m)));
     }
 
     [Fact]

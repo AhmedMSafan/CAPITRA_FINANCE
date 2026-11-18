@@ -206,6 +206,9 @@ public static class TlsLoanCalculator
     private static decimal RateAt(IReadOnlyList<TlsRate> rates, DateOnly date) =>
         rates.Where(x => x.EffectiveDate <= date).OrderByDescending(x => x.EffectiveDate).Select(x => x.InterestRatePct).FirstOrDefault();
 
+    /// <summary>The year fraction between two dates on one of <see cref="DayCountMethods"/> (0 when end is not after start).</summary>
+    public static decimal YearFraction(DateOnly start, DateOnly end, string method) => Dcf(start, end, method);
+
     private static decimal Dcf(DateOnly start, DateOnly end, string method)
     {
         if (end <= start) return 0;
