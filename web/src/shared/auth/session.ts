@@ -70,3 +70,12 @@ export function hasPermission(permission: string): boolean {
   const permissions = getUser()?.permissions ?? []
   return permissions.includes('*') || permissions.some(p => p.toUpperCase() === permission.toUpperCase())
 }
+
+/**
+ * A member company's user (Screening): every permission is a company one (screening, managing the company's users).
+ * The router keeps such a user on the Screening Portal.
+ */
+export function isCompanyUser(): boolean {
+  const permissions = (getUser()?.permissions ?? []).map((p) => p.toUpperCase())
+  return permissions.length > 0 && permissions.every((p) => p === 'SCR.INQUIRY.CREATE' || p === 'SCR.COMPANY.USERS')
+}

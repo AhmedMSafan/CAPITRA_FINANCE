@@ -1,0 +1,23 @@
+// Screening: the FINOVA screening app merged into CAPITRA. The federation keeps the Final List (letters, parties, decisions approved
+// through the SCR_DECISION_APPROVAL workflow); member companies screen against it from the Screening Portal.
+import type { RouteRecordRaw } from 'vue-router'
+
+const meta = (functionName: string) => ({ moduleName: 'SCREENING', functionName })
+
+export const scrRoutes: RouteRecordRaw[] = [
+  { path: 'screening', name: 'scr-home', component: () => import('./pages/ScrHomePage.vue'), meta: meta('Screening') },
+  { path: 'screening/letters', name: 'scr-letters', component: () => import('./pages/ScrLettersPage.vue'), meta: meta('Letters') },
+  { path: 'screening/parties', name: 'scr-parties', component: () => import('./pages/ScrPartiesPage.vue'), meta: meta('Parties') },
+  { path: 'screening/decisions', name: 'scr-decisions', component: () => import('./pages/ScrDecisionsPage.vue'), meta: meta('Decisions') },
+  { path: 'screening/decisions/new', name: 'scr-decision-new', component: () => import('./pages/ScrDecisionPage.vue'), meta: meta('New decision') },
+  // also the page of the workflow steps SCR_REVIEW and SCR_APPROVAL (opened from the inbox with ?inboxId=)
+  {
+    path: 'screening/decisions/:decisionId(\\d+)', name: 'scr-decision', component: () => import('./pages/ScrDecisionPage.vue'),
+    props: (r) => ({ decisionId: Number(r.params.decisionId) }), meta: meta('Decision')
+  },
+  { path: 'screening/registry', name: 'scr-registry', component: () => import('./pages/ScrRegistryPage.vue'), meta: meta('Federation Final List') },
+  { path: 'screening/companies', name: 'scr-companies', component: () => import('./pages/ScrCompaniesPage.vue'), meta: meta('Member companies') },
+  { path: 'screening/inquiries', name: 'scr-inquiries', component: () => import('./pages/ScrInquiriesPage.vue'), meta: meta('Inquiry audit') },
+  // member companies: the only page their users can open
+  { path: 'screening/portal', name: 'scr-portal', component: () => import('./pages/ScrPortalPage.vue'), meta: meta('Screening Portal') }
+]

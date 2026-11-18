@@ -62,6 +62,19 @@ export const appMenu: MenuGroup[] = [
     ]
   },
   {
+    title: 'Screening',
+    icon: 'pi pi-shield',
+    links: [
+      { label: 'Federation Final List', to: { name: 'scr-registry' } },
+      { label: 'Decisions', to: { name: 'scr-decisions' } },
+      { label: 'Incoming letters', to: { name: 'scr-letters' } },
+      { label: 'Parties', to: { name: 'scr-parties' } },
+      { label: 'Member companies', to: { name: 'scr-companies' } },
+      { label: 'Inquiry audit', to: { name: 'scr-inquiries' } },
+      { label: 'Screening Portal', to: { name: 'scr-portal' } }
+    ]
+  },
+  {
     title: 'Tools',
     icon: 'pi pi-calculator',
     links: [{ label: 'Finance Calculator', to: { name: 'tls-loan-calculator' } }]

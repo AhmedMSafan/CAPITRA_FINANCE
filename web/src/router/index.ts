@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '@/shared/layout/AppLayout.vue'
-import { isAuthenticated } from '@/shared/auth/session'
+import { isAuthenticated, isCompanyUser } from '@/shared/auth/session'
 import { mtgRoutes } from '@/modules/mtg/routes'
 import { mffRoutes } from '@/modules/mff/routes'
 import { chqRoutes } from '@/modules/chq/routes'
@@ -10,6 +10,7 @@ import { collectionRoutes } from '@/modules/collection/routes'
 import { trsRoutes } from '@/modules/trs/routes'
 import { lndRoutes } from '@/modules/lnd/routes'
 import { tlsRoutes } from '@/modules/tls/routes'
+import { scrRoutes } from '@/modules/scr/routes'
 
 // Every page lives under AppLayout and needs a signed-in user, except the login page.
 // Module routes are added here as each module is built (src/modules/{module}).
@@ -68,6 +69,8 @@ const router = createRouter({
         ...lndRoutes,
         // Tools: the Loan Calculator.
         ...tlsRoutes,
+        // Screening: the Federation Final List and the member companies' Screening Portal (merged from FINOVA).
+        ...scrRoutes,
         // General ledger (APEX App 120).
         {
           path: 'gl',
@@ -424,7 +427,9 @@ router.beforeEach(to => {
   const signedIn = isAuthenticated()
 
   if (!to.meta.public && !signedIn) return { name: 'login', query: { redirect: to.fullPath } }
-  if (to.name === 'login' && signedIn) return { name: 'home' }
+  if (to.name === 'login' && signedIn) return { name: isCompanyUser() ? 'scr-portal' : 'home' }
+  // a member company's users screen and nothing else: every other page leads to the Screening Portal
+  if (signedIn && isCompanyUser() && !to.meta.public && to.name !== 'scr-portal') return { name: 'scr-portal' }
 
   return true
 })

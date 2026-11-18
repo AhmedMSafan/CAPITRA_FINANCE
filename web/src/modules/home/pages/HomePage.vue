@@ -91,6 +91,11 @@ const apps: App[] = [
     to: '/factoring', color: '#00636D', tint: '#E6F3F4',
     icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-1M12 11v1"/><path d="M10 16.2c.4.5 1.1.8 2 .8 1.1 0 2-.6 2-1.5s-.9-1.3-2-1.5-2-.6-2-1.5.9-1.5 2-1.5c.9 0 1.6.3 2 .8"/>',
     feats: [] },
+  // Screening (the FINOVA screening app merged in): the Federation Final List, its decisions and the member companies' inquiries
+  { tier: 1, name: 'Screening', short: 'Screening', descr: 'The Federation Final List: letters, decisions approved through the workflow, and member company screening.',
+    to: '/screening', color: '#E87722', tint: '#FDF0E6',
+    icon: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/><path d="M8.5 11l2 2 3.5-4"/>',
+    feats: ['Federation Final List', 'Decisions', 'Member companies', 'Screening Portal'] },
   // Retail Lending (microfinance and consumer finance): its card opens the module's own cards, as Mortgage does
   { tier: 1, name: 'Retail Lending', short: 'Lending', descr: 'Microfinance and consumer finance: payout, repayments, end of day, write-off and recovery.',
     to: '/lending', color: '#7A3E9D', tint: '#F4ECF9',
