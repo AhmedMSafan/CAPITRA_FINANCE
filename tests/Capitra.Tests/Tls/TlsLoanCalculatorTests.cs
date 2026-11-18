@@ -51,6 +51,55 @@ public sealed class TlsLoanCalculatorTests
         Assert.Equal(new DateOnly[] { new(2026, 1, 15), new(2026, 1, 30), new(2026, 2, 28), new(2026, 3, 30), new(2026, 4, 1) }, d30.Select(x => x.PaymentDate));
     }
 
+    private static TlsScenarioRequest Monthly(DateOnly contract, DateOnly first, int tenor = 12, string unit = "MONTH", int every = 1) =>
+        new(null, "Month end", null, 12000, contract, tenor, "MONTH", 12, "ACT_365", "COMBINED", "EQUAL_INSTALLMENT", "REGULAR",
+            first, first, null, null, null, null, null, null, every, unit, null, null);
+
+    [Fact]
+    public void A_month_end_contract_keeps_paying_on_the_month_end()
+    {
+        // 31-Jan contract, first payment 28-Feb: the dates must not stay on the 28th, and there is no extra stub at maturity
+        var s = Run(Monthly(new(2026, 1, 31), new(2026, 2, 28)));
+        Assert.Equal(12, s.Count);
+        Assert.Equal(new DateOnly(2026, 3, 31), s[1].PaymentDate);
+        Assert.Equal(new DateOnly(2026, 4, 30), s[2].PaymentDate);
+        Assert.Equal(new DateOnly(2027, 1, 31), s[^1].PaymentDate);
+        Assert.All(s, x => Assert.Equal(DateTime.DaysInMonth(x.PaymentDate.Year, x.PaymentDate.Month), x.PaymentDate.Day));
+        Assert.Equal(12000m, s.Sum(x => x.PrincipalAmount));
+        Assert.All(s.Take(11), x => Assert.Equal(s[0].TotalPaymentAmount, x.TotalPaymentAmount));
+    }
+
+    [Fact]
+    public void A_payment_day_cut_short_by_February_comes_back_the_month_after()
+    {
+        var s = Run(Monthly(new(2025, 12, 30), new(2026, 1, 30)));
+        Assert.Equal(12, s.Count);
+        Assert.Equal(new DateOnly[] { new(2026, 1, 30), new(2026, 2, 28), new(2026, 3, 30), new(2026, 4, 30) }, s.Take(4).Select(x => x.PaymentDate));
+        Assert.Equal(new DateOnly(2026, 12, 30), s[^1].PaymentDate);
+    }
+
+    [Fact]
+    public void A_28th_contract_stays_on_the_28th()
+    {
+        var s = Run(Monthly(new(2026, 1, 28), new(2026, 2, 28)));
+        Assert.Equal(12, s.Count);
+        Assert.All(s, x => Assert.Equal(28, x.PaymentDate.Day));
+    }
+
+    [Fact]
+    public void Every_three_months_from_a_30th_contract()
+    {
+        var s = Run(Monthly(new(2025, 11, 30), new(2026, 2, 28), unit: "MONTH", every: 3));
+        Assert.Equal(new DateOnly[] { new(2026, 2, 28), new(2026, 5, 30), new(2026, 8, 30), new(2026, 11, 30) }, s.Select(x => x.PaymentDate));
+    }
+
+    [Fact]
+    public void An_unknown_date_rule_is_refused()
+    {
+        var r = Monthly(new(2026, 1, 15), new(2026, 2, 15)) with { CombinedDateRule = "FRIDAY" };
+        Assert.Throws<BusinessRuleException>(() => TlsLoanCalculator.Terms(r));
+    }
+
     [Fact]
     public void Day_counts()
     {
