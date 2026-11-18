@@ -21083,6 +21083,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 principalTable: "MFF_IMPORT_STAGINGS",
                 principalColumn: "STAGING_ID",
                 onDelete: ReferentialAction.Restrict);
+
+            // the reference data the 74 squashed migrations seeded (workflows, lookups, GL sequences), dumped from a database they built
+            migrationBuilder.Sql(BaselineSeed.Sql);
         }
 
         /// <inheritdoc />

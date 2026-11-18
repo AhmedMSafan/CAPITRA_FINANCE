@@ -72,3 +72,5 @@ dotnet ef migrations add <Name> -p src/Capitra.Infrastructure -s src/Capitra.Inf
 ```
 
 `MigrationTests` fails if the model changed without a migration.
+
+The 74 migrations written up to 18 November 2026 were squashed into one `Baseline` migration. Its reference data (workflow definitions, lookups, GL sequences) is in `Persistence/Migrations/Baseline.Seed.sql`, dumped from a database the old migrations built. A database created before the squash has to be recreated: drop it and run `dotnet ef database update`. The per-feature `database/scripts/migrate-*.sql` scripts went with the squash. The `setup-*.sql` and `reset-all-portfolios.sql` scripts remain.
