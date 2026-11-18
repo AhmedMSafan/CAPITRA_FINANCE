@@ -5,10 +5,10 @@
 import capitraLogo from '@/assets/capitra-mark.svg'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
-import { getUser, hasPermission, type SessionUser } from '@/shared/auth/session'
+import { getUser, hasPermission, type SessionUser, isCompanyUser } from '@/shared/auth/session'
 import { logout as endSession, refreshCurrentUser } from '@/modules/sec/api/auth.api'
 import { alertService, workflowService, type WorkflowAlert } from '@/modules/wfe/services/workflowService'
-import { appMenu, type MenuLink } from './appMenu'
+import { appMenu, type MenuGroup, type MenuLink } from './appMenu'
 import { currentLang, switchLanguage, tr } from './language'
 
 const route = useRoute()
@@ -33,7 +33,10 @@ function isHere(l: MenuLink) {
 // ---------- Menu panel ----------
 const menuOpen = ref(false)
 const filter = ref('')
+const PORTAL_MENU: MenuGroup[] = [{ title: 'Screening', icon: 'pi pi-shield', links: [{ label: 'Screening Portal', to: { name: 'scr-portal' } }] }]
 const groups = computed(() => {
+  // a member company's user has one page: the Screening Portal
+  if (isCompanyUser()) return PORTAL_MENU
   const q = filter.value.trim().toLowerCase()
   if (!q) return appMenu
   return appMenu
