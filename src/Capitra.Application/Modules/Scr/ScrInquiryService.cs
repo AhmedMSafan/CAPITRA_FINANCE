@@ -92,7 +92,8 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
             q = q.Where(i => i.MemberCompanyId == company.MemberCompanyId);
         }
 
-        return (await ListAsync(q, ct)).FirstOrDefault() ?? throw new NotFoundException($"Inquiry {inquiryId} was not found.");
+        var found = await ListAsync(q, ct);
+        return found.Count > 0 ? found[0] : throw new NotFoundException($"Inquiry {inquiryId} was not found.");
     }
 
     /// <summary>Every company's inquiries (federation audit), optionally of one company or one result.</summary>
