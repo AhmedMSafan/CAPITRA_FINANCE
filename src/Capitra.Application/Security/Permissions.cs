@@ -215,6 +215,37 @@ public static class Permissions
         public const string StepBoardReview = "MTG.STEP.BOARD_REVIEW";
     }
 
+    /// <summary>Screening (the Federation Final List, merged from FINOVA): federation staff and member companies.</summary>
+    public static class Scr
+    {
+        /// <summary>Register incoming letters and attach their scans (intake).</summary>
+        public const string LetterEdit = "SCR.LETTER.EDIT";
+
+        /// <summary>Read letters, parties, decisions and the Final List (federation staff and auditors).</summary>
+        public const string DecisionView = "SCR.DECISION.VIEW";
+
+        /// <summary>Register parties and enter, change, submit and cancel decisions (data entry).</summary>
+        public const string DecisionEdit = "SCR.DECISION.EDIT";
+
+        /// <summary>Workflow step "Review decision" (SCR_REVIEW): never one's own decision.</summary>
+        public const string DecisionReview = "SCR.DECISION.REVIEW";
+
+        /// <summary>Workflow step "Approve and publish" (SCR_APPROVAL): never a decision one entered or reviewed.</summary>
+        public const string DecisionApprove = "SCR.DECISION.APPROVE";
+
+        /// <summary>Create and suspend member companies and manage any company's user accounts.</summary>
+        public const string CompanyAdmin = "SCR.COMPANY.ADMIN";
+
+        /// <summary>Manage the user accounts of one's own member company (company administrator).</summary>
+        public const string CompanyUsers = "SCR.COMPANY.USERS";
+
+        /// <summary>Screen people and companies against the Final List, and read one's company's inquiries (member company user).</summary>
+        public const string InquiryCreate = "SCR.INQUIRY.CREATE";
+
+        /// <summary>Read every member company's inquiries (federation audit).</summary>
+        public const string InquiryAudit = "SCR.INQUIRY.AUDIT";
+    }
+
     /// <summary>Every permission code above, for the role screen.</summary>
     public static IReadOnlyList<string> Catalog { get; } =
         typeof(Permissions).GetNestedTypes()

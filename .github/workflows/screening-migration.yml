@@ -1,0 +1,43 @@
+# One-off: generates the EF migration for the screening tables (no .NET SDK where the code was written) and commits it.
+# Removed again before the pull request is merged.
+name: Screening migration
+
+on:
+  push:
+    branches: [feature/screening]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: screening-migration
+  cancel-in-progress: true
+
+jobs:
+  migration:
+    runs-on: ubuntu-latest
+    env:
+      M: src/Capitra.Infrastructure/Persistence/Migrations
+      EF: dotnet ef --project src/Capitra.Infrastructure --startup-project src/Capitra.Infrastructure
+      CAPITRA_DB_CONNECTION: Host=localhost;Port=5432;Database=unused;Username=postgres;Password=pg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet tool install --global dotnet-ef --version 10.0.13
+      - run: dotnet build -c Release
+      - name: Add the migration when the model has changed
+        run: |
+          if ls $M/*_Screening.cs >/dev/null 2>&1; then
+            echo "Screening migration exists; checking nothing is pending"
+            $EF migrations has-pending-model-changes --no-build --configuration Release
+            exit 0
+          fi
+          $EF migrations add Screening --output-dir Persistence/Migrations --no-build --configuration Release
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A "$M"
+          git commit -m "Add the generated Screening migration (SCR_ tables, SEC_USERS.MEMBER_COMPANY_ID)"
+          git push
