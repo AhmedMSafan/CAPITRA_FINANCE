@@ -98,7 +98,7 @@ jobs:
             # column order and the defaults EF's AddColumn left behind are not compared (the Baseline follows the model)
             dump --schema-only $db | grep -v -E '^(--|SET |SELECT pg_catalog|\\restrict|\\unrestrict)' | grep -v 'SYS_EF_MIGRATION_HISTORY' | sed '/^$/d' \
               | sed -E 's/,$//' > /tmp/$db.schema.raw.sql
-            sed -E 's/ DEFAULT [^,]*( NOT NULL)?$/\1/' /tmp/$db.schema.raw.sql | sort > /tmp/$db.schema.sql
+            sed -E -e 's/ DEFAULT .* NOT NULL$/ NOT NULL/' -e 's/ DEFAULT .*$//' /tmp/$db.schema.raw.sql | sort > /tmp/$db.schema.sql
             grep -E ' DEFAULT ' /tmp/$db.schema.raw.sql | sort > /tmp/$db.defaults.sql || true
             # every row as jsonb (keys in a fixed order, so column order does not matter), timestamps masked
             : > /tmp/$db.data.sql
