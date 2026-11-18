@@ -100,8 +100,13 @@ jobs:
               | sed -E 's/,$//' > /tmp/$db.schema.raw.sql
             sed -E 's/ DEFAULT [^,]*( NOT NULL)?$/\1/' /tmp/$db.schema.raw.sql | sort > /tmp/$db.schema.sql
             grep -E ' DEFAULT ' /tmp/$db.schema.raw.sql | sort > /tmp/$db.defaults.sql || true
-            dump --data-only --column-inserts $db | grep -v -E '^(--|SET |SELECT pg_catalog|\\restrict|\\unrestrict)' | grep -v 'SYS_EF_MIGRATION_HISTORY' \
-              | sed -E "s/'[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+(\+00)?'/'<ts>'/g" | sed '/^$/d' | sort > /tmp/$db.data.sql
+            # every row as jsonb (keys in a fixed order, so column order does not matter), timestamps masked
+            : > /tmp/$db.data.sql
+            for t in $(psql -At -d $db -c "select tablename from pg_tables where schemaname = 'public' and tablename <> 'SYS_EF_MIGRATION_HISTORY' order by 1"); do
+              psql -At -d $db -c "select '$t ' || to_jsonb(x)::text from \"$t\" x" >> /tmp/$db.data.sql
+            done
+            sed -i -E 's/"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+(\+00:00)?"/"<ts>"/g' /tmp/$db.data.sql
+            sort -o /tmp/$db.data.sql /tmp/$db.data.sql
           done
           wc -l /tmp/*.sql
           echo "Defaults only in the old database (left by AddColumn, not in the model):"
