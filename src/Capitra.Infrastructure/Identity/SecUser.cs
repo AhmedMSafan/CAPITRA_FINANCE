@@ -16,6 +16,9 @@ public class SecUser : IdentityUser, IAuditable
 
     public bool IsActive { get; set; } = true;
 
+    /// <summary>The member company a screening user belongs to (SCR_MEMBER_COMPANIES); null for federation and CAPITRA staff.</summary>
+    public long? MemberCompanyId { get; set; }
+
     public DateTime? LastLoginAt { get; set; }
 
     public string CreatedBy { get; set; } = string.Empty;

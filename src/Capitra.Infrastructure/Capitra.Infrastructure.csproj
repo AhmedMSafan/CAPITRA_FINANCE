@@ -5,6 +5,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Persistence\Migrations\Baseline.Seed.sql" LogicalName="Capitra.Infrastructure.Baseline.Seed.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Capitra.Application\Capitra.Application.csproj" />
   </ItemGroup>
 

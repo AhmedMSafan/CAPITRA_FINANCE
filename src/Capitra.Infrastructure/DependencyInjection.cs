@@ -36,6 +36,8 @@ public static class DependencyInjection
         services.AddScoped<ICapitraDbContext>(sp => sp.GetRequiredService<CapitraDbContext>());
         services.AddScoped<IApexSqlReader, ApexSqlReader>();
         services.AddScoped<IUserDirectory, Identity.UserDirectory>();
+        services.AddScoped<Capitra.Application.Modules.Scr.IScrUserProfiles, Identity.ScrUserProfiles>();
+        services.AddScoped<Capitra.Application.Modules.Scr.IScrCompanyUserCounts, Identity.ScrUserProfiles>();
 
         services
             .AddIdentityCore<SecUser>(options =>
