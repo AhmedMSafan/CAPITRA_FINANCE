@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Capitra.Api.Security;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Capitra.Tests;
@@ -15,6 +16,13 @@ public sealed class CapitraApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("ConnectionStrings:CapitraDb", "Host=localhost;Database=CAPITRA_TEST_UNUSED");
         builder.UseSetting("Jwt:Key", "test-only-signing-key-0123456789-abcdef");
         builder.UseSetting("Database:ApplyMigrationsOnStartup", "false");
+        // no database here: every token's user is taken as active with the roles and permissions the token carries
+        builder.ConfigureTestServices(services => services.AddScoped<IUserAccessSource, TrustTokenAccessSource>());
+    }
+
+    private sealed class TrustTokenAccessSource : IUserAccessSource
+    {
+        public Task<UserAccess?> GetAsync(string userId, CancellationToken cancellationToken) => Task.FromResult<UserAccess?>(UserAccess.TrustToken);
     }
 
     public string IssueToken(params string[] permissions)
