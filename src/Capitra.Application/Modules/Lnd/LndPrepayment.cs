@@ -1,3 +1,4 @@
+using Capitra.Application.Modules.Tls;
 using Capitra.Domain.Modules.Lnd;
 
 namespace Capitra.Application.Modules.Lnd;
@@ -87,6 +88,9 @@ public static class LndPrepayment
     /// </summary>
     public static IReadOnlyList<LndScheduleLine> Rebuild(LndLoan loan, IReadOnlyList<LndInstallment> rest, decimal balance, DateOnly day, DateOnly start)
     {
+        // a schedule that is not level (from the Finance Calculator: equal principal, separate interest dates, a payment at maturity,
+        // a rate change) is not rebuilt as level instalments: it keeps its own shape (see KeepShape)
+        if (!IsLevel(rest)) return KeepShape(loan, rest, balance, day, start);
         var n = rest.Count;
         var first = rest[0].DueDate;
         var count = n;
@@ -111,6 +115,48 @@ public static class LndPrepayment
         var period = first.DayNumber - start.DayNumber;
         if (period > 0 && day > start)
             lines[0] = lines[0] with { Interest = R(lines[0].Interest * (first.DayNumber - day.DayNumber) / period) };
+        return lines;
+    }
+
+    /// <summary>True when every instalment left but the last has the same total (the product's level or flat instalments).</summary>
+    public static bool IsLevel(IReadOnlyList<LndInstallment> rest)
+    {
+        if (rest.Count <= 2) return true;
+        var first = rest[0].PrincipalDueAmount + rest[0].InterestDueAmount;
+        return rest.Take(rest.Count - 1).All(i => Math.Abs(i.PrincipalDueAmount + i.InterestDueAmount - first) <= 0.01m);
+    }
+
+    /// <summary>
+    /// The rest of an irregular schedule after a part prepayment, on the same dates and in the same shape: each instalment's principal
+    /// falls in proportion to the principal paid early (the last takes the rounding), and the interest is worked out again on the lower
+    /// balance with the loan's rate and day count, from today for the first one. Lines that had no interest (principal-only dates of a
+    /// separate calendar) still have none: their interest moves to the next line that has interest, as before. The count stays the
+    /// same, also for a shorter-term product, because the payments are not equal and so cannot simply be dropped from the end.
+    /// </summary>
+    public static IReadOnlyList<LndScheduleLine> KeepShape(LndLoan loan, IReadOnlyList<LndInstallment> rest, decimal balance, DateOnly day, DateOnly start)
+    {
+        var old = rest.Select(i => i.PrincipalDueAmount - i.PrincipalPaidAmount).ToList();
+        var oldTotal = old.Sum();
+        var method = LndLoanService.CalculatorDayCount(loan.DayCountCode);
+        var lines = new List<LndScheduleLine>(rest.Count);
+        var open = balance;
+        var from = day > start ? day : start;
+        var pending = 0m;
+        for (var k = 0; k < rest.Count; k++)
+        {
+            var last = k == rest.Count - 1;
+            var principal = last ? open : Math.Min(open, oldTotal > 0 ? R(old[k] * balance / oldTotal) : 0);
+            pending += open * loan.AnnualRatePct / 100m * TlsLoanCalculator.YearFraction(from, rest[k].DueDate, method);
+            var interest = 0m;
+            if (last || rest[k].InterestDueAmount > 0)
+            {
+                interest = R(pending);
+                pending = 0;
+            }
+            lines.Add(new LndScheduleLine(k + 1, rest[k].DueDate, open, principal, interest, open - principal));
+            open -= principal;
+            from = rest[k].DueDate;
+        }
         return lines;
     }
 

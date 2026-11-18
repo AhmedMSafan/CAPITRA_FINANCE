@@ -425,11 +425,28 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
         return to.Day > from.Day ? months + 1 : months;
     }
 
-    /// <summary>The calculator's day count as the loan's (used by end of day): 30-day bases are THIRTY_360, ACT/ACT is ACT_365.</summary>
-    public static string DayCount(string method) => method switch
+    /// <summary>
+    /// The calculator's day count as the loan's code, one for one, so the loan shows the basis its schedule was worked out on
+    /// (end of day spreads the schedule's interest and does not use it; a part prepayment does).
+    /// </summary>
+    public static string DayCount(string method) => (method ?? "").Trim().ToUpperInvariant() switch
     {
         "ACT_360" => "ACT_360",
-        "30_360" or "30_365" or "30_ACT" => "THIRTY_360",
+        "ACT_ACT" => "ACT_ACT",
+        "30_360" => "THIRTY_360",
+        "30_365" => "THIRTY_365",
+        "30_ACT" => "THIRTY_ACT",
+        _ => "ACT_365",
+    };
+
+    /// <summary>The loan's day count code as the calculator's method (the reverse of <see cref="DayCount"/>).</summary>
+    public static string CalculatorDayCount(string? loanCode) => (loanCode ?? "").Trim().ToUpperInvariant() switch
+    {
+        "ACT_360" => "ACT_360",
+        "ACT_ACT" => "ACT_ACT",
+        "THIRTY_360" => "30_360",
+        "THIRTY_365" => "30_365",
+        "THIRTY_ACT" => "30_ACT",
         _ => "ACT_365",
     };
 

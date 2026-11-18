@@ -123,4 +123,43 @@ public sealed class LndPrepaymentTests
         Assert.Equal(0m, s[2].InterestDueAmount);
         Assert.Equal(3000m, s.Sum(x => x.PrincipalPaidAmount));
     }
+
+    // a Finance Calculator schedule with equal principal: the totals fall each month, so it is not level
+    private static List<LndInstallment> EqualPrincipal(params decimal[] interest) =>
+    [
+        .. new[] { new DateOnly(2026, 3, 1), new(2026, 4, 1), new(2026, 5, 1), new(2026, 6, 1) }.Select((d, k) => new LndInstallment
+        {
+            InstallmentId = 200 + k, InstallmentNo = k + 2, DueDate = d, PrincipalDueAmount = 1000, InterestDueAmount = interest[k], StatusCode = "DUE",
+        }),
+    ];
+
+    [Fact]
+    public void A_level_schedule_is_told_from_an_irregular_one()
+    {
+        Assert.True(LndPrepayment.IsLevel(Schedule()));
+        Assert.False(LndPrepayment.IsLevel(EqualPrincipal(40, 30, 20, 10)));
+    }
+
+    [Fact]
+    public void An_equal_principal_schedule_keeps_its_shape_after_a_part_prepayment()
+    {
+        var loan = Loan();
+        loan.DayCountCode = "ACT_365";
+        var lines = LndPrepayment.Rebuild(loan, EqualPrincipal(40, 30, 20, 10), 3000, Day, new(2026, 2, 1));
+        Assert.Equal(4, lines.Count);
+        Assert.All(lines, l => Assert.Equal(750m, l.Principal));
+        Assert.Equal(new[] { 12.82m, 22.93m, 14.79m, 7.64m }, lines.Select(l => l.Interest)); // 12% ACT/365 on 3,000 / 2,250 / 1,500 / 750
+        Assert.Equal(0m, lines[^1].ClosingPrincipal);
+        Assert.Equal(new DateOnly(2026, 6, 1), lines[^1].DueDate);
+    }
+
+    [Fact]
+    public void Principal_only_dates_keep_no_interest_and_pass_it_on()
+    {
+        var loan = Loan();
+        loan.DayCountCode = "ACT_365";
+        var lines = LndPrepayment.Rebuild(loan, EqualPrincipal(0, 70, 0, 30), 3000, Day, new(2026, 2, 1));
+        Assert.Equal(new[] { 0m, 35.75m, 0m, 22.44m }, lines.Select(l => l.Interest));
+        Assert.Equal(3000m, lines.Sum(l => l.Principal));
+    }
 }
