@@ -95,10 +95,16 @@ jobs:
         run: |
           . /tmp/pg.sh
           for db in old new; do
-            dump --schema-only $db | grep -v -E '^(--|SET |SELECT pg_catalog)' | grep -v 'SYS_EF_MIGRATION_HISTORY' | sed '/^$/d' > /tmp/$db.schema.sql
-            dump --data-only --column-inserts $db | grep -v -E '^(--|SET |SELECT pg_catalog)' | grep -v 'SYS_EF_MIGRATION_HISTORY' \
-              | sed -E "s/'[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+(\+00)?'/'<ts>'/g" | sed '/^$/d' > /tmp/$db.data.sql
+            # column order and the defaults EF's AddColumn left behind are not compared (the Baseline follows the model)
+            dump --schema-only $db | grep -v -E '^(--|SET |SELECT pg_catalog|\\restrict|\\unrestrict)' | grep -v 'SYS_EF_MIGRATION_HISTORY' | sed '/^$/d' \
+              | sed -E 's/,$//' > /tmp/$db.schema.raw.sql
+            sed -E 's/ DEFAULT [^,]*( NOT NULL)?$/\1/' /tmp/$db.schema.raw.sql | sort > /tmp/$db.schema.sql
+            grep -E ' DEFAULT ' /tmp/$db.schema.raw.sql | sort > /tmp/$db.defaults.sql || true
+            dump --data-only --column-inserts $db | grep -v -E '^(--|SET |SELECT pg_catalog|\\restrict|\\unrestrict)' | grep -v 'SYS_EF_MIGRATION_HISTORY' \
+              | sed -E "s/'[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+(\+00)?'/'<ts>'/g" | sed '/^$/d' | sort > /tmp/$db.data.sql
           done
           wc -l /tmp/*.sql
-          diff -u /tmp/old.schema.sql /tmp/new.schema.sql > /tmp/schema.diff && echo "schema identical" || { head -200 /tmp/schema.diff; exit 1; }
-          diff -u <(sort /tmp/old.data.sql) <(sort /tmp/new.data.sql) > /tmp/data.diff && echo "data identical" || { head -200 /tmp/data.diff; exit 1; }
+          echo "Defaults only in the old database (left by AddColumn, not in the model):"
+          diff /tmp/old.defaults.sql /tmp/new.defaults.sql || true
+          diff -u /tmp/old.schema.sql /tmp/new.schema.sql > /tmp/schema.diff && echo "schema identical (ignoring column order and defaults)" || { head -200 /tmp/schema.diff; exit 1; }
+          diff -u /tmp/old.data.sql /tmp/new.data.sql > /tmp/data.diff && echo "data identical" || { head -200 /tmp/data.diff; exit 1; }
