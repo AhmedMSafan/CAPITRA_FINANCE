@@ -1,4 +1,5 @@
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Tls;
 using Capitra.Domain.Modules.Adm;
@@ -165,8 +166,8 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             loan.GoodsDescription = dto.GoodsDescription!.Trim();
             loan.GoodsBrandModel = Blank(dto.GoodsBrandModel);
             loan.MerchantName = Blank(dto.MerchantName);
-            loan.GoodsPriceAmount = Math.Round(dto.GoodsPriceAmount!.Value, 2);
-            loan.DownPaymentAmount = Math.Round(dto.DownPaymentAmount ?? 0, 2);
+            loan.GoodsPriceAmount = Money.Round(dto.GoodsPriceAmount!.Value, 2);
+            loan.DownPaymentAmount = Money.Round(dto.DownPaymentAmount ?? 0, 2);
         }
         db.Set<LndLoan>().Add(loan);
         await db.SaveChangesAsync(cancellationToken);
@@ -306,7 +307,7 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
         }
         else
         {
-            amount = Math.Round(dto.PrincipalAmount!.Value, 2);
+            amount = Money.Round(dto.PrincipalAmount!.Value, 2);
             term = dto.TermMonths!.Value;
             rate = version.AnnualRatePct;
             first = dto.FirstDueDate ?? LndSchedule.DefaultFirstDueDate(disbursement, version.RepaymentFrequencyCode);
@@ -463,11 +464,11 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
         else if (dto.GoodsDescription.Trim().Length > 300) e["goodsDescription"] = ["The description is longer than 300 characters."];
         if (dto.GoodsBrandModel?.Trim().Length > 200) e["goodsBrandModel"] = ["The brand / model is longer than 200 characters."];
         if (dto.MerchantName?.Trim().Length > 200) e["merchantName"] = ["The merchant is longer than 200 characters."];
-        var down = Math.Round(dto.DownPaymentAmount ?? 0, 2);
+        var down = Money.Round(dto.DownPaymentAmount ?? 0, 2);
         if (dto.GoodsPriceAmount is not > 0) e["goodsPriceAmount"] = ["Enter the item's price."];
         else if (down < 0 || down >= dto.GoodsPriceAmount) e["downPaymentAmount"] = ["The down payment must be from 0 to less than the price."];
-        else if (amount != Math.Round(dto.GoodsPriceAmount.Value, 2) - down)
-            e["principalAmount"] = [$"The amount must be the price less the down payment ({Math.Round(dto.GoodsPriceAmount.Value, 2) - down:#,0.00})."];
+        else if (amount != Money.Round(dto.GoodsPriceAmount.Value, 2) - down)
+            e["principalAmount"] = [$"The amount must be the price less the down payment ({Money.Round(dto.GoodsPriceAmount.Value, 2) - down:#,0.00})."];
         return e;
     }
 

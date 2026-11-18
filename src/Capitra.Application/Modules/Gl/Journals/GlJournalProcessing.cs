@@ -1,5 +1,6 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Modules.Apex;
 using Capitra.Domain.Modules.Gl;
 using Microsoft.EntityFrameworkCore;
@@ -180,8 +181,8 @@ public sealed class GlJournalProcessing(ICapitraDbContext db, ICurrentUser curre
             CurrencyCode = N(p.CurrencyCode)!,
             EnteredDr = p.EnteredDr,
             EnteredCr = p.EnteredCr,
-            AccountedDr = Math.Round(p.EnteredDr * p.ConversionRate, 5),
-            AccountedCr = Math.Round(p.EnteredCr * p.ConversionRate, 5),
+            AccountedDr = Money.Round(p.EnteredDr * p.ConversionRate, 5),
+            AccountedCr = Money.Round(p.EnteredCr * p.ConversionRate, 5),
             ConversionRate = p.ConversionRate,
             LineDescription = p.Description,
             ReferenceNo = p.ReferenceNo,
@@ -200,7 +201,7 @@ public sealed class GlJournalProcessing(ICapitraDbContext db, ICurrentUser curre
         return (await lines.SumAsync(l => l.AccountedDr, ct), await lines.SumAsync(l => l.AccountedCr, ct), await lines.CountAsync(ct));
     }
 
-    private static bool Balanced(decimal dr, decimal cr) => Math.Round(dr, 5) == Math.Round(cr, 5) && dr > 0;
+    private static bool Balanced(decimal dr, decimal cr) => Money.Round(dr, 5) == Money.Round(cr, 5) && dr > 0;
 
     public async Task RecalcJournalAsync(long journalHeaderId, CancellationToken ct)
     {
@@ -268,7 +269,7 @@ public sealed class GlJournalProcessing(ICapitraDbContext db, ICurrentUser curre
             errors++;
         }
 
-        if (Math.Round(dr, 5) != Math.Round(cr, 5) || dr == 0)
+        if (Money.Round(dr, 5) != Money.Round(cr, 5) || dr == 0)
         {
             await AddValidationResultAsync(header, "BALANCED_JOURNAL", "ERROR", "Journal is not balanced or has zero total.", ct);
             errors++;

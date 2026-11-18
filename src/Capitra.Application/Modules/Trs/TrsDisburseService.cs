@@ -1,5 +1,6 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Adm.Settings;
 using Capitra.Application.Modules.Adm.Products;
@@ -279,7 +280,7 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
             var left = lines[l];
             for (var s = 0; s < weights.Count; s++)
             {
-                var amount = s == weights.Count - 1 ? left : Math.Round(lines[l] * (total > 0 ? weights[s] / total : 1m / weights.Count), 2);
+                var amount = s == weights.Count - 1 ? left : Money.Round(lines[l] * (total > 0 ? weights[s] / total : 1m / weights.Count), 2);
                 left -= amount;
                 if (amount != 0) result.Add((l, s, amount));
             }
@@ -747,7 +748,7 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         var payTo = accounts.Where(x => x.IsPayable && x.CurrencyCode == c.Header.CurrencyCode).OrderByDescending(x => x.IsPrimary).FirstOrDefault();
 
         // the seller receives the money: the supplier in reverse factoring, the client in factoring
-        decimal? receive = party.Role == "SELLER" ? Math.Round(c.Header.NetAmount * party.Weight, 2) : null;
+        decimal? receive = party.Role == "SELLER" ? Money.Round(c.Header.NetAmount * party.Weight, 2) : null;
         return new TrsDisbursePartyDetailDto(party.ClientId, party.Name, party.Role, tax, customer?.ClientCode, c.Header.CurrencyCode, party.Weight,
             invoices, invoices.Sum(x => x.Amount),
             invoices.Where(x => !string.Equals(x.StatusCode, "NOT_ELIGIBLE", StringComparison.OrdinalIgnoreCase)).Sum(x => x.Amount), receive,
@@ -763,7 +764,7 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         await ReleaseAsync(current, cancellationToken);
 
         var c = await LoadAsync(disbursementId, cancellationToken);
-        var lines = (dto.Lines ?? []).GroupBy(x => x.SublimitId).Select(g => (SublimitId: g.Key, Amount: Math.Round(g.Sum(x => x.Amount), 3))).ToList();
+        var lines = (dto.Lines ?? []).GroupBy(x => x.SublimitId).Select(g => (SublimitId: g.Key, Amount: Money.Round(g.Sum(x => x.Amount), 3))).ToList();
         if (lines.Any(x => x.Amount < 0)) throw new BusinessRuleException("An amount cannot be negative.");
         lines = [.. lines.Where(x => x.Amount > 0)];
         var total = lines.Sum(x => x.Amount);
@@ -866,7 +867,7 @@ public sealed class TrsDisburseService(ICapitraDbContext db, ICurrentUser curren
         var left = amount;
         for (var i = 0; i < pairs.Count; i++)
         {
-            var share = i == pairs.Count - 1 ? left : Math.Round(amount * (weight > 0 ? pairs[i].Weight / weight : 1m / pairs.Count), 3);
+            var share = i == pairs.Count - 1 ? left : Money.Round(amount * (weight > 0 ? pairs[i].Weight / weight : 1m / pairs.Count), 3);
             left -= share;
             if (share != 0) yield return (pairs[i], share);
         }

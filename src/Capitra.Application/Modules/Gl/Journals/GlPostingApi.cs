@@ -372,7 +372,7 @@ public sealed partial class GlPostingApi(
         var cr = await lines.SumAsync(l => l.AccountedCr, ct);
         if (n == 0)
             throw new ApexProcessException($"Journal {h.JournalNo} has no lines.");
-        if (Math.Round(dr, 5) != Math.Round(cr, 5) || dr == 0)
+        if (Capitra.Application.Common.Money.Round(dr, 5) != Capitra.Application.Common.Money.Round(cr, 5) || dr == 0)
             throw new ApexProcessException($"Journal {h.JournalNo} is not balanced: debit {Money(dr)}, credit {Money(cr)}.");
 
         var source = await SourceCodeOfAsync(h.SourceId, ct);

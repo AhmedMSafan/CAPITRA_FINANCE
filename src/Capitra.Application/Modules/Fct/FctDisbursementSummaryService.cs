@@ -1,5 +1,6 @@
 using System.Globalization;
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Trs;
 using Capitra.Domain.Modules.Crm;
@@ -31,7 +32,7 @@ public sealed class FctDisbursementSummaryService(ICapitraDbContext db)
 
     /// <summary>What we fund of an invoice: its advance (or funded) amount, else the invoice amount at the advance rate, else the invoice amount.</summary>
     public static decimal Financed(decimal gross, decimal? advanceAmount, decimal? fundedAmount, decimal? advanceRatePct) =>
-        advanceAmount ?? fundedAmount ?? (advanceRatePct is decimal r ? Math.Round(gross * r / 100, 2) : gross);
+        advanceAmount ?? fundedAmount ?? (advanceRatePct is decimal r ? Money.Round(gross * r / 100, 2) : gross);
 
     public async Task<FctDisbursementSummaryDto> GetAsync(long disbursementId, CancellationToken cancellationToken)
     {
