@@ -6,56 +6,82 @@
         <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
           <RouterLink :to="{ name: 'scr-home' }">{{ tr('Screening') }}</RouterLink><span aria-hidden="true">›</span><b>{{ tr('Parties') }}</b>
         </nav>
-        <h1>{{ tr('Parties') }}</h1>
+        <div class="fc-title">
+          <span class="fc-title-ic" aria-hidden="true"><span class="fa fa-users"></span></span>
+          <div>
+            <h1>{{ tr('Parties') }}</h1>
+            <p>{{ tr('The people and companies decisions are about, with their other names.') }}</p>
+          </div>
+        </div>
       </div>
       <div class="fx-actions">
-        <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="edit(null)"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New party') }}</button>
+        <button v-if="canEdit" type="button" class="fx-btn fx-btn--primary" @click="edit(null)"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New party') }}</button>
       </div>
     </div>
 
-    <section v-if="editing" class="fx-card">
-      <div class="scr-grid scr-grid--3">
-        <label class="scr-field"><span>{{ tr('Type') }} *</span>
-          <select v-model="form.partyTypeCode" @change="typeChanged"><option value="PERSON">{{ tr('Person') }}</option><option value="COMPANY">{{ tr('Company') }}</option></select>
-        </label>
-        <label class="scr-field"><span>{{ tr('Name (Arabic)') }} *</span><input v-model="form.nameAr" dir="rtl"><small v-if="errors.nameAr" class="err">{{ errors.nameAr }}</small></label>
-        <label class="scr-field"><span>{{ tr('Name (English)') }}</span><input v-model="form.nameEn" dir="ltr"></label>
-        <label class="scr-field"><span>{{ tr('Identity type') }} *</span>
-          <select v-model="form.identityTypeCode"><option v-for="t in idTypes" :key="t" :value="t">{{ tr(LABELS[t] ?? t) }}</option></select>
-          <small v-if="errors.identityTypeCode" class="err">{{ errors.identityTypeCode }}</small>
-        </label>
-        <label class="scr-field"><span>{{ tr('Identity number') }} *</span><input v-model="form.identityNo" dir="ltr"><small v-if="errors.identityNo" class="err">{{ errors.identityNo }}</small></label>
-        <label class="scr-field"><span>{{ tr('Nationality') }}</span><input v-model="form.nationalityCode" dir="ltr" maxlength="2"><small v-if="errors.nationalityCode" class="err">{{ errors.nationalityCode }}</small></label>
-        <label v-if="form.partyTypeCode === 'PERSON'" class="scr-field"><span>{{ tr('Birth date') }}</span><input v-model="form.birthDate" type="date"><small v-if="errors.birthDate" class="err">{{ errors.birthDate }}</small></label>
-        <label class="scr-field scr-wide"><span>{{ tr('Aliases') }} <small>({{ tr('one per line') }})</small></span><textarea v-model="aliasText" rows="2"></textarea></label>
-        <label class="scr-field scr-wide"><span>{{ tr('Notes') }}</span><textarea v-model="form.notes" rows="2"></textarea></label>
+    <div class="fx-card fx-card-pad fc-filters">
+      <label class="fc-field"><span>{{ tr('Search') }}</span>
+        <input v-model="search" class="fx-search" :placeholder="tr('Search by name or identity number')" @keyup.enter="load">
+      </label>
+      <div class="fc-filter-actions">
+        <button type="button" class="fx-btn fx-btn--teal" @click="load"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('Search') }}</button>
+        <button type="button" class="fx-btn" @click="search = ''; load()"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
       </div>
-      <div class="scr-actions">
-        <button type="button" class="fx-btn" @click="editing = false">{{ tr('Cancel') }}</button>
-        <button type="button" class="fx-btn fx-btn--teal" :disabled="saving" @click="save">{{ tr('Save') }}</button>
-      </div>
-    </section>
+    </div>
 
-    <section class="fx-card">
-      <div class="scr-filter"><input v-model="search" class="fx-search" :placeholder="tr('Search by name or identity number')" @keyup.enter="load"></div>
+    <div class="fx-card">
+      <div class="fc-card-head"><h2>{{ tr('Parties') }} ({{ parties.length }})</h2></div>
       <div class="fx-table-wrap">
         <table class="fx-table">
-          <thead><tr><th>{{ tr('Name') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Identity number') }}</th><th>{{ tr('Nationality') }}</th><th>{{ tr('Birth date') }}</th><th></th></tr></thead>
+          <thead>
+            <tr>
+              <th class="fc-no">#</th><th>{{ tr('Name') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Identity number') }}</th>
+              <th>{{ tr('Nationality') }}</th><th>{{ tr('Birth date') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr v-for="p in parties" :key="p.partyId">
-              <td><b>{{ p.nameAr }}</b><br><small class="scr-muted">{{ p.nameEn }}</small><span v-for="a in p.aliases" :key="a" class="scr-tag">{{ a }}</span></td>
-              <td>{{ tr(LABELS[p.partyTypeCode] ?? p.partyTypeCode) }}</td>
-              <td dir="ltr">{{ p.identityNo }} <small class="scr-muted">{{ tr(LABELS[p.identityTypeCode] ?? p.identityTypeCode) }}</small></td>
+            <tr v-for="(p, i) in parties" :key="p.partyId">
+              <td class="fc-no">{{ i + 1 }}</td>
+              <td><b>{{ p.nameAr }}</b><span v-if="p.nameEn" class="fx-cell-sub">{{ p.nameEn }}</span><span v-for="a in p.aliases" :key="a" class="scr-tag">{{ a }}</span></td>
+              <td><span class="fx-chip fx-chip--plain">{{ tr(LABELS[p.partyTypeCode] ?? p.partyTypeCode) }}</span></td>
+              <td dir="ltr">{{ p.identityNo }}<span class="fx-cell-sub">{{ tr(LABELS[p.identityTypeCode] ?? p.identityTypeCode) }}</span></td>
               <td>{{ p.nationalityCode }}</td>
-              <td>{{ p.birthDate ? formatDate(p.birthDate) : '' }}</td>
-              <td><button v-if="canEdit" type="button" class="fx-btn fx-btn--sm" @click="edit(p)">{{ tr('Edit') }}</button></td>
+              <td>{{ p.birthDate ? formatDate(p.birthDate) : '-' }}</td>
+              <td class="fx-r"><button v-if="canEdit" type="button" class="fx-btn fx-btn--sm" @click="edit(p)"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Edit') }}</button></td>
             </tr>
           </tbody>
         </table>
-        <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
-        <div v-else-if="!parties.length" class="fx-empty">{{ tr('No parties yet.') }}</div>
       </div>
-    </section>
+      <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
+      <div v-else-if="!parties.length" class="fx-empty"><span class="fa fa-users" aria-hidden="true"></span>{{ tr('No parties yet.') }}</div>
+    </div>
+
+    <ScrDialog v-if="editing" :title="editId ? tr('Edit party') : tr('New party')" :subtitle="tr('Other names are screened like the name.')" icon="fa-user-o" @close="editing = false">
+      <div class="fc-grid fc-grid--3">
+        <label class="fc-field"><span>{{ tr('Type') }} <b>*</b></span>
+          <select v-model="form.partyTypeCode" class="fx-select" @change="typeChanged"><option value="PERSON">{{ tr('Person') }}</option><option value="COMPANY">{{ tr('Company') }}</option></select>
+        </label>
+        <label class="fc-field"><span>{{ tr('Name (Arabic)') }} <b>*</b></span><input v-model="form.nameAr" class="fx-search" dir="rtl">
+          <small v-if="errors.nameAr" class="scr-err">{{ errors.nameAr }}</small></label>
+        <label class="fc-field"><span>{{ tr('Name (English)') }}</span><input v-model="form.nameEn" class="fx-search" dir="ltr"></label>
+        <label class="fc-field"><span>{{ tr('Identity type') }} <b>*</b></span>
+          <select v-model="form.identityTypeCode" class="fx-select"><option v-for="t in idTypes" :key="t" :value="t">{{ tr(LABELS[t] ?? t) }}</option></select>
+          <small v-if="errors.identityTypeCode" class="scr-err">{{ errors.identityTypeCode }}</small></label>
+        <label class="fc-field"><span>{{ tr('Identity number') }} <b>*</b></span><input v-model="form.identityNo" class="fx-search" dir="ltr">
+          <small v-if="errors.identityNo" class="scr-err">{{ errors.identityNo }}</small></label>
+        <label class="fc-field"><span>{{ tr('Nationality') }}</span><input v-model="form.nationalityCode" class="fx-search" dir="ltr" maxlength="2" placeholder="EG">
+          <small v-if="errors.nationalityCode" class="scr-err">{{ errors.nationalityCode }}</small></label>
+        <label v-if="form.partyTypeCode === 'PERSON'" class="fc-field"><span>{{ tr('Birth date') }}</span><input v-model="form.birthDate" class="fx-search" type="date">
+          <small v-if="errors.birthDate" class="scr-err">{{ errors.birthDate }}</small></label>
+        <label class="fc-field fc-full"><span>{{ tr('Aliases') }} <small class="scr-hint">({{ tr('one per line') }})</small></span>
+          <textarea v-model="aliasText" class="fx-search fc-textarea"></textarea></label>
+        <label class="fc-field fc-full"><span>{{ tr('Notes') }}</span><textarea v-model="form.notes" class="fx-search fc-textarea"></textarea></label>
+      </div>
+      <template #actions>
+        <button type="button" class="fx-btn" @click="editing = false">{{ tr('Cancel') }}</button>
+        <button type="button" class="fx-btn fx-btn--teal" :disabled="saving" @click="save"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Save') }}</button>
+      </template>
+    </ScrDialog>
   </div>
 </template>
 
@@ -69,6 +95,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
+import ScrDialog from '../components/ScrDialog.vue'
 import { LABELS, errorText, fieldErrors, scrApi, type ScrParty, type ScrPartyRequest } from '../api/scr.api'
 
 const canEdit = hasPermission('SCR.DECISION.EDIT')
@@ -94,7 +121,10 @@ function typeChanged() {
 function edit(p: ScrParty | null) {
   errors.value = {}
   editId.value = p?.partyId ?? null
-  Object.assign(form, p ? { ...p } : blank())
+  Object.assign(form, p
+    ? { partyTypeCode: p.partyTypeCode, nameAr: p.nameAr, nameEn: p.nameEn, identityTypeCode: p.identityTypeCode, identityNo: p.identityNo,
+        nationalityCode: p.nationalityCode, birthDate: p.birthDate, notes: p.notes, aliases: p.aliases }
+    : blank())
   aliasText.value = (p?.aliases ?? []).join('\n')
   editing.value = true
 }
