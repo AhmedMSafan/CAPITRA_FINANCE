@@ -36,6 +36,9 @@ public static class TlsLoanCalculator
 
     public static readonly string[] PrincipalMethods = ["EQUAL_PRINCIPAL", "EQUAL_INSTALLMENT"];
 
+    /// <summary>How a payment date is moved: kept as it is, to the month end, or to the 30th (February: its last day).</summary>
+    public static readonly string[] DateRules = ["ACTUAL", "EOM", "DAY_30"];
+
     /// <summary>The scenario's terms from what the user entered: checked, normalised, with its maturity and rate history.</summary>
     public static TlsTerms Terms(TlsScenarioRequest r)
     {
@@ -135,7 +138,7 @@ public static class TlsLoanCalculator
     {
         var unit = N(s.CombinedFrequencyUnit ?? "MONTH");
         if (unit == "MATURITY") return [s.MaturityDate];
-        var dates = Dates(s.PrincipalPaymentStartDate, s.MaturityDate, s.CombinedFrequencyValue ?? 0, unit, "ACTUAL");
+        var dates = Dates(s.PrincipalPaymentStartDate, s.MaturityDate, s.CombinedFrequencyValue ?? 0, unit, s.CombinedDateRule ?? "ACTUAL", s.ContractDate);
         EnsureMaturity(dates, s.MaturityDate);
         return dates;
     }
@@ -144,7 +147,7 @@ public static class TlsLoanCalculator
     {
         var unit = N(s.PrincipalFrequencyUnit ?? "MONTH");
         if (unit == "MATURITY") return [s.MaturityDate];
-        var dates = Dates(s.PrincipalPaymentStartDate, s.MaturityDate, s.PrincipalFrequencyValue ?? 0, unit, "ACTUAL");
+        var dates = Dates(s.PrincipalPaymentStartDate, s.MaturityDate, s.PrincipalFrequencyValue ?? 0, unit, s.PrincipalDateRule ?? "ACTUAL", s.ContractDate);
         EnsureMaturity(dates, s.MaturityDate);
         return dates;
     }
@@ -154,7 +157,7 @@ public static class TlsLoanCalculator
         var unit = N(s.InterestFrequencyUnit ?? "MONTH");
         if (unit == "MATURITY") return [s.MaturityDate];
         var first = s.InterestPaymentStartDate;
-        var dates = Dates(first, s.MaturityDate, s.InterestFrequencyValue ?? 0, unit, "ACTUAL");
+        var dates = Dates(first, s.MaturityDate, s.InterestFrequencyValue ?? 0, unit, s.InterestDateRule ?? "ACTUAL", s.ContractDate);
         // the interest start date is the first interest payment and is never lost
         if (first <= s.MaturityDate && !dates.Contains(first)) dates.Insert(0, first);
         EnsureMaturity(dates, s.MaturityDate);
@@ -237,20 +240,32 @@ public static class TlsLoanCalculator
     private static decimal ThirtyDays(DateOnly start, DateOnly end) =>
         (end.Year - start.Year) * 360m + (end.Month - start.Month) * 30m + (Math.Min(end.Day, 30) - Math.Min(start.Day, 30));
 
-    private static List<DateOnly> Dates(DateOnly first, DateOnly maturity, int value, string unit, string rule)
+    private static List<DateOnly> Dates(DateOnly first, DateOnly maturity, int value, string unit, string rule, DateOnly contractDate)
     {
         if (value <= 0) throw new BusinessRuleException("Frequency value must be greater than zero.");
+        var u = N(unit);
+        // MONTH and YEAR count from the first date, not from the previous one: a date cut short by a short month (31-Jan to 28-Feb)
+        // must not stay on the 28th for the rest of the term. When the first date is itself a cut-short month end (a 31-Jan contract
+        // paying first on 28-Feb), the contract's day is the day to keep (31-Mar, 30-Apr, ...), so the last date meets the maturity.
+        var anchored = u is "MONTH" or "YEAR";
+        var day = first.Day;
+        if (anchored && first == EndOfMonth(first) && contractDate.Day > first.Day) day = contractDate.Day;
         var dates = new List<DateOnly>();
         var date = Rule(first, rule);
+        var k = 0;
         while (date <= maturity)
         {
             dates.Add(date);
-            var next = AddPeriod(date, value, unit, rule);
+            k++;
+            var next = anchored ? Rule(OnDay(first.AddMonths((u == "YEAR" ? 12 : 1) * value * k), day), rule) : AddPeriod(date, value, unit, rule);
             if (next <= date) throw new BusinessRuleException("Invalid frequency.");
             date = next;
         }
         return [.. dates.Distinct().Order()];
     }
+
+    /// <summary>The given day of the date's month, or the month's last day when the month is shorter.</summary>
+    private static DateOnly OnDay(DateOnly d, int day) => new(d.Year, d.Month, Math.Min(day, DateTime.DaysInMonth(d.Year, d.Month)));
 
     public static DateOnly AddPeriod(DateOnly date, int value, string unit, string rule)
     {
@@ -311,6 +326,8 @@ public static class TlsLoanCalculator
             throw new BusinessRuleException("Payment start dates cannot be before contract date.");
         if (r.PrincipalPaymentStartDate > maturity || r.InterestPaymentStartDate > maturity)
             throw new BusinessRuleException("Payment start dates cannot be after maturity date.");
+        foreach (var rule in new[] { r.PrincipalDateRule, r.InterestDateRule, r.CombinedDateRule })
+            if (NN(rule) is { } x && !DateRules.Contains(x)) throw new BusinessRuleException($"Unsupported date rule: {rule}");
         if (mode == "COMBINED")
         {
             Frequency("Combined repayment", r.CombinedFrequencyValue, r.CombinedFrequencyUnit, allowMaturity: true);
