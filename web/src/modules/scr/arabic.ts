@@ -259,5 +259,7 @@ export const SCR_AR: Record<string, string> = {
   'Nothing is waiting for you.': 'لا يوجد شيء بانتظارك.',
   'You have not entered any decisions. Choose Waiting for me or All users.': 'لم تُدخل أي قرارات. اختر بانتظاري أو كل المستخدمين.',
   'Nothing here for the chosen user. Choose All users to see everything.': 'لا يوجد شيء للمستخدم المختار. اختر كل المستخدمين لرؤية الكل.',
-  'Search by code or name': 'ابحث بالرمز أو الاسم'
+  'Search by code or name': 'ابحث بالرمز أو الاسم',
+  'Final List status': 'حالة القائمة النهائية',
+  'Screening services': 'خدمات الفحص'
 }
