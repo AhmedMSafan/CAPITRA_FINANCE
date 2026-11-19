@@ -11,15 +11,33 @@
       </div>
     </div>
 
-    <div v-if="registry" class="fc-indicators scr-indicators">
-      <div class="fx-card fc-indicator"><b>V{{ registry.versionNo }}</b><span>{{ tr('Final List version') }}</span>
-        <small>{{ registry.publishedAt ? `${tr('Last published')} ${formatDateTime(registry.publishedAt)}` : tr('Nothing published yet') }}</small></div>
-      <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ registry.activeCount }}</b><span>{{ tr('Active entries') }}</span>
-        <small>{{ registry.suspendedCount }} {{ tr('suspended') }} · {{ registry.liftedCount }} {{ tr('lifted') }}</small></div>
-      <RouterLink :to="{ name: 'scr-decisions', query: { view: 'STARTED' } }" class="fx-card fc-indicator scr-indicator-link"><b>{{ registry.pendingCount }}</b><span>{{ tr('Decisions in the workflow') }}</span>
-        <small>{{ tr('In review or awaiting approval') }}</small></RouterLink>
-    </div>
+    <!-- the Final List at a glance: one status band, set apart from the pages below -->
+    <section v-if="registry" class="scr-band" :aria-label="tr('Final List status')">
+      <div class="scr-band-head">
+        <span class="scr-band-pulse" aria-hidden="true"></span>
+        <b>{{ tr('Final List status') }}</b>
+        <small v-if="registry.publishedAt">{{ tr('Last published') }} {{ formatDateTime(registry.publishedAt) }}</small>
+        <small v-else>{{ tr('Nothing published yet') }}</small>
+      </div>
+      <div class="scr-band-stats">
+        <RouterLink :to="{ name: 'scr-registry' }" class="scr-stat">
+          <span class="scr-stat-ic" aria-hidden="true"><span class="fa fa-tag"></span></span>
+          <span class="scr-stat-copy"><em>{{ tr('Final List version') }}</em><b>V{{ registry.versionNo }}</b></span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'scr-registry' }" class="scr-stat">
+          <span class="scr-stat-ic scr-stat-ic--orange" aria-hidden="true"><span class="fa fa-user-times"></span></span>
+          <span class="scr-stat-copy"><em>{{ tr('Active entries') }}</em><b>{{ registry.activeCount }}</b>
+            <small>{{ registry.suspendedCount }} {{ tr('suspended') }} · {{ registry.liftedCount }} {{ tr('lifted') }}</small></span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'scr-decisions', query: { view: 'STARTED', user: '' } }" class="scr-stat">
+          <span class="scr-stat-ic" aria-hidden="true"><span class="fa fa-hourglass-half"></span></span>
+          <span class="scr-stat-copy"><em>{{ tr('Decisions in the workflow') }}</em><b>{{ registry.pendingCount }}</b>
+            <small>{{ tr('In review or awaiting approval') }}</small></span>
+        </RouterLink>
+      </div>
+    </section>
 
+    <h2 class="scr-section-title">{{ tr('Screening services') }}</h2>
     <div class="fc-quick fc-quick--3">
       <RouterLink v-for="c in cards" :key="c.name" :to="{ name: c.name }" class="fx-card fc-quick-card" :class="{ 'fc-quick-card--calc': c.orange }">
         <span class="fc-quick-ic" aria-hidden="true"><span :class="['fa', c.icon]"></span></span>
