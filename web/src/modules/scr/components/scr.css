@@ -137,3 +137,9 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-pending-file div{flex:1;min-width:0;display:flex;flex-direction:column}
 .fc .scr-pending-file b{font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fc .scr-pending-file small{color:var(--fin-muted);font-size:var(--fs-xs)}
+.fc .scr-no-access{display:flex;gap:16px;padding:22px 24px;border-inline-start:4px solid var(--fin-orange)}
+.fc .scr-no-access > .fa{font-size:28px;color:var(--fin-orange);margin-block-start:2px}
+.fc .scr-no-access b{color:var(--fin-ink)}
+.fc .scr-no-access p{margin:6px 0;color:var(--fin-muted)}
+.fc .scr-no-access ul{margin:0 0 8px;padding-inline-start:18px;color:var(--fin-ink);line-height:1.8}
+.fc .scr-no-access small{color:var(--fin-muted)}
