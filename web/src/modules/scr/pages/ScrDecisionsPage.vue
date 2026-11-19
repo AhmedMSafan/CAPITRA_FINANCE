@@ -1,6 +1,6 @@
 <template>
   <!--
-    Decisions: the one list of every decision and its approval workflow; it opens on the signed-in user's own decisions. A saved decision shows "Workflow not started" with a Run
+    Decisions: the one list of every decision and its approval workflow; it opens on the decisions the signed-in user entered. A saved decision shows "Workflow not started" with a Run
     button; Run starts its SCR_DECISION_APPROVAL workflow. From then on the Workflow step column shows the step it is at and who
     holds it, and each completed step opens the decision view-only on that step.
   -->
@@ -35,7 +35,8 @@
       </label>
       <label class="fc-field"><span>{{ tr('User') }}</span>
         <select v-model="who" class="fx-select">
-          <option :value="MINE">{{ tr('My work') }} ({{ me }})</option>
+          <option :value="MINE">{{ tr('Entered by me') }} ({{ me }})</option>
+          <option :value="WAITING">{{ tr('Waiting for me') }} ({{ waitingCount }})</option>
           <option value="">{{ tr('All users') }}</option>
           <option v-for="u in users" :key="u" :value="u">{{ u }}</option>
         </select>
@@ -57,7 +58,7 @@
 
     <div class="fx-card">
       <div class="fc-card-head scr-card-head">
-        <h2>{{ who === MINE ? tr('My decisions') : tr('Decisions') }} ({{ rows.length }})</h2>
+        <h2>{{ who === MINE ? tr('Entered by me') : who === WAITING ? tr('Waiting for me') : tr('Decisions') }} ({{ rows.length }})</h2>
         <button type="button" class="fx-btn fx-btn--sm" :disabled="loading" @click="load"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Refresh') }}</button>
       </div>
       <div class="fx-table-wrap">
@@ -110,7 +111,7 @@
       </div>
       <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
       <div v-else-if="!rows.length" class="fx-empty"><span class="fa fa-gavel" aria-hidden="true"></span>
-        {{ who === MINE ? tr('No decisions of yours. Choose All users to see everyone\'s.') : tr('No decisions.') }}</div>
+        {{ who === MINE ? tr('You have not entered any decisions. Choose Waiting for me or All users.') : who === WAITING ? tr('Nothing is waiting for you.') : tr('No decisions.') }}</div>
     </div>
   </div>
 </template>
@@ -149,26 +150,28 @@ const search = ref('')
 const type = ref('')
 const view = ref<View>((typeof route.query.view === 'string' ? route.query.view : '') as View)
 /**
- * Every page shows the signed-in user's own work first. A decision is someone's work when they entered it, did any of its steps
- * (Run included), or its current step waits for them: taken by them, assigned to them, or to one of their roles.
+ * The list opens on the decisions the signed-in user entered. "Waiting for me" lists those whose current step is with the user:
+ * taken by them, assigned to them, or to one of their roles. Any other user shows the decisions that user entered.
  */
 const MINE = '__mine__'
+const WAITING = '__waiting__'
 const user = getUser()
 const me = user?.userName ?? ''
 const myRoles = new Set((user?.roles ?? []).map((r) => r.toUpperCase()))
 const who = ref<string>(typeof route.query.user === 'string' ? route.query.user : MINE)
-const isMine = (holder: string) => holder.toLowerCase() === me.toLowerCase() || myRoles.has(holder.toUpperCase())
-function involves(d: ScrDecision, name: string, mine: boolean): boolean {
-  const n = name.toLowerCase()
-  if ([d.enteredBy, d.reviewedBy, d.approvedBy].some((u) => u?.toLowerCase() === n)) return true
-  if ((d.completedSteps ?? []).some((s) => s.doneBy?.toLowerCase() === n)) return true
-  const h = d.workflowStepHolder
-  return !!h && (h.toLowerCase() === n || (mine && myRoles.has(h.toUpperCase())))
-}
-/** The users that appear on the decisions: who entered them and who did their steps. */
-const users = computed(() => [...new Set(decisions.value.flatMap((d) => [d.enteredBy, d.reviewedBy, d.approvedBy, ...(d.completedSteps ?? []).map((s) => s.doneBy)])
-  .filter((u): u is string => !!u && u.toLowerCase() !== me.toLowerCase()))].sort())
-const scoped = computed(() => decisions.value.filter((d) => !who.value || (who.value === MINE ? involves(d, me, true) : involves(d, who.value, false))))
+const same = (a: string | null | undefined, b: string) => !!a && a.toLowerCase() === b.toLowerCase()
+const isMine = (holder: string) => same(holder, me) || myRoles.has(holder.toUpperCase())
+const waitingForMe = (d: ScrDecision) => viewOf(d) === 'STARTED' && !!d.workflowStepHolder && isMine(d.workflowStepHolder)
+/** The users who entered decisions. */
+const users = computed(() => [...new Set(decisions.value.map((d) => d.enteredBy).filter((u) => !!u && !same(u, me)))].sort())
+const scoped = computed(() => decisions.value.filter((d) => {
+  switch (who.value) {
+    case '': return true
+    case MINE: return same(d.enteredBy, me)
+    case WAITING: return waitingForMe(d)
+    default: return same(d.enteredBy, who.value)
+  }
+}))
 const open = (d: ScrDecision) => ({ name: 'scr-decision', params: { decisionId: d.decisionId } })
 const holder = (h: string) => tr(ROLES[h] ?? h)
 
@@ -183,6 +186,7 @@ function viewOf(d: ScrDecision): View {
   }
 }
 const count = (k: View) => scoped.value.filter((d) => viewOf(d) === k).length
+const waitingCount = computed(() => decisions.value.filter(waitingForMe).length)
 
 const rows = computed(() => {
   const q = search.value.trim().toLowerCase()
