@@ -247,5 +247,11 @@ export const SCR_AR: Record<string, string> = {
   'All users': 'كل المستخدمين',
   'Waiting for you': 'بانتظارك',
   'My decisions': 'قراراتي',
-  'No decisions of yours. Choose All users to see everyone\'s.': 'لا توجد قرارات تخصك. اختر كل المستخدمين لرؤية قرارات الجميع.'
+  'No decisions of yours. Choose All users to see everyone\'s.': 'لا توجد قرارات تخصك. اختر كل المستخدمين لرؤية قرارات الجميع.',
+  'Zoom': 'التكبير',
+  'Zoom in': 'تكبير',
+  'Zoom out': 'تصغير',
+  'Fit width': 'ملاءمة العرض',
+  'Download': 'تنزيل',
+  'This kind of file cannot be shown in the browser. Download it to open it.': 'لا يمكن عرض هذا النوع من الملفات في المتصفح. نزّله لفتحه.'
 }

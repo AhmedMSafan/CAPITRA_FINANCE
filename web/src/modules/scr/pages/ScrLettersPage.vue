@@ -50,7 +50,7 @@
               <td>{{ l.decisionCount }}</td>
               <td>
                 <div class="scr-files">
-                  <button v-for="f in l.files" :key="f.letterFileId" type="button" class="fx-btn fx-btn--sm" :title="`SHA-256 ${f.sha256Hash}`" @click="view(f.letterFileId)">
+                  <button v-for="f in l.files" :key="f.letterFileId" type="button" class="fx-btn fx-btn--sm" :title="`SHA-256 ${f.sha256Hash}`" @click="view(l, f)">
                     <span :class="['fa', f.mimeType === 'application/pdf' ? 'fa-file-pdf-o' : 'fa-file-image-o']" aria-hidden="true"></span>{{ f.fileName }}
                   </button>
                   <label v-if="canEdit" class="fx-btn fx-btn--sm scr-upload"><span class="fa fa-paperclip" aria-hidden="true"></span>{{ tr('Attach') }}
@@ -83,6 +83,8 @@
         <button type="button" class="fx-btn fx-btn--teal" :disabled="saving" @click="save"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Save') }}</button>
       </template>
     </ScrDialog>
+    <ScrDocViewer v-if="viewing" :title="viewing.letterNo" :file-name="viewing.file.fileName" :mime-type="viewing.file.mimeType"
+                  :subtitle="`SHA-256 ${viewing.file.sha256Hash.slice(0, 12)}…`" :load="() => scrApi.letterFile(viewing!.file.letterFileId)" @close="viewing = null" />
   </div>
 </template>
 
@@ -97,7 +99,8 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate, formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import ScrDialog from '../components/ScrDialog.vue'
-import { LABELS, errorText, fieldErrors, scrApi, type ScrLetter, type ScrLetterRequest } from '../api/scr.api'
+import ScrDocViewer from '../components/ScrDocViewer.vue'
+import { LABELS, errorText, fieldErrors, scrApi, type ScrLetter, type ScrLetterFile, type ScrLetterRequest } from '../api/scr.api'
 
 const canEdit = hasPermission('SCR.LETTER.EDIT')
 const letters = ref<ScrLetter[]>([])
@@ -156,15 +159,9 @@ async function attach(letterId: number, e: Event) {
   }
 }
 
-async function view(letterFileId: number) {
-  try {
-    const url = URL.createObjectURL(await scrApi.letterFile(letterFileId))
-    window.open(url, '_blank', 'noopener')
-    setTimeout(() => URL.revokeObjectURL(url), 60_000)
-  } catch (err) {
-    showError(errorText(err))
-  }
-}
+/** The scan shown in the pop-up viewer. */
+const viewing = ref<{ letterNo: string; file: ScrLetterFile } | null>(null)
+const view = (l: ScrLetter, file: ScrLetterFile) => { viewing.value = { letterNo: l.letterNo, file } }
 
 onMounted(load)
 </script>

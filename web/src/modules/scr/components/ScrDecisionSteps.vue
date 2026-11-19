@@ -55,6 +55,9 @@
         </div>
       </li>
     </ol>
+    <ScrDocViewer v-if="viewing" :title="viewing.documentTitle" :file-name="viewing.fileName" :mime-type="viewing.mimeType"
+                  :subtitle="`${tr(viewing.stepName || stepName(viewing.stepCode))} · ${viewing.createdBy} · ${formatDateTime(viewing.createdAt)}`"
+                  :load="() => scrApi.documentFile(viewing!.documentId)" @close="viewing = null" />
   </section>
 </template>
 
@@ -63,6 +66,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { formatDateTime } from '../utils/dates'
+import ScrDocViewer from './ScrDocViewer.vue'
 import { errorText, scrApi, type ScrDocument, type ScrStepView } from '../api/scr.api'
 
 const props = defineProps<{
@@ -149,15 +153,10 @@ async function remove(doc: ScrDocument) {
   }
 }
 
-async function openDoc(doc: ScrDocument) {
-  try {
-    const url = URL.createObjectURL(await scrApi.documentFile(doc.documentId))
-    window.open(url, '_blank', 'noopener')
-    setTimeout(() => URL.revokeObjectURL(url), 60_000)
-  } catch (err) {
-    showError(errorText(err))
-  }
-}
+/** The document shown in the pop-up viewer (same page, with zoom). */
+const viewing = ref<ScrDocument | null>(null)
+const openDoc = (doc: ScrDocument) => { viewing.value = doc }
+const stepName = (code: string) => steps.value.find((s) => s.stepCode === code)?.stepName ?? code
 
 watch(() => [props.decisionId, props.version], load, { immediate: true })
 </script>
