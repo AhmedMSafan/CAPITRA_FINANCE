@@ -261,5 +261,11 @@ export const SCR_AR: Record<string, string> = {
   'Nothing here for the chosen user. Choose All users to see everything.': 'لا يوجد شيء للمستخدم المختار. اختر كل المستخدمين لرؤية الكل.',
   'Search by code or name': 'ابحث بالرمز أو الاسم',
   'Final List status': 'حالة القائمة النهائية',
-  'Screening services': 'خدمات الفحص'
+  'Screening services': 'خدمات الفحص',
+  'Register an incoming letter with its scans.': 'سجّل خطابًا واردًا مع صوره الممسوحة.',
+  'Drop the scans here or click to choose': 'اسحب الصور الممسوحة هنا أو اضغط للاختيار',
+  'PDF, PNG, JPEG or TIFF · up to 20 MB each · any number': 'PDF أو PNG أو JPEG أو TIFF · حتى 20 ميجابايت لكل ملف · أي عدد',
+  'Attach a PDF, PNG, JPEG or TIFF file up to 20 MB.': 'أرفق ملف PDF أو PNG أو JPEG أو TIFF حتى 20 ميجابايت.',
+  'scans attached': 'صور مرفقة',
+  'Some scans were not attached; add them from the list.': 'لم تُرفق بعض الصور؛ أضفها من القائمة.'
 }

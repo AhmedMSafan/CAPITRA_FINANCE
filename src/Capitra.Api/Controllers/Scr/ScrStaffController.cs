@@ -37,7 +37,8 @@ public sealed class ScrStaffController(ScrStaffService staff, ScrStepService ste
     public async Task<IActionResult> LetterFile(long letterFileId, CancellationToken ct)
     {
         var f = await staff.LetterFileAsync(letterFileId, ct);
-        Response.Headers.ContentDisposition = $"inline; filename=\"{f.FileName.Replace("\"", string.Empty, StringComparison.Ordinal)}\"";
+        // filename* (RFC 5987): a header cannot carry Arabic letters as they are
+        Response.Headers.ContentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("inline") { FileNameStar = f.FileName }.ToString();
         Response.Headers["X-Content-SHA256"] = f.Sha256Hash;
         return File(f.FileBlob, f.MimeType);
     }
