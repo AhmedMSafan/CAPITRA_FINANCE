@@ -1,6 +1,6 @@
 <template>
   <!--
-    One decision: entered and changed while DRAFT or RETURNED. Saved decisions wait in Decisions awaiting approval, where Run starts
+    One decision: entered and changed while DRAFT or RETURNED. Saved decisions wait in the Decisions list, where Run starts
     their SCR_DECISION_APPROVAL workflow.
     Opened from the inbox (?inboxId=), it is the page of the step: the reviewer accepts or returns, the publisher approves
     and publishes or returns. Reviewer and approver are never the person who entered the decision (checked by the server).
@@ -21,14 +21,14 @@
               <span dir="ltr">{{ decision ? decision.decisionRef : tr('New decision') }}</span>
               <span v-if="decision" class="fx-chip" :class="CHIP[decision.statusCode]">{{ tr(LABELS[decision.statusCode] ?? decision.statusCode) }}</span>
             </h1>
-            <p>{{ decision ? `${tr(LABELS[decision.decisionTypeCode] ?? decision.decisionTypeCode)} · ${decision.officialNo}` : tr('Enter a decision from a letter; then run its approval workflow from Decisions awaiting approval.') }}</p>
+            <p>{{ decision ? `${tr(LABELS[decision.decisionTypeCode] ?? decision.decisionTypeCode)} · ${decision.officialNo}` : tr('Enter a decision from a letter; then Run starts its approval workflow from the Decisions list.') }}</p>
           </div>
         </div>
       </div>
       <div class="fx-actions">
         <button v-if="task && !viewOnly" type="button" class="fx-btn" @click="router.push({ name: 'workflow-inbox' })"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Task') }}</button>
         <button v-else-if="viewOnly" type="button" class="fx-btn" @click="router.back()"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back') }}</button>
-        <RouterLink v-else :to="{ name: 'scr-approvals' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Awaiting approval') }}</RouterLink>
+        <RouterLink v-else :to="{ name: 'scr-decisions' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Decisions') }}</RouterLink>
       </div>
     </div>
 
@@ -146,7 +146,7 @@
     <section v-if="editable" class="fx-card fc-step-card">
       <div class="fc-form-actions" style="padding-top:16px">
         <div class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-          <span>{{ tr('After saving, the decision waits in Decisions awaiting approval until its workflow is run.') }}</span></div>
+          <span>{{ tr('After saving, the decision waits in the Decisions list until its workflow is run.') }}</span></div>
         <button v-if="decision" type="button" class="fx-btn fc-btn-reject" :disabled="busy" @click="cancelDecision"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel decision') }}</button>
         <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="save"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save') }}</button>
       </div>
@@ -271,8 +271,8 @@ async function run(work: () => Promise<void>) {
 
 const save = () => run(async () => {
   const d = await scrApi.saveDecision(decision.value?.decisionId ?? null, { ...form })
-  showSuccess(`${tr('Decision saved')}: ${d.decisionRef}. ${tr('It is waiting in Decisions awaiting approval.')}`)
-  await router.push({ name: 'scr-approvals' })
+  showSuccess(`${tr('Decision saved')}: ${d.decisionRef}. ${tr('Press Run in the Decisions list to start its workflow.')}`)
+  await router.push({ name: 'scr-decisions' })
 })
 
 const cancelDecision = () => run(async () => {

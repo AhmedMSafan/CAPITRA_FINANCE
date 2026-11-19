@@ -66,7 +66,6 @@ export const appMenu: MenuGroup[] = [
     icon: 'pi pi-shield',
     links: [
       { label: 'Federation Final List', to: { name: 'scr-registry' } },
-      { label: 'Awaiting approval', to: { name: 'scr-approvals' } },
       { label: 'Decisions', to: { name: 'scr-decisions' } },
       { label: 'Incoming letters', to: { name: 'scr-letters' } },
       { label: 'Parties', to: { name: 'scr-parties' } },
