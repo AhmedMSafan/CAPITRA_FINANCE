@@ -28,13 +28,13 @@
             <small v-if="s.doneBy" class="scr-stepc-who"><span class="fa fa-user-o" aria-hidden="true"></span> {{ s.doneBy }}<template v-if="s.doneAt"> · {{ formatDateTime(s.doneAt) }}</template></small>
           </div>
 
-          <p v-if="s.comment" class="scr-stepc-comment"><span class="fa fa-comment-o" aria-hidden="true"></span> {{ s.comment }}</p>
+          <p v-if="s.comment" class="scr-stepc-comment" dir="auto"><span class="fa fa-comment-o" aria-hidden="true"></span> {{ s.comment }}</p>
 
           <div class="scr-docs">
             <div v-for="doc in s.documents" :key="doc.documentId" class="scr-doc">
               <span class="fa" :class="icon(doc.mimeType)" aria-hidden="true"></span>
               <div class="scr-doc-txt">
-                <button type="button" class="scr-doc-link" :title="tr('Open')" @click="openDoc(doc)">{{ doc.documentTitle }}</button>
+                <button type="button" class="scr-doc-link" dir="auto" :title="tr('Open')" @click="openDoc(doc)">{{ doc.documentTitle }}</button>
                 <small>{{ doc.fileName }} · {{ size(doc.fileSizeBytes) }} · {{ doc.createdBy }} · {{ formatDateTime(doc.createdAt) }}</small>
               </div>
               <button v-if="doc.canRemove && !readOnly && s.status === 'OPEN'" type="button" class="fx-btn fx-btn--sm fc-btn-reject" :disabled="busy" @click="remove(doc)">

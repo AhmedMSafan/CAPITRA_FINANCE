@@ -54,13 +54,13 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-stepc-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .fc .scr-stepc-head > b{font-size:var(--fs-md,15px);color:var(--fin-ink)}
 .fc .scr-stepc-who{color:var(--fin-muted);margin-inline-start:auto}
-.fc .scr-stepc-comment{margin:10px 0 0;padding:8px 12px;border-radius:8px;background:var(--fin-surface-2,#f4f7f8);color:var(--fin-ink);white-space:pre-wrap}
+.fc .scr-stepc-comment{margin:10px 0 0;padding:8px 12px;border-radius:8px;background:var(--fin-surface-2,#f4f7f8);color:var(--fin-ink);white-space:pre-wrap;font-size:var(--fs-sm,13px)}
 .fc .scr-docs{display:flex;flex-direction:column;gap:6px;margin-block-start:10px}
 .fc .scr-doc{display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--fin-line);border-radius:8px;background:#fff}
 .fc .scr-doc > .fa{font-size:18px;color:var(--fin-teal-600)}
 .fc .scr-doc-txt{flex:1;min-width:0;display:flex;flex-direction:column}
 .fc .scr-doc-txt small{color:var(--fin-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fc .scr-doc-link{all:unset;cursor:pointer;font-weight:700;color:var(--fin-teal-700,#0f766e)}
+.fc .scr-doc-link{all:unset;cursor:pointer;font-weight:700;font-size:var(--fs-sm,13px);color:var(--fin-teal-700,#0f766e)}
 .fc .scr-doc-link:hover{text-decoration:underline}
 .fc .scr-doc-add{display:flex;gap:8px;align-items:center;margin-block-start:10px}
 .fc .scr-doc-add .fx-search{flex:1}
