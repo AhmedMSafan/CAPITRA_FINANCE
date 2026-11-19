@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Capitra.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CapitraDbContext))]
-    [Migration("20261119012849_ScreeningStepDocuments")]
+    [Migration("20261119130000_ScreeningStepDocuments")]
     partial class ScreeningStepDocuments
     {
         /// <inheritdoc />
