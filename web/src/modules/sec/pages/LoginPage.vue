@@ -6,6 +6,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { login } from '@/modules/sec/api/auth.api'
 import { useFeedback } from '@/shared/feedback/useFeedback'
+import { language, switchLanguage, tr } from '@/shared/layout/language'
 
 const SCENES = [
   { key: 'portfolio', label: 'Portfolio', title: 'Portfolio Acquisition' },
@@ -38,6 +39,10 @@ const sources = ref<string[]>(SCENES.map(() => ''))
 let swapTimer: number | undefined
 let preloadTimer: number | undefined
 let halted = false
+
+// The scenes behind the card are drawn left to right, so the page keeps that layout in Arabic too;
+// only the card itself turns right to left.
+const rtl = computed(() => language.value === 'AR')
 
 const stageStyle = computed(() => ({ '--fm-ms': `${sceneMs}ms` }))
 
@@ -146,7 +151,7 @@ async function submitLogin(): Promise<void> {
   halt()
   errorMessage.value = ''
   if (!userName.value.trim() || !password.value) {
-    errorMessage.value = 'Enter your username and password.'
+    errorMessage.value = tr('Enter your username and password.')
     return
   }
 
@@ -159,7 +164,7 @@ async function submitLogin(): Promise<void> {
       : '/'
     await router.push(redirect)
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Sign-in failed.'
+    errorMessage.value = error instanceof Error ? error.message : tr('Sign-in failed.')
   } finally {
     loading.value = false
   }
@@ -167,7 +172,7 @@ async function submitLogin(): Promise<void> {
 </script>
 
 <template>
-  <main class="cl-page" :style="stageStyle">
+  <main class="cl-page" dir="ltr" :style="stageStyle">
     <div class="fm-stage" aria-hidden="true">
       <iframe
         v-for="(scene, k) in SCENES"
@@ -195,23 +200,24 @@ async function submitLogin(): Promise<void> {
     </nav>
 
     <div class="cl-side">
-      <form class="cl-card" novalidate @submit.prevent="submitLogin" @focusin="halt" @pointerdown="halt">
+      <form class="cl-card" :dir="rtl ? 'rtl' : 'ltr'" :lang="rtl ? 'ar' : 'en'" novalidate @submit.prevent="submitLogin" @focusin="halt" @pointerdown="halt">
         <header class="cl-head">
           <span class="cl-mob" aria-hidden="true"></span>
           <span class="cl-mark" aria-hidden="true"></span>
-          <h1 class="cl-hello">Welcome to Capitra</h1>
-          <p class="cl-sub">Sign in once to reach every Capitra application.</p>
+          <button type="button" class="cl-lang" :title="rtl ? 'English' : 'العربية'" @click="switchLanguage(rtl ? 'EN' : 'AR')">{{ rtl ? 'EN' : 'ع' }}</button>
+          <h1 class="cl-hello">{{ tr('Welcome to Capitra') }}</h1>
+          <p class="cl-sub">{{ tr('Sign in once to reach every Capitra application.') }}</p>
         </header>
 
         <div class="cl-field">
-          <label for="cl-user">Username</label>
+          <label for="cl-user">{{ tr('Username') }}</label>
           <div class="cl-input cl-input--user">
             <input
               id="cl-user"
               v-model="userName"
               type="text"
               autocomplete="username"
-              placeholder="Enter your username"
+              :placeholder="tr('Enter your username')"
               autocapitalize="off"
               spellcheck="false"
             />
@@ -219,14 +225,14 @@ async function submitLogin(): Promise<void> {
         </div>
 
         <div class="cl-field">
-          <label for="cl-password">Password</label>
+          <label for="cl-password">{{ tr('Password') }}</label>
           <div class="cl-input cl-input--password">
             <input
               id="cl-password"
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               autocomplete="current-password"
-              placeholder="Enter your password"
+              :placeholder="tr('Enter your password')"
               @keydown="checkCaps"
               @keyup="checkCaps"
               @blur="capsLock = false"
@@ -234,7 +240,7 @@ async function submitLogin(): Promise<void> {
             <button
               type="button"
               class="cl-eye"
-              :aria-label="showPassword ? 'Hide password' : 'Show password'"
+              :aria-label="tr(showPassword ? 'Hide password' : 'Show password')"
               :aria-pressed="showPassword"
               @click="showPassword = !showPassword"
             >
@@ -243,26 +249,26 @@ async function submitLogin(): Promise<void> {
             </button>
           </div>
         </div>
-        <div v-if="capsLock" class="cl-caps" role="status">Caps Lock is on</div>
+        <div v-if="capsLock" class="cl-caps" role="status">{{ tr('Caps Lock is on') }}</div>
 
         <label class="cl-remember" for="cl-remember">
           <input id="cl-remember" v-model="remember" type="checkbox" />
-          <span>Remember username</span>
+          <span>{{ tr('Remember username') }}</span>
         </label>
 
         <button type="submit" class="cl-button" :disabled="loading">
-          <span>{{ loading ? 'Signing in…' : 'Sign in' }}</span>
-          <i :class="loading ? 'pi pi-spin pi-spinner' : 'pi pi-arrow-right'"></i>
+          <span>{{ tr(loading ? 'Signing in…' : 'Sign in') }}</span>
+          <i :class="loading ? 'pi pi-spin pi-spinner' : (rtl ? 'pi pi-arrow-left' : 'pi pi-arrow-right')"></i>
         </button>
 
         <div class="cl-note">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>
-          <span>Authorised users only. One sign-in opens every Capitra application you are allowed to use.</span>
+          <span>{{ tr('Authorised users only. One sign-in opens every Capitra application you are allowed to use.') }}</span>
         </div>
       </form>
     </div>
 
-    <div class="cl-foot"><span>Need access? Contact your system administrator.</span><span>Release 1.0</span></div>
+    <div class="cl-foot"><span :dir="rtl ? 'rtl' : 'ltr'">{{ tr('Need access? Contact your system administrator.') }}</span><span :dir="rtl ? 'rtl' : 'ltr'">{{ tr('Release 1.0') }}</span></div>
   </main>
 </template>
 
@@ -378,7 +384,26 @@ async function submitLogin(): Promise<void> {
 }
 @keyframes clCard { from { opacity: 0; transform: translateY(24px) scale(0.98); } to { opacity: 1; transform: none; } }
 
-.cl-head { margin: 0 0 22px; }
+.cl-head { position: relative; margin: 0 0 22px; }
+.cl-lang {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  z-index: 1;
+  min-width: 34px;
+  height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--cl-line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--cl-primary-dark);
+  font: 700 13px/1 Inter, 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.cl-lang:hover { background: var(--cl-field); border-color: var(--cl-primary); }
+.cl-card[dir='rtl'] { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+.cl-card[dir='rtl'] .cl-hello { letter-spacing: 0; }
 .cl-head > * { animation: fmRise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .cl-head > :nth-child(3) { animation-delay: 0.3s; }
 .cl-head > :nth-child(4) { animation-delay: 0.38s; }
@@ -544,6 +569,7 @@ async function submitLogin(): Promise<void> {
 .cl-button:disabled { cursor: progress; filter: saturate(0.8); }
 .cl-button i { transition: transform 0.2s; }
 .cl-button:hover i.pi-arrow-right { transform: translateX(3px); }
+.cl-button:hover i.pi-arrow-left { transform: translateX(-3px); }
 
 .cl-note {
   display: flex;
