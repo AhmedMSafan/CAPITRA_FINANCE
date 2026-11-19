@@ -44,7 +44,7 @@ import '../components/scr.css'
 import { onMounted, ref } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
-import { formatDateTime } from '@/shared/format/datetime'
+import { formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import { errorText, scrApi, type ScrRegistry } from '../api/scr.api'
 

@@ -77,7 +77,7 @@ import '@/modules/fct/pages/factoring.css'
 import '../components/scr.css'
 import { computed, onMounted, ref } from 'vue'
 import { showError } from '@/shared/feedback/feedback'
-import { formatDate, formatDateTime } from '@/shared/format/datetime'
+import { formatDate, formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import { CHIP, LABELS, errorText, scrApi, type ScrRegistry } from '../api/scr.api'
 

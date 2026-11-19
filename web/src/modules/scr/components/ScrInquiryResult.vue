@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatDate, formatDateTime } from '@/shared/format/datetime'
+import { formatDate, formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import { CHIP, LABELS, type ScrInquiry } from '../api/scr.api'
 

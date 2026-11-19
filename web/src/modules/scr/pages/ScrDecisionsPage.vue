@@ -77,7 +77,7 @@ import '../components/scr.css'
 import { computed, onMounted, ref } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
-import { formatDate } from '@/shared/format/datetime'
+import { formatDate } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import { CHIP, LABELS, errorText, scrApi, type ScrDecision } from '../api/scr.api'
 

@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch } from 'vue'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
-import { formatDateTime } from '@/shared/format/datetime'
+import { formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import ScrDialog from './ScrDialog.vue'
 import { LABELS, errorText, fieldErrors, scrApi, type ScrCompanyUser, type ScrCompanyUserRequest } from '../api/scr.api'
