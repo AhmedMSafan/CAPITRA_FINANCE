@@ -74,3 +74,4 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc a.scr-indicator-link{color:inherit;text-decoration:none;transition:box-shadow .15s,transform .15s}
 .fc a.scr-indicator-link:hover{transform:translateY(-1px);box-shadow:0 0 0 2px var(--fin-teal-600)}
 .fc .scr-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.fc .scr-with-me{margin-block-start:4px}

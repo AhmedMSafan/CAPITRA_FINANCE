@@ -242,5 +242,10 @@ export const SCR_AR: Record<string, string> = {
   'Enter decisions, run their approval workflow and follow each one\'s step.': 'أدخل القرارات وشغّل سير عمل اعتمادها وتابع خطوة كل قرار.',
   'Enter a decision from a letter; then Run starts its approval workflow from the Decisions list.': 'أدخل القرار من الخطاب، ثم يبدأ سير عمل اعتماده بزر التشغيل من قائمة القرارات.',
   'After saving, the decision waits in the Decisions list until its workflow is run.': 'بعد الحفظ، ينتظر القرار في قائمة القرارات حتى يتم تشغيل سير العمل.',
-  'Press Run in the Decisions list to start its workflow.': 'اضغط تشغيل في قائمة القرارات لبدء سير العمل.'
+  'Press Run in the Decisions list to start its workflow.': 'اضغط تشغيل في قائمة القرارات لبدء سير العمل.',
+  'My work': 'أعمالي',
+  'All users': 'كل المستخدمين',
+  'Waiting for you': 'بانتظارك',
+  'My decisions': 'قراراتي',
+  'No decisions of yours. Choose All users to see everyone\'s.': 'لا توجد قرارات تخصك. اختر كل المستخدمين لرؤية قرارات الجميع.'
 }
