@@ -55,6 +55,9 @@
       </template>
 
       <template v-else-if="tab === 'mine'">
+        <div class="fc-filters scr-portal-filter">
+          <ScrUserFilter v-model="who" :me="me" :users="users" />
+        </div>
         <div class="fx-table-wrap">
           <table class="fx-table">
             <thead>
@@ -64,7 +67,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="i in history" :key="i.inquiryId" :class="{ 'is-overdue': i.resultCode === 'MATCH' }">
+              <tr v-for="i in scoped" :key="i.inquiryId" :class="{ 'is-overdue': i.resultCode === 'MATCH' }">
                 <td dir="ltr"><b class="fc-ref">{{ i.inquiryRef }}</b></td>
                 <td>{{ i.subjectName }}<span class="fx-cell-sub">{{ tr(LABELS[i.subjectTypeCode] ?? i.subjectTypeCode) }}</span></td>
                 <td dir="ltr">{{ i.identityNo }}</td>
@@ -77,7 +80,7 @@
             </tbody>
           </table>
         </div>
-        <div v-if="!history.length" class="fx-empty"><span class="fa fa-history" aria-hidden="true"></span>{{ tr('No inquiries yet.') }}</div>
+        <div v-if="!scoped.length" class="fx-empty"><span class="fa fa-history" aria-hidden="true"></span>{{ history.length ? tr('Nothing here for the chosen user. Choose All users to see everything.') : tr('No inquiries yet.') }}</div>
       </template>
     </div>
 
@@ -96,6 +99,8 @@ import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
 import { formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
+import { useUserFilter } from '../utils/userFilter'
+import ScrUserFilter from '../components/ScrUserFilter.vue'
 import ScrCompanyUsers from '../components/ScrCompanyUsers.vue'
 import ScrInquiryResult from '../components/ScrInquiryResult.vue'
 import { CHIP, LABELS, errorText, fieldErrors, scrApi, type ScrInquiry, type ScrInquiryRequest, type ScrMyCompany } from '../api/scr.api'
@@ -105,6 +110,8 @@ const tab = ref<'new' | 'mine' | 'users'>('new')
 const company = ref<ScrMyCompany | null>(null)
 const result = ref<ScrInquiry | null>(null)
 const history = ref<ScrInquiry[]>([])
+/** My own inquiries by default; the company's other users can be chosen (Admin: all). */
+const { who, me, users, scoped } = useUserFilter(history, (i) => i.requestedBy)
 const busy = ref(false)
 const errors = ref<Record<string, string>>({})
 const blank = (): ScrInquiryRequest => ({

@@ -19,8 +19,15 @@
       </div>
     </div>
 
+    <div class="fx-card fx-card-pad fc-filters">
+      <label class="fc-field"><span>{{ tr('Search') }}</span>
+        <input v-model="search" class="fx-search" :placeholder="tr('Search by code or name')">
+      </label>
+      <ScrUserFilter v-model="who" :me="me" :users="users" />
+    </div>
+
     <div class="fx-card">
-      <div class="fc-card-head"><h2>{{ tr('Member companies') }} ({{ companies.length }})</h2></div>
+      <div class="fc-card-head"><h2>{{ tr('Member companies') }} ({{ rows.length }})</h2></div>
       <div class="fx-table-wrap">
         <table class="fx-table">
           <thead>
@@ -30,7 +37,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="c in companies" :key="c.memberCompanyId">
+            <tr v-for="c in rows" :key="c.memberCompanyId">
               <td dir="ltr"><b class="fc-ref">{{ c.companyCode }}</b></td>
               <td><b>{{ c.nameAr }}</b><span class="fx-cell-sub">{{ c.nameEn }}</span></td>
               <td dir="ltr">{{ c.licenceNo || '-' }}<span v-if="c.contactEmail" class="fx-cell-sub">{{ c.contactEmail }}</span></td>
@@ -47,7 +54,7 @@
           </tbody>
         </table>
       </div>
-      <div v-if="!companies.length" class="fx-empty"><span class="fa fa-building-o" aria-hidden="true"></span>{{ tr('No member companies yet.') }}</div>
+      <div v-if="!rows.length" class="fx-empty"><span class="fa fa-building-o" aria-hidden="true"></span>{{ companies.length ? tr('Nothing here for the chosen user. Choose All users to see everything.') : tr('No member companies yet.') }}</div>
     </div>
 
     <ScrCompanyUsers v-if="selected" :company-id="selected.memberCompanyId" :company-name="`${selected.companyCode} · ${selected.nameAr}`" />
@@ -80,14 +87,23 @@ import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
 import '../components/scr.css'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
+import { useUserFilter } from '../utils/userFilter'
+import ScrUserFilter from '../components/ScrUserFilter.vue'
 import ScrCompanyUsers from '../components/ScrCompanyUsers.vue'
 import ScrDialog from '../components/ScrDialog.vue'
 import { LABELS, errorText, fieldErrors, scrApi, type ScrCompany, type ScrCompanyRequest } from '../api/scr.api'
 
 const companies = ref<ScrCompany[]>([])
+/** Entered by me by default (Admin: all users). */
+const { who, me, users, scoped } = useUserFilter(companies, (c) => c.createdBy)
+const search = ref('')
+const rows = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  return scoped.value.filter((c) => !q || `${c.companyCode} ${c.nameEn} ${c.nameAr}`.toLowerCase().includes(q))
+})
 const selected = ref<ScrCompany | null>(null)
 const editing = ref(false)
 const editId = ref<number | null>(null)

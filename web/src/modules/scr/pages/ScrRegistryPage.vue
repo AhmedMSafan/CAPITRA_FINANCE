@@ -20,6 +20,7 @@
       <label class="fc-field"><span>{{ tr('Search') }}</span>
         <input v-model="search" class="fx-search" :placeholder="tr('Search by name, identity number or decision')">
       </label>
+      <ScrUserFilter v-model="who" :me="me" :users="users" />
       <label class="fc-field"><span>{{ tr('Type') }}</span>
         <select v-model="type" class="fx-select">
           <option value="">{{ tr('All') }}</option>
@@ -56,7 +57,8 @@
               </td>
               <td dir="ltr">{{ e.identityNo }}<span class="fx-cell-sub">{{ tr(LABELS[e.identityTypeCode] ?? e.identityTypeCode) }}</span></td>
               <td>{{ e.nationalityCode }}</td>
-              <td><RouterLink :to="{ name: 'scr-decision', params: { decisionId: e.decisionId } }" dir="ltr">{{ e.decisionRef }}</RouterLink><span class="fx-cell-sub" dir="ltr">{{ e.officialNo }}</span></td>
+              <td><RouterLink :to="{ name: 'scr-decision', params: { decisionId: e.decisionId } }" dir="ltr">{{ e.decisionRef }}</RouterLink><span class="fx-cell-sub" dir="ltr">{{ e.officialNo }}</span>
+                <span v-if="e.enteredBy" class="fx-cell-sub"><span class="fa fa-user-o" aria-hidden="true"></span> {{ e.enteredBy }}</span></td>
               <td>{{ e.scopeText }}</td>
               <td>{{ formatDate(e.listedFrom) }}<span v-if="e.liftedOn" class="fx-cell-sub">{{ tr('Lifted') }} {{ formatDate(e.liftedOn) }}</span></td>
               <td><span class="fx-chip" :class="CHIP[e.statusCode]">{{ tr(LABELS[e.statusCode] ?? e.statusCode) }}</span></td>
@@ -65,7 +67,7 @@
         </table>
       </div>
       <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
-      <div v-else-if="!rows.length" class="fx-empty"><span class="fa fa-list-alt" aria-hidden="true"></span>{{ tr('No entries.') }}</div>
+      <div v-else-if="!rows.length" class="fx-empty"><span class="fa fa-list-alt" aria-hidden="true"></span>{{ entries.length ? tr('Nothing here for the chosen user. Choose All users to see everything.') : tr('No entries.') }}</div>
     </div>
   </div>
 </template>
@@ -80,15 +82,20 @@ import { showError } from '@/shared/feedback/feedback'
 import { formatDate, formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import { CHIP, LABELS, errorText, scrApi, type ScrRegistry } from '../api/scr.api'
+import { useUserFilter } from '../utils/userFilter'
+import ScrUserFilter from '../components/ScrUserFilter.vue'
 
 const registry = ref<ScrRegistry | null>(null)
+const entries = computed(() => registry.value?.entries ?? [])
+/** Entries of decisions I entered by default (Admin: all users). */
+const { who, me, users, scoped } = useUserFilter(entries, (e) => e.enteredBy)
 const loading = ref(false)
 const search = ref('')
 const type = ref('')
 const status = ref('')
 const rows = computed(() => {
   const q = search.value.trim().toLowerCase()
-  return (registry.value?.entries ?? []).filter((e) => (!status.value || e.statusCode === status.value) && (!type.value || e.partyTypeCode === type.value)
+  return scoped.value.filter((e) => (!status.value || e.statusCode === status.value) && (!type.value || e.partyTypeCode === type.value)
     && (!q || `${e.nameAr} ${e.nameEn ?? ''} ${e.aliases.join(' ')} ${e.identityNo} ${e.decisionRef} ${e.officialNo}`.toLowerCase().includes(q)))
 })
 

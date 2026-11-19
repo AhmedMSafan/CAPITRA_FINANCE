@@ -19,13 +19,14 @@
     <div class="fc-indicators">
       <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ count('MATCH') }}</b><span>{{ tr('Match') }}</span><small>{{ tr('Listed: measure in force') }}</small></div>
       <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ count('POSSIBLE_MATCH') }}</b><span>{{ tr('Possible match') }}</span><small>{{ tr('Name only: to review') }}</small></div>
-      <div class="fx-card fc-indicator"><b>{{ inquiries.length }}</b><span>{{ tr('Inquiries') }}</span><small>{{ count('NO_MATCH') }} {{ tr('No match') }} · {{ count('PREVIOUSLY_LISTED') }} {{ tr('Previously listed') }}</small></div>
+      <div class="fx-card fc-indicator"><b>{{ scoped.length }}</b><span>{{ tr('Inquiries') }}</span><small>{{ count('NO_MATCH') }} {{ tr('No match') }} · {{ count('PREVIOUSLY_LISTED') }} {{ tr('Previously listed') }}</small></div>
     </div>
 
     <div class="fx-card fx-card-pad fc-filters fc-step-card">
       <label class="fc-field"><span>{{ tr('Search') }}</span>
         <input v-model="search" class="fx-search" :placeholder="tr('Search by inquiry, name, identity or user')">
       </label>
+      <ScrUserFilter v-model="who" :me="me" :users="users" />
       <label class="fc-field"><span>{{ tr('Result') }}</span>
         <select v-model="result" class="fx-select" @change="load">
           <option value="">{{ tr('All results') }}</option>
@@ -58,7 +59,7 @@
           </tbody>
         </table>
       </div>
-      <div v-if="!rows.length" class="fx-empty"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('No inquiries.') }}</div>
+      <div v-if="!rows.length" class="fx-empty"><span class="fa fa-search" aria-hidden="true"></span>{{ inquiries.length ? tr('Nothing here for the chosen user. Choose All users to see everything.') : tr('No inquiries.') }}</div>
     </div>
 
     <ScrInquiryResult v-if="open" :inquiry="open" />
@@ -76,15 +77,19 @@ import { formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import ScrInquiryResult from '../components/ScrInquiryResult.vue'
 import { CHIP, LABELS, errorText, scrApi, type ScrInquiry } from '../api/scr.api'
+import { useUserFilter } from '../utils/userFilter'
+import ScrUserFilter from '../components/ScrUserFilter.vue'
 
 const inquiries = ref<ScrInquiry[]>([])
 const open = ref<ScrInquiry | null>(null)
 const search = ref('')
 const result = ref('')
-const count = (code: string) => inquiries.value.filter((i) => i.resultCode === code).length
+/** Requested by me by default (Admin: all users). */
+const { who, me, users, scoped } = useUserFilter(inquiries, (i) => i.requestedBy)
+const count = (code: string) => scoped.value.filter((i) => i.resultCode === code).length
 const rows = computed(() => {
   const q = search.value.trim().toLowerCase()
-  return inquiries.value.filter((i) => !q || `${i.inquiryRef} ${i.subjectName} ${i.identityNo} ${i.requestedBy} ${i.companyCode}`.toLowerCase().includes(q))
+  return scoped.value.filter((i) => !q || `${i.inquiryRef} ${i.subjectName} ${i.identityNo} ${i.requestedBy} ${i.companyCode}`.toLowerCase().includes(q))
 })
 
 watch(open, async (v) => {

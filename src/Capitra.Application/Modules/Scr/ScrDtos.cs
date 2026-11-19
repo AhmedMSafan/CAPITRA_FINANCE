@@ -13,13 +13,13 @@ public sealed record ScrLetterFileDto(long LetterFileId, string FileName, string
 
 public sealed record ScrLetterDto(
     long LetterId, string LetterNo, string? SenderReference, string SenderName, string ChannelCode, DateOnly LetterDate, DateTime ReceivedAt,
-    string StatusCode, string? Notes, IReadOnlyList<ScrLetterFileDto> Files, int DecisionCount);
+    string StatusCode, string? Notes, IReadOnlyList<ScrLetterFileDto> Files, int DecisionCount, string? CreatedBy = null);
 
 public sealed record ScrLetterRequest(string? SenderReference, string? SenderName, string? ChannelCode, DateOnly? LetterDate, string? Notes);
 
 public sealed record ScrPartyDto(
     long PartyId, string PartyTypeCode, string NameAr, string? NameEn, string IdentityTypeCode, string IdentityNo, string NationalityCode,
-    DateOnly? BirthDate, string? Notes, IReadOnlyList<string> Aliases);
+    DateOnly? BirthDate, string? Notes, IReadOnlyList<string> Aliases, string? CreatedBy = null);
 
 public sealed record ScrPartyRequest(
     string? PartyTypeCode, string? NameAr, string? NameEn, string? IdentityTypeCode, string? IdentityNo, string? NationalityCode,
@@ -55,6 +55,6 @@ public sealed record ScrInquiryDto(
 
 public sealed record ScrCompanyDto(
     long MemberCompanyId, string CompanyCode, string NameEn, string NameAr, string? LicenceNo, string? ContactEmail, string StatusCode, string? Notes,
-    int UserCount, int InquiryCount);
+    int UserCount, int InquiryCount, string? CreatedBy = null);
 
 public sealed record ScrCompanyRequest(string? CompanyCode, string? NameEn, string? NameAr, string? LicenceNo, string? ContactEmail, string? StatusCode, string? Notes);

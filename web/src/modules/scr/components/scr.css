@@ -94,3 +94,4 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-viewer-text{margin:0 auto;max-width:1000px;padding:20px;background:#fff;border-radius:8px;text-align:start;white-space:pre-wrap;word-break:break-word;color:var(--fin-ink)}
 .fc .scr-viewer-other{flex:1;flex-direction:column;justify-content:center;gap:12px}
 .fc .scr-viewer-other .fa-file-o{font-size:48px;color:var(--fin-muted)}
+.fc .scr-portal-filter{padding:14px 20px 0;max-width:420px}

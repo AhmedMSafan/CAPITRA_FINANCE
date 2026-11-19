@@ -6,7 +6,8 @@ namespace Capitra.Application.Modules.Scr;
 public sealed record ScrRegistryEntry(
     long PartyId, long DecisionId, string DecisionRef, string OfficialNo, string PartyTypeCode, string NameAr, string? NameEn,
     IReadOnlyList<string> Aliases, string IdentityTypeCode, string IdentityNo, string NationalityCode, DateOnly? BirthDate,
-    string ScopeText, DateOnly ListedFrom, DateOnly? LiftedOn, string StatusCode, long? LetterId, string? LastDecisionRef);
+    string ScopeText, DateOnly ListedFrom, DateOnly? LiftedOn, string StatusCode, long? LetterId, string? LastDecisionRef,
+    string? EnteredBy = null);
 
 /// <summary>
 /// The Federation Final List, worked out from published decisions (as FINOVA's deriveRegistry did): every party of every published
@@ -41,7 +42,7 @@ public static class ScrRegistry
                     p.PartyId, listing.DecisionId, listing.DecisionRef, listing.OfficialNo, p.PartyTypeCode, p.NameAr, p.NameEn,
                     [.. p.Aliases.Select(a => a.AliasName)], p.IdentityTypeCode, p.IdentityNo, p.NationalityCode, p.BirthDate,
                     amendment?.ScopeText ?? listing.ScopeText, listing.EffectiveDate, lift?.EffectiveDate, status, listing.LetterId,
-                    last?.DecisionRef));
+                    last?.DecisionRef, listing.EnteredBy));
             }
         }
 

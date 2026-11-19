@@ -1,6 +1,6 @@
 <template>
   <!--
-    Decisions: the one list of every decision and its approval workflow; it opens on the decisions the signed-in user entered. A saved decision shows "Workflow not started" with a Run
+    Decisions: the one list of every decision and its approval workflow; it opens on the decisions the signed-in user entered (Admin: all). A saved decision shows "Workflow not started" with a Run
     button; Run starts its SCR_DECISION_APPROVAL workflow. From then on the Workflow step column shows the step it is at and who
     holds it, and each completed step opens the decision view-only on that step.
   -->
@@ -33,14 +33,7 @@
       <label class="fc-field"><span>{{ tr('Search') }}</span>
         <input v-model="search" class="fx-search" :placeholder="tr('Search by decision, official number or party')">
       </label>
-      <label class="fc-field"><span>{{ tr('User') }}</span>
-        <select v-model="who" class="fx-select">
-          <option :value="MINE">{{ tr('Entered by me') }} ({{ me }})</option>
-          <option :value="WAITING">{{ tr('Waiting for me') }} ({{ waitingCount }})</option>
-          <option value="">{{ tr('All users') }}</option>
-          <option v-for="u in users" :key="u" :value="u">{{ u }}</option>
-        </select>
-      </label>
+      <ScrUserFilter v-model="who" :me="me" :users="users" with-waiting :waiting-count="waitingCount" />
       <label class="fc-field"><span>{{ tr('Type') }}</span>
         <select v-model="type" class="fx-select">
           <option value="">{{ tr('All') }}</option>
@@ -123,7 +116,9 @@ import '@/modules/fct/pages/factoring.css'
 import '../components/scr.css'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { getUser, hasPermission } from '@/shared/auth/session'
+import { hasPermission } from '@/shared/auth/session'
+import { MINE, WAITING, useUserFilter } from '../utils/userFilter'
+import ScrUserFilter from '../components/ScrUserFilter.vue'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate } from '../utils/dates'
 import ScrDoneSteps from '../components/ScrDoneSteps.vue'
@@ -149,29 +144,9 @@ const busy = ref<number | null>(null)
 const search = ref('')
 const type = ref('')
 const view = ref<View>((typeof route.query.view === 'string' ? route.query.view : '') as View)
-/**
- * The list opens on the decisions the signed-in user entered. "Waiting for me" lists those whose current step is with the user:
- * taken by them, assigned to them, or to one of their roles. Any other user shows the decisions that user entered.
- */
-const MINE = '__mine__'
-const WAITING = '__waiting__'
-const user = getUser()
-const me = user?.userName ?? ''
-const myRoles = new Set((user?.roles ?? []).map((r) => r.toUpperCase()))
-const who = ref<string>(typeof route.query.user === 'string' ? route.query.user : MINE)
-const same = (a: string | null | undefined, b: string) => !!a && a.toLowerCase() === b.toLowerCase()
-const isMine = (holder: string) => same(holder, me) || myRoles.has(holder.toUpperCase())
-const waitingForMe = (d: ScrDecision) => viewOf(d) === 'STARTED' && !!d.workflowStepHolder && isMine(d.workflowStepHolder)
-/** The users who entered decisions. */
-const users = computed(() => [...new Set(decisions.value.map((d) => d.enteredBy).filter((u) => !!u && !same(u, me)))].sort())
-const scoped = computed(() => decisions.value.filter((d) => {
-  switch (who.value) {
-    case '': return true
-    case MINE: return same(d.enteredBy, me)
-    case WAITING: return waitingForMe(d)
-    default: return same(d.enteredBy, who.value)
-  }
-}))
+/** Entered by me by default (Admin: all users); Waiting for me = the current step is with me or my role. */
+const { who, me, users, scoped, waitingCount, isMine } = useUserFilter(decisions, (d) => d.enteredBy,
+  (d) => (viewOf(d) === 'STARTED' ? d.workflowStepHolder : null))
 const open = (d: ScrDecision) => ({ name: 'scr-decision', params: { decisionId: d.decisionId } })
 const holder = (h: string) => tr(ROLES[h] ?? h)
 
@@ -186,7 +161,6 @@ function viewOf(d: ScrDecision): View {
   }
 }
 const count = (k: View) => scoped.value.filter((d) => viewOf(d) === k).length
-const waitingCount = computed(() => decisions.value.filter(waitingForMe).length)
 
 const rows = computed(() => {
   const q = search.value.trim().toLowerCase()

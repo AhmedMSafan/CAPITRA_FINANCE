@@ -23,6 +23,7 @@
       <label class="fc-field"><span>{{ tr('Search') }}</span>
         <input v-model="search" class="fx-search" :placeholder="tr('Search by name or identity number')" @keyup.enter="load">
       </label>
+      <ScrUserFilter v-model="who" :me="me" :users="users" />
       <div class="fc-filter-actions">
         <button type="button" class="fx-btn fx-btn--teal" @click="load"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('Search') }}</button>
         <button type="button" class="fx-btn" @click="search = ''; load()"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
@@ -30,30 +31,31 @@
     </div>
 
     <div class="fx-card">
-      <div class="fc-card-head"><h2>{{ tr('Parties') }} ({{ parties.length }})</h2></div>
+      <div class="fc-card-head"><h2>{{ tr('Parties') }} ({{ scoped.length }})</h2></div>
       <div class="fx-table-wrap">
         <table class="fx-table">
           <thead>
             <tr>
               <th class="fc-no">#</th><th>{{ tr('Name') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('Identity number') }}</th>
-              <th>{{ tr('Nationality') }}</th><th>{{ tr('Birth date') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
+              <th>{{ tr('Nationality') }}</th><th>{{ tr('Birth date') }}</th><th>{{ tr('Entered by') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(p, i) in parties" :key="p.partyId">
+            <tr v-for="(p, i) in scoped" :key="p.partyId">
               <td class="fc-no">{{ i + 1 }}</td>
               <td><b>{{ p.nameAr }}</b><span v-if="p.nameEn" class="fx-cell-sub">{{ p.nameEn }}</span><span v-for="a in p.aliases" :key="a" class="scr-tag">{{ a }}</span></td>
               <td><span class="fx-chip fx-chip--plain">{{ tr(LABELS[p.partyTypeCode] ?? p.partyTypeCode) }}</span></td>
               <td dir="ltr">{{ p.identityNo }}<span class="fx-cell-sub">{{ tr(LABELS[p.identityTypeCode] ?? p.identityTypeCode) }}</span></td>
               <td>{{ p.nationalityCode }}</td>
               <td>{{ p.birthDate ? formatDate(p.birthDate) : '-' }}</td>
+              <td>{{ p.createdBy || '-' }}</td>
               <td class="fx-r"><button v-if="canEdit" type="button" class="fx-btn fx-btn--sm" @click="edit(p)"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Edit') }}</button></td>
             </tr>
           </tbody>
         </table>
       </div>
       <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
-      <div v-else-if="!parties.length" class="fx-empty"><span class="fa fa-users" aria-hidden="true"></span>{{ tr('No parties yet.') }}</div>
+      <div v-else-if="!scoped.length" class="fx-empty"><span class="fa fa-users" aria-hidden="true"></span>{{ parties.length ? tr('Nothing here for the chosen user. Choose All users to see everything.') : tr('No parties yet.') }}</div>
     </div>
 
     <ScrDialog v-if="editing" :title="editId ? tr('Edit party') : tr('New party')" :subtitle="tr('Other names are screened like the name.')" icon="fa-user-o" @close="editing = false">
@@ -95,11 +97,15 @@ import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
+import { useUserFilter } from '../utils/userFilter'
+import ScrUserFilter from '../components/ScrUserFilter.vue'
 import ScrDialog from '../components/ScrDialog.vue'
 import { LABELS, errorText, fieldErrors, scrApi, type ScrParty, type ScrPartyRequest } from '../api/scr.api'
 
 const canEdit = hasPermission('SCR.DECISION.EDIT')
 const parties = ref<ScrParty[]>([])
+/** Entered by me by default (Admin: all users). */
+const { who, me, users, scoped } = useUserFilter(parties, (p) => p.createdBy)
 const loading = ref(false)
 const saving = ref(false)
 const editing = ref(false)
