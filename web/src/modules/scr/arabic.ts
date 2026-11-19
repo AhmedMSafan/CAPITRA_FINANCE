@@ -215,5 +215,21 @@ export const SCR_AR: Record<string, string> = {
   'Run the approval workflow and follow each decision\'s step.': 'شغّل سير عمل الاعتماد وتابع خطوة كل قرار.',
   'Enter a decision from a letter; then run its approval workflow from Decisions awaiting approval.': 'أدخل القرار من الخطاب، ثم شغّل سير عمل اعتماده من القرارات بانتظار الاعتماد.',
   'After saving, the decision waits in Decisions awaiting approval until its workflow is run.': 'بعد الحفظ، ينتظر القرار في القرارات بانتظار الاعتماد حتى يتم تشغيل سير العمل.',
-  'It is waiting in Decisions awaiting approval.': 'وهو الآن في القرارات بانتظار الاعتماد.'
+  'It is waiting in Decisions awaiting approval.': 'وهو الآن في القرارات بانتظار الاعتماد.',
+  'Workflow steps': 'خطوات سير العمل',
+  'Completed steps are view-only, with what was decided and the documents added at each step.': 'الخطوات المكتملة للعرض فقط، مع ما تقرر فيها والمستندات المضافة في كل خطوة.',
+  'Round': 'الجولة',
+  'View only': 'عرض فقط',
+  'Accepted': 'مقبول',
+  'No documents at this step.': 'لا توجد مستندات في هذه الخطوة.',
+  'Document title (optional)': 'عنوان المستند (اختياري)',
+  'Document title': 'عنوان المستند',
+  'Add document': 'إضافة مستند',
+  'Document added': 'تمت إضافة المستند',
+  'Remove this document?': 'حذف هذا المستند؟',
+  'Open the completed step, view only': 'فتح الخطوة المكتملة للعرض فقط',
+  'View only: a completed step, with what was decided and its documents. Nothing can be changed here.': 'عرض فقط: خطوة مكتملة بما تقرر فيها ومستنداتها. لا يمكن تغيير شيء هنا.',
+  '(required to return)': '(مطلوب عند الإعادة)',
+  'Write why the decision is returned.': 'اكتب سبب إعادة القرار.',
+  'Open step': 'قيد التنفيذ'
 }

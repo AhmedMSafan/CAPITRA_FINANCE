@@ -62,8 +62,8 @@
               <td>{{ d.parties.map((p) => p.nameAr).join('، ') || '-' }}</td>
               <td>{{ d.enteredBy }}<span class="fx-cell-sub">{{ formatDate(d.createdAt) }}</span></td>
               <td>
-                <span v-if="started(d)" class="fx-chip fx-chip--ok"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Workflow started') }}</span>
-                <span v-else class="fx-chip fx-chip--plain"><span class="fa fa-minus" aria-hidden="true"></span>{{ tr('Workflow not started') }}</span>
+                <span v-if="started(d)" class="fx-chip fx-chip--ok">{{ tr('Workflow started') }}</span>
+                <span v-else class="fx-chip fx-chip--plain">{{ tr('Workflow not started') }}</span>
               </td>
               <td>
                 <template v-if="started(d)"><b class="scr-step">{{ d.workflowStepName ? tr(d.workflowStepName) : '-' }}</b></template>
@@ -72,6 +72,7 @@
                   <span v-if="d.returnReason" class="fx-cell-sub scr-reason" :title="d.returnReason">{{ d.returnReason }}</span>
                 </template>
                 <span v-else>-</span>
+                <ScrDoneSteps :decision-id="d.decisionId" :steps="d.completedSteps" />
               </td>
               <td class="fx-r">
                 <div class="fc-row-actions">
@@ -100,6 +101,7 @@ import { computed, onMounted, ref } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate } from '../utils/dates'
+import ScrDoneSteps from '../components/ScrDoneSteps.vue'
 import { tr } from '@/shared/layout/language'
 import { LABELS, errorText, scrApi, type ScrDecision } from '../api/scr.api'
 
