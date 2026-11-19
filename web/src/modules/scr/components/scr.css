@@ -75,3 +75,22 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc a.scr-indicator-link:hover{transform:translateY(-1px);box-shadow:0 0 0 2px var(--fin-teal-600)}
 .fc .scr-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .fc .scr-with-me{margin-block-start:4px}
+
+/* Document viewer: a large pop-up with zoom, instead of a new browser tab */
+.scr-viewer-back{z-index:1200}
+.fc.scr-viewer{width:min(1200px,94vw);height:92vh;max-height:92vh;display:flex;flex-direction:column;padding:0;overflow:hidden}
+.fc .scr-viewer-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--fin-line);background:#fff}
+.fc .scr-viewer-title{flex:1;min-width:0}
+.fc .scr-viewer-title h2{margin:0;font-size:var(--fs-md,16px);color:var(--fin-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc .scr-viewer-title small{color:var(--fin-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.fc .scr-zoom{display:flex;align-items:center;gap:4px;padding:3px;border:1px solid var(--fin-line);border-radius:10px;background:var(--fin-surface-2,#f4f7f8)}
+.fc .scr-zoom .fx-btn{border:0;background:transparent}
+.fc .scr-zoom-select{width:auto;min-width:104px;height:32px;padding-block:0}
+.fc .scr-viewer-body{flex:1;min-height:0;background:#525659;display:flex}
+.fc .scr-viewer-body--text,.fc .scr-viewer-body--other{background:var(--fin-surface-2,#f4f7f8)}
+.fc .scr-viewer-pdf{flex:1;width:100%;height:100%;border:0}
+.fc .scr-viewer-scroll{flex:1;overflow:auto;padding:16px;text-align:center}
+.fc .scr-viewer-scroll img{display:inline-block;background:#fff;box-shadow:0 4px 18px rgb(0 0 0 / .35)}
+.fc .scr-viewer-text{margin:0 auto;max-width:1000px;padding:20px;background:#fff;border-radius:8px;text-align:start;white-space:pre-wrap;word-break:break-word;color:var(--fin-ink)}
+.fc .scr-viewer-other{flex:1;flex-direction:column;justify-content:center;gap:12px}
+.fc .scr-viewer-other .fa-file-o{font-size:48px;color:var(--fin-muted)}
