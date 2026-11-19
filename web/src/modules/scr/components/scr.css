@@ -121,3 +121,19 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 @media (max-width:900px){.fc .scr-band-stats{grid-template-columns:1fr}.fc .scr-stat + .scr-stat{border-inline-start:0;border-block-start:1px solid rgb(255 255 255 / .16)}}
 @media (prefers-reduced-motion:reduce){.fc .scr-band-pulse{animation:none}}
 [dir='rtl'] .fc .fc-quick-card > .fa-angle-right{transform:scaleX(-1)}
+
+/* New letter: scans chosen with the letter */
+.fc .scr-drop{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px;border:2px dashed var(--fin-line);border-radius:12px;
+  background:var(--fin-canvas);color:var(--fin-muted);text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.fc .scr-drop:hover,.fc .scr-drop.is-over{border-color:var(--fin-teal-600);background:var(--fin-teal-50)}
+.fc .scr-drop .fa{font-size:26px;color:var(--fin-teal-600)}
+.fc .scr-drop b{color:var(--fin-ink);font-size:var(--fs-sm)}
+.fc .scr-drop small{font-size:var(--fs-xs)}
+.fc .scr-drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.fc .scr-pending{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-block-start:10px}
+.fc .scr-pending-file{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid var(--fin-line);border-radius:10px;background:#fff}
+.fc .scr-pending-file img{width:40px;height:40px;object-fit:cover;border-radius:6px}
+.fc .scr-pending-file > .fa{width:40px;text-align:center;font-size:22px;color:var(--fin-bad,#c8321f)}
+.fc .scr-pending-file div{flex:1;min-width:0;display:flex;flex-direction:column}
+.fc .scr-pending-file b{font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc .scr-pending-file small{color:var(--fin-muted);font-size:var(--fs-xs)}

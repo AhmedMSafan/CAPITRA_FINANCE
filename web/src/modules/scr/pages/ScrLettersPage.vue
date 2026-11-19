@@ -67,7 +67,7 @@
       <div v-else-if="!scoped.length" class="fx-empty"><span class="fa fa-envelope-o" aria-hidden="true"></span>{{ letters.length ? tr('Nothing here for the chosen user. Choose All users to see everything.') : tr('No letters yet.') }}</div>
     </div>
 
-    <ScrDialog v-if="adding" :title="tr('New letter')" :subtitle="tr('Register an incoming letter; attach its scan from the list afterwards.')" icon="fa-envelope-o" @close="adding = false">
+    <ScrDialog v-if="adding" :title="tr('New letter')" :subtitle="tr('Register an incoming letter with its scans.')" icon="fa-envelope-o" @close="adding = false">
       <div class="fc-grid fc-grid--3">
         <label class="fc-field fc-span2"><span>{{ tr('Sender') }} <b>*</b></span><input v-model="form.senderName" class="fx-search">
           <small v-if="errors.senderName" class="scr-err">{{ errors.senderName }}</small></label>
@@ -78,6 +78,25 @@
         <label class="fc-field"><span>{{ tr('Letter date') }} <b>*</b></span><input v-model="form.letterDate" class="fx-search" type="date">
           <small v-if="errors.letterDate" class="scr-err">{{ errors.letterDate }}</small></label>
         <label class="fc-field fc-full"><span>{{ tr('Notes') }}</span><textarea v-model="form.notes" class="fx-search fc-textarea"></textarea></label>
+
+        <!-- the scans, saved with the letter -->
+        <div class="fc-field fc-full"><span>{{ tr('Scans') }}</span>
+          <label class="scr-drop" :class="{ 'is-over': dragOver }" @dragover.prevent="dragOver = true" @dragleave.prevent="dragOver = false" @drop.prevent="dropFiles">
+            <span class="fa fa-cloud-upload" aria-hidden="true"></span>
+            <b>{{ tr('Drop the scans here or click to choose') }}</b>
+            <small>{{ tr('PDF, PNG, JPEG or TIFF · up to 20 MB each · any number') }}</small>
+            <input type="file" multiple accept="application/pdf,image/png,image/jpeg,image/tiff" @change="pickFiles">
+          </label>
+          <div v-if="pending.length" class="scr-pending">
+            <div v-for="(p, i) in pending" :key="i" class="scr-pending-file">
+              <img v-if="p.url" :src="p.url" alt="">
+              <span v-else class="fa fa-file-pdf-o" aria-hidden="true"></span>
+              <div><b dir="auto">{{ p.file.name }}</b><small>{{ size(p.file.size) }}</small></div>
+              <button type="button" class="fx-btn fx-btn--sm fx-btn--ghost" :aria-label="tr('Remove')" @click="removePending(i)"><span class="fa fa-times" aria-hidden="true"></span></button>
+            </div>
+          </div>
+          <small v-if="fileError" class="scr-err">{{ fileError }}</small>
+        </div>
       </div>
       <template #actions>
         <button type="button" class="fx-btn" @click="adding = false">{{ tr('Cancel') }}</button>
@@ -117,9 +136,47 @@ const errors = ref<Record<string, string>>({})
 const blank = (): ScrLetterRequest => ({ senderName: '', senderReference: null, channelCode: 'COURIER', letterDate: null, notes: null })
 const form = reactive<ScrLetterRequest>(blank())
 
+/** Scans chosen in the New letter form; uploaded right after the letter is saved. */
+const TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/tiff']
+const MAX = 20 * 1024 * 1024
+const pending = ref<{ file: File; url: string | null }[]>([])
+const dragOver = ref(false)
+const fileError = ref('')
+const size = (b: number) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`)
+
+function addFiles(files: FileList | File[] | null | undefined) {
+  fileError.value = ''
+  for (const f of Array.from(files ?? [])) {
+    if (!TYPES.includes(f.type) || f.size === 0 || f.size > MAX) {
+      fileError.value = `${f.name}: ${tr('Attach a PDF, PNG, JPEG or TIFF file up to 20 MB.')}`
+      continue
+    }
+    pending.value.push({ file: f, url: f.type.startsWith('image/') && f.type !== 'image/tiff' ? URL.createObjectURL(f) : null })
+  }
+}
+function pickFiles(e: Event) {
+  const input = e.target as HTMLInputElement
+  addFiles(input.files)
+  input.value = ''
+}
+function dropFiles(e: DragEvent) {
+  dragOver.value = false
+  addFiles(e.dataTransfer?.files)
+}
+function removePending(i: number) {
+  const [p] = pending.value.splice(i, 1)
+  if (p?.url) URL.revokeObjectURL(p.url)
+}
+function clearPending() {
+  pending.value.forEach((p) => p.url && URL.revokeObjectURL(p.url))
+  pending.value = []
+  fileError.value = ''
+}
+
 function openNew() {
   Object.assign(form, blank())
   errors.value = {}
+  clearPending()
   adding.value = true
 }
 
@@ -139,8 +196,20 @@ async function save() {
   errors.value = {}
   try {
     const l = await scrApi.createLetter({ ...form })
+    // the scans go up one by one; a failed one is reported and the letter keeps the others
+    const failed: string[] = []
+    for (const p of pending.value) {
+      try {
+        await scrApi.addLetterFile(l.letterId, p.file)
+      } catch (err) {
+        failed.push(`${p.file.name}: ${errorText(err)}`)
+      }
+    }
+    const count = pending.value.length - failed.length
     adding.value = false
-    showSuccess(`${tr('Letter registered')}: ${l.letterNo}`)
+    clearPending()
+    showSuccess(`${tr('Letter registered')}: ${l.letterNo}${count ? ` · ${count} ${tr('scans attached')}` : ''}`)
+    if (failed.length) showError(`${tr('Some scans were not attached; add them from the list.')} ${failed.join(' · ')}`)
     await load()
   } catch (err) {
     errors.value = fieldErrors(err)
