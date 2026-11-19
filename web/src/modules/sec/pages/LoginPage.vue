@@ -268,7 +268,7 @@ async function submitLogin(): Promise<void> {
       </form>
     </div>
 
-    <div class="cl-foot" :dir="rtl ? 'rtl' : 'ltr'"><span>{{ tr('Need access? Contact your system administrator.') }}</span><span>{{ tr('Release 1.0') }}</span></div>
+    <div class="cl-foot"><span :dir="rtl ? 'rtl' : 'ltr'">{{ tr('Need access? Contact your system administrator.') }}</span><span :dir="rtl ? 'rtl' : 'ltr'">{{ tr('Release 1.0') }}</span></div>
   </main>
 </template>
 
