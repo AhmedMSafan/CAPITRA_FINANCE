@@ -29,7 +29,8 @@ public sealed record ScrDecisionDto(
     long DecisionId, string DecisionRef, string OfficialNo, string DecisionTypeCode, long? ParentDecisionId, string? ParentDecisionRef,
     long? LetterId, string? LetterNo, string ScopeText, DateOnly EffectiveDate, string StatusCode, string? ReturnReason, long? WorkflowInstanceId,
     string EnteredBy, string? ReviewedBy, DateTime? ReviewedAt, string? ApprovedBy, DateTime? PublishedAt, int? RegistryVersionNo,
-    IReadOnlyList<ScrPartyDto> Parties, DateTime CreatedAt);
+    IReadOnlyList<ScrPartyDto> Parties, DateTime CreatedAt, string? WorkflowStepName = null,
+    IReadOnlyList<ScrCompletedStepDto>? CompletedSteps = null);
 
 public sealed record ScrDecisionRequest(
     string? OfficialNo, string? DecisionTypeCode, long? ParentDecisionId, long? LetterId, string? ScopeText, DateOnly? EffectiveDate,

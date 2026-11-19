@@ -67,4 +67,9 @@ public static class ScrDecisionStatus
     public const string Returned = "RETURNED";
     public const string Published = "PUBLISHED";
     public const string Cancelled = "CANCELLED";
+
+    /// <summary>The list "awaiting approval": entered but not yet published, cancelled or published.</summary>
+    public const string Pending = "PENDING";
+
+    public static readonly string[] Open = [Draft, Returned, InReview, AwaitingApproval];
 }

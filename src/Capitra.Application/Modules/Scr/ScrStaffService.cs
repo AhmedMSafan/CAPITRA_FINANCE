@@ -4,6 +4,7 @@ using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Scr;
+using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Scr;
@@ -13,7 +14,8 @@ namespace Capitra.Application.Modules.Scr;
 /// Federation Final List. A decision is entered as DRAFT and submitted to the CAPITRA workflow <see cref="WorkflowCode"/>; the
 /// workflow's review and approval steps (<see cref="ScrDecisionWorkflowHandler"/>) publish it.
 /// </summary>
-public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IScrUserProfiles profiles)
+public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IScrUserProfiles profiles,
+    ScrStepService stepService)
 {
     public const string WorkflowCode = "SCR_DECISION_APPROVAL";
     public const long MaxFileBytes = 20 * 1024 * 1024;
@@ -157,7 +159,7 @@ public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUs
     {
         var q = db.Set<ScrDecision>().AsNoTracking().Include(d => d.Parties).AsQueryable();
         if (ScrValidation.Clean(status)?.ToUpperInvariant() is { } s)
-            q = q.Where(d => d.StatusCode == s);
+            q = s == ScrDecisionStatus.Pending ? q.Where(d => ScrDecisionStatus.Open.Contains(d.StatusCode)) : q.Where(d => d.StatusCode == s);
         return await ToDtosAsync(await q.OrderByDescending(d => d.DecisionId).Take(500).ToListAsync(ct), ct);
     }
 
@@ -241,13 +243,16 @@ public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUs
         return await DecisionAsync(d.DecisionId, ct);
     }
 
-    /// <summary>Sends a draft or returned decision for review: starts a new SCR_DECISION_APPROVAL workflow instance for it.</summary>
+    /// <summary>
+    /// Run: starts a new SCR_DECISION_APPROVAL workflow instance for a draft or returned decision (from the list of decisions
+    /// awaiting approval). Until then the decision shows "Workflow not started".
+    /// </summary>
     public async Task<ScrDecisionDto> SubmitAsync(long decisionId, CancellationToken ct)
     {
         var d = await db.Set<ScrDecision>().FirstOrDefaultAsync(x => x.DecisionId == decisionId, ct)
             ?? throw new NotFoundException($"Decision {decisionId} was not found.");
         if (d.StatusCode is not (ScrDecisionStatus.Draft or ScrDecisionStatus.Returned))
-            throw new BusinessRuleException($"Decision {d.DecisionRef} has already been submitted.");
+            throw new BusinessRuleException($"The workflow of decision {d.DecisionRef} has already been started.");
 
         await using var tx = await db.BeginTransactionAsync(ct);
         var variables = new Dictionary<string, string?>
@@ -295,12 +300,29 @@ public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUs
         var parents = await db.Set<ScrDecision>().AsNoTracking().Where(d => parentIds.Contains(d.DecisionId)).ToDictionaryAsync(d => d.DecisionId, d => d.DecisionRef, ct);
         var letterIds = list.Select(d => d.LetterId).OfType<long>().Distinct().ToList();
         var letters = await db.Set<ScrLetter>().AsNoTracking().Where(l => letterIds.Contains(l.LetterId)).ToDictionaryAsync(l => l.LetterId, l => l.LetterNo, ct);
+        var steps = await CurrentStepsAsync(list.Where(d => d.StatusCode is ScrDecisionStatus.InReview or ScrDecisionStatus.AwaitingApproval)
+            .Select(d => d.WorkflowInstanceId).OfType<long>(), ct);
+        var completed = await stepService.CompletedStepsAsync(list, ct);
         return [.. list.Select(d => new ScrDecisionDto(
             d.DecisionId, d.DecisionRef, d.OfficialNo, d.DecisionTypeCode, d.ParentDecisionId,
             d.ParentDecisionId is { } pid ? parents.GetValueOrDefault(pid) : null, d.LetterId, d.LetterId is { } lid ? letters.GetValueOrDefault(lid) : null,
             d.ScopeText, d.EffectiveDate, d.StatusCode, d.ReturnReason, d.WorkflowInstanceId, d.EnteredBy, d.ReviewedBy, d.ReviewedAt, d.ApprovedBy,
             d.PublishedAt, d.RegistryVersionNo,
-            [.. d.Parties.Select(p => parties.TryGetValue(p.PartyId, out var x) ? ToDto(x) : null).OfType<ScrPartyDto>()], d.CreatedAt))];
+            [.. d.Parties.Select(p => parties.TryGetValue(p.PartyId, out var x) ? ToDto(x) : null).OfType<ScrPartyDto>()], d.CreatedAt,
+            d.WorkflowInstanceId is { } wid && steps.TryGetValue(wid, out var step) ? step : null, completed.GetValueOrDefault(d.DecisionId)))];
+    }
+
+    /// <summary>Per workflow instance, the name of its newest step that is not completed yet (as in Factoring).</summary>
+    private async Task<Dictionary<long, string?>> CurrentStepsAsync(IEnumerable<long> instanceIds, CancellationToken ct)
+    {
+        var ids = instanceIds.Where(x => x > 0).Distinct().ToList();
+        if (ids.Count == 0)
+            return [];
+        var open = await db.Set<WfeStepInstance>().AsNoTracking()
+            .Where(x => ids.Contains(x.WorkflowInstanceId) && x.StepStatus != WfeRuntime.Completed && x.ElementType != "startEvent")
+            .Select(x => new { x.WorkflowInstanceId, x.StepInstanceId, x.StepName })
+            .ToListAsync(ct);
+        return open.GroupBy(x => x.WorkflowInstanceId).ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.StepInstanceId).First().StepName);
     }
 
     // ---------------------------------------------------------------- the Final List

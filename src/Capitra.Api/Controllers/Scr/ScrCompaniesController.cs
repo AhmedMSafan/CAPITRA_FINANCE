@@ -44,8 +44,8 @@ public sealed class ScrCompaniesController(ScrCompanyService companies) : Contro
 [Route("api/scr/companies/{companyId:long}/users")]
 public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUserProfiles profiles, ScrCompanyService companies) : ControllerBase
 {
-    public const string CompanyUserRole = "SCR_COMPANY_USER";
-    public const string CompanyAdminRole = "SCR_COMPANY_ADMIN";
+    public const string CompanyUserRole = "MEMBER_COMPANY_USER";
+    public const string CompanyAdminRole = "MEMBER_COMPANY_ADMIN";
 
     [HttpGet]
     public async Task<IActionResult> List(long companyId, CancellationToken ct)

@@ -21,6 +21,17 @@ export type ScrDecision = {
   statusCode: string; returnReason: string | null; workflowInstanceId: number | null; enteredBy: string; reviewedBy: string | null
   reviewedAt: string | null; approvedBy: string | null; publishedAt: string | null; registryVersionNo: number | null
   parties: ScrParty[]; createdAt: string
+  workflowStepName?: string | null
+  completedSteps?: ScrCompletedStep[] | null
+}
+export type ScrCompletedStep = { key: string; stepCode: string; stepName: string; action: string | null; doneBy: string | null; doneAt: string | null }
+export type ScrDocument = {
+  documentId: number; stepCode: string; stepName: string; documentTitle: string; fileName: string; mimeType: string; fileSizeBytes: number
+  createdBy: string; createdAt: string; canRemove: boolean
+}
+export type ScrStepView = {
+  key: string; round: number; stepCode: string; stepName: string; status: 'DONE' | 'OPEN'; action: string | null; doneBy: string | null
+  doneAt: string | null; comment: string | null; stepInstanceId: number | null; documents: ScrDocument[]
 }
 export type ScrDecisionRequest = {
   officialNo: string; decisionTypeCode: string; parentDecisionId: number | null; letterId: number | null; scopeText: string
@@ -87,7 +98,24 @@ export const scrApi = {
   saveDecision: (id: number | null, r: ScrDecisionRequest) =>
     id ? http.put<ScrDecision>(`${API}/decisions/${id}`, r) : http.post<ScrDecision>(`${API}/decisions`, r),
   submit: (id: number) => http.post<ScrDecision>(`${API}/decisions/${id}/submit`),
+  /** Starts the decision's approval workflow (Run in Decisions awaiting approval). */
+  run: (id: number) => http.post<ScrDecision>(`${API}/decisions/${id}/run`),
   cancel: (id: number) => http.post<ScrDecision>(`${API}/decisions/${id}/cancel`),
+
+  /** Every step of a decision with its documents; completed steps are view-only. */
+  steps: (id: number) => http.get<ScrStepView[]>(`${API}/decisions/${id}/steps`),
+  /** Completes the user's task on the decision with its comment (one transaction with the step's comment). */
+  completeStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null) =>
+    http.post<ScrDecision>(`${API}/decisions/${id}/steps/${inboxId}/complete`, { action, comment }),
+  /** Adds a file at data entry (inboxId null) or at the workflow step of the user's task. */
+  addDocument: (id: number, inboxId: number | null, file: File, title: string) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('title', title)
+    return http.upload<ScrDocument>(inboxId ? `${API}/decisions/${id}/steps/${inboxId}/documents` : `${API}/decisions/${id}/documents`, form)
+  },
+  removeDocument: (documentId: number) => http.post<void>(`${API}/decisions/documents/${documentId}/remove`),
+  documentFile: (documentId: number) => http.blob(`${API}/decisions/documents/${documentId}`),
 
   registry: () => http.get<ScrRegistry>(`${API}/registry`),
 
@@ -120,7 +148,7 @@ export const LABELS: Record<string, string> = {
   NO_MATCH: 'No match', POSSIBLE_MATCH: 'Possible match', MATCH: 'Match', PREVIOUSLY_LISTED: 'Previously listed',
   ID_AND_NAME: 'Identity and name', ID_ONLY: 'Identity only (name differs)', NAME_ONLY: 'Name only (identity differs)',
   ONBOARDING: 'Customer onboarding', TRANSACTION: 'Transaction', PERIODIC_REVIEW: 'Periodic review',
-  SCR_COMPANY_USER: 'Company user', SCR_COMPANY_ADMIN: 'Company administrator'
+  MEMBER_COMPANY_USER: 'Company user', MEMBER_COMPANY_ADMIN: 'Company administrator'
 }
 
 export const CHIP: Record<string, string> = {

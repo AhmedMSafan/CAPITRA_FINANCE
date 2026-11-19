@@ -1,6 +1,7 @@
 <template>
   <!--
-    One decision: entered and changed while DRAFT or RETURNED, then submitted to the SCR_DECISION_APPROVAL workflow.
+    One decision: entered and changed while DRAFT or RETURNED. Saved decisions wait in Decisions awaiting approval, where Run starts
+    their SCR_DECISION_APPROVAL workflow.
     Opened from the inbox (?inboxId=), it is the page of the step: the reviewer accepts or returns, the publisher approves
     and publishes or returns. Reviewer and approver are never the person who entered the decision (checked by the server).
   -->
@@ -20,13 +21,14 @@
               <span dir="ltr">{{ decision ? decision.decisionRef : tr('New decision') }}</span>
               <span v-if="decision" class="fx-chip" :class="CHIP[decision.statusCode]">{{ tr(LABELS[decision.statusCode] ?? decision.statusCode) }}</span>
             </h1>
-            <p>{{ decision ? `${tr(LABELS[decision.decisionTypeCode] ?? decision.decisionTypeCode)} · ${decision.officialNo}` : tr('Enter a decision from a letter, then submit it for review.') }}</p>
+            <p>{{ decision ? `${tr(LABELS[decision.decisionTypeCode] ?? decision.decisionTypeCode)} · ${decision.officialNo}` : tr('Enter a decision from a letter; then run its approval workflow from Decisions awaiting approval.') }}</p>
           </div>
         </div>
       </div>
       <div class="fx-actions">
-        <button v-if="task" type="button" class="fx-btn" @click="router.push({ name: 'workflow-inbox' })"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Task') }}</button>
-        <RouterLink v-else :to="{ name: 'scr-decisions' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Decisions') }}</RouterLink>
+        <button v-if="task && !viewOnly" type="button" class="fx-btn" @click="router.push({ name: 'workflow-inbox' })"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Task') }}</button>
+        <button v-else-if="viewOnly" type="button" class="fx-btn" @click="router.back()"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back') }}</button>
+        <RouterLink v-else :to="{ name: 'scr-approvals' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Awaiting approval') }}</RouterLink>
       </div>
     </div>
 
@@ -39,6 +41,9 @@
         </li>
       </ol>
     </section>
+
+    <div v-if="viewOnly" class="fc-note fc-step-card"><span class="fa fa-eye" aria-hidden="true"></span>
+      <span>{{ tr('View only: a completed step, with what was decided and its documents. Nothing can be changed here.') }}</span></div>
 
     <div v-if="decision?.statusCode === 'RETURNED' && decision.returnReason" class="fc-note fc-note--warn fc-step-card">
       <span class="fa fa-undo" aria-hidden="true"></span><span><b>{{ tr('Returned') }}:</b> {{ decision.returnReason }}</span>
@@ -119,6 +124,10 @@
       <div v-if="!chosen.length" class="fx-empty"><span class="fa fa-users" aria-hidden="true"></span>{{ tr('No parties yet.') }}</div>
     </section>
 
+    <!-- every step, completed ones view-only, with its documents -->
+    <ScrDecisionSteps v-if="decision" :decision-id="decision.decisionId" :data-entry-open="editable" :inbox-id="taskOpen && !viewOnly ? task!.inboxId : null"
+                      :task-step-code="task?.stepCode ?? null" :read-only="viewOnly" :focus-step="focusStep" :version="version" />
+
     <!-- who did what -->
     <section v-if="decision" class="fx-card fc-step-card">
       <header class="fc-sec-head">
@@ -137,16 +146,15 @@
     <section v-if="editable" class="fx-card fc-step-card">
       <div class="fc-form-actions" style="padding-top:16px">
         <div class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-          <span>{{ decision ? tr('Submitting sends the decision to the reviewers\' inbox.') : tr('Save first; then submit it for review.') }}</span></div>
+          <span>{{ tr('After saving, the decision waits in Decisions awaiting approval until its workflow is run.') }}</span></div>
         <button v-if="decision" type="button" class="fx-btn fc-btn-reject" :disabled="busy" @click="cancelDecision"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel decision') }}</button>
-        <button type="button" class="fx-btn" :disabled="busy" @click="save"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save') }}</button>
-        <button v-if="decision" type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="submit"><span class="fa fa-paper-plane" aria-hidden="true"></span>{{ tr('Submit for review') }}</button>
+        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="save"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save') }}</button>
       </div>
     </section>
 
     <!-- the workflow step -->
-    <section v-if="task" class="fx-card fc-complete">
-      <label class="fc-field"><span>{{ tr('Comment') }}</span>
+    <section v-if="task && !viewOnly && task.status !== 'COMPLETED'" class="fx-card fc-complete">
+      <label class="fc-field"><span>{{ tr('Comment') }} <small class="scr-hint">{{ tr('(required to return)') }}</small></span>
         <textarea v-model="comment" class="fx-search fc-textarea" :placeholder="task.stepCode === 'SCR_REVIEW'
           ? tr('Check the decision against its letter and parties. Accept sends it for approval; Return sends it back to data entry.')
           : tr('Approving publishes the decision to the Federation Final List as the next version. Return sends it back to data entry.')"></textarea>
@@ -172,6 +180,7 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import { workflowService } from '@/modules/wfe/services/workflowService'
+import ScrDecisionSteps from '../components/ScrDecisionSteps.vue'
 import type { WorkflowInboxTask } from '@/modules/wfe/models/workflow'
 import { CHIP, LABELS, errorText, fieldErrors, scrApi, type ScrDecision, type ScrDecisionRequest, type ScrLetter, type ScrParty } from '../api/scr.api'
 
@@ -179,6 +188,10 @@ const props = defineProps<{ decisionId?: number }>()
 const route = useRoute()
 const router = useRouter()
 const canEdit = hasPermission('SCR.DECISION.EDIT')
+/** Opened from a completed step in a list (?view=1&step=CODE): everything view-only, that step highlighted. */
+const viewOnly = computed(() => route.query.view === '1')
+const focusStep = computed(() => (typeof route.query.step === 'string' ? route.query.step : null))
+const version = ref(0)
 
 const decision = ref<ScrDecision | null>(null)
 const letters = ref<ScrLetter[]>([])
@@ -205,7 +218,7 @@ const stepIndex = computed(() => {
   if (s === 'RETURNED' || s === 'CANCELLED') return 0
   return Math.max(0, steps.value.findIndex((x) => x.code === s))
 })
-const editable = computed(() => canEdit && !task.value && (!decision.value || ['DRAFT', 'RETURNED'].includes(decision.value.statusCode)))
+const editable = computed(() => canEdit && !task.value && !viewOnly.value && (!decision.value || ['DRAFT', 'RETURNED'].includes(decision.value.statusCode)))
 const taskOpen = computed(() => task.value?.status === 'IN_PROGRESS' || task.value?.status === 'CLAIMED')
 const allParties = computed(() => {
   const byId = new Map<number, ScrParty>()
@@ -222,6 +235,7 @@ const pickable = computed(() => {
 
 function fill(d: ScrDecision) {
   decision.value = d
+  version.value++
   Object.assign(form, {
     officialNo: d.officialNo, decisionTypeCode: d.decisionTypeCode, parentDecisionId: d.parentDecisionId, letterId: d.letterId,
     scopeText: d.scopeText, effectiveDate: d.effectiveDate, partyIds: d.parties.map((p) => p.partyId)
@@ -257,15 +271,8 @@ async function run(work: () => Promise<void>) {
 
 const save = () => run(async () => {
   const d = await scrApi.saveDecision(decision.value?.decisionId ?? null, { ...form })
-  showSuccess(`${tr('Decision saved')}: ${d.decisionRef}`)
-  if (!decision.value) await router.replace({ name: 'scr-decision', params: { decisionId: d.decisionId } })
-  fill(d)
-})
-
-const submit = () => run(async () => {
-  const saved = await scrApi.saveDecision(decision.value!.decisionId, { ...form })
-  fill(await scrApi.submit(saved.decisionId))
-  showSuccess(tr('Sent for review. The reviewers have it in their inbox.'))
+  showSuccess(`${tr('Decision saved')}: ${d.decisionRef}. ${tr('It is waiting in Decisions awaiting approval.')}`)
+  await router.push({ name: 'scr-approvals' })
 })
 
 const cancelDecision = () => run(async () => {
@@ -274,7 +281,12 @@ const cancelDecision = () => run(async () => {
 })
 
 const complete = (action: 'ACCEPT' | 'REJECT') => run(async () => {
-  await workflowService.complete(task.value!.inboxId, { action, comment: comment.value || null })
+  if (action === 'REJECT' && !comment.value.trim()) {
+    errors.value = { comment: tr('Write why the decision is returned.') }
+    showError(tr('Write why the decision is returned.'))
+    return
+  }
+  await scrApi.completeStep(decision.value!.decisionId, task.value!.inboxId, action, comment.value.trim() || null)
   showSuccess(action === 'REJECT' ? tr('Returned to data entry.') : task.value!.stepCode === 'SCR_REVIEW' ? tr('Sent for approval.') : tr('Published to the Final List.'))
   await router.push({ name: 'workflow-inbox' })
 })

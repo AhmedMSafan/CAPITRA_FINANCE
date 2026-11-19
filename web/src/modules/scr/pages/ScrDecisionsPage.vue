@@ -55,7 +55,9 @@
                 <span v-if="d.parentDecisionRef" class="fx-cell-sub" dir="ltr">{{ d.parentDecisionRef }}</span></td>
               <td>{{ d.parties.map((p) => p.nameAr).join('، ') }}</td>
               <td>{{ formatDate(d.effectiveDate) }}</td>
-              <td><span class="fx-chip" :class="CHIP[d.statusCode]">{{ tr(LABELS[d.statusCode] ?? d.statusCode) }}</span></td>
+              <td><span class="fx-chip" :class="CHIP[d.statusCode]">{{ tr(LABELS[d.statusCode] ?? d.statusCode) }}</span>
+                <span v-if="d.workflowStepName" class="fx-cell-sub">{{ tr(d.workflowStepName) }}</span>
+                <ScrDoneSteps :decision-id="d.decisionId" :steps="d.completedSteps" /></td>
               <td>{{ d.enteredBy }}<span class="fx-cell-sub">{{ formatDate(d.createdAt) }}</span></td>
               <td>{{ d.registryVersionNo ? `V${d.registryVersionNo}` : '-' }}</td>
               <td class="fx-r"><RouterLink :to="open(d)" class="fx-btn fx-btn--teal fx-btn--sm"><span class="fa fa-folder-open-o" aria-hidden="true"></span>{{ tr('Open') }}</RouterLink></td>
@@ -78,6 +80,7 @@ import { computed, onMounted, ref } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
 import { formatDate } from '../utils/dates'
+import ScrDoneSteps from '../components/ScrDoneSteps.vue'
 import { tr } from '@/shared/layout/language'
 import { CHIP, LABELS, errorText, scrApi, type ScrDecision } from '../api/scr.api'
 

@@ -38529,6 +38529,107 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("SCR_DECISIONS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrDecisionDocument", b =>
+                {
+                    b.Property<long>("DocumentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DocumentId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DecisionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DECISION_ID");
+
+                    b.Property<string>("DocumentTitle")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("DOCUMENT_TITLE");
+
+                    b.Property<byte[]>("FileBlob")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("FILE_BLOB");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)")
+                        .HasColumnName("FILE_NAME");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FILE_SIZE_BYTES");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("MIME_TYPE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("Sha256Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("SHA256_HASH");
+
+                    b.Property<string>("StepCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STEP_CODE");
+
+                    b.Property<string>("StepName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STEP_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long?>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("DocumentId")
+                        .HasName("PK_SCR_DECISION_DOCUMENTS");
+
+                    b.HasIndex("DecisionId", "StepCode")
+                        .HasDatabaseName("IX_SCR_DECISION_DOCUMENTS_DECISION_ID_STEP_CODE");
+
+                    b.ToTable("SCR_DECISION_DOCUMENTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrDecisionParty", b =>
                 {
                     b.Property<long>("DecisionPartyId")
@@ -38581,6 +38682,97 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_SCR_DECISION_PARTIES_DECISION_ID_PARTY_ID");
 
                     b.ToTable("SCR_DECISION_PARTIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrDecisionStepNote", b =>
+                {
+                    b.Property<long>("StepNoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("STEP_NOTE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("StepNoteId"));
+
+                    b.Property<string>("ActionCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ACTION_CODE");
+
+                    b.Property<string>("CommentText")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("COMMENT_TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DecisionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DECISION_ID");
+
+                    b.Property<DateTime>("DoneAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DONE_AT");
+
+                    b.Property<string>("DoneBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("DONE_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StepCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STEP_CODE");
+
+                    b.Property<long>("StepInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("STEP_INSTANCE_ID");
+
+                    b.Property<string>("StepName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STEP_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("StepNoteId")
+                        .HasName("PK_SCR_DECISION_STEP_NOTES");
+
+                    b.HasIndex("DecisionId")
+                        .HasDatabaseName("IX_SCR_DECISION_STEP_NOTES_DECISION_ID");
+
+                    b.HasIndex("StepInstanceId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_SCR_DECISION_STEP_NOTES_STEP_INSTANCE_ID");
+
+                    b.ToTable("SCR_DECISION_STEP_NOTES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInquiry", b =>
@@ -47864,6 +48056,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_SCR_DECISIONS_SCR_DECISIONS");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrDecisionDocument", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrDecision", null)
+                        .WithMany()
+                        .HasForeignKey("DecisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_DECISION_DOCUMENTS_SCR_DECISIONS");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrDecisionParty", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Scr.ScrDecision", null)
@@ -47879,6 +48081,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_SCR_DECISION_PARTIES_SCR_PARTIES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrDecisionStepNote", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrDecision", null)
+                        .WithMany()
+                        .HasForeignKey("DecisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_DECISION_STEP_NOTES_SCR_DECISIONS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInquiry", b =>
