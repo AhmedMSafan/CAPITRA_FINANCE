@@ -2,64 +2,87 @@
   <!-- Screening Portal (member companies): screen a person or company, see the result, and the company's earlier inquiries. -->
   <div class="fx fc">
     <div class="fx-head">
-      <div>
-        <h1>{{ tr('Screening Portal') }}</h1>
-        <small v-if="company" class="scr-muted">{{ company.nameAr }} · {{ company.nameEn }}</small>
+      <div class="fc-title">
+        <span class="fc-title-ic" aria-hidden="true"><span class="fa fa-shield"></span></span>
+        <div>
+          <h1>{{ tr('Screening Portal') }}</h1>
+          <p>{{ tr('Screen a person or company against the Federation Final List. Every inquiry is recorded.') }}</p>
+        </div>
       </div>
-      <div class="fx-actions">
-        <button type="button" class="fx-btn" :class="{ 'fx-btn--teal': tab === 'new' }" @click="tab = 'new'">{{ tr('New inquiry') }}</button>
-        <button type="button" class="fx-btn" :class="{ 'fx-btn--teal': tab === 'mine' }" @click="openHistory">{{ tr('My inquiries') }}</button>
-        <button v-if="canUsers && company" type="button" class="fx-btn" :class="{ 'fx-btn--teal': tab === 'users' }" @click="tab = 'users'">{{ tr('Company users') }}</button>
+      <div v-if="company" class="fx-card fc-summary-customer">
+        <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-building-o"></span></span>
+        <div><b>{{ company.nameAr }}</b><small>{{ company.nameEn }} · {{ company.companyCode }}</small></div>
       </div>
     </div>
 
-    <template v-if="tab === 'new'">
-      <section class="fx-card">
-        <div class="scr-grid scr-grid--3">
-          <label class="scr-field"><span>{{ tr('Type') }} *</span>
-            <select v-model="form.subjectTypeCode" @change="typeChanged"><option value="PERSON">{{ tr('Person') }}</option><option value="COMPANY">{{ tr('Company') }}</option></select>
-          </label>
-          <label class="scr-field"><span>{{ tr('Full name') }} *</span><input v-model="form.subjectName"><small v-if="errors.subjectName" class="err">{{ errors.subjectName }}</small></label>
-          <label class="scr-field"><span>{{ tr('Identity type') }} *</span>
-            <select v-model="form.identityTypeCode"><option v-for="t in idTypes" :key="t" :value="t">{{ tr(LABELS[t] ?? t) }}</option></select>
-            <small v-if="errors.identityTypeCode" class="err">{{ errors.identityTypeCode }}</small>
-          </label>
-          <label class="scr-field"><span>{{ tr('Identity number') }} *</span><input v-model="form.identityNo" dir="ltr"><small v-if="errors.identityNo" class="err">{{ errors.identityNo }}</small></label>
-          <label v-if="form.subjectTypeCode === 'PERSON'" class="scr-field"><span>{{ tr('Birth date') }}</span><input v-model="form.birthDate" type="date"></label>
-          <label class="scr-field"><span>{{ tr('Nationality') }}</span><input v-model="form.nationalityCode" dir="ltr" maxlength="2"><small v-if="errors.nationalityCode" class="err">{{ errors.nationalityCode }}</small></label>
-          <label class="scr-field"><span>{{ tr('Purpose') }} *</span>
-            <select v-model="form.purposeCode"><option v-for="p in ['ONBOARDING', 'TRANSACTION', 'PERIODIC_REVIEW', 'OTHER']" :key="p" :value="p">{{ tr(LABELS[p] ?? p) }}</option></select>
-          </label>
-          <label v-if="form.purposeCode === 'OTHER'" class="scr-field"><span>{{ tr('Describe the purpose') }} *</span><input v-model="form.purposeText"><small v-if="errors.purposeText" class="err">{{ errors.purposeText }}</small></label>
-          <label class="scr-field"><span>{{ tr('Case reference') }}</span><input v-model="form.caseReference" dir="ltr"></label>
-        </div>
-        <div class="scr-actions">
-          <button type="button" class="fx-btn" @click="clear">{{ tr('Clear') }}</button>
-          <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="screen"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('Screen') }}</button>
-        </div>
-      </section>
-      <ScrInquiryResult v-if="result" :inquiry="result" />
-    </template>
+    <div class="fx-card">
+      <div class="fc-tabs" role="tablist">
+        <button type="button" class="fc-tab" role="tab" :aria-selected="tab === 'new'" @click="tab = 'new'"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('New inquiry') }}</button>
+        <button type="button" class="fc-tab" role="tab" :aria-selected="tab === 'mine'" @click="openHistory"><span class="fa fa-history" aria-hidden="true"></span>{{ tr('My inquiries') }}<em v-if="history.length">{{ history.length }}</em></button>
+        <button v-if="canUsers && company" type="button" class="fc-tab" role="tab" :aria-selected="tab === 'users'" @click="tab = 'users'"><span class="fa fa-users" aria-hidden="true"></span>{{ tr('Company users') }}</button>
+      </div>
 
-    <section v-else-if="tab === 'mine'" class="fx-card">
-      <table class="fx-table">
-        <thead><tr><th>{{ tr('Inquiry') }}</th><th>{{ tr('Name') }}</th><th>{{ tr('Identity number') }}</th><th>{{ tr('Purpose') }}</th><th>{{ tr('Result') }}</th><th>{{ tr('Date') }}</th><th>{{ tr('By') }}</th></tr></thead>
-        <tbody>
-          <tr v-for="i in history" :key="i.inquiryId" class="scr-row" @click="result = i; tab = 'new'">
-            <td dir="ltr">{{ i.inquiryRef }}</td>
-            <td>{{ i.subjectName }}</td>
-            <td dir="ltr">{{ i.identityNo }}</td>
-            <td>{{ tr(LABELS[i.purposeCode] ?? i.purposeCode) }}</td>
-            <td><span class="fx-chip" :class="CHIP[i.resultCode]">{{ tr(LABELS[i.resultCode] ?? i.resultCode) }}</span></td>
-            <td>{{ formatDateTime(i.screenedAt) }}</td>
-            <td>{{ i.requestedBy }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-if="!history.length" class="fx-empty">{{ tr('No inquiries yet.') }}</div>
-    </section>
+      <template v-if="tab === 'new'">
+        <div class="fc-grid fc-grid--3">
+          <label class="fc-field"><span>{{ tr('Type') }} <b>*</b></span>
+            <select v-model="form.subjectTypeCode" class="fx-select" @change="typeChanged"><option value="PERSON">{{ tr('Person') }}</option><option value="COMPANY">{{ tr('Company') }}</option></select>
+          </label>
+          <label class="fc-field fc-span2"><span>{{ tr('Full name') }} <b>*</b></span><input v-model="form.subjectName" class="fx-search" :placeholder="tr('As on the identity document, Arabic or English')">
+            <small v-if="errors.subjectName" class="scr-err">{{ errors.subjectName }}</small></label>
+          <label class="fc-field"><span>{{ tr('Identity type') }} <b>*</b></span>
+            <select v-model="form.identityTypeCode" class="fx-select"><option v-for="t in idTypes" :key="t" :value="t">{{ tr(LABELS[t] ?? t) }}</option></select>
+            <small v-if="errors.identityTypeCode" class="scr-err">{{ errors.identityTypeCode }}</small></label>
+          <label class="fc-field"><span>{{ tr('Identity number') }} <b>*</b></span><input v-model="form.identityNo" class="fx-search" dir="ltr">
+            <small v-if="errors.identityNo" class="scr-err">{{ errors.identityNo }}</small></label>
+          <label class="fc-field"><span>{{ tr('Nationality') }}</span><input v-model="form.nationalityCode" class="fx-search" dir="ltr" maxlength="2" placeholder="EG">
+            <small v-if="errors.nationalityCode" class="scr-err">{{ errors.nationalityCode }}</small></label>
+          <label v-if="form.subjectTypeCode === 'PERSON'" class="fc-field"><span>{{ tr('Birth date') }}</span><input v-model="form.birthDate" class="fx-search" type="date"></label>
+          <label class="fc-field"><span>{{ tr('Purpose') }} <b>*</b></span>
+            <select v-model="form.purposeCode" class="fx-select"><option v-for="p in ['ONBOARDING', 'TRANSACTION', 'PERIODIC_REVIEW', 'OTHER']" :key="p" :value="p">{{ tr(LABELS[p] ?? p) }}</option></select>
+          </label>
+          <label v-if="form.purposeCode === 'OTHER'" class="fc-field"><span>{{ tr('Describe the purpose') }} <b>*</b></span><input v-model="form.purposeText" class="fx-search">
+            <small v-if="errors.purposeText" class="scr-err">{{ errors.purposeText }}</small></label>
+          <label class="fc-field"><span>{{ tr('Case reference') }}</span><input v-model="form.caseReference" class="fx-search" dir="ltr"></label>
+        </div>
+        <div class="fc-form-actions">
+          <div class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+            <span>{{ tr('The name is matched in Arabic and English, including other names; the identity number exactly.') }}</span></div>
+          <button type="button" class="fx-btn" @click="clear"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
+          <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="screen">
+            <span :class="['fa', busy ? 'fa-spinner fa-spin' : 'fa-search']" aria-hidden="true"></span>{{ tr('Screen') }}
+          </button>
+        </div>
+      </template>
 
-    <ScrCompanyUsers v-else-if="tab === 'users' && company" :company-id="company.memberCompanyId" />
+      <template v-else-if="tab === 'mine'">
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead>
+              <tr>
+                <th>{{ tr('Inquiry') }}</th><th>{{ tr('Name') }}</th><th>{{ tr('Identity number') }}</th><th>{{ tr('Purpose') }}</th>
+                <th>{{ tr('Result') }}</th><th>{{ tr('Date') }}</th><th>{{ tr('By') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="i in history" :key="i.inquiryId" :class="{ 'is-overdue': i.resultCode === 'MATCH' }">
+                <td dir="ltr"><b class="fc-ref">{{ i.inquiryRef }}</b></td>
+                <td>{{ i.subjectName }}<span class="fx-cell-sub">{{ tr(LABELS[i.subjectTypeCode] ?? i.subjectTypeCode) }}</span></td>
+                <td dir="ltr">{{ i.identityNo }}</td>
+                <td>{{ tr(LABELS[i.purposeCode] ?? i.purposeCode) }}</td>
+                <td><span class="fx-chip" :class="CHIP[i.resultCode]">{{ tr(LABELS[i.resultCode] ?? i.resultCode) }}</span></td>
+                <td>{{ formatDateTime(i.screenedAt) }}</td>
+                <td>{{ i.requestedBy }}</td>
+                <td class="fx-r"><button type="button" class="fx-btn fx-btn--sm" @click="result = i; tab = 'new'"><span class="fa fa-eye" aria-hidden="true"></span>{{ tr('View') }}</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-if="!history.length" class="fx-empty"><span class="fa fa-history" aria-hidden="true"></span>{{ tr('No inquiries yet.') }}</div>
+      </template>
+    </div>
+
+    <ScrInquiryResult v-if="tab === 'new' && result" :inquiry="result" />
+    <ScrCompanyUsers v-if="tab === 'users' && company" :company-id="company.memberCompanyId" :company-name="company.nameAr" />
   </div>
 </template>
 
@@ -71,7 +94,7 @@ import '../components/scr.css'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
-import { formatDateTime } from '@/shared/format/datetime'
+import { formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import ScrCompanyUsers from '../components/ScrCompanyUsers.vue'
 import ScrInquiryResult from '../components/ScrInquiryResult.vue'
@@ -107,6 +130,7 @@ async function screen() {
   errors.value = {}
   try {
     result.value = await scrApi.screen({ ...form })
+    history.value = [result.value, ...history.value.filter((i) => i.inquiryId !== result.value?.inquiryId)]
   } catch (err) {
     errors.value = fieldErrors(err)
     if (!Object.keys(errors.value).length) showError(errorText(err))
@@ -115,8 +139,7 @@ async function screen() {
   }
 }
 
-async function openHistory() {
-  tab.value = 'mine'
+async function loadHistory() {
   try {
     history.value = await scrApi.myInquiries()
   } catch (err) {
@@ -124,9 +147,15 @@ async function openHistory() {
   }
 }
 
+async function openHistory() {
+  tab.value = 'mine'
+  await loadHistory()
+}
+
 onMounted(async () => {
   try {
     company.value = await scrApi.myCompany()
+    await loadHistory()
   } catch (err) {
     showError(errorText(err))
   }
