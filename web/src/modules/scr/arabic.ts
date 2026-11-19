@@ -231,5 +231,16 @@ export const SCR_AR: Record<string, string> = {
   'View only: a completed step, with what was decided and its documents. Nothing can be changed here.': 'عرض فقط: خطوة مكتملة بما تقرر فيها ومستنداتها. لا يمكن تغيير شيء هنا.',
   '(required to return)': '(مطلوب عند الإعادة)',
   'Write why the decision is returned.': 'اكتب سبب إعادة القرار.',
-  'Open step': 'قيد التنفيذ'
+  'Open step': 'قيد التنفيذ',
+  'Enter a decision, then Run starts its approval workflow; the workflow step shows where each one is.': 'أدخل القرار، ثم يبدأ زر التشغيل سير عمل اعتماده؛ وتوضح خطوة سير العمل أين وصل كل قرار.',
+  'Effective': 'السريان',
+  'Press Run to start the workflow': 'اضغط تشغيل لبدء سير العمل',
+  'Legal officer': 'المسؤول القانوني',
+  'Risk officer': 'مسؤول المخاطر',
+  'Operations officer': 'مسؤول العمليات',
+  'On the Federation Final List': 'في القائمة النهائية للاتحاد',
+  'Enter decisions, run their approval workflow and follow each one\'s step.': 'أدخل القرارات وشغّل سير عمل اعتمادها وتابع خطوة كل قرار.',
+  'Enter a decision from a letter; then Run starts its approval workflow from the Decisions list.': 'أدخل القرار من الخطاب، ثم يبدأ سير عمل اعتماده بزر التشغيل من قائمة القرارات.',
+  'After saving, the decision waits in the Decisions list until its workflow is run.': 'بعد الحفظ، ينتظر القرار في قائمة القرارات حتى يتم تشغيل سير العمل.',
+  'Press Run in the Decisions list to start its workflow.': 'اضغط تشغيل في قائمة القرارات لبدء سير العمل.'
 }

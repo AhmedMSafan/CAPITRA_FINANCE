@@ -9,12 +9,6 @@
           <p>{{ tr('The Federation Final List: letters, decisions approved through the workflow, and member company screening.') }}</p>
         </div>
       </div>
-      <RouterLink to="/workflow/inbox" class="fc-inbox">
-        <span class="fc-inbox-ic" aria-hidden="true"><span class="fa fa-envelope-o"></span></span>
-        <span class="fc-inbox-copy"><b>{{ tr('Workflow Inbox') }}</b><small>{{ tr('Decisions waiting for your review or approval') }}</small></span>
-        <em>{{ registry?.pendingCount ?? 0 }}</em>
-        <span class="fa fa-arrow-right" aria-hidden="true"></span>
-      </RouterLink>
     </div>
 
     <div v-if="registry" class="fc-indicators scr-indicators">
@@ -22,8 +16,8 @@
         <small>{{ registry.publishedAt ? `${tr('Last published')} ${formatDateTime(registry.publishedAt)}` : tr('Nothing published yet') }}</small></div>
       <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ registry.activeCount }}</b><span>{{ tr('Active entries') }}</span>
         <small>{{ registry.suspendedCount }} {{ tr('suspended') }} · {{ registry.liftedCount }} {{ tr('lifted') }}</small></div>
-      <div class="fx-card fc-indicator"><b>{{ registry.pendingCount }}</b><span>{{ tr('Decisions in the workflow') }}</span>
-        <small>{{ tr('In review or awaiting approval') }}</small></div>
+      <RouterLink :to="{ name: 'scr-decisions', query: { view: 'STARTED' } }" class="fx-card fc-indicator scr-indicator-link"><b>{{ registry.pendingCount }}</b><span>{{ tr('Decisions in the workflow') }}</span>
+        <small>{{ tr('In review or awaiting approval') }}</small></RouterLink>
     </div>
 
     <div class="fc-quick fc-quick--3">
@@ -50,8 +44,7 @@ import { errorText, scrApi, type ScrRegistry } from '../api/scr.api'
 
 const ALL = [
   { name: 'scr-registry', icon: 'fa-list-alt', title: 'Federation Final List', descr: 'Every listed person and company, active, suspended and lifted.', perm: 'SCR.DECISION.VIEW', orange: true },
-  { name: 'scr-approvals', icon: 'fa-hourglass-half', title: 'Decisions awaiting approval', descr: 'Run the approval workflow and follow each decision\'s step.', perm: 'SCR.DECISION.VIEW', orange: true },
-  { name: 'scr-decisions', icon: 'fa-gavel', title: 'Decisions', descr: 'Enter decisions from letters and send them through review and approval.', perm: 'SCR.DECISION.VIEW', orange: false },
+  { name: 'scr-decisions', icon: 'fa-gavel', title: 'Decisions', descr: 'Enter decisions, run their approval workflow and follow each one\'s step.', perm: 'SCR.DECISION.VIEW', orange: false },
   { name: 'scr-letters', icon: 'fa-envelope-o', title: 'Incoming letters', descr: 'Register letters and attach their scans.', perm: 'SCR.DECISION.VIEW', orange: false },
   { name: 'scr-parties', icon: 'fa-users', title: 'Parties', descr: 'The people and companies decisions are about, with their other names.', perm: 'SCR.DECISION.VIEW', orange: false },
   { name: 'scr-companies', icon: 'fa-building-o', title: 'Member companies', descr: 'Member companies and their user accounts.', perm: 'SCR.COMPANY.ADMIN', orange: false },

@@ -23,6 +23,7 @@ export type ScrDecision = {
   parties: ScrParty[]; createdAt: string
   workflowStepName?: string | null
   completedSteps?: ScrCompletedStep[] | null
+  workflowStepHolder?: string | null
 }
 export type ScrCompletedStep = { key: string; stepCode: string; stepName: string; action: string | null; doneBy: string | null; doneAt: string | null }
 export type ScrDocument = {

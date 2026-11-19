@@ -309,11 +309,15 @@ public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUs
             d.ScopeText, d.EffectiveDate, d.StatusCode, d.ReturnReason, d.WorkflowInstanceId, d.EnteredBy, d.ReviewedBy, d.ReviewedAt, d.ApprovedBy,
             d.PublishedAt, d.RegistryVersionNo,
             [.. d.Parties.Select(p => parties.TryGetValue(p.PartyId, out var x) ? ToDto(x) : null).OfType<ScrPartyDto>()], d.CreatedAt,
-            d.WorkflowInstanceId is { } wid && steps.TryGetValue(wid, out var step) ? step : null, completed.GetValueOrDefault(d.DecisionId)))];
+            d.WorkflowInstanceId is { } wid && steps.TryGetValue(wid, out var step) ? step.Name : null, completed.GetValueOrDefault(d.DecisionId),
+            d.WorkflowInstanceId is { } hid && steps.TryGetValue(hid, out var held) ? held.Holder : null))];
     }
 
-    /// <summary>Per workflow instance, the name of its newest step that is not completed yet (as in Factoring).</summary>
-    private async Task<Dictionary<long, string?>> CurrentStepsAsync(IEnumerable<long> instanceIds, CancellationToken ct)
+    /// <summary>
+    /// Per workflow instance, its newest step not completed yet (as in Factoring) and who holds it: the user who took the task, else
+    /// the user or role it is assigned to.
+    /// </summary>
+    private async Task<Dictionary<long, (string? Name, string? Holder)>> CurrentStepsAsync(IEnumerable<long> instanceIds, CancellationToken ct)
     {
         var ids = instanceIds.Where(x => x > 0).Distinct().ToList();
         if (ids.Count == 0)
@@ -322,7 +326,15 @@ public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUs
             .Where(x => ids.Contains(x.WorkflowInstanceId) && x.StepStatus != WfeRuntime.Completed && x.ElementType != "startEvent")
             .Select(x => new { x.WorkflowInstanceId, x.StepInstanceId, x.StepName })
             .ToListAsync(ct);
-        return open.GroupBy(x => x.WorkflowInstanceId).ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.StepInstanceId).First().StepName);
+        var holders = await db.Set<WfeInboxItem>().AsNoTracking()
+            .Where(x => ids.Contains(x.WorkflowInstanceId) && x.InboxStatus != WfeRuntime.Completed && x.InboxStatus != WfeRuntime.Cancelled)
+            .Select(x => new { x.StepInstanceId, Holder = x.ClaimedBy ?? x.AssignedTo ?? x.AssignedRole })
+            .ToListAsync(ct);
+        return open.GroupBy(x => x.WorkflowInstanceId).ToDictionary(g => g.Key, g =>
+        {
+            var step = g.OrderByDescending(x => x.StepInstanceId).First();
+            return (step.StepName, holders.FirstOrDefault(h => h.StepInstanceId == step.StepInstanceId)?.Holder);
+        });
     }
 
     // ---------------------------------------------------------------- the Final List
