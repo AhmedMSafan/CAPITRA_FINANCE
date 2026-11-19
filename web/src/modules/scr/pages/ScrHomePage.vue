@@ -50,6 +50,7 @@ import { errorText, scrApi, type ScrRegistry } from '../api/scr.api'
 
 const ALL = [
   { name: 'scr-registry', icon: 'fa-list-alt', title: 'Federation Final List', descr: 'Every listed person and company, active, suspended and lifted.', perm: 'SCR.DECISION.VIEW', orange: true },
+  { name: 'scr-approvals', icon: 'fa-hourglass-half', title: 'Decisions awaiting approval', descr: 'Run the approval workflow and follow each decision\'s step.', perm: 'SCR.DECISION.VIEW', orange: true },
   { name: 'scr-decisions', icon: 'fa-gavel', title: 'Decisions', descr: 'Enter decisions from letters and send them through review and approval.', perm: 'SCR.DECISION.VIEW', orange: false },
   { name: 'scr-letters', icon: 'fa-envelope-o', title: 'Incoming letters', descr: 'Register letters and attach their scans.', perm: 'SCR.DECISION.VIEW', orange: false },
   { name: 'scr-parties', icon: 'fa-users', title: 'Parties', descr: 'The people and companies decisions are about, with their other names.', perm: 'SCR.DECISION.VIEW', orange: false },

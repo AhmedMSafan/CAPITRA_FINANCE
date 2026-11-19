@@ -8,6 +8,7 @@ export const scrRoutes: RouteRecordRaw[] = [
   { path: 'screening', name: 'scr-home', component: () => import('./pages/ScrHomePage.vue'), meta: meta('Screening') },
   { path: 'screening/letters', name: 'scr-letters', component: () => import('./pages/ScrLettersPage.vue'), meta: meta('Letters') },
   { path: 'screening/parties', name: 'scr-parties', component: () => import('./pages/ScrPartiesPage.vue'), meta: meta('Parties') },
+  { path: 'screening/approvals', name: 'scr-approvals', component: () => import('./pages/ScrApprovalsPage.vue'), meta: meta('Decisions awaiting approval') },
   { path: 'screening/decisions', name: 'scr-decisions', component: () => import('./pages/ScrDecisionsPage.vue'), meta: meta('Decisions') },
   { path: 'screening/decisions/new', name: 'scr-decision-new', component: () => import('./pages/ScrDecisionPage.vue'), meta: meta('New decision') },
   // also the page of the workflow steps SCR_REVIEW and SCR_APPROVAL (opened from the inbox with ?inboxId=)

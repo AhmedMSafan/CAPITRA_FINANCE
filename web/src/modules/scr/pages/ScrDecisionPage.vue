@@ -1,6 +1,7 @@
 <template>
   <!--
-    One decision: entered and changed while DRAFT or RETURNED, then submitted to the SCR_DECISION_APPROVAL workflow.
+    One decision: entered and changed while DRAFT or RETURNED. Saved decisions wait in Decisions awaiting approval, where Run starts
+    their SCR_DECISION_APPROVAL workflow.
     Opened from the inbox (?inboxId=), it is the page of the step: the reviewer accepts or returns, the publisher approves
     and publishes or returns. Reviewer and approver are never the person who entered the decision (checked by the server).
   -->
@@ -20,7 +21,7 @@
               <span dir="ltr">{{ decision ? decision.decisionRef : tr('New decision') }}</span>
               <span v-if="decision" class="fx-chip" :class="CHIP[decision.statusCode]">{{ tr(LABELS[decision.statusCode] ?? decision.statusCode) }}</span>
             </h1>
-            <p>{{ decision ? `${tr(LABELS[decision.decisionTypeCode] ?? decision.decisionTypeCode)} · ${decision.officialNo}` : tr('Enter a decision from a letter, then submit it for review.') }}</p>
+            <p>{{ decision ? `${tr(LABELS[decision.decisionTypeCode] ?? decision.decisionTypeCode)} · ${decision.officialNo}` : tr('Enter a decision from a letter; then run its approval workflow from Decisions awaiting approval.') }}</p>
           </div>
         </div>
       </div>
@@ -137,10 +138,9 @@
     <section v-if="editable" class="fx-card fc-step-card">
       <div class="fc-form-actions" style="padding-top:16px">
         <div class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-          <span>{{ decision ? tr('Submitting sends the decision to the reviewers\' inbox.') : tr('Save first; then submit it for review.') }}</span></div>
+          <span>{{ tr('After saving, the decision waits in Decisions awaiting approval until its workflow is run.') }}</span></div>
         <button v-if="decision" type="button" class="fx-btn fc-btn-reject" :disabled="busy" @click="cancelDecision"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel decision') }}</button>
-        <button type="button" class="fx-btn" :disabled="busy" @click="save"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save') }}</button>
-        <button v-if="decision" type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="submit"><span class="fa fa-paper-plane" aria-hidden="true"></span>{{ tr('Submit for review') }}</button>
+        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="save"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save') }}</button>
       </div>
     </section>
 
@@ -257,15 +257,8 @@ async function run(work: () => Promise<void>) {
 
 const save = () => run(async () => {
   const d = await scrApi.saveDecision(decision.value?.decisionId ?? null, { ...form })
-  showSuccess(`${tr('Decision saved')}: ${d.decisionRef}`)
-  if (!decision.value) await router.replace({ name: 'scr-decision', params: { decisionId: d.decisionId } })
-  fill(d)
-})
-
-const submit = () => run(async () => {
-  const saved = await scrApi.saveDecision(decision.value!.decisionId, { ...form })
-  fill(await scrApi.submit(saved.decisionId))
-  showSuccess(tr('Sent for review. The reviewers have it in their inbox.'))
+  showSuccess(`${tr('Decision saved')}: ${d.decisionRef}. ${tr('It is waiting in Decisions awaiting approval.')}`)
+  await router.push({ name: 'scr-approvals' })
 })
 
 const cancelDecision = () => run(async () => {

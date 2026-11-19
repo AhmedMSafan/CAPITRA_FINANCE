@@ -18,7 +18,7 @@
           <tr v-for="u in users" :key="u.userId">
             <td dir="ltr"><b>{{ u.userName }}</b></td>
             <td>{{ u.fullName || '-' }}<span v-if="u.email" class="fx-cell-sub" dir="ltr">{{ u.email }}</span></td>
-            <td><span class="fx-chip fx-chip--plain" :class="u.roleCode === 'SCR_COMPANY_ADMIN' ? 'fx-chip--brand' : ''">{{ tr(LABELS[u.roleCode] ?? u.roleCode) }}</span></td>
+            <td><span class="fx-chip fx-chip--plain" :class="u.roleCode === 'MEMBER_COMPANY_ADMIN' ? 'fx-chip--brand' : ''">{{ tr(LABELS[u.roleCode] ?? u.roleCode) }}</span></td>
             <td><span class="fx-chip" :class="u.isActive ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(u.isActive ? 'Active' : 'Inactive') }}</span></td>
             <td>{{ u.lastLoginAt ? formatDateTime(u.lastLoginAt) : '-' }}</td>
             <td class="fx-r">
@@ -39,7 +39,7 @@
         <label class="fc-field"><span>{{ tr('Full name') }}</span><input v-model="form.fullName" class="fx-search"></label>
         <label class="fc-field"><span>{{ tr('Email') }}</span><input v-model="form.email" class="fx-search" type="email" dir="ltr"></label>
         <label class="fc-field"><span>{{ tr('Role') }}</span>
-          <select v-model="form.roleCode" class="fx-select"><option v-for="r in ['SCR_COMPANY_USER', 'SCR_COMPANY_ADMIN']" :key="r" :value="r">{{ tr(LABELS[r] ?? r) }}</option></select>
+          <select v-model="form.roleCode" class="fx-select"><option v-for="r in ['MEMBER_COMPANY_USER', 'MEMBER_COMPANY_ADMIN']" :key="r" :value="r">{{ tr(LABELS[r] ?? r) }}</option></select>
         </label>
         <label v-if="editId === null" class="fc-field"><span>{{ tr('First password') }} <b>*</b></span><input v-model="form.password" class="fx-search" type="password" autocomplete="new-password"></label>
         <label class="fc-check" style="align-self:end;padding-bottom:8px"><input v-model="form.isActive" type="checkbox"><span>{{ tr('Active') }}</span></label>
@@ -81,7 +81,7 @@ const errors = ref<Record<string, string>>({})
 const resetting = ref<ScrCompanyUser | null>(null)
 const newPassword = ref('')
 const resetError = ref('')
-const blank = (): ScrCompanyUserRequest => ({ userName: '', password: null, email: null, fullName: null, roleCode: 'SCR_COMPANY_USER', isActive: true })
+const blank = (): ScrCompanyUserRequest => ({ userName: '', password: null, email: null, fullName: null, roleCode: 'MEMBER_COMPANY_USER', isActive: true })
 const form = reactive<ScrCompanyUserRequest>(blank())
 
 async function load() {

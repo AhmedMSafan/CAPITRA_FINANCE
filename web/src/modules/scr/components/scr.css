@@ -32,3 +32,10 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-hit-head b { font-size: var(--fs-md); }
 .fc .scr-hit .fc-facts { padding: 12px 14px; }
 @media (max-width: 900px) { .fc .scr-who { grid-template-columns: 1fr; } }
+
+/* Decisions awaiting approval: indicators act as filters */
+.fc button.fc-indicator{font:inherit;color:inherit;text-align:start;cursor:pointer;transition:box-shadow .15s,transform .15s}
+.fc button.fc-indicator:hover{transform:translateY(-1px)}
+.fc .scr-kpi--on{box-shadow:0 0 0 2px var(--fin-teal-600)}
+.fc .scr-step{color:var(--fin-teal-700,#0f766e);font-weight:700}
+.fc .scr-reason{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

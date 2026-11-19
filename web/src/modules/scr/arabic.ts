@@ -202,5 +202,18 @@ export const SCR_AR: Record<string, string> = {
   'View': 'عرض',
   'active': 'ساري',
   'lifted': 'مرفوع',
-  'suspended': 'موقوف'
+  'suspended': 'موقوف',
+  'Decisions awaiting approval': 'القرارات بانتظار الاعتماد',
+  'Run a decision to start its approval workflow; the workflow step shows where each one is.': 'شغّل القرار لبدء سير عمل اعتماده؛ وتوضح خطوة سير العمل أين وصل كل قرار.',
+  'Workflow status': 'حالة سير العمل',
+  'Workflow started': 'بدأ سير العمل',
+  'Workflow not started': 'لم يبدأ سير العمل',
+  'Returned to data entry': 'أُعيد للإدخال',
+  'No decisions are awaiting approval.': 'لا توجد قرارات بانتظار الاعتماد.',
+  'Entered, waiting for Run': 'مُدخل، بانتظار التشغيل',
+  'Fix the decision, then run it again': 'صحّح القرار ثم شغّله مرة أخرى',
+  'Run the approval workflow and follow each decision\'s step.': 'شغّل سير عمل الاعتماد وتابع خطوة كل قرار.',
+  'Enter a decision from a letter; then run its approval workflow from Decisions awaiting approval.': 'أدخل القرار من الخطاب، ثم شغّل سير عمل اعتماده من القرارات بانتظار الاعتماد.',
+  'After saving, the decision waits in Decisions awaiting approval until its workflow is run.': 'بعد الحفظ، ينتظر القرار في القرارات بانتظار الاعتماد حتى يتم تشغيل سير العمل.',
+  'It is waiting in Decisions awaiting approval.': 'وهو الآن في القرارات بانتظار الاعتماد.'
 }

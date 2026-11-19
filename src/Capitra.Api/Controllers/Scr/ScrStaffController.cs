@@ -76,6 +76,10 @@ public sealed class ScrStaffController(ScrStaffService staff) : ControllerBase
     [HasPermission(Permissions.Scr.DecisionEdit)]
     public Task<ScrDecisionDto> Submit(long decisionId, CancellationToken ct) => staff.SubmitAsync(decisionId, ct);
 
+    [HttpPost("decisions/{decisionId:long}/run")]
+    [HasPermission(Permissions.Scr.DecisionEdit)]
+    public Task<ScrDecisionDto> Run(long decisionId, CancellationToken ct) => staff.SubmitAsync(decisionId, ct);
+
     [HttpPost("decisions/{decisionId:long}/cancel")]
     [HasPermission(Permissions.Scr.DecisionEdit)]
     public Task<ScrDecisionDto> Cancel(long decisionId, CancellationToken ct) => staff.CancelAsync(decisionId, ct);

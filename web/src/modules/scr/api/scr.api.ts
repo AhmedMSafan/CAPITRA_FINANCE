@@ -21,6 +21,7 @@ export type ScrDecision = {
   statusCode: string; returnReason: string | null; workflowInstanceId: number | null; enteredBy: string; reviewedBy: string | null
   reviewedAt: string | null; approvedBy: string | null; publishedAt: string | null; registryVersionNo: number | null
   parties: ScrParty[]; createdAt: string
+  workflowStepName?: string | null
 }
 export type ScrDecisionRequest = {
   officialNo: string; decisionTypeCode: string; parentDecisionId: number | null; letterId: number | null; scopeText: string
@@ -87,6 +88,8 @@ export const scrApi = {
   saveDecision: (id: number | null, r: ScrDecisionRequest) =>
     id ? http.put<ScrDecision>(`${API}/decisions/${id}`, r) : http.post<ScrDecision>(`${API}/decisions`, r),
   submit: (id: number) => http.post<ScrDecision>(`${API}/decisions/${id}/submit`),
+  /** Starts the decision's approval workflow (Run in Decisions awaiting approval). */
+  run: (id: number) => http.post<ScrDecision>(`${API}/decisions/${id}/run`),
   cancel: (id: number) => http.post<ScrDecision>(`${API}/decisions/${id}/cancel`),
 
   registry: () => http.get<ScrRegistry>(`${API}/registry`),
@@ -120,7 +123,7 @@ export const LABELS: Record<string, string> = {
   NO_MATCH: 'No match', POSSIBLE_MATCH: 'Possible match', MATCH: 'Match', PREVIOUSLY_LISTED: 'Previously listed',
   ID_AND_NAME: 'Identity and name', ID_ONLY: 'Identity only (name differs)', NAME_ONLY: 'Name only (identity differs)',
   ONBOARDING: 'Customer onboarding', TRANSACTION: 'Transaction', PERIODIC_REVIEW: 'Periodic review',
-  SCR_COMPANY_USER: 'Company user', SCR_COMPANY_ADMIN: 'Company administrator'
+  MEMBER_COMPANY_USER: 'Company user', MEMBER_COMPANY_ADMIN: 'Company administrator'
 }
 
 export const CHIP: Record<string, string> = {
