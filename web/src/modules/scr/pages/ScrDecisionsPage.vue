@@ -1,6 +1,6 @@
 <template>
   <!--
-    Decisions: the one list of every decision and its approval workflow. A saved decision shows "Workflow not started" with a Run
+    Decisions: the one list of every decision and its approval workflow; it opens on the signed-in user's own decisions. A saved decision shows "Workflow not started" with a Run
     button; Run starts its SCR_DECISION_APPROVAL workflow. From then on the Workflow step column shows the step it is at and who
     holds it, and each completed step opens the decision view-only on that step.
   -->
@@ -33,6 +33,13 @@
       <label class="fc-field"><span>{{ tr('Search') }}</span>
         <input v-model="search" class="fx-search" :placeholder="tr('Search by decision, official number or party')">
       </label>
+      <label class="fc-field"><span>{{ tr('User') }}</span>
+        <select v-model="who" class="fx-select">
+          <option :value="MINE">{{ tr('My work') }} ({{ me }})</option>
+          <option value="">{{ tr('All users') }}</option>
+          <option v-for="u in users" :key="u" :value="u">{{ u }}</option>
+        </select>
+      </label>
       <label class="fc-field"><span>{{ tr('Type') }}</span>
         <select v-model="type" class="fx-select">
           <option value="">{{ tr('All') }}</option>
@@ -50,7 +57,7 @@
 
     <div class="fx-card">
       <div class="fc-card-head scr-card-head">
-        <h2>{{ tr('Decisions') }} ({{ rows.length }})</h2>
+        <h2>{{ who === MINE ? tr('My decisions') : tr('Decisions') }} ({{ rows.length }})</h2>
         <button type="button" class="fx-btn fx-btn--sm" :disabled="loading" @click="load"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Refresh') }}</button>
       </div>
       <div class="fx-table-wrap">
@@ -80,7 +87,8 @@
               <td>
                 <template v-if="viewOf(d) === 'STARTED'">
                   <b class="scr-step">{{ d.workflowStepName ? tr(d.workflowStepName) : '-' }}</b>
-                  <span v-if="d.workflowStepHolder" class="fx-cell-sub"><span class="fa fa-user-o" aria-hidden="true"></span> {{ tr('With') }} {{ holder(d.workflowStepHolder) }}</span>
+                  <span v-if="d.workflowStepHolder && isMine(d.workflowStepHolder)" class="fx-chip fx-chip--warn scr-with-me"><span class="fa fa-hand-o-right" aria-hidden="true"></span>{{ tr('Waiting for you') }}</span>
+                  <span v-else-if="d.workflowStepHolder" class="fx-cell-sub"><span class="fa fa-user-o" aria-hidden="true"></span> {{ tr('With') }} {{ holder(d.workflowStepHolder) }}</span>
                 </template>
                 <span v-else-if="viewOf(d) === 'RETURNED' && d.returnReason" class="fx-cell-sub scr-reason" :title="d.returnReason">{{ d.returnReason }}</span>
                 <span v-else-if="viewOf(d) === 'NOT_STARTED'" class="fx-cell-sub">{{ tr('Press Run to start the workflow') }}</span>
@@ -101,7 +109,8 @@
         </table>
       </div>
       <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
-      <div v-else-if="!rows.length" class="fx-empty"><span class="fa fa-gavel" aria-hidden="true"></span>{{ tr('No decisions.') }}</div>
+      <div v-else-if="!rows.length" class="fx-empty"><span class="fa fa-gavel" aria-hidden="true"></span>
+        {{ who === MINE ? tr('No decisions of yours. Choose All users to see everyone\'s.') : tr('No decisions.') }}</div>
     </div>
   </div>
 </template>
@@ -113,7 +122,7 @@ import '@/modules/fct/pages/factoring.css'
 import '../components/scr.css'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { hasPermission } from '@/shared/auth/session'
+import { getUser, hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate } from '../utils/dates'
 import ScrDoneSteps from '../components/ScrDoneSteps.vue'
@@ -139,6 +148,27 @@ const busy = ref<number | null>(null)
 const search = ref('')
 const type = ref('')
 const view = ref<View>((typeof route.query.view === 'string' ? route.query.view : '') as View)
+/**
+ * Every page shows the signed-in user's own work first. A decision is someone's work when they entered it, did any of its steps
+ * (Run included), or its current step waits for them: taken by them, assigned to them, or to one of their roles.
+ */
+const MINE = '__mine__'
+const user = getUser()
+const me = user?.userName ?? ''
+const myRoles = new Set((user?.roles ?? []).map((r) => r.toUpperCase()))
+const who = ref<string>(typeof route.query.user === 'string' ? route.query.user : MINE)
+const isMine = (holder: string) => holder.toLowerCase() === me.toLowerCase() || myRoles.has(holder.toUpperCase())
+function involves(d: ScrDecision, name: string, mine: boolean): boolean {
+  const n = name.toLowerCase()
+  if ([d.enteredBy, d.reviewedBy, d.approvedBy].some((u) => u?.toLowerCase() === n)) return true
+  if ((d.completedSteps ?? []).some((s) => s.doneBy?.toLowerCase() === n)) return true
+  const h = d.workflowStepHolder
+  return !!h && (h.toLowerCase() === n || (mine && myRoles.has(h.toUpperCase())))
+}
+/** The users that appear on the decisions: who entered them and who did their steps. */
+const users = computed(() => [...new Set(decisions.value.flatMap((d) => [d.enteredBy, d.reviewedBy, d.approvedBy, ...(d.completedSteps ?? []).map((s) => s.doneBy)])
+  .filter((u): u is string => !!u && u.toLowerCase() !== me.toLowerCase()))].sort())
+const scoped = computed(() => decisions.value.filter((d) => !who.value || (who.value === MINE ? involves(d, me, true) : involves(d, who.value, false))))
 const open = (d: ScrDecision) => ({ name: 'scr-decision', params: { decisionId: d.decisionId } })
 const holder = (h: string) => tr(ROLES[h] ?? h)
 
@@ -152,11 +182,11 @@ function viewOf(d: ScrDecision): View {
     default: return 'NOT_STARTED'
   }
 }
-const count = (k: View) => decisions.value.filter((d) => viewOf(d) === k).length
+const count = (k: View) => scoped.value.filter((d) => viewOf(d) === k).length
 
 const rows = computed(() => {
   const q = search.value.trim().toLowerCase()
-  return decisions.value.filter((d) => (!view.value || viewOf(d) === view.value) && (!type.value || d.decisionTypeCode === type.value)
+  return scoped.value.filter((d) => (!view.value || viewOf(d) === view.value) && (!type.value || d.decisionTypeCode === type.value)
     && (!q || `${d.decisionRef} ${d.officialNo} ${d.parties.map((p) => `${p.nameAr} ${p.nameEn ?? ''} ${p.identityNo}`).join(' ')}`.toLowerCase().includes(q)))
 })
 
