@@ -14,7 +14,8 @@ namespace Capitra.Application.Modules.Scr;
 /// Federation Final List. A decision is entered as DRAFT and submitted to the CAPITRA workflow <see cref="WorkflowCode"/>; the
 /// workflow's review and approval steps (<see cref="ScrDecisionWorkflowHandler"/>) publish it.
 /// </summary>
-public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IScrUserProfiles profiles)
+public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IScrUserProfiles profiles,
+    ScrStepService stepService)
 {
     public const string WorkflowCode = "SCR_DECISION_APPROVAL";
     public const long MaxFileBytes = 20 * 1024 * 1024;
@@ -301,13 +302,14 @@ public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUs
         var letters = await db.Set<ScrLetter>().AsNoTracking().Where(l => letterIds.Contains(l.LetterId)).ToDictionaryAsync(l => l.LetterId, l => l.LetterNo, ct);
         var steps = await CurrentStepsAsync(list.Where(d => d.StatusCode is ScrDecisionStatus.InReview or ScrDecisionStatus.AwaitingApproval)
             .Select(d => d.WorkflowInstanceId).OfType<long>(), ct);
+        var completed = await stepService.CompletedStepsAsync(list, ct);
         return [.. list.Select(d => new ScrDecisionDto(
             d.DecisionId, d.DecisionRef, d.OfficialNo, d.DecisionTypeCode, d.ParentDecisionId,
             d.ParentDecisionId is { } pid ? parents.GetValueOrDefault(pid) : null, d.LetterId, d.LetterId is { } lid ? letters.GetValueOrDefault(lid) : null,
             d.ScopeText, d.EffectiveDate, d.StatusCode, d.ReturnReason, d.WorkflowInstanceId, d.EnteredBy, d.ReviewedBy, d.ReviewedAt, d.ApprovedBy,
             d.PublishedAt, d.RegistryVersionNo,
             [.. d.Parties.Select(p => parties.TryGetValue(p.PartyId, out var x) ? ToDto(x) : null).OfType<ScrPartyDto>()], d.CreatedAt,
-            d.WorkflowInstanceId is { } wid && steps.TryGetValue(wid, out var step) ? step : null))];
+            d.WorkflowInstanceId is { } wid && steps.TryGetValue(wid, out var step) ? step : null, completed.GetValueOrDefault(d.DecisionId)))];
     }
 
     /// <summary>Per workflow instance, the name of its newest step that is not completed yet (as in Factoring).</summary>

@@ -194,3 +194,42 @@ public sealed class ScrInquiryHitConfiguration : IEntityTypeConfiguration<ScrInq
         builder.ConfigureAudit();
     }
 }
+
+public sealed class ScrDecisionDocumentConfiguration : IEntityTypeConfiguration<ScrDecisionDocument>
+{
+    public void Configure(EntityTypeBuilder<ScrDecisionDocument> builder)
+    {
+        builder.ToTable("SCR_DECISION_DOCUMENTS");
+        builder.HasKey(x => x.DocumentId);
+        builder.HasIndex(x => new { x.DecisionId, x.StepCode });
+        builder.Property(x => x.DocumentId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.StepCode).HasMaxLength(50);
+        builder.Property(x => x.StepName).HasMaxLength(200);
+        builder.Property(x => x.DocumentTitle).HasMaxLength(300);
+        builder.Property(x => x.FileName).HasMaxLength(260);
+        builder.Property(x => x.MimeType).HasMaxLength(100);
+        builder.Property(x => x.Sha256Hash).HasMaxLength(64);
+        builder.Property(x => x.IsActive).HasDefaultValue(true);
+        builder.HasOne<ScrDecision>().WithMany().HasForeignKey(x => x.DecisionId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class ScrDecisionStepNoteConfiguration : IEntityTypeConfiguration<ScrDecisionStepNote>
+{
+    public void Configure(EntityTypeBuilder<ScrDecisionStepNote> builder)
+    {
+        builder.ToTable("SCR_DECISION_STEP_NOTES");
+        builder.HasKey(x => x.StepNoteId);
+        builder.HasIndex(x => x.DecisionId);
+        builder.HasIndex(x => x.StepInstanceId).IsUnique();
+        builder.Property(x => x.StepNoteId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.StepCode).HasMaxLength(50);
+        builder.Property(x => x.StepName).HasMaxLength(200);
+        builder.Property(x => x.ActionCode).HasMaxLength(20);
+        builder.Property(x => x.CommentText).HasMaxLength(2000);
+        builder.Property(x => x.DoneBy).HasMaxLength(256);
+        builder.HasOne<ScrDecision>().WithMany().HasForeignKey(x => x.DecisionId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
