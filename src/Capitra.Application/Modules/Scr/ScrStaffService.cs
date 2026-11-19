@@ -90,7 +90,7 @@ public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUs
     private static ScrLetterDto ToDto(ScrLetter l, int decisions) => new(
         l.LetterId, l.LetterNo, l.SenderReference, l.SenderName, l.ChannelCode, l.LetterDate, l.ReceivedAt, l.StatusCode, l.Notes,
         [.. l.Files.OrderBy(f => f.LetterFileId).Select(f => new ScrLetterFileDto(f.LetterFileId, f.FileName, f.MimeType, f.FileSizeBytes, f.Sha256Hash))],
-        decisions);
+        decisions, l.CreatedBy);
 
     // ---------------------------------------------------------------- parties
 
@@ -151,7 +151,7 @@ public sealed class ScrStaffService(ICapitraDbContext db, ICurrentUser currentUs
 
     private static ScrPartyDto ToDto(ScrParty p) => new(
         p.PartyId, p.PartyTypeCode, p.NameAr, p.NameEn, p.IdentityTypeCode, p.IdentityNo, p.NationalityCode, p.BirthDate, p.Notes,
-        [.. p.Aliases.Select(a => a.AliasName)]);
+        [.. p.Aliases.Select(a => a.AliasName)], p.CreatedBy);
 
     // ---------------------------------------------------------------- decisions
 

@@ -54,7 +54,7 @@ public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCount
     }
 
     private static ScrCompanyDto ToDto(ScrMemberCompany c, int users, int inquiries) =>
-        new(c.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, c.LicenceNo, c.ContactEmail, c.StatusCode, c.Notes, users, inquiries);
+        new(c.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, c.LicenceNo, c.ContactEmail, c.StatusCode, c.Notes, users, inquiries, c.CreatedBy);
 }
 
 /// <summary>How many user accounts each member company has (the identity tables live in Infrastructure).</summary>

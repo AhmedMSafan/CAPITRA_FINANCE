@@ -23,6 +23,7 @@
       <label class="fc-field"><span>{{ tr('Search') }}</span>
         <input v-model="search" class="fx-search" :placeholder="tr('Search by number, sender or reference')" @keyup.enter="load">
       </label>
+      <ScrUserFilter v-model="who" :me="me" :users="users" />
       <div class="fc-filter-actions">
         <button type="button" class="fx-btn fx-btn--teal" @click="load"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('Search') }}</button>
         <button type="button" class="fx-btn" @click="search = ''; load()"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
@@ -30,7 +31,7 @@
     </div>
 
     <div class="fx-card">
-      <div class="fc-card-head"><h2>{{ tr('Letters') }} ({{ letters.length }})</h2></div>
+      <div class="fc-card-head"><h2>{{ tr('Letters') }} ({{ scoped.length }})</h2></div>
       <div class="fx-table-wrap">
         <table class="fx-table">
           <thead>
@@ -40,12 +41,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(l, i) in letters" :key="l.letterId">
+            <tr v-for="(l, i) in scoped" :key="l.letterId">
               <td class="fc-no">{{ i + 1 }}</td>
               <td><b class="fc-ref" dir="ltr">{{ l.letterNo }}</b><span v-if="l.senderReference" class="fx-cell-sub" dir="ltr">{{ l.senderReference }}</span></td>
               <td>{{ l.senderName }}<span class="fx-cell-sub">{{ tr(LABELS[l.channelCode] ?? l.channelCode) }}</span></td>
               <td>{{ formatDate(l.letterDate) }}</td>
-              <td>{{ formatDateTime(l.receivedAt) }}</td>
+              <td>{{ formatDateTime(l.receivedAt) }}<span v-if="l.createdBy" class="fx-cell-sub"><span class="fa fa-user-o" aria-hidden="true"></span> {{ l.createdBy }}</span></td>
               <td><span class="fx-chip" :class="l.statusCode === 'RECEIVED' ? 'fx-chip--warn' : 'fx-chip--ok'">{{ tr(LABELS[l.statusCode] ?? l.statusCode) }}</span></td>
               <td>{{ l.decisionCount }}</td>
               <td>
@@ -63,7 +64,7 @@
         </table>
       </div>
       <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
-      <div v-else-if="!letters.length" class="fx-empty"><span class="fa fa-envelope-o" aria-hidden="true"></span>{{ tr('No letters yet.') }}</div>
+      <div v-else-if="!scoped.length" class="fx-empty"><span class="fa fa-envelope-o" aria-hidden="true"></span>{{ letters.length ? tr('Nothing here for the chosen user. Choose All users to see everything.') : tr('No letters yet.') }}</div>
     </div>
 
     <ScrDialog v-if="adding" :title="tr('New letter')" :subtitle="tr('Register an incoming letter; attach its scan from the list afterwards.')" icon="fa-envelope-o" @close="adding = false">
@@ -98,12 +99,16 @@ import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate, formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
+import { useUserFilter } from '../utils/userFilter'
+import ScrUserFilter from '../components/ScrUserFilter.vue'
 import ScrDialog from '../components/ScrDialog.vue'
 import ScrDocViewer from '../components/ScrDocViewer.vue'
 import { LABELS, errorText, fieldErrors, scrApi, type ScrLetter, type ScrLetterFile, type ScrLetterRequest } from '../api/scr.api'
 
 const canEdit = hasPermission('SCR.LETTER.EDIT')
 const letters = ref<ScrLetter[]>([])
+/** Entered by me by default (Admin: all users). */
+const { who, me, users, scoped } = useUserFilter(letters, (l) => l.createdBy)
 const loading = ref(false)
 const saving = ref(false)
 const adding = ref(false)

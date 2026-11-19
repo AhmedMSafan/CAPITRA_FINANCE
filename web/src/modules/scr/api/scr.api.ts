@@ -6,12 +6,14 @@ export type ScrLetterFile = { letterFileId: number; fileName: string; mimeType: 
 export type ScrLetter = {
   letterId: number; letterNo: string; senderReference: string | null; senderName: string; channelCode: string; letterDate: string
   receivedAt: string; statusCode: string; notes: string | null; files: ScrLetterFile[]; decisionCount: number
+  createdBy?: string | null
 }
 export type ScrLetterRequest = { senderReference: string | null; senderName: string; channelCode: string; letterDate: string | null; notes: string | null }
 
 export type ScrParty = {
   partyId: number; partyTypeCode: string; nameAr: string; nameEn: string | null; identityTypeCode: string; identityNo: string
   nationalityCode: string; birthDate: string | null; notes: string | null; aliases: string[]
+  createdBy?: string | null
 }
 export type ScrPartyRequest = Omit<ScrParty, 'partyId'>
 
@@ -43,6 +45,7 @@ export type ScrEntry = {
   partyId: number; decisionId: number; decisionRef: string; officialNo: string; partyTypeCode: string; nameAr: string; nameEn: string | null
   aliases: string[]; identityTypeCode: string; identityNo: string; nationalityCode: string; birthDate: string | null; scopeText: string
   listedFrom: string; liftedOn: string | null; statusCode: string; letterId: number | null; lastDecisionRef: string | null
+  enteredBy?: string | null
 }
 export type ScrRegistry = {
   versionNo: number; publishedAt: string | null; activeCount: number; suspendedCount: number; liftedCount: number; pendingCount: number
@@ -68,8 +71,9 @@ export type ScrInquiry = {
 export type ScrCompany = {
   memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string; licenceNo: string | null; contactEmail: string | null
   statusCode: string; notes: string | null; userCount: number; inquiryCount: number
+  createdBy?: string | null
 }
-export type ScrCompanyRequest = Omit<ScrCompany, 'memberCompanyId' | 'userCount' | 'inquiryCount'>
+export type ScrCompanyRequest = Omit<ScrCompany, 'memberCompanyId' | 'userCount' | 'inquiryCount' | 'createdBy'>
 export type ScrCompanyUser = {
   userId: string; userName: string; email: string | null; fullName: string | null; isActive: boolean; roleCode: string; lastLoginAt: string | null
 }
