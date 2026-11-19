@@ -253,5 +253,9 @@ export const SCR_AR: Record<string, string> = {
   'Zoom out': 'تصغير',
   'Fit width': 'ملاءمة العرض',
   'Download': 'تنزيل',
-  'This kind of file cannot be shown in the browser. Download it to open it.': 'لا يمكن عرض هذا النوع من الملفات في المتصفح. نزّله لفتحه.'
+  'This kind of file cannot be shown in the browser. Download it to open it.': 'لا يمكن عرض هذا النوع من الملفات في المتصفح. نزّله لفتحه.',
+  'Entered by me': 'أدخلتها أنا',
+  'Waiting for me': 'بانتظاري',
+  'Nothing is waiting for you.': 'لا يوجد شيء بانتظارك.',
+  'You have not entered any decisions. Choose Waiting for me or All users.': 'لم تُدخل أي قرارات. اختر بانتظاري أو كل المستخدمين.'
 }
