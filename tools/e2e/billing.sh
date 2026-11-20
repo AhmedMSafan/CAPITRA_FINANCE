@@ -46,9 +46,9 @@ r=$(put_company "$PID" MONTHLY); check "company gets the plan, monthly" "$(body 
 echo "3. The current month so far"
 r=$(call GET /api/scr/billing/overview "$ADMIN"); O=$(body "$r" | jq -c --arg c OLDCO '.[] | select(.companyCode == $c)')
 check "2 user-months, 2 inquiries" "$(jq -r '"\(.currentUserMonths) \(.currentInquiries)"' <<<"$O")" "2 2"
-check "2 × 100 + 2 × 2.50 = 205" "$(jq -r .currentAmount <<<"$O")" 205
+check "2 × 100 + 2 × 2.50 = 205" "$(jq -r .currentAmount <<<"$O")" 205.00
 r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=$THIS_MONTH" "$ADMIN")
-check "preview: 205.00, period not complete" "$(body "$r" | jq -r '"\(.totalAmount) \(.periodComplete) \(.statusCode)"')" "205 false PREVIEW"
+check "preview: 205.00, period not complete" "$(body "$r" | jq -r '"\(.totalAmount) \(.periodComplete) \(.statusCode)"')" "205.00 false PREVIEW"
 check "one line per user" "$(body "$r" | jq -r '[.lines[].userName] | join(",")')" "old.admin,old.u1"
 r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=${THIS_MONTH%01}15" "$ADMIN"); check "a period must start on its first day" "$(status "$r")" 400
 r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=$NEXT_MONTH" "$ADMIN"); check "a future period is refused" "$(status "$r")" 400
@@ -57,25 +57,25 @@ echo "4. Last month: admin active since earlier, old.u1 made one inquiry then"
 sql "update \"SCR_USER_ACTIVITIES\" set \"ACTIVE_FROM\" = '$PREV_MONTH'::date - 40 where \"USER_NAME\"='old.admin'" >/dev/null
 sql "update \"SCR_INQUIRIES\" set \"SCREENED_AT\" = ('$PREV_MONTH'::date + 9)::timestamp at time zone 'Africa/Cairo' where \"INQUIRY_ID\" = (select min(\"INQUIRY_ID\") from \"SCR_INQUIRIES\" where \"MEMBER_COMPANY_ID\"=$CID)" >/dev/null
 r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=$PREV_MONTH" "$ADMIN")
-check "1 user-month + 1 inquiry = 102.50" "$(body "$r" | jq -r '"\(.userMonths) \(.inquiryCount) \(.totalAmount)"')" "1 1 102.5"
+check "1 user-month + 1 inquiry = 102.50" "$(body "$r" | jq -r '"\(.userMonths) \(.inquiryCount) \(.totalAmount)"')" "1 1 102.50"
 check "complete period" "$(body "$r" | jq -r .periodComplete)" true
-check "old.u1's line: no month, 1 inquiry" "$(body "$r" | jq -r '.lines[] | select(.userName=="old.u1") | "\(.userMonths) \(.inquiryCount) \(.lineAmount)"')" "0 1 2.5"
+check "old.u1's line: no month, 1 inquiry" "$(body "$r" | jq -r '.lines[] | select(.userName=="old.u1") | "\(.userMonths) \(.inquiryCount) \(.lineAmount)"')" "0 1 2.50"
 
 echo "5. Issue, never twice, prices frozen, cancel and reissue"
 r=$(call POST /api/scr/billing/companies/$CID/invoices "$ADMIN" "{\"periodFrom\":\"$PREV_MONTH\",\"notes\":\"first\"}")
 check "issued" "$(status "$r")" 200
 I1=$(body "$r" | jq -r .invoiceId)
 check "numbered INV-$PY-000001" "$(body "$r" | jq -r .invoiceNo)" "INV-$PY-000001"
-check "total 102.50" "$(body "$r" | jq -r .totalAmount)" 102.5
+check "total 102.50" "$(body "$r" | jq -r .totalAmount)" 102.50
 r=$(call POST /api/scr/billing/companies/$CID/invoices "$ADMIN" "{\"periodFrom\":\"$PREV_MONTH\"}"); check "the same period cannot be invoiced twice" "$(status "$r")" 400
 r=$(call PUT /api/scr/billing/plans/$PID "$ADMIN" '{"planCode":"STANDARD","nameEn":"Standard","nameAr":"قياسية","userMonthlyFee":200,"inquiryFee":2.5,"isActive":true}')
-check "plan price raised to 200" "$(body "$r" | jq -r .userMonthlyFee)" 200
-r=$(call GET /api/scr/billing/invoices/$I1 "$ADMIN"); check "the issued invoice keeps 100" "$(body "$r" | jq -r '"\(.userMonthlyFee) \(.totalAmount)"')" "100 102.5"
+check "plan price raised to 200" "$(body "$r" | jq -r .userMonthlyFee)" 200.00
+r=$(call GET /api/scr/billing/invoices/$I1 "$ADMIN"); check "the issued invoice keeps 100" "$(body "$r" | jq -r '"\(.userMonthlyFee) \(.totalAmount)"')" "100.00 102.50"
 r=$(call POST /api/scr/billing/invoices/$I1/cancel "$ADMIN" '{"reason":""}'); check "cancelling needs a reason" "$(status "$r")" 400
 r=$(call POST /api/scr/billing/invoices/$I1/cancel "$ADMIN" '{"reason":"Wrong price"}'); check "cancelled, kept" "$(body "$r" | jq -r '"\(.statusCode) \(.cancelReason)"')" "CANCELLED Wrong price"
 r=$(call POST /api/scr/billing/invoices/$I1/cancel "$ADMIN" '{"reason":"again"}'); check "not twice" "$(status "$r")" 400
 r=$(call POST /api/scr/billing/companies/$CID/invoices "$ADMIN" "{\"periodFrom\":\"$PREV_MONTH\"}")
-check "reissued as INV-$PY-000002 at the new price" "$(body "$r" | jq -r '"\(.invoiceNo) \(.totalAmount)"')" "INV-$PY-000002 202.5"
+check "reissued as INV-$PY-000002 at the new price" "$(body "$r" | jq -r '"\(.invoiceNo) \(.totalAmount)"')" "INV-$PY-000002 202.50"
 check "both invoices are kept" "$(sql "select count(*) from \"SCR_INVOICES\" where \"MEMBER_COMPANY_ID\"=$CID")" 2
 check "with their lines" "$(sql "select count(*) from \"SCR_INVOICE_LINES\"")" 4
 
@@ -90,7 +90,7 @@ r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=$THIS_MONTH" "$
 echo "7. Quarterly invoicing, totals, and who may see billing"
 r=$(put_company "$PID" QUARTERLY); check "company now invoiced quarterly" "$(body "$r" | jq -r .billingCycleCode)" QUARTERLY
 r=$(call GET /api/scr/billing/overview "$ADMIN"); check "its current period is the quarter from $QUARTER" "$(body "$r" | jq -r '.[] | select(.companyCode=="OLDCO") | .currentFrom')" "$QUARTER"
-r=$(call GET /api/scr/billing/overview "$ADMIN"); check "OLDCO invoiced total 202.50 (the cancelled one not counted)" "$(body "$r" | jq -r '.[] | select(.companyCode=="OLDCO") | "\(.invoicedTotal) \(.invoiceCount)"')" "202.5 1"
+r=$(call GET /api/scr/billing/overview "$ADMIN"); check "OLDCO invoiced total 202.50 (the cancelled one not counted)" "$(body "$r" | jq -r '.[] | select(.companyCode=="OLDCO") | "\(.invoicedTotal) \(.invoiceCount)"')" "202.50 1"
 r=$(call GET /api/scr/billing/overview "$(login old.u1 'Old#User2026')"); check "a company user cannot see billing" "$(status "$r")" 403
 r=$(call GET /api/scr/billing/invoices "$CA"); check "nor its administrator (for now)" "$(status "$r")" 403
 
