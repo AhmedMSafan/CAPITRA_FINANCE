@@ -338,7 +338,7 @@ export const SCR_AR: Record<string, string> = {
   'accounts': 'حسابات',
   'in use': 'مستخدَم',
   'open-ended': 'بلا تاريخ انتهاء',
-  'users in use': 'مستخدمون مستخدَمون',
+  'users in use': 'من المستخدمين المسموح بهم',
   'year': 'سنة',
   'The company administrator cannot be deactivated: a company always has one. Ask the Federation to replace them.': 'لا يمكن إيقاف مسؤول الشركة: لكل شركة مسؤول دائمًا. اطلب من الاتحاد استبداله.',
   'Activate the user first.': 'فعّل المستخدم أولًا.',

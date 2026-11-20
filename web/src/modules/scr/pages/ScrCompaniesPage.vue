@@ -53,11 +53,11 @@
               <td>
                 <template v-if="c.licence">
                   <div class="scr-seats" :title="tr('Users besides the administrator')">
-                    <b>{{ tr('Admin') }} + {{ c.licence.maxUsers }}</b>
+                    <b>{{ tr('Administrator') }} + {{ c.licence.maxUsers }}</b>
                     <span class="scr-seat-bar"><i :style="{ width: seatPct(c) }"></i></span>
                     <small>{{ c.seats?.usersInUse ?? 0 }} / {{ c.licence.maxUsers }} {{ tr('in use') }}</small>
                   </div>
-                  <span class="fx-cell-sub">{{ formatDate(c.licence.validFrom) }} → {{ c.licence.validTo ? formatDate(c.licence.validTo) : tr('open-ended') }}</span>
+                  <span class="fx-cell-sub">{{ formatDate(c.licence.validFrom) }} – {{ c.licence.validTo ? formatDate(c.licence.validTo) : tr('open-ended') }}</span>
                   <span v-if="c.licenceStateCode && c.licenceStateCode !== 'ACTIVE'" class="fx-chip fx-chip--bad">{{ tr(LABELS[c.licenceStateCode] ?? c.licenceStateCode) }}</span>
                 </template>
                 <span v-else class="fx-chip fx-chip--bad">{{ tr('No licence') }}</span>
@@ -172,7 +172,7 @@
           <thead><tr><th>{{ tr('Users') }}</th><th>{{ tr('Valid from') }}</th><th>{{ tr('Valid to') }}</th><th>{{ tr('Yearly inquiry quota') }}</th><th>{{ tr('Entered by') }}</th></tr></thead>
           <tbody>
             <tr v-for="(l, i) in history" :key="l.licenceId" :class="{ 'scr-current': i === 0 }">
-              <td><b>{{ tr('Admin') }} + {{ l.maxUsers }}</b><span v-if="i === 0" class="fx-chip fx-chip--ok">{{ tr('In force') }}</span></td>
+              <td><b>{{ tr('Administrator') }} + {{ l.maxUsers }}</b><span v-if="i === 0" class="fx-chip fx-chip--ok">{{ tr('In force') }}</span></td>
               <td>{{ formatDate(l.validFrom) }}</td><td>{{ l.validTo ? formatDate(l.validTo) : tr('open-ended') }}</td>
               <td>{{ l.yearlyInquiryQuota?.toLocaleString() ?? tr('No limit') }}</td>
               <td>{{ l.createdBy }}<span class="fx-cell-sub">{{ formatDateTime(l.createdAt) }}</span></td>

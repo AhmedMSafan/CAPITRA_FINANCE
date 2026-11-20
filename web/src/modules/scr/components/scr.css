@@ -154,8 +154,8 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-seats{display:flex;flex-direction:column;gap:4px;min-width:120px}
 .fc .scr-seats b{font-size:13px;color:var(--fin-ink)}
 .fc .scr-seats small{color:var(--fin-muted);font-size:11.5px}
-.fc .scr-seats--head{align-items:center;margin-inline-start:auto;padding:6px 14px;border-radius:12px;background:var(--fin-teal-50);min-width:auto}
-.fc .scr-seats--head b{font-size:18px}
+.fc .fc-sec-head > .scr-seats--head{flex:none;gap:0;align-items:center;margin-inline-start:auto;padding:6px 14px;border-radius:12px;background:var(--fin-teal-50);min-width:auto}
+.fc .fc-sec-head > .scr-seats--head b{font-size:18px}
 .fc .scr-seat-bar{display:block;height:6px;border-radius:999px;background:#e5edee;overflow:hidden}
 .fc .scr-seat-bar i{display:block;height:100%;border-radius:inherit;background:var(--fin-teal-600);transition:width .2s}
 .fc .scr-form-sec{display:flex;align-items:center;gap:8px;margin:18px 0 10px;padding-block-end:6px;border-block-end:1px solid #e5edee;font-size:14px;color:var(--fin-ink)}
