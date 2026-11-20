@@ -134,7 +134,11 @@ public sealed class ScrCompanyUsersController(
         return Ok(result.OrderByDescending(u => u.RoleCode == CompanyUserRules.AdminRole).ToList());
     }
 
-    /// <summary>A new company user, within the licence's number of users; an activation e-mail goes to them.</summary>
+    /// <summary>
+    /// A new company user, within the licence's number of users; an activation e-mail goes to them. A company without an
+    /// administrator (one made before administrators came with the company) gets its first one this way: when the Federation adds a
+    /// user to it, that user becomes the administrator and holds no user seat.
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create(long companyId, ScrCompanyUserRequest request, CancellationToken ct)
     {
@@ -148,21 +152,23 @@ public sealed class ScrCompanyUsersController(
             await CompanyUserRules.EnsureUniqueAsync(users, errors, "", userName!, request.Email!, null, ct);
         if (errors.Count > 0)
             throw new BusinessValidationException(errors);
-        await EnsureSeatAsync(company, ct);
+        var makeAdmin = ScrClaims.Has(User, Permissions.Scr.CompanyAdmin) && company.Seats?.AdminUserName is null;
+        if (!makeAdmin)
+            await EnsureSeatAsync(company, ct);
 
         var user = new SecUser
         {
             UserName = userName, Email = request.Email!.Trim(), FullName = request.FullName!.Trim(), IsActive = true, MemberCompanyId = companyId,
         };
         CompanyUserRules.Ensure(await users.CreateAsync(user), "userName");
-        var added = await users.AddToRoleAsync(user, CompanyUserRules.UserRole);
+        var added = await users.AddToRoleAsync(user, makeAdmin ? CompanyUserRules.AdminRole : CompanyUserRules.UserRole);
         if (!added.Succeeded)
         {
             await users.DeleteAsync(user);
             CompanyUserRules.Ensure(added, "user");
         }
 
-        var mail = await emails.SendActivationAsync(user, company.NameEn, "Company user", ct);
+        var mail = await emails.SendActivationAsync(user, company.NameEn, makeAdmin ? "Company administrator" : "Company user", ct);
         return Ok(new ScrCompanyUserResult(await CompanyUserRules.ToDtoAsync(users, user), new ScrEmailOutcome(mail.Sent, mail.StatusCode, mail.Error)));
     }
 
@@ -237,7 +243,7 @@ public sealed class ScrCompanyUsersController(
         if (inUse >= allowed)
             throw new BusinessRuleException(allowed == 0
                 ? "The company's licence is for its administrator only. Ask the Federation to add users to the licence."
-                : $"The company's licence allows {allowed} users besides the administrator, and all are in use. Deactivate a user or ask the Federation for more.");
+                : "All the licence's users are in use. Deactivate a user or ask the Federation for more.");
     }
 
     /// <summary>The federation for any company; a company administrator for its own only.</summary>
@@ -281,10 +287,10 @@ internal static class CompanyUserRules
     {
         var byName = await users.FindByNameAsync(userName);
         if (byName is not null && byName.Id != exceptUserId)
-            e[$"{prefix}userName"] = [$"The user name {userName} is already used."];
+            e[$"{prefix}userName"] = ["This user name is already used."];
         var normalized = users.NormalizeEmail(email.Trim());
         if (await users.Users.AnyAsync(u => u.NormalizedEmail == normalized && u.Id != exceptUserId, ct))
-            e[$"{prefix}email"] = [$"{email.Trim()} is already used by another account."];
+            e[$"{prefix}email"] = ["This e-mail address is already used by another account."];
     }
 
     public static async Task<ScrCompanyUserDto> ToDtoAsync(UserManager<SecUser> users, SecUser u)

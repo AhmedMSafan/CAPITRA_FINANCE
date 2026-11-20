@@ -38379,6 +38379,73 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_VALUATIONS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrCompanyLicence", b =>
+                {
+                    b.Property<long>("LicenceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("LICENCE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LicenceId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("MaxUsers")
+                        .HasColumnType("integer")
+                        .HasColumnName("MAX_USERS");
+
+                    b.Property<long>("MemberCompanyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("MEMBER_COMPANY_ID");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("VALID_FROM");
+
+                    b.Property<DateOnly?>("ValidTo")
+                        .HasColumnType("date")
+                        .HasColumnName("VALID_TO");
+
+                    b.Property<int?>("YearlyInquiryQuota")
+                        .HasColumnType("integer")
+                        .HasColumnName("YEARLY_INQUIRY_QUOTA");
+
+                    b.HasKey("LicenceId")
+                        .HasName("PK_SCR_COMPANY_LICENCES");
+
+                    b.HasIndex("MemberCompanyId")
+                        .HasDatabaseName("IX_SCR_COMPANY_LICENCES_MEMBER_COMPANY_ID");
+
+                    b.ToTable("SCR_COMPANY_LICENCES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrDecision", b =>
                 {
                     b.Property<long>("DecisionId")
@@ -42442,6 +42509,86 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_WFE_WORKFLOW_INSTANCES_WORKFLOW_DEFINITION_ID");
 
                     b.ToTable("WFE_WORKFLOW_INSTANCES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Infrastructure.Identity.SecEmailLog", b =>
+                {
+                    b.Property<long>("EmailLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("EMAIL_LOG_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("EmailLogId"));
+
+                    b.Property<DateTime>("AttemptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ATTEMPTED_AT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("ErrorText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("ERROR_TEXT");
+
+                    b.Property<string>("KindCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("KIND_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("SUBJECT");
+
+                    b.Property<string>("ToAddress")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("TO_ADDRESS");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("USER_ID");
+
+                    b.HasKey("EmailLogId")
+                        .HasName("PK_SEC_EMAIL_LOG");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_SEC_EMAIL_LOG_USER_ID");
+
+                    b.ToTable("SEC_EMAIL_LOG", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRole", b =>
@@ -48049,6 +48196,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_MTG_VALUATIONS_MTG_LKP_VALUATION_TYPES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrCompanyLicence", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrMemberCompany", null)
+                        .WithMany()
+                        .HasForeignKey("MemberCompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_COMPANY_LICENCES_SCR_MEMBER_COMPANIES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrDecision", b =>

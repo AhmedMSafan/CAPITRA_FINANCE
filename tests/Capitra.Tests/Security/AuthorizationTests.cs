@@ -15,7 +15,7 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
     public AuthorizationTests(CapitraApiFactory factory) => _factory = factory;
 
     [Fact]
-    public void Only_login_allows_anonymous_access()
+    public void Only_login_and_the_emailed_account_links_allow_anonymous_access()
     {
         var anonymous = typeof(Program).Assembly.GetTypes()
             .Where(t => typeof(ControllerBase).IsAssignableFrom(t) && !t.IsAbstract)
@@ -24,7 +24,13 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
                 .Select(m => $"{t.Name}.{m.Name}"))
             .ToList();
 
-        Assert.Equal([$"{nameof(SecAuthController)}.{nameof(SecAuthController.Login)}"], anonymous);
+        // signing in, and what a user does from an e-mailed link before signing in (activate, reset, forgot password)
+        string[] expected =
+        [
+            nameof(SecAuthController.Login), nameof(SecAuthController.CheckLink),
+            nameof(SecAuthController.SetPasswordFromLink), nameof(SecAuthController.ForgotPassword)
+        ];
+        Assert.Equal(expected.Select(m => $"{nameof(SecAuthController)}.{m}").Order(), anonymous.Order());
     }
 
     [Fact]

@@ -23,6 +23,25 @@ const router = createRouter({
       component: () => import('@/modules/sec/pages/LoginPage.vue'),
       meta: { public: true, moduleName: 'CAPITRA', functionName: 'Login' }
     },
+    // opened from e-mailed links, before signing in: a new account chooses its first password, or a user a new one
+    {
+      path: '/activate',
+      name: 'activate',
+      component: () => import('@/modules/sec/pages/AccountLinkPage.vue'),
+      meta: { public: true, moduleName: 'CAPITRA', functionName: 'Activate account' }
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('@/modules/sec/pages/AccountLinkPage.vue'),
+      meta: { public: true, moduleName: 'CAPITRA', functionName: 'Reset password' }
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('@/modules/sec/pages/ForgotPasswordPage.vue'),
+      meta: { public: true, moduleName: 'CAPITRA', functionName: 'Forgot password' }
+    },
     {
       // outside the layout: a user with a temporary password may call nothing else, so no header, menu or inbox here
       path: '/change-password',
@@ -435,7 +454,7 @@ router.beforeEach(to => {
 
   if (!to.meta.public && !signedIn) return { name: 'login', query: { redirect: to.fullPath } }
   // a temporary password must be replaced before anything else
-  if (signedIn && mustChangePassword() && to.name !== 'change-password' && to.name !== 'login')
+  if (signedIn && mustChangePassword() && to.name !== 'change-password' && !to.meta.public)
     return { name: 'change-password', query: { forced: '1', redirect: to.fullPath } }
   if (to.name === 'login' && signedIn) return { name: isCompanyUser() ? 'scr-portal' : 'home' }
   if (to.name === 'change-password') return true

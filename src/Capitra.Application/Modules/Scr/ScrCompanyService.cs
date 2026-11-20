@@ -47,7 +47,7 @@ public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCount
         var e = ValidateLicence(r);
         var inUse = (await users.SeatsAsync(ct)).GetValueOrDefault(companyId)?.UsersInUse ?? 0;
         if (r.MaxUsers is { } max && max < inUse)
-            e["maxUsers"] = [$"The company has {inUse} active users besides its administrator; deactivate users before lowering the licence below that."];
+            e["maxUsers"] = ["The company has more active users than that besides its administrator. Deactivate users before lowering the licence."];
         ScrValidation.Throw(e);
         var l = new ScrCompanyLicence
         {
@@ -99,7 +99,7 @@ public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCount
         if (status is not ("ACTIVE" or "SUSPENDED"))
             e["statusCode"] = ["Choose active or suspended."];
         if (await db.Set<ScrMemberCompany>().AnyAsync(c => c.CompanyCode == code && c.MemberCompanyId != (id ?? 0), ct))
-            e["companyCode"] = [$"{code} is already used."];
+            e["companyCode"] = ["This company code is already used."];
         ScrValidation.Throw(e);
 
         var c = id is { } x

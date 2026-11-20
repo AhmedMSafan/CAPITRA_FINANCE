@@ -20,9 +20,11 @@ const REMEMBER_KEY = 'capitra.login.userName'
 const router = useRouter()
 const route = useRoute()
 
-const userName = ref(readRemembered())
+const remembered = readRemembered()
+// after activating or resetting from an e-mailed link, the user name comes along
+const userName = ref(typeof route.query.user === 'string' && route.query.user ? route.query.user : remembered)
 const password = ref('')
-const remember = ref(userName.value !== '')
+const remember = ref(remembered !== '')
 const showPassword = ref(false)
 const capsLock = ref(false)
 const errorMessage = ref('')
@@ -164,7 +166,7 @@ async function submitLogin(): Promise<void> {
       : '/'
     await router.push(redirect)
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : tr('Sign-in failed.')
+    errorMessage.value = error instanceof Error ? tr(error.message) : tr('Sign-in failed.')
   } finally {
     loading.value = false
   }
@@ -251,10 +253,13 @@ async function submitLogin(): Promise<void> {
         </div>
         <div v-if="capsLock" class="cl-caps" role="status">{{ tr('Caps Lock is on') }}</div>
 
-        <label class="cl-remember" for="cl-remember">
-          <input id="cl-remember" v-model="remember" type="checkbox" />
-          <span>{{ tr('Remember username') }}</span>
-        </label>
+        <div class="cl-row">
+          <label class="cl-remember" for="cl-remember">
+            <input id="cl-remember" v-model="remember" type="checkbox" />
+            <span>{{ tr('Remember username') }}</span>
+          </label>
+          <RouterLink class="cl-forgot" :to="{ name: 'forgot-password', query: userName ? { user: userName } : {} }">{{ tr('Forgot password?') }}</RouterLink>
+        </div>
 
         <button type="submit" class="cl-button" :disabled="loading">
           <span>{{ tr(loading ? 'Signing in…' : 'Sign in') }}</span>
@@ -504,6 +509,9 @@ async function submitLogin(): Promise<void> {
 .cl-eye:focus-visible { outline: 2px solid rgba(15, 118, 110, 0.4); outline-offset: -4px; border-radius: 10px; }
 .cl-caps { margin: -6px 0 12px; font-size: 12.5px; font-weight: 600; color: #a5650a; }
 
+.cl-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.cl-forgot { color: var(--cl-primary); font-size: 13px; font-weight: 600; text-decoration: none; }
+.cl-forgot:hover, .cl-forgot:focus-visible { text-decoration: underline; }
 .cl-remember {
   display: flex;
   align-items: center;

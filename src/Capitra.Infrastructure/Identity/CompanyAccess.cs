@@ -25,9 +25,9 @@ public sealed class CompanyAccess(CapitraDbContext db, IClock clock)
         if (licence is null)
             return "Your company has no licence. Contact the Federation.";
         if (today < licence.ValidFrom)
-            return $"Your company's licence starts on {licence.ValidFrom:yyyy-MM-dd}.";
-        if (licence.ValidTo is { } to && today > to)
-            return $"Your company's licence ended on {to:yyyy-MM-dd}. Contact the Federation to renew it.";
+            return "Your company's licence has not started yet. Contact the Federation.";
+        if (licence.ValidTo is { } validTo && today > validTo)
+            return "Your company's licence has ended. Contact the Federation to renew it.";
         return null;
     }
 

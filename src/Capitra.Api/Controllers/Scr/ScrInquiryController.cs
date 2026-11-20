@@ -1,11 +1,13 @@
 using Capitra.Api.Security;
 using Capitra.Application.Modules.Scr;
 using Capitra.Application.Security;
+using Capitra.Infrastructure.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Capitra.Api.Controllers.Scr;
 
-public sealed record ScrMyCompanyDto(long MemberCompanyId, string CompanyCode, string NameEn, string NameAr);
+/// <param name="MaxUsers">The licence's users besides the administrator, so the company administrator sees how many are left.</param>
+public sealed record ScrMyCompanyDto(long MemberCompanyId, string CompanyCode, string NameEn, string NameAr, int? MaxUsers);
 
 /// <summary>
 /// Screening by member companies (SCR.INQUIRY.CREATE): screen, and read one's company's inquiries. Federation auditors
@@ -13,14 +15,15 @@ public sealed record ScrMyCompanyDto(long MemberCompanyId, string CompanyCode, s
 /// </summary>
 [ApiController]
 [Route("api/scr/inquiries")]
-public sealed class ScrInquiryController(ScrInquiryService inquiries) : ControllerBase
+public sealed class ScrInquiryController(ScrInquiryService inquiries, CompanyAccess companyAccess) : ControllerBase
 {
     [HttpGet("my-company")]
     [HasPermission(Permissions.Scr.InquiryCreate)]
     public async Task<ScrMyCompanyDto> MyCompany(CancellationToken ct)
     {
         var c = await inquiries.MyCompanyAsync(ct);
-        return new ScrMyCompanyDto(c.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr);
+        var licence = await companyAccess.CurrentLicenceAsync(c.MemberCompanyId, ct);
+        return new ScrMyCompanyDto(c.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, licence?.MaxUsers);
     }
 
     [HttpPost]
