@@ -116,7 +116,7 @@ public sealed class SecEmailLogConfiguration : IEntityTypeConfiguration<SecEmail
 {
     public void Configure(EntityTypeBuilder<SecEmailLog> builder)
     {
-        builder.ToTable("SEC_EMAIL_LOG");
+        builder.ToTable("SEC_EMAIL_LOGS");
         builder.HasKey(x => x.EmailLogId);
         builder.HasIndex(x => x.UserId);
         builder.Property(x => x.EmailLogId).UseIdentityByDefaultColumn();

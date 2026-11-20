@@ -147,9 +147,9 @@ echo "10. The e-mail log, and no password ever e-mailed"
 ids=$(curl -s "$MP/api/v1/messages?limit=200" | jq -r '.messages[].ID')
 leak=0; for id in $ids; do curl -s "$MP/api/v1/message/$id" | jq -r .HTML | grep -q -e 'Acme#' -e "$(cat /tmp/legacy.txt)" && leak=1; done
 check "no e-mail contains a password" "$leak" 0
-n=$(docker exec "$PG" psql -U postgres -d capitra -tAc "select count(*) from \"SEC_EMAIL_LOG\" where \"STATUS_CODE\"='SENT'")
+n=$(docker exec "$PG" psql -U postgres -d capitra -tAc "select count(*) from \"SEC_EMAIL_LOGS\" where \"STATUS_CODE\"='SENT'")
 check "every sent e-mail is in the log ($(echo $ids | wc -w))" "$n" "$(echo $ids | wc -w)"
-n=$(docker exec "$PG" psql -U postgres -d capitra -tAc "select count(*) from \"SEC_EMAIL_LOG\" where \"STATUS_CODE\"='LINK_COPIED'")
+n=$(docker exec "$PG" psql -U postgres -d capitra -tAc "select count(*) from \"SEC_EMAIL_LOGS\" where \"STATUS_CODE\"='LINK_COPIED'")
 check "the copied link is in the log" "$n" 1
 
 echo
