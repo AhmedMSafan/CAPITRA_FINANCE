@@ -23,7 +23,7 @@ public interface IUserAccessSource
 }
 
 /// <summary>The user, roles and role permissions as ASP.NET Identity keeps them (the same reading as login).</summary>
-public sealed class IdentityUserAccessSource(UserManager<SecUser> users, RoleManager<SecRole> roles) : IUserAccessSource
+public sealed class IdentityUserAccessSource(UserManager<SecUser> users, RoleManager<SecRole> roles, CompanyAccess companies) : IUserAccessSource
 {
     public async Task<UserAccess?> GetAsync(string userId, CancellationToken cancellationToken)
     {
@@ -43,7 +43,9 @@ public sealed class IdentityUserAccessSource(UserManager<SecUser> users, RoleMan
                     permissions.Add(claim.Value);
         }
 
-        return new UserAccess(user.IsActive, user.SecurityStamp, roleNames, [.. permissions]);
+        // a member company's user works only while the company is active and its licence is in force
+        var active = user.IsActive && (user.MemberCompanyId is not { } companyId || await companies.BlockReasonAsync(companyId, cancellationToken) is null);
+        return new UserAccess(active, user.SecurityStamp, roleNames, [.. permissions]);
     }
 }
 

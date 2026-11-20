@@ -6,16 +6,81 @@ using Microsoft.EntityFrameworkCore;
 namespace Capitra.Application.Modules.Scr;
 
 /// <summary>Member companies, kept by the federation. Their user accounts are made in <c>ScrCompanyUsersController</c>.</summary>
-public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCounts users)
+public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCounts users, IClock clock)
 {
+    public const int MaxUsersLimit = 10_000;
+
     public async Task<IReadOnlyList<ScrCompanyDto>> ListAsync(CancellationToken ct)
     {
         var companies = await db.Set<ScrMemberCompany>().AsNoTracking().OrderBy(c => c.CompanyCode).ToListAsync(ct);
         var inquiries = await db.Set<ScrInquiry>().AsNoTracking().GroupBy(i => i.MemberCompanyId)
             .Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
         var userCounts = await users.CountsAsync(ct);
-        return [.. companies.Select(c => ToDto(c, userCounts.GetValueOrDefault(c.MemberCompanyId), inquiries.GetValueOrDefault(c.MemberCompanyId)))];
+        var seats = await users.SeatsAsync(ct);
+        var licences = (await db.Set<ScrCompanyLicence>().AsNoTracking().ToListAsync(ct))
+            .GroupBy(l => l.MemberCompanyId).ToDictionary(g => g.Key, g => g.MaxBy(l => l.LicenceId)!);
+        var today = DateOnly.FromDateTime(clock.UtcNow);
+        return [.. companies.Select(c =>
+        {
+            var l = licences.GetValueOrDefault(c.MemberCompanyId);
+            return ToDto(c, userCounts.GetValueOrDefault(c.MemberCompanyId), inquiries.GetValueOrDefault(c.MemberCompanyId)) with
+            {
+                Licence = l is null ? null : ToDto(l),
+                Seats = seats.GetValueOrDefault(c.MemberCompanyId) ?? new ScrCompanySeats(null, null, null, 0),
+                LicenceStateCode = l is null ? "NONE" : today < l.ValidFrom ? "NOT_STARTED" : l.ValidTo is { } to && today > to ? "EXPIRED" : "ACTIVE",
+            };
+        })];
     }
+
+    /// <summary>The company's licences, newest first (the first is the one in force).</summary>
+    public async Task<IReadOnlyList<ScrLicenceDto>> LicencesAsync(long companyId, CancellationToken ct) =>
+        [.. (await db.Set<ScrCompanyLicence>().AsNoTracking().Where(l => l.MemberCompanyId == companyId).OrderByDescending(l => l.LicenceId).ToListAsync(ct)).Select(ToDto)];
+
+    /// <summary>
+    /// A new licence for the company (the newest is in force; earlier ones stay for billing and audit). The users allowed cannot drop
+    /// below the users the company has now: deactivate users first.
+    /// </summary>
+    public async Task<ScrLicenceDto> AddLicenceAsync(long companyId, ScrLicenceRequest r, CancellationToken ct)
+    {
+        if (!await db.Set<ScrMemberCompany>().AnyAsync(c => c.MemberCompanyId == companyId, ct))
+            throw new NotFoundException($"Member company {companyId} was not found.");
+        var e = ValidateLicence(r);
+        var inUse = (await users.SeatsAsync(ct)).GetValueOrDefault(companyId)?.UsersInUse ?? 0;
+        if (r.MaxUsers is { } max && max < inUse)
+            e["maxUsers"] = [$"The company has {inUse} active users besides its administrator; deactivate users before lowering the licence below that."];
+        ScrValidation.Throw(e);
+        var l = new ScrCompanyLicence
+        {
+            MemberCompanyId = companyId, MaxUsers = r.MaxUsers!.Value, ValidFrom = r.ValidFrom!.Value, ValidTo = r.ValidTo,
+            YearlyInquiryQuota = r.YearlyInquiryQuota, Notes = ScrValidation.Clean(r.Notes),
+        };
+        db.Add(l);
+        await db.SaveChangesAsync(ct);
+        return ToDto(l);
+    }
+
+    public static Dictionary<string, string[]> ValidateLicence(ScrLicenceRequest? r)
+    {
+        var e = new Dictionary<string, string[]>();
+        if (r is null)
+        {
+            e["licence"] = ["Enter the licence."];
+            return e;
+        }
+
+        if (r.MaxUsers is not { } max || max < 0 || max > MaxUsersLimit)
+            e["maxUsers"] = [$"Enter the number of users besides the administrator, 0 to {MaxUsersLimit}."];
+        if (r.ValidFrom is null)
+            e["validFrom"] = ["Enter the date the licence starts."];
+        if (r.ValidTo is { } to && r.ValidFrom is { } from && to < from)
+            e["validTo"] = ["The licence cannot end before it starts."];
+        if (r.YearlyInquiryQuota is { } q && q <= 0)
+            e["yearlyInquiryQuota"] = ["Enter a quota above 0, or leave it empty for no limit."];
+        return e;
+    }
+
+    private static ScrLicenceDto ToDto(ScrCompanyLicence l) =>
+        new(l.LicenceId, l.MaxUsers, l.ValidFrom, l.ValidTo, l.YearlyInquiryQuota, l.Notes, l.CreatedBy, l.CreatedAt);
 
     public async Task<ScrCompanyDto> GetAsync(long id, CancellationToken ct) =>
         (await ListAsync(ct)).FirstOrDefault(c => c.MemberCompanyId == id) ?? throw new NotFoundException($"Member company {id} was not found.");
@@ -61,4 +126,7 @@ public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCount
 public interface IScrCompanyUserCounts
 {
     Task<IReadOnlyDictionary<long, int>> CountsAsync(CancellationToken ct);
+
+    /// <summary>Per company: its administrator and the seats its other users hold.</summary>
+    Task<IReadOnlyDictionary<long, ScrCompanySeats>> SeatsAsync(CancellationToken ct);
 }

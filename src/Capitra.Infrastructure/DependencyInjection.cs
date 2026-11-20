@@ -56,6 +56,14 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<CapitraDbContext>()
             .AddDefaultTokenProviders();
 
+        // account e-mails: activation and password-reset links (no password is ever e-mailed)
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Section));
+        var linkHours = configuration.GetSection(EmailOptions.Section).GetValue<int?>(nameof(EmailOptions.LinkHours)) ?? 48;
+        services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromHours(linkHours));
+        services.AddScoped<IMailTransport, SmtpMailTransport>();
+        services.AddScoped<AccountEmails>();
+        services.AddScoped<CompanyAccess>();
+
         return services;
     }
 
