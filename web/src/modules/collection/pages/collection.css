@@ -1,0 +1,11 @@
+/* Form sections of the Collection and Repayments pages (as the CRM client dialog's sections). */
+.fc .col-sec { border: 1px solid var(--fin-line); border-radius: var(--fin-radius); padding: 14px 16px 16px; background: var(--fin-surface); }
+.fc .col-sec h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: var(--fs-md, 14px); color: var(--fin-teal-700); }
+.fc .col-sec h2 .fa { color: var(--fin-orange); }
+.fc .col-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 14px; }
+.fc .col-grid .fc-field { flex: none; }
+.fc .col-ro { min-height: 36px; display: flex; align-items: center; padding: 0 10px; border: 1px dashed var(--fin-line); border-radius: var(--fin-radius-sm); color: var(--fin-ink); font-weight: 600; background: var(--fin-neutral-50); }
+.fc .col-bad .fx-search, .fc .col-bad .fx-select { border-color: var(--fin-bad); }
+.fc .col-stack { display: flex; flex-direction: column; gap: 16px; }
+.fc .col-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 760px) { .fc .col-grid { grid-template-columns: 1fr; } }

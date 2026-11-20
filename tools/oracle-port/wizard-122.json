@@ -1,0 +1,18 @@
+{
+ "app": 122,
+ "maps": ["map-chq.json", "map-fct.json", "map-crm.json", "map-adm.json"],
+ "cs": "src/Capitra.Application/Modules/Chq/Pages/ChqApexRegions.cs",
+ "ts": "web/src/modules/chq/apex/wizard/wizardPages.ts",
+ "class": "ChqApexRegions",
+ "namespace": "Capitra.Application.Modules.Chq.Pages",
+ "usings": ["Capitra.Domain.Modules.Adm", "Capitra.Domain.Modules.Chq", "Capitra.Domain.Modules.Fct", "Capitra.Domain.Modules.Crm"],
+ "permissions": [{"from": 0, "to": 9998, "view": "Permissions.Chq.View", "edit": "Permissions.Chq.Edit"}],
+ "tableEdit": {"ADM_": "Permissions.Adm.LookupEdit"},
+ "pages": [[1, 333]],
+ "reports": [[1, 333]],
+ "index": "web/src/modules/chq/apex/pages.ts",
+ "skip": [0, 9999],
+ "custom": "all",
+ "route": "/cheque-wallet/p",
+ "home": "/cheque-wallet"
+}

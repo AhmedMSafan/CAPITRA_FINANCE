@@ -1,0 +1,655 @@
+{
+ "TRS_BANKS": {
+  "table": "TRS_BANKS",
+  "class": "TrsBank",
+  "columns": {
+   "BANK_ID": {
+    "column": "BANK_ID",
+    "kind": "int"
+   },
+   "COMPANY_ID": {
+    "column": "COMPANY_ID",
+    "kind": "int"
+   },
+   "BANK_CODE": {
+    "column": "BANK_CODE",
+    "kind": "string"
+   },
+   "BANK_NAME_EN": {
+    "column": "BANK_NAME_EN",
+    "kind": "string"
+   },
+   "BANK_NAME_AR": {
+    "column": "BANK_NAME_AR",
+    "kind": "string"
+   },
+   "CBE_CODE": {
+    "column": "CBE_CODE",
+    "kind": "string"
+   },
+   "SWIFT_BIC": {
+    "column": "SWIFT_BIC",
+    "kind": "string"
+   },
+   "FRA_REGISTRATION_NO": {
+    "column": "FRA_REGISTRATION_NO",
+    "kind": "string"
+   },
+   "RELATIONSHIP_MANAGER_NAME": {
+    "column": "RELATIONSHIP_MANAGER_NAME",
+    "kind": "string"
+   },
+   "RELATIONSHIP_MANAGER_EMAIL": {
+    "column": "RELATIONSHIP_MANAGER_EMAIL",
+    "kind": "string"
+   },
+   "RELATIONSHIP_MANAGER_PHONE": {
+    "column": "RELATIONSHIP_MANAGER_PHONE",
+    "kind": "string"
+   },
+   "KYC_STATUS": {
+    "column": "KYC_STATUS",
+    "kind": "string"
+   },
+   "KYC_REVIEW_DATE": {
+    "column": "KYC_REVIEW_DATE",
+    "kind": "date"
+   },
+   "KYC_EXPIRY_DATE": {
+    "column": "KYC_EXPIRY_DATE",
+    "kind": "date"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "BANK_ID"
+ },
+ "TRS_BANK_ACCOUNTS": {
+  "table": "TRS_BANK_ACCOUNTS",
+  "class": "TrsBankAccount",
+  "columns": {
+   "ACCOUNT_ID": {
+    "column": "ACCOUNT_ID",
+    "kind": "int"
+   },
+   "COMPANY_ID": {
+    "column": "COMPANY_ID",
+    "kind": "int"
+   },
+   "BANK_ID": {
+    "column": "BANK_ID",
+    "kind": "int"
+   },
+   "PARENT_ACCOUNT_ID": {
+    "column": "PARENT_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "ACCOUNT_REF": {
+    "column": "ACCOUNT_REF",
+    "kind": "string"
+   },
+   "ACCOUNT_NO": {
+    "column": "ACCOUNT_NO",
+    "kind": "string"
+   },
+   "IBAN": {
+    "column": "IBAN",
+    "kind": "string"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "ACCOUNT_TYPE_CODE": {
+    "column": "ACCOUNT_TYPE_CODE",
+    "kind": "string"
+   },
+   "PURPOSE_EN": {
+    "column": "PURPOSE_EN",
+    "kind": "string"
+   },
+   "PURPOSE_AR": {
+    "column": "PURPOSE_AR",
+    "kind": "string"
+   },
+   "OPENING_DATE": {
+    "column": "OPENING_DATE",
+    "kind": "date"
+   },
+   "CLOSING_DATE": {
+    "column": "CLOSING_DATE",
+    "kind": "date"
+   },
+   "ERP_ACCOUNT_CODE": {
+    "column": "ERP_ACCOUNT_CODE",
+    "kind": "string"
+   },
+   "AUTHORIZED_SIGNATORIES_JSON": {
+    "column": "AUTHORIZED_SIGNATORIES_JSON",
+    "kind": "text"
+   },
+   "CURRENT_BALANCE": {
+    "column": "CURRENT_BALANCE",
+    "kind": "decimal"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "ACCOUNT_ID"
+ },
+ "TRS_CALENDAR": {
+  "table": "TRS_CALENDARS",
+  "class": "TrsCalendar",
+  "columns": {
+   "CALENDAR_ID": {
+    "column": "CALENDAR_ID",
+    "kind": "int"
+   },
+   "COMPANY_ID": {
+    "column": "COMPANY_ID",
+    "kind": "int"
+   },
+   "CALENDAR_DATE": {
+    "column": "CALENDAR_DATE",
+    "kind": "date"
+   },
+   "COUNTRY_CODE": {
+    "column": "COUNTRY_CODE",
+    "kind": "string"
+   },
+   "BUSINESS_DAY_FLAG": {
+    "column": "IS_BUSINESS_DAY",
+    "kind": "flag"
+   },
+   "HOLIDAY_NAME_EN": {
+    "column": "HOLIDAY_NAME_EN",
+    "kind": "string"
+   },
+   "HOLIDAY_NAME_AR": {
+    "column": "HOLIDAY_NAME_AR",
+    "kind": "string"
+   },
+   "CBE_NON_WORKING_FLAG": {
+    "column": "IS_CBE_NON_WORKING",
+    "kind": "flag"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "CALENDAR_ID"
+ },
+ "TRS_CREDIT_FACILITIES": {
+  "table": "TRS_CREDIT_FACILITIES",
+  "class": "TrsCreditFacility",
+  "columns": {
+   "FACILITY_ID": {
+    "column": "FACILITY_ID",
+    "kind": "int"
+   },
+   "COMPANY_ID": {
+    "column": "COMPANY_ID",
+    "kind": "int"
+   },
+   "FACILITY_REF": {
+    "column": "FACILITY_REF",
+    "kind": "string"
+   },
+   "BANK_ID": {
+    "column": "BANK_ID",
+    "kind": "int"
+   },
+   "FACILITY_TYPE_CODE": {
+    "column": "FACILITY_TYPE_CODE",
+    "kind": "string"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "APPROVED_LIMIT": {
+    "column": "APPROVED_LIMIT",
+    "kind": "decimal"
+   },
+   "OUTSTANDING_BALANCE": {
+    "column": "OUTSTANDING_BALANCE",
+    "kind": "decimal"
+   },
+   "AVAILABLE_BALANCE": {
+    "column": "AVAILABLE_BALANCE",
+    "kind": "decimal"
+   },
+   "INTEREST_RATE_TYPE": {
+    "column": "INTEREST_RATE_TYPE",
+    "kind": "string"
+   },
+   "BASE_RATE_CODE": {
+    "column": "BASE_RATE_CODE",
+    "kind": "string"
+   },
+   "MARGIN_BPS": {
+    "column": "MARGIN_BPS",
+    "kind": "decimal"
+   },
+   "ALL_IN_RATE_PCT": {
+    "column": "ALL_IN_RATE_PCT",
+    "kind": "decimal"
+   },
+   "START_DATE": {
+    "column": "START_DATE",
+    "kind": "date"
+   },
+   "MATURITY_DATE": {
+    "column": "MATURITY_DATE",
+    "kind": "date"
+   },
+   "GRACE_PERIOD_MONTHS": {
+    "column": "GRACE_PERIOD_MONTHS",
+    "kind": "int"
+   },
+   "AMORTIZATION_TYPE": {
+    "column": "AMORTIZATION_TYPE",
+    "kind": "string"
+   },
+   "SECURITY_DESCRIPTION_EN": {
+    "column": "SECURITY_DESCRIPTION_EN",
+    "kind": "string"
+   },
+   "SECURITY_DESCRIPTION_AR": {
+    "column": "SECURITY_DESCRIPTION_AR",
+    "kind": "string"
+   },
+   "FACILITY_STATUS": {
+    "column": "FACILITY_STATUS",
+    "kind": "string"
+   },
+   "FRA_REGISTRATION_REF": {
+    "column": "FRA_REGISTRATION_REF",
+    "kind": "string"
+   },
+   "TERM_SHEET_DOC_ID": {
+    "column": "TERM_SHEET_DOC_ID",
+    "kind": "int"
+   },
+   "SIGNED_CONTRACT_DOC_ID": {
+    "column": "SIGNED_CONTRACT_DOC_ID",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "REVOLVING_FLAG": {
+    "column": "IS_REVOLVING",
+    "kind": "flag"
+   },
+   "NFA_UTILIZED_AMOUNT": {
+    "column": "NFA_UTILIZED_AMOUNT",
+    "kind": "decimal"
+   },
+   "INTEREST_DAY_BASIS_CODE": {
+    "column": "INTEREST_DAY_BASIS_CODE",
+    "kind": "string"
+   },
+   "REPAYMENT_FREQUENCY_CODE": {
+    "column": "REPAYMENT_FREQUENCY_CODE",
+    "kind": "string"
+   },
+   "BANK_COLLECTION_POLICY_CODE": {
+    "column": "BANK_COLLECTION_POLICY_CODE",
+    "kind": "string"
+   },
+   "ACCRUAL_FREQUENCY_CODE": {
+    "column": "ACCRUAL_FREQUENCY_CODE",
+    "kind": "string"
+   },
+   "ADJUSTMENT_POSTING_MODE_CODE": {
+    "column": "ADJUSTMENT_POSTING_MODE_CODE",
+    "kind": "string"
+   },
+   "RESERVED_BALANCE": {
+    "column": "RESERVED_BALANCE",
+    "kind": "decimal"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "FACILITY_ID"
+ },
+ "TRS_FACILITY_CALENDAR_DAYS": {
+  "table": "TRS_FACILITY_CALENDAR_DAYS",
+  "class": "TrsFacilityCalendarDay",
+  "columns": {
+   "CALENDAR_DAY_ID": {
+    "column": "CALENDAR_DAY_ID",
+    "kind": "int"
+   },
+   "BANK_ID": {
+    "column": "BANK_ID",
+    "kind": "int"
+   },
+   "CALENDAR_DATE": {
+    "column": "CALENDAR_DATE",
+    "kind": "date"
+   },
+   "IS_WORKING_DAY_YN": {
+    "column": "IS_WORKING_DAY",
+    "kind": "flag"
+   },
+   "HOLIDAY_NAME_EN": {
+    "column": "HOLIDAY_NAME_EN",
+    "kind": "string"
+   },
+   "HOLIDAY_NAME_AR": {
+    "column": "HOLIDAY_NAME_AR",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "CALENDAR_DAY_ID"
+ },
+ "TRS_FACILITY_REPAYMENT_PLAN": {
+  "table": "TRS_FACILITY_REPAYMENT_PLANS",
+  "class": "TrsFacilityRepaymentPlan",
+  "columns": {
+   "REPAYMENT_PLAN_ID": {
+    "column": "REPAYMENT_PLAN_ID",
+    "kind": "int"
+   },
+   "RUNOFF_CASE_ID": {
+    "column": "RUNOFF_CASE_ID",
+    "kind": "int"
+   },
+   "FACILITY_ID": {
+    "column": "FACILITY_ID",
+    "kind": "int"
+   },
+   "DRAWDOWN_ID": {
+    "column": "DRAWDOWN_ID",
+    "kind": "int"
+   },
+   "REPAYMENT_RULE_ID": {
+    "column": "REPAYMENT_RULE_ID",
+    "kind": "int"
+   },
+   "INSTALLMENT_NO": {
+    "column": "INSTALLMENT_NO",
+    "kind": "int"
+   },
+   "CONTRACTUAL_DUE_DATE": {
+    "column": "CONTRACTUAL_DUE_DATE",
+    "kind": "date"
+   },
+   "MANUAL_BANK_COLLECTION_DATE": {
+    "column": "MANUAL_BANK_COLLECTION_DATE",
+    "kind": "date"
+   },
+   "BANK_COLLECTION_DATE": {
+    "column": "BANK_COLLECTION_DATE",
+    "kind": "date"
+   },
+   "PERIOD_START_DATE": {
+    "column": "PERIOD_START_DATE",
+    "kind": "date"
+   },
+   "PERIOD_END_DATE": {
+    "column": "PERIOD_END_DATE",
+    "kind": "date"
+   },
+   "OPENING_BALANCE": {
+    "column": "OPENING_BALANCE",
+    "kind": "decimal"
+   },
+   "PRINCIPAL_DUE_AMOUNT": {
+    "column": "PRINCIPAL_DUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "INTEREST_DUE_AMOUNT": {
+    "column": "INTEREST_DUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "FEE_DUE_AMOUNT": {
+    "column": "FEE_DUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "TOTAL_DUE_AMOUNT": {
+    "column": "TOTAL_DUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "CLOSING_BALANCE": {
+    "column": "CLOSING_BALANCE",
+    "kind": "decimal"
+   },
+   "PLAN_SOURCE_CODE": {
+    "column": "PLAN_SOURCE_CODE",
+    "kind": "string"
+   },
+   "PLAN_STATUS_CODE": {
+    "column": "PLAN_STATUS_CODE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "DAY_COUNT": {
+    "column": "DAY_COUNT",
+    "kind": "int"
+   },
+   "ANNUAL_RATE_PCT": {
+    "column": "ANNUAL_RATE_PCT",
+    "kind": "decimal"
+   },
+   "CLIENT_INTEREST_RATE_PCT": {
+    "column": "CLIENT_INTEREST_RATE_PCT",
+    "kind": "decimal"
+   },
+   "CLIENT_INTEREST_DUE_AMOUNT": {
+    "column": "CLIENT_INTEREST_DUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "REPAYMENT_PLAN_ID"
+ },
+ "TRS_FACILITY_RUNOFF_OPTIONS": {
+  "table": "TRS_FACILITY_RUNOFF_OPTIONS",
+  "class": "TrsFacilityRunoffOption",
+  "columns": {
+   "RUNOFF_OPTIONS_ID": {
+    "column": "RUNOFF_OPTIONS_ID",
+    "kind": "int"
+   },
+   "RUNOFF_CASE_ID": {
+    "column": "RUNOFF_CASE_ID",
+    "kind": "int"
+   },
+   "INTEREST_DAY_BASIS_CODE": {
+    "column": "INTEREST_DAY_BASIS_CODE",
+    "kind": "string"
+   },
+   "REPAYMENT_FREQUENCY_CODE": {
+    "column": "REPAYMENT_FREQUENCY_CODE",
+    "kind": "string"
+   },
+   "AMORTIZATION_TYPE_CODE": {
+    "column": "AMORTIZATION_TYPE_CODE",
+    "kind": "string"
+   },
+   "BANK_COLLECTION_POLICY_CODE": {
+    "column": "BANK_COLLECTION_POLICY_CODE",
+    "kind": "string"
+   },
+   "ACCRUAL_FREQUENCY_CODE": {
+    "column": "ACCRUAL_FREQUENCY_CODE",
+    "kind": "string"
+   },
+   "RATE_MODE_CODE": {
+    "column": "RATE_MODE_CODE",
+    "kind": "string"
+   },
+   "ADJUSTMENT_POSTING_MODE_CODE": {
+    "column": "ADJUSTMENT_POSTING_MODE_CODE",
+    "kind": "string"
+   },
+   "GENERATE_ACCOUNTING_YN": {
+    "column": "IS_GENERATE_ACCOUNTING",
+    "kind": "flag"
+   },
+   "MIRROR_FACTORING_RUNOFF_YN": {
+    "column": "IS_MIRROR_FACTORING_RUNOFF",
+    "kind": "flag"
+   },
+   "INCLUDE_FEES_YN": {
+    "column": "IS_INCLUDE_FEES",
+    "kind": "flag"
+   },
+   "NO_BANK_LATE_FEE_YN": {
+    "column": "IS_NO_BANK_LATE_FEE",
+    "kind": "flag"
+   },
+   "PREVIEW_TARGET_CODE": {
+    "column": "PREVIEW_TARGET_CODE",
+    "kind": "string"
+   },
+   "PREVIEW_COLLECTION_NAME": {
+    "column": "PREVIEW_COLLECTION_NAME",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "ROW_VERSION": {
+    "column": "ROW_VERSION",
+    "kind": "audit"
+   }
+  },
+  "pk": "RUNOFF_OPTIONS_ID"
+ }
+}

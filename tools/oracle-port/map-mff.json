@@ -1,0 +1,3930 @@
+{
+ "MFF_ACCOUNTING_ENTRIES": {
+  "table": "MFF_ACCOUNTING_ENTRIES",
+  "class": "MffAccountingEntry",
+  "columns": {
+   "ENTRY_ID": {
+    "column": "ENTRY_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "EVENT_CODE": {
+    "column": "EVENT_CODE",
+    "kind": "string"
+   },
+   "ENTRY_DATE": {
+    "column": "ENTRY_DATE",
+    "kind": "date"
+   },
+   "GL_ACCOUNT_CODE": {
+    "column": "GL_ACCOUNT_CODE",
+    "kind": "string"
+   },
+   "DEBIT_AMOUNT": {
+    "column": "DEBIT_AMOUNT",
+    "kind": "decimal"
+   },
+   "CREDIT_AMOUNT": {
+    "column": "CREDIT_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "REFERENCE_NO": {
+    "column": "REFERENCE_NO",
+    "kind": "string"
+   },
+   "POSTING_STATUS": {
+    "column": "POSTING_STATUS",
+    "kind": "string"
+   },
+   "CORE_JOURNAL_REF": {
+    "column": "CORE_JOURNAL_REF",
+    "kind": "string"
+   },
+   "DESCRIPTION_AR": {
+    "column": "DESCRIPTION_AR",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "ENTRY_ID"
+ },
+ "MFF_APPEALS": {
+  "table": "MFF_APPEALS",
+  "class": "MffAppeal",
+  "columns": {
+   "APPEAL_ID": {
+    "column": "APPEAL_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "APPEAL_DATE": {
+    "column": "APPEAL_DATE",
+    "kind": "date"
+   },
+   "REJECTION_DECISION_ID": {
+    "column": "REJECTION_DECISION_ID",
+    "kind": "int"
+   },
+   "REASON_AR": {
+    "column": "REASON_AR",
+    "kind": "string"
+   },
+   "DECISION_CODE": {
+    "column": "DECISION_CODE",
+    "kind": "string"
+   },
+   "DECISION_DATE": {
+    "column": "DECISION_DATE",
+    "kind": "date"
+   },
+   "DECISION_REASON_AR": {
+    "column": "DECISION_REASON_AR",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "APPEAL_ID"
+ },
+ "MFF_APPLICATIONS": {
+  "table": "MFF_APPLICATIONS",
+  "class": "MffApplication",
+  "columns": {
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "APPLICATION_NO": {
+    "column": "APPLICATION_NO",
+    "kind": "string"
+   },
+   "IMPORT_STAGING_ID": {
+    "column": "IMPORT_STAGING_ID",
+    "kind": "int"
+   },
+   "PROGRAM_VERSION_ID": {
+    "column": "PROGRAM_VERSION_ID",
+    "kind": "int"
+   },
+   "FINANCIER_ID": {
+    "column": "FINANCIER_ID",
+    "kind": "int"
+   },
+   "FUND_ORG_ID": {
+    "column": "FUND_ORG_ID",
+    "kind": "int"
+   },
+   "SOURCE_CHANNEL_CODE": {
+    "column": "SOURCE_CHANNEL_CODE",
+    "kind": "string"
+   },
+   "PRIMARY_PERSON_ID": {
+    "column": "PRIMARY_PERSON_ID",
+    "kind": "int"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "APPLICATION_DATE": {
+    "column": "APPLICATION_DATE",
+    "kind": "date"
+   },
+   "FUND_FILE_NO": {
+    "column": "FUND_FILE_NO",
+    "kind": "string"
+   },
+   "ELIGIBILITY_CERT_NO": {
+    "column": "ELIGIBILITY_CERT_NO",
+    "kind": "string"
+   },
+   "ELIGIBILITY_CERT_DATE": {
+    "column": "ELIGIBILITY_CERT_DATE",
+    "kind": "date"
+   },
+   "ELIGIBILITY_CERT_EXPIRY": {
+    "column": "ELIGIBILITY_CERT_EXPIRY_DATE",
+    "kind": "date"
+   },
+   "REQUESTED_FINANCE_AMOUNT": {
+    "column": "REQUESTED_FINANCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "APPROVED_FINANCE_AMOUNT": {
+    "column": "APPROVED_FINANCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "TOTAL_SUBSIDY_AMOUNT": {
+    "column": "TOTAL_SUBSIDY_AMOUNT",
+    "kind": "decimal"
+   },
+   "PROPERTY_PRICE": {
+    "column": "PROPERTY_PRICE",
+    "kind": "decimal"
+   },
+   "DOWNPAYMENT_AMOUNT": {
+    "column": "DOWNPAYMENT_AMOUNT",
+    "kind": "decimal"
+   },
+   "MONTHLY_INCOME_TOTAL": {
+    "column": "MONTHLY_INCOME_TOTAL",
+    "kind": "decimal"
+   },
+   "REJECTION_REASON": {
+    "column": "REJECTION_REASON",
+    "kind": "string"
+   },
+   "CURRENT_OWNER_USER": {
+    "column": "CURRENT_OWNER_USER",
+    "kind": "string"
+   },
+   "BRANCH_CODE": {
+    "column": "BRANCH_CODE",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "APPLICATION_ID"
+ },
+ "MFF_APPLICATION_DOCUMENTS": {
+  "table": "MFF_APPLICATION_DOCUMENTS",
+  "class": "MffApplicationDocument",
+  "columns": {
+   "DOCUMENT_ID": {
+    "column": "DOCUMENT_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "PERSON_ID": {
+    "column": "PERSON_ID",
+    "kind": "int"
+   },
+   "DOCUMENT_TYPE_CODE": {
+    "column": "DOCUMENT_TYPE_CODE",
+    "kind": "string"
+   },
+   "FILE_NAME": {
+    "column": "FILE_NAME",
+    "kind": "string"
+   },
+   "MIME_TYPE": {
+    "column": "MIME_TYPE",
+    "kind": "string"
+   },
+   "FILE_SIZE_BYTES": {
+    "column": "FILE_SIZE_BYTES",
+    "kind": "int"
+   },
+   "FILE_CONTENT": {
+    "column": "FILE_CONTENT",
+    "kind": "blob"
+   },
+   "DOCUMENT_NO": {
+    "column": "DOCUMENT_NO",
+    "kind": "string"
+   },
+   "ISSUE_DATE": {
+    "column": "ISSUE_DATE",
+    "kind": "date"
+   },
+   "EXPIRY_DATE": {
+    "column": "EXPIRY_DATE",
+    "kind": "date"
+   },
+   "RECEIVED_DATE": {
+    "column": "RECEIVED_DATE",
+    "kind": "date"
+   },
+   "VERIFICATION_STATUS": {
+    "column": "VERIFICATION_STATUS",
+    "kind": "string"
+   },
+   "VERIFIED_BY": {
+    "column": "VERIFIED_BY",
+    "kind": "string"
+   },
+   "VERIFIED_AT": {
+    "column": "VERIFIED_AT",
+    "kind": "datetime"
+   },
+   "REJECTION_REASON": {
+    "column": "REJECTION_REASON",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "DOCUMENT_ID"
+ },
+ "MFF_APPLICATION_PARTIES": {
+  "table": "MFF_APPLICATION_PARTIES",
+  "class": "MffApplicationParty",
+  "columns": {
+   "APPLICATION_PARTY_ID": {
+    "column": "APPLICATION_PARTY_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "PERSON_ID": {
+    "column": "PERSON_ID",
+    "kind": "int"
+   },
+   "PARTY_ROLE_CODE": {
+    "column": "PARTY_ROLE_CODE",
+    "kind": "string"
+   },
+   "INCOME_INCLUDED_FLAG": {
+    "column": "IS_INCOME_INCLUDED",
+    "kind": "flag"
+   },
+   "OWNERSHIP_SHARE_PCT": {
+    "column": "OWNERSHIP_SHARE_PCT",
+    "kind": "decimal"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "APPLICATION_PARTY_ID"
+ },
+ "MFF_APPLICATION_PROPERTY": {
+  "table": "MFF_APPLICATION_PROPERTIES",
+  "class": "MffApplicationProperty",
+  "columns": {
+   "APP_PROPERTY_ID": {
+    "column": "APP_PROPERTY_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "PROPERTY_ID": {
+    "column": "PROPERTY_ID",
+    "kind": "int"
+   },
+   "REQUESTED_PRICE": {
+    "column": "REQUESTED_PRICE",
+    "kind": "decimal"
+   },
+   "SELECTED_FLAG": {
+    "column": "IS_SELECTED",
+    "kind": "flag"
+   },
+   "SELECTION_DATE": {
+    "column": "SELECTION_DATE",
+    "kind": "date"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "APP_PROPERTY_ID"
+ },
+ "MFF_APPLICATION_STATUS_HIST": {
+  "table": "MFF_APPLICATION_STATUS_HIST",
+  "class": "MffApplicationStatusHist",
+  "columns": {
+   "STATUS_HIST_ID": {
+    "column": "STATUS_HIST_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "OLD_STATUS_CODE": {
+    "column": "OLD_STATUS_CODE",
+    "kind": "string"
+   },
+   "NEW_STATUS_CODE": {
+    "column": "NEW_STATUS_CODE",
+    "kind": "string"
+   },
+   "CHANGED_AT": {
+    "column": "CHANGED_AT",
+    "kind": "datetime"
+   },
+   "CHANGED_BY": {
+    "column": "CHANGED_BY",
+    "kind": "string"
+   },
+   "ROLE_CODE": {
+    "column": "ROLE_CODE",
+    "kind": "string"
+   },
+   "REMARKS_AR": {
+    "column": "REMARKS_AR",
+    "kind": "string"
+   }
+  },
+  "pk": "STATUS_HIST_ID"
+ },
+ "MFF_APPRAISALS": {
+  "table": "MFF_APPRAISALS",
+  "class": "MffAppraisal",
+  "columns": {
+   "APPRAISAL_ID": {
+    "column": "APPRAISAL_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "PROPERTY_ID": {
+    "column": "PROPERTY_ID",
+    "kind": "int"
+   },
+   "APPRAISER_ORG_ID": {
+    "column": "APPRAISER_ORG_ID",
+    "kind": "int"
+   },
+   "APPRAISER_NAME": {
+    "column": "APPRAISER_NAME",
+    "kind": "string"
+   },
+   "LICENSE_NO": {
+    "column": "LICENSE_NO",
+    "kind": "string"
+   },
+   "REQUEST_DATE": {
+    "column": "REQUEST_DATE",
+    "kind": "date"
+   },
+   "REPORT_DATE": {
+    "column": "REPORT_DATE",
+    "kind": "date"
+   },
+   "MARKET_VALUE": {
+    "column": "MARKET_VALUE",
+    "kind": "decimal"
+   },
+   "FORCED_SALE_VALUE": {
+    "column": "FORCED_SALE_VALUE",
+    "kind": "decimal"
+   },
+   "ACCEPTED_VALUE": {
+    "column": "ACCEPTED_VALUE",
+    "kind": "decimal"
+   },
+   "REPORT_DOCUMENT_ID": {
+    "column": "REPORT_DOCUMENT_ID",
+    "kind": "int"
+   },
+   "APPRAISAL_STATUS": {
+    "column": "APPRAISAL_STATUS",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "APPRAISAL_ID"
+ },
+ "MFF_AUDIT_LOG": {
+  "table": "MFF_AUDIT_LOGS",
+  "class": "MffAuditLog",
+  "columns": {
+   "AUDIT_ID": {
+    "column": "AUDIT_ID",
+    "kind": "int"
+   },
+   "TABLE_NAME": {
+    "column": "TABLE_NAME",
+    "kind": "string"
+   },
+   "RECORD_KEY": {
+    "column": "RECORD_KEY",
+    "kind": "string"
+   },
+   "ACTION_TYPE": {
+    "column": "ACTION_TYPE",
+    "kind": "string"
+   },
+   "OLD_DATA_JSON": {
+    "column": "OLD_DATA_JSON",
+    "kind": "text"
+   },
+   "NEW_DATA_JSON": {
+    "column": "NEW_DATA_JSON",
+    "kind": "text"
+   },
+   "ACTION_AT": {
+    "column": "ACTION_AT",
+    "kind": "datetime"
+   },
+   "ACTION_BY": {
+    "column": "ACTION_BY",
+    "kind": "string"
+   },
+   "APP_ID": {
+    "column": "APP_ID",
+    "kind": "int"
+   },
+   "PAGE_ID": {
+    "column": "PAGE_ID",
+    "kind": "int"
+   },
+   "SESSION_ID": {
+    "column": "SESSION_ID",
+    "kind": "string"
+   },
+   "CLIENT_IP": {
+    "column": "CLIENT_IP",
+    "kind": "string"
+   }
+  },
+  "pk": "AUDIT_ID"
+ },
+ "MFF_CALCULATION_RUNS": {
+  "table": "MFF_CALCULATION_RUNS",
+  "class": "MffCalculationRun",
+  "columns": {
+   "CALC_RUN_ID": {
+    "column": "CALC_RUN_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "PROGRAM_VERSION_ID": {
+    "column": "PROGRAM_VERSION_ID",
+    "kind": "int"
+   },
+   "FINANCIER_ID": {
+    "column": "FINANCIER_ID",
+    "kind": "int"
+   },
+   "RUN_TYPE": {
+    "column": "RUN_TYPE",
+    "kind": "string"
+   },
+   "INPUT_INCOME": {
+    "column": "INPUT_INCOME",
+    "kind": "decimal"
+   },
+   "INPUT_PROPERTY_VALUE": {
+    "column": "INPUT_PROPERTY_VALUE",
+    "kind": "decimal"
+   },
+   "INPUT_DOWNPAYMENT": {
+    "column": "INPUT_DOWNPAYMENT",
+    "kind": "decimal"
+   },
+   "MORTGAGE_RATE_PCT": {
+    "column": "MORTGAGE_RATE_PCT",
+    "kind": "decimal"
+   },
+   "TERM_YEARS": {
+    "column": "TERM_YEARS",
+    "kind": "decimal"
+   },
+   "PAYMENT_GROWTH_YEARS": {
+    "column": "PAYMENT_GROWTH_YEARS",
+    "kind": "decimal"
+   },
+   "WAGE_INCREASE_PCT": {
+    "column": "WAGE_INCREASE_PCT",
+    "kind": "decimal"
+   },
+   "MAX_PAYMENT_INCOME_PCT": {
+    "column": "MAX_PAYMENT_INCOME_PCT",
+    "kind": "decimal"
+   },
+   "MIN_DOWNPAYMENT_PCT": {
+    "column": "MIN_DOWNPAYMENT_PCT",
+    "kind": "decimal"
+   },
+   "MAX_DOWNPAYMENT_PCT": {
+    "column": "MAX_DOWNPAYMENT_PCT",
+    "kind": "decimal"
+   },
+   "MAX_SUBSIDY_AMOUNT": {
+    "column": "MAX_SUBSIDY_AMOUNT",
+    "kind": "decimal"
+   },
+   "DISCOUNT_FACTOR_PCT": {
+    "column": "DISCOUNT_FACTOR_PCT",
+    "kind": "decimal"
+   },
+   "INPUT_MONTHLY_SUBSIDY": {
+    "column": "INPUT_MONTHLY_SUBSIDY",
+    "kind": "decimal"
+   },
+   "INPUT_SUBSIDY_MONTHS": {
+    "column": "INPUT_SUBSIDY_MONTHS",
+    "kind": "int"
+   },
+   "OUT_BASIC_MORTGAGE": {
+    "column": "OUT_BASIC_MORTGAGE",
+    "kind": "decimal"
+   },
+   "OUT_MAX_MORTGAGE": {
+    "column": "OUT_MAX_MORTGAGE",
+    "kind": "decimal"
+   },
+   "OUT_PV_BUYDOWN_SUBSIDY": {
+    "column": "OUT_PV_BUYDOWN_SUBSIDY",
+    "kind": "decimal"
+   },
+   "OUT_DOWNPAYMENT_ASSIST": {
+    "column": "OUT_DOWNPAYMENT_ASSIST",
+    "kind": "decimal"
+   },
+   "OUT_TOTAL_SUBSIDY": {
+    "column": "OUT_TOTAL_SUBSIDY",
+    "kind": "decimal"
+   },
+   "OUT_MORTGAGE_LOAN": {
+    "column": "OUT_MORTGAGE_LOAN",
+    "kind": "decimal"
+   },
+   "OUT_INITIAL_PAYMENT": {
+    "column": "OUT_INITIAL_PAYMENT",
+    "kind": "decimal"
+   },
+   "OUT_LTV_PCT": {
+    "column": "OUT_LTV_PCT",
+    "kind": "decimal"
+   },
+   "OUT_BORROWER_DOWNPAYMENT": {
+    "column": "OUT_BORROWER_DOWNPAYMENT",
+    "kind": "decimal"
+   },
+   "OUT_MAX_PROPERTY_VALUE": {
+    "column": "OUT_MAX_PROPERTY_VALUE",
+    "kind": "decimal"
+   },
+   "OUT_PROPERTY_VALUE": {
+    "column": "OUT_PROPERTY_VALUE",
+    "kind": "decimal"
+   },
+   "OUT_MIN_PROPERTY_VALUE": {
+    "column": "OUT_MIN_PROPERTY_VALUE",
+    "kind": "decimal"
+   },
+   "HAS_NEGATIVE_AMORTIZATION": {
+    "column": "IS_NEGATIVE_AMORTIZATION",
+    "kind": "flag"
+   },
+   "WARNING_MESSAGE_AR": {
+    "column": "WARNING_MESSAGE_AR",
+    "kind": "string"
+   },
+   "CALC_STATUS": {
+    "column": "CALC_STATUS",
+    "kind": "string"
+   },
+   "SOURCE_REFERENCE": {
+    "column": "SOURCE_REFERENCE",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "CALC_RUN_ID"
+ },
+ "MFF_CALCULATION_SCHEDULE": {
+  "table": "MFF_CALCULATION_SCHEDULES",
+  "class": "MffCalculationSchedule",
+  "columns": {
+   "CALC_SCHEDULE_ID": {
+    "column": "CALC_SCHEDULE_ID",
+    "kind": "int"
+   },
+   "CALC_RUN_ID": {
+    "column": "CALC_RUN_ID",
+    "kind": "int"
+   },
+   "INSTALLMENT_NO": {
+    "column": "INSTALLMENT_NO",
+    "kind": "int"
+   },
+   "DUE_MONTH": {
+    "column": "DUE_MONTH_DATE",
+    "kind": "date"
+   },
+   "OPENING_PRINCIPAL": {
+    "column": "OPENING_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "BORROWER_PAYMENT": {
+    "column": "BORROWER_PAYMENT",
+    "kind": "decimal"
+   },
+   "SUBSIDY_PAYMENT": {
+    "column": "SUBSIDY_PAYMENT",
+    "kind": "decimal"
+   },
+   "BULLET_PAYMENT": {
+    "column": "BULLET_PAYMENT",
+    "kind": "decimal"
+   },
+   "INTEREST_AMOUNT": {
+    "column": "INTEREST_AMOUNT",
+    "kind": "decimal"
+   },
+   "PRINCIPAL_AMOUNT": {
+    "column": "PRINCIPAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "CLOSING_PRINCIPAL": {
+    "column": "CLOSING_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "CALC_SCHEDULE_ID"
+ },
+ "MFF_CONTRACTS": {
+  "table": "MFF_CONTRACTS",
+  "class": "MffContract",
+  "columns": {
+   "CONTRACT_ID": {
+    "column": "CONTRACT_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "CONTRACT_NO": {
+    "column": "CONTRACT_NO",
+    "kind": "string"
+   },
+   "CONTRACT_TYPE": {
+    "column": "CONTRACT_TYPE",
+    "kind": "string"
+   },
+   "CONTRACT_DATE": {
+    "column": "CONTRACT_DATE",
+    "kind": "date"
+   },
+   "BUYER_PERSON_ID": {
+    "column": "BUYER_PERSON_ID",
+    "kind": "int"
+   },
+   "SELLER_PERSON_ID": {
+    "column": "SELLER_PERSON_ID",
+    "kind": "int"
+   },
+   "FINANCIER_ID": {
+    "column": "FINANCIER_ID",
+    "kind": "int"
+   },
+   "PROPERTY_ID": {
+    "column": "PROPERTY_ID",
+    "kind": "int"
+   },
+   "FINANCE_AMOUNT": {
+    "column": "FINANCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "PROPERTY_PRICE": {
+    "column": "PROPERTY_PRICE",
+    "kind": "decimal"
+   },
+   "SIGNED_FLAG": {
+    "column": "IS_SIGNED",
+    "kind": "flag"
+   },
+   "DOCUMENT_ID": {
+    "column": "DOCUMENT_ID",
+    "kind": "int"
+   },
+   "CONTRACT_STATUS": {
+    "column": "CONTRACT_STATUS",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "CONTRACT_ID"
+ },
+ "MFF_CREDIT_DECISIONS": {
+  "table": "MFF_CREDIT_DECISIONS",
+  "class": "MffCreditDecision",
+  "columns": {
+   "DECISION_ID": {
+    "column": "DECISION_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "DECISION_CODE": {
+    "column": "DECISION_CODE",
+    "kind": "string"
+   },
+   "DECISION_DATE": {
+    "column": "DECISION_DATE",
+    "kind": "date"
+   },
+   "APPROVED_FINANCE_AMOUNT": {
+    "column": "APPROVED_FINANCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "APPROVED_TERM_MONTHS": {
+    "column": "APPROVED_TERM_MONTHS",
+    "kind": "int"
+   },
+   "APPROVED_RATE_PCT": {
+    "column": "APPROVED_RATE_PCT",
+    "kind": "decimal"
+   },
+   "CONDITIONS_TEXT": {
+    "column": "CONDITIONS_TEXT",
+    "kind": "string"
+   },
+   "DECIDED_BY": {
+    "column": "DECIDED_BY",
+    "kind": "string"
+   },
+   "COMMITTEE_REFERENCE": {
+    "column": "COMMITTEE_REFERENCE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "DECISION_ID"
+ },
+ "MFF_CREDIT_INQUIRIES": {
+  "table": "MFF_CREDIT_INQUIRIES",
+  "class": "MffCreditInquiry",
+  "columns": {
+   "INQUIRY_ID": {
+    "column": "INQUIRY_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "BUREAU_ORG_ID": {
+    "column": "BUREAU_ORG_ID",
+    "kind": "int"
+   },
+   "REQUEST_DATE": {
+    "column": "REQUEST_DATE",
+    "kind": "date"
+   },
+   "RESPONSE_DATE": {
+    "column": "RESPONSE_DATE",
+    "kind": "date"
+   },
+   "CREDIT_SCORE": {
+    "column": "CREDIT_SCORE",
+    "kind": "decimal"
+   },
+   "RESULT_CODE": {
+    "column": "RESULT_CODE",
+    "kind": "string"
+   },
+   "REFERENCE_NO": {
+    "column": "REFERENCE_NO",
+    "kind": "string"
+   },
+   "REPORT_DOCUMENT_ID": {
+    "column": "REPORT_DOCUMENT_ID",
+    "kind": "int"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "INQUIRY_ID"
+ },
+ "MFF_CREDIT_STUDIES": {
+  "table": "MFF_CREDIT_STUDIES",
+  "class": "MffCreditStudy",
+  "columns": {
+   "CREDIT_STUDY_ID": {
+    "column": "CREDIT_STUDY_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "ANALYST_USER": {
+    "column": "ANALYST_USER",
+    "kind": "string"
+   },
+   "STUDY_DATE": {
+    "column": "STUDY_DATE",
+    "kind": "date"
+   },
+   "VERIFIED_INCOME_AMOUNT": {
+    "column": "VERIFIED_INCOME_AMOUNT",
+    "kind": "decimal"
+   },
+   "MONTHLY_OBLIGATIONS_AMOUNT": {
+    "column": "MONTHLY_OBLIGATIONS_AMOUNT",
+    "kind": "decimal"
+   },
+   "DISPOSABLE_INCOME_AMOUNT": {
+    "column": "DISPOSABLE_INCOME_AMOUNT",
+    "kind": "decimal"
+   },
+   "PROPOSED_FINANCE_AMOUNT": {
+    "column": "PROPOSED_FINANCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "PROPOSED_TERM_MONTHS": {
+    "column": "PROPOSED_TERM_MONTHS",
+    "kind": "int"
+   },
+   "PROPOSED_RATE_PCT": {
+    "column": "PROPOSED_RATE_PCT",
+    "kind": "decimal"
+   },
+   "INSTALLMENT_INCOME_PCT": {
+    "column": "INSTALLMENT_INCOME_PCT",
+    "kind": "decimal"
+   },
+   "LTV_PCT": {
+    "column": "LTV_PCT",
+    "kind": "decimal"
+   },
+   "RECOMMENDATION_CODE": {
+    "column": "RECOMMENDATION_CODE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "text"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "CREDIT_STUDY_ID"
+ },
+ "MFF_DELINQUENCIES": {
+  "table": "MFF_DELINQUENCIES",
+  "class": "MffDelinquency",
+  "columns": {
+   "DELINQUENCY_ID": {
+    "column": "DELINQUENCY_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "START_DATE": {
+    "column": "START_DATE",
+    "kind": "date"
+   },
+   "END_DATE": {
+    "column": "END_DATE",
+    "kind": "date"
+   },
+   "STAGE_CODE": {
+    "column": "STAGE_CODE",
+    "kind": "string"
+   },
+   "DAYS_PAST_DUE": {
+    "column": "DAYS_PAST_DUE",
+    "kind": "int"
+   },
+   "OVERDUE_AMOUNT": {
+    "column": "OVERDUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "OVERDUE_INSTALLMENTS": {
+    "column": "OVERDUE_INSTALLMENTS",
+    "kind": "int"
+   },
+   "STATUS": {
+    "column": "DELINQUENCY_STATUS",
+    "kind": "string"
+   },
+   "COLLECTION_ACTION_AR": {
+    "column": "COLLECTION_ACTION_AR",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "DELINQUENCY_ID"
+ },
+ "MFF_EARLY_SETTLEMENTS": {
+  "table": "MFF_EARLY_SETTLEMENTS",
+  "class": "MffEarlySettlement",
+  "columns": {
+   "SETTLEMENT_ID": {
+    "column": "SETTLEMENT_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "REQUEST_DATE": {
+    "column": "REQUEST_DATE",
+    "kind": "date"
+   },
+   "SETTLEMENT_DATE": {
+    "column": "SETTLEMENT_DATE",
+    "kind": "date"
+   },
+   "SETTLEMENT_TYPE": {
+    "column": "SETTLEMENT_TYPE",
+    "kind": "string"
+   },
+   "PRINCIPAL_SETTLED": {
+    "column": "PRINCIPAL_SETTLED",
+    "kind": "decimal"
+   },
+   "FINANCE_PCT_SETTLED": {
+    "column": "FINANCE_PCT_SETTLED",
+    "kind": "decimal"
+   },
+   "SUBSIDY_REFUND_PCT": {
+    "column": "SUBSIDY_REFUND_PCT",
+    "kind": "decimal"
+   },
+   "SUBSIDY_REFUND_AMOUNT": {
+    "column": "SUBSIDY_REFUND_AMOUNT",
+    "kind": "decimal"
+   },
+   "STATUS": {
+    "column": "EARLY_SETTLEMENT_STATUS",
+    "kind": "string"
+   },
+   "APPROVED_BY": {
+    "column": "APPROVED_BY",
+    "kind": "string"
+   },
+   "NOTES_AR": {
+    "column": "NOTES_AR",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "SETTLEMENT_ID"
+ },
+ "MFF_FINANCE_OFFERS": {
+  "table": "MFF_FINANCE_OFFERS",
+  "class": "MffFinanceOffer",
+  "columns": {
+   "OFFER_ID": {
+    "column": "OFFER_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "OFFER_NO": {
+    "column": "OFFER_NO",
+    "kind": "string"
+   },
+   "OFFER_DATE": {
+    "column": "OFFER_DATE",
+    "kind": "date"
+   },
+   "EXPIRY_DATE": {
+    "column": "EXPIRY_DATE",
+    "kind": "date"
+   },
+   "FINANCE_AMOUNT": {
+    "column": "FINANCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "TERM_MONTHS": {
+    "column": "TERM_MONTHS",
+    "kind": "int"
+   },
+   "ANNUAL_RATE_PCT": {
+    "column": "ANNUAL_RATE_PCT",
+    "kind": "decimal"
+   },
+   "INITIAL_INSTALLMENT": {
+    "column": "INITIAL_INSTALLMENT",
+    "kind": "decimal"
+   },
+   "DOWNPAYMENT_AMOUNT": {
+    "column": "DOWNPAYMENT_AMOUNT",
+    "kind": "decimal"
+   },
+   "SUBSIDY_AMOUNT": {
+    "column": "SUBSIDY_AMOUNT",
+    "kind": "decimal"
+   },
+   "LTV_PCT": {
+    "column": "LTV_PCT",
+    "kind": "decimal"
+   },
+   "OFFER_STATUS": {
+    "column": "OFFER_STATUS",
+    "kind": "string"
+   },
+   "ACCEPTED_DATE": {
+    "column": "ACCEPTED_DATE",
+    "kind": "date"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "OFFER_ID"
+ },
+ "MFF_GL_ACCOUNT_MAP": {
+  "table": "MFF_GL_ACCOUNT_MAPS",
+  "class": "MffGlAccountMap",
+  "columns": {
+   "MAP_ID": {
+    "column": "MAP_ID",
+    "kind": "int"
+   },
+   "FINANCIER_ID": {
+    "column": "FINANCIER_ID",
+    "kind": "int"
+   },
+   "EVENT_CODE": {
+    "column": "EVENT_CODE",
+    "kind": "string"
+   },
+   "DEBIT_ACCOUNT": {
+    "column": "DEBIT_ACCOUNT",
+    "kind": "string"
+   },
+   "CREDIT_ACCOUNT": {
+    "column": "CREDIT_ACCOUNT",
+    "kind": "string"
+   },
+   "EFFECTIVE_FROM": {
+    "column": "EFFECTIVE_FROM_DATE",
+    "kind": "date"
+   },
+   "EFFECTIVE_TO": {
+    "column": "EFFECTIVE_TO_DATE",
+    "kind": "date"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "MAP_ID"
+ },
+ "MFF_HOUSING_ANNOUNCEMENTS": {
+  "table": "MFF_HOUSING_ANNOUNCEMENTS",
+  "class": "MffHousingAnnouncement",
+  "columns": {
+   "ANNOUNCEMENT_ID": {
+    "column": "ANNOUNCEMENT_ID",
+    "kind": "int"
+   },
+   "ANNOUNCEMENT_CODE": {
+    "column": "ANNOUNCEMENT_CODE",
+    "kind": "string"
+   },
+   "ANNOUNCEMENT_NAME_AR": {
+    "column": "ANNOUNCEMENT_NAME_AR",
+    "kind": "string"
+   },
+   "ISSUE_DATE": {
+    "column": "ISSUE_DATE",
+    "kind": "date"
+   },
+   "CLOSE_DATE": {
+    "column": "CLOSE_DATE",
+    "kind": "date"
+   },
+   "SOURCE_REFERENCE": {
+    "column": "SOURCE_REFERENCE",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "ANNOUNCEMENT_ID"
+ },
+ "MFF_HOUSING_PROJECTS": {
+  "table": "MFF_HOUSING_PROJECTS",
+  "class": "MffHousingProject",
+  "columns": {
+   "PROJECT_ID": {
+    "column": "PROJECT_ID",
+    "kind": "int"
+   },
+   "PROJECT_CODE": {
+    "column": "PROJECT_CODE",
+    "kind": "string"
+   },
+   "ANNOUNCEMENT_ID": {
+    "column": "ANNOUNCEMENT_ID",
+    "kind": "int"
+   },
+   "PROJECT_NAME_AR": {
+    "column": "PROJECT_NAME_AR",
+    "kind": "string"
+   },
+   "GOVERNORATE_CODE": {
+    "column": "GOVERNORATE_CODE",
+    "kind": "string"
+   },
+   "CITY_CODE": {
+    "column": "CITY_CODE",
+    "kind": "string"
+   },
+   "DISTRICT_AR": {
+    "column": "DISTRICT_AR",
+    "kind": "string"
+   },
+   "NEIGHBORHOOD_AR": {
+    "column": "NEIGHBORHOOD_AR",
+    "kind": "string"
+   },
+   "SITE_DESCRIPTION": {
+    "column": "SITE_DESCRIPTION",
+    "kind": "string"
+   },
+   "DEFAULT_AREA_SQM": {
+    "column": "DEFAULT_AREA_SQM",
+    "kind": "decimal"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "PROJECT_ID"
+ },
+ "MFF_IMPORT_BATCHES": {
+  "table": "MFF_IMPORT_BATCHES",
+  "class": "MffImportBatch",
+  "columns": {
+   "BATCH_ID": {
+    "column": "BATCH_ID",
+    "kind": "int"
+   },
+   "SOURCE_CHANNEL_CODE": {
+    "column": "SOURCE_CHANNEL_CODE",
+    "kind": "string"
+   },
+   "FILE_NAME": {
+    "column": "FILE_NAME",
+    "kind": "string"
+   },
+   "RECEIVED_AT": {
+    "column": "RECEIVED_AT",
+    "kind": "datetime"
+   },
+   "PROGRAM_VERSION_ID": {
+    "column": "PROGRAM_VERSION_ID",
+    "kind": "int"
+   },
+   "FINANCIER_ID": {
+    "column": "FINANCIER_ID",
+    "kind": "int"
+   },
+   "FUND_ORG_ID": {
+    "column": "FUND_ORG_ID",
+    "kind": "int"
+   },
+   "ROW_COUNT": {
+    "column": "ROW_COUNT",
+    "kind": "int"
+   },
+   "VALID_COUNT": {
+    "column": "VALID_COUNT",
+    "kind": "int"
+   },
+   "ERROR_COUNT": {
+    "column": "ERROR_COUNT",
+    "kind": "int"
+   },
+   "BATCH_STATUS": {
+    "column": "BATCH_STATUS",
+    "kind": "string"
+   },
+   "FILE_CHECKSUM": {
+    "column": "FILE_CHECKSUM",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "BATCH_ID"
+ },
+ "MFF_IMPORT_STAGING": {
+  "table": "MFF_IMPORT_STAGINGS",
+  "class": "MffImportStaging",
+  "columns": {
+   "STAGING_ID": {
+    "column": "STAGING_ID",
+    "kind": "int"
+   },
+   "BATCH_ID": {
+    "column": "BATCH_ID",
+    "kind": "int"
+   },
+   "SOURCE_ROW_NO": {
+    "column": "SOURCE_ROW_NO",
+    "kind": "int"
+   },
+   "APPLICANT_NAME_AR": {
+    "column": "APPLICANT_NAME_AR",
+    "kind": "string"
+   },
+   "APPLICANT_NATIONAL_ID": {
+    "column": "APPLICANT_NATIONAL_ID",
+    "kind": "string"
+   },
+   "SPOUSE_NAME_AR": {
+    "column": "SPOUSE_NAME_AR",
+    "kind": "string"
+   },
+   "SPOUSE_NATIONAL_ID": {
+    "column": "SPOUSE_NATIONAL_ID",
+    "kind": "string"
+   },
+   "MARITAL_STATUS_RAW": {
+    "column": "MARITAL_STATUS_RAW",
+    "kind": "string"
+   },
+   "MONTHLY_INCOME": {
+    "column": "MONTHLY_INCOME",
+    "kind": "decimal"
+   },
+   "CUSTOMER_DOWNPAYMENT": {
+    "column": "CUSTOMER_DOWNPAYMENT",
+    "kind": "decimal"
+   },
+   "TOTAL_SUBSIDY": {
+    "column": "TOTAL_SUBSIDY",
+    "kind": "decimal"
+   },
+   "UNIT_PRICE": {
+    "column": "UNIT_PRICE",
+    "kind": "decimal"
+   },
+   "MAINTENANCE_DEPOSIT": {
+    "column": "MAINTENANCE_DEPOSIT",
+    "kind": "decimal"
+   },
+   "FINANCE_AMOUNT": {
+    "column": "FINANCE_AMOUNT",
+    "kind": "decimal"
+   },
+   "ANNOUNCEMENT_RAW": {
+    "column": "ANNOUNCEMENT_RAW",
+    "kind": "string"
+   },
+   "PROJECT_RAW": {
+    "column": "PROJECT_RAW",
+    "kind": "string"
+   },
+   "GOVERNORATE_RAW": {
+    "column": "GOVERNORATE_RAW",
+    "kind": "string"
+   },
+   "CITY_RAW": {
+    "column": "CITY_RAW",
+    "kind": "string"
+   },
+   "DISTRICT_RAW": {
+    "column": "DISTRICT_RAW",
+    "kind": "string"
+   },
+   "AREA_SQM": {
+    "column": "AREA_SQM",
+    "kind": "decimal"
+   },
+   "NEIGHBORHOOD_RAW": {
+    "column": "NEIGHBORHOOD_RAW",
+    "kind": "string"
+   },
+   "BUILDING_NO": {
+    "column": "BUILDING_NO",
+    "kind": "string"
+   },
+   "FLOOR_NO": {
+    "column": "FLOOR_NO",
+    "kind": "string"
+   },
+   "UNIT_NO": {
+    "column": "UNIT_NO",
+    "kind": "string"
+   },
+   "SITE_RAW": {
+    "column": "SITE_RAW",
+    "kind": "string"
+   },
+   "MOBILE_NO": {
+    "column": "MOBILE_NO",
+    "kind": "string"
+   },
+   "VALIDATION_STATUS": {
+    "column": "VALIDATION_STATUS",
+    "kind": "string"
+   },
+   "ERROR_MESSAGE": {
+    "column": "ERROR_MESSAGE",
+    "kind": "string"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "STAGING_ID"
+ },
+ "MFF_INCOME_SOURCES": {
+  "table": "MFF_INCOME_SOURCES",
+  "class": "MffIncomeSource",
+  "columns": {
+   "INCOME_ID": {
+    "column": "INCOME_ID",
+    "kind": "int"
+   },
+   "APPLICATION_PARTY_ID": {
+    "column": "APPLICATION_PARTY_ID",
+    "kind": "int"
+   },
+   "INCOME_TYPE_CODE": {
+    "column": "INCOME_TYPE_CODE",
+    "kind": "string"
+   },
+   "EMPLOYER_NAME": {
+    "column": "EMPLOYER_NAME",
+    "kind": "string"
+   },
+   "MONTHLY_NET_INCOME": {
+    "column": "MONTHLY_NET_INCOME",
+    "kind": "decimal"
+   },
+   "ANNUAL_NET_INCOME": {
+    "column": "ANNUAL_NET_INCOME",
+    "kind": "decimal"
+   },
+   "VERIFIED_FLAG": {
+    "column": "IS_VERIFIED",
+    "kind": "flag"
+   },
+   "VERIFICATION_DATE": {
+    "column": "VERIFICATION_DATE",
+    "kind": "date"
+   },
+   "SOURCE_REFERENCE": {
+    "column": "SOURCE_REFERENCE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "INCOME_ID"
+ },
+ "MFF_INSTALLMENTS": {
+  "table": "MFF_INSTALLMENTS",
+  "class": "MffInstallment",
+  "columns": {
+   "INSTALLMENT_ID": {
+    "column": "INSTALLMENT_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "INSTALLMENT_NO": {
+    "column": "INSTALLMENT_NO",
+    "kind": "int"
+   },
+   "DUE_DATE": {
+    "column": "DUE_DATE",
+    "kind": "date"
+   },
+   "OPENING_PRINCIPAL": {
+    "column": "OPENING_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "PRINCIPAL_DUE": {
+    "column": "PRINCIPAL_DUE",
+    "kind": "decimal"
+   },
+   "INTEREST_DUE": {
+    "column": "INTEREST_DUE",
+    "kind": "decimal"
+   },
+   "INSURANCE_DUE": {
+    "column": "INSURANCE_DUE",
+    "kind": "decimal"
+   },
+   "FEES_DUE": {
+    "column": "FEES_DUE",
+    "kind": "decimal"
+   },
+   "SUBSIDY_DUE": {
+    "column": "SUBSIDY_DUE",
+    "kind": "decimal"
+   },
+   "BORROWER_DUE": {
+    "column": "BORROWER_DUE",
+    "kind": "decimal"
+   },
+   "TOTAL_DUE": {
+    "column": "TOTAL_DUE",
+    "kind": "decimal"
+   },
+   "PAID_AMOUNT": {
+    "column": "PAID_AMOUNT",
+    "kind": "decimal"
+   },
+   "PAYMENT_STATUS_CODE": {
+    "column": "PAYMENT_STATUS_CODE",
+    "kind": "string"
+   },
+   "PAID_DATE": {
+    "column": "PAID_DATE",
+    "kind": "date"
+   },
+   "CLOSING_PRINCIPAL": {
+    "column": "CLOSING_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "INSTALLMENT_ID"
+ },
+ "MFF_INSURANCE_POLICIES": {
+  "table": "MFF_INSURANCE_POLICIES",
+  "class": "MffInsurancePolicy",
+  "columns": {
+   "POLICY_ID": {
+    "column": "POLICY_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "INSURER_ORG_ID": {
+    "column": "INSURER_ORG_ID",
+    "kind": "int"
+   },
+   "POLICY_NO": {
+    "column": "POLICY_NO",
+    "kind": "string"
+   },
+   "POLICY_TYPE": {
+    "column": "POLICY_TYPE",
+    "kind": "string"
+   },
+   "START_DATE": {
+    "column": "START_DATE",
+    "kind": "date"
+   },
+   "END_DATE": {
+    "column": "END_DATE",
+    "kind": "date"
+   },
+   "PREMIUM_AMOUNT": {
+    "column": "PREMIUM_AMOUNT",
+    "kind": "decimal"
+   },
+   "STATUS": {
+    "column": "INSURANCE_POLICY_STATUS",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "POLICY_ID"
+ },
+ "MFF_INTEGRATION_LOG": {
+  "table": "MFF_INTEGRATION_LOGS",
+  "class": "MffIntegrationLog",
+  "columns": {
+   "INTEGRATION_LOG_ID": {
+    "column": "INTEGRATION_LOG_ID",
+    "kind": "int"
+   },
+   "INTERFACE_NAME": {
+    "column": "INTERFACE_NAME",
+    "kind": "string"
+   },
+   "DIRECTION": {
+    "column": "DIRECTION",
+    "kind": "string"
+   },
+   "REFERENCE_KEY": {
+    "column": "REFERENCE_KEY",
+    "kind": "string"
+   },
+   "REQUEST_AT": {
+    "column": "REQUEST_AT",
+    "kind": "datetime"
+   },
+   "RESPONSE_AT": {
+    "column": "RESPONSE_AT",
+    "kind": "datetime"
+   },
+   "STATUS": {
+    "column": "INTEGRATION_LOG_STATUS",
+    "kind": "string"
+   },
+   "HTTP_STATUS": {
+    "column": "HTTP_STATUS",
+    "kind": "int"
+   },
+   "REQUEST_PAYLOAD": {
+    "column": "REQUEST_PAYLOAD",
+    "kind": "text"
+   },
+   "RESPONSE_PAYLOAD": {
+    "column": "RESPONSE_PAYLOAD",
+    "kind": "text"
+   },
+   "ERROR_MESSAGE": {
+    "column": "ERROR_MESSAGE",
+    "kind": "string"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "INTEGRATION_LOG_ID"
+ },
+ "MFF_LEGAL_ACTIONS": {
+  "table": "MFF_LEGAL_ACTIONS",
+  "class": "MffLegalAction",
+  "columns": {
+   "LEGAL_ACTION_ID": {
+    "column": "LEGAL_ACTION_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "ACTION_TYPE": {
+    "column": "ACTION_TYPE",
+    "kind": "string"
+   },
+   "ACTION_DATE": {
+    "column": "ACTION_DATE",
+    "kind": "date"
+   },
+   "CASE_NO": {
+    "column": "CASE_NO",
+    "kind": "string"
+   },
+   "STATUS": {
+    "column": "LEGAL_ACTION_STATUS",
+    "kind": "string"
+   },
+   "OUTCOME_AR": {
+    "column": "OUTCOME_AR",
+    "kind": "string"
+   },
+   "NEXT_ACTION_DATE": {
+    "column": "NEXT_ACTION_DATE",
+    "kind": "date"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "LEGAL_ACTION_ID"
+ },
+ "MFF_LEGAL_REVIEWS": {
+  "table": "MFF_LEGAL_REVIEWS",
+  "class": "MffLegalReview",
+  "columns": {
+   "LEGAL_REVIEW_ID": {
+    "column": "LEGAL_REVIEW_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "PROPERTY_ID": {
+    "column": "PROPERTY_ID",
+    "kind": "int"
+   },
+   "REVIEWER_USER": {
+    "column": "REVIEWER_USER",
+    "kind": "string"
+   },
+   "REVIEW_DATE": {
+    "column": "REVIEW_DATE",
+    "kind": "date"
+   },
+   "RESULT_CODE": {
+    "column": "RESULT_CODE",
+    "kind": "string"
+   },
+   "REGISTRATION_FEASIBLE_FLAG": {
+    "column": "IS_REGISTRATION_FEASIBLE",
+    "kind": "flag"
+   },
+   "MORTGAGE_FEASIBLE_FLAG": {
+    "column": "IS_MORTGAGE_FEASIBLE",
+    "kind": "flag"
+   },
+   "ISSUES": {
+    "column": "ISSUES",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "LEGAL_REVIEW_ID"
+ },
+ "MFF_LOANS": {
+  "table": "MFF_LOANS",
+  "class": "MffLoan",
+  "columns": {
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "CONTRACT_ID": {
+    "column": "CONTRACT_ID",
+    "kind": "int"
+   },
+   "LOAN_ACCOUNT_NO": {
+    "column": "LOAN_ACCOUNT_NO",
+    "kind": "string"
+   },
+   "DISBURSEMENT_DATE": {
+    "column": "DISBURSEMENT_DATE",
+    "kind": "date"
+   },
+   "PRINCIPAL_AMOUNT": {
+    "column": "PRINCIPAL_AMOUNT",
+    "kind": "decimal"
+   },
+   "ANNUAL_RATE_PCT": {
+    "column": "ANNUAL_RATE_PCT",
+    "kind": "decimal"
+   },
+   "TERM_MONTHS": {
+    "column": "TERM_MONTHS",
+    "kind": "int"
+   },
+   "MATURITY_DATE": {
+    "column": "MATURITY_DATE",
+    "kind": "date"
+   },
+   "INITIAL_INSTALLMENT": {
+    "column": "INITIAL_INSTALLMENT",
+    "kind": "decimal"
+   },
+   "INSTALLMENT_FREQUENCY": {
+    "column": "INSTALLMENT_FREQUENCY",
+    "kind": "string"
+   },
+   "LOAN_STATUS": {
+    "column": "LOAN_STATUS",
+    "kind": "string"
+   },
+   "OUTSTANDING_PRINCIPAL": {
+    "column": "OUTSTANDING_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "NEXT_DUE_DATE": {
+    "column": "NEXT_DUE_DATE",
+    "kind": "date"
+   },
+   "DELINQUENT_DAYS": {
+    "column": "DELINQUENT_DAYS",
+    "kind": "int"
+   },
+   "CORE_SYSTEM_REF": {
+    "column": "CORE_SYSTEM_REF",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "LOAN_ID"
+ },
+ "MFF_LOAN_EVENTS": {
+  "table": "MFF_LOAN_EVENTS",
+  "class": "MffLoanEvent",
+  "columns": {
+   "LOAN_EVENT_ID": {
+    "column": "LOAN_EVENT_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "EVENT_TYPE_CODE": {
+    "column": "EVENT_TYPE_CODE",
+    "kind": "string"
+   },
+   "EVENT_DATE": {
+    "column": "EVENT_DATE",
+    "kind": "date"
+   },
+   "REPORTED_DATE": {
+    "column": "REPORTED_DATE",
+    "kind": "date"
+   },
+   "STATUS": {
+    "column": "LOAN_EVENT_STATUS",
+    "kind": "string"
+   },
+   "DETAILS_AR": {
+    "column": "DETAILS_AR",
+    "kind": "string"
+   },
+   "RESOLUTION_AR": {
+    "column": "RESOLUTION_AR",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "LOAN_EVENT_ID"
+ },
+ "MFF_LOAN_MONTHLY_SNAPSHOT": {
+  "table": "MFF_LOAN_MONTHLY_SNAPSHOTS",
+  "class": "MffLoanMonthlySnapshot",
+  "columns": {
+   "SNAPSHOT_ID": {
+    "column": "SNAPSHOT_ID",
+    "kind": "int"
+   },
+   "SNAPSHOT_MONTH": {
+    "column": "SNAPSHOT_MONTH_DATE",
+    "kind": "date"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "LOAN_STATUS": {
+    "column": "LOAN_STATUS",
+    "kind": "string"
+   },
+   "OUTSTANDING_PRINCIPAL": {
+    "column": "OUTSTANDING_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "OVERDUE_AMOUNT": {
+    "column": "OVERDUE_AMOUNT",
+    "kind": "decimal"
+   },
+   "DAYS_PAST_DUE": {
+    "column": "DAYS_PAST_DUE",
+    "kind": "int"
+   },
+   "SUBSIDY_BALANCE": {
+    "column": "SUBSIDY_BALANCE",
+    "kind": "decimal"
+   },
+   "LAST_PAYMENT_DATE": {
+    "column": "LAST_PAYMENT_DATE",
+    "kind": "date"
+   },
+   "LAST_PAYMENT_AMOUNT": {
+    "column": "LAST_PAYMENT_AMOUNT",
+    "kind": "decimal"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   }
+  },
+  "pk": "SNAPSHOT_ID"
+ },
+ "MFF_LOAN_RESTRUCTURINGS": {
+  "table": "MFF_LOAN_RESTRUCTURINGS",
+  "class": "MffLoanRestructuring",
+  "columns": {
+   "RESTRUCTURING_ID": {
+    "column": "RESTRUCTURING_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "REQUEST_DATE": {
+    "column": "REQUEST_DATE",
+    "kind": "date"
+   },
+   "DECISION_DATE": {
+    "column": "DECISION_DATE",
+    "kind": "date"
+   },
+   "EFFECTIVE_DATE": {
+    "column": "EFFECTIVE_DATE",
+    "kind": "date"
+   },
+   "REASON_AR": {
+    "column": "REASON_AR",
+    "kind": "string"
+   },
+   "OLD_TERM_MONTHS": {
+    "column": "OLD_TERM_MONTHS",
+    "kind": "int"
+   },
+   "NEW_TERM_MONTHS": {
+    "column": "NEW_TERM_MONTHS",
+    "kind": "int"
+   },
+   "OLD_RATE_PCT": {
+    "column": "OLD_RATE_PCT",
+    "kind": "decimal"
+   },
+   "NEW_RATE_PCT": {
+    "column": "NEW_RATE_PCT",
+    "kind": "decimal"
+   },
+   "OLD_INSTALLMENT": {
+    "column": "OLD_INSTALLMENT",
+    "kind": "decimal"
+   },
+   "NEW_INSTALLMENT": {
+    "column": "NEW_INSTALLMENT",
+    "kind": "decimal"
+   },
+   "CAPITALIZED_ARREARS": {
+    "column": "CAPITALIZED_ARREARS",
+    "kind": "decimal"
+   },
+   "STATUS": {
+    "column": "LOAN_RESTRUCTURING_STATUS",
+    "kind": "string"
+   },
+   "APPROVED_BY": {
+    "column": "APPROVED_BY",
+    "kind": "string"
+   },
+   "NOTES_AR": {
+    "column": "NOTES_AR",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "RESTRUCTURING_ID"
+ },
+ "MFF_ORGANIZATIONS": {
+  "table": "MFF_ORGANIZATIONS",
+  "class": "MffOrganization",
+  "columns": {
+   "ORG_ID": {
+    "column": "ORG_ID",
+    "kind": "int"
+   },
+   "ORG_CODE": {
+    "column": "ORG_CODE",
+    "kind": "string"
+   },
+   "ORG_NAME_AR": {
+    "column": "ORG_NAME_AR",
+    "kind": "string"
+   },
+   "LEGACY_NAME_AR": {
+    "column": "LEGACY_NAME_AR",
+    "kind": "string"
+   },
+   "ORG_NAME_EN": {
+    "column": "ORG_NAME_EN",
+    "kind": "string"
+   },
+   "ORG_TYPE_CODE": {
+    "column": "ORG_TYPE_CODE",
+    "kind": "string"
+   },
+   "REGULATOR_CODE": {
+    "column": "REGULATOR_CODE",
+    "kind": "string"
+   },
+   "LICENSE_NO": {
+    "column": "LICENSE_NO",
+    "kind": "string"
+   },
+   "LICENSE_DATE": {
+    "column": "LICENSE_DATE",
+    "kind": "date"
+   },
+   "BANK_CODE": {
+    "column": "BANK_CODE",
+    "kind": "string"
+   },
+   "TAX_ID": {
+    "column": "TAX_ID",
+    "kind": "string"
+   },
+   "ADDRESS_AR": {
+    "column": "ADDRESS_AR",
+    "kind": "string"
+   },
+   "PHONE_NO": {
+    "column": "PHONE_NO",
+    "kind": "string"
+   },
+   "EMAIL": {
+    "column": "EMAIL",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "ORG_ID"
+ },
+ "MFF_PAYMENTS": {
+  "table": "MFF_PAYMENTS",
+  "class": "MffPayment",
+  "columns": {
+   "PAYMENT_ID": {
+    "column": "PAYMENT_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "INSTALLMENT_ID": {
+    "column": "INSTALLMENT_ID",
+    "kind": "int"
+   },
+   "PAYMENT_DATE": {
+    "column": "PAYMENT_DATE",
+    "kind": "date"
+   },
+   "PAYMENT_AMOUNT": {
+    "column": "PAYMENT_AMOUNT",
+    "kind": "decimal"
+   },
+   "PAYMENT_TYPE": {
+    "column": "PAYMENT_TYPE",
+    "kind": "string"
+   },
+   "PAYMENT_CHANNEL": {
+    "column": "PAYMENT_CHANNEL",
+    "kind": "string"
+   },
+   "REFERENCE_NO": {
+    "column": "REFERENCE_NO",
+    "kind": "string"
+   },
+   "ALLOCATED_PRINCIPAL": {
+    "column": "ALLOCATED_PRINCIPAL",
+    "kind": "decimal"
+   },
+   "ALLOCATED_INTEREST": {
+    "column": "ALLOCATED_INTEREST",
+    "kind": "decimal"
+   },
+   "ALLOCATED_FEES": {
+    "column": "ALLOCATED_FEES",
+    "kind": "decimal"
+   },
+   "ALLOCATED_INSURANCE": {
+    "column": "ALLOCATED_INSURANCE",
+    "kind": "decimal"
+   },
+   "STATUS_CODE": {
+    "column": "STATUS_CODE",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "PAYMENT_ID"
+ },
+ "MFF_PERSONS": {
+  "table": "MFF_PERSONS",
+  "class": "MffPerson",
+  "columns": {
+   "PERSON_ID": {
+    "column": "PERSON_ID",
+    "kind": "int"
+   },
+   "NATIONAL_ID": {
+    "column": "NATIONAL_ID",
+    "kind": "string"
+   },
+   "FULL_NAME_AR": {
+    "column": "FULL_NAME_AR",
+    "kind": "string"
+   },
+   "BIRTH_DATE": {
+    "column": "BIRTH_DATE",
+    "kind": "date"
+   },
+   "GENDER_CODE": {
+    "column": "GENDER_CODE",
+    "kind": "string"
+   },
+   "MARITAL_STATUS_CODE": {
+    "column": "MARITAL_STATUS_CODE",
+    "kind": "string"
+   },
+   "MOBILE_NO": {
+    "column": "MOBILE_NO",
+    "kind": "string"
+   },
+   "EMAIL": {
+    "column": "EMAIL",
+    "kind": "string"
+   },
+   "ADDRESS_AR": {
+    "column": "ADDRESS_AR",
+    "kind": "string"
+   },
+   "EMPLOYMENT_TYPE_CODE": {
+    "column": "EMPLOYMENT_TYPE_CODE",
+    "kind": "string"
+   },
+   "EMPLOYER_NAME": {
+    "column": "EMPLOYER_NAME",
+    "kind": "string"
+   },
+   "HIRE_DATE": {
+    "column": "HIRE_DATE",
+    "kind": "date"
+   },
+   "TAX_NO": {
+    "column": "TAX_NO",
+    "kind": "string"
+   },
+   "COMMERCIAL_REG_NO": {
+    "column": "COMMERCIAL_REG_NO",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "PERSON_ID"
+ },
+ "MFF_PROGRAM_DOC_REQUIREMENTS": {
+  "table": "MFF_PROGRAM_DOC_REQUIREMENTS",
+  "class": "MffProgramDocRequirement",
+  "columns": {
+   "REQUIREMENT_ID": {
+    "column": "REQUIREMENT_ID",
+    "kind": "int"
+   },
+   "PROGRAM_VERSION_ID": {
+    "column": "PROGRAM_VERSION_ID",
+    "kind": "int"
+   },
+   "DOCUMENT_TYPE_CODE": {
+    "column": "DOCUMENT_TYPE_CODE",
+    "kind": "string"
+   },
+   "PARTY_ROLE_CODE": {
+    "column": "PARTY_ROLE_CODE",
+    "kind": "string"
+   },
+   "EMPLOYMENT_TYPE_CODE": {
+    "column": "EMPLOYMENT_TYPE_CODE",
+    "kind": "string"
+   },
+   "REQUIRED_FLAG": {
+    "column": "IS_REQUIRED",
+    "kind": "flag"
+   },
+   "VALIDITY_DAYS": {
+    "column": "VALIDITY_DAYS",
+    "kind": "int"
+   },
+   "EFFECTIVE_FROM": {
+    "column": "EFFECTIVE_FROM_DATE",
+    "kind": "date"
+   },
+   "EFFECTIVE_TO": {
+    "column": "EFFECTIVE_TO_DATE",
+    "kind": "date"
+   },
+   "NOTES_AR": {
+    "column": "NOTES_AR",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "REQUIREMENT_ID"
+ },
+ "MFF_PROGRAM_PARAMS": {
+  "table": "MFF_PROGRAM_PARAMS",
+  "class": "MffProgramParam",
+  "columns": {
+   "PARAM_ID": {
+    "column": "PARAM_ID",
+    "kind": "int"
+   },
+   "PROGRAM_VERSION_ID": {
+    "column": "PROGRAM_VERSION_ID",
+    "kind": "int"
+   },
+   "FINANCIER_ID": {
+    "column": "FINANCIER_ID",
+    "kind": "int"
+   },
+   "PARAM_CODE": {
+    "column": "PARAM_CODE",
+    "kind": "string"
+   },
+   "PARAM_NAME_AR": {
+    "column": "PARAM_NAME_AR",
+    "kind": "string"
+   },
+   "VALUE_NUMBER": {
+    "column": "VALUE_NUMBER",
+    "kind": "decimal"
+   },
+   "VALUE_TEXT": {
+    "column": "VALUE_TEXT",
+    "kind": "string"
+   },
+   "UNIT_CODE": {
+    "column": "UNIT_CODE",
+    "kind": "string"
+   },
+   "EFFECTIVE_FROM": {
+    "column": "EFFECTIVE_FROM_DATE",
+    "kind": "date"
+   },
+   "EFFECTIVE_TO": {
+    "column": "EFFECTIVE_TO_DATE",
+    "kind": "date"
+   },
+   "SOURCE_REFERENCE": {
+    "column": "SOURCE_REFERENCE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "PARAM_ID"
+ },
+ "MFF_PROGRAM_PARAM_HIST": {
+  "table": "MFF_PROGRAM_PARAM_HIST",
+  "class": "MffProgramParamHist",
+  "columns": {
+   "PARAM_HIST_ID": {
+    "column": "PARAM_HIST_ID",
+    "kind": "int"
+   },
+   "PARAM_ID": {
+    "column": "PARAM_ID",
+    "kind": "int"
+   },
+   "PROGRAM_VERSION_ID": {
+    "column": "PROGRAM_VERSION_ID",
+    "kind": "int"
+   },
+   "FINANCIER_ORG_ID": {
+    "column": "FINANCIER_ORG_ID",
+    "kind": "int"
+   },
+   "PARAM_CODE": {
+    "column": "PARAM_CODE",
+    "kind": "string"
+   },
+   "OLD_VALUE": {
+    "column": "OLD_VALUE",
+    "kind": "string"
+   },
+   "NEW_VALUE": {
+    "column": "NEW_VALUE",
+    "kind": "string"
+   },
+   "CHANGED_AT": {
+    "column": "CHANGED_AT",
+    "kind": "datetime"
+   },
+   "CHANGED_BY": {
+    "column": "CHANGED_BY",
+    "kind": "string"
+   },
+   "CHANGE_REASON_AR": {
+    "column": "CHANGE_REASON_AR",
+    "kind": "string"
+   }
+  },
+  "pk": "PARAM_HIST_ID"
+ },
+ "MFF_PROGRAM_VERSIONS": {
+  "table": "MFF_PROGRAM_VERSIONS",
+  "class": "MffProgramVersion",
+  "columns": {
+   "PROGRAM_VERSION_ID": {
+    "column": "PROGRAM_VERSION_ID",
+    "kind": "int"
+   },
+   "PROTOCOL_ID": {
+    "column": "PROTOCOL_ID",
+    "kind": "int"
+   },
+   "PROGRAM_CODE": {
+    "column": "PROGRAM_CODE",
+    "kind": "string"
+   },
+   "VERSION_NO": {
+    "column": "VERSION_NO",
+    "kind": "string"
+   },
+   "PROGRAM_NAME_AR": {
+    "column": "PROGRAM_NAME_AR",
+    "kind": "string"
+   },
+   "EFFECTIVE_FROM": {
+    "column": "EFFECTIVE_FROM_DATE",
+    "kind": "date"
+   },
+   "EFFECTIVE_TO": {
+    "column": "EFFECTIVE_TO_DATE",
+    "kind": "date"
+   },
+   "CURRENCY_CODE": {
+    "column": "CURRENCY_CODE",
+    "kind": "string"
+   },
+   "IS_OPERATIONAL": {
+    "column": "IS_OPERATIONAL",
+    "kind": "flag"
+   },
+   "SOURCE_REFERENCE": {
+    "column": "SOURCE_REFERENCE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "text"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "PROGRAM_VERSION_ID"
+ },
+ "MFF_PROPERTIES": {
+  "table": "MFF_PROPERTIES",
+  "class": "MffProperty",
+  "columns": {
+   "PROPERTY_ID": {
+    "column": "PROPERTY_ID",
+    "kind": "int"
+   },
+   "PROJECT_ID": {
+    "column": "PROJECT_ID",
+    "kind": "int"
+   },
+   "SELLER_PERSON_ID": {
+    "column": "SELLER_PERSON_ID",
+    "kind": "int"
+   },
+   "GOVERNORATE_CODE": {
+    "column": "GOVERNORATE_CODE",
+    "kind": "string"
+   },
+   "CITY_CODE": {
+    "column": "CITY_CODE",
+    "kind": "string"
+   },
+   "DISTRICT_AR": {
+    "column": "DISTRICT_AR",
+    "kind": "string"
+   },
+   "NEIGHBORHOOD_AR": {
+    "column": "NEIGHBORHOOD_AR",
+    "kind": "string"
+   },
+   "BUILDING_NO": {
+    "column": "BUILDING_NO",
+    "kind": "string"
+   },
+   "FLOOR_NO": {
+    "column": "FLOOR_NO",
+    "kind": "string"
+   },
+   "UNIT_NO": {
+    "column": "UNIT_NO",
+    "kind": "string"
+   },
+   "AREA_SQM": {
+    "column": "AREA_SQM",
+    "kind": "decimal"
+   },
+   "ADDRESS_AR": {
+    "column": "ADDRESS_AR",
+    "kind": "string"
+   },
+   "REGISTRATION_STATUS_CODE": {
+    "column": "REGISTRATION_STATUS_CODE",
+    "kind": "string"
+   },
+   "REGISTRY_REFERENCE": {
+    "column": "REGISTRY_REFERENCE",
+    "kind": "string"
+   },
+   "SALE_PRICE": {
+    "column": "SALE_PRICE",
+    "kind": "decimal"
+   },
+   "APPRAISED_VALUE": {
+    "column": "APPRAISED_VALUE",
+    "kind": "decimal"
+   },
+   "MAINTENANCE_DEPOSIT": {
+    "column": "MAINTENANCE_DEPOSIT",
+    "kind": "decimal"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "PROPERTY_ID"
+ },
+ "MFF_PROTOCOLS": {
+  "table": "MFF_PROTOCOLS",
+  "class": "MffProtocol",
+  "columns": {
+   "PROTOCOL_ID": {
+    "column": "PROTOCOL_ID",
+    "kind": "int"
+   },
+   "PROTOCOL_CODE": {
+    "column": "PROTOCOL_CODE",
+    "kind": "string"
+   },
+   "PROTOCOL_NAME_AR": {
+    "column": "PROTOCOL_NAME_AR",
+    "kind": "string"
+   },
+   "FUND_ORG_ID": {
+    "column": "FUND_ORG_ID",
+    "kind": "int"
+   },
+   "SIGNED_DATE": {
+    "column": "SIGNED_DATE",
+    "kind": "date"
+   },
+   "EFFECTIVE_FROM": {
+    "column": "EFFECTIVE_FROM_DATE",
+    "kind": "date"
+   },
+   "EFFECTIVE_TO": {
+    "column": "EFFECTIVE_TO_DATE",
+    "kind": "date"
+   },
+   "LEGAL_REFERENCE": {
+    "column": "LEGAL_REFERENCE",
+    "kind": "string"
+   },
+   "SOURCE_REFERENCE": {
+    "column": "SOURCE_REFERENCE",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "text"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "PROTOCOL_ID"
+ },
+ "MFF_PROTOCOL_PARTIES": {
+  "table": "MFF_PROTOCOL_PARTIES",
+  "class": "MffProtocolParty",
+  "columns": {
+   "PROTOCOL_PARTY_ID": {
+    "column": "PROTOCOL_PARTY_ID",
+    "kind": "int"
+   },
+   "PROTOCOL_ID": {
+    "column": "PROTOCOL_ID",
+    "kind": "int"
+   },
+   "ORG_ID": {
+    "column": "ORG_ID",
+    "kind": "int"
+   },
+   "PARTY_ROLE": {
+    "column": "PARTY_ROLE",
+    "kind": "string"
+   },
+   "EFFECTIVE_FROM": {
+    "column": "EFFECTIVE_FROM_DATE",
+    "kind": "date"
+   },
+   "EFFECTIVE_TO": {
+    "column": "EFFECTIVE_TO_DATE",
+    "kind": "date"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "PROTOCOL_PARTY_ID"
+ },
+ "MFF_REVIEW_CHECKS": {
+  "table": "MFF_REVIEW_CHECKS",
+  "class": "MffReviewCheck",
+  "columns": {
+   "CHECK_ID": {
+    "column": "CHECK_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "CHECK_TYPE": {
+    "column": "CHECK_TYPE",
+    "kind": "string"
+   },
+   "CHECK_CODE": {
+    "column": "CHECK_CODE",
+    "kind": "string"
+   },
+   "RESULT_CODE": {
+    "column": "RESULT_CODE",
+    "kind": "string"
+   },
+   "CHECKED_BY": {
+    "column": "CHECKED_BY",
+    "kind": "string"
+   },
+   "CHECKED_AT": {
+    "column": "CHECKED_AT",
+    "kind": "datetime"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "CHECK_ID"
+ },
+ "MFF_SUBSIDY_ACCOUNTS": {
+  "table": "MFF_SUBSIDY_ACCOUNTS",
+  "class": "MffSubsidyAccount",
+  "columns": {
+   "SUBSIDY_ACCOUNT_ID": {
+    "column": "SUBSIDY_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "LOAN_ID": {
+    "column": "LOAN_ID",
+    "kind": "int"
+   },
+   "ACCOUNT_NO": {
+    "column": "ACCOUNT_NO",
+    "kind": "string"
+   },
+   "OPEN_DATE": {
+    "column": "OPEN_DATE",
+    "kind": "date"
+   },
+   "OPENING_AMOUNT": {
+    "column": "OPENING_AMOUNT",
+    "kind": "decimal"
+   },
+   "CURRENT_BALANCE": {
+    "column": "CURRENT_BALANCE",
+    "kind": "decimal"
+   },
+   "ACCOUNT_STATUS": {
+    "column": "ACCOUNT_STATUS",
+    "kind": "string"
+   },
+   "CORE_SYSTEM_REF": {
+    "column": "CORE_SYSTEM_REF",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "SUBSIDY_ACCOUNT_ID"
+ },
+ "MFF_SUBSIDY_APPROVALS": {
+  "table": "MFF_SUBSIDY_APPROVALS",
+  "class": "MffSubsidyApproval",
+  "columns": {
+   "SUBSIDY_APPROVAL_ID": {
+    "column": "SUBSIDY_APPROVAL_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "SUPPORT_TYPE_CODE": {
+    "column": "SUPPORT_TYPE_CODE",
+    "kind": "string"
+   },
+   "APPROVAL_NO": {
+    "column": "APPROVAL_NO",
+    "kind": "string"
+   },
+   "APPROVAL_DATE": {
+    "column": "APPROVAL_DATE",
+    "kind": "date"
+   },
+   "EXPIRY_DATE": {
+    "column": "EXPIRY_DATE",
+    "kind": "date"
+   },
+   "INSTALLMENT_SUPPORT_NPV": {
+    "column": "INSTALLMENT_SUPPORT_NPV",
+    "kind": "decimal"
+   },
+   "DOWNPAYMENT_SUPPORT": {
+    "column": "DOWNPAYMENT_SUPPORT",
+    "kind": "decimal"
+   },
+   "TOTAL_SUPPORT": {
+    "column": "TOTAL_SUPPORT",
+    "kind": "decimal"
+   },
+   "DEDICATED_ACCOUNT_FLAG": {
+    "column": "IS_DEDICATED_ACCOUNT",
+    "kind": "flag"
+   },
+   "APPROVAL_STATUS": {
+    "column": "APPROVAL_STATUS",
+    "kind": "string"
+   },
+   "FUND_NOTES": {
+    "column": "FUND_NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "SUBSIDY_APPROVAL_ID"
+ },
+ "MFF_SUBSIDY_MOVEMENTS": {
+  "table": "MFF_SUBSIDY_MOVEMENTS",
+  "class": "MffSubsidyMovement",
+  "columns": {
+   "MOVEMENT_ID": {
+    "column": "MOVEMENT_ID",
+    "kind": "int"
+   },
+   "SUBSIDY_ACCOUNT_ID": {
+    "column": "SUBSIDY_ACCOUNT_ID",
+    "kind": "int"
+   },
+   "MOVEMENT_DATE": {
+    "column": "MOVEMENT_DATE",
+    "kind": "date"
+   },
+   "MOVEMENT_TYPE": {
+    "column": "MOVEMENT_TYPE",
+    "kind": "string"
+   },
+   "AMOUNT": {
+    "column": "AMOUNT",
+    "kind": "decimal"
+   },
+   "INSTALLMENT_ID": {
+    "column": "INSTALLMENT_ID",
+    "kind": "int"
+   },
+   "REFERENCE_NO": {
+    "column": "REFERENCE_NO",
+    "kind": "string"
+   },
+   "DESCRIPTION_AR": {
+    "column": "DESCRIPTION_AR",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "MOVEMENT_ID"
+ },
+ "MFF_WORK_ASSIGNMENTS": {
+  "table": "MFF_WORK_ASSIGNMENTS",
+  "class": "MffWorkAssignment",
+  "columns": {
+   "ASSIGNMENT_ID": {
+    "column": "ASSIGNMENT_ID",
+    "kind": "int"
+   },
+   "APPLICATION_ID": {
+    "column": "APPLICATION_ID",
+    "kind": "int"
+   },
+   "ASSIGNMENT_TYPE": {
+    "column": "ASSIGNMENT_TYPE",
+    "kind": "string"
+   },
+   "ASSIGNED_TO": {
+    "column": "ASSIGNED_TO",
+    "kind": "string"
+   },
+   "ASSIGNED_BY": {
+    "column": "ASSIGNED_BY",
+    "kind": "string"
+   },
+   "ASSIGNED_AT": {
+    "column": "ASSIGNED_AT",
+    "kind": "datetime"
+   },
+   "DUE_DATE": {
+    "column": "DUE_DATE",
+    "kind": "date"
+   },
+   "COMPLETED_AT": {
+    "column": "COMPLETED_AT",
+    "kind": "datetime"
+   },
+   "ASSIGNMENT_STATUS": {
+    "column": "ASSIGNMENT_STATUS",
+    "kind": "string"
+   },
+   "NOTES": {
+    "column": "NOTES",
+    "kind": "string"
+   },
+   "CREATED_AT": {
+    "column": "CREATED_AT",
+    "kind": "audit"
+   },
+   "CREATED_BY": {
+    "column": "CREATED_BY",
+    "kind": "audit"
+   },
+   "UPDATED_AT": {
+    "column": "UPDATED_AT",
+    "kind": "audit"
+   },
+   "UPDATED_BY": {
+    "column": "UPDATED_BY",
+    "kind": "audit"
+   }
+  },
+  "pk": "ASSIGNMENT_ID"
+ },
+ "REF_MFF_ACCOUNT_EVENT": {
+  "table": "MFF_LKP_ACCOUNT_EVENTS",
+  "class": "MffLkpAccountEvent",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_APPLICATION_STATUS": {
+  "table": "MFF_LKP_APPLICATION_STATUSES",
+  "class": "MffLkpApplicationStatus",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_CITY": {
+  "table": "MFF_LKP_CITIES",
+  "class": "MffLkpCity",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "GOVERNORATE_CODE": {
+    "column": "GOVERNORATE_CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_DECISION_CODE": {
+  "table": "MFF_LKP_DECISION_CODES",
+  "class": "MffLkpDecisionCode",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_DELINQUENCY_STAGE": {
+  "table": "MFF_LKP_DELINQUENCY_STAGES",
+  "class": "MffLkpDelinquencyStage",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_DOCUMENT_TYPE": {
+  "table": "MFF_LKP_DOCUMENT_TYPES",
+  "class": "MffLkpDocumentType",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_EMPLOYMENT_TYPE": {
+  "table": "MFF_LKP_EMPLOYMENT_TYPES",
+  "class": "MffLkpEmploymentType",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_EVENT_TYPE": {
+  "table": "MFF_LKP_EVENT_TYPES",
+  "class": "MffLkpEventType",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_GOVERNORATE": {
+  "table": "MFF_LKP_GOVERNORATES",
+  "class": "MffLkpGovernorate",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_INCOME_TYPE": {
+  "table": "MFF_LKP_INCOME_TYPES",
+  "class": "MffLkpIncomeType",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_MARITAL_STATUS": {
+  "table": "MFF_LKP_MARITAL_STATUSES",
+  "class": "MffLkpMaritalStatus",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_ORG_TYPE": {
+  "table": "MFF_LKP_ORG_TYPES",
+  "class": "MffLkpOrgType",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_PARTY_ROLE": {
+  "table": "MFF_LKP_PARTY_ROLES",
+  "class": "MffLkpPartyRole",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_PAYMENT_STATUS": {
+  "table": "MFF_LKP_PAYMENT_STATUSES",
+  "class": "MffLkpPaymentStatus",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_PROPERTY_REG_STATUS": {
+  "table": "MFF_LKP_PROPERTY_REG_STATUSES",
+  "class": "MffLkpPropertyRegStatus",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_REGULATOR": {
+  "table": "MFF_LKP_REGULATORS",
+  "class": "MffLkpRegulator",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_SOURCE_CHANNEL": {
+  "table": "MFF_LKP_SOURCE_CHANNELS",
+  "class": "MffLkpSourceChannel",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_STATUS_TRANSITION": {
+  "table": "MFF_LKP_STATUS_TRANSITIONS",
+  "class": "MffLkpStatusTransition",
+  "columns": {
+   "FROM_STATUS_CODE": {
+    "column": "FROM_STATUS_CODE",
+    "kind": "string"
+   },
+   "TO_STATUS_CODE": {
+    "column": "TO_STATUS_CODE",
+    "kind": "string"
+   },
+   "ROLE_CODE": {
+    "column": "ROLE_CODE",
+    "kind": "string"
+   },
+   "ACTION_CODE": {
+    "column": "ACTION_CODE",
+    "kind": "string"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": null
+ },
+ "REF_MFF_SUPPORT_TYPE": {
+  "table": "MFF_LKP_SUPPORT_TYPES",
+  "class": "MffLkpSupportType",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ },
+ "REF_MFF_USER_ROLE": {
+  "table": "MFF_LKP_USER_ROLES",
+  "class": "MffLkpUserRole",
+  "columns": {
+   "CODE": {
+    "column": "CODE",
+    "kind": "string"
+   },
+   "NAME_AR": {
+    "column": "NAME_AR",
+    "kind": "string"
+   },
+   "NAME_EN": {
+    "column": "NAME_EN",
+    "kind": "string"
+   },
+   "DISPLAY_ORDER": {
+    "column": "DISPLAY_ORDER",
+    "kind": "int"
+   },
+   "ACTIVE_FLAG": {
+    "column": "IS_ACTIVE",
+    "kind": "flag"
+   }
+  },
+  "pk": "CODE"
+ }
+}
