@@ -55,6 +55,19 @@ public sealed record ScrInquiryDto(
 
 public sealed record ScrCompanyDto(
     long MemberCompanyId, string CompanyCode, string NameEn, string NameAr, string? LicenceNo, string? ContactEmail, string StatusCode, string? Notes,
-    int UserCount, int InquiryCount, string? CreatedBy = null);
+    int UserCount, int InquiryCount, string? CreatedBy = null,
+    ScrLicenceDto? Licence = null, ScrCompanySeats? Seats = null, string? LicenceStateCode = null);
+
+/// <summary>A licence row: the administrator plus MaxUsers users, the period, the yearly inquiry quota.</summary>
+public sealed record ScrLicenceDto(
+    long LicenceId, int MaxUsers, DateOnly ValidFrom, DateOnly? ValidTo, int? YearlyInquiryQuota, string? Notes, string CreatedBy, DateTime CreatedAt);
+
+public sealed record ScrLicenceRequest(int? MaxUsers, DateOnly? ValidFrom, DateOnly? ValidTo, int? YearlyInquiryQuota, string? Notes);
+
+/// <summary>
+/// A company's accounts against its licence: its administrator (AdminUserName null = none yet), and UsersInUse = active company
+/// users besides the administrator, pending activation included (each holds a seat).
+/// </summary>
+public sealed record ScrCompanySeats(string? AdminUserName, string? AdminEmail, string? AdminStatusCode, int UsersInUse);
 
 public sealed record ScrCompanyRequest(string? CompanyCode, string? NameEn, string? NameAr, string? LicenceNo, string? ContactEmail, string? StatusCode, string? Notes);

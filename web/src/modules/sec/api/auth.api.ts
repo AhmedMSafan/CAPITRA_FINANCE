@@ -24,3 +24,14 @@ export async function changePassword(currentPassword: string, newPassword: strin
 export function logout(): void {
   clearSession()
 }
+
+/** Who an activation or password-reset link belongs to; fails when it was used, replaced or expired. */
+export type AccountLinkInfo = { userName: string; fullName: string | null; activating: boolean }
+export const checkAccountLink = (userId: string, token: string) => http.post<AccountLinkInfo>('/api/sec/auth/link/check', { userId, token })
+
+/** Sets the user's own password from the link (it then stops working); the user signs in afterwards. */
+export const setPasswordFromLink = (userId: string, token: string, newPassword: string) =>
+  http.post<void>('/api/sec/auth/link/set-password', { userId, token, newPassword })
+
+/** E-mails a reset link if the account exists; the answer is the same either way. */
+export const forgotPassword = (userNameOrEmail: string) => http.post<{ message: string }>('/api/sec/auth/forgot-password', { userNameOrEmail })

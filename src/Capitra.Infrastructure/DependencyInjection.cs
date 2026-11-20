@@ -1,14 +1,18 @@
 using Capitra.Application.Abstractions;
+using Capitra.Infrastructure.Communication;
 using Capitra.Infrastructure.Files;
 using Capitra.Infrastructure.Identity;
 using Capitra.Infrastructure.Persistence;
 using Capitra.Infrastructure.Persistence.Interceptors;
 using Capitra.Infrastructure.Persistence.Reports;
 using Capitra.Infrastructure.Time;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Capitra.Infrastructure;
 
@@ -55,6 +59,21 @@ public static class DependencyInjection
             .AddRoles<SecRole>()
             .AddEntityFrameworkStores<CapitraDbContext>()
             .AddDefaultTokenProviders();
+
+        // account e-mails: activation and password-reset links (no password is ever e-mailed)
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Section));
+        var linkHours = configuration.GetSection(EmailOptions.Section).GetValue<int?>(nameof(EmailOptions.LinkHours)) ?? 48;
+        services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromHours(linkHours));
+        // Data Protection keys (links, stored mail-server passwords) live in the database, so they survive restarts and new servers
+        services.AddDataProtection().SetApplicationName("CAPITRA");
+        services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(sp =>
+            new ConfigureOptions<KeyManagementOptions>(o => o.XmlRepository = new DatabaseKeyRepository(sp.GetRequiredService<IServiceScopeFactory>())));
+        // Communication Center: the active mail server (else the "Email" settings) sends every e-mail
+        services.AddScoped<MailSettings>();
+        services.AddScoped<CmcMailServerService>();
+        services.AddScoped<IMailTransport, SmtpMailTransport>();
+        services.AddScoped<AccountEmails>();
+        services.AddScoped<CompanyAccess>();
 
         return services;
     }

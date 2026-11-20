@@ -85,7 +85,7 @@
     </div>
 
     <ScrInquiryResult v-if="tab === 'new' && result" :inquiry="result" />
-    <ScrCompanyUsers v-if="tab === 'users' && company" :company-id="company.memberCompanyId" :company-name="company.nameAr" />
+    <ScrCompanyUsers v-if="tab === 'users' && company" :company-id="company.memberCompanyId" :company-name="company.nameAr" :max-users="company.maxUsers ?? undefined" />
   </div>
 </template>
 

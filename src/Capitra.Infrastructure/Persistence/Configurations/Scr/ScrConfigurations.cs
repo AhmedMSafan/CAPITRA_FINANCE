@@ -233,3 +233,17 @@ public sealed class ScrDecisionStepNoteConfiguration : IEntityTypeConfiguration<
         builder.ConfigureAudit();
     }
 }
+
+public sealed class ScrCompanyLicenceConfiguration : IEntityTypeConfiguration<ScrCompanyLicence>
+{
+    public void Configure(EntityTypeBuilder<ScrCompanyLicence> builder)
+    {
+        builder.ToTable("SCR_COMPANY_LICENCES");
+        builder.HasKey(x => x.LicenceId);
+        builder.HasIndex(x => x.MemberCompanyId);
+        builder.Property(x => x.LicenceId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.Notes).HasMaxLength(1000);
+        builder.HasOne<ScrMemberCompany>().WithMany().HasForeignKey(x => x.MemberCompanyId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}

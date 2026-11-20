@@ -27,6 +27,15 @@ public sealed record LoginResponse(string Token, DateTime ExpiresAt, CurrentUser
 
 public sealed record ChangePasswordRequest([Required] string CurrentPassword, [Required] string NewPassword);
 
+public sealed record AccountLinkRequest([Required] string UserId, [Required] string Token);
+
+public sealed record AccountLinkPasswordRequest([Required] string UserId, [Required] string Token, [Required] string NewPassword);
+
+/// <summary>Activating: the account has no password yet (an activation link), otherwise a password reset.</summary>
+public sealed record AccountLinkInfo(string UserName, string? FullName, bool Activating);
+
+public sealed record ForgotPasswordRequest(string? UserNameOrEmail);
+
 [ApiController]
 [Route("api/sec/auth")]
 public sealed class SecAuthController(
@@ -35,7 +44,9 @@ public sealed class SecAuthController(
     JwtTokenService tokens,
     IClock clock,
     ICurrentUser currentUser,
-    UserAccessCache access) : ControllerBase
+    UserAccessCache access,
+    CompanyAccess companyAccess,
+    AccountEmails emails) : ControllerBase
 {
     private const string InvalidLogin = "Invalid user name or password.";
 
@@ -57,10 +68,85 @@ public sealed class SecAuthController(
             return Unauthorized(Problem(InvalidLogin));
         }
 
+        // a member company's users: only while the company is active and its licence covers today
+        if (user.MemberCompanyId is { } companyId && await companyAccess.BlockReasonAsync(companyId, HttpContext.RequestAborted) is { } blocked)
+            return Unauthorized(Problem(blocked));
+
         await users.ResetAccessFailedCountAsync(user);
         user.LastLoginAt = clock.UtcNow;
         await users.UpdateAsync(user);
         return await IssueAsync(user);
+    }
+
+    /// <summary>
+    /// Whether an activation or password-reset link is still good, and whose it is (the page greets the user by name). A used,
+    /// replaced or expired link answers 400.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("link/check")]
+    public async Task<ActionResult<AccountLinkInfo>> CheckLink(AccountLinkRequest request)
+    {
+        var user = await LinkUserAsync(request.UserId, request.Token);
+        return new AccountLinkInfo(user.UserName ?? string.Empty, user.FullName, user.PasswordHash is null);
+    }
+
+    /// <summary>
+    /// The user sets their own password from an activation or password-reset link. The link works once (setting the password
+    /// voids it) and every open session ends. The user then signs in.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("link/set-password")]
+    public async Task<IActionResult> SetPasswordFromLink(AccountLinkPasswordRequest request)
+    {
+        var user = await LinkUserAsync(request.UserId, request.Token);
+        var result = await users.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            var invalidToken = result.Errors.Any(e => e.Code == "InvalidToken");
+            throw BusinessValidationException.For(invalidToken ? "token" : "newPassword",
+                invalidToken ? LinkInvalid : string.Join(" ", result.Errors.Select(e => e.Description)));
+        }
+
+        user.EmailConfirmed = true;
+        user.MustChangePassword = false;
+        user.PasswordChangedAt = clock.UtcNow;
+        await users.UpdateAsync(user);
+        await users.SetLockoutEndDateAsync(user, null);
+        await users.ResetAccessFailedCountAsync(user);
+        access.Clear();
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Forgot password: e-mails a reset link (or, to an account never activated, a new activation link). The answer is the same
+    /// whether or not the account exists, so it cannot be used to find user names.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+    {
+        var key = request.UserNameOrEmail?.Trim() ?? string.Empty;
+        var user = key.Length == 0 ? null : await users.FindByNameAsync(key) ?? await users.FindByEmailAsync(key);
+        if (user is { IsActive: true } && !string.IsNullOrWhiteSpace(user.Email))
+        {
+            if (user.PasswordHash is null)
+                await emails.SendActivationAsync(user, HttpContext.RequestAborted);
+            else
+                await emails.SendPasswordResetAsync(user, HttpContext.RequestAborted);
+        }
+
+        return Ok(new { message = "If the account exists and has an e-mail address, a link has been sent to it." });
+    }
+
+    private const string LinkInvalid = "This link is not valid any more: it was used, replaced by a newer one, or it expired. Ask for a new one.";
+
+    private async Task<SecUser> LinkUserAsync(string? userId, string? token)
+    {
+        var user = string.IsNullOrWhiteSpace(userId) ? null : await users.FindByIdAsync(userId);
+        if (user is null || !user.IsActive || string.IsNullOrWhiteSpace(token)
+            || !await users.VerifyUserTokenAsync(user, users.Options.Tokens.PasswordResetTokenProvider, UserManager<SecUser>.ResetPasswordTokenPurpose, token))
+            throw BusinessValidationException.For("token", LinkInvalid);
+        return user;
     }
 
     /// <summary>

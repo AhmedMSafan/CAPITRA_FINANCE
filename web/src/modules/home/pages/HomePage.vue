@@ -145,6 +145,10 @@ const apps: App[] = [
     icon: '<rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><path d="M6.5 9v3a3 3 0 0 0 3 3h4.5"/><circle cx="18" cy="6" r="3"/>', feats: [], inbox: true },
   { tier: 2, name: 'Cheques Wallet', short: 'Wallet', descr: 'Client cheque batches from upload to custody, deposit and collection.', to: '/cheque-wallet', color: '#B4570E', tint: '#FFF1E6',
     icon: '<path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7H5"/><path d="M16 14h.01"/>', feats: [] },
+  // Communication Center: the mail servers every e-mail of CAPITRA goes through, and the log of every e-mail sent
+  { tier: 2, name: 'Communication Center', short: 'Communication', descr: 'The mail servers every e-mail goes through, test e-mails, and the log of every e-mail sent.',
+    to: '/communication', color: '#0E7490', tint: '#E0F2F7',
+    icon: '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>', feats: [] },
   { tier: 2, name: 'Admin Setup', short: 'Admin', descr: 'Users, roles, modules and platform-wide settings in one place.', to: '/admin', color: '#475569', tint: '#EEF2F6',
     icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', feats: [] },
   { tier: 2, name: 'Customer Relationship Management', short: 'CRM', descr: 'Manage clients, customer information, factoring offers and commercial relationships.',

@@ -1,4 +1,5 @@
 import { ApiError, http } from '@/shared/api/http'
+import { tr } from '@/shared/layout/language'
 
 // Screening (the FINOVA screening app merged into CAPITRA): the Federation Final List, its decisions and the member companies' inquiries.
 
@@ -68,24 +69,32 @@ export type ScrInquiry = {
   hits: ScrInquiryHit[]
 }
 
+export type ScrLicence = {
+  licenceId: number; maxUsers: number; validFrom: string; validTo: string | null; yearlyInquiryQuota: number | null; notes: string | null
+  createdBy: string; createdAt: string
+}
+export type ScrLicenceRequest = { maxUsers: number | null; validFrom: string | null; validTo: string | null; yearlyInquiryQuota: number | null; notes: string | null }
+/** The company's administrator and the seats its other users hold (pending activation included). */
+export type ScrCompanySeats = { adminUserName: string | null; adminEmail: string | null; adminStatusCode: string | null; usersInUse: number }
 export type ScrCompany = {
   memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string; licenceNo: string | null; contactEmail: string | null
-  statusCode: string; notes: string | null; userCount: number; inquiryCount: number
-  createdBy?: string | null
+  statusCode: string; notes: string | null; userCount: number; inquiryCount: number; createdBy?: string | null
+  licence?: ScrLicence | null; seats?: ScrCompanySeats | null
+  /** ACTIVE, NOT_STARTED, EXPIRED or NONE. */
+  licenceStateCode?: string | null
 }
-export type ScrCompanyRequest = Omit<ScrCompany, 'memberCompanyId' | 'userCount' | 'inquiryCount' | 'createdBy'>
+export type ScrCompanyRequest = Pick<ScrCompany, 'companyCode' | 'nameEn' | 'nameAr' | 'licenceNo' | 'contactEmail' | 'statusCode' | 'notes'>
+export type ScrCompanyAdminRequest = { userName: string | null; email: string | null; fullName: string | null }
+/** STATUS: PENDING_ACTIVATION (link not used yet; holds a seat), ACTIVE or INACTIVE. No password is ever shown. */
 export type ScrCompanyUser = {
   userId: string; userName: string; email: string | null; fullName: string | null; isActive: boolean; roleCode: string; lastLoginAt: string | null
-  /** Still signed in with a temporary password (has not chosen their own yet). */
-  mustChangePassword?: boolean
-  /** Only in the reply that created the account or reset its password: shown once. */
-  temporaryPassword?: string | null
+  statusCode: string
 }
-/** No password: the system makes a temporary one, which the user replaces at first sign-in. */
-export type ScrCompanyUserRequest = {
-  userName: string; email: string | null; fullName: string | null; roleCode: string; isActive: boolean
-}
-export type ScrMyCompany = { memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string }
+/** A new company user is always a company user; the administrator comes with the company. */
+export type ScrCompanyUserRequest = { userName: string; email: string | null; fullName: string | null; isActive: boolean }
+/** What happened to the activation or reset e-mail: SENT, FAILED, NOT_CONFIGURED (no mail server set up) or NO_ADDRESS. */
+export type ScrEmailOutcome = { sent: boolean; statusCode: string; error: string | null }
+export type ScrMyCompany = { memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string; maxUsers: number | null }
 
 const API = '/api/scr'
 
@@ -137,14 +146,22 @@ export const scrApi = {
   inquiry: (id: number) => http.get<ScrInquiry>(`${API}/inquiries/${id}`),
 
   companies: () => http.get<ScrCompany[]>(`${API}/companies`),
-  saveCompany: (id: number | null, r: ScrCompanyRequest) =>
-    id ? http.put<ScrCompany>(`${API}/companies/${id}`, r) : http.post<ScrCompany>(`${API}/companies`, r),
+  /** A new company in one step: the company, its licence and its administrator (who gets an activation e-mail). */
+  onboardCompany: (company: ScrCompanyRequest, licence: ScrLicenceRequest, admin: ScrCompanyAdminRequest) =>
+    http.post<{ company: ScrCompany; admin: ScrCompanyUser; email: ScrEmailOutcome }>(`${API}/companies`, { company, licence, admin }),
+  updateCompany: (id: number, r: ScrCompanyRequest) => http.put<ScrCompany>(`${API}/companies/${id}`, r),
+  licences: (companyId: number) => http.get<ScrLicence[]>(`${API}/companies/${companyId}/licences`),
+  addLicence: (companyId: number, r: ScrLicenceRequest) => http.post<ScrLicence>(`${API}/companies/${companyId}/licences`, r),
   companyUsers: (companyId: number) => http.get<ScrCompanyUser[]>(`${API}/companies/${companyId}/users`),
-  saveCompanyUser: (companyId: number, userId: string | null, r: ScrCompanyUserRequest) =>
-    userId ? http.put<ScrCompanyUser>(`${API}/companies/${companyId}/users/${userId}`, r) : http.post<ScrCompanyUser>(`${API}/companies/${companyId}/users`, r),
-  /** A new temporary password, in the reply only. */
-  resetCompanyUserPassword: (companyId: number, userId: string) =>
-    http.post<ScrCompanyUser>(`${API}/companies/${companyId}/users/${userId}/reset-password`)
+  createCompanyUser: (companyId: number, r: ScrCompanyUserRequest) =>
+    http.post<{ user: ScrCompanyUser; email: ScrEmailOutcome }>(`${API}/companies/${companyId}/users`, r),
+  updateCompanyUser: (companyId: number, userId: string, r: ScrCompanyUserRequest) =>
+    http.put<ScrCompanyUser>(`${API}/companies/${companyId}/users/${userId}`, r),
+  /** E-mails a new activation link (pending account) or a password-reset link. */
+  sendUserLink: (companyId: number, userId: string) => http.post<ScrEmailOutcome>(`${API}/companies/${companyId}/users/${userId}/send-link`),
+  /** The link itself, to pass on another way when the e-mail does not arrive; earlier links stop working. */
+  copyUserLink: (companyId: number, userId: string) =>
+    http.post<{ link: string; kind: string }>(`${API}/companies/${companyId}/users/${userId}/copy-link`)
 }
 
 /** Labels of the codes, in English (tr() gives the Arabic). */
@@ -159,7 +176,8 @@ export const LABELS: Record<string, string> = {
   NO_MATCH: 'No match', POSSIBLE_MATCH: 'Possible match', MATCH: 'Match', PREVIOUSLY_LISTED: 'Previously listed',
   ID_AND_NAME: 'Identity and name', ID_ONLY: 'Identity only (name differs)', NAME_ONLY: 'Name only (identity differs)',
   ONBOARDING: 'Customer onboarding', TRANSACTION: 'Transaction', PERIODIC_REVIEW: 'Periodic review',
-  MEMBER_COMPANY_USER: 'Company user', MEMBER_COMPANY_ADMIN: 'Company administrator'
+  MEMBER_COMPANY_USER: 'Company user', MEMBER_COMPANY_ADMIN: 'Company administrator',
+  PENDING_ACTIVATION: 'Pending activation', INACTIVE: 'Inactive', NOT_STARTED: 'Not started yet', EXPIRED: 'Expired', NONE: 'No licence'
 }
 
 export const CHIP: Record<string, string> = {
@@ -169,13 +187,13 @@ export const CHIP: Record<string, string> = {
 }
 
 export function errorText(err: unknown): string {
-  return err instanceof Error ? err.message : String(err)
+  return tr(err instanceof Error ? err.message : String(err))
 }
 
 /** The validation errors of a failed save, by field (camelCase), first message each. */
 export function fieldErrors(err: unknown): Record<string, string> {
   const out: Record<string, string> = {}
   const problem = err instanceof ApiError ? err.problem : null
-  for (const [k, v] of Object.entries(problem?.errors ?? {})) out[k.charAt(0).toLowerCase() + k.slice(1)] = v[0] ?? ''
+  for (const [k, v] of Object.entries(problem?.errors ?? {})) out[k.charAt(0).toLowerCase() + k.slice(1)] = tr(v[0] ?? '')
   return out
 }

@@ -56,6 +56,7 @@
 
 <script setup lang="ts">
 import 'font-awesome/css/font-awesome.min.css'
+import './account-card.css'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ApiError } from '@/shared/api/http'
@@ -115,45 +116,3 @@ async function signOut() {
   await router.replace({ name: 'login' })
 }
 </script>
-
-<style scoped>
-.cp-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: radial-gradient(circle at 85% 10%, rgb(232 119 34 / 0.18), transparent 40%), linear-gradient(135deg, #023a42, #014b55 60%, #02343b);
-  font-family: Inter, 'Segoe UI', Tahoma, Arial, sans-serif;
-}
-.cp-card {
-  width: min(460px, 100%);
-  background: #fff;
-  border-radius: 20px;
-  padding: 28px 30px 22px;
-  box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.cp-head { display: flex; align-items: center; gap: 14px; }
-.cp-head h1 { margin: 0; font-size: 21px; color: #0b2e35; }
-.cp-head p { margin: 2px 0 0; color: #5d7a80; font-size: 13px; }
-.cp-ic { flex: 0 0 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 20px; background: #fdf0e5; color: #e87722; }
-.cp-lang { margin-inline-start: auto; align-self: flex-start; min-width: 34px; height: 30px; border: 1px solid #d7e3e5; border-radius: 9px; background: #fff; color: #014b55; font-weight: 700; cursor: pointer; }
-.cp-note { display: flex; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #e9f6f4; color: #0b4f55; font-size: 13px; line-height: 1.5; }
-.cp-note .fa { margin-top: 3px; color: #0f766e; }
-.cp-field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #24464d; }
-.cp-field input { height: 44px; padding: 0 12px; border: 1px solid #d7e3e5; border-radius: 11px; font-size: 15px; background: #f7fafa; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
-.cp-field input:focus { border-color: #0f766e; box-shadow: 0 0 0 3px rgb(15 118 110 / 0.15); background: #fff; }
-.cp-show { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #5d7a80; }
-.cp-rules { list-style: none; margin: 0; padding: 10px 12px; border-radius: 12px; background: #f7fafa; display: grid; gap: 4px; font-size: 13px; color: #6b8489; }
-.cp-rules li { display: flex; align-items: center; gap: 8px; }
-.cp-rules li.ok { color: #0f766e; }
-.cp-err { color: #c8321f; font-size: 12px; font-weight: 600; }
-.cp-msg { margin: 0; }
-.cp-submit { height: 48px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #0f766e, #014b55); color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
-.cp-submit:disabled { opacity: 0.55; cursor: not-allowed; }
-.cp-foot { display: flex; justify-content: center; gap: 18px; }
-.cp-link { border: 0; background: none; color: #0f766e; font-weight: 600; cursor: pointer; font-size: 13px; }
-.cp-link:hover { text-decoration: underline; }
-</style>
