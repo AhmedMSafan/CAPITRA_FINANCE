@@ -60,6 +60,10 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   const text = await response.text()
   const data = text ? JSON.parse(text) : null
 
+  // signed in with a temporary password: the API allows nothing but changing it
+  if (response.status === 403 && (data as { code?: string } | null)?.code === 'PASSWORD_CHANGE_REQUIRED' && router.currentRoute.value.name !== 'change-password')
+    await router.push({ name: 'change-password', query: { forced: '1' } })
+
   if (!response.ok) throw new ApiError(response.status, data as ProblemDetails | null)
 
   return data as T

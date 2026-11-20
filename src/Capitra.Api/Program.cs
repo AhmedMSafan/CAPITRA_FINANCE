@@ -33,6 +33,7 @@ else
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<Capitra.Api.Security.PasswordChangeGate>();
 app.UseAuthorization();
 app.MapControllers();
 

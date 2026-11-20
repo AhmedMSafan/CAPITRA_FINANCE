@@ -14,6 +14,13 @@ export async function refreshCurrentUser(): Promise<SessionUser> {
   return user
 }
 
+/** Replaces the signed-in user's password; the reply's new token replaces the old one (which stops working). */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<SessionUser> {
+  const response = await http.post<LoginResponse>('/api/sec/auth/change-password', { currentPassword, newPassword })
+  saveSession(response)
+  return response.user
+}
+
 export function logout(): void {
   clearSession()
 }

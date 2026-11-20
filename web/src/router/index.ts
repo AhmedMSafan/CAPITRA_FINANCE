@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '@/shared/layout/AppLayout.vue'
-import { isAuthenticated, isCompanyUser } from '@/shared/auth/session'
+import { isAuthenticated, isCompanyUser, mustChangePassword } from '@/shared/auth/session'
 import { mtgRoutes } from '@/modules/mtg/routes'
 import { mffRoutes } from '@/modules/mff/routes'
 import { chqRoutes } from '@/modules/chq/routes'
@@ -22,6 +22,13 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/modules/sec/pages/LoginPage.vue'),
       meta: { public: true, moduleName: 'CAPITRA', functionName: 'Login' }
+    },
+    {
+      // outside the layout: a user with a temporary password may call nothing else, so no header, menu or inbox here
+      path: '/change-password',
+      name: 'change-password',
+      component: () => import('@/modules/sec/pages/ChangePasswordPage.vue'),
+      meta: { moduleName: 'CAPITRA', functionName: 'Change password' }
     },
     {
       path: '/',
@@ -427,7 +434,11 @@ router.beforeEach(to => {
   const signedIn = isAuthenticated()
 
   if (!to.meta.public && !signedIn) return { name: 'login', query: { redirect: to.fullPath } }
+  // a temporary password must be replaced before anything else
+  if (signedIn && mustChangePassword() && to.name !== 'change-password' && to.name !== 'login')
+    return { name: 'change-password', query: { forced: '1', redirect: to.fullPath } }
   if (to.name === 'login' && signedIn) return { name: isCompanyUser() ? 'scr-portal' : 'home' }
+  if (to.name === 'change-password') return true
   // a member company's users screen and nothing else: every other page leads to the Screening Portal
   if (signedIn && isCompanyUser() && !to.meta.public && to.name !== 'scr-portal') return { name: 'scr-portal' }
 

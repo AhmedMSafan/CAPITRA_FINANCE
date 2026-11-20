@@ -143,3 +143,9 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-no-access p{margin:6px 0;color:var(--fin-muted)}
 .fc .scr-no-access ul{margin:0 0 8px;padding-inline-start:18px;color:var(--fin-ink);line-height:1.8}
 .fc .scr-no-access small{color:var(--fin-muted)}
+
+/* Temporary password, shown once */
+.fc .scr-temp{display:flex;align-items:center;gap:12px;margin-block-end:12px;padding:14px 16px;border-radius:12px;background:var(--fin-teal-50);border:1px dashed var(--fin-teal-600)}
+.fc .scr-temp code{flex:1;font:700 22px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.08em;color:var(--fin-ink);user-select:all}
+.fc .scr-confirm{margin:0 0 8px;color:var(--fin-ink);line-height:1.6}
+.fc .scr-temp-flag{color:var(--fin-orange-700)}

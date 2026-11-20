@@ -4,6 +4,7 @@
 const TOKEN_KEY = 'capitra.token'
 const USER_KEY = 'capitra.user'
 const EXPIRY_KEY = 'capitra.expiresAt'
+const MUST_CHANGE_KEY = 'capitra.mustChangePassword'
 
 export type SessionUser = {
   userId: string
@@ -19,12 +20,21 @@ export type LoginResponse = {
   token: string
   expiresAt: string
   user: SessionUser
+  /** Signed in with a temporary password: only changing it is allowed until then. */
+  mustChangePassword?: boolean
 }
 
 export function saveSession(response: LoginResponse): void {
   sessionStorage.setItem(TOKEN_KEY, response.token)
   sessionStorage.setItem(EXPIRY_KEY, response.expiresAt)
+  if (response.mustChangePassword) sessionStorage.setItem(MUST_CHANGE_KEY, '1')
+  else sessionStorage.removeItem(MUST_CHANGE_KEY)
   saveUser(response.user)
+}
+
+/** The user signed in with a temporary password and must choose their own before anything else. */
+export function mustChangePassword(): boolean {
+  return sessionStorage.getItem(MUST_CHANGE_KEY) === '1'
 }
 
 export function saveUser(user: SessionUser): void {
@@ -35,6 +45,7 @@ export function clearSession(): void {
   sessionStorage.removeItem(TOKEN_KEY)
   sessionStorage.removeItem(USER_KEY)
   sessionStorage.removeItem(EXPIRY_KEY)
+  sessionStorage.removeItem(MUST_CHANGE_KEY)
 }
 
 export function getToken(): string | null {

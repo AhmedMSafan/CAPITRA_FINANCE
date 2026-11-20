@@ -144,6 +144,7 @@ const ICON = {
   home: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>',
   list: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
   grid: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  key: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/></svg>',
   out: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>'
 }
 const initials = computed(() => displayName.value.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || '?')
@@ -201,6 +202,7 @@ const canAdminUsers = hasPermission('SEC.USER.ADMIN')
             <a role="menuitem" @click="go('/admin/users')"><span v-html="ICON.list"></span><span>{{ t('Users', 'المستخدمون') }}</span></a>
             <a role="menuitem" @click="go('/admin/roles')"><span v-html="ICON.grid"></span><span>{{ t('Role permissions', 'صلاحيات الأدوار') }}</span></a>
             </template>
+            <a role="menuitem" @click="go({ name: 'change-password' })"><span v-html="ICON.key"></span><span>{{ t('Change password', 'تغيير كلمة المرور') }}</span></a>
             <hr />
             <a role="menuitem" class="out" @click="logout"><span v-html="ICON.out"></span><span>{{ t('Sign out', 'تسجيل الخروج') }}</span></a>
           </div>

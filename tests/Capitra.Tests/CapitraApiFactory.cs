@@ -25,7 +25,12 @@ public sealed class CapitraApiFactory : WebApplicationFactory<Program>
         public Task<UserAccess?> GetAsync(string userId, CancellationToken cancellationToken) => Task.FromResult<UserAccess?>(UserAccess.TrustToken);
     }
 
-    public string IssueToken(params string[] permissions)
+    public string IssueToken(params string[] permissions) => Issue(false, permissions);
+
+    /// <summary>A token as given after signing in with a temporary password: it only allows changing the password.</summary>
+    public string IssueTemporaryPasswordToken(params string[] permissions) => Issue(true, permissions);
+
+    private string Issue(bool mustChangePassword, string[] permissions)
     {
         var claims = new List<Claim>
         {
@@ -33,6 +38,8 @@ public sealed class CapitraApiFactory : WebApplicationFactory<Program>
             new(CapitraClaimTypes.UserName, "tester"),
         };
         claims.AddRange(permissions.Select(p => new Claim(Capitra.Application.Security.Permissions.ClaimType, p)));
+        if (mustChangePassword)
+            claims.Add(new Claim(CapitraClaimTypes.PasswordChangeRequired, "1"));
         return Services.GetRequiredService<JwtTokenService>().Issue(claims).Token;
     }
 }

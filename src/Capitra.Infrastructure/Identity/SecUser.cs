@@ -21,6 +21,15 @@ public class SecUser : IdentityUser, IAuditable
 
     public DateTime? LastLoginAt { get; set; }
 
+    /// <summary>
+    /// The password was set by an administrator (a temporary one): the user must choose their own before doing anything else.
+    /// Until then a sign-in only allows changing the password.
+    /// </summary>
+    public bool MustChangePassword { get; set; }
+
+    /// <summary>When the user last chose their own password.</summary>
+    public DateTime? PasswordChangedAt { get; set; }
+
     public string CreatedBy { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; }
