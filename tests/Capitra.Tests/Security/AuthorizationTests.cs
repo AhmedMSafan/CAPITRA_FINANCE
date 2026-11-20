@@ -103,6 +103,11 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
     [InlineData("POST", "/api/cmc/mail-servers/1/test", Permissions.Cmc.EmailLogView)]
     [InlineData("POST", "/api/cmc/mail-servers/1/activate", Permissions.Cmc.EmailLogView)]
     [InlineData("GET", "/api/cmc/email-log", Permissions.Cmc.MailServerEdit)]
+    [InlineData("GET", "/api/scr/billing/overview", Permissions.Scr.InquiryCreate)]
+    [InlineData("GET", "/api/scr/billing/invoices", Permissions.Scr.CompanyUsers)]
+    [InlineData("POST", "/api/scr/billing/plans", Permissions.Scr.BillingView)]
+    [InlineData("POST", "/api/scr/billing/companies/1/invoices", Permissions.Scr.BillingView)]
+    [InlineData("POST", "/api/scr/billing/invoices/1/cancel", Permissions.Scr.BillingView)]
     public async Task Missing_permission_is_forbidden(string method, string url, string permission)
     {
         using var client = _factory.CreateClient();

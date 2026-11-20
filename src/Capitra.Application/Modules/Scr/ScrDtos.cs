@@ -56,7 +56,8 @@ public sealed record ScrInquiryDto(
 public sealed record ScrCompanyDto(
     long MemberCompanyId, string CompanyCode, string NameEn, string NameAr, string? LicenceNo, string? ContactEmail, string StatusCode, string? Notes,
     int UserCount, int InquiryCount, string? CreatedBy = null,
-    ScrLicenceDto? Licence = null, ScrCompanySeats? Seats = null, string? LicenceStateCode = null);
+    ScrLicenceDto? Licence = null, ScrCompanySeats? Seats = null, string? LicenceStateCode = null,
+    long? PricePlanId = null, string? PricePlanCode = null, string BillingCycleCode = "MONTHLY");
 
 /// <summary>A licence row: the administrator plus MaxUsers users, the period, the yearly inquiry quota.</summary>
 public sealed record ScrLicenceDto(
@@ -70,4 +71,8 @@ public sealed record ScrLicenceRequest(int? MaxUsers, DateOnly? ValidFrom, DateO
 /// </summary>
 public sealed record ScrCompanySeats(string? AdminUserName, string? AdminEmail, string? AdminStatusCode, int UsersInUse);
 
-public sealed record ScrCompanyRequest(string? CompanyCode, string? NameEn, string? NameAr, string? LicenceNo, string? ContactEmail, string? StatusCode, string? Notes);
+/// <param name="PricePlanId">The price plan the company is billed by; empty = not billed yet.</param>
+/// <param name="BillingCycleCode">MONTHLY, QUARTERLY or YEARLY; empty = MONTHLY.</param>
+public sealed record ScrCompanyRequest(
+    string? CompanyCode, string? NameEn, string? NameAr, string? LicenceNo, string? ContactEmail, string? StatusCode, string? Notes,
+    long? PricePlanId = null, string? BillingCycleCode = null);

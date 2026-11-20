@@ -176,3 +176,53 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-edit-licence{align-items:center}
 .fc .scr-edit-licence > span:nth-child(2){flex:1}
 .fc .scr-edit-licence .fx-btn{flex:none}
+
+/* Billing: totals band amounts, filters, cancelled rows, the invoice (lines, totals) and its printable page */
+.fc .scr-billing-amount{font-size:22px !important;white-space:nowrap}
+.fc .scr-billing-filters{display:flex;gap:8px;margin-inline-start:auto}
+.fc .scr-billing-filters .fx-select{min-width:160px}
+.fc tr.scr-row-cancelled td{color:var(--fin-muted);text-decoration:line-through;text-decoration-color:rgb(200 50 31 / .4)}
+.fc tr.scr-row-cancelled td .fx-chip,.fc tr.scr-row-cancelled td .fx-btn{text-decoration:none}
+.fc .fc-span-2{grid-column:span 2}
+.fc .scr-invoice-preview{display:flex;flex-direction:column;gap:12px;margin:0 16px 4px}
+.fc .scr-inv{display:flex;flex-direction:column;gap:12px}
+.fc .scr-inv-table td.fx-empty-cell{text-align:center;color:var(--fin-muted);padding:18px}
+.fc .scr-inv-totals{display:flex;flex-direction:column;gap:6px;margin:0;margin-inline-start:auto;min-width:min(420px,100%)}
+.fc .scr-inv-totals div{display:flex;justify-content:space-between;gap:16px;padding:6px 12px;font-size:var(--fs-sm)}
+.fc .scr-inv-totals dt{color:var(--fin-muted)}
+.fc .scr-inv-totals dd{margin:0;font-weight:700;color:var(--fin-ink);white-space:nowrap}
+.fc .scr-inv-totals .scr-inv-total{border-radius:10px;background:var(--fin-teal-600);color:#fff;padding:10px 12px;font-size:16px}
+.fc .scr-inv-totals .scr-inv-total dt,.fc .scr-inv-totals .scr-inv-total dd{color:#fff}
+.fc .scr-inv-doc{position:relative;display:flex;flex-direction:column;gap:18px;max-width:1000px;margin:0 auto;padding:32px 36px;overflow:hidden}
+.fc .scr-inv-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-block-end:16px;border-block-end:3px solid var(--fin-teal-600)}
+.fc .scr-inv-brand{font-size:26px;font-weight:900;letter-spacing:.06em;color:var(--fin-teal-600)}
+.fc .scr-inv-head small{color:var(--fin-muted)}
+.fc .scr-inv-title{text-align:end}
+.fc .scr-inv-title h1{margin:0;font-size:24px;color:var(--fin-ink)}
+.fc .scr-inv-title b{font-size:15px;color:var(--fin-muted)}
+.fc .scr-inv-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.fc .scr-inv-meta div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;background:var(--fin-teal-50)}
+.fc .scr-inv-meta span{font-size:11.5px;color:var(--fin-muted);text-transform:uppercase;letter-spacing:.04em}
+.fc .scr-inv-meta b{color:var(--fin-ink)}
+.fc .scr-inv-meta small{color:var(--fin-muted)}
+.fc .scr-inv-notes{margin:0;font-size:var(--fs-sm)}
+.fc .scr-inv-foot{padding-block-start:12px;border-block-start:1px solid var(--fin-line);font-size:11.5px;color:var(--fin-muted)}
+.fc .scr-inv-stamp{display:inline-block;margin-inline-start:12px;padding:3px 12px;border:2px solid #c8321f;border-radius:8px;color:#c8321f;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;transform:rotate(-4deg)}
+@media (max-width:900px){.fc .scr-inv-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.fc .fc-span-2{grid-column:auto}}
+@media print{
+  .t-Header,.scr-no-print,.fx-devtools,#apexDevToolbar{display:none !important}
+  .fc.scr-invoice-page{padding:0 !important;background:#fff}
+  .fc .scr-inv-doc{box-shadow:none;border:0;max-width:none;padding:0}
+  .fc .scr-inv-totals .scr-inv-total,.fc .scr-inv-meta div{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+.fc .scr-mode{display:flex;flex-wrap:wrap;gap:8px 24px}
+.fc .scr-tiers{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.fc .scr-tiers .fx-table{width:100%}
+.fc .scr-tiers .fx-table td{padding-block:6px}
+.fc .scr-tiers .fx-search{max-width:180px}
+.fc .scr-calc{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px;padding:12px 14px;border:1px dashed #9cc7cc;border-radius:12px}
+.fc .scr-calc .fc-field{max-width:220px}
+.fc .scr-calc-out{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:var(--fs-sm);padding-bottom:8px}
+.fc .scr-calc-out small{color:var(--fin-muted)}
+.fc .scr-calc-out b{font-size:16px;color:var(--fin-teal-600)}
+.fc .scr-inv-bands .fx-table{width:min(640px,100%);margin-inline-start:auto}

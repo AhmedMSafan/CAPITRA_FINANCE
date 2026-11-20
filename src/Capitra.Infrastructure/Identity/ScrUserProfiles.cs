@@ -15,6 +15,10 @@ public sealed class ScrUserProfiles(CapitraDbContext db) : IScrUserProfiles, ISc
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyDictionary<string, string?>> FullNamesAsync(long companyId, CancellationToken ct) =>
+        await db.Users.AsNoTracking().Where(u => u.MemberCompanyId == companyId && u.UserName != null)
+            .ToDictionaryAsync(u => u.UserName!, u => u.FullName, StringComparer.OrdinalIgnoreCase, ct);
+
     public async Task<IReadOnlyDictionary<long, ScrCompanySeats>> SeatsAsync(CancellationToken ct)
     {
         var rows = await (

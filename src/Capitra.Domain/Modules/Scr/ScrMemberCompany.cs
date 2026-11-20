@@ -26,4 +26,10 @@ public class ScrMemberCompany : AuditableEntity
     public string StatusCode { get; set; } = "ACTIVE";
 
     public string? Notes { get; set; }
+
+    /// <summary>The price plan the company is billed by (user fee per month, fee per inquiry); empty = not billed yet.</summary>
+    public long? PricePlanId { get; set; }
+
+    /// <summary>How often the company is invoiced: MONTHLY, QUARTERLY or YEARLY (calendar periods).</summary>
+    public string BillingCycleCode { get; set; } = "MONTHLY";
 }

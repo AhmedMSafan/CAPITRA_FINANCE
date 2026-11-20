@@ -17,6 +17,7 @@ public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCount
             .Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
         var userCounts = await users.CountsAsync(ct);
         var seats = await users.SeatsAsync(ct);
+        var plans = await db.Set<ScrPricePlan>().AsNoTracking().ToDictionaryAsync(p => p.PricePlanId, p => p.PlanCode, ct);
         var licences = (await db.Set<ScrCompanyLicence>().AsNoTracking().ToListAsync(ct))
             .GroupBy(l => l.MemberCompanyId).ToDictionary(g => g.Key, g => g.MaxBy(l => l.LicenceId)!);
         var today = DateOnly.FromDateTime(clock.UtcNow);
@@ -28,6 +29,7 @@ public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCount
                 Licence = l is null ? null : ToDto(l),
                 Seats = seats.GetValueOrDefault(c.MemberCompanyId) ?? new ScrCompanySeats(null, null, null, 0),
                 LicenceStateCode = l is null ? "NONE" : today < l.ValidFrom ? "NOT_STARTED" : l.ValidTo is { } to && today > to ? "EXPIRED" : "ACTIVE",
+                PricePlanCode = c.PricePlanId is { } p ? plans.GetValueOrDefault(p) : null,
             };
         })];
     }
@@ -98,6 +100,11 @@ public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCount
             e["nameAr"] = ["Enter the Arabic name."];
         if (status is not ("ACTIVE" or "SUSPENDED"))
             e["statusCode"] = ["Choose active or suspended."];
+        var cycle = ScrValidation.Code(r.BillingCycleCode is null ? "MONTHLY" : r.BillingCycleCode);
+        if (!ScrBilling.Cycles.Contains(cycle))
+            e["billingCycleCode"] = ["Choose monthly, quarterly or yearly invoicing."];
+        if (r.PricePlanId is { } plan && !await db.Set<ScrPricePlan>().AnyAsync(p => p.PricePlanId == plan, ct))
+            e["pricePlanId"] = ["The price plan was not found."];
         if (await db.Set<ScrMemberCompany>().AnyAsync(c => c.CompanyCode == code && c.MemberCompanyId != (id ?? 0), ct))
             e["companyCode"] = ["This company code is already used."];
         ScrValidation.Throw(e);
@@ -112,6 +119,8 @@ public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCount
         c.ContactEmail = ScrValidation.Clean(r.ContactEmail);
         c.StatusCode = status;
         c.Notes = ScrValidation.Clean(r.Notes);
+        c.PricePlanId = r.PricePlanId;
+        c.BillingCycleCode = cycle;
         if (id is null)
             db.Add(c);
         await db.SaveChangesAsync(ct);
@@ -119,7 +128,10 @@ public sealed class ScrCompanyService(ICapitraDbContext db, IScrCompanyUserCount
     }
 
     private static ScrCompanyDto ToDto(ScrMemberCompany c, int users, int inquiries) =>
-        new(c.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, c.LicenceNo, c.ContactEmail, c.StatusCode, c.Notes, users, inquiries, c.CreatedBy);
+        new(c.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, c.LicenceNo, c.ContactEmail, c.StatusCode, c.Notes, users, inquiries, c.CreatedBy)
+        {
+            PricePlanId = c.PricePlanId, BillingCycleCode = c.BillingCycleCode,
+        };
 }
 
 /// <summary>How many user accounts each member company has (the identity tables live in Infrastructure).</summary>
@@ -129,4 +141,7 @@ public interface IScrCompanyUserCounts
 
     /// <summary>Per company: its administrator and the seats its other users hold.</summary>
     Task<IReadOnlyDictionary<long, ScrCompanySeats>> SeatsAsync(CancellationToken ct);
+
+    /// <summary>The full names of a company's accounts, by user name (for invoice lines).</summary>
+    Task<IReadOnlyDictionary<string, string?>> FullNamesAsync(long companyId, CancellationToken ct);
 }
