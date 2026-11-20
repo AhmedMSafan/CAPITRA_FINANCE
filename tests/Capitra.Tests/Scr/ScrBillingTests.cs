@@ -1,4 +1,5 @@
 using Capitra.Application.Modules.Scr;
+using Xunit;
 
 namespace Capitra.Tests.Scr;
 
