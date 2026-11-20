@@ -81,7 +81,8 @@ public static class ScrBilling
     public static string CycleOf(DateOnly from, DateOnly to) =>
         to == from.AddYears(1).AddDays(-1) ? "YEARLY" : to == from.AddMonths(3).AddDays(-1) ? "QUARTERLY" : "MONTHLY";
 
-    public static decimal Money(decimal value) => Math.Round(value, 2, MidpointRounding.AwayFromZero);
+    /// <summary>Rounded half away from zero, always with two decimals (5 becomes 5.00).</summary>
+    public static decimal Money(decimal value) => Math.Round(value, 2, MidpointRounding.AwayFromZero) + 0.00m;
 
     public const int MaxTiers = 20;
 
@@ -114,7 +115,7 @@ public static class ScrBilling
         {
             var quantity = Math.Max(0, Math.Min(inquiries, to ?? int.MaxValue) - from + 1);
             if (quantity > 0)
-                result.Add(new ScrInvoiceBandDto(++no, type, from, to, price, quantity, Money(quantity * price)));
+                result.Add(new ScrInvoiceBandDto(++no, type, from, to, Money(price), quantity, Money(quantity * price)));
         }
 
         return result;
