@@ -29,6 +29,31 @@ r=$(login admin 'Admin#Seed2026'); check "the Federation administrator signs in"
 ADMIN=$(body "$r" | jq -r .token)
 company() { call GET /api/scr/companies "$ADMIN" | cut -f2- | jq -c --arg c "$1" '.[] | select(.companyCode == $c)'; }
 
+echo "0. Communication Center: the mail server is set up in CAPITRA, tested, then used"
+r=$(call GET /api/cmc/mail-servers/status "$ADMIN"); check "no mail server yet" "$(body "$r" | jq -r .sourceCode)" NONE
+r=$(call POST /api/cmc/mail-servers "$ADMIN" '{"serverName":"Needs pwd","hostName":"localhost","portNo":1025,"isSslEnabled":false,"userName":"someone","password":null,"clearPassword":false,"fromAddress":"capitra@e2e.test","fromName":"CAPITRA"}')
+check "a sign-in without a password is refused" "$(status "$r")" 400
+r=$(call POST /api/cmc/mail-servers "$ADMIN" '{"serverName":"Wrong port","hostName":"localhost","portNo":1026,"isSslEnabled":false,"userName":"someone","password":"Secret#Pass1","clearPassword":false,"fromAddress":"capitra@e2e.test","fromName":"CAPITRA"}')
+check "a server with a password is saved" "$(status "$r")" 200
+WID=$(body "$r" | jq -r .mailServerId)
+check "the answer says a password is stored" "$(body "$r" | jq -r .hasPassword)" true
+check "but never contains it" "$(body "$r" | grep -c 'Secret#Pass1' || true)" 0
+r=$(call POST /api/cmc/mail-servers/$WID/activate "$ADMIN"); check "an untested server cannot be used" "$(status "$r")" 400
+r=$(call POST /api/cmc/mail-servers/$WID/test "$ADMIN" '{"toAddress":"test@e2e.test"}'); check "its test fails" "$(body "$r" | jq -r .statusCode)" FAILED
+r=$(call POST /api/cmc/mail-servers/$WID/activate "$ADMIN"); check "a failed server cannot be used" "$(status "$r")" 400
+r=$(call POST /api/cmc/mail-servers "$ADMIN" '{"serverName":"Mailpit","hostName":"localhost","portNo":1025,"isSslEnabled":false,"userName":null,"password":null,"clearPassword":false,"fromAddress":"capitra@e2e.test","fromName":"CAPITRA"}')
+check "the Mailpit server is saved" "$(status "$r")" 200
+SID=$(body "$r" | jq -r .mailServerId)
+r=$(call POST /api/cmc/mail-servers/$SID/test "$ADMIN" '{"toAddress":"test@e2e.test"}'); check "its test e-mail is sent" "$(body "$r" | jq -r .sent)" true
+check "and arrives" "$(mails test@e2e.test)" 1
+r=$(call POST /api/cmc/mail-servers/$SID/activate "$ADMIN"); check "it is now in use" "$(body "$r" | jq -r .isActive)" true
+r=$(call GET /api/cmc/mail-servers/status "$ADMIN"); check "every e-mail goes through it" "$(body "$r" | jq -r '.sourceCode + " " + .serverName')" "COMMUNICATION_CENTER Mailpit"
+p=$(docker exec "$PG" psql -U postgres -d capitra -tAc "select \"PASSWORD_PROTECTED\" from \"CMC_MAIL_SERVERS\" where \"MAIL_SERVER_ID\"=$WID")
+[ -n "$p" ] && [[ "$p" != *"Secret#Pass1"* ]] && ok "the password is stored encrypted" || bad "password stored in clear or missing: [$p]"
+n=$(docker exec "$PG" psql -U postgres -d capitra -tAc "select count(*) from \"SYS_DATA_PROTECTION_KEYS\"")
+[ "$n" -ge 1 ] && ok "the encryption key is kept in the database" || bad "no key in the database"
+r=$(call GET /api/cmc/email-log "$ADMIN"); check "the log shows both tests" "$(body "$r" | jq -r '[.[] | select(.kindCode=="TEST") | .statusCode] | sort | join(",")')" "FAILED,SENT"
+
 echo "1. A company made before the upgrade keeps working"
 L=$(company LEGACY); LID=$(jq -r .memberCompanyId <<<"$L")
 check "it got an opening licence" "$(jq -r .licenceStateCode <<<"$L")" ACTIVE
@@ -72,6 +97,7 @@ r=$(login acme.admin 'Acme#Admin2026'); check "the administrator signs in" "$(st
 check "not asked to change it" "$(body "$r" | jq -r .mustChangePassword)" false
 CA=$(body "$r" | jq -r .token)
 r=$(call GET /api/scr/companies/$LID/users "$CA"); check "but not into another company's users" "$(status "$r")" 403
+r=$(call GET /api/cmc/mail-servers "$CA"); check "nor into the Communication Center" "$(status "$r")" 403
 
 echo "4. The company administrator adds users, within the licence"
 r=$(call POST /api/scr/companies/$CID/users "$CA" '{"userName":"acme.u1","email":"acme.u1@e2e.test","fullName":"Acme One","isActive":true}')
@@ -151,6 +177,13 @@ n=$(docker exec "$PG" psql -U postgres -d capitra -tAc "select count(*) from \"C
 check "every sent e-mail is in the log ($(echo $ids | wc -w))" "$n" "$(echo $ids | wc -w)"
 n=$(docker exec "$PG" psql -U postgres -d capitra -tAc "select count(*) from \"CMC_EMAIL_LOGS\" where \"STATUS_CODE\"='LINK_COPIED'")
 check "the copied link is in the log" "$n" 1
+
+n=$(docker exec "$PG" psql -U postgres -d capitra -tAc "select count(*) from \"CMC_EMAIL_LOGS\" where \"STATUS_CODE\"='SENT' and \"MAIL_SERVER_ID\" is null")
+check "every e-mail went through the Communication Center's server" "$n" 0
+
+# for the check after a restart: a pending user's link, kept to be opened by the restarted application
+r=$(call POST /api/scr/companies/$CID/users/$U2/copy-link "$CA"); body "$r" | jq -r .link > /tmp/persist-link.txt
+echo "$WID" > /tmp/wrong-server-id.txt
 
 echo
 echo "Passed: $pass   Failed: $fail"

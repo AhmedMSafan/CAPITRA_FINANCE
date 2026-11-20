@@ -75,6 +75,14 @@ export const appMenu: MenuGroup[] = [
     ]
   },
   {
+    title: 'Communication Center',
+    icon: 'pi pi-send',
+    links: [
+      { label: 'Mail servers', to: { name: 'cmc-mail-servers' } },
+      { label: 'Sent e-mails', to: { name: 'cmc-email-log' } }
+    ]
+  },
+  {
     title: 'Tools',
     icon: 'pi pi-calculator',
     links: [{ label: 'Finance Calculator', to: { name: 'tls-loan-calculator' } }]

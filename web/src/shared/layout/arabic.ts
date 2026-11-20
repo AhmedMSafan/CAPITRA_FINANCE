@@ -2,6 +2,7 @@ import { LND_AR } from '@/modules/lnd/arabic'
 import { TLS_AR } from '@/modules/tls/arabic'
 import { SCR_AR } from '@/modules/scr/arabic'
 import { SEC_AR } from '@/modules/sec/arabic'
+import { CMC_AR } from '@/modules/cmc/arabic'
 
 // Arabic texts of the pages copied from APEX, keyed by their English text.
 // App 100 page 1 (Home) and the header: finova-home-lang.js. App 100 page 920 (My Inbox): the page's t('en','ar') pairs.
@@ -12,6 +13,7 @@ export const AR: Record<string, string> = {
   ...TLS_AR,
   ...SCR_AR,
   ...SEC_AR,
+  ...CMC_AR,
   'Cancel': 'إلغاء',
   'Working...': 'جارٍ التنفيذ...',
   'Comment (optional)': 'تعليق (اختياري)',
