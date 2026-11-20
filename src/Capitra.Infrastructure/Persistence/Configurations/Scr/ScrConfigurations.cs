@@ -19,6 +19,8 @@ public sealed class ScrMemberCompanyConfiguration : IEntityTypeConfiguration<Scr
         builder.Property(x => x.ContactEmail).HasMaxLength(200);
         builder.Property(x => x.StatusCode).HasMaxLength(20);
         builder.Property(x => x.Notes).HasMaxLength(1000);
+        builder.Property(x => x.BillingCycleCode).HasMaxLength(20).HasDefaultValue("MONTHLY");
+        builder.HasOne<ScrPricePlan>().WithMany().HasForeignKey(x => x.PricePlanId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }
@@ -244,6 +246,88 @@ public sealed class ScrCompanyLicenceConfiguration : IEntityTypeConfiguration<Sc
         builder.Property(x => x.LicenceId).UseIdentityByDefaultColumn();
         builder.Property(x => x.Notes).HasMaxLength(1000);
         builder.HasOne<ScrMemberCompany>().WithMany().HasForeignKey(x => x.MemberCompanyId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class ScrPricePlanConfiguration : IEntityTypeConfiguration<ScrPricePlan>
+{
+    public void Configure(EntityTypeBuilder<ScrPricePlan> builder)
+    {
+        builder.ToTable("SCR_PRICE_PLANS");
+        builder.HasKey(x => x.PricePlanId);
+        builder.HasIndex(x => x.PlanCode).IsUnique();
+        builder.Property(x => x.PricePlanId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.PlanCode).HasMaxLength(30);
+        builder.Property(x => x.NameEn).HasMaxLength(200);
+        builder.Property(x => x.NameAr).HasMaxLength(200);
+        builder.Property(x => x.UserMonthlyFee).HasPrecision(18, 2);
+        builder.Property(x => x.InquiryFee).HasPrecision(18, 2);
+        builder.Property(x => x.CurrencyCode).HasMaxLength(3);
+        builder.Property(x => x.Notes).HasMaxLength(1000);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class ScrUserActivityConfiguration : IEntityTypeConfiguration<ScrUserActivity>
+{
+    public void Configure(EntityTypeBuilder<ScrUserActivity> builder)
+    {
+        builder.ToTable("SCR_USER_ACTIVITY");
+        builder.HasKey(x => x.UserActivityId);
+        builder.HasIndex(x => new { x.MemberCompanyId, x.ActiveFrom });
+        builder.HasIndex(x => x.UserId);
+        builder.Property(x => x.UserActivityId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.UserId).HasMaxLength(450);
+        builder.Property(x => x.UserName).HasMaxLength(256);
+        builder.HasOne<ScrMemberCompany>().WithMany().HasForeignKey(x => x.MemberCompanyId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class ScrInvoiceConfiguration : IEntityTypeConfiguration<ScrInvoice>
+{
+    public void Configure(EntityTypeBuilder<ScrInvoice> builder)
+    {
+        builder.ToTable("SCR_INVOICES");
+        builder.HasKey(x => x.InvoiceId);
+        builder.HasIndex(x => x.InvoiceNo).IsUnique();
+        builder.HasIndex(x => new { x.MemberCompanyId, x.PeriodFrom });
+        builder.Property(x => x.InvoiceId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.InvoiceNo).HasMaxLength(30);
+        builder.Property(x => x.PlanCode).HasMaxLength(30);
+        builder.Property(x => x.UserMonthlyFee).HasPrecision(18, 2);
+        builder.Property(x => x.InquiryFee).HasPrecision(18, 2);
+        builder.Property(x => x.CurrencyCode).HasMaxLength(3);
+        builder.Property(x => x.UserAmount).HasPrecision(18, 2);
+        builder.Property(x => x.InquiryAmount).HasPrecision(18, 2);
+        builder.Property(x => x.TotalAmount).HasPrecision(18, 2);
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.Property(x => x.IssuedBy).HasMaxLength(256);
+        builder.Property(x => x.CancelledBy).HasMaxLength(256);
+        builder.Property(x => x.CancelReason).HasMaxLength(1000);
+        builder.Property(x => x.Notes).HasMaxLength(1000);
+        builder.HasOne<ScrMemberCompany>().WithMany().HasForeignKey(x => x.MemberCompanyId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ScrPricePlan>().WithMany().HasForeignKey(x => x.PricePlanId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(x => x.Lines).WithOne().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class ScrInvoiceLineConfiguration : IEntityTypeConfiguration<ScrInvoiceLine>
+{
+    public void Configure(EntityTypeBuilder<ScrInvoiceLine> builder)
+    {
+        builder.ToTable("SCR_INVOICE_LINES");
+        builder.HasKey(x => x.InvoiceLineId);
+        builder.HasIndex(x => new { x.InvoiceId, x.LineNo }).IsUnique();
+        builder.Property(x => x.InvoiceLineId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.UserName).HasMaxLength(256);
+        builder.Property(x => x.FullName).HasMaxLength(256);
+        builder.Property(x => x.MonthsText).HasMaxLength(500);
+        builder.Property(x => x.UserAmount).HasPrecision(18, 2);
+        builder.Property(x => x.InquiryAmount).HasPrecision(18, 2);
+        builder.Property(x => x.LineAmount).HasPrecision(18, 2);
         builder.ConfigureAudit();
     }
 }

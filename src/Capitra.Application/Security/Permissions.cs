@@ -244,6 +244,12 @@ public static class Permissions
 
         /// <summary>Read every member company's inquiries (federation audit).</summary>
         public const string InquiryAudit = "SCR.INQUIRY.AUDIT";
+
+        /// <summary>Billing: price plans, each company's plan and invoicing period, issuing and cancelling invoices.</summary>
+        public const string BillingManage = "SCR.BILLING.MANAGE";
+
+        /// <summary>Billing: read invoices and what each company owes.</summary>
+        public const string BillingView = "SCR.BILLING.VIEW";
     }
 
     /// <summary>Communication Center: the mail servers every e-mail goes through, and the log of what was sent.</summary>
