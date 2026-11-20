@@ -27,9 +27,9 @@ OLD=$(call GET /api/scr/companies "$ADMIN" | cut -f2- | jq -c '.[] | select(.com
 U1=$(login old.u1 'Old#User2026'); CA=$(login old.admin 'Old#Admin2026')
 
 echo "1. The upgrade starts the activity history of the usable accounts"
-check "two open periods for OLDCO" "$(sql "select count(*) from \"SCR_USER_ACTIVITY\" where \"MEMBER_COMPANY_ID\"=$CID and \"ACTIVE_TO\" is null")" 2
-check "from the day they were made (today)" "$(sql "select distinct \"ACTIVE_FROM\" from \"SCR_USER_ACTIVITY\" where \"MEMBER_COMPANY_ID\"=$CID")" "$TODAY"
-check "a pending invitation is not billed" "$(sql "select count(*) from \"SCR_USER_ACTIVITY\" where \"USER_NAME\"='old.pending'")" 0
+check "two open periods for OLDCO" "$(sql "select count(*) from \"SCR_USER_ACTIVITIES\" where \"MEMBER_COMPANY_ID\"=$CID and \"ACTIVE_TO\" is null")" 2
+check "from the day they were made (today)" "$(sql "select distinct \"ACTIVE_FROM\" from \"SCR_USER_ACTIVITIES\" where \"MEMBER_COMPANY_ID\"=$CID")" "$TODAY"
+check "a pending invitation is not billed" "$(sql "select count(*) from \"SCR_USER_ACTIVITIES\" where \"USER_NAME\"='old.pending'")" 0
 
 echo "2. Price plans"
 r=$(call POST /api/scr/billing/plans "$ADMIN" '{"planCode":"STANDARD","nameEn":"Standard","nameAr":"قياسية","userMonthlyFee":100.005,"inquiryFee":2.5,"isActive":true}')
@@ -54,7 +54,7 @@ r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=${THIS_MONTH%01
 r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=$NEXT_MONTH" "$ADMIN"); check "a future period is refused" "$(status "$r")" 400
 
 echo "4. Last month: admin active since earlier, old.u1 made one inquiry then"
-sql "update \"SCR_USER_ACTIVITY\" set \"ACTIVE_FROM\" = '$PREV_MONTH'::date - 40 where \"USER_NAME\"='old.admin'" >/dev/null
+sql "update \"SCR_USER_ACTIVITIES\" set \"ACTIVE_FROM\" = '$PREV_MONTH'::date - 40 where \"USER_NAME\"='old.admin'" >/dev/null
 sql "update \"SCR_INQUIRIES\" set \"SCREENED_AT\" = ('$PREV_MONTH'::date + 9)::timestamp at time zone 'Africa/Cairo' where \"INQUIRY_ID\" = (select min(\"INQUIRY_ID\") from \"SCR_INQUIRIES\" where \"MEMBER_COMPANY_ID\"=$CID)" >/dev/null
 r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=$PREV_MONTH" "$ADMIN")
 check "1 user-month + 1 inquiry = 102.50" "$(body "$r" | jq -r '"\(.userMonths) \(.inquiryCount) \(.totalAmount)"')" "1 1 102.5"
@@ -82,9 +82,9 @@ check "with their lines" "$(sql "select count(*) from \"SCR_INVOICE_LINES\"")" 4
 echo "6. Activity follows the accounts"
 UID1=$(call GET /api/scr/companies/$CID/users "$ADMIN" | cut -f2- | jq -r '.[] | select(.userName=="old.u1") | .userId')
 r=$(call PUT /api/scr/companies/$CID/users/$UID1 "$CA" '{"userName":"old.u1","email":"old.u1@e2e.test","fullName":"Old One","isActive":false}'); check "old.u1 deactivated" "$(status "$r")" 200
-check "its period closed today" "$(sql "select \"ACTIVE_TO\" from \"SCR_USER_ACTIVITY\" where \"USER_NAME\"='old.u1'")" "$TODAY"
+check "its period closed today" "$(sql "select \"ACTIVE_TO\" from \"SCR_USER_ACTIVITIES\" where \"USER_NAME\"='old.u1'")" "$TODAY"
 r=$(call PUT /api/scr/companies/$CID/users/$UID1 "$CA" '{"userName":"old.u1","email":"old.u1@e2e.test","fullName":"Old One","isActive":true}'); check "and reactivated" "$(status "$r")" 200
-check "a new period opened" "$(sql "select count(*) from \"SCR_USER_ACTIVITY\" where \"USER_NAME\"='old.u1'")" 2
+check "a new period opened" "$(sql "select count(*) from \"SCR_USER_ACTIVITIES\" where \"USER_NAME\"='old.u1'")" 2
 r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=$THIS_MONTH" "$ADMIN"); check "this month still counts old.u1 once" "$(body "$r" | jq -r .userMonths)" 2
 
 echo "7. Quarterly invoicing, totals, and who may see billing"

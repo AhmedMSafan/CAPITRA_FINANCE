@@ -52,7 +52,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SCR_USER_ACTIVITY",
+                name: "SCR_USER_ACTIVITIES",
                 columns: table => new
                 {
                     USER_ACTIVITY_ID = table.Column<long>(type: "bigint", nullable: false)
@@ -70,9 +70,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SCR_USER_ACTIVITY", x => x.USER_ACTIVITY_ID);
+                    table.PrimaryKey("PK_SCR_USER_ACTIVITIES", x => x.USER_ACTIVITY_ID);
                     table.ForeignKey(
-                        name: "FK_SCR_USER_ACTIVITY_SCR_MEMBER_COMPANIES",
+                        name: "FK_SCR_USER_ACTIVITIES_SCR_MEMBER_COMPANIES",
                         column: x => x.MEMBER_COMPANY_ID,
                         principalTable: "SCR_MEMBER_COMPANIES",
                         principalColumn: "MEMBER_COMPANY_ID",
@@ -196,13 +196,13 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_SCR_USER_ACTIVITY_MEMBER_COMPANY_ID_ACTIVE_FROM",
-                table: "SCR_USER_ACTIVITY",
+                name: "IX_SCR_USER_ACTIVITIES_MEMBER_COMPANY_ID_ACTIVE_FROM",
+                table: "SCR_USER_ACTIVITIES",
                 columns: new[] { "MEMBER_COMPANY_ID", "ACTIVE_FROM" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_SCR_USER_ACTIVITY_USER_ID",
-                table: "SCR_USER_ACTIVITY",
+                name: "IX_SCR_USER_ACTIVITIES_USER_ID",
+                table: "SCR_USER_ACTIVITIES",
                 column: "USER_ID");
 
             migrationBuilder.AddForeignKey(
@@ -216,7 +216,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
             // Billing history starts with the company accounts usable today (active, activated): each from the day it was made
             // (Cairo date). From now on the application opens and closes these periods itself. Nothing is changed or deleted.
             migrationBuilder.Sql("""
-                INSERT INTO "SCR_USER_ACTIVITY" ("MEMBER_COMPANY_ID", "USER_ID", "USER_NAME", "ACTIVE_FROM", "ACTIVE_TO", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
+                INSERT INTO "SCR_USER_ACTIVITIES" ("MEMBER_COMPANY_ID", "USER_ID", "USER_NAME", "ACTIVE_FROM", "ACTIVE_TO", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
                 SELECT u."MEMBER_COMPANY_ID", u."USER_ID", u."USER_NAME", (u."CREATED_AT" AT TIME ZONE 'Africa/Cairo')::date, NULL, 'SYSTEM', now(), 0
                   FROM "SEC_USERS" u
                  WHERE u."MEMBER_COMPANY_ID" IS NOT NULL AND u."IS_ACTIVE" AND u."PASSWORD_HASH" IS NOT NULL;
@@ -234,7 +234,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 name: "SCR_INVOICE_LINES");
 
             migrationBuilder.DropTable(
-                name: "SCR_USER_ACTIVITY");
+                name: "SCR_USER_ACTIVITIES");
 
             migrationBuilder.DropTable(
                 name: "SCR_INVOICES");

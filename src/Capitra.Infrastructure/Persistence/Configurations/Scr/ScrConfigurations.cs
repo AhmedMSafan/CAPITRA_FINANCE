@@ -273,7 +273,7 @@ public sealed class ScrUserActivityConfiguration : IEntityTypeConfiguration<ScrU
 {
     public void Configure(EntityTypeBuilder<ScrUserActivity> builder)
     {
-        builder.ToTable("SCR_USER_ACTIVITY");
+        builder.ToTable("SCR_USER_ACTIVITIES");
         builder.HasKey(x => x.UserActivityId);
         builder.HasIndex(x => new { x.MemberCompanyId, x.ActiveFrom });
         builder.HasIndex(x => x.UserId);

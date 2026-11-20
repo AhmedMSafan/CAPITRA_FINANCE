@@ -41,7 +41,7 @@ public sealed class CapitraDbContext(DbContextOptions<CapitraDbContext> options)
 
     /// <summary>
     /// Billing: a member-company account can use the service while it is active, has a password (activated) and belongs to the
-    /// company. Whenever that starts or stops, by whatever screen, a SCR_USER_ACTIVITY period is opened or closed (Cairo dates).
+    /// company. Whenever that starts or stops, by whatever screen, a SCR_USER_ACTIVITIES period is opened or closed (Cairo dates).
     /// </summary>
     private async Task TrackCompanyUserActivityAsync(CancellationToken ct)
     {

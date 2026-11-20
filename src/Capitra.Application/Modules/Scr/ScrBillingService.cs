@@ -77,7 +77,7 @@ public static class ScrBilling
 
 /// <summary>
 /// Screening service billing: price plans, and per member company an invoice per calendar period (month, quarter or year, as set on
-/// the company). The user fee is per user per month: a user active on any day of a month (SCR_USER_ACTIVITY) is billed for it,
+/// the company). The user fee is per user per month: a user active on any day of a month (SCR_USER_ACTIVITIES) is billed for it,
 /// the administrator included; invitations not yet activated are not billed. The inquiry fee is per inquiry made in the period,
 /// whatever its result. Prices are copied onto the invoice when it is issued. Nothing is deleted: a wrong invoice is cancelled with
 /// a reason and issued again.

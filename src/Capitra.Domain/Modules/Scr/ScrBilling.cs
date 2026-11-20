@@ -31,7 +31,7 @@ public class ScrPricePlan : AuditableEntity
 }
 
 /// <summary>
-/// SCR_USER_ACTIVITY: the days each member-company account could use the service: from the day it was activated (or reactivated)
+/// SCR_USER_ACTIVITIES: the days each member-company account could use the service: from the day it was activated (or reactivated)
 /// to the day it was deactivated, or still open. Written automatically whenever an account changes; it is what the user fee is
 /// billed from, also for past months.
 /// </summary>
