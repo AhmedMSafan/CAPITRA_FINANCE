@@ -34,7 +34,8 @@ public sealed class SecAuthController(
     RoleManager<SecRole> roles,
     JwtTokenService tokens,
     IClock clock,
-    ICurrentUser currentUser) : ControllerBase
+    ICurrentUser currentUser,
+    UserAccessCache access) : ControllerBase
 {
     private const string InvalidLogin = "Invalid user name or password.";
 
@@ -91,6 +92,8 @@ public sealed class SecAuthController(
         user.MustChangePassword = false;
         user.PasswordChangedAt = clock.UtcNow;
         await users.UpdateAsync(user);
+        // the cached security stamp is now stale: drop it so the old session ends and the new one works at once
+        access.Clear();
         return await IssueAsync(user);
     }
 

@@ -44,7 +44,7 @@ public sealed class ScrCompaniesController(ScrCompanyService companies) : Contro
 /// </summary>
 [ApiController]
 [Route("api/scr/companies/{companyId:long}/users")]
-public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUserProfiles profiles, ScrCompanyService companies) : ControllerBase
+public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUserProfiles profiles, ScrCompanyService companies, UserAccessCache access) : ControllerBase
 {
     public const string CompanyUserRole = "MEMBER_COMPANY_USER";
     public const string CompanyAdminRole = "MEMBER_COMPANY_ADMIN";
@@ -106,6 +106,7 @@ public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUs
             Ensure(await users.AddToRoleAsync(user, role), "roleCode");
         }
 
+        access.Clear(); // a deactivation or role change applies at once
         return Ok(await ToDtoAsync(user));
     }
 
@@ -126,6 +127,7 @@ public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUs
         Ensure(await users.UpdateAsync(user), "user");
         await users.SetLockoutEndDateAsync(user, null);
         await users.ResetAccessFailedCountAsync(user);
+        access.Clear(); // the user's open sessions end now, not when the cache expires
         return Ok(await ToDtoAsync(user) with { TemporaryPassword = password });
     }
 
