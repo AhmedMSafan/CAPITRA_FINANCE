@@ -1,6 +1,7 @@
 <template>
   <!-- A form dialog in the CAPITRA modal style: icon, title and subtitle, the form, then the actions. -->
-  <div class="fc-modal-back" role="presentation" @click.self="emit('close')">
+  <!-- closes only by its own buttons or Esc: a click (or a text selection ending) on the backdrop must never lose a typed form -->
+  <div class="fc-modal-back" role="presentation">
     <section class="fc-modal scr-modal fc" role="dialog" aria-modal="true" :aria-label="title">
       <header class="fc-sec-head">
         <span class="fc-sec-ic" :class="{ 'fc-sec-ic--orange': orange }" aria-hidden="true"><span :class="['fa', icon]"></span></span>
@@ -24,7 +25,13 @@ import { tr } from '@/shared/layout/language'
 
 defineProps<{ title: string; subtitle?: string; icon: string; orange?: boolean }>()
 const emit = defineEmits<{ close: [] }>()
-const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') emit('close') }
+// Esc closes, except while typing in a field: there Esc belongs to the field (e.g. the browser's autofill suggestions)
+const onKey = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape' || e.defaultPrevented) return
+  const t = e.target as HTMLElement | null
+  if (t && (t.closest('input, textarea, select, [contenteditable="true"]'))) return
+  emit('close')
+}
 onMounted(() => window.addEventListener('keydown', onKey))
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
