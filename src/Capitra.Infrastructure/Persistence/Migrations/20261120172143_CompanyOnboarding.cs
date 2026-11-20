@@ -42,7 +42,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SEC_EMAIL_LOGS",
+                name: "CMC_EMAIL_LOGS",
                 columns: table => new
                 {
                     EMAIL_LOG_ID = table.Column<long>(type: "bigint", nullable: false)
@@ -62,7 +62,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SEC_EMAIL_LOGS", x => x.EMAIL_LOG_ID);
+                    table.PrimaryKey("PK_CMC_EMAIL_LOGS", x => x.EMAIL_LOG_ID);
                 });
 
             migrationBuilder.CreateIndex(
@@ -71,8 +71,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 column: "MEMBER_COMPANY_ID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SEC_EMAIL_LOGS_USER_ID",
-                table: "SEC_EMAIL_LOGS",
+                name: "IX_CMC_EMAIL_LOGS_USER_ID",
+                table: "CMC_EMAIL_LOGS",
                 column: "USER_ID");
 
             // Every existing company gets an opening licence, so nobody loses access on upgrade: its users in use today (active,
@@ -100,7 +100,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 name: "SCR_COMPANY_LICENCES");
 
             migrationBuilder.DropTable(
-                name: "SEC_EMAIL_LOGS");
+                name: "CMC_EMAIL_LOGS");
         }
     }
 }

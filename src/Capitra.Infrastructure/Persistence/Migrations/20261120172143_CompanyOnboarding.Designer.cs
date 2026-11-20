@@ -42514,7 +42514,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("WFE_WORKFLOW_INSTANCES", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Infrastructure.Identity.SecEmailLog", b =>
+            modelBuilder.Entity("Capitra.Domain.Modules.Cmc.CmcEmailLog", b =>
                 {
                     b.Property<long>("EmailLogId")
                         .ValueGeneratedOnAdd()
@@ -42586,12 +42586,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("USER_ID");
 
                     b.HasKey("EmailLogId")
-                        .HasName("PK_SEC_EMAIL_LOGS");
+                        .HasName("PK_CMC_EMAIL_LOGS");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("IX_SEC_EMAIL_LOGS_USER_ID");
+                        .HasDatabaseName("IX_CMC_EMAIL_LOGS_USER_ID");
 
-                    b.ToTable("SEC_EMAIL_LOGS", (string)null);
+                    b.ToTable("CMC_EMAIL_LOGS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecRole", b =>

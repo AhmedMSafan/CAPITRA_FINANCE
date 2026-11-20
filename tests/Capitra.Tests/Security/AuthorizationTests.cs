@@ -98,6 +98,11 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
     [InlineData("POST", "/api/lnd/parameters/values/1/withdraw", Permissions.Lnd.ParametersApprove)]
     [InlineData("POST", "/api/apex/120/600/IR_ACCOUNTING_EVENT_SOURCES_CATALOGUE", "GL.SOMETHING.ELSE")]
     [InlineData("POST", "/api/apex/120/601/FORM_DML_ACCOUNTING_EVENT_SOURCE_DETAILS", Permissions.Gl.SetupView)]
+    [InlineData("GET", "/api/cmc/mail-servers", Permissions.Cmc.EmailLogView)]
+    [InlineData("POST", "/api/cmc/mail-servers", Permissions.Cmc.EmailLogView)]
+    [InlineData("POST", "/api/cmc/mail-servers/1/test", Permissions.Cmc.EmailLogView)]
+    [InlineData("POST", "/api/cmc/mail-servers/1/activate", Permissions.Cmc.EmailLogView)]
+    [InlineData("GET", "/api/cmc/email-log", Permissions.Cmc.MailServerEdit)]
     public async Task Missing_permission_is_forbidden(string method, string url, string permission)
     {
         using var client = _factory.CreateClient();

@@ -246,6 +246,16 @@ public static class Permissions
         public const string InquiryAudit = "SCR.INQUIRY.AUDIT";
     }
 
+    /// <summary>Communication Center: the mail servers every e-mail goes through, and the log of what was sent.</summary>
+    public static class Cmc
+    {
+        /// <summary>Add and change mail servers, send test e-mails and choose the server in use.</summary>
+        public const string MailServerEdit = "CMC.MAIL_SERVER.EDIT";
+
+        /// <summary>Read the log of every e-mail the system sent or tried to send.</summary>
+        public const string EmailLogView = "CMC.EMAIL_LOG.VIEW";
+    }
+
     /// <summary>Every permission code above, for the role screen.</summary>
     public static IReadOnlyList<string> Catalog { get; } =
         typeof(Permissions).GetNestedTypes()

@@ -111,21 +111,3 @@ public sealed class SecUserPasskeyConfiguration : IEntityTypeConfiguration<SecUs
         builder.ConfigureAudit();
     }
 }
-
-public sealed class SecEmailLogConfiguration : IEntityTypeConfiguration<SecEmailLog>
-{
-    public void Configure(EntityTypeBuilder<SecEmailLog> builder)
-    {
-        builder.ToTable("SEC_EMAIL_LOGS");
-        builder.HasKey(x => x.EmailLogId);
-        builder.HasIndex(x => x.UserId);
-        builder.Property(x => x.EmailLogId).UseIdentityByDefaultColumn();
-        builder.Property(x => x.UserId).HasMaxLength(450);
-        builder.Property(x => x.ToAddress).HasMaxLength(256);
-        builder.Property(x => x.KindCode).HasMaxLength(30);
-        builder.Property(x => x.Subject).HasMaxLength(300);
-        builder.Property(x => x.StatusCode).HasMaxLength(30);
-        builder.Property(x => x.ErrorText).HasMaxLength(1000);
-        builder.ConfigureAudit();
-    }
-}

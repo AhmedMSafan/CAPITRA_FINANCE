@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Mail;
 using System.Text;
 using Capitra.Application.Abstractions;
+using Capitra.Domain.Modules.Cmc;
+using Capitra.Infrastructure.Communication;
 using Capitra.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -38,24 +40,27 @@ public sealed class EmailOptions
     public bool IsConfigured => !string.IsNullOrWhiteSpace(Host) && !string.IsNullOrWhiteSpace(FromAddress);
 }
 
-/// <summary>Sends one e-mail; the SMTP sender in production, a recorder in tests.</summary>
+/// <summary>Sends one e-mail through a given mail server; the SMTP sender in production, a recorder in tests.</summary>
 public interface IMailTransport
 {
-    Task SendAsync(string to, string subject, string html, CancellationToken ct);
+    Task SendAsync(MailServerSettings server, string to, string subject, string html, CancellationToken ct);
 }
 
-public sealed class SmtpMailTransport(IOptions<EmailOptions> options) : IMailTransport
+public sealed class SmtpMailTransport : IMailTransport
 {
-    public async Task SendAsync(string to, string subject, string html, CancellationToken ct)
+    public async Task SendAsync(MailServerSettings server, string to, string subject, string html, CancellationToken ct)
     {
-        var o = options.Value;
-        using var message = new MailMessage { From = new MailAddress(o.FromAddress!, o.FromName), Subject = subject, Body = html, IsBodyHtml = true, BodyEncoding = Encoding.UTF8, SubjectEncoding = Encoding.UTF8 };
+        using var message = new MailMessage { From = new MailAddress(server.FromAddress, server.FromName), Subject = subject, Body = html, IsBodyHtml = true, BodyEncoding = Encoding.UTF8, SubjectEncoding = Encoding.UTF8 };
         message.To.Add(to);
-        using var client = new SmtpClient(o.Host, o.Port) { EnableSsl = o.EnableSsl, DeliveryMethod = SmtpDeliveryMethod.Network };
-        if (!string.IsNullOrWhiteSpace(o.UserName))
-            client.Credentials = new NetworkCredential(o.UserName, o.Password);
+        using var client = new SmtpClient(server.Host, server.Port) { EnableSsl = server.EnableSsl, DeliveryMethod = SmtpDeliveryMethod.Network, Timeout = 30_000 };
+        if (!string.IsNullOrWhiteSpace(server.UserName))
+            client.Credentials = new NetworkCredential(server.UserName, server.Password);
         await client.SendMailAsync(message, ct);
     }
+
+    /// <summary>The errors a mail server can give: recorded on the e-mail, never thrown to the user.</summary>
+    public static bool IsMailError(Exception ex) => ex is SmtpException or InvalidOperationException or IOException or FormatException
+        or System.Security.Authentication.AuthenticationException or System.Net.Sockets.SocketException;
 }
 
 /// <summary>The result of an account e-mail: whether it went out, and the link it carried (for "Copy link" when it did not).</summary>
@@ -67,7 +72,8 @@ public sealed record AccountEmailResult(bool Sent, string StatusCode, string? Er
 /// No password is ever e-mailed.
 /// </summary>
 public sealed class AccountEmails(
-    UserManager<SecUser> users, IMailTransport transport, IOptions<EmailOptions> options, CapitraDbContext db, IClock clock, ILogger<AccountEmails> logger)
+    UserManager<SecUser> users, IMailTransport transport, MailSettings mail, IOptions<EmailOptions> options, CapitraDbContext db, IClock clock,
+    ILogger<AccountEmails> logger)
 {
     public const string Activation = "ACTIVATION";
     public const string PasswordReset = "PASSWORD_RESET";
@@ -122,7 +128,7 @@ public sealed class AccountEmails(
         var activating = user.PasswordHash is null;
         var link = await LinkAsync(user, activating ? "activate" : "reset-password");
         var kind = activating ? Activation : PasswordReset;
-        db.Add(new SecEmailLog
+        db.Add(new CmcEmailLog
         {
             UserId = user.Id, ToAddress = user.Email ?? string.Empty, KindCode = kind, Subject = "(link copied by an administrator)",
             StatusCode = "LINK_COPIED", AttemptedAt = clock.UtcNow,
@@ -140,24 +146,24 @@ public sealed class AccountEmails(
 
     private async Task<AccountEmailResult> SendAsync(SecUser user, string kind, string subject, string body, string link, CancellationToken ct)
     {
-        var log = new SecEmailLog { UserId = user.Id, ToAddress = user.Email ?? string.Empty, KindCode = kind, Subject = subject, AttemptedAt = clock.UtcNow };
+        var log = new CmcEmailLog { UserId = user.Id, ToAddress = user.Email ?? string.Empty, KindCode = kind, Subject = subject, AttemptedAt = clock.UtcNow };
         if (string.IsNullOrWhiteSpace(user.Email))
         {
             log.StatusCode = "NO_ADDRESS";
         }
-        else if (!options.Value.IsConfigured)
+        else if (await mail.CurrentAsync(ct) is not { } server)
         {
             log.StatusCode = "NOT_CONFIGURED";
         }
         else
         {
+            log.MailServerId = server.MailServerId;
             try
             {
-                await transport.SendAsync(user.Email, subject, body, ct);
+                await transport.SendAsync(server, user.Email, subject, body, ct);
                 log.StatusCode = "SENT";
             }
-            catch (Exception ex) when (ex is SmtpException or InvalidOperationException or IOException or FormatException
-                or System.Security.Authentication.AuthenticationException or System.Net.Sockets.SocketException)
+            catch (Exception ex) when (SmtpMailTransport.IsMailError(ex))
             {
                 log.StatusCode = "FAILED";
                 log.ErrorText = ex.Message.Length > 1000 ? ex.Message[..1000] : ex.Message;
