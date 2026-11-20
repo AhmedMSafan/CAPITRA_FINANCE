@@ -161,7 +161,7 @@
         <!-- the number of users and the dates belong to the licence: every change is a new licence, kept for billing -->
         <div v-if="editOf" class="fc-note fc-full scr-edit-licence">
           <span class="fa fa-id-card-o" aria-hidden="true"></span>
-          <span><b>{{ tr('Licence') }}:</b>
+          <span><b>{{ tr('Licence') }}:</b>&nbsp;
             <template v-if="editOf.licence"> {{ tr('Administrator') }} + {{ editOf.licence.maxUsers }} · {{ formatDate(editOf.licence.validFrom) }} – {{ editOf.licence.validTo ? formatDate(editOf.licence.validTo) : tr('open-ended') }}</template>
             <template v-else> {{ tr('No licence') }}</template>
             <br><small>{{ tr('The number of users and the dates are changed as a new licence; earlier licences are kept.') }}</small></span>
