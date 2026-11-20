@@ -19,6 +19,13 @@ export const scrRoutes: RouteRecordRaw[] = [
   },
   { path: 'screening/registry', name: 'scr-registry', component: () => import('./pages/ScrRegistryPage.vue'), meta: meta('Federation Final List') },
   { path: 'screening/companies', name: 'scr-companies', component: () => import('./pages/ScrCompaniesPage.vue'), meta: meta('Member companies') },
+  // billing: price plans, each company's billing, invoices (printable)
+  { path: 'screening/billing', name: 'scr-billing', component: () => import('./pages/ScrBillingPage.vue'), meta: meta('Billing') },
+  { path: 'screening/billing/plans', name: 'scr-price-plans', component: () => import('./pages/ScrPricePlansPage.vue'), meta: meta('Price plans') },
+  {
+    path: 'screening/billing/invoices/:invoiceId(\\d+)', name: 'scr-invoice', component: () => import('./pages/ScrInvoicePage.vue'),
+    props: (r) => ({ invoiceId: Number(r.params.invoiceId) }), meta: meta('Invoice')
+  },
   { path: 'screening/inquiries', name: 'scr-inquiries', component: () => import('./pages/ScrInquiriesPage.vue'), meta: meta('Inquiry audit') },
   // member companies: the only page their users can open
   { path: 'screening/portal', name: 'scr-portal', component: () => import('./pages/ScrPortalPage.vue'), meta: meta('Screening Portal') }

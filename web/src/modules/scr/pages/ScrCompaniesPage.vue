@@ -111,6 +111,19 @@
           <small v-if="err('yearlyInquiryQuota')" class="scr-err">{{ err('yearlyInquiryQuota') }}</small></label>
       </div>
 
+      <h3 class="scr-form-sec"><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Billing') }}</h3>
+      <div class="fc-grid fc-grid--3">
+        <label class="fc-field"><span>{{ tr('Price plan') }}</span>
+          <select v-model="company.pricePlanId" class="fx-select"><option :value="null">{{ tr('Not billed yet') }}</option>
+            <option v-for="p in plans.filter((x) => x.isActive || x.pricePlanId === company.pricePlanId)" :key="p.pricePlanId" :value="p.pricePlanId">{{ p.planCode }} · {{ egp(p.userMonthlyFee) }} / {{ tr('user') }} / {{ tr('month') }} · {{ egp(p.inquiryFee) }} / {{ tr('inquiry') }}</option></select>
+          <small v-if="canPlans && !plans.length" class="scr-hint"><RouterLink :to="{ name: 'scr-price-plans' }">{{ tr('Add a price plan first') }}</RouterLink></small>
+          <small v-if="err('pricePlanId')" class="scr-err">{{ err('pricePlanId') }}</small></label>
+        <label class="fc-field"><span>{{ tr('Invoicing') }}</span>
+          <select v-model="company.billingCycleCode" class="fx-select">
+            <option value="MONTHLY">{{ tr('Monthly') }}</option><option value="QUARTERLY">{{ tr('Quarterly') }}</option><option value="YEARLY">{{ tr('Yearly') }}</option></select>
+          <small class="scr-hint">{{ tr('Calendar months, quarters or years.') }}</small></label>
+      </div>
+
       <h3 class="scr-form-sec"><span class="fa fa-user-circle-o" aria-hidden="true"></span>{{ tr('Company administrator') }}</h3>
       <div class="fc-grid fc-grid--3">
         <label class="fc-field"><span>{{ tr('Full name') }} <b>*</b></span><input v-model="admin.fullName" class="fx-search">
@@ -168,6 +181,19 @@
           <button type="button" class="fx-btn fx-btn--sm fx-btn--teal" @click="licenceFromEdit"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change users or dates') }}</button>
         </div>
       </div>
+      <h3 class="scr-form-sec"><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Billing') }}</h3>
+      <div class="fc-grid fc-grid--3">
+        <label class="fc-field"><span>{{ tr('Price plan') }}</span>
+          <select v-model="company.pricePlanId" class="fx-select"><option :value="null">{{ tr('Not billed yet') }}</option>
+            <option v-for="p in plans.filter((x) => x.isActive || x.pricePlanId === company.pricePlanId)" :key="p.pricePlanId" :value="p.pricePlanId">{{ p.planCode }} · {{ egp(p.userMonthlyFee) }} / {{ tr('user') }} / {{ tr('month') }} · {{ egp(p.inquiryFee) }} / {{ tr('inquiry') }}</option></select>
+          <small v-if="canPlans && !plans.length" class="scr-hint"><RouterLink :to="{ name: 'scr-price-plans' }">{{ tr('Add a price plan first') }}</RouterLink></small>
+          <small v-if="err('pricePlanId')" class="scr-err">{{ err('pricePlanId') }}</small></label>
+        <label class="fc-field"><span>{{ tr('Invoicing') }}</span>
+          <select v-model="company.billingCycleCode" class="fx-select">
+            <option value="MONTHLY">{{ tr('Monthly') }}</option><option value="QUARTERLY">{{ tr('Quarterly') }}</option><option value="YEARLY">{{ tr('Yearly') }}</option></select>
+          <small class="scr-hint">{{ tr('Calendar months, quarters or years.') }}</small></label>
+      </div>
+
       <template #actions>
         <button type="button" class="fx-btn" @click="editing = false">{{ tr('Cancel') }}</button>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveCompany"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Save') }}</button>
@@ -216,6 +242,7 @@ import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
 import '../components/scr.css'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { formatDate, formatDateTime } from '../utils/dates'
@@ -225,8 +252,8 @@ import ScrCompanyUsers from '../components/ScrCompanyUsers.vue'
 import ScrDialog from '../components/ScrDialog.vue'
 import ScrLinkBox from '../components/ScrLinkBox.vue'
 import {
-  LABELS, errorText, fieldErrors, scrApi,
-  type ScrCompany, type ScrCompanyAdminRequest, type ScrCompanyRequest, type ScrCompanyUser, type ScrEmailOutcome, type ScrLicence, type ScrLicenceRequest
+  LABELS, egp, errorText, fieldErrors, scrApi,
+  type ScrCompany, type ScrPricePlan, type ScrCompanyAdminRequest, type ScrCompanyRequest, type ScrCompanyUser, type ScrEmailOutcome, type ScrLicence, type ScrLicenceRequest
 } from '../api/scr.api'
 
 const STATUS_CHIP: Record<string, string> = { ACTIVE: 'fx-chip--ok', PENDING_ACTIVATION: 'fx-chip--warn', INACTIVE: 'fx-chip--bad' }
@@ -247,7 +274,7 @@ const errors = ref<Record<string, string>>({})
 const err = (k: string) => errors.value[k] ?? errors.value[k.charAt(0).toLowerCase() + k.slice(1)]
 
 const today = () => new Date().toISOString().slice(0, 10)
-const blankCompany = (): ScrCompanyRequest => ({ companyCode: '', nameEn: '', nameAr: '', licenceNo: null, contactEmail: null, statusCode: 'ACTIVE', notes: null })
+const blankCompany = (): ScrCompanyRequest => ({ companyCode: '', nameEn: '', nameAr: '', licenceNo: null, contactEmail: null, statusCode: 'ACTIVE', notes: null, pricePlanId: null, billingCycleCode: 'MONTHLY' })
 const blankLicence = (): ScrLicenceRequest => ({ maxUsers: 0, validFrom: today(), validTo: null, yearlyInquiryQuota: null, notes: null })
 const company = reactive<ScrCompanyRequest>(blankCompany())
 const licence = reactive<ScrLicenceRequest>(blankLicence())
@@ -262,8 +289,13 @@ const editId = ref<number | null>(null)
 const licenceOf = ref<ScrCompany | null>(null)
 const history = ref<ScrLicence[]>([])
 
+/** Price plans for the Billing section (needs a billing permission; without it the company keeps its plan as it is). */
+const canPlans = hasPermission('SCR.BILLING.VIEW')
+const plans = ref<ScrPricePlan[]>([])
+
 async function load() {
   try {
+    if (canPlans && !plans.value.length) plans.value = await scrApi.pricePlans()
     companies.value = await scrApi.companies()
     if (selected.value) selected.value = companies.value.find((c) => c.memberCompanyId === selected.value!.memberCompanyId) ?? null
   } catch (err) {
@@ -310,7 +342,7 @@ function edit(c: ScrCompany) {
   editOf.value = c
   errors.value = {}
   editId.value = c.memberCompanyId
-  Object.assign(company, { companyCode: c.companyCode, nameEn: c.nameEn, nameAr: c.nameAr, licenceNo: c.licenceNo, contactEmail: c.contactEmail, statusCode: c.statusCode, notes: c.notes })
+  Object.assign(company, { companyCode: c.companyCode, nameEn: c.nameEn, nameAr: c.nameAr, licenceNo: c.licenceNo, contactEmail: c.contactEmail, statusCode: c.statusCode, notes: c.notes, pricePlanId: c.pricePlanId ?? null, billingCycleCode: c.billingCycleCode ?? 'MONTHLY' })
   editing.value = true
 }
 

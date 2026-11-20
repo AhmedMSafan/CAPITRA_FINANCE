@@ -39244,6 +39244,247 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("SCR_INQUIRY_HITS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInvoice", b =>
+                {
+                    b.Property<long>("InvoiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INVOICE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InvoiceId"));
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("CANCEL_REASON");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CANCELLED_AT");
+
+                    b.Property<string>("CancelledBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("CANCELLED_BY");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<decimal>("InquiryAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INQUIRY_AMOUNT");
+
+                    b.Property<int>("InquiryCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("INQUIRY_COUNT");
+
+                    b.Property<decimal>("InquiryFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INQUIRY_FEE");
+
+                    b.Property<string>("InvoiceNo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("INVOICE_NO");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ISSUED_AT");
+
+                    b.Property<string>("IssuedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("ISSUED_BY");
+
+                    b.Property<long>("MemberCompanyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("MEMBER_COMPANY_ID");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<DateOnly>("PeriodFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("PERIOD_FROM");
+
+                    b.Property<DateOnly>("PeriodTo")
+                        .HasColumnType("date")
+                        .HasColumnName("PERIOD_TO");
+
+                    b.Property<string>("PlanCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PLAN_CODE");
+
+                    b.Property<long>("PricePlanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRICE_PLAN_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TOTAL_AMOUNT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<decimal>("UserAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("USER_AMOUNT");
+
+                    b.Property<decimal>("UserMonthlyFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("USER_MONTHLY_FEE");
+
+                    b.Property<int>("UserMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("USER_MONTHS");
+
+                    b.HasKey("InvoiceId")
+                        .HasName("PK_SCR_INVOICES");
+
+                    b.HasIndex("InvoiceNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_SCR_INVOICES_INVOICE_NO");
+
+                    b.HasIndex("PricePlanId")
+                        .HasDatabaseName("IX_SCR_INVOICES_PRICE_PLAN_ID");
+
+                    b.HasIndex("MemberCompanyId", "PeriodFrom")
+                        .HasDatabaseName("IX_SCR_INVOICES_MEMBER_COMPANY_ID_PERIOD_FROM");
+
+                    b.ToTable("SCR_INVOICES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInvoiceLine", b =>
+                {
+                    b.Property<long>("InvoiceLineId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("INVOICE_LINE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InvoiceLineId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("FULL_NAME");
+
+                    b.Property<decimal>("InquiryAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INQUIRY_AMOUNT");
+
+                    b.Property<int>("InquiryCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("INQUIRY_COUNT");
+
+                    b.Property<long>("InvoiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("INVOICE_ID");
+
+                    b.Property<decimal>("LineAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("LINE_AMOUNT");
+
+                    b.Property<int>("LineNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("LINE_NO");
+
+                    b.Property<string>("MonthsText")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("MONTHS_TEXT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<decimal>("UserAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("USER_AMOUNT");
+
+                    b.Property<int>("UserMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("USER_MONTHS");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("USER_NAME");
+
+                    b.HasKey("InvoiceLineId")
+                        .HasName("PK_SCR_INVOICE_LINES");
+
+                    b.HasIndex("InvoiceId", "LineNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_SCR_INVOICE_LINES_INVOICE_ID_LINE_NO");
+
+                    b.ToTable("SCR_INVOICE_LINES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrLetter", b =>
                 {
                     b.Property<long>("LetterId")
@@ -39411,6 +39652,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MemberCompanyId"));
 
+                    b.Property<string>("BillingCycleCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("MONTHLY")
+                        .HasColumnName("BILLING_CYCLE_CODE");
+
                     b.Property<string>("CompanyCode")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -39454,6 +39703,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("NOTES");
 
+                    b.Property<long?>("PricePlanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRICE_PLAN_ID");
+
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")
@@ -39480,6 +39733,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasIndex("CompanyCode")
                         .IsUnique()
                         .HasDatabaseName("UQ_SCR_MEMBER_COMPANIES_COMPANY_CODE");
+
+                    b.HasIndex("PricePlanId")
+                        .HasDatabaseName("IX_SCR_MEMBER_COMPANIES_PRICE_PLAN_ID");
 
                     b.ToTable("SCR_MEMBER_COMPANIES", (string)null);
                 });
@@ -39623,6 +39879,92 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("SCR_PARTY_ALIASES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrPricePlan", b =>
+                {
+                    b.Property<long>("PricePlanId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PRICE_PLAN_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PricePlanId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("CURRENCY_CODE");
+
+                    b.Property<decimal>("InquiryFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("INQUIRY_FEE");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<string>("PlanCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PLAN_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<decimal>("UserMonthlyFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("USER_MONTHLY_FEE");
+
+                    b.HasKey("PricePlanId")
+                        .HasName("PK_SCR_PRICE_PLANS");
+
+                    b.HasIndex("PlanCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_SCR_PRICE_PLANS_PLAN_CODE");
+
+                    b.ToTable("SCR_PRICE_PLANS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrRegistryVersion", b =>
                 {
                     b.Property<long>("RegistryVersionId")
@@ -39685,6 +40027,75 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_SCR_REGISTRY_VERSIONS_VERSION_NO");
 
                     b.ToTable("SCR_REGISTRY_VERSIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrUserActivity", b =>
+                {
+                    b.Property<long>("UserActivityId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("USER_ACTIVITY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("UserActivityId"));
+
+                    b.Property<DateOnly>("ActiveFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("ACTIVE_FROM");
+
+                    b.Property<DateOnly?>("ActiveTo")
+                        .HasColumnType("date")
+                        .HasColumnName("ACTIVE_TO");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("MemberCompanyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("MEMBER_COMPANY_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("USER_ID");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("USER_NAME");
+
+                    b.HasKey("UserActivityId")
+                        .HasName("PK_SCR_USER_ACTIVITY");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_SCR_USER_ACTIVITY_USER_ID");
+
+                    b.HasIndex("MemberCompanyId", "ActiveFrom")
+                        .HasDatabaseName("IX_SCR_USER_ACTIVITY_MEMBER_COMPANY_ID_ACTIVE_FROM");
+
+                    b.ToTable("SCR_USER_ACTIVITY", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Tls.TlsLoanScenario", b =>
@@ -48466,6 +48877,33 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_SCR_INQUIRY_HITS_SCR_PARTIES");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInvoice", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrMemberCompany", null)
+                        .WithMany()
+                        .HasForeignKey("MemberCompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_INVOICES_SCR_MEMBER_COMPANIES");
+
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrPricePlan", null)
+                        .WithMany()
+                        .HasForeignKey("PricePlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_INVOICES_SCR_PRICE_PLANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInvoiceLine", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrInvoice", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_INVOICE_LINES_SCR_INVOICES");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrLetterFile", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Scr.ScrLetter", null)
@@ -48474,6 +48912,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_SCR_LETTER_FILES_SCR_LETTERS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrMemberCompany", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrPricePlan", null)
+                        .WithMany()
+                        .HasForeignKey("PricePlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_SCR_MEMBER_COMPANIES_SCR_PRICE_PLANS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrPartyAlias", b =>
@@ -48494,6 +48941,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_SCR_REGISTRY_VERSIONS_SCR_DECISIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrUserActivity", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrMemberCompany", null)
+                        .WithMany()
+                        .HasForeignKey("MemberCompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_USER_ACTIVITY_SCR_MEMBER_COMPANIES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Tls.TlsLoanScenarioLine", b =>
@@ -48974,6 +49431,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInquiry", b =>
                 {
                     b.Navigation("Hits");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInvoice", b =>
+                {
+                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrLetter", b =>

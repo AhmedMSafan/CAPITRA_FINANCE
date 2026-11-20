@@ -82,6 +82,7 @@ const ALL = [
   { name: 'scr-letters', icon: 'fa-envelope-o', title: 'Incoming letters', descr: 'Register letters and attach their scans.', perm: 'SCR.DECISION.VIEW', orange: false },
   { name: 'scr-parties', icon: 'fa-users', title: 'Parties', descr: 'The people and companies decisions are about, with their other names.', perm: 'SCR.DECISION.VIEW', orange: false },
   { name: 'scr-companies', icon: 'fa-building-o', title: 'Member companies', descr: 'Member companies and their user accounts.', perm: 'SCR.COMPANY.ADMIN', orange: false },
+  { name: 'scr-billing', icon: 'fa-money', title: 'Billing', descr: 'Price plans, what each company owes for its users and inquiries, and invoices.', perm: 'SCR.BILLING.VIEW', orange: false },
   { name: 'scr-inquiries', icon: 'fa-search', title: 'Inquiry audit', descr: 'Every screening by every member company, with its result.', perm: 'SCR.INQUIRY.AUDIT', orange: false },
   { name: 'scr-portal', icon: 'fa-shield', title: 'Screening Portal', descr: 'Screen a person or company against the Final List.', perm: 'SCR.INQUIRY.CREATE', orange: true }
 ]
