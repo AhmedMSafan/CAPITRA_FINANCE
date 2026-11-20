@@ -10,12 +10,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Api.Controllers.Scr;
 
-public sealed record ScrCompanyUserDto(string UserId, string UserName, string? Email, string? FullName, bool IsActive, string RoleCode, DateTime? LastLoginAt);
+/// <summary>TemporaryPassword: only in the reply that created the account or reset its password, shown once to the administrator.</summary>
+public sealed record ScrCompanyUserDto(
+    string UserId, string UserName, string? Email, string? FullName, bool IsActive, string RoleCode, DateTime? LastLoginAt,
+    bool MustChangePassword = false, string? TemporaryPassword = null);
 
+/// <summary>No password: the system makes a temporary one, which the user must replace at first sign-in.</summary>
 public sealed record ScrCompanyUserRequest(
-    [Required] string UserName, string? Password, string? Email, string? FullName, string? RoleCode, bool IsActive = true);
-
-public sealed record ScrPasswordRequest([Required] string NewPassword);
+    [Required] string UserName, string? Email, string? FullName, string? RoleCode, bool IsActive = true);
 
 /// <summary>Member companies (SCR.COMPANY.ADMIN, federation).</summary>
 [ApiController]
@@ -69,13 +71,13 @@ public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUs
         var userName = request.UserName.Trim();
         if (await users.FindByNameAsync(userName) is not null)
             throw new ConflictException("A user with this user name already exists.");
-        if (string.IsNullOrWhiteSpace(request.Password))
-            throw BusinessValidationException.For("password", "Enter a first password.");
+        var password = TemporaryPassword.Generate();
         var user = new SecUser
         {
             UserName = userName, Email = Clean(request.Email), FullName = Clean(request.FullName), IsActive = request.IsActive, MemberCompanyId = companyId,
+            MustChangePassword = true,
         };
-        Ensure(await users.CreateAsync(user, request.Password), "password");
+        Ensure(await users.CreateAsync(user, password), "userName");
         var added = await users.AddToRoleAsync(user, role);
         if (!added.Succeeded)
         {
@@ -83,7 +85,7 @@ public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUs
             Ensure(added, "roleCode");
         }
 
-        return Ok(await ToDtoAsync(user));
+        return Ok(await ToDtoAsync(user) with { TemporaryPassword = password });
     }
 
     [HttpPut("{userId}")]
@@ -107,15 +109,24 @@ public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUs
         return Ok(await ToDtoAsync(user));
     }
 
+    /// <summary>
+    /// A new temporary password, shown once in the reply; the user must replace it at the next sign-in. Their earlier sessions stop
+    /// working, and a lock-out from wrong passwords is lifted.
+    /// </summary>
     [HttpPost("{userId}/reset-password")]
-    public async Task<IActionResult> ResetPassword(long companyId, string userId, ScrPasswordRequest request, CancellationToken ct)
+    public async Task<IActionResult> ResetPassword(long companyId, string userId, CancellationToken ct)
     {
         if (!await AllowedAsync(companyId, ct))
             return Forbid();
         var user = await FindAsync(companyId, userId);
+        var password = TemporaryPassword.Generate();
         var token = await users.GeneratePasswordResetTokenAsync(user);
-        Ensure(await users.ResetPasswordAsync(user, token, request.NewPassword), "newPassword");
-        return Ok(await ToDtoAsync(user));
+        Ensure(await users.ResetPasswordAsync(user, token, password), "password");
+        user.MustChangePassword = true;
+        Ensure(await users.UpdateAsync(user), "user");
+        await users.SetLockoutEndDateAsync(user, null);
+        await users.ResetAccessFailedCountAsync(user);
+        return Ok(await ToDtoAsync(user) with { TemporaryPassword = password });
     }
 
     /// <summary>The federation for any company; a company administrator for its own only.</summary>
@@ -145,7 +156,7 @@ public sealed class ScrCompanyUsersController(UserManager<SecUser> users, IScrUs
     private async Task<ScrCompanyUserDto> ToDtoAsync(SecUser u)
     {
         var roles = await users.GetRolesAsync(u);
-        return new(u.Id, u.UserName ?? u.Id, u.Email, u.FullName, u.IsActive, roles.Count > 0 ? roles[0] : "-", u.LastLoginAt);
+        return new(u.Id, u.UserName ?? u.Id, u.Email, u.FullName, u.IsActive, roles.Count > 0 ? roles[0] : "-", u.LastLoginAt, u.MustChangePassword);
     }
 
     private static string? Clean(string? v) => string.IsNullOrWhiteSpace(v) ? null : v.Trim();

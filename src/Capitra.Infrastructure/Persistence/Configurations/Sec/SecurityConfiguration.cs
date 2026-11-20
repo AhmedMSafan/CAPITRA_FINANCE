@@ -21,6 +21,7 @@ public sealed class SecUserConfiguration : IEntityTypeConfiguration<SecUser>
         builder.Property(x => x.TwoFactorEnabled).HasColumnName("IS_TWO_FACTOR_ENABLED");
         builder.Property(x => x.LockoutEnabled).HasColumnName("IS_LOCKOUT_ENABLED");
         builder.Property(x => x.LockoutEnd).HasColumnName("LOCKOUT_END_AT");
+        builder.Property(x => x.MustChangePassword).HasColumnName("IS_PASSWORD_CHANGE_REQUIRED").HasDefaultValue(false);
         builder.Property(x => x.FullName).HasMaxLength(200);
         builder.Property(x => x.EmployeeNo).HasMaxLength(30);
         builder.Property(x => x.Department).HasMaxLength(100);

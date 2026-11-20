@@ -274,5 +274,13 @@ export const SCR_AR: Record<string, string> = {
   'reviewing decisions': 'مراجعة القرارات',
   'approving and publishing decisions': 'اعتماد القرارات ونشرها',
   'member company screening': 'فحص الشركات الأعضاء',
-  'After the role is given, sign out and sign in again.': 'بعد منح الدور، سجّل الخروج ثم سجّل الدخول مرة أخرى.'
+  'After the role is given, sign out and sign in again.': 'بعد منح الدور، سجّل الخروج ثم سجّل الدخول مرة أخرى.',
+  'Has not chosen a password yet': 'لم يختر كلمة مرور بعد',
+  'The system makes a temporary password, shown to you once after saving. The user must replace it with their own at first sign-in.': 'ينشئ النظام كلمة مرور مؤقتة تظهر لك مرة واحدة بعد الحفظ. يجب على المستخدم استبدالها بكلمة مروره عند أول تسجيل دخول.',
+  'A new temporary password will be made and shown to you once. The user\'s current password and open sessions stop working, and they must choose their own password at the next sign-in.': 'ستُنشأ كلمة مرور مؤقتة جديدة وتظهر لك مرة واحدة. تتوقف كلمة المرور الحالية للمستخدم وجلساته المفتوحة، ويجب أن يختار كلمة مروره عند تسجيل الدخول التالي.',
+  'Make a new temporary password': 'إنشاء كلمة مرور مؤقتة جديدة',
+  'Copied': 'تم النسخ',
+  'Copy': 'نسخ',
+  'This is the only time it is shown. Give it to the user securely (not by the same e-mail as the user name). At first sign-in they must replace it with their own password.': 'هذه هي المرة الوحيدة التي تظهر فيها. سلّمها للمستخدم بطريقة آمنة (ليس بنفس البريد الذي به اسم المستخدم). عند أول تسجيل دخول يجب أن يستبدلها بكلمة مروره.',
+  'I have given it to the user': 'سلّمتها للمستخدم'
 }

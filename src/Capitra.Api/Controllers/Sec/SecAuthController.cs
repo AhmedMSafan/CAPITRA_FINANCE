@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Capitra.Api.Security;
 using Capitra.Application.Abstractions;
+using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Security;
 using Capitra.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,10 @@ public sealed record CurrentUserDto(
     IReadOnlyList<string> Roles,
     IReadOnlyList<string> Permissions);
 
-public sealed record LoginResponse(string Token, DateTime ExpiresAt, CurrentUserDto User);
+/// <summary>MustChangePassword: the token only allows changing the password (a temporary password was used).</summary>
+public sealed record LoginResponse(string Token, DateTime ExpiresAt, CurrentUserDto User, bool MustChangePassword = false);
+
+public sealed record ChangePasswordRequest([Required] string CurrentPassword, [Required] string NewPassword);
 
 [ApiController]
 [Route("api/sec/auth")]
@@ -55,7 +59,43 @@ public sealed class SecAuthController(
         await users.ResetAccessFailedCountAsync(user);
         user.LastLoginAt = clock.UtcNow;
         await users.UpdateAsync(user);
+        return await IssueAsync(user);
+    }
 
+    /// <summary>
+    /// The signed-in user replaces their password (required after a temporary one). The current password is checked (a wrong
+    /// one counts towards lock-out), the new one must differ and meet the policy. Every earlier token stops working; the reply
+    /// carries a new token.
+    /// </summary>
+    [HttpPost("change-password")]
+    public async Task<ActionResult<LoginResponse>> ChangePassword(ChangePasswordRequest request)
+    {
+        var user = currentUser.UserId is null ? null : await users.FindByIdAsync(currentUser.UserId);
+        if (user is null || !user.IsActive)
+            return Unauthorized();
+        if (await users.IsLockedOutAsync(user))
+            return Unauthorized(Problem("The account is locked. Try again later."));
+        if (string.Equals(request.CurrentPassword, request.NewPassword, StringComparison.Ordinal))
+            throw BusinessValidationException.For("newPassword", "The new password must be different from the current one.");
+        if (!await users.CheckPasswordAsync(user, request.CurrentPassword))
+        {
+            await users.AccessFailedAsync(user);
+            throw BusinessValidationException.For("currentPassword", "The current password is not correct.");
+        }
+
+        var changed = await users.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!changed.Succeeded)
+            throw BusinessValidationException.For("newPassword", string.Join(" ", changed.Errors.Select(e => e.Description)));
+
+        await users.ResetAccessFailedCountAsync(user);
+        user.MustChangePassword = false;
+        user.PasswordChangedAt = clock.UtcNow;
+        await users.UpdateAsync(user);
+        return await IssueAsync(user);
+    }
+
+    private async Task<LoginResponse> IssueAsync(SecUser user)
+    {
         var profile = await BuildProfileAsync(user);
         var claims = new List<Claim>
         {
@@ -67,9 +107,11 @@ public sealed class SecAuthController(
             claims.Add(new Claim(CapitraClaimTypes.FullName, user.FullName));
         claims.AddRange(profile.Roles.Select(r => new Claim(CapitraClaimTypes.Role, r)));
         claims.AddRange(profile.Permissions.Select(p => new Claim(Permissions.ClaimType, p)));
+        if (user.MustChangePassword)
+            claims.Add(new Claim(CapitraClaimTypes.PasswordChangeRequired, "1"));
 
         var token = tokens.Issue(claims);
-        return new LoginResponse(token.Token, token.ExpiresAt, profile);
+        return new LoginResponse(token.Token, token.ExpiresAt, profile, user.MustChangePassword);
     }
 
     /// <summary>The signed-in user's profile, roles and permissions, read fresh from the database.</summary>

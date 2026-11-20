@@ -190,6 +190,7 @@ async function saveUser() {
             <label v-if="!isEditMode" class="finova-admin-field">
               <span>Initial Password</span>
               <input v-model="form.password" type="password" />
+              <small class="user-hint">Temporary: the user must replace it with their own at first sign-in.</small>
             </label>
 
             <label class="finova-admin-field">

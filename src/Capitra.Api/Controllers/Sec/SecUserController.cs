@@ -61,6 +61,8 @@ public sealed class SecUserController(UserManager<SecUser> users, RoleManager<Se
             Department = Clean(request.Department),
             JobTitle = Clean(request.JobTitle),
             IsActive = request.IsActive,
+            // a password set by an administrator is temporary: the user replaces it at first sign-in
+            MustChangePassword = true,
         };
         Ensure(await users.CreateAsync(user, request.Password), "password");
         if (wanted.Count > 0)
@@ -119,6 +121,8 @@ public sealed class SecUserController(UserManager<SecUser> users, RoleManager<Se
         var user = await FindAsync(userId);
         var token = await users.GeneratePasswordResetTokenAsync(user);
         Ensure(await users.ResetPasswordAsync(user, token, request.NewPassword), "newPassword");
+        user.MustChangePassword = true;
+        Ensure(await users.UpdateAsync(user), "user");
         access.Clear();
         return new SecOperationResult(true, $"Password for user '{user.UserName}' reset successfully.");
     }

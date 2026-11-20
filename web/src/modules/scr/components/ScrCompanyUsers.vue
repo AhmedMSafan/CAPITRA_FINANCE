@@ -19,7 +19,8 @@
             <td dir="ltr"><b>{{ u.userName }}</b></td>
             <td>{{ u.fullName || '-' }}<span v-if="u.email" class="fx-cell-sub" dir="ltr">{{ u.email }}</span></td>
             <td><span class="fx-chip fx-chip--plain" :class="u.roleCode === 'MEMBER_COMPANY_ADMIN' ? 'fx-chip--brand' : ''">{{ tr(LABELS[u.roleCode] ?? u.roleCode) }}</span></td>
-            <td><span class="fx-chip" :class="u.isActive ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(u.isActive ? 'Active' : 'Inactive') }}</span></td>
+            <td><span class="fx-chip" :class="u.isActive ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(u.isActive ? 'Active' : 'Inactive') }}</span>
+              <span v-if="u.mustChangePassword" class="fx-cell-sub scr-temp-flag"><span class="fa fa-clock-o" aria-hidden="true"></span> {{ tr('Has not chosen a password yet') }}</span></td>
             <td>{{ u.lastLoginAt ? formatDateTime(u.lastLoginAt) : '-' }}</td>
             <td class="fx-r">
               <div class="fc-row-actions">
@@ -41,8 +42,9 @@
         <label class="fc-field"><span>{{ tr('Role') }}</span>
           <select v-model="form.roleCode" class="fx-select"><option v-for="r in ['MEMBER_COMPANY_USER', 'MEMBER_COMPANY_ADMIN']" :key="r" :value="r">{{ tr(LABELS[r] ?? r) }}</option></select>
         </label>
-        <label v-if="editId === null" class="fc-field"><span>{{ tr('First password') }} <b>*</b></span><input v-model="form.password" class="fx-search" type="password" autocomplete="new-password"></label>
         <label class="fc-check" style="align-self:end;padding-bottom:8px"><input v-model="form.isActive" type="checkbox"><span>{{ tr('Active') }}</span></label>
+        <div v-if="editId === null" class="fc-note fc-full"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          <span>{{ tr('The system makes a temporary password, shown to you once after saving. The user must replace it with their own at first sign-in.') }}</span></div>
         <div v-for="(m, k) in errors" :key="k" class="fc-note fc-note--warn fc-full"><span class="fa fa-exclamation-circle" aria-hidden="true"></span><span>{{ m }}</span></div>
       </div>
       <template #actions>
@@ -52,13 +54,24 @@
     </ScrDialog>
 
     <ScrDialog v-if="resetting" :title="tr('Reset password')" :subtitle="resetting.userName" icon="fa-key" orange @close="resetting = null">
-      <div class="fc-grid">
-        <label class="fc-field"><span>{{ tr('New password') }} <b>*</b></span><input v-model="newPassword" class="fx-search" type="password" autocomplete="new-password">
-          <small v-if="resetError" class="scr-err">{{ resetError }}</small></label>
-      </div>
+      <p class="scr-confirm">{{ tr('A new temporary password will be made and shown to you once. The user\'s current password and open sessions stop working, and they must choose their own password at the next sign-in.') }}</p>
+      <small v-if="resetError" class="scr-err">{{ resetError }}</small>
       <template #actions>
         <button type="button" class="fx-btn" @click="resetting = null">{{ tr('Cancel') }}</button>
-        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy || !newPassword" @click="reset"><span class="fa fa-key" aria-hidden="true"></span>{{ tr('Reset password') }}</button>
+        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="reset"><span class="fa fa-key" aria-hidden="true"></span>{{ tr('Make a new temporary password') }}</button>
+      </template>
+    </ScrDialog>
+
+    <!-- the temporary password, shown once -->
+    <ScrDialog v-if="issued" :title="tr('Temporary password')" :subtitle="issued.userName" icon="fa-key" @close="closeIssued">
+      <div class="scr-temp">
+        <code dir="ltr">{{ issued.password }}</code>
+        <button type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="copy"><span :class="['fa', copied ? 'fa-check' : 'fa-copy']" aria-hidden="true"></span>{{ tr(copied ? 'Copied' : 'Copy') }}</button>
+      </div>
+      <div class="fc-note fc-note--warn"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+        <span>{{ tr('This is the only time it is shown. Give it to the user securely (not by the same e-mail as the user name). At first sign-in they must replace it with their own password.') }}</span></div>
+      <template #actions>
+        <button type="button" class="fx-btn fx-btn--primary" @click="closeIssued"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('I have given it to the user') }}</button>
       </template>
     </ScrDialog>
   </section>
@@ -79,9 +92,11 @@ const editId = ref<string | null>(null)
 const busy = ref(false)
 const errors = ref<Record<string, string>>({})
 const resetting = ref<ScrCompanyUser | null>(null)
-const newPassword = ref('')
 const resetError = ref('')
-const blank = (): ScrCompanyUserRequest => ({ userName: '', password: null, email: null, fullName: null, roleCode: 'MEMBER_COMPANY_USER', isActive: true })
+/** A temporary password just made: shown once, then forgotten. */
+const issued = ref<{ userName: string; password: string } | null>(null)
+const copied = ref(false)
+const blank = (): ScrCompanyUserRequest => ({ userName: '', email: null, fullName: null, roleCode: 'MEMBER_COMPANY_USER', isActive: true })
 const form = reactive<ScrCompanyUserRequest>(blank())
 
 async function load() {
@@ -95,7 +110,7 @@ async function load() {
 function edit(u: ScrCompanyUser | null) {
   errors.value = {}
   editId.value = u?.userId ?? null
-  Object.assign(form, u ? { userName: u.userName, password: null, email: u.email, fullName: u.fullName, roleCode: u.roleCode, isActive: u.isActive } : blank())
+  Object.assign(form, u ? { userName: u.userName, email: u.email, fullName: u.fullName, roleCode: u.roleCode, isActive: u.isActive } : blank())
   editing.value = true
 }
 
@@ -103,9 +118,10 @@ async function save() {
   busy.value = true
   errors.value = {}
   try {
-    await scrApi.saveCompanyUser(props.companyId, editId.value, { ...form })
+    const saved = await scrApi.saveCompanyUser(props.companyId, editId.value, { ...form })
     editing.value = false
     showSuccess(tr('User saved.'))
+    if (saved.temporaryPassword) show(saved.userName, saved.temporaryPassword)
     await load()
   } catch (err) {
     errors.value = fieldErrors(err)
@@ -117,8 +133,27 @@ async function save() {
 
 function startReset(u: ScrCompanyUser) {
   resetting.value = u
-  newPassword.value = ''
   resetError.value = ''
+}
+
+function show(userName: string, password: string) {
+  copied.value = false
+  issued.value = { userName, password }
+}
+
+async function copy() {
+  if (!issued.value) return
+  try {
+    await navigator.clipboard.writeText(issued.value.password)
+    copied.value = true
+  } catch {
+    copied.value = false
+  }
+}
+
+function closeIssued() {
+  issued.value = null
+  copied.value = false
 }
 
 async function reset() {
@@ -126,9 +161,10 @@ async function reset() {
   busy.value = true
   resetError.value = ''
   try {
-    await scrApi.resetCompanyUserPassword(props.companyId, resetting.value.userId, newPassword.value)
+    const r = await scrApi.resetCompanyUserPassword(props.companyId, resetting.value.userId)
     resetting.value = null
-    showSuccess(tr('Password reset.'))
+    if (r.temporaryPassword) show(r.userName, r.temporaryPassword)
+    await load()
   } catch (err) {
     resetError.value = Object.values(fieldErrors(err))[0] ?? errorText(err)
   } finally {

@@ -76,9 +76,14 @@ export type ScrCompany = {
 export type ScrCompanyRequest = Omit<ScrCompany, 'memberCompanyId' | 'userCount' | 'inquiryCount' | 'createdBy'>
 export type ScrCompanyUser = {
   userId: string; userName: string; email: string | null; fullName: string | null; isActive: boolean; roleCode: string; lastLoginAt: string | null
+  /** Still signed in with a temporary password (has not chosen their own yet). */
+  mustChangePassword?: boolean
+  /** Only in the reply that created the account or reset its password: shown once. */
+  temporaryPassword?: string | null
 }
+/** No password: the system makes a temporary one, which the user replaces at first sign-in. */
 export type ScrCompanyUserRequest = {
-  userName: string; password: string | null; email: string | null; fullName: string | null; roleCode: string; isActive: boolean
+  userName: string; email: string | null; fullName: string | null; roleCode: string; isActive: boolean
 }
 export type ScrMyCompany = { memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string }
 
@@ -137,8 +142,9 @@ export const scrApi = {
   companyUsers: (companyId: number) => http.get<ScrCompanyUser[]>(`${API}/companies/${companyId}/users`),
   saveCompanyUser: (companyId: number, userId: string | null, r: ScrCompanyUserRequest) =>
     userId ? http.put<ScrCompanyUser>(`${API}/companies/${companyId}/users/${userId}`, r) : http.post<ScrCompanyUser>(`${API}/companies/${companyId}/users`, r),
-  resetCompanyUserPassword: (companyId: number, userId: string, newPassword: string) =>
-    http.post<ScrCompanyUser>(`${API}/companies/${companyId}/users/${userId}/reset-password`, { newPassword })
+  /** A new temporary password, in the reply only. */
+  resetCompanyUserPassword: (companyId: number, userId: string) =>
+    http.post<ScrCompanyUser>(`${API}/companies/${companyId}/users/${userId}/reset-password`)
 }
 
 /** Labels of the codes, in English (tr() gives the Arabic). */
