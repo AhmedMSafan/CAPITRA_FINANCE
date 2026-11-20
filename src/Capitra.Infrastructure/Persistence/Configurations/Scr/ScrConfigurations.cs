@@ -263,6 +263,7 @@ public sealed class ScrPricePlanConfiguration : IEntityTypeConfiguration<ScrPric
         builder.Property(x => x.NameAr).HasMaxLength(200);
         builder.Property(x => x.UserMonthlyFee).HasPrecision(18, 2);
         builder.Property(x => x.InquiryFee).HasPrecision(18, 2);
+        builder.Property(x => x.InquiryTiers).HasColumnType("jsonb");
         builder.Property(x => x.CurrencyCode).HasMaxLength(3);
         builder.Property(x => x.Notes).HasMaxLength(1000);
         builder.ConfigureAudit();
@@ -310,6 +311,7 @@ public sealed class ScrInvoiceConfiguration : IEntityTypeConfiguration<ScrInvoic
         builder.HasOne<ScrMemberCompany>().WithMany().HasForeignKey(x => x.MemberCompanyId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ScrPricePlan>().WithMany().HasForeignKey(x => x.PricePlanId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(x => x.Lines).WithOne().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(x => x.Bands).WithOne().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }
@@ -326,8 +328,21 @@ public sealed class ScrInvoiceLineConfiguration : IEntityTypeConfiguration<ScrIn
         builder.Property(x => x.FullName).HasMaxLength(256);
         builder.Property(x => x.MonthsText).HasMaxLength(500);
         builder.Property(x => x.UserAmount).HasPrecision(18, 2);
-        builder.Property(x => x.InquiryAmount).HasPrecision(18, 2);
-        builder.Property(x => x.LineAmount).HasPrecision(18, 2);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class ScrInvoiceBandConfiguration : IEntityTypeConfiguration<ScrInvoiceBand>
+{
+    public void Configure(EntityTypeBuilder<ScrInvoiceBand> builder)
+    {
+        builder.ToTable("SCR_INVOICE_BANDS");
+        builder.HasKey(x => x.InvoiceBandId);
+        builder.HasIndex(x => new { x.InvoiceId, x.BandNo }).IsUnique();
+        builder.Property(x => x.InvoiceBandId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.BandTypeCode).HasMaxLength(10);
+        builder.Property(x => x.UnitPrice).HasPrecision(18, 2);
+        builder.Property(x => x.Amount).HasPrecision(18, 2);
         builder.ConfigureAudit();
     }
 }

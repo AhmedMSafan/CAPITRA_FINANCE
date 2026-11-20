@@ -34,4 +34,45 @@ public sealed class ScrBillingTests
     public void Money_rounds_half_away_from_zero(string value, string expected) =>
         Assert.Equal(decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture),
             ScrBilling.Money(decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture)));
+
+    [Fact]
+    public void Inquiries_are_priced_at_the_rate_of_the_band_they_fall_in()
+    {
+        // first 100 free, 101-1000 at 2.50, 1001 and up at 2.00
+        var schedule = ScrBilling.Schedule(100, 0m, [new ScrTierDto(101, 1000, 2.50m), new ScrTierDto(1001, null, 2.00m)]);
+        var bands = ScrBilling.Price(schedule, 1250);
+        Assert.Equal([100, 900, 250], bands.Select(b => b.Quantity));
+        Assert.Equal(["FREE", "TIER", "TIER"], bands.Select(b => b.BandTypeCode));
+        Assert.Equal(2250m + 500m, bands.Sum(b => b.Amount));
+        Assert.Equal([60], ScrBilling.Price(schedule, 60).Select(b => b.Quantity));
+        Assert.Equal(0m, ScrBilling.Price(schedule, 60).Sum(b => b.Amount));
+        Assert.Empty(ScrBilling.Price(schedule, 0));
+    }
+
+    [Fact]
+    public void Without_tiers_every_inquiry_after_the_free_ones_pays_the_flat_fee()
+    {
+        var bands = ScrBilling.Price(ScrBilling.Schedule(10, 3.25m, []), 14);
+        Assert.Equal([("FREE", 10, 0m), ("FLAT", 4, 13.00m)], bands.Select(b => (b.BandTypeCode, b.Quantity, b.Amount)));
+        Assert.Equal(13.00m, ScrBilling.Price(ScrBilling.Schedule(0, 3.25m, []), 4).Single().Amount);
+    }
+
+    [Theory]
+    [InlineData(100, 101, 1000, 1001, true)]   // right after the free inquiries, no gap, last open
+    [InlineData(100, 1, 1000, 1001, false)]    // overlaps the free inquiries
+    [InlineData(0, 1, 1000, 1002, false)]      // gap between tiers
+    public void Tiers_follow_the_free_inquiries_without_gaps(int free, int from1, int to1, int from2, bool valid)
+    {
+        var e = new Dictionary<string, string[]>();
+        ScrBilling.ValidateTiers(e, free, [new ScrTierDto(from1, to1, 2m), new ScrTierDto(from2, null, 1m)]);
+        Assert.Equal(valid, e.Count == 0);
+    }
+
+    [Fact]
+    public void The_last_tier_has_no_end()
+    {
+        var e = new Dictionary<string, string[]>();
+        ScrBilling.ValidateTiers(e, 0, [new ScrTierDto(1, 100, 2m)]);
+        Assert.True(e.ContainsKey("tiers"));
+    }
 }

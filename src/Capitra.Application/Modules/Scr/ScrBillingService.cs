@@ -5,23 +5,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Scr;
 
+/// <summary>A tier of inquiry prices: inquiries FromInquiry to ToInquiry of a period (empty = and above) at UnitPrice each.</summary>
+public sealed record ScrTierDto(int FromInquiry, int? ToInquiry, decimal UnitPrice);
+
 public sealed record ScrPricePlanDto(
-    long PricePlanId, string PlanCode, string NameEn, string NameAr, decimal UserMonthlyFee, decimal InquiryFee, string CurrencyCode,
-    bool IsActive, string? Notes, int CompanyCount, string CreatedBy, DateTime CreatedAt, string? UpdatedBy, DateTime? UpdatedAt);
+    long PricePlanId, string PlanCode, string NameEn, string NameAr, decimal UserMonthlyFee, decimal InquiryFee, int FreeInquiries,
+    IReadOnlyList<ScrTierDto> Tiers, string CurrencyCode, bool IsActive, string? Notes, int CompanyCount, string CreatedBy, DateTime CreatedAt,
+    string? UpdatedBy, DateTime? UpdatedAt);
 
-public sealed record ScrPricePlanRequest(string? PlanCode, string? NameEn, string? NameAr, decimal? UserMonthlyFee, decimal? InquiryFee, bool IsActive, string? Notes);
+/// <param name="Tiers">Empty = one flat InquiryFee after the free inquiries. Otherwise they start right after the free inquiries, follow
+/// each other without gaps, and the last has no end.</param>
+public sealed record ScrPricePlanRequest(
+    string? PlanCode, string? NameEn, string? NameAr, decimal? UserMonthlyFee, decimal? InquiryFee, bool IsActive, string? Notes,
+    int? FreeInquiries = null, IReadOnlyList<ScrTierDto>? Tiers = null);
 
-public sealed record ScrInvoiceLineDto(
-    int LineNo, string UserName, string? FullName, string? MonthsText, int UserMonths, decimal UserAmount, int InquiryCount, decimal InquiryAmount,
-    decimal LineAmount);
+public sealed record ScrInvoiceLineDto(int LineNo, string UserName, string? FullName, string? MonthsText, int UserMonths, decimal UserAmount, int InquiryCount);
+
+/// <summary>The period's inquiries priced in one band: FREE, TIER or FLAT.</summary>
+public sealed record ScrInvoiceBandDto(int BandNo, string BandTypeCode, int FromInquiry, int? ToInquiry, decimal UnitPrice, int Quantity, decimal Amount);
 
 /// <summary>An invoice, issued or only previewed (InvoiceId 0). PeriodComplete is false while the period has not ended yet.</summary>
 public sealed record ScrInvoiceDto(
     long InvoiceId, string? InvoiceNo, long MemberCompanyId, string CompanyCode, string CompanyNameEn, string CompanyNameAr,
-    DateOnly PeriodFrom, DateOnly PeriodTo, string PeriodCode, string PlanCode, decimal UserMonthlyFee, decimal InquiryFee, string CurrencyCode,
-    int UserMonths, decimal UserAmount, int InquiryCount, decimal InquiryAmount, decimal TotalAmount, string StatusCode,
+    DateOnly PeriodFrom, DateOnly PeriodTo, string PeriodCode, string PlanCode, decimal UserMonthlyFee, decimal InquiryFee, int FreeInquiries,
+    string CurrencyCode, int UserMonths, decimal UserAmount, int InquiryCount, decimal InquiryAmount, decimal TotalAmount, string StatusCode,
     DateTime? IssuedAt, string? IssuedBy, DateTime? CancelledAt, string? CancelledBy, string? CancelReason, string? Notes, bool PeriodComplete,
-    IReadOnlyList<ScrInvoiceLineDto> Lines);
+    IReadOnlyList<ScrInvoiceLineDto> Lines, IReadOnlyList<ScrInvoiceBandDto> Bands);
 
 public sealed record ScrInvoiceRequest(DateOnly? PeriodFrom, string? Notes);
 
@@ -73,13 +82,83 @@ public static class ScrBilling
         to == from.AddYears(1).AddDays(-1) ? "YEARLY" : to == from.AddMonths(3).AddDays(-1) ? "QUARTERLY" : "MONTHLY";
 
     public static decimal Money(decimal value) => Math.Round(value, 2, MidpointRounding.AwayFromZero);
+
+    public const int MaxTiers = 20;
+
+    private static readonly System.Text.Json.JsonSerializerOptions Json = new(System.Text.Json.JsonSerializerDefaults.Web);
+
+    public static IReadOnlyList<ScrTierDto> ReadTiers(string? json) =>
+        string.IsNullOrWhiteSpace(json) ? [] : System.Text.Json.JsonSerializer.Deserialize<List<ScrTierDto>>(json, Json) ?? [];
+
+    public static string? WriteTiers(IReadOnlyList<ScrTierDto> tiers) => tiers.Count == 0 ? null : System.Text.Json.JsonSerializer.Serialize(tiers, Json);
+
+    /// <summary>A plan's inquiry price schedule: the free inquiries, then its tiers, or the flat fee for every inquiry after them.</summary>
+    public static List<(string Type, int From, int? To, decimal Price)> Schedule(int freeInquiries, decimal flatFee, IReadOnlyList<ScrTierDto> tiers)
+    {
+        var bands = new List<(string, int, int?, decimal)>();
+        if (freeInquiries > 0)
+            bands.Add(("FREE", 1, freeInquiries, 0m));
+        if (tiers.Count == 0)
+            bands.Add(("FLAT", freeInquiries + 1, null, flatFee));
+        else
+            bands.AddRange(tiers.Select(t => ("TIER", t.FromInquiry, t.ToInquiry, t.UnitPrice)));
+        return bands;
+    }
+
+    /// <summary>The period's inquiries spread over the schedule: each priced at the rate of the band it falls in (graduated).</summary>
+    public static List<ScrInvoiceBandDto> Price(List<(string Type, int From, int? To, decimal Price)> schedule, int inquiries)
+    {
+        var result = new List<ScrInvoiceBandDto>();
+        var no = 0;
+        foreach (var (type, from, to, price) in schedule)
+        {
+            var quantity = Math.Max(0, Math.Min(inquiries, to ?? int.MaxValue) - from + 1);
+            if (quantity > 0)
+                result.Add(new ScrInvoiceBandDto(++no, type, from, to, price, quantity, Money(quantity * price)));
+        }
+
+        return result;
+    }
+
+    /// <summary>Checks a plan's free inquiries and tiers; adds the problems to the errors.</summary>
+    public static void ValidateTiers(Dictionary<string, string[]> e, int? freeInquiries, IReadOnlyList<ScrTierDto>? tiers)
+    {
+        if (freeInquiries is not { } free || free < 0 || free > 10_000_000)
+            e["freeInquiries"] = ["Enter the free inquiries per invoice period, 0 or more."];
+        if (tiers is null || tiers.Count == 0)
+            return;
+        if (tiers.Count > MaxTiers)
+        {
+            e["tiers"] = [$"Use at most {MaxTiers} tiers."];
+            return;
+        }
+
+        var expected = (freeInquiries ?? 0) + 1;
+        for (var i = 0; i < tiers.Count; i++)
+        {
+            var t = tiers[i];
+            var last = i == tiers.Count - 1;
+            if (t.FromInquiry != expected)
+                e["tiers"] = [$"Tier {i + 1} must start at inquiry {expected}: tiers start right after the free inquiries and follow each other without gaps."];
+            else if (!last && (t.ToInquiry is not { } to || to < t.FromInquiry))
+                e["tiers"] = [$"Tier {i + 1} needs an end, at or after its start."];
+            else if (last && t.ToInquiry is not null)
+                e["tiers"] = ["The last tier has no end: it prices every inquiry above its start."];
+            else if (t.UnitPrice < 0 || t.UnitPrice > 10_000_000 || t.UnitPrice != Money(t.UnitPrice))
+                e["tiers"] = [$"Tier {i + 1}: enter a price in EGP, 0 or more, up to 2 decimals."];
+            if (e.ContainsKey("tiers"))
+                return;
+            expected = (t.ToInquiry ?? 0) + 1;
+        }
+    }
 }
 
 /// <summary>
 /// Screening service billing: price plans, and per member company an invoice per calendar period (month, quarter or year, as set on
 /// the company). The user fee is per user per month: a user active on any day of a month (SCR_USER_ACTIVITIES) is billed for it,
 /// the administrator included; invitations not yet activated are not billed. The inquiry fee is per inquiry made in the period,
-/// whatever its result. Prices are copied onto the invoice when it is issued. Nothing is deleted: a wrong invoice is cancelled with
+/// whatever its result, after the plan's free inquiries of the period, at its graduated tiers or flat fee. Prices are copied onto the
+/// invoice when it is issued. Nothing is deleted: a wrong invoice is cancelled with
 /// a reason and issued again.
 /// </summary>
 public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCounts users, ICurrentUser currentUser, IClock clock)
@@ -108,8 +187,11 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
             e["nameAr"] = ["Enter the Arabic name."];
         if (r.UserMonthlyFee is not { } uf || uf < 0 || uf > 10_000_000 || uf != ScrBilling.Money(uf))
             e["userMonthlyFee"] = ["Enter the fee per user per month in EGP (0 or more, up to 2 decimals)."];
-        if (r.InquiryFee is not { } inf || inf < 0 || inf > 10_000_000 || inf != ScrBilling.Money(inf))
+        var tiers = r.Tiers ?? [];
+        var freeInquiries = r.FreeInquiries ?? 0;
+        if (tiers.Count == 0 && (r.InquiryFee is not { } inf || inf < 0 || inf > 10_000_000 || inf != ScrBilling.Money(inf)))
             e["inquiryFee"] = ["Enter the fee per inquiry in EGP (0 or more, up to 2 decimals)."];
+        ScrBilling.ValidateTiers(e, freeInquiries, tiers);
         ScrValidation.Throw(e);
 
         var p = id is { } x
@@ -119,7 +201,10 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
         p.NameEn = r.NameEn!.Trim();
         p.NameAr = r.NameAr!.Trim();
         p.UserMonthlyFee = r.UserMonthlyFee!.Value;
-        p.InquiryFee = r.InquiryFee!.Value;
+        // with tiers, the flat fee shown is the last (open) tier's price
+        p.InquiryFee = tiers.Count == 0 ? r.InquiryFee!.Value : tiers[^1].UnitPrice;
+        p.FreeInquiries = freeInquiries;
+        p.InquiryTiers = ScrBilling.WriteTiers(tiers);
         p.CurrencyCode = "EGP";
         p.IsActive = r.IsActive;
         p.Notes = ScrValidation.Clean(r.Notes);
@@ -149,7 +234,7 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
             var mine = invoices.Where(i => i.MemberCompanyId == c.MemberCompanyId).ToList();
             var plan = c.PricePlanId is { } pid ? plans.GetValueOrDefault(pid) : null;
             var calc = await CalculateAsync(c.MemberCompanyId, from, to, ct);
-            var amount = plan is null ? (decimal?)null : Total(calc, plan.UserMonthlyFee, plan.InquiryFee);
+            var amount = plan is null ? (decimal?)null : Total(calc, plan);
             list.Add(new ScrBillingCompanyDto(
                 c.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, c.StatusCode, c.PricePlanId, plan?.PlanCode, c.BillingCycleCode,
                 from, to, ScrBilling.PeriodCode(c.BillingCycleCode, from), activeNow.GetValueOrDefault(c.MemberCompanyId),
@@ -180,10 +265,13 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
 
     public async Task<ScrInvoiceDto> InvoiceAsync(long id, CancellationToken ct)
     {
-        var i = await db.Set<ScrInvoice>().AsNoTracking().Include(x => x.Lines).FirstOrDefaultAsync(x => x.InvoiceId == id, ct)
+        var i = await db.Set<ScrInvoice>().AsNoTracking().Include(x => x.Lines).Include(x => x.Bands).FirstOrDefaultAsync(x => x.InvoiceId == id, ct)
             ?? throw new NotFoundException("The invoice was not found.");
         var company = await db.Set<ScrMemberCompany>().AsNoTracking().FirstAsync(m => m.MemberCompanyId == i.MemberCompanyId, ct);
-        return ToDto(i, company, [.. i.Lines.OrderBy(l => l.LineNo).Select(ToDto)], ScrBilling.CairoDate(clock.UtcNow));
+        return ToDto(i, company, [.. i.Lines.OrderBy(l => l.LineNo).Select(ToDto)], ScrBilling.CairoDate(clock.UtcNow)) with
+        {
+            Bands = [.. i.Bands.OrderBy(b => b.BandNo).Select(b => new ScrInvoiceBandDto(b.BandNo, b.BandTypeCode, b.FromInquiry, b.ToInquiry, b.UnitPrice, b.Quantity, b.Amount))],
+        };
     }
 
     /// <summary>What the company would be invoiced for the period starting on the day given (nothing is saved).</summary>
@@ -192,7 +280,11 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
         var (company, plan, from, to) = await PrepareAsync(companyId, periodFrom, ct);
         var lines = await LinesAsync(company.MemberCompanyId, from, to, plan, ct);
         var invoice = Build(company, plan, from, to, lines, notes: null);
-        return ToDto(invoice, company, [.. lines.Select(ToDto)], ScrBilling.CairoDate(clock.UtcNow)) with { StatusCode = "PREVIEW" };
+        return ToDto(invoice, company, [.. lines.Select(ToDto)], ScrBilling.CairoDate(clock.UtcNow)) with
+        {
+            StatusCode = "PREVIEW",
+            Bands = [.. invoice.Bands.Select(b => new ScrInvoiceBandDto(b.BandNo, b.BandTypeCode, b.FromInquiry, b.ToInquiry, b.UnitPrice, b.Quantity, b.Amount))],
+        };
     }
 
     /// <summary>Issues the invoice for the period: prices copied from the plan, one line per user. The period may not overlap another.</summary>
@@ -290,47 +382,55 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
         var lineNo = 0;
         return [.. (await CalculateAsync(companyId, from, to, ct)).Where(u => u.Months.Count > 0 || u.Inquiries > 0).Select(u =>
         {
-            var userAmount = ScrBilling.Money(u.Months.Count * plan.UserMonthlyFee);
-            var inquiryAmount = ScrBilling.Money(u.Inquiries * plan.InquiryFee);
             return new ScrInvoiceLine
             {
                 LineNo = ++lineNo, UserName = u.UserName, FullName = names.GetValueOrDefault(u.UserName),
-                MonthsText = u.Months.Count == 0 ? null : string.Join(", ", u.Months), UserMonths = u.Months.Count, UserAmount = userAmount,
-                InquiryCount = u.Inquiries, InquiryAmount = inquiryAmount, LineAmount = userAmount + inquiryAmount,
+                MonthsText = u.Months.Count == 0 ? null : string.Join(", ", u.Months), UserMonths = u.Months.Count,
+                UserAmount = ScrBilling.Money(u.Months.Count * plan.UserMonthlyFee), InquiryCount = u.Inquiries,
             };
         })];
     }
 
-    private static decimal Total(List<UserUse> calc, decimal userFee, decimal inquiryFee) =>
-        ScrBilling.Money(calc.Sum(u => u.Months.Count) * userFee) + ScrBilling.Money(calc.Sum(u => u.Inquiries) * inquiryFee);
+    private static List<ScrInvoiceBandDto> InquiryBands(ScrPricePlan plan, int inquiries) =>
+        ScrBilling.Price(ScrBilling.Schedule(plan.FreeInquiries, plan.InquiryFee, ScrBilling.ReadTiers(plan.InquiryTiers)), inquiries);
+
+    private static decimal Total(List<UserUse> calc, ScrPricePlan plan) =>
+        calc.Sum(u => ScrBilling.Money(u.Months.Count * plan.UserMonthlyFee)) + InquiryBands(plan, calc.Sum(u => u.Inquiries)).Sum(b => b.Amount);
 
     private static ScrInvoice Build(ScrMemberCompany company, ScrPricePlan plan, DateOnly from, DateOnly to, List<ScrInvoiceLine> lines, string? notes)
     {
         var userAmount = lines.Sum(l => l.UserAmount);
-        var inquiryAmount = lines.Sum(l => l.InquiryAmount);
+        var inquiries = lines.Sum(l => l.InquiryCount);
+        var bands = InquiryBands(plan, inquiries);
+        var inquiryAmount = bands.Sum(b => b.Amount);
         return new ScrInvoice
         {
             MemberCompanyId = company.MemberCompanyId, PeriodFrom = from, PeriodTo = to, PricePlanId = plan.PricePlanId, PlanCode = plan.PlanCode,
-            UserMonthlyFee = plan.UserMonthlyFee, InquiryFee = plan.InquiryFee, CurrencyCode = plan.CurrencyCode,
-            UserMonths = lines.Sum(l => l.UserMonths), UserAmount = userAmount, InquiryCount = lines.Sum(l => l.InquiryCount),
+            UserMonthlyFee = plan.UserMonthlyFee, InquiryFee = plan.InquiryFee, FreeInquiries = plan.FreeInquiries, CurrencyCode = plan.CurrencyCode,
+            UserMonths = lines.Sum(l => l.UserMonths), UserAmount = userAmount, InquiryCount = inquiries,
             InquiryAmount = inquiryAmount, TotalAmount = userAmount + inquiryAmount, StatusCode = "ISSUED", Notes = notes,
+            Bands = [.. bands.Select(b => new ScrInvoiceBand
+            {
+                BandNo = b.BandNo, BandTypeCode = b.BandTypeCode, FromInquiry = b.FromInquiry, ToInquiry = b.ToInquiry, UnitPrice = b.UnitPrice,
+                Quantity = b.Quantity, Amount = b.Amount,
+            })],
         };
     }
 
     private static ScrPricePlanDto ToDto(ScrPricePlan p, int companies) => new(
-        p.PricePlanId, p.PlanCode, p.NameEn, p.NameAr, p.UserMonthlyFee, p.InquiryFee, p.CurrencyCode, p.IsActive, p.Notes, companies,
-        p.CreatedBy, p.CreatedAt, p.UpdatedBy, p.UpdatedAt);
+        p.PricePlanId, p.PlanCode, p.NameEn, p.NameAr, p.UserMonthlyFee, p.InquiryFee, p.FreeInquiries, ScrBilling.ReadTiers(p.InquiryTiers),
+        p.CurrencyCode, p.IsActive, p.Notes, companies, p.CreatedBy, p.CreatedAt, p.UpdatedBy, p.UpdatedAt);
 
     private static ScrInvoiceLineDto ToDto(ScrInvoiceLine l) =>
-        new(l.LineNo, l.UserName, l.FullName, l.MonthsText, l.UserMonths, l.UserAmount, l.InquiryCount, l.InquiryAmount, l.LineAmount);
+        new(l.LineNo, l.UserName, l.FullName, l.MonthsText, l.UserMonths, l.UserAmount, l.InquiryCount);
 
     private static ScrInvoiceDto ToDto(ScrInvoice i, ScrMemberCompany c, IReadOnlyList<ScrInvoiceLineDto> lines, DateOnly today)
     {
         var cycle = ScrBilling.CycleOf(i.PeriodFrom, i.PeriodTo);
         return new ScrInvoiceDto(
             i.InvoiceId, i.InvoiceId == 0 ? null : i.InvoiceNo, i.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, i.PeriodFrom, i.PeriodTo,
-            ScrBilling.PeriodCode(cycle, i.PeriodFrom), i.PlanCode, i.UserMonthlyFee, i.InquiryFee, i.CurrencyCode, i.UserMonths, i.UserAmount,
-            i.InquiryCount, i.InquiryAmount, i.TotalAmount, i.StatusCode, i.InvoiceId == 0 ? null : i.IssuedAt, i.InvoiceId == 0 ? null : i.IssuedBy,
-            i.CancelledAt, i.CancelledBy, i.CancelReason, i.Notes, today > i.PeriodTo, lines);
+            ScrBilling.PeriodCode(cycle, i.PeriodFrom), i.PlanCode, i.UserMonthlyFee, i.InquiryFee, i.FreeInquiries, i.CurrencyCode, i.UserMonths,
+            i.UserAmount, i.InquiryCount, i.InquiryAmount, i.TotalAmount, i.StatusCode, i.InvoiceId == 0 ? null : i.IssuedAt,
+            i.InvoiceId == 0 ? null : i.IssuedBy, i.CancelledAt, i.CancelledBy, i.CancelReason, i.Notes, today > i.PeriodTo, lines, []);
     }
 }

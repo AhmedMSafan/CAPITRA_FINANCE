@@ -20,8 +20,18 @@ public class ScrPricePlan : AuditableEntity
     /// <summary>Fee per user per month: a user active on any day of a month is billed for that month.</summary>
     public decimal UserMonthlyFee { get; set; }
 
-    /// <summary>Fee per screening inquiry.</summary>
+    /// <summary>Fee per screening inquiry after the free ones, when the plan has no tiers.</summary>
     public decimal InquiryFee { get; set; }
+
+    /// <summary>Inquiries free of charge in each invoice period (the first ones).</summary>
+    public int FreeInquiries { get; set; }
+
+    /// <summary>
+    /// Graduated prices after the free inquiries, as JSON: [{"fromInquiry":101,"toInquiry":1000,"unitPrice":2.50},{"fromInquiry":1001,
+    /// "toInquiry":null,"unitPrice":2.00}]; each inquiry of the period is priced at the rate of the band it falls in. Empty = the flat
+    /// InquiryFee.
+    /// </summary>
+    public string? InquiryTiers { get; set; }
 
     public string CurrencyCode { get; set; } = "EGP";
 
@@ -77,7 +87,11 @@ public class ScrInvoice : AuditableEntity
 
     public decimal UserMonthlyFee { get; set; }
 
+    /// <summary>The flat fee per inquiry of the plan (used when it had no tiers).</summary>
     public decimal InquiryFee { get; set; }
+
+    /// <summary>The free inquiries of the plan at the time.</summary>
+    public int FreeInquiries { get; set; }
 
     public string CurrencyCode { get; set; } = "EGP";
 
@@ -108,9 +122,12 @@ public class ScrInvoice : AuditableEntity
     public string? Notes { get; set; }
 
     public List<ScrInvoiceLine> Lines { get; set; } = [];
+
+    /// <summary>How the period's inquiries were priced: free, then each tier (or the flat fee).</summary>
+    public List<ScrInvoiceBand> Bands { get; set; } = [];
 }
 
-/// <summary>SCR_INVOICE_LINES: one line per user: the months billed and the inquiries they made, at the invoice's prices.</summary>
+/// <summary>SCR_INVOICE_LINES: one line per user: the months billed (with their fee) and the inquiries they made (priced in the bands).</summary>
 public class ScrInvoiceLine : AuditableEntity
 {
     public long InvoiceLineId { get; set; }
@@ -131,8 +148,30 @@ public class ScrInvoiceLine : AuditableEntity
     public decimal UserAmount { get; set; }
 
     public int InquiryCount { get; set; }
+}
 
-    public decimal InquiryAmount { get; set; }
+/// <summary>SCR_INVOICE_BANDS: the inquiries of the period priced in one band: free, a tier, or the flat fee (prices frozen).</summary>
+public class ScrInvoiceBand : AuditableEntity
+{
+    public long InvoiceBandId { get; set; }
 
-    public decimal LineAmount { get; set; }
+    public long InvoiceId { get; set; }
+
+    public int BandNo { get; set; }
+
+    /// <summary>FREE, TIER or FLAT.</summary>
+    public string BandTypeCode { get; set; } = "TIER";
+
+    /// <summary>The band's first inquiry number in the period (1 = the first inquiry).</summary>
+    public int FromInquiry { get; set; }
+
+    /// <summary>The band's last inquiry number; empty = and above.</summary>
+    public int? ToInquiry { get; set; }
+
+    public decimal UnitPrice { get; set; }
+
+    /// <summary>The period's inquiries that fell in the band.</summary>
+    public int Quantity { get; set; }
+
+    public decimal Amount { get; set; }
 }
