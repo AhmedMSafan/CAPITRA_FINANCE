@@ -15,20 +15,19 @@
     </div>
 
     <article v-if="invoice" class="fx-card scr-inv-doc">
-      <div v-if="invoice.statusCode === 'CANCELLED'" class="scr-inv-stamp">{{ tr('Cancelled') }}</div>
       <header class="scr-inv-head">
         <div>
           <div class="scr-inv-brand">CAPITRA</div>
           <small>{{ tr('Screening service') }}</small>
         </div>
         <div class="scr-inv-title">
-          <h1>{{ tr('Invoice') }}</h1>
+          <h1>{{ tr('Invoice') }}<span v-if="invoice.statusCode === 'CANCELLED'" class="scr-inv-stamp">{{ tr('Cancelled') }}</span></h1>
           <b dir="ltr">{{ invoice.invoiceNo }}</b>
         </div>
       </header>
       <section class="scr-inv-meta">
         <div><span>{{ tr('Bill to') }}</span><b>{{ invoice.companyNameAr }}</b><small>{{ invoice.companyNameEn }} · <bdi dir="ltr">{{ invoice.companyCode }}</bdi></small></div>
-        <div><span>{{ tr('Period') }}</span><b dir="ltr">{{ invoice.periodCode }}</b><small>{{ formatDate(invoice.periodFrom) }} – {{ formatDate(invoice.periodTo) }}</small></div>
+        <div><span>{{ tr('Period') }}</span><b dir="ltr">{{ invoice.periodCode }}</b><small dir="ltr">{{ formatDate(invoice.periodFrom) }} – {{ formatDate(invoice.periodTo) }}</small></div>
         <div><span>{{ tr('Price plan') }}</span><b dir="ltr">{{ invoice.planCode }}</b><small>{{ tr('Currency') }}: {{ invoice.currencyCode }}</small></div>
         <div><span>{{ tr('Issued') }}</span><b>{{ invoice.issuedAt ? formatDateTime(invoice.issuedAt) : '-' }}</b><small>{{ invoice.issuedBy }}</small></div>
       </section>

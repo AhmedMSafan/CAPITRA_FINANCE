@@ -207,8 +207,7 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-inv-meta small{color:var(--fin-muted)}
 .fc .scr-inv-notes{margin:0;font-size:var(--fs-sm)}
 .fc .scr-inv-foot{padding-block-start:12px;border-block-start:1px solid var(--fin-line);font-size:11.5px;color:var(--fin-muted)}
-.fc .scr-inv-stamp{position:absolute;inset-block-start:26px;inset-inline-end:-46px;transform:rotate(35deg);padding:6px 60px;background:#c8321f;color:#fff;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
-[dir='rtl'] .fc .scr-inv-stamp{transform:rotate(-35deg)}
+.fc .scr-inv-stamp{display:inline-block;margin-inline-start:12px;padding:3px 12px;border:2px solid #c8321f;border-radius:8px;color:#c8321f;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;transform:rotate(-4deg)}
 @media (max-width:900px){.fc .scr-inv-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.fc .fc-span-2{grid-column:auto}}
 @media print{
   .t-Header,.scr-no-print,.fx-devtools,#apexDevToolbar{display:none !important}

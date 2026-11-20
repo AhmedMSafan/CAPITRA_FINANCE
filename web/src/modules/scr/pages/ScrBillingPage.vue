@@ -85,7 +85,7 @@
             <tr v-for="i in invoices" :key="i.invoiceId" :class="{ 'scr-row-cancelled': i.statusCode === 'CANCELLED' }">
               <td dir="ltr"><b>{{ i.invoiceNo }}</b></td>
               <td><b dir="ltr">{{ i.companyCode }}</b><span class="fx-cell-sub">{{ i.companyNameAr }}</span></td>
-              <td><b dir="ltr">{{ i.periodCode }}</b><span class="fx-cell-sub">{{ formatDate(i.periodFrom) }} – {{ formatDate(i.periodTo) }}</span></td>
+              <td><b dir="ltr">{{ i.periodCode }}</b><span class="fx-cell-sub" dir="ltr">{{ formatDate(i.periodFrom) }} – {{ formatDate(i.periodTo) }}</span></td>
               <td class="fx-r" dir="ltr">{{ i.userMonths }} × {{ egp(i.userMonthlyFee) }}</td>
               <td class="fx-r" dir="ltr">{{ i.inquiryCount }} × {{ egp(i.inquiryFee) }}</td>
               <td class="fx-r" dir="ltr"><b>{{ egp(i.totalAmount) }}</b></td>

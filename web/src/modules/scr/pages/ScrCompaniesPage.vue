@@ -57,7 +57,7 @@
                     <span class="scr-seat-bar"><i :style="{ width: seatPct(c) }"></i></span>
                     <small>{{ c.seats?.usersInUse ?? 0 }} / {{ c.licence.maxUsers }} {{ tr('in use') }}</small>
                   </div>
-                  <span class="fx-cell-sub">{{ formatDate(c.licence.validFrom) }} – {{ c.licence.validTo ? formatDate(c.licence.validTo) : tr('open-ended') }}</span>
+                  <span class="fx-cell-sub"><bdi dir="ltr">{{ formatDate(c.licence.validFrom) }}</bdi> – <bdi>{{ c.licence.validTo ? formatDate(c.licence.validTo) : tr('open-ended') }}</bdi></span>
                   <span v-if="c.licenceStateCode && c.licenceStateCode !== 'ACTIVE'" class="fx-chip fx-chip--bad">{{ tr(LABELS[c.licenceStateCode] ?? c.licenceStateCode) }}</span>
                 </template>
                 <span v-else class="fx-chip fx-chip--bad">{{ tr('No licence') }}</span>
@@ -175,7 +175,7 @@
         <div v-if="editOf" class="fc-note fc-full scr-edit-licence">
           <span class="fa fa-id-card-o" aria-hidden="true"></span>
           <span><b>{{ tr('Licence') }}:</b>&nbsp;
-            <template v-if="editOf.licence"> {{ tr('Administrator') }} + {{ editOf.licence.maxUsers }} · {{ formatDate(editOf.licence.validFrom) }} – {{ editOf.licence.validTo ? formatDate(editOf.licence.validTo) : tr('open-ended') }}</template>
+            <template v-if="editOf.licence"> {{ tr('Administrator') }} + {{ editOf.licence.maxUsers }} · <bdi dir="ltr">{{ formatDate(editOf.licence.validFrom) }}</bdi> – <bdi>{{ editOf.licence.validTo ? formatDate(editOf.licence.validTo) : tr('open-ended') }}</bdi></template>
             <template v-else> {{ tr('No licence') }}</template>
             <br><small>{{ tr('The number of users and the dates are changed as a new licence; earlier licences are kept.') }}</small></span>
           <button type="button" class="fx-btn fx-btn--sm fx-btn--teal" @click="licenceFromEdit"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change users or dates') }}</button>

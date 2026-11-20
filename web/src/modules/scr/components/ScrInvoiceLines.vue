@@ -22,7 +22,7 @@
       </table>
     </div>
     <dl class="scr-inv-totals">
-      <div><dt>{{ tr('Users') }}: <span dir="ltr">{{ invoice.userMonths }} {{ tr('user-months') }} × {{ egp(invoice.userMonthlyFee) }}</span></dt><dd dir="ltr">{{ egp(invoice.userAmount) }}</dd></div>
+      <div><dt>{{ tr('Users') }} ({{ tr('user-months') }}): <span dir="ltr">{{ invoice.userMonths }} × {{ egp(invoice.userMonthlyFee) }}</span></dt><dd dir="ltr">{{ egp(invoice.userAmount) }}</dd></div>
       <div><dt>{{ tr('Inquiries') }}: <span dir="ltr">{{ invoice.inquiryCount }} × {{ egp(invoice.inquiryFee) }}</span></dt><dd dir="ltr">{{ egp(invoice.inquiryAmount) }}</dd></div>
       <div class="scr-inv-total"><dt>{{ tr('Total') }}</dt><dd dir="ltr">{{ egp(invoice.totalAmount) }}</dd></div>
     </dl>
