@@ -54,7 +54,7 @@
           <small v-if="errors.fullName" class="scr-err">{{ errors.fullName }}</small></label>
         <label class="fc-field"><span>{{ tr('E-mail') }} <b>*</b></span><input v-model="form.email" class="fx-search" type="email" dir="ltr">
           <small v-if="errors.email" class="scr-err">{{ errors.email }}</small></label>
-        <label class="fc-field"><span>{{ tr('User name') }} <b>*</b></span><input v-model="form.userName" class="fx-search" dir="ltr" :disabled="editId !== null" autocomplete="off" :placeholder="form.email || ''">
+        <label class="fc-field"><span>{{ tr('User name') }}<b v-if="editId !== null"> *</b></span><input v-model="form.userName" class="fx-search" dir="ltr" :disabled="editId !== null" autocomplete="off" :placeholder="form.email || ''">
           <small v-if="editId === null" class="scr-hint">{{ tr('Empty = the e-mail address') }}</small>
           <small v-if="errors.userName" class="scr-err">{{ errors.userName }}</small></label>
         <label v-if="editId !== null && !editingAdmin" class="fc-check" style="align-self:end;padding-bottom:8px"><input v-model="form.isActive" type="checkbox"><span>{{ tr('Active') }}</span></label>
