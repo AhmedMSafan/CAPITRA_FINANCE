@@ -267,5 +267,12 @@ export const SCR_AR: Record<string, string> = {
   'PDF, PNG, JPEG or TIFF · up to 20 MB each · any number': 'PDF أو PNG أو JPEG أو TIFF · حتى 20 ميجابايت لكل ملف · أي عدد',
   'Attach a PDF, PNG, JPEG or TIFF file up to 20 MB.': 'أرفق ملف PDF أو PNG أو JPEG أو TIFF حتى 20 ميجابايت.',
   'scans attached': 'صور مرفقة',
-  'Some scans were not attached; add them from the list.': 'لم تُرفق بعض الصور؛ أضفها من القائمة.'
+  'Some scans were not attached; add them from the list.': 'لم تُرفق بعض الصور؛ أضفها من القائمة.',
+  'You have no access to Screening yet': 'ليس لديك صلاحية على الفحص بعد',
+  'Your roles do not include any Screening permission. Ask your administrator to give you the role for your work:': 'أدوارك لا تتضمن أي صلاحية في الفحص. اطلب من مسؤول النظام منحك الدور المناسب لعملك:',
+  'letters, parties, decisions and Run': 'الخطابات والأطراف والقرارات والتشغيل',
+  'reviewing decisions': 'مراجعة القرارات',
+  'approving and publishing decisions': 'اعتماد القرارات ونشرها',
+  'member company screening': 'فحص الشركات الأعضاء',
+  'After the role is given, sign out and sign in again.': 'بعد منح الدور، سجّل الخروج ثم سجّل الدخول مرة أخرى.'
 }

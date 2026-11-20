@@ -37,7 +37,23 @@
       </div>
     </section>
 
-    <h2 class="scr-section-title">{{ tr('Screening services') }}</h2>
+    <!-- a user with no Screening permission sees why, not an empty page -->
+    <div v-if="!cards.length" class="fx-card scr-no-access">
+      <span class="fa fa-lock" aria-hidden="true"></span>
+      <div>
+        <b>{{ tr('You have no access to Screening yet') }}</b>
+        <p>{{ tr('Your roles do not include any Screening permission. Ask your administrator to give you the role for your work:') }}</p>
+        <ul>
+          <li><b>OPERATIONS_OFFICER</b> · {{ tr('letters, parties, decisions and Run') }}</li>
+          <li><b>LEGAL_OFFICER</b> · {{ tr('reviewing decisions') }}</li>
+          <li><b>RISK_OFFICER</b> · {{ tr('approving and publishing decisions') }}</li>
+          <li><b>MEMBER_COMPANY_ADMIN / MEMBER_COMPANY_USER</b> · {{ tr('member company screening') }}</li>
+        </ul>
+        <small>{{ tr('After the role is given, sign out and sign in again.') }}</small>
+      </div>
+    </div>
+
+    <h2 v-if="cards.length" class="scr-section-title">{{ tr('Screening services') }}</h2>
     <div class="fc-quick fc-quick--3">
       <RouterLink v-for="c in cards" :key="c.name" :to="{ name: c.name }" class="fx-card fc-quick-card" :class="{ 'fc-quick-card--calc': c.orange }">
         <span class="fc-quick-ic" aria-hidden="true"><span :class="['fa', c.icon]"></span></span>
