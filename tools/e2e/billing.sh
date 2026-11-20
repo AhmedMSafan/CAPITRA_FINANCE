@@ -59,7 +59,8 @@ sql "update \"SCR_INQUIRIES\" set \"SCREENED_AT\" = ('$PREV_MONTH'::date + 9)::t
 r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=$PREV_MONTH" "$ADMIN")
 check "1 user-month + 1 inquiry = 102.50" "$(body "$r" | jq -r '"\(.userMonths) \(.inquiryCount) \(.totalAmount)"')" "1 1 102.50"
 check "complete period" "$(body "$r" | jq -r .periodComplete)" true
-check "old.u1's line: no month, 1 inquiry" "$(body "$r" | jq -r '.lines[] | select(.userName=="old.u1") | "\(.userMonths) \(.inquiryCount) \(.lineAmount)"')" "0 1 2.50"
+check "old.u1's line: no month, 1 inquiry" "$(body "$r" | jq -r '.lines[] | select(.userName=="old.u1") | "\(.userMonths) \(.inquiryCount) \(.userAmount)"')" "0 1 0.00"
+check "the inquiry priced in one band (each inquiry, 2.50)" "$(body "$r" | jq -r '[.bands[] | "\(.bandTypeCode):\(.quantity)x\(.unitPrice)=\(.amount)"] | join(" ")')" "FLAT:1x2.50=2.50"
 
 echo "5. Issue, never twice, prices frozen, cancel and reissue"
 r=$(call POST /api/scr/billing/companies/$CID/invoices "$ADMIN" "{\"periodFrom\":\"$PREV_MONTH\",\"notes\":\"first\"}")
@@ -93,6 +94,25 @@ r=$(call GET /api/scr/billing/overview "$ADMIN"); check "its current period is t
 r=$(call GET /api/scr/billing/overview "$ADMIN"); check "OLDCO invoiced total 202.50 (the cancelled one not counted)" "$(body "$r" | jq -r '.[] | select(.companyCode=="OLDCO") | "\(.invoicedTotal) \(.invoiceCount)"')" "202.50 1"
 r=$(call GET /api/scr/billing/overview "$(login old.u1 'Old#User2026')"); check "a company user cannot see billing" "$(status "$r")" 403
 r=$(call GET /api/scr/billing/invoices "$CA"); check "nor its administrator (for now)" "$(status "$r")" 403
+
+echo "8. Free inquiries and graduated tiers"
+r=$(call POST /api/scr/billing/plans "$ADMIN" '{"planCode":"GAPPY","nameEn":"x","nameAr":"x","userMonthlyFee":0,"inquiryFee":0,"isActive":true,"freeInquiries":1,"tiers":[{"fromInquiry":2,"toInquiry":2,"unitPrice":5},{"fromInquiry":4,"toInquiry":null,"unitPrice":1}]}')
+check "tiers with a gap are refused" "$(status "$r")" 400
+r=$(call POST /api/scr/billing/plans "$ADMIN" '{"planCode":"TIERED","nameEn":"Tiered","nameAr":"شرائح","userMonthlyFee":0,"inquiryFee":0,"isActive":true,"freeInquiries":1,"tiers":[{"fromInquiry":2,"toInquiry":2,"unitPrice":5},{"fromInquiry":3,"toInquiry":null,"unitPrice":1}]}')
+check "plan with 1 free, then 5.00, then 1.00" "$(body "$r" | jq -r '"\(.freeInquiries) \(.tiers | length) \(.inquiryFee)"')" "1 2 1.00"
+TID=$(body "$r" | jq -r .pricePlanId)
+r=$(put_company "$TID" MONTHLY); check "OLDCO on the tiered plan, monthly" "$(body "$r" | jq -r .pricePlanCode)" TIERED
+T1=$(login old.u1 'Old#User2026')
+for n in 3 4 5; do call POST /api/scr/inquiries "$T1" "{\"subjectTypeCode\":\"PERSON\",\"subjectName\":\"Tier Person $n\",\"identityTypeCode\":\"NATIONAL_ID\",\"identityNo\":\"2900101123456$n\",\"purposeCode\":\"ONBOARDING\"}" >/dev/null; done
+r=$(call GET "/api/scr/billing/companies/$CID/preview?periodFrom=$THIS_MONTH" "$ADMIN")
+check "4 inquiries this month" "$(body "$r" | jq -r .inquiryCount)" 4
+check "1 free + 1 × 5.00 + 2 × 1.00" "$(body "$r" | jq -r '[.bands[] | "\(.bandTypeCode):\(.quantity)x\(.unitPrice)"] | join(" ")')" "FREE:1x0.00 TIER:1x5.00 TIER:2x1.00"
+check "= 7.00" "$(body "$r" | jq -r .inquiryAmount)" 7.00
+r=$(call GET /api/scr/billing/overview "$ADMIN"); check "the overview counts it the same way" "$(body "$r" | jq -r '.[] | select(.companyCode=="OLDCO") | .currentAmount')" 7.00
+r=$(call POST /api/scr/billing/companies/$CID/invoices "$ADMIN" "{\"periodFrom\":\"$THIS_MONTH\"}"); I3=$(body "$r" | jq -r .invoiceId)
+check "issued with its bands" "$(sql "select count(*) from \"SCR_INVOICE_BANDS\" where \"INVOICE_ID\"=$I3")" 3
+call PUT /api/scr/billing/plans/$TID "$ADMIN" '{"planCode":"TIERED","nameEn":"Tiered","nameAr":"شرائح","userMonthlyFee":0,"inquiryFee":9,"isActive":true,"freeInquiries":0,"tiers":[]}' >/dev/null
+r=$(call GET /api/scr/billing/invoices/$I3 "$ADMIN"); check "the issued invoice keeps its free inquiry and tiers" "$(body "$r" | jq -r '"\(.freeInquiries) \(.bands | length) \(.inquiryAmount)"')" "1 3 7.00"
 
 echo
 echo "Passed: $pass   Failed: $fail"

@@ -87,7 +87,7 @@
               <td><b dir="ltr">{{ i.companyCode }}</b><span class="fx-cell-sub">{{ i.companyNameAr }}</span></td>
               <td><b dir="ltr">{{ i.periodCode }}</b><span class="fx-cell-sub" dir="ltr">{{ formatDate(i.periodFrom) }} – {{ formatDate(i.periodTo) }}</span></td>
               <td class="fx-r" dir="ltr">{{ i.userMonths }} × {{ egp(i.userMonthlyFee) }}</td>
-              <td class="fx-r" dir="ltr">{{ i.inquiryCount }} × {{ egp(i.inquiryFee) }}</td>
+              <td class="fx-r" dir="ltr">{{ i.inquiryCount }} → {{ egp(i.inquiryAmount) }}</td>
               <td class="fx-r" dir="ltr"><b>{{ egp(i.totalAmount) }}</b></td>
               <td><span class="fx-chip" :class="i.statusCode === 'ISSUED' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(LABELS[i.statusCode] ?? i.statusCode) }}</span></td>
               <td>{{ i.issuedBy }}<span class="fx-cell-sub">{{ i.issuedAt ? formatDateTime(i.issuedAt) : '' }}</span></td>

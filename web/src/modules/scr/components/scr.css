@@ -215,3 +215,14 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
   .fc .scr-inv-doc{box-shadow:none;border:0;max-width:none;padding:0}
   .fc .scr-inv-totals .scr-inv-total,.fc .scr-inv-meta div{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+.fc .scr-mode{display:flex;flex-wrap:wrap;gap:8px 24px}
+.fc .scr-tiers{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.fc .scr-tiers .fx-table{width:100%}
+.fc .scr-tiers .fx-table td{padding-block:6px}
+.fc .scr-tiers .fx-search{max-width:180px}
+.fc .scr-calc{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px;padding:12px 14px;border:1px dashed #9cc7cc;border-radius:12px}
+.fc .scr-calc .fc-field{max-width:220px}
+.fc .scr-calc-out{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:var(--fs-sm);padding-bottom:8px}
+.fc .scr-calc-out small{color:var(--fin-muted)}
+.fc .scr-calc-out b{font-size:16px;color:var(--fin-teal-600)}
+.fc .scr-inv-bands .fx-table{width:min(640px,100%);margin-inline-start:auto}

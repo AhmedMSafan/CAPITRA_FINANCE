@@ -35,7 +35,7 @@
         <span>{{ tr('Cancelled by') }} {{ invoice.cancelledBy }} · {{ invoice.cancelledAt ? formatDateTime(invoice.cancelledAt) : '' }}: {{ invoice.cancelReason }}</span></div>
       <ScrInvoiceLines :invoice="invoice" />
       <p v-if="invoice.notes" class="scr-inv-notes"><b>{{ tr('Notes') }}:</b> {{ invoice.notes }}</p>
-      <footer class="scr-inv-foot">{{ tr('User fee: per user per month, a user active on any day of a month pays the month. Inquiry fee: per inquiry, whatever its result.') }}</footer>
+      <footer class="scr-inv-foot">{{ tr('User fee: per user per month, a user active on any day of a month pays the month. Inquiries: every inquiry, whatever its result, priced band by band from the start of the period.') }}</footer>
     </article>
 
     <ScrDialog v-if="cancelling" :title="tr('Cancel invoice')" :subtitle="invoice?.invoiceNo ?? ''" icon="fa-ban" @close="cancelling = false">

@@ -88,19 +88,28 @@ export type ScrCompany = {
 export type ScrCompanyRequest = Pick<ScrCompany, 'companyCode' | 'nameEn' | 'nameAr' | 'licenceNo' | 'contactEmail' | 'statusCode' | 'notes' | 'pricePlanId' | 'billingCycleCode'>
 
 // billing (EGP): a fee per user per month and a fee per inquiry; invoices per calendar period, never deleted
+/** Inquiries fromInquiry to toInquiry of a period (null = and above) at unitPrice each. */
+export type ScrTier = { fromInquiry: number; toInquiry: number | null; unitPrice: number }
 export type ScrPricePlan = {
-  pricePlanId: number; planCode: string; nameEn: string; nameAr: string; userMonthlyFee: number; inquiryFee: number; currencyCode: string
+  pricePlanId: number; planCode: string; nameEn: string; nameAr: string; userMonthlyFee: number; inquiryFee: number
+  /** Free inquiries per invoice period; tiers empty = the flat inquiryFee after them (graduated otherwise). */
+  freeInquiries: number; tiers: ScrTier[]; currencyCode: string
   isActive: boolean; notes: string | null; companyCount: number; createdBy: string; createdAt: string; updatedBy: string | null; updatedAt: string | null
 }
-export type ScrPricePlanRequest = { planCode: string; nameEn: string; nameAr: string; userMonthlyFee: number | null; inquiryFee: number | null; isActive: boolean; notes: string | null }
-export type ScrInvoiceLine = { lineNo: number; userName: string; fullName: string | null; monthsText: string | null; userMonths: number; userAmount: number; inquiryCount: number; inquiryAmount: number; lineAmount: number }
+export type ScrPricePlanRequest = {
+  planCode: string; nameEn: string; nameAr: string; userMonthlyFee: number | null; inquiryFee: number | null; isActive: boolean; notes: string | null
+  freeInquiries: number | null; tiers: ScrTier[]
+}
+export type ScrInvoiceLine = { lineNo: number; userName: string; fullName: string | null; monthsText: string | null; userMonths: number; userAmount: number; inquiryCount: number }
+/** The period's inquiries priced in one band: FREE, TIER or FLAT. */
+export type ScrInvoiceBand = { bandNo: number; bandTypeCode: string; fromInquiry: number; toInquiry: number | null; unitPrice: number; quantity: number; amount: number }
 /** STATUS: PREVIEW (not saved), ISSUED or CANCELLED. periodComplete is false while the period has not ended. */
 export type ScrInvoice = {
   invoiceId: number; invoiceNo: string | null; memberCompanyId: number; companyCode: string; companyNameEn: string; companyNameAr: string
-  periodFrom: string; periodTo: string; periodCode: string; planCode: string; userMonthlyFee: number; inquiryFee: number; currencyCode: string
+  periodFrom: string; periodTo: string; periodCode: string; planCode: string; userMonthlyFee: number; inquiryFee: number; freeInquiries: number; currencyCode: string
   userMonths: number; userAmount: number; inquiryCount: number; inquiryAmount: number; totalAmount: number; statusCode: string
   issuedAt: string | null; issuedBy: string | null; cancelledAt: string | null; cancelledBy: string | null; cancelReason: string | null; notes: string | null
-  periodComplete: boolean; lines: ScrInvoiceLine[]
+  periodComplete: boolean; lines: ScrInvoiceLine[]; bands: ScrInvoiceBand[]
 }
 export type ScrBillingCompany = {
   memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string; statusCode: string; pricePlanId: number | null; planCode: string | null
@@ -109,6 +118,19 @@ export type ScrBillingCompany = {
 }
 
 /** Amounts in EGP, two decimals, Western digits in both languages. */
+/** The plan's inquiry schedule priced for a number of inquiries (graduated): the same rule as the invoices. */
+export function priceInquiries(free: number, flatFee: number, tiers: ScrTier[], inquiries: number) {
+  const schedule: { type: string; from: number; to: number | null; price: number }[] = []
+  if (free > 0) schedule.push({ type: 'FREE', from: 1, to: free, price: 0 })
+  if (!tiers.length) schedule.push({ type: 'FLAT', from: free + 1, to: null, price: flatFee })
+  else tiers.forEach((t) => schedule.push({ type: 'TIER', from: t.fromInquiry, to: t.toInquiry, price: t.unitPrice }))
+  const bands = schedule.map((b) => {
+    const quantity = Math.max(0, Math.min(inquiries, b.to ?? Infinity) - b.from + 1)
+    return { ...b, quantity, amount: Math.round(quantity * b.price * 100 + Number.EPSILON) / 100 }
+  }).filter((b) => b.quantity > 0)
+  return { bands, total: bands.reduce((s, b) => s + b.amount, 0) }
+}
+
 export const egp = (v: number | null | undefined) => v == null ? '-' : `${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EGP`
 export type ScrCompanyAdminRequest = { userName: string | null; email: string | null; fullName: string | null }
 /** STATUS: PENDING_ACTIVATION (link not used yet; holds a seat), ACTIVE or INACTIVE. No password is ever shown. */
@@ -204,6 +226,7 @@ export const scrApi = {
 
 /** Labels of the codes, in English (tr() gives the Arabic). */
 export const LABELS: Record<string, string> = {
+  FREE: 'Free', TIER: 'Tier', FLAT: 'Each inquiry',
   MONTHLY: 'Monthly', QUARTERLY: 'Quarterly', YEARLY: 'Yearly', ISSUED: 'Issued', PREVIEW: 'Preview',
   PERSON: 'Person', COMPANY: 'Company',
   NATIONAL_ID: 'National ID', PASSPORT: 'Passport', COMMERCIAL_REGISTER: 'Commercial register', OTHER: 'Other',
