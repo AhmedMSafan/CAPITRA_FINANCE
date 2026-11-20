@@ -65,5 +65,6 @@ export const SEC_AR: Record<string, string> = {
   'Your company\'s access is suspended. Contact the Federation.': 'وصول شركتك موقوف. تواصل مع الاتحاد.',
   'Your company has no licence. Contact the Federation.': 'لا يوجد ترخيص لشركتك. تواصل مع الاتحاد.',
   'Your company\'s licence has not started yet. Contact the Federation.': 'ترخيص شركتك لم يبدأ بعد. تواصل مع الاتحاد.',
-  'Your company\'s licence has ended. Contact the Federation to renew it.': 'انتهى ترخيص شركتك. تواصل مع الاتحاد لتجديده.'
+  'Your company\'s licence has ended. Contact the Federation to renew it.': 'انتهى ترخيص شركتك. تواصل مع الاتحاد لتجديده.',
+  'Your user name, to sign in': 'اسم المستخدم الخاص بك لتسجيل الدخول'
 }

@@ -158,6 +158,15 @@
           <select v-model="company.statusCode" class="fx-select"><option value="ACTIVE">{{ tr('Active') }}</option><option value="SUSPENDED">{{ tr('Suspended') }}</option></select>
         </label>
         <label class="fc-field fc-full"><span>{{ tr('Notes') }}</span><textarea v-model="company.notes" class="fx-search fc-textarea"></textarea></label>
+        <!-- the number of users and the dates belong to the licence: every change is a new licence, kept for billing -->
+        <div v-if="editOf" class="fc-note fc-full scr-edit-licence">
+          <span class="fa fa-id-card-o" aria-hidden="true"></span>
+          <span><b>{{ tr('Licence') }}:</b>&nbsp;
+            <template v-if="editOf.licence"> {{ tr('Administrator') }} + {{ editOf.licence.maxUsers }} · {{ formatDate(editOf.licence.validFrom) }} – {{ editOf.licence.validTo ? formatDate(editOf.licence.validTo) : tr('open-ended') }}</template>
+            <template v-else> {{ tr('No licence') }}</template>
+            <br><small>{{ tr('The number of users and the dates are changed as a new licence; earlier licences are kept.') }}</small></span>
+          <button type="button" class="fx-btn fx-btn--sm fx-btn--teal" @click="licenceFromEdit"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change users or dates') }}</button>
+        </div>
       </div>
       <template #actions>
         <button type="button" class="fx-btn" @click="editing = false">{{ tr('Cancel') }}</button>
@@ -247,6 +256,8 @@ const admin = reactive<ScrCompanyAdminRequest>({ userName: null, email: null, fu
 const creating = ref(false)
 const created = ref<{ company: ScrCompany; admin: ScrCompanyUser; email: ScrEmailOutcome } | null>(null)
 const editing = ref(false)
+/** The company being edited, for its licence summary. */
+const editOf = ref<ScrCompany | null>(null)
 const editId = ref<number | null>(null)
 const licenceOf = ref<ScrCompany | null>(null)
 const history = ref<ScrLicence[]>([])
@@ -289,7 +300,14 @@ async function create() {
   }
 }
 
+function licenceFromEdit() {
+  const c = editOf.value
+  editing.value = false
+  if (c) void openLicence(c)
+}
+
 function edit(c: ScrCompany) {
+  editOf.value = c
   errors.value = {}
   editId.value = c.memberCompanyId
   Object.assign(company, { companyCode: c.companyCode, nameEn: c.nameEn, nameAr: c.nameAr, licenceNo: c.licenceNo, contactEmail: c.contactEmail, statusCode: c.statusCode, notes: c.notes })

@@ -362,5 +362,7 @@ export const SCR_AR: Record<string, string> = {
   'Choose active or suspended.': 'اختر نشطة أو موقوفة.',
   'This company has no administrator yet. The next user you add becomes its administrator.': 'لا يوجد مسؤول لهذه الشركة بعد. أول مستخدم تضيفه يصبح مسؤولها.',
   'This user becomes the company administrator and receives an e-mail with a link to choose their own password.': 'يصبح هذا المستخدم مسؤول الشركة، ويصله بريد فيه رابط لاختيار كلمة مروره بنفسه.',
-  'New company administrator': 'مسؤول شركة جديد'
+  'New company administrator': 'مسؤول شركة جديد',
+  'The number of users and the dates are changed as a new licence; earlier licences are kept.': 'يُغيَّر عدد المستخدمين والتواريخ بإضافة ترخيص جديد، وتبقى التراخيص السابقة محفوظة.',
+  'Change users or dates': 'تغيير عدد المستخدمين أو التواريخ'
 }
