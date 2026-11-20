@@ -459,5 +459,7 @@ export const SCR_AR: Record<string, string> = {
   'Quantity': 'العدد',
   'User fee: per user per month, a user active on any day of a month pays the month. Inquiries: every inquiry, whatever its result, priced band by band from the start of the period.': 'رسوم المستخدمين: لكل مستخدم شهريًا، والمستخدم النشط في أي يوم من الشهر يُحتسب عليه الشهر. الاستعلامات: كل استعلام أيًّا كانت نتيجته، مُسعَّر شريحةً شريحة من بداية الفترة.',
   'Enter the free inquiries per invoice period, 0 or more.': 'أدخل الاستعلامات المجانية لكل فترة فوترة، 0 أو أكثر.',
-  'The last tier has no end: it prices every inquiry above its start.': 'الشريحة الأخيرة بلا نهاية: تُسعِّر كل استعلام بعد بدايتها.'
+  'The last tier has no end: it prices every inquiry above its start.': 'الشريحة الأخيرة بلا نهاية: تُسعِّر كل استعلام بعد بدايتها.',
+  'Companies using this plan': 'الشركات التي تستخدم هذه الخطة',
+  'New prices apply to invoices issued from now on; issued invoices keep their prices.': 'الأسعار الجديدة تسري على الفواتير التي تصدر من الآن؛ والفواتير الصادرة تحتفظ بأسعارها.'
 }

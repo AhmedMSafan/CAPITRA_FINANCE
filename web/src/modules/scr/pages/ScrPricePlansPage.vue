@@ -105,7 +105,7 @@
         </div>
         <label class="fc-field fc-full"><span>{{ tr('Notes') }}</span><textarea v-model="form.notes" class="fx-search fc-textarea"></textarea></label>
         <div v-if="editId && current?.companyCount" class="fc-note fc-full"><span class="fa fa-info-circle" aria-hidden="true"></span>
-          <span>{{ current.companyCount }} {{ tr('companies use this plan. New prices apply to invoices issued from now on; issued invoices keep their prices.') }}</span></div>
+          <span>{{ tr('Companies using this plan') }}: {{ current.companyCount }}. {{ tr('New prices apply to invoices issued from now on; issued invoices keep their prices.') }}</span></div>
         <div v-if="errors.general" class="fc-note fc-note--warn fc-full"><span class="fa fa-exclamation-circle" aria-hidden="true"></span><span>{{ errors.general }}</span></div>
       </div>
       <template #actions>
