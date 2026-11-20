@@ -9,7 +9,7 @@
         <span class="cp-ic" aria-hidden="true"><span :class="['fa', activating ? 'fa-user-plus' : 'fa-key']"></span></span>
         <div>
           <h1>{{ tr(activating ? 'Activate your account' : 'Choose a new password') }}</h1>
-          <p v-if="info" dir="auto">{{ info.fullName || info.userName }}<span v-if="info.fullName"> · <bdi dir="ltr">{{ info.userName }}</bdi></span></p>
+          <p v-if="info" dir="auto">{{ info.fullName || info.userName }}</p>
         </div>
         <button type="button" class="cp-lang" @click="switchLanguage(rtl ? 'EN' : 'AR')">{{ rtl ? 'EN' : 'ع' }}</button>
       </header>
@@ -25,10 +25,12 @@
       <template v-else-if="state === 'done'">
         <div class="cp-note" role="status"><span class="fa fa-check-circle" aria-hidden="true"></span>
           <span>{{ tr(activating ? 'Your account is active. Sign in with your user name and the password you chose.' : 'Your password has been changed. Sign in with the new password.') }}</span></div>
+        <div v-if="info" class="cp-username"><span>{{ tr('Your user name, to sign in') }}</span><b dir="ltr">{{ info.userName }}</b></div>
         <RouterLink class="cp-submit" :to="{ name: 'login', query: info ? { user: info.userName } : {} }"><span class="fa fa-sign-in" aria-hidden="true"></span>{{ tr('Sign in') }}</RouterLink>
       </template>
 
       <template v-else>
+        <div v-if="info" class="cp-username"><span>{{ tr('Your user name, to sign in') }}</span><b dir="ltr">{{ info.userName }}</b></div>
         <div class="cp-note"><span class="fa fa-shield" aria-hidden="true"></span>
           <span>{{ tr('Choose your own password. Nobody else, the administrators included, will know it.') }}</span></div>
         <label class="cp-field">

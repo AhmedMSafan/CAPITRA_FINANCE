@@ -41,3 +41,6 @@
 .cp-note--bad { background: #fdecea; color: #8a2417; }
 .cp-note--bad .fa { color: #c8321f; }
 a.cp-submit, a.cp-link { text-decoration: none; }
+.cp-username { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px dashed #9cc7cc; border-radius: 12px; background: #fff; }
+.cp-username span { font-size: 12.5px; color: #5d7a80; }
+.cp-username b { font-size: 16px; color: #0b2e35; overflow-wrap: anywhere; text-align: start; }
