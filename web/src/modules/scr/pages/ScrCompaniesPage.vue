@@ -36,7 +36,7 @@
           <thead>
             <tr>
               <th>{{ tr('Code') }}</th><th>{{ tr('Name') }}</th><th>{{ tr('Administrator') }}</th><th>{{ tr('Licence') }}</th>
-              <th>{{ tr('Status') }}</th><th>{{ tr('Inquiries') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
+              <th>{{ tr('Price plan') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Inquiries') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -61,6 +61,11 @@
                   <span v-if="c.licenceStateCode && c.licenceStateCode !== 'ACTIVE'" class="fx-chip fx-chip--bad">{{ tr(LABELS[c.licenceStateCode] ?? c.licenceStateCode) }}</span>
                 </template>
                 <span v-else class="fx-chip fx-chip--bad">{{ tr('No licence') }}</span>
+              </td>
+              <td>
+                <template v-if="c.pricePlanCode"><b dir="ltr">{{ c.pricePlanCode }}</b>
+                  <span class="fx-cell-sub">{{ tr(LABELS[c.billingCycleCode ?? 'MONTHLY'] ?? '') }}<template v-if="planOf(c.pricePlanId)"> · <bdi dir="ltr">{{ egp(planOf(c.pricePlanId)!.userMonthlyFee) }}</bdi> / {{ tr('user') }}</template></span></template>
+                <span v-else class="fx-chip fx-chip--warn">{{ tr('Not billed yet') }}</span>
               </td>
               <td><span class="fx-chip" :class="c.statusCode === 'ACTIVE' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(LABELS[c.statusCode] ?? c.statusCode) }}</span></td>
               <td>{{ c.inquiryCount }}<span v-if="c.licence?.yearlyInquiryQuota" class="fx-cell-sub">{{ tr('Quota') }} {{ c.licence.yearlyInquiryQuota.toLocaleString() }} / {{ tr('year') }}</span></td>
@@ -292,6 +297,7 @@ const history = ref<ScrLicence[]>([])
 /** Price plans for the Billing section (needs a billing permission; without it the company keeps its plan as it is). */
 const canPlans = hasPermission('SCR.BILLING.VIEW')
 const plans = ref<ScrPricePlan[]>([])
+const planOf = (id: number | null | undefined) => plans.value.find((p) => p.pricePlanId === id)
 
 async function load() {
   try {

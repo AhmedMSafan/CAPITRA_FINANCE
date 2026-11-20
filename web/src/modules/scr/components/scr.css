@@ -226,3 +226,29 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-calc-out small{color:var(--fin-muted)}
 .fc .scr-calc-out b{font-size:16px;color:var(--fin-teal-600)}
 .fc .scr-inv-bands .fx-table{width:min(640px,100%);margin-inline-start:auto}
+
+/* ===== Dialogs (every Screening and Communication Center popup): roomy, rounded, actions always in view ===== */
+.fc-modal.scr-modal{--dlg-pad:28px;width:min(980px,calc(100vw - 48px));max-height:calc(100vh - 56px);display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:20px;box-shadow:0 24px 64px rgb(2 32 38 / .28)}
+.fc-modal.scr-modal > .fc-sec-head{position:static;flex:none;gap:14px;padding:22px var(--dlg-pad) 18px;border-block-end:1px solid var(--fin-line);border-radius:20px 20px 0 0}
+.fc-modal.scr-modal > .fc-sec-head h2{font-size:18px}
+.fc-modal.scr-modal > .fc-sec-head p{font-size:13px;margin-block-start:2px}
+.fc-modal.scr-modal > .fc-sec-head .fc-sec-ic{width:44px;height:44px;border-radius:12px;font-size:18px}
+/* the body scrolls between the fixed title and the fixed actions */
+.fc-modal.scr-modal > .scr-modal-body{flex:1 1 auto;overflow:auto;padding:8px 0 24px}
+.fc-modal.scr-modal .scr-modal-body > .fc-grid{padding:20px var(--dlg-pad) 4px;gap:18px 22px}
+.fc-modal.scr-modal .scr-modal-body > .scr-form-sec{margin:26px var(--dlg-pad) 0;padding:12px 16px;border-radius:12px}
+.fc-modal.scr-modal .scr-modal-body > .scr-form-sec:first-child{margin-block-start:18px}
+.fc-modal.scr-modal .scr-modal-body > .fc-note,
+.fc-modal.scr-modal .scr-modal-body > .scr-confirm,
+.fc-modal.scr-modal .scr-modal-body > .scr-linkbox,
+.fc-modal.scr-modal .scr-modal-body > .fc-field,
+.fc-modal.scr-modal .scr-modal-body > .scr-invoice-preview{margin:18px var(--dlg-pad) 0}
+.fc-modal.scr-modal .scr-modal-body > .fc-note{padding:14px 16px;border-radius:12px}
+.fc-modal.scr-modal .scr-modal-body > .fx-table-wrap{margin:18px var(--dlg-pad) 0;border:1px solid var(--fin-line);border-radius:14px;overflow:auto}
+.fc-modal.scr-modal .scr-modal-body .fc-grid .fc-note{padding:14px 16px;border-radius:12px}
+.fc-modal.scr-modal .fc-field > span{margin-block-end:2px}
+.fc-modal.scr-modal .fc-field .fx-search,.fc-modal.scr-modal .fc-field .fx-select{min-height:44px;border-radius:12px}
+.fc-modal.scr-modal .fc-field .fc-textarea{min-height:88px}
+.fc-modal.scr-modal > .fc-form-actions{flex:none;margin:0;padding:16px var(--dlg-pad) 20px;gap:12px;border-block-start:1px solid var(--fin-line);background:var(--fin-surface);border-radius:0 0 20px 20px}
+.fc-modal.scr-modal > .fc-form-actions .fx-btn{min-height:42px;padding-inline:20px;border-radius:12px}
+@media (max-width:700px){.fc-modal.scr-modal{--dlg-pad:18px;width:calc(100vw - 20px);max-height:calc(100vh - 20px)}}
