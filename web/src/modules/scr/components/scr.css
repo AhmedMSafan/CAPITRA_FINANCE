@@ -173,3 +173,6 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 /* text and notes placed straight in a dialog (outside a field grid) line up with the fields; the actions get room */
 .fc-modal.scr-modal > .fc-note,.fc-modal.scr-modal > .scr-confirm,.fc-modal.scr-modal > .scr-linkbox,.fc-modal.scr-modal > .fc-field{margin:8px 16px 0}
 .fc-modal.scr-modal > .fc-form-actions{padding-block-start:16px;margin-block-start:8px;border-block-start:1px solid var(--fin-line)}
+.fc .scr-edit-licence{align-items:center}
+.fc .scr-edit-licence > span:nth-child(2){flex:1}
+.fc .scr-edit-licence .fx-btn{flex:none}
