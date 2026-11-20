@@ -11,7 +11,9 @@
         </div>
         <button type="button" class="fx-btn fx-btn--ghost fx-btn--sm" :aria-label="tr('Close')" @click="emit('close')"><span class="fa fa-times" aria-hidden="true"></span></button>
       </header>
-      <slot />
+      <div class="scr-modal-body">
+        <slot />
+      </div>
       <div class="fc-form-actions">
         <slot name="actions" />
       </div>
