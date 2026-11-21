@@ -89,7 +89,8 @@
               <td class="fx-r" dir="ltr">{{ i.userMonths }} × {{ egp(i.userMonthlyFee) }}</td>
               <td class="fx-r" dir="ltr">{{ i.inquiryCount }} → {{ egp(i.inquiryAmount) }}</td>
               <td class="fx-r" dir="ltr"><b>{{ egp(i.totalAmount) }}</b></td>
-              <td><span class="fx-chip" :class="i.statusCode === 'ISSUED' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(LABELS[i.statusCode] ?? i.statusCode) }}</span></td>
+              <td><span class="fx-chip" :class="i.statusCode === 'ISSUED' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(LABELS[i.statusCode] ?? i.statusCode) }}</span>
+                <span v-if="i.statusCode === 'ISSUED'" class="fx-cell-sub">{{ tr(LABELS[i.paymentStatusCode ?? 'UNPAID'] ?? '') }}<template v-if="(i.balanceAmount ?? 0) > 0 && (i.paidAmount ?? 0) > 0"> · <bdi dir="ltr">{{ egp(i.balanceAmount ?? 0) }}</bdi> {{ tr('due') }}</template></span></td>
               <td>{{ i.issuedBy }}<span class="fx-cell-sub">{{ i.issuedAt ? formatDateTime(i.issuedAt) : '' }}</span></td>
               <td class="fx-r"><RouterLink :to="{ name: 'scr-invoice', params: { invoiceId: i.invoiceId } }" class="fx-btn fx-btn--sm"><span class="fa fa-eye" aria-hidden="true"></span>{{ tr('View') }}</RouterLink></td>
             </tr>
