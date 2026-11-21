@@ -7,6 +7,7 @@ using Capitra.Application.Security;
 using Capitra.Infrastructure.Identity;
 using Capitra.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

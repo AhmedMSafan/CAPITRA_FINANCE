@@ -122,6 +122,8 @@ export type ScrSignIn = {
   signInId: number; sessionId: string | null; userName: string; fullName: string | null; memberCompanyId: number | null; companyCode: string | null; companyNameAr: string | null
   attemptedAt: string; resultCode: string; failureText: string | null; ipAddress: string | null; device: string | null; userAgent: string | null
   expiresAt: string | null; signedOutAt: string | null; sessionStateCode: string | null; inquiryCount: number; lastActivityAt: string | null
+  /** AUTHENTICATOR, RECOVERY_CODE or SETUP: the second step that completed the sign-in. */
+  secondStepCode?: string | null
 }
 export type ScrSessionInquiry = {
   inquiryId: number; inquiryRef: string; receivedAt: string | null; respondedAt: string | null; durationMs: number | null; subjectTypeCode: string; subjectName: string
@@ -150,6 +152,8 @@ export type ScrCompanyAdminRequest = { userName: string | null; email: string | 
 export type ScrCompanyUser = {
   userId: string; userName: string; email: string | null; fullName: string | null; isActive: boolean; roleCode: string; lastLoginAt: string | null
   statusCode: string
+  /** Signs in with an authenticator app (every company account must set it up at its first sign-in). */
+  twoFactorEnabled?: boolean
 }
 /** A new company user is always a company user; the administrator comes with the company. */
 export type ScrCompanyUserRequest = { userName: string; email: string | null; fullName: string | null; isActive: boolean }
@@ -238,6 +242,7 @@ export const scrApi = {
   /** E-mails a new activation link (pending account) or a password-reset link. */
   sendUserLink: (companyId: number, userId: string) => http.post<ScrEmailOutcome>(`${API}/companies/${companyId}/users/${userId}/send-link`),
   /** The link itself, to pass on another way when the e-mail does not arrive; earlier links stop working. */
+  resetTwoFactor: (companyId: number, userId: string) => http.post<ScrCompanyUser>(`${API}/companies/${companyId}/users/${userId}/reset-two-factor`),
   copyUserLink: (companyId: number, userId: string) =>
     http.post<{ link: string; kind: string }>(`${API}/companies/${companyId}/users/${userId}/copy-link`)
 }
@@ -247,6 +252,8 @@ export const LABELS: Record<string, string> = {
   FREE: 'Free', TIER: 'Tier', FLAT: 'Each inquiry',
   SUCCESS: 'Signed in', UNKNOWN_USER: 'Unknown user', BAD_PASSWORD: 'Wrong password', LOCKED: 'Account locked', COMPANY_BLOCKED: 'Company blocked',
   OPEN: 'Session active', SIGNED_OUT: 'Signed out',
+  AWAITING_CODE: 'Code not entered', BAD_CODE: 'Wrong code', TWO_FACTOR_RESET: 'Two-factor reset',
+  AUTHENTICATOR: 'with the app code', RECOVERY_CODE: 'with a backup code', SETUP: 'app set up',
   MONTHLY: 'Monthly', QUARTERLY: 'Quarterly', YEARLY: 'Yearly', ISSUED: 'Issued', PREVIEW: 'Preview',
   PERSON: 'Person', COMPANY: 'Company',
   NATIONAL_ID: 'National ID', PASSPORT: 'Passport', COMMERCIAL_REGISTER: 'Commercial register', OTHER: 'Other',

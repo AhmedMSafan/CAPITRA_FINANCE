@@ -32,13 +32,18 @@
             <td dir="ltr"><b>{{ u.userName }}</b></td>
             <td>{{ u.fullName || '-' }}<span v-if="u.email" class="fx-cell-sub" dir="ltr">{{ u.email }}</span></td>
             <td><span class="fx-chip fx-chip--plain" :class="u.roleCode === ADMIN ? 'fx-chip--brand' : ''">{{ tr(LABELS[u.roleCode] ?? u.roleCode) }}</span></td>
-            <td><span class="fx-chip" :class="STATUS_CHIP[u.statusCode]">{{ tr(LABELS[u.statusCode] ?? u.statusCode) }}</span></td>
+            <td><span class="fx-chip" :class="STATUS_CHIP[u.statusCode]">{{ tr(LABELS[u.statusCode] ?? u.statusCode) }}</span>
+              <span v-if="u.statusCode === 'ACTIVE'" class="fx-cell-sub" :class="u.twoFactorEnabled ? 'scr-2fa-on' : 'scr-2fa-off'">
+                <span :class="['fa', u.twoFactorEnabled ? 'fa-mobile' : 'fa-clock-o']" aria-hidden="true"></span> {{ tr(u.twoFactorEnabled ? 'Authenticator app set up' : 'Sets up the app at next sign-in') }}</span></td>
             <td>{{ u.lastLoginAt ? formatDateTime(u.lastLoginAt) : '-' }}</td>
             <td class="fx-r">
               <div class="fc-row-actions">
                 <button type="button" class="fx-btn fx-btn--sm" @click="edit(u)"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Edit') }}</button>
                 <button v-if="u.isActive" type="button" class="fx-btn fx-btn--sm" @click="linkFor = u">
                   <span class="fa fa-envelope-o" aria-hidden="true"></span>{{ tr(u.statusCode === 'PENDING_ACTIVATION' ? 'Resend invitation' : 'Send password reset') }}
+                </button>
+                <button v-if="u.twoFactorEnabled && (federation || u.roleCode !== ADMIN)" type="button" class="fx-btn fx-btn--sm" @click="resetFor = u">
+                  <span class="fa fa-mobile" aria-hidden="true"></span>{{ tr('Reset two-factor') }}
                 </button>
               </div>
             </td>
@@ -91,6 +96,16 @@
       </template>
     </ScrDialog>
 
+    <!-- a lost or changed phone: the app and backup codes stop working; the user sets them up again at the next sign-in -->
+    <ScrDialog v-if="resetFor" :title="tr('Reset two-factor')" :subtitle="resetFor.userName" icon="fa-mobile" @close="resetFor = null">
+      <p class="scr-confirm">{{ tr('Use this when the user lost or changed their phone and has no backup code left. Their authenticator app and backup codes stop working, they are signed out, and they set the app up again at their next sign-in. This is recorded in the sign-in log.') }}</p>
+      <template #actions>
+        <button type="button" class="fx-btn" @click="resetFor = null">{{ tr('Cancel') }}</button>
+        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="resetTwoFactor">
+          <span :class="['fa', busy ? 'fa-spinner fa-spin' : 'fa-refresh']" aria-hidden="true"></span>{{ tr('Reset two-factor') }}</button>
+      </template>
+    </ScrDialog>
+
     <!-- what happened to a new user's invitation -->
     <ScrDialog v-if="invited" :title="tr('User created')" :subtitle="invited.user.userName" icon="fa-check" @close="invited = null">
       <div v-if="invited.email.sent" class="fc-note"><span class="fa fa-envelope-o" aria-hidden="true"></span>
@@ -109,6 +124,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { formatDateTime } from '../utils/dates'
@@ -140,6 +156,24 @@ const blank = (): ScrCompanyUserRequest => ({ userName: '', email: null, fullNam
 const form = reactive<ScrCompanyUserRequest>(blank())
 
 const linkFor = ref<ScrCompanyUser | null>(null)
+const resetFor = ref<ScrCompanyUser | null>(null)
+/** The Federation may reset any account's two-factor; a company administrator its users' (not its own). */
+const federation = hasPermission('SCR.COMPANY.ADMIN')
+
+async function resetTwoFactor() {
+  if (!resetFor.value) return
+  busy.value = true
+  try {
+    await scrApi.resetTwoFactor(props.companyId, resetFor.value.userId)
+    showSuccess(tr('Two-factor reset: the user sets up the app again at the next sign-in.'))
+    resetFor.value = null
+    await load()
+  } catch (err) {
+    showError(errorText(err))
+  } finally {
+    busy.value = false
+  }
+}
 const outcome = ref<ScrEmailOutcome | null>(null)
 const invited = ref<{ user: ScrCompanyUser; email: ScrEmailOutcome } | null>(null)
 

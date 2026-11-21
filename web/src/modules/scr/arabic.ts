@@ -491,5 +491,17 @@ export const SCR_AR: Record<string, string> = {
   'average answer': 'متوسط الرد',
   'matches': 'تطابقات',
   'The sign-in was not found.': 'لم يُعثر على عملية الدخول.',
-  'Session active': 'جلسة نشطة'
+  'Session active': 'جلسة نشطة',
+  'Authenticator app set up': 'تطبيق المصادقة مُفعَّل',
+  'Code not entered': 'لم يُدخَل الرمز',
+  'Reset two-factor': 'إعادة ضبط التحقق الثنائي',
+  'Sets up the app at next sign-in': 'يضبط التطبيق عند الدخول القادم',
+  'The company administrator\'s two-factor is reset by the Federation.': 'يعيد الاتحاد ضبط التحقق الثنائي لمسؤول الشركة.',
+  'Two-factor reset': 'إعادة ضبط التحقق الثنائي',
+  'Two-factor reset: the user sets up the app again at the next sign-in.': 'تمت إعادة ضبط التحقق الثنائي: يضبط المستخدم التطبيق من جديد عند الدخول القادم.',
+  'Use this when the user lost or changed their phone and has no backup code left. Their authenticator app and backup codes stop working, they are signed out, and they set the app up again at their next sign-in. This is recorded in the sign-in log.': 'استخدم هذا عندما يفقد المستخدم هاتفه أو يغيّره ولا يتبقى لديه رمز احتياطي. يتوقف تطبيق المصادقة والرموز الاحتياطية عن العمل، ويُسجَّل خروجه، ويضبط التطبيق من جديد عند دخوله القادم. ويُسجَّل ذلك في سجل الدخول.',
+  'Wrong code': 'رمز خاطئ',
+  'app set up': 'ضبط التطبيق',
+  'with a backup code': 'برمز احتياطي',
+  'with the app code': 'برمز التطبيق'
 }

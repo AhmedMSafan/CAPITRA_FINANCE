@@ -44,3 +44,20 @@ a.cp-submit, a.cp-link { text-decoration: none; }
 .cp-username { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px dashed #9cc7cc; border-radius: 12px; background: #fff; }
 .cp-username span { font-size: 12.5px; color: #5d7a80; }
 .cp-username b { font-size: 16px; color: #0b2e35; overflow-wrap: anywhere; text-align: start; }
+
+/* the second step of signing in */
+.cp-card--wide { width: min(560px, 100%); }
+.cp-steps { margin: 0; padding-inline-start: 22px; display: flex; flex-direction: column; gap: 6px; color: #2c4a50; font-size: 14px; }
+.cp-qr { display: flex; align-items: center; gap: 18px; padding: 14px; border: 1px solid #d7e3e5; border-radius: 16px; background: #fff; min-height: 120px; }
+.cp-qr img { flex: none; border-radius: 10px; image-rendering: pixelated; }
+.cp-qr-key { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.cp-qr-key small { color: #5d7a80; }
+.cp-qr-key code { font: 600 15px/1.5 ui-monospace, Consolas, monospace; letter-spacing: .06em; color: #0b2e35; overflow-wrap: anywhere; }
+.cp-code { font: 700 26px/1 ui-monospace, Consolas, monospace !important; letter-spacing: .35em; text-align: center; }
+.cp-code--backup { font-size: 20px !important; letter-spacing: .12em; }
+.cp-hint { color: #5d7a80; font-size: 12.5px; }
+.cp-backup { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 14px; list-style: none; border: 1px dashed #9cc7cc; border-radius: 14px; background: #f6fbfb; }
+.cp-backup code { font: 600 16px/1.6 ui-monospace, Consolas, monospace; color: #0b2e35; }
+.cp-row { display: flex; gap: 18px; }
+button.cp-link { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; }
+@media (max-width: 520px) { .cp-qr { flex-direction: column; } }
