@@ -28,7 +28,7 @@ check "GL counter SCR" "$(sql "select count(*) from \"GL_TRAN_SET_SEQUENCES\" wh
 check "no rules (no chart to copy from)" "$(sql "select count(*) from \"ADM_PRODUCT_EVENT_RULES\" r join \"ADM_PRODUCTS\" p using (\"PRODUCT_ID\") where p.\"PRODUCT_CODE\"='SCR_SERVICES'")" 0
 r=$(call GET /api/adm/products "$ADMIN"); check "product in the catalog" "$(body "$r" | jq -r '[.[] | select(.productCode=="SCR_SERVICES")] | length')" 1
 r=$(call GET "/api/adm/products/$(sql "select \"PRODUCT_ID\" from \"ADM_PRODUCTS\" where \"PRODUCT_CODE\"='SCR_SERVICES'")/actions" "$ADMIN")
-check "its two actions, to link in Admin Setup" "$(body "$r" | jq -r '[.[].actionCode] | sort | join(",")')" "SCR_INVOICE_ISSUE,SCR_INVOICE_PAYMENT"
+check "its two actions, to link in Admin Setup" "$(body "$r" | jq -r '[.actions[].actionCode] | sort | join(",")')" "SCR_INVOICE_ISSUE,SCR_INVOICE_PAYMENT"
 
 echo "2. An invoice with an amount needs the GL rule: refused, nothing saved"
 r=$(call POST /api/scr/billing/plans "$ADMIN" '{"planCode":"GLPLAN","nameEn":"GL","nameAr":"خطة","userMonthlyFee":100,"inquiryFee":2.5,"isActive":true}'); PID=$(body "$r" | jq -r .pricePlanId)
@@ -43,7 +43,7 @@ echo "3. An invoice of 0.00 needs no GL; payments and cancelling"
 r=$(call PUT /api/scr/billing/plans/$PID "$ADMIN" '{"planCode":"GLPLAN","nameEn":"GL","nameAr":"خطة","userMonthlyFee":0,"inquiryFee":0,"isActive":true}')
 r=$(call POST /api/scr/billing/companies/$CID/invoices "$ADMIN" "{\"periodFrom\":\"$THIS_MONTH\"}"); IID=$(body "$r" | jq -r .invoiceId)
 check "issued" "$(status "$r")" 200
-check "no GL entry, dated today (period not ended)" "$(body "$r" | jq -r '(.glTranSetId|tostring) + " " + .accountingDate + " " + .paymentStatusCode + " " + (.balanceAmount|tostring)')" "null $TODAY UNPAID 0"
+check "no GL entry, dated today (period not ended)" "$(body "$r" | jq -r '(.glTranSetId|tostring) + " " + .accountingDate + " " + .paymentStatusCode + " " + (.balanceAmount|tostring)')" "null $TODAY UNPAID 0.00"
 r=$(call GET /api/scr/billing/bank-accounts "$ADMIN"); check "bank accounts list" "$(status "$r")" 200
 r=$(call POST /api/scr/billing/invoices/$IID/payments "$ADMIN" "{\"paymentDate\":\"$TODAY\",\"paymentAmount\":10,\"bankAccountId\":999}")
 check "nothing to pay, bad bank account" "$(status "$r") $(body "$r" | jq -r '[.errors | keys[]] | sort | join(",")')" "400 bankAccountId,paymentAmount"
