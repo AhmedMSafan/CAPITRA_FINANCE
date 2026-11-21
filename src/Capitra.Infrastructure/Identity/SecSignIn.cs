@@ -24,7 +24,10 @@ public class SecSignIn : AuditableEntity
 
     public DateTime AttemptedAt { get; set; }
 
-    /// <summary>SUCCESS, UNKNOWN_USER, INACTIVE, LOCKED, BAD_PASSWORD or COMPANY_BLOCKED.</summary>
+    /// <summary>
+    /// SUCCESS, UNKNOWN_USER, INACTIVE, LOCKED, BAD_PASSWORD, COMPANY_BLOCKED; with two-factor: AWAITING_CODE (password right, the code
+    /// never entered), BAD_CODE (a wrong authenticator or backup code); TWO_FACTOR_RESET (an administrator reset the user's two-factor).
+    /// </summary>
     public string ResultCode { get; set; } = "SUCCESS";
 
     /// <summary>The message the user was shown when refused.</summary>
@@ -36,6 +39,9 @@ public class SecSignIn : AuditableEntity
 
     /// <summary>When the session's token expires (successful sign-ins).</summary>
     public DateTime? ExpiresAt { get; set; }
+
+    /// <summary>The second step that completed the sign-in: AUTHENTICATOR, RECOVERY_CODE (a backup code) or SETUP (first set-up); empty without one.</summary>
+    public string? SecondStepCode { get; set; }
 
     /// <summary>When the user signed out; empty if the session simply expired.</summary>
     public DateTime? SignedOutAt { get; set; }

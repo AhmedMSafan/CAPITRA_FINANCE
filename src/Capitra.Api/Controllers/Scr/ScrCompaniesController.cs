@@ -17,7 +17,8 @@ namespace Capitra.Api.Controllers.Scr;
 /// INACTIVE. No password is ever shown or sent: every account is activated by an e-mailed link.
 /// </summary>
 public sealed record ScrCompanyUserDto(
-    string UserId, string UserName, string? Email, string? FullName, bool IsActive, string RoleCode, DateTime? LastLoginAt, string StatusCode);
+    string UserId, string UserName, string? Email, string? FullName, bool IsActive, string RoleCode, DateTime? LastLoginAt, string StatusCode,
+    bool TwoFactorEnabled = false);
 
 /// <summary>A new company user (always MEMBER_COMPANY_USER; the administrator is created with the company).</summary>
 public sealed record ScrCompanyUserRequest([Required] string UserName, string? Email, string? FullName, bool IsActive = true);
@@ -119,7 +120,7 @@ public sealed class ScrCompaniesController(
 [Route("api/scr/companies/{companyId:long}/users")]
 public sealed class ScrCompanyUsersController(
     UserManager<SecUser> users, IScrUserProfiles profiles, ScrCompanyService companies, IScrCompanyUserCounts seats,
-    AccountEmails emails, UserAccessCache access) : ControllerBase
+    AccountEmails emails, UserAccessCache access, Capitra.Infrastructure.Persistence.CapitraDbContext db, IClock clock) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> List(long companyId, CancellationToken ct)
@@ -236,6 +237,34 @@ public sealed class ScrCompanyUsersController(
         return Ok(new ScrLinkResult(link, kind));
     }
 
+    /// <summary>
+    /// Resets a user's two-factor (a lost or changed phone): the authenticator and backup codes stop working, the user's sessions end,
+    /// and the user sets it up again at the next sign-in. A company administrator resets its users; the administrator's own is reset
+    /// by the Federation. Recorded in the sign-in log.
+    /// </summary>
+    [HttpPost("{userId}/reset-two-factor")]
+    public async Task<ActionResult<ScrCompanyUserDto>> ResetTwoFactor(long companyId, string userId, CancellationToken ct)
+    {
+        if (!await AllowedAsync(companyId, ct))
+            return Forbid();
+        var user = await FindAsync(companyId, userId);
+        var federation = ScrClaims.Has(User, Permissions.Scr.CompanyAdmin);
+        if (!federation && (await users.IsInRoleAsync(user, CompanyUserRules.AdminRole) || user.UserName == User.Identity?.Name))
+            throw new BusinessRuleException("The company administrator's two-factor is reset by the Federation.");
+        await users.SetTwoFactorEnabledAsync(user, false);
+        await users.ResetAuthenticatorKeyAsync(user);
+        await users.UpdateSecurityStampAsync(user);
+        access.Clear();
+        db.Add(new SecSignIn
+        {
+            UserName = user.UserName ?? user.Id, UserId = user.Id, MemberCompanyId = user.MemberCompanyId, AttemptedAt = clock.UtcNow,
+            ResultCode = "TWO_FACTOR_RESET", FailureText = $"Reset by {User.Identity?.Name}",
+            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+        });
+        await db.SaveChangesAsync(ct);
+        return await CompanyUserRules.ToDtoAsync(users, user);
+    }
+
     private async Task EnsureSeatAsync(ScrCompanyDto company, CancellationToken ct)
     {
         var allowed = company.Licence?.MaxUsers ?? 0;
@@ -297,7 +326,7 @@ internal static class CompanyUserRules
     {
         var roles = await users.GetRolesAsync(u);
         var status = !u.IsActive ? "INACTIVE" : u.PasswordHash is null ? "PENDING_ACTIVATION" : "ACTIVE";
-        return new(u.Id, u.UserName ?? u.Id, u.Email, u.FullName, u.IsActive, roles.Count > 0 ? roles[0] : "-", u.LastLoginAt, status);
+        return new(u.Id, u.UserName ?? u.Id, u.Email, u.FullName, u.IsActive, roles.Count > 0 ? roles[0] : "-", u.LastLoginAt, status, u.TwoFactorEnabled);
     }
 
     public static void Ensure(IdentityResult result, string field)

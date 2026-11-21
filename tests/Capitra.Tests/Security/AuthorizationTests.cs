@@ -28,7 +28,8 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
         string[] expected =
         [
             nameof(SecAuthController.Login), nameof(SecAuthController.CheckLink),
-            nameof(SecAuthController.SetPasswordFromLink), nameof(SecAuthController.ForgotPassword)
+            nameof(SecAuthController.SetPasswordFromLink), nameof(SecAuthController.ForgotPassword),
+            nameof(SecAuthController.SecondStepSetup), nameof(SecAuthController.SecondStepEnable), nameof(SecAuthController.SecondStepVerify)
         ];
         Assert.Equal(expected.Select(m => $"{nameof(SecAuthController)}.{m}").Order(), anonymous.Order());
     }

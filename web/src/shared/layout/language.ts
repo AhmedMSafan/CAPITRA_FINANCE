@@ -38,7 +38,8 @@ export function switchLanguage(lang: Lang) {
 }
 
 /** The Arabic of an English text of the copied pages when the language is Arabic ("Open X" too, as finova-home-lang.js does). */
-export function tr(en: string): string {
+export function tr(en: string | null | undefined): string {
+  if (en == null) return ''
   if (language.value !== 'AR') return en
   const k = en.replace(/\s+/g, ' ').trim()
   if (Object.hasOwn(AR, k)) return AR[k]!

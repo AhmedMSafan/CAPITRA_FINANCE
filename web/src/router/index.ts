@@ -38,6 +38,13 @@ const router = createRouter({
       meta: { public: true, moduleName: 'CAPITRA', functionName: 'Reset password' }
     },
     {
+      // the second step of signing in: the authenticator app's code, or its first set-up
+      path: '/sign-in/code',
+      name: 'sign-in-code',
+      component: () => import('@/modules/sec/pages/SecondStepPage.vue'),
+      meta: { public: true, moduleName: 'CAPITRA', functionName: 'Sign-in code' }
+    },
+    {
       path: '/forgot-password',
       name: 'forgot-password',
       component: () => import('@/modules/sec/pages/ForgotPasswordPage.vue'),

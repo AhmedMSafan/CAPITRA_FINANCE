@@ -159,12 +159,14 @@ async function submitLogin(): Promise<void> {
 
   try {
     loading.value = true
-    await login(userName.value.trim(), password.value)
+    const result = await login(userName.value.trim(), password.value)
     storeRemembered()
     const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') && !route.query.redirect.startsWith('//')
       ? route.query.redirect
       : '/'
-    await router.push(redirect)
+    // the account signs in with an authenticator app: its code (or its set-up) comes next
+    if (result.secondStep) await router.push({ name: 'sign-in-code', query: redirect === '/' ? {} : { redirect } })
+    else await router.push(redirect)
   } catch (error) {
     errorMessage.value = error instanceof Error ? tr(error.message) : tr('Sign-in failed.')
   } finally {

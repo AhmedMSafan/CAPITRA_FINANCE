@@ -1,10 +1,54 @@
 import { http } from '@/shared/api/http'
 import { clearSession, saveSession, saveUser, type LoginResponse, type SessionUser } from '@/shared/auth/session'
 
-export async function login(userName: string, password: string): Promise<SessionUser> {
-  const response = await http.post<LoginResponse>('/api/sec/auth/login', { userName, password })
+/** The password was right but the account signs in with an authenticator app: CODE (enter it) or SETUP (set it up first). */
+export type SecondStep = { kind: 'CODE' | 'SETUP'; challenge: string; userName: string; fullName: string | null; expiresInSeconds: number }
+export type AuthenticatorSetup = { qrCode: string; sharedKey: string; otpAuthUri: string }
+export type SecondStepResult = { login: LoginResponse; recoveryCodes: string[] | null; recoveryCodesLeft: number }
+
+const SECOND_STEP_KEY = 'capitra.secondStep'
+
+/** Signs in; when the account needs its authenticator code, returns the second step instead (kept for the code page only). */
+export async function login(userName: string, password: string): Promise<{ user?: SessionUser; secondStep?: SecondStep }> {
+  const response = await http.post<LoginResponse | { secondStep: SecondStep }>('/api/sec/auth/login', { userName, password })
+  if ('secondStep' in response) {
+    sessionStorage.setItem(SECOND_STEP_KEY, JSON.stringify(response.secondStep))
+    return { secondStep: response.secondStep }
+  }
   saveSession(response)
-  return response.user
+  return { user: response.user }
+}
+
+/** The pending second step of this browser tab, if any. */
+export function pendingSecondStep(): SecondStep | null {
+  try {
+    const raw = sessionStorage.getItem(SECOND_STEP_KEY)
+    return raw ? (JSON.parse(raw) as SecondStep) : null
+  } catch {
+    return null
+  }
+}
+
+export function clearSecondStep(): void {
+  sessionStorage.removeItem(SECOND_STEP_KEY)
+}
+
+export const authenticatorSetup = (challenge: string) => http.post<AuthenticatorSetup>('/api/sec/auth/second-step/setup', { challenge })
+
+/** Confirms the authenticator with a first code: signs in and returns the backup codes (shown once). */
+export async function enableAuthenticator(challenge: string, code: string): Promise<SecondStepResult> {
+  const r = await http.post<SecondStepResult>('/api/sec/auth/second-step/enable', { challenge, code })
+  clearSecondStep()
+  saveSession(r.login)
+  return r
+}
+
+/** The authenticator's code, or one backup code: signs in. */
+export async function verifySecondStep(challenge: string, code: string | null, recoveryCode: string | null): Promise<SecondStepResult> {
+  const r = await http.post<SecondStepResult>('/api/sec/auth/second-step/verify', { challenge, code, recoveryCode })
+  clearSecondStep()
+  saveSession(r.login)
+  return r
 }
 
 /** Reloads the profile, roles and permissions from the server. */

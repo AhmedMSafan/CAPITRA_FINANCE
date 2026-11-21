@@ -27,7 +27,8 @@
           <option v-for="c in companies" :key="c.memberCompanyId" :value="c.memberCompanyId">{{ c.companyCode }} · {{ c.nameAr }}</option></select></label>
       <label class="fc-field"><span>{{ tr('Result') }}</span>
         <select v-model="q.resultCode" class="fx-select" @change="load"><option value="">{{ tr('All') }}</option><option value="SUCCESS">{{ tr('Signed in') }}</option><option value="REFUSED">{{ tr('Refused') }}</option>
-          <option v-for="r in REFUSALS" :key="r" :value="r">— {{ tr(LABELS[r] ?? r) }}</option></select></label>
+          <option v-for="r in REFUSALS" :key="r" :value="r">— {{ tr(LABELS[r] ?? r) }}</option>
+          <option value="AWAITING_CODE">{{ tr('Code not entered') }}</option><option value="TWO_FACTOR_RESET">{{ tr('Two-factor reset') }}</option></select></label>
       <label class="fc-field"><span>{{ tr('Search') }}</span><input v-model="q.search" class="fx-search" :placeholder="tr('User name or IP address')" @keyup.enter="load"></label>
     </div>
 
@@ -56,8 +57,9 @@
               <td><b dir="ltr">{{ s.userName }}</b><span v-if="s.fullName" class="fx-cell-sub">{{ s.fullName }}</span></td>
               <td><template v-if="s.companyCode"><b dir="ltr">{{ s.companyCode }}</b><span class="fx-cell-sub">{{ s.companyNameAr }}</span></template>
                 <span v-else class="fc-muted">{{ s.userName && s.resultCode !== 'UNKNOWN_USER' ? tr('Federation') : '-' }}</span></td>
-              <td><span class="fx-chip" :class="s.resultCode === 'SUCCESS' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(LABELS[s.resultCode] ?? s.resultCode) }}</span>
-                <span v-if="s.failureText && s.resultCode === 'COMPANY_BLOCKED'" class="fx-cell-sub">{{ tr(s.failureText) }}</span></td>
+              <td><span class="fx-chip" :class="resultChip(s.resultCode)">{{ tr(LABELS[s.resultCode] ?? s.resultCode) }}</span>
+                <span v-if="s.secondStepCode && s.resultCode === 'SUCCESS'" class="fx-cell-sub"><span class="fa fa-shield" aria-hidden="true"></span> {{ tr(LABELS[s.secondStepCode] ?? s.secondStepCode) }}</span>
+                <span v-else-if="s.failureText && (s.resultCode === 'COMPANY_BLOCKED' || s.resultCode === 'TWO_FACTOR_RESET')" class="fx-cell-sub" dir="auto">{{ tr(s.failureText) }}</span></td>
               <td><span dir="ltr">{{ s.ipAddress ?? '-' }}</span><span class="fx-cell-sub" :title="s.userAgent ?? ''">{{ s.device ?? '' }}</span></td>
               <td><template v-if="s.sessionStateCode"><span class="fx-chip" :class="SESSION_CHIP[s.sessionStateCode]">{{ tr(LABELS[s.sessionStateCode] ?? s.sessionStateCode) }}</span>
                 <span class="fx-cell-sub">{{ s.signedOutAt ? `${tr('Left')} ${formatTime(s.signedOutAt)}` : s.lastActivityAt ? `${tr('Last inquiry')} ${formatTime(s.lastActivityAt)}` : '' }}</span></template></td>
@@ -117,7 +119,9 @@ import ScrDialog from '../components/ScrDialog.vue'
 import { formatDateTime } from '../utils/dates'
 import { LABELS, errorText, scrApi, type ScrCompany, type ScrSessionInquiry, type ScrSignIn, type ScrSignInPage } from '../api/scr.api'
 
-const REFUSALS = ['BAD_PASSWORD', 'UNKNOWN_USER', 'INACTIVE', 'LOCKED', 'COMPANY_BLOCKED']
+const REFUSALS = ['BAD_PASSWORD', 'BAD_CODE', 'UNKNOWN_USER', 'INACTIVE', 'LOCKED', 'COMPANY_BLOCKED']
+/** Success, refusal, or the in-between ones: password right but no code (warn), two-factor reset by an administrator (plain). */
+const resultChip = (code: string) => code === 'SUCCESS' ? 'fx-chip--ok' : code === 'AWAITING_CODE' ? 'fx-chip--warn' : code === 'TWO_FACTOR_RESET' ? 'fx-chip--plain' : 'fx-chip--bad'
 const SESSION_CHIP: Record<string, string> = { OPEN: 'fx-chip--ok', SIGNED_OUT: 'fx-chip--plain', EXPIRED: 'fx-chip--plain' }
 const RESULT_CHIP: Record<string, string> = { NO_MATCH: 'fx-chip--ok', POSSIBLE_MATCH: 'fx-chip--warn', MATCH: 'fx-chip--bad', PREVIOUSLY_LISTED: 'fx-chip--warn' }
 

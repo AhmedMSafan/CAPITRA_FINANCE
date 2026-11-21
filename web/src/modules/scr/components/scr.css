@@ -263,3 +263,7 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-session-facts b{color:var(--fin-ink)}
 .fc .scr-session-facts small{color:var(--fin-muted)}
 @media (max-width:1000px){.fc .scr-log-filters,.fc .scr-band-stats--5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* two-factor status in the company users list */
+.fc .scr-2fa-on{color:var(--fin-teal-600)}
+.fc .scr-2fa-off{color:#b45309}
