@@ -25,7 +25,7 @@ var app = builder.Build();
 
 // the client's real address behind a web server or proxy on the same machine (IIS, nginx, the dev server); only the local
 // machine's forwarded address is trusted, so a remote client cannot fake it (the sign-in log records it)
-app.UseForwardedHeaders(new Microsoft.AspNetCore.HttpOverrides.ForwardedHeadersOptions
+app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
 });
