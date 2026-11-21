@@ -1,0 +1,64 @@
+# One-off: sign-in log end to end on a real database. develop makes the database with a company made and used the current way, then
+# this branch upgrades it and the script bills it.
+name: Sign-in log e2e
+on:
+  push:
+    branches: [test/sign-in-e2e]
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: pg
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 20
+    env:
+      ConnectionStrings__CapitraDb: Host=localhost;Database=capitra;Username=postgres;Password=pg
+      Jwt__Key: e2e-only-signing-key-0123456789-abcdefghij
+      Seed__AdminUserName: admin
+      Seed__AdminPassword: Admin#Seed2026
+      Database__ApplyMigrationsOnStartup: "true"
+      ASPNETCORE_URLS: http://localhost:5080
+      ASPNETCORE_ENVIRONMENT: Development
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: old
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: The database as develop makes it, with company OLDCO in use
+        run: |
+          A=http://localhost:5080
+          docker exec ${{ job.services.postgres.id }} psql -U postgres -c 'CREATE DATABASE capitra'
+          cd old && dotnet build -c Release -v q src/Capitra.Api
+          (dotnet run -c Release --no-build --no-launch-profile --project src/Capitra.Api > /tmp/old.log 2>&1 &)
+          for i in $(seq 1 60); do curl -s -o /dev/null $A/api/sec/auth/login -X POST -H 'Content-Type: application/json' -d '{}' && break; sleep 2; done
+          j() { curl -s "$@" -H 'Content-Type: application/json'; }
+          activate() { L=$(j -X POST $A/api/scr/companies/$CID/users/$1/copy-link -H "Authorization: Bearer $T" | jq -r .link)
+            B=$(python3 -c 'import sys,json,urllib.parse as u; q=u.parse_qs(u.urlsplit(sys.argv[1]).query); print(json.dumps({"userId":q["user"][0],"token":q["token"][0],"newPassword":sys.argv[2]}))' "$L" "$2")
+            j $A/api/sec/auth/link/set-password -d "$B" -o /dev/null -w "activate %{http_code}\n"; }
+          T=$(j $A/api/sec/auth/login -d '{"userName":"admin","password":"Admin#Seed2026"}' | jq -r .token)
+          R=$(j $A/api/scr/companies -H "Authorization: Bearer $T" -d '{"company":{"companyCode":"OLDCO","nameEn":"Old Co","nameAr":"شركة قديمة","statusCode":"ACTIVE"},"licence":{"maxUsers":2,"validFrom":"2020-01-01"},"admin":{"userName":"old.admin","email":"old.admin@e2e.test","fullName":"Old Admin"}}')
+          CID=$(jq -r .company.memberCompanyId <<<"$R"); activate "$(jq -r .admin.userId <<<"$R")" 'Old#Admin2026'
+          U=$(j $A/api/scr/companies/$CID/users -H "Authorization: Bearer $T" -d '{"userName":"old.u1","email":"old.u1@e2e.test","fullName":"Old One","isActive":true}' | jq -r .user.userId)
+          activate "$U" 'Old#User2026'
+          j $A/api/scr/companies/$CID/users -H "Authorization: Bearer $T" -d '{"userName":"old.pending","email":"old.pending@e2e.test","fullName":"Pending","isActive":true}' -o /dev/null
+          T1=$(j $A/api/sec/auth/login -d '{"userName":"old.u1","password":"Old#User2026"}' | jq -r .token)
+          for n in 1 2; do j $A/api/scr/inquiries -H "Authorization: Bearer $T1" -d "{\"subjectTypeCode\":\"PERSON\",\"subjectName\":\"Test Person $n\",\"identityTypeCode\":\"NATIONAL_ID\",\"identityNo\":\"2900101123456$n\",\"purposeCode\":\"ONBOARDING\"}" -o /dev/null -w "inquiry %{http_code}\n"; done
+          pkill -f Capitra.Api || true; sleep 3
+      - name: Upgrade with this branch and start it
+        run: |
+          dotnet build -c Release -v q src/Capitra.Api
+          (dotnet run -c Release --no-build --no-launch-profile --project src/Capitra.Api > /tmp/new.log 2>&1 &)
+          for i in $(seq 1 60); do curl -s -o /dev/null http://localhost:5080/api/sec/auth/login -X POST -H 'Content-Type: application/json' -d '{}' && break; sleep 2; done
+      - name: Sign-in log, step by step
+        env:
+          PG: ${{ job.services.postgres.id }}
+        run: tools/e2e/sign-in-log.sh
+      - if: failure()
+        run: tail -60 /tmp/old.log; tail -80 /tmp/new.log
