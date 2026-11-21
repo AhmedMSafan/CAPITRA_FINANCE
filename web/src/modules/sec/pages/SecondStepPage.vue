@@ -79,7 +79,7 @@
         <button type="submit" class="cp-submit" :disabled="busy || (useBackup ? !backup.trim() : digits.length !== 6)">
           <span :class="['fa', busy ? 'fa-spinner fa-spin' : 'fa-sign-in']" aria-hidden="true"></span>{{ tr('Sign in') }}
         </button>
-        <div class="cp-foot">
+        <div class="cp-foot cp-alt">
           <button type="button" class="cp-link" @click="toggleBackup">{{ tr(useBackup ? 'Use the code from the app' : 'No phone? Use a backup code') }}</button>
           <small class="cp-hint">{{ tr('Lost your phone and your backup codes? Ask your company administrator to reset your two-factor.') }}</small>
         </div>

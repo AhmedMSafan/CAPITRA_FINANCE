@@ -58,7 +58,7 @@
               <td><template v-if="s.companyCode"><b dir="ltr">{{ s.companyCode }}</b><span class="fx-cell-sub">{{ s.companyNameAr }}</span></template>
                 <span v-else class="fc-muted">{{ s.userName && s.resultCode !== 'UNKNOWN_USER' ? tr('Federation') : '-' }}</span></td>
               <td><span class="fx-chip" :class="resultChip(s.resultCode)">{{ tr(LABELS[s.resultCode] ?? s.resultCode) }}</span>
-                <span v-if="s.secondStepCode && s.resultCode === 'SUCCESS'" class="fx-cell-sub"><span class="fa fa-mobile" aria-hidden="true"></span> {{ tr(LABELS[s.secondStepCode] ?? s.secondStepCode) }}</span>
+                <span v-if="s.secondStepCode && s.resultCode === 'SUCCESS'" class="fx-cell-sub"><span class="fa fa-shield" aria-hidden="true"></span> {{ tr(LABELS[s.secondStepCode] ?? s.secondStepCode) }}</span>
                 <span v-else-if="s.failureText && (s.resultCode === 'COMPANY_BLOCKED' || s.resultCode === 'TWO_FACTOR_RESET')" class="fx-cell-sub" dir="auto">{{ tr(s.failureText) }}</span></td>
               <td><span dir="ltr">{{ s.ipAddress ?? '-' }}</span><span class="fx-cell-sub" :title="s.userAgent ?? ''">{{ s.device ?? '' }}</span></td>
               <td><template v-if="s.sessionStateCode"><span class="fx-chip" :class="SESSION_CHIP[s.sessionStateCode]">{{ tr(LABELS[s.sessionStateCode] ?? s.sessionStateCode) }}</span>

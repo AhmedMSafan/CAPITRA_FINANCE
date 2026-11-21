@@ -59,5 +59,6 @@ a.cp-submit, a.cp-link { text-decoration: none; }
 .cp-backup { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 14px; list-style: none; border: 1px dashed #9cc7cc; border-radius: 14px; background: #f6fbfb; }
 .cp-backup code { font: 600 16px/1.6 ui-monospace, Consolas, monospace; color: #0b2e35; }
 .cp-row { display: flex; gap: 18px; }
-button.cp-link { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; }
+.cp-alt { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+button.cp-link { border: 0; background: none; padding: 0; cursor: pointer; font-family: inherit; font-size: 13.5px; font-weight: 600; }
 @media (max-width: 520px) { .cp-qr { flex-direction: column; } }

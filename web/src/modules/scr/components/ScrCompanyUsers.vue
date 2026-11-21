@@ -34,7 +34,7 @@
             <td><span class="fx-chip fx-chip--plain" :class="u.roleCode === ADMIN ? 'fx-chip--brand' : ''">{{ tr(LABELS[u.roleCode] ?? u.roleCode) }}</span></td>
             <td><span class="fx-chip" :class="STATUS_CHIP[u.statusCode]">{{ tr(LABELS[u.statusCode] ?? u.statusCode) }}</span>
               <span v-if="u.statusCode === 'ACTIVE'" class="fx-cell-sub" :class="u.twoFactorEnabled ? 'scr-2fa-on' : 'scr-2fa-off'">
-                <span :class="['fa', u.twoFactorEnabled ? 'fa-mobile' : 'fa-clock-o']" aria-hidden="true"></span> {{ tr(u.twoFactorEnabled ? 'Authenticator app set up' : 'Sets up the app at next sign-in') }}</span></td>
+                <span :class="['fa', u.twoFactorEnabled ? 'fa-shield' : 'fa-clock-o']" aria-hidden="true"></span> {{ tr(u.twoFactorEnabled ? 'Authenticator app set up' : 'Sets up the app at next sign-in') }}</span></td>
             <td>{{ u.lastLoginAt ? formatDateTime(u.lastLoginAt) : '-' }}</td>
             <td class="fx-r">
               <div class="fc-row-actions">
