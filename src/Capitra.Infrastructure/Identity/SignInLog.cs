@@ -11,7 +11,7 @@ namespace Capitra.Infrastructure.Identity;
 public sealed record SignInDto(
     long SignInId, string? SessionId, string UserName, string? FullName, long? MemberCompanyId, string? CompanyCode, string? CompanyNameAr,
     DateTime AttemptedAt, string ResultCode, string? FailureText, string? IpAddress, string? Device, string? UserAgent, DateTime? ExpiresAt,
-    DateTime? SignedOutAt, string? SessionStateCode, int InquiryCount, DateTime? LastActivityAt);
+    DateTime? SignedOutAt, string? SessionStateCode, int InquiryCount, DateTime? LastActivityAt, string? SecondStepCode = null);
 
 /// <summary>An inquiry made in a session: when it was received, when its result was sent back, and the result.</summary>
 public sealed record SessionInquiryDto(
@@ -33,6 +33,9 @@ public sealed record SignInPage(SignInSummary Summary, IReadOnlyList<SignInDto> 
 /// </summary>
 public sealed class SignInLog(CapitraDbContext db, IClock clock)
 {
+    /// <summary>The results that refused a sign-in (AWAITING_CODE and TWO_FACTOR_RESET are neither successes nor refusals).</summary>
+    public static readonly string[] Refusals = ["UNKNOWN_USER", "INACTIVE", "LOCKED", "BAD_PASSWORD", "COMPANY_BLOCKED", "BAD_CODE"];
+
     public async Task<SignInPage> ListAsync(SignInQuery q, CancellationToken ct)
     {
         var today = ScrBilling.CairoDate(clock.UtcNow);
@@ -44,7 +47,7 @@ public sealed class SignInLog(CapitraDbContext db, IClock clock)
         else if (q.MemberCompanyId is { } c)
             rows = rows.Where(s => s.MemberCompanyId == c);
         if (!string.IsNullOrWhiteSpace(q.ResultCode))
-            rows = q.ResultCode == "REFUSED" ? rows.Where(s => s.ResultCode != "SUCCESS") : rows.Where(s => s.ResultCode == q.ResultCode);
+            rows = q.ResultCode == "REFUSED" ? rows.Where(s => Refusals.Contains(s.ResultCode)) : rows.Where(s => s.ResultCode == q.ResultCode);
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var like = $"%{q.Search.Trim()}%";
@@ -54,7 +57,7 @@ public sealed class SignInLog(CapitraDbContext db, IClock clock)
         var list = await rows.OrderByDescending(s => s.AttemptedAt).ThenByDescending(s => s.SignInId).Take(Math.Clamp(q.Take ?? 1000, 1, 5000)).ToListAsync(ct);
         var dtos = await ToDtosAsync(list, ct);
         var summary = new SignInSummary(
-            dtos.Count, dtos.Count(d => d.ResultCode == "SUCCESS"), dtos.Count(d => d.ResultCode != "SUCCESS"),
+            dtos.Count, dtos.Count(d => d.ResultCode == "SUCCESS"), dtos.Count(d => Refusals.Contains(d.ResultCode)),
             dtos.Where(d => d.ResultCode == "SUCCESS").Select(d => d.UserName.ToUpperInvariant()).Distinct().Count(), dtos.Sum(d => d.InquiryCount));
         return new SignInPage(summary, dtos);
     }
@@ -98,7 +101,7 @@ public sealed class SignInLog(CapitraDbContext db, IClock clock)
             return new SignInDto(
                 s.SignInId, s.SessionId, s.UserName, s.UserId is { } u ? names.GetValueOrDefault(u) : null, s.MemberCompanyId, company?.CompanyCode,
                 company?.NameAr, s.AttemptedAt, s.ResultCode, s.FailureText, s.IpAddress, Device(s.UserAgent), s.UserAgent, s.ExpiresAt, s.SignedOutAt,
-                state, act?.Count ?? 0, act?.Last);
+                state, act?.Count ?? 0, act?.Last, s.SecondStepCode);
         })];
     }
 

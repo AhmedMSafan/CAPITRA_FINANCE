@@ -130,6 +130,7 @@ public sealed class SecSignInConfiguration : IEntityTypeConfiguration<SecSignIn>
         builder.Property(x => x.FailureText).HasMaxLength(500);
         builder.Property(x => x.IpAddress).HasMaxLength(64);
         builder.Property(x => x.UserAgent).HasMaxLength(500);
+        builder.Property(x => x.SecondStepCode).HasMaxLength(20);
         builder.ConfigureAudit();
     }
 }

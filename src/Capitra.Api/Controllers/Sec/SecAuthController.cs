@@ -27,6 +27,22 @@ public sealed record CurrentUserDto(
 /// <summary>MustChangePassword: the token only allows changing the password (a temporary password was used).</summary>
 public sealed record LoginResponse(string Token, DateTime ExpiresAt, CurrentUserDto User, bool MustChangePassword = false);
 
+/// <summary>
+/// The password was right but a second step is needed (two-factor): CODE (enter the authenticator's code) or SETUP (set the
+/// authenticator up first). The challenge proves the password step for 5 minutes; it is not a token.
+/// </summary>
+public sealed record SecondStepChallenge(string Kind, string Challenge, string UserName, string? FullName, int ExpiresInSeconds);
+
+public sealed record SecondStepResponse(SecondStepChallenge SecondStep);
+
+public sealed record SecondStepRequest([Required] string Challenge, string? Code, string? RecoveryCode);
+
+/// <summary>What the user adds to the authenticator app: the QR code (PNG data URI), or the key typed by hand.</summary>
+public sealed record AuthenticatorSetupDto(string QrCode, string SharedKey, string OtpAuthUri);
+
+/// <summary>The completed sign-in, the backup codes when two-factor was just set up, and how many backup codes are left.</summary>
+public sealed record SecondStepResult(LoginResponse Login, IReadOnlyList<string>? RecoveryCodes, int RecoveryCodesLeft);
+
 public sealed record ChangePasswordRequest([Required] string CurrentPassword, [Required] string NewPassword);
 
 public sealed record AccountLinkRequest([Required] string UserId, [Required] string Token);
@@ -49,9 +65,14 @@ public sealed class SecAuthController(
     UserAccessCache access,
     CompanyAccess companyAccess,
     AccountEmails emails,
-    CapitraDbContext db) : ControllerBase
+    CapitraDbContext db,
+    Microsoft.AspNetCore.DataProtection.IDataProtectionProvider protection) : ControllerBase
 {
     private const string InvalidLogin = "Invalid user name or password.";
+
+    private const string WrongCode = "The code is not right. Check the time on your phone and try the newest code.";
+
+    private static readonly TimeSpan ChallengeLifetime = TimeSpan.FromMinutes(5);
 
     /// <summary>The only anonymous endpoint: exchanges user name and password for a JWT.</summary>
     [HttpPost("login")]
@@ -76,19 +97,173 @@ public sealed class SecAuthController(
         if (user.MemberCompanyId is { } companyId && await companyAccess.BlockReasonAsync(companyId, HttpContext.RequestAborted) is { } blocked)
             return await RefuseAsync(request.UserName, user, "COMPANY_BLOCKED", blocked);
 
+        // every member-company account signs in with a second step (authenticator app); others only if they turned it on
+        if (user.MemberCompanyId is not null || user.TwoFactorEnabled)
+        {
+            var pending = NewSignIn(request.UserName, user, "AWAITING_CODE", null);
+            db.Add(pending);
+            await db.SaveChangesAsync(HttpContext.RequestAborted);
+            var challenge = Challenger().Protect($"{user.Id}|{pending.SignInId}", ChallengeLifetime);
+            return Ok(new SecondStepResponse(new SecondStepChallenge(
+                user.TwoFactorEnabled ? "CODE" : "SETUP", challenge, user.UserName!, user.FullName, (int)ChallengeLifetime.TotalSeconds)));
+        }
+
+        return await CompleteSignInAsync(user, NewSignIn(request.UserName, user, "SUCCESS", null), null);
+    }
+
+    /// <summary>A successful sign-in opens a session: its id goes in the token, so what is done in it points back to this sign-in.</summary>
+    private async Task<LoginResponse> CompleteSignInAsync(SecUser user, SecSignIn signIn, string? secondStep)
+    {
         await users.ResetAccessFailedCountAsync(user);
         user.LastLoginAt = clock.UtcNow;
         await users.UpdateAsync(user);
-
-        // a successful sign-in opens a session: its id goes in the token, so what is done in it points back to this sign-in
         var sessionId = Guid.NewGuid().ToString("N");
         var response = await IssueAsync(user, sessionId);
-        var signIn = NewSignIn(request.UserName, user, "SUCCESS", null);
+        signIn.ResultCode = "SUCCESS";
         signIn.SessionId = sessionId;
         signIn.ExpiresAt = response.ExpiresAt;
-        db.Add(signIn);
+        signIn.SecondStepCode = secondStep;
+        if (signIn.SignInId == 0)
+            db.Add(signIn);
         await db.SaveChangesAsync(HttpContext.RequestAborted);
         return response;
+    }
+
+    private Microsoft.AspNetCore.DataProtection.ITimeLimitedDataProtector Challenger() =>
+        Microsoft.AspNetCore.DataProtection.DataProtectionAdvancedExtensions.ToTimeLimitedDataProtector(
+            protection.CreateProtector("Capitra.Sec.SignInChallenge"));
+
+    /// <summary>The user and the pending sign-in a challenge stands for, if it is genuine, unexpired and the sign-in still waits.</summary>
+    private async Task<(SecUser User, SecSignIn SignIn)?> ReadChallengeAsync(string challenge)
+    {
+        string payload;
+        try
+        {
+            payload = Challenger().Unprotect(challenge);
+        }
+        catch (System.Security.Cryptography.CryptographicException)
+        {
+            return null;
+        }
+
+        var parts = payload.Split('|');
+        if (parts.Length != 2 || !long.TryParse(parts[1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var signInId))
+            return null;
+        var user = await users.FindByIdAsync(parts[0]);
+        var signIn = await db.Set<SecSignIn>().FirstOrDefaultAsync(s => s.SignInId == signInId && s.UserId == parts[0], HttpContext.RequestAborted);
+        if (user is null || signIn is not { ResultCode: "AWAITING_CODE" })
+            return null;
+        return (user, signIn);
+    }
+
+    /// <summary>Checks the account again at the second step: still active, not locked, company still allowed.</summary>
+    private async Task<string?> StillAllowedAsync(SecUser user)
+    {
+        if (!user.IsActive)
+            return InvalidLogin;
+        if (await users.IsLockedOutAsync(user))
+            return "The account is locked. Try again later.";
+        return user.MemberCompanyId is { } companyId ? await companyAccess.BlockReasonAsync(companyId, HttpContext.RequestAborted) : null;
+    }
+
+    private UnauthorizedObjectResult ChallengeExpired() =>
+        Unauthorized(Problem("The sign-in took too long or was already used. Sign in again."));
+
+    /// <summary>First sign-in with two-factor: the key to add to the authenticator app, as a QR code and as text.</summary>
+    [AllowAnonymous]
+    [HttpPost("second-step/setup")]
+    public async Task<ActionResult<AuthenticatorSetupDto>> SecondStepSetup(SecondStepRequest request)
+    {
+        if (await ReadChallengeAsync(request.Challenge) is not { } found)
+            return ChallengeExpired();
+        var user = found.User;
+        if (user.TwoFactorEnabled)
+            return BadRequest(Problem("Two-factor is already set up for this account."));
+        if (await StillAllowedAsync(user) is { } refused)
+            return Unauthorized(Problem(refused));
+
+        // the same key until it is confirmed, so scanning twice is harmless
+        var key = await users.GetAuthenticatorKeyAsync(user);
+        if (string.IsNullOrEmpty(key))
+        {
+            await users.ResetAuthenticatorKeyAsync(user);
+            key = await users.GetAuthenticatorKeyAsync(user);
+        }
+
+        var uri = $"otpauth://totp/{Uri.EscapeDataString("CAPITRA:" + user.UserName)}?secret={key}&issuer=CAPITRA&digits=6&period=30";
+        using var data = new QRCoder.QRCodeGenerator().CreateQrCode(uri, QRCoder.QRCodeGenerator.ECCLevel.Q);
+        using var qr = new QRCoder.PngByteQRCode(data);
+        var png = qr.GetGraphic(6);
+        var spaced = string.Join(' ', Enumerable.Range(0, (key!.Length + 3) / 4).Select(i => key.Substring(i * 4, Math.Min(4, key.Length - (i * 4)))));
+        return new AuthenticatorSetupDto($"data:image/png;base64,{Convert.ToBase64String(png)}", spaced, uri);
+    }
+
+    /// <summary>Confirms the set-up with a first code from the app: two-factor is on, 10 backup codes are shown once, and the user is in.</summary>
+    [AllowAnonymous]
+    [HttpPost("second-step/enable")]
+    public async Task<ActionResult<SecondStepResult>> SecondStepEnable(SecondStepRequest request)
+    {
+        if (await ReadChallengeAsync(request.Challenge) is not { } found)
+            return ChallengeExpired();
+        var (user, signIn) = found;
+        if (user.TwoFactorEnabled)
+            return BadRequest(Problem("Two-factor is already set up for this account."));
+        if (await StillAllowedAsync(user) is { } refused)
+            return Unauthorized(Problem(refused));
+        var code = (request.Code ?? string.Empty).Replace(" ", string.Empty, StringComparison.Ordinal).Replace("-", string.Empty, StringComparison.Ordinal);
+        if (!await users.VerifyTwoFactorTokenAsync(user, users.Options.Tokens.AuthenticatorTokenProvider, code))
+        {
+            await users.AccessFailedAsync(user);
+            return BadRequest(Problem(WrongCode));
+        }
+
+        await users.SetTwoFactorEnabledAsync(user, true);
+        var recovery = (await users.GenerateNewTwoFactorRecoveryCodesAsync(user, 10))?.ToList() ?? [];
+        access.Clear();
+        var login = await CompleteSignInAsync(user, signIn, "SETUP");
+        return new SecondStepResult(login, recovery, recovery.Count);
+    }
+
+    /// <summary>The second step of a sign-in: the authenticator's 6-digit code, or one of the backup codes (each works once).</summary>
+    [AllowAnonymous]
+    [HttpPost("second-step/verify")]
+    public async Task<ActionResult<SecondStepResult>> SecondStepVerify(SecondStepRequest request)
+    {
+        if (await ReadChallengeAsync(request.Challenge) is not { } found)
+            return ChallengeExpired();
+        var (user, signIn) = found;
+        if (!user.TwoFactorEnabled)
+            return BadRequest(Problem("Set up two-factor first."));
+        if (await StillAllowedAsync(user) is { } refused)
+            return Unauthorized(Problem(refused));
+
+        bool ok;
+        string method;
+        if (!string.IsNullOrWhiteSpace(request.RecoveryCode))
+        {
+            method = "RECOVERY_CODE";
+            ok = (await users.RedeemTwoFactorRecoveryCodeAsync(user, request.RecoveryCode.Trim().Replace(" ", string.Empty, StringComparison.Ordinal))).Succeeded;
+        }
+        else
+        {
+            method = "AUTHENTICATOR";
+            var code = (request.Code ?? string.Empty).Replace(" ", string.Empty, StringComparison.Ordinal).Replace("-", string.Empty, StringComparison.Ordinal);
+            ok = await users.VerifyTwoFactorTokenAsync(user, users.Options.Tokens.AuthenticatorTokenProvider, code);
+        }
+
+        if (!ok)
+        {
+            // wrong codes count towards the lockout like wrong passwords, and each is in the sign-in log
+            await users.AccessFailedAsync(user);
+            var bad = NewSignIn(user.UserName!, user, "BAD_CODE", method == "RECOVERY_CODE" ? "A backup code that is not right or was already used." : WrongCode);
+            bad.SecondStepCode = method;
+            db.Add(bad);
+            await db.SaveChangesAsync(HttpContext.RequestAborted);
+            return BadRequest(Problem(method == "RECOVERY_CODE" ? "The backup code is not right or was already used." : WrongCode));
+        }
+
+        var login = await CompleteSignInAsync(user, signIn, method);
+        return new SecondStepResult(login, null, await users.CountRecoveryCodesAsync(user));
     }
 
     /// <summary>Ends the session: the token is dropped by the browser and the sign-in log shows when the user left.</summary>
