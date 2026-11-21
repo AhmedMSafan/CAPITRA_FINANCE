@@ -174,6 +174,8 @@ public sealed class ScrInquiryConfiguration : IEntityTypeConfiguration<ScrInquir
         builder.Property(x => x.ResultCode).HasMaxLength(30);
         builder.HasOne<ScrMemberCompany>().WithMany().HasForeignKey(x => x.MemberCompanyId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(x => x.Hits).WithOne().HasForeignKey(x => x.InquiryId).OnDelete(DeleteBehavior.Cascade);
+        builder.Property(x => x.SessionId).HasMaxLength(32);
+        builder.HasIndex(x => x.SessionId);
         builder.ConfigureAudit();
     }
 }

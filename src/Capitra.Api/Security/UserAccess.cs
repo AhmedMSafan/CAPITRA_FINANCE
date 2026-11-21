@@ -1,7 +1,10 @@
 using System.Security.Claims;
+using Capitra.Application.Abstractions;
 using Capitra.Application.Security;
 using Capitra.Infrastructure.Identity;
+using Capitra.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Capitra.Api.Security;
@@ -10,7 +13,9 @@ namespace Capitra.Api.Security;
 /// What a user may do right now, read from the database: active or not, the security stamp, the roles and the permissions of those
 /// roles. A null list keeps what the token carries (only the test host does that).
 /// </summary>
-public sealed record UserAccess(bool IsActive, string? SecurityStamp, IReadOnlyList<string>? Roles, IReadOnlyList<string>? Permissions)
+/// <param name="EndedSessions">The user's sessions signed out while their tokens are still valid: those tokens are refused.</param>
+public sealed record UserAccess(
+    bool IsActive, string? SecurityStamp, IReadOnlyList<string>? Roles, IReadOnlyList<string>? Permissions, IReadOnlySet<string>? EndedSessions = null)
 {
     /// <summary>Trusts the token as issued: for the in-memory test host, which has no database.</summary>
     public static readonly UserAccess TrustToken = new(true, null, null, null);
@@ -23,7 +28,8 @@ public interface IUserAccessSource
 }
 
 /// <summary>The user, roles and role permissions as ASP.NET Identity keeps them (the same reading as login).</summary>
-public sealed class IdentityUserAccessSource(UserManager<SecUser> users, RoleManager<SecRole> roles, CompanyAccess companies) : IUserAccessSource
+public sealed class IdentityUserAccessSource(
+    UserManager<SecUser> users, RoleManager<SecRole> roles, CompanyAccess companies, CapitraDbContext db, IClock clock) : IUserAccessSource
 {
     public async Task<UserAccess?> GetAsync(string userId, CancellationToken cancellationToken)
     {
@@ -45,7 +51,12 @@ public sealed class IdentityUserAccessSource(UserManager<SecUser> users, RoleMan
 
         // a member company's user works only while the company is active and its licence is in force
         var active = user.IsActive && (user.MemberCompanyId is not { } companyId || await companies.BlockReasonAsync(companyId, cancellationToken) is null);
-        return new UserAccess(active, user.SecurityStamp, roleNames, [.. permissions]);
+        // a signed-out session's token stops working at once, even before it expires
+        var now = clock.UtcNow;
+        var ended = await db.Set<SecSignIn>().AsNoTracking()
+            .Where(s => s.UserId == userId && s.SignedOutAt != null && s.SessionId != null && s.ExpiresAt > now)
+            .Select(s => s.SessionId!).ToListAsync(cancellationToken);
+        return new UserAccess(active, user.SecurityStamp, roleNames, [.. permissions], ended.ToHashSet(StringComparer.Ordinal));
     }
 }
 
@@ -89,6 +100,8 @@ public static class UserAccessCheck
             return "The user is deactivated.";
         if (access.SecurityStamp is not null && principal.FindFirstValue(SecurityStampClaim) is { } stamp && stamp != access.SecurityStamp)
             return "The user's password or sign-in was reset; sign in again.";
+        if (access.EndedSessions is { Count: > 0 } ended && principal.FindFirstValue(CapitraClaimTypes.SessionId) is { } sid && ended.Contains(sid))
+            return "This session was signed out; sign in again.";
 
         if (principal.Identity is not ClaimsIdentity identity)
             return null;

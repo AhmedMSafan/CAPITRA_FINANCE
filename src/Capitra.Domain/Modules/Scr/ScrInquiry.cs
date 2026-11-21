@@ -45,6 +45,15 @@ public class ScrInquiry : AuditableEntity
 
     public DateTime ScreenedAt { get; set; }
 
+    /// <summary>The sign-in session the inquiry was made in (SEC_SIGN_INS.SESSION_ID); empty for inquiries made before sessions were kept.</summary>
+    public string? SessionId { get; set; }
+
+    /// <summary>When the request reached the service.</summary>
+    public DateTime? ReceivedAt { get; set; }
+
+    /// <summary>When the result was ready to send back.</summary>
+    public DateTime? RespondedAt { get; set; }
+
     public List<ScrInquiryHit> Hits { get; set; } = [];
 }
 

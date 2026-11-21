@@ -112,7 +112,7 @@ async function submit() {
 }
 
 async function signOut() {
-  logout()
+  await logout()
   await router.replace({ name: 'login' })
 }
 </script>

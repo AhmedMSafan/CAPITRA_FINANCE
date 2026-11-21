@@ -104,7 +104,7 @@ function go(to: RouteLocationRaw) {
   void router.push(to)
 }
 async function logout() {
-  endSession()
+  await endSession()
   closeAll()
   await router.push({ name: 'login' })
 }

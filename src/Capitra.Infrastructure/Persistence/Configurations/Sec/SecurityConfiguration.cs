@@ -111,3 +111,25 @@ public sealed class SecUserPasskeyConfiguration : IEntityTypeConfiguration<SecUs
         builder.ConfigureAudit();
     }
 }
+
+public sealed class SecSignInConfiguration : IEntityTypeConfiguration<SecSignIn>
+{
+    public void Configure(EntityTypeBuilder<SecSignIn> builder)
+    {
+        builder.ToTable("SEC_SIGN_INS");
+        builder.HasKey(x => x.SignInId);
+        builder.HasIndex(x => x.SessionId).IsUnique().HasFilter("\"SESSION_ID\" IS NOT NULL");
+        builder.HasIndex(x => x.AttemptedAt);
+        builder.HasIndex(x => new { x.MemberCompanyId, x.AttemptedAt });
+        builder.HasIndex(x => x.UserId);
+        builder.Property(x => x.SignInId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.SessionId).HasMaxLength(32);
+        builder.Property(x => x.UserName).HasMaxLength(256);
+        builder.Property(x => x.UserId).HasMaxLength(450);
+        builder.Property(x => x.ResultCode).HasMaxLength(30);
+        builder.Property(x => x.FailureText).HasMaxLength(500);
+        builder.Property(x => x.IpAddress).HasMaxLength(64);
+        builder.Property(x => x.UserAgent).HasMaxLength(500);
+        builder.ConfigureAudit();
+    }
+}

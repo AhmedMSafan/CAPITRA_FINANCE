@@ -71,6 +71,8 @@ public static class DependencyInjection
         // Communication Center: the active mail server (else the "Email" settings) sends every e-mail
         services.AddScoped<MailSettings>();
         services.AddScoped<CmcMailServerService>();
+        // the sign-in log: every attempt, and per session the inquiries made in it
+        services.AddScoped<SignInLog>();
         services.AddScoped<IMailTransport, SmtpMailTransport>();
         services.AddScoped<AccountEmails>();
         services.AddScoped<CompanyAccess>();

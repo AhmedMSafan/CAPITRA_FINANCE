@@ -12,6 +12,9 @@ public interface ICurrentUser
 
     bool IsAuthenticated { get; }
 
+    /// <summary>The sign-in session the request belongs to (SEC_SIGN_INS), when the token carries one.</summary>
+    string? SessionId => null;
+
     /// <summary>The names of the user's roles, from the token.</summary>
     IReadOnlyCollection<string> Roles { get; }
 }

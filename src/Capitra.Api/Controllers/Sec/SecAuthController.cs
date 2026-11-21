@@ -5,9 +5,11 @@ using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Security;
 using Capitra.Infrastructure.Identity;
+using Capitra.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Api.Controllers.Sec;
 
@@ -46,7 +48,8 @@ public sealed class SecAuthController(
     ICurrentUser currentUser,
     UserAccessCache access,
     CompanyAccess companyAccess,
-    AccountEmails emails) : ControllerBase
+    AccountEmails emails,
+    CapitraDbContext db) : ControllerBase
 {
     private const string InvalidLogin = "Invalid user name or password.";
 
@@ -55,27 +58,72 @@ public sealed class SecAuthController(
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
     {
+        // every attempt is recorded (SEC_SIGN_INS), with why it was refused; the user is shown the same message as before
         var user = await users.FindByNameAsync(request.UserName);
         if (user is null || !user.IsActive)
-            return Unauthorized(Problem(InvalidLogin));
+            return await RefuseAsync(request.UserName, user, user is null ? "UNKNOWN_USER" : "INACTIVE", InvalidLogin);
 
         if (await users.IsLockedOutAsync(user))
-            return Unauthorized(Problem("The account is locked. Try again later."));
+            return await RefuseAsync(request.UserName, user, "LOCKED", "The account is locked. Try again later.");
 
         if (!await users.CheckPasswordAsync(user, request.Password))
         {
             await users.AccessFailedAsync(user);
-            return Unauthorized(Problem(InvalidLogin));
+            return await RefuseAsync(request.UserName, user, "BAD_PASSWORD", InvalidLogin);
         }
 
         // a member company's users: only while the company is active and its licence covers today
         if (user.MemberCompanyId is { } companyId && await companyAccess.BlockReasonAsync(companyId, HttpContext.RequestAborted) is { } blocked)
-            return Unauthorized(Problem(blocked));
+            return await RefuseAsync(request.UserName, user, "COMPANY_BLOCKED", blocked);
 
         await users.ResetAccessFailedCountAsync(user);
         user.LastLoginAt = clock.UtcNow;
         await users.UpdateAsync(user);
-        return await IssueAsync(user);
+
+        // a successful sign-in opens a session: its id goes in the token, so what is done in it points back to this sign-in
+        var sessionId = Guid.NewGuid().ToString("N");
+        var response = await IssueAsync(user, sessionId);
+        var signIn = NewSignIn(request.UserName, user, "SUCCESS", null);
+        signIn.SessionId = sessionId;
+        signIn.ExpiresAt = response.ExpiresAt;
+        db.Add(signIn);
+        await db.SaveChangesAsync(HttpContext.RequestAborted);
+        return response;
+    }
+
+    /// <summary>Ends the session: the token is dropped by the browser and the sign-in log shows when the user left.</summary>
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        if (currentUser.SessionId is { } sid
+            && await db.Set<SecSignIn>().FirstOrDefaultAsync(s => s.SessionId == sid, HttpContext.RequestAborted) is { SignedOutAt: null } session)
+        {
+            session.SignedOutAt = clock.UtcNow;
+            await db.SaveChangesAsync(HttpContext.RequestAborted);
+            // the token is refused from now on, not only when it expires
+            access.Clear();
+        }
+
+        return NoContent();
+    }
+
+    private async Task<ActionResult<LoginResponse>> RefuseAsync(string userName, SecUser? user, string resultCode, string message)
+    {
+        db.Add(NewSignIn(userName, user, resultCode, message));
+        await db.SaveChangesAsync(HttpContext.RequestAborted);
+        return Unauthorized(Problem(message));
+    }
+
+    private SecSignIn NewSignIn(string userName, SecUser? user, string resultCode, string? failure)
+    {
+        var agent = Request.Headers.UserAgent.ToString();
+        var name = (userName ?? string.Empty).Trim();
+        return new SecSignIn
+        {
+            UserName = name.Length > 256 ? name[..256] : name, UserId = user?.Id, MemberCompanyId = user?.MemberCompanyId, AttemptedAt = clock.UtcNow,
+            ResultCode = resultCode, FailureText = failure, IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = string.IsNullOrEmpty(agent) ? null : agent.Length > 500 ? agent[..500] : agent,
+        };
     }
 
     /// <summary>
@@ -180,10 +228,19 @@ public sealed class SecAuthController(
         await users.UpdateAsync(user);
         // the cached security stamp is now stale: drop it so the old session ends and the new one works at once
         access.Clear();
-        return await IssueAsync(user);
+        // the same session goes on with a new token
+        var sessionId = currentUser.SessionId ?? Guid.NewGuid().ToString("N");
+        var response = await IssueAsync(user, sessionId);
+        if (await db.Set<SecSignIn>().FirstOrDefaultAsync(s => s.SessionId == sessionId, HttpContext.RequestAborted) is { } session)
+        {
+            session.ExpiresAt = response.ExpiresAt;
+            await db.SaveChangesAsync(HttpContext.RequestAborted);
+        }
+
+        return response;
     }
 
-    private async Task<LoginResponse> IssueAsync(SecUser user)
+    private async Task<LoginResponse> IssueAsync(SecUser user, string sessionId)
     {
         var profile = await BuildProfileAsync(user);
         var claims = new List<Claim>
@@ -191,6 +248,7 @@ public sealed class SecAuthController(
             new(CapitraClaimTypes.UserId, user.Id),
             new(CapitraClaimTypes.UserName, user.UserName!),
             new(UserAccessCheck.SecurityStampClaim, user.SecurityStamp ?? string.Empty),
+            new(CapitraClaimTypes.SessionId, sessionId),
         };
         if (!string.IsNullOrWhiteSpace(user.FullName))
             claims.Add(new Claim(CapitraClaimTypes.FullName, user.FullName));
