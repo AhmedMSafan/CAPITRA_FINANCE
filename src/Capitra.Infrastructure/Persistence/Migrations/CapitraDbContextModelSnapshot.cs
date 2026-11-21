@@ -39102,6 +39102,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("PURPOSE_TEXT");
 
+                    b.Property<DateTime?>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("RECEIVED_AT");
+
                     b.Property<int>("RegistryVersionNo")
                         .HasColumnType("integer")
                         .HasColumnName("REGISTRY_VERSION_NO");
@@ -39111,6 +39115,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
                         .HasColumnName("REQUESTED_BY");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("RESPONDED_AT");
 
                     b.Property<string>("ResultCode")
                         .IsRequired()
@@ -39126,6 +39134,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("ScreenedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("SCREENED_AT");
+
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("SESSION_ID");
 
                     b.Property<string>("SubjectName")
                         .IsRequired()
@@ -39154,6 +39167,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasIndex("InquiryRef")
                         .IsUnique()
                         .HasDatabaseName("UQ_SCR_INQUIRIES_INQUIRY_REF");
+
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("IX_SCR_INQUIRIES_SESSION_ID");
 
                     b.HasIndex("MemberCompanyId", "ScreenedAt")
                         .HasDatabaseName("IX_SCR_INQUIRIES_MEMBER_COMPANY_ID_SCREENED_AT");
@@ -43359,6 +43375,112 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_SEC_ROLE_CLAIMS_ROLE_ID");
 
                     b.ToTable("SEC_ROLE_CLAIMS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Infrastructure.Identity.SecSignIn", b =>
+                {
+                    b.Property<long>("SignInId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("SIGN_IN_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SignInId"));
+
+                    b.Property<DateTime>("AttemptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ATTEMPTED_AT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("EXPIRES_AT");
+
+                    b.Property<string>("FailureText")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("FAILURE_TEXT");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("IP_ADDRESS");
+
+                    b.Property<long?>("MemberCompanyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("MEMBER_COMPANY_ID");
+
+                    b.Property<string>("ResultCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("RESULT_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("SESSION_ID");
+
+                    b.Property<DateTime?>("SignedOutAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SIGNED_OUT_AT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("USER_AGENT");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("USER_ID");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("USER_NAME");
+
+                    b.HasKey("SignInId")
+                        .HasName("PK_SEC_SIGN_INS");
+
+                    b.HasIndex("AttemptedAt")
+                        .HasDatabaseName("IX_SEC_SIGN_INS_ATTEMPTED_AT");
+
+                    b.HasIndex("SessionId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_SEC_SIGN_INS_SESSION_ID")
+                        .HasFilter("\"SESSION_ID\" IS NOT NULL");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_SEC_SIGN_INS_USER_ID");
+
+                    b.HasIndex("MemberCompanyId", "AttemptedAt")
+                        .HasDatabaseName("IX_SEC_SIGN_INS_MEMBER_COMPANY_ID_ATTEMPTED_AT");
+
+                    b.ToTable("SEC_SIGN_INS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Infrastructure.Identity.SecUser", b =>
