@@ -100,6 +100,8 @@ public sealed class SecAuthController(
         {
             session.SignedOutAt = clock.UtcNow;
             await db.SaveChangesAsync(HttpContext.RequestAborted);
+            // the token is refused from now on, not only when it expires
+            access.Clear();
         }
 
         return NoContent();

@@ -35,6 +35,16 @@ public sealed class UserAccessTests : IClassFixture<CapitraApiFactory>
     }
 
     [Fact]
+    public void A_signed_out_session_is_refused_and_the_users_other_sessions_go_on()
+    {
+        static ClaimsPrincipal In(string sid) =>
+            new(new ClaimsIdentity([new Claim(CapitraClaimTypes.UserId, "u1"), new Claim(UserAccessCheck.SecurityStampClaim, "s1"), new Claim(CapitraClaimTypes.SessionId, sid)], "Bearer"));
+        var access = new UserAccess(true, "s1", [], [], new HashSet<string>(["ended"]));
+        Assert.NotNull(UserAccessCheck.Apply(In("ended"), access));
+        Assert.Null(UserAccessCheck.Apply(In("other"), access));
+    }
+
+    [Fact]
     public void The_current_roles_and_permissions_replace_the_tokens()
     {
         var p = Principal("s1", "OLD.PERMISSION");
