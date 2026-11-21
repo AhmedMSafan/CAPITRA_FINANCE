@@ -22,7 +22,7 @@ public sealed class ScrLicenceExpiryEodJob(CapitraDbContext db, SystemEmails ema
     public string JobCode => "SCR_LICENCE_EXPIRY";
     public string ModuleCode => "SCR";
     public string NameEn => "Screening: licence expiry notices";
-    public string NameAr => "الاستعلام: تنبيهات انتهاء الترخيص";
+    public string NameAr => "الفحص: تنبيهات انتهاء الترخيص";
     public string DescriptionEn => "E-mails each member company's administrator and contact e-mail the set number of days before its licence ends, and on its last "
         + "day. From the day after, the company's users can no longer sign in or make inquiries until the licence is renewed.";
     public string DescriptionAr => "يرسل بريدًا إلى مسؤول كل شركة عضو وبريد التواصل الخاص بها قبل انتهاء الترخيص بعدد الأيام المحدد، وفي آخر يوم له. "
@@ -92,7 +92,7 @@ public sealed class ScrHousekeepingEodJob(CapitraDbContext db, IClock clock, IOp
     public string JobCode => "SCR_HOUSEKEEPING";
     public string ModuleCode => "SCR";
     public string NameEn => "Screening: sign-in housekeeping";
-    public string NameAr => "الاستعلام: تنظيم سجل الدخول";
+    public string NameAr => "الفحص: تنظيم سجل الدخول";
     public string DescriptionEn => "Sign-ins left waiting for the authenticator code are closed as 'Code not entered'; company accounts whose activation link "
         + "expired before they chose a password are counted, so the link can be sent again from Company users.";
     public string DescriptionAr => "تُغلق محاولات الدخول التي بقيت بانتظار رمز التطبيق بنتيجة 'لم يُدخل الرمز'، وتُحصى حسابات الشركات التي انتهت صلاحية رابط تفعيلها "

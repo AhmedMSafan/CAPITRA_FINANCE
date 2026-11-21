@@ -1,5 +1,5 @@
 <template>
-  <!-- Retail Lending > End of Day: one run per business day, in order. It applies customer credit to what fell due, accrues the day's
+  <!-- Retail Lending > End of Day: Lending's part of the night batch (job LND_DAILY of the End of Day application, which runs it), one run per business day, in order. It applies customer credit to what fell due, accrues the day's
        interest, charges late fees after the grace days (from day 1), moves late loans into non-accrual and suspense, releases it when
        they cure, and proposes loans for write-off. GL posts each product's rule LND_EOD. -->
   <div class="fx fc">
@@ -14,9 +14,7 @@
       </div>
       <div class="fx-actions">
         <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('Finances') }}</RouterLink>
-        <button v-if="page?.canRun" type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="confirming = true">
-          <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-play'" aria-hidden="true"></span>{{ tr('Run') }} {{ formatDate(page.nextDate!) }}
-        </button>
+        <RouterLink :to="{ name: 'eod-home' }" class="fx-btn fx-btn--teal"><span class="fa fa-moon-o" aria-hidden="true"></span>{{ tr('Run in End of Day') }}</RouterLink>
       </div>
     </div>
 
@@ -88,19 +86,6 @@
       </div>
     </section>
 
-    <Crm360Dialog v-model:visible="confirming" :title="tr('Run end of day')" icon="fa-play" :busy="busy" :width="560">
-      <p>{{ tr('End of day will run for') }} <b>{{ page?.nextDate ? formatDate(page.nextDate) : '' }}</b>.</p>
-      <ol class="ln-steps">
-        <li>{{ tr('Customer credit balances pay what fell due, as credit balance receipts.') }}</li>
-        <li>{{ tr('Interest accrues, late fees are charged after the grace days, and late finances move into or out of non-accrual.') }}</li>
-        <li>{{ tr('GL posts each product\'s rule LND_EOD.') }}</li>
-      </ol>
-      <p class="c3-muted">{{ tr('Days run in order and a day runs once. A day that failed can be run again after the cause is fixed.') }}</p>
-      <template #footer>
-        <button type="button" class="fx-btn" :disabled="busy" @click="confirming = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Cancel') }}</button>
-        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="run"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-play'" aria-hidden="true"></span>{{ tr('Run') }}</button>
-      </template>
-    </Crm360Dialog>
   </div>
 </template>
 
@@ -110,10 +95,9 @@ import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { showError, showSuccess } from '@/shared/feedback/feedback'
+import { showError } from '@/shared/feedback/feedback'
 import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
-import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
 import { eodApi, type EodPage } from '../api/eod.api'
 
 const STATUS: Record<string, string> = { RUNNING: 'Running', DONE: 'Done', FAILED: 'Failed' }
@@ -124,27 +108,10 @@ const money = (n: number) => egp.format(n)
 const router = useRouter()
 const page = ref<EodPage | null>(null)
 const loading = ref(false)
-const busy = ref(false)
-const confirming = ref(false)
 const lists = computed(() => [
   { title: 'Finances in non-accrual', help: 'Late at or beyond the non-accrual days: their interest and late fees go to suspense until they are no longer late.', rows: page.value?.nonAccrual ?? [] },
   { title: 'Proposed for write-off', help: 'Late at or beyond the write-off days: they wait for a write-off decision.', rows: page.value?.writeOffProposed ?? [] }
 ])
-
-async function run() {
-  busy.value = true
-  const day = page.value?.nextDate ?? null
-  try {
-    page.value = await eodApi.run(day)
-    confirming.value = false
-    showSuccess(`${tr('End of day done:')} ${day ? formatDate(day) : ''}`)
-  } catch (err) {
-    showError(err instanceof Error ? err.message : String(err))
-    await load()
-  } finally {
-    busy.value = false
-  }
-}
 
 async function load() {
   loading.value = true

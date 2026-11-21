@@ -103,7 +103,7 @@ const apps: App[] = [
     feats: ['Lending Workspace', 'Finances', 'End of Day', 'Lending Parameters', 'Finance Calculator'] },
   { tier: 'lending', name: 'Finances', short: 'Finances', descr: 'Microfinance and consumer finance: schedule, payout, payments, paying early, write-off and recovery.',
     to: '/lnd/loans', color: '#7A3E9D', tint: '#F4ECF9', icon: '<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/>', feats: [] },
-  { tier: 'lending', name: 'End of Day', short: 'End of Day', descr: 'Each business day: interest accrual, late fees, non-accrual and suspense, and finances proposed for write-off.',
+  { tier: 'lending', name: 'Lending end of day', short: 'End of Day', descr: 'Lending\'s part of the night batch: its days, the finances in non-accrual and those proposed for write-off.',
     to: '/lnd/eod', color: '#00636D', tint: '#E6F3F4', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', feats: [] },
   { tier: 'lending', name: 'Lending Parameters', short: 'Parameters', descr: 'The legal limits and policy values of each licence, each with an effective date and a second user\'s approval.',
     to: '/lnd/parameters', color: '#E87722', tint: '#FFF1E6', icon: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/>', feats: [] },
@@ -145,6 +145,10 @@ const apps: App[] = [
     icon: '<rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><path d="M6.5 9v3a3 3 0 0 0 3 3h4.5"/><circle cx="18" cy="6" r="3"/>', feats: [], inbox: true },
   { tier: 2, name: 'Cheques Wallet', short: 'Wallet', descr: 'Client cheque batches from upload to custody, deposit and collection.', to: '/cheque-wallet', color: '#B4570E', tint: '#FFF1E6',
     icon: '<path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7H5"/><path d="M16 14h.01"/>', feats: [] },
+  // End of Day: the night batch of every application, run by an administrator for today or up to a day
+  { tier: 2, name: 'End of Day', short: 'End of Day', descr: 'The night batch of every application: daily accrual, period-end invoices, licence notices and more, day by day.',
+    to: '/eod', color: '#1E3A5F', tint: '#E8EEF6',
+    icon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>', feats: [] },
   // Communication Center: the mail servers every e-mail of CAPITRA goes through, and the log of every e-mail sent
   { tier: 2, name: 'Communication Center', short: 'Communication', descr: 'The mail servers every e-mail goes through, test e-mails, and the log of every e-mail sent.',
     to: '/communication', color: '#0E7490', tint: '#E0F2F7',

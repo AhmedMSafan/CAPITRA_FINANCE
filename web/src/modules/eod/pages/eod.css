@@ -1,0 +1,54 @@
+/* End of Day: the day list with each job's result, the run dialog and the jobs page */
+.fc .eod-band-text{font-size:20px !important;white-space:nowrap}
+.fc .eod-pulse-bad{background:#ff8a65}
+.fc .eod-alert{display:flex;gap:12px;align-items:flex-start;margin-block-end:16px;border:1px solid #f5c2b8;background:var(--fin-bad-50,#fef3f2);color:var(--fin-bad,#b42318)}
+.fc .eod-alert > .fa{font-size:18px;margin-top:2px}
+.fc .eod-alert ul{margin:8px 0 0;padding-inline-start:18px;display:flex;flex-direction:column;gap:4px;color:var(--fin-ink)}
+.fc .eod-day{cursor:pointer}
+.fc .eod-toggle-col{width:28px;color:var(--fin-muted)}
+.fc .eod-dots{display:inline-flex;gap:4px;vertical-align:middle}
+.fc .eod-dot{width:10px;height:10px;border-radius:50%;background:#cfd8da}
+.fc .eod-dot--done{background:#16a34a}
+.fc .eod-dot--failed{background:#dc2626}
+.fc .eod-dot--running{background:#f59e0b}
+.fc .eod-dot--skipped{background:#cbd5e1}
+.fc .eod-jobs-row > td{background:#f7fafa;padding:10px 16px 14px}
+.fc .eod-jobs{width:100%;border-collapse:separate;border-spacing:0 6px}
+.fc .eod-jobs td{background:#fff;border-block:1px solid var(--fin-line);padding:10px 12px;vertical-align:top}
+.fc .eod-jobs td:first-child{border-inline-start:1px solid var(--fin-line);border-start-start-radius:10px;border-end-start-radius:10px}
+.fc .eod-jobs td:last-child{border-inline-end:1px solid var(--fin-line);border-start-end-radius:10px;border-end-end-radius:10px}
+.fc .eod-job-name{width:280px}
+.fc .eod-job-name b,.fc .eod-job-name small{display:block}
+.fc .eod-job-name small{color:var(--fin-muted);margin-top:2px}
+.fc .eod-job-text{font-size:var(--fs-sm);color:var(--fin-ink);text-align:start}
+.fc .eod-job-text span{display:block}
+.fc .eod-job-time{width:150px;white-space:nowrap;color:var(--fin-muted);font-size:var(--fs-sm)}
+.fc .eod-error{color:var(--fin-bad,#b42318);margin-top:4px}
+.fc .eod-attempts{display:block;color:var(--fin-muted);margin-top:4px}
+.fc .eod-detail-link{display:inline-flex;gap:6px;align-items:center;margin-top:6px;color:var(--fin-teal-600);font-weight:600;font-size:var(--fs-sm)}
+.fc .eod-run{display:flex;flex-direction:column;gap:16px}
+.fc .eod-choice{display:flex;flex-direction:column;gap:10px}
+.fc .eod-radio{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--fin-line);border-radius:12px;cursor:pointer}
+.fc .eod-radio:has(input:checked){border-color:var(--fin-teal-600);background:var(--fin-teal-50)}
+.fc .eod-radio input{margin-top:3px}
+.fc .eod-radio b,.fc .eod-radio small{display:block}
+.fc .eod-radio small{color:var(--fin-muted);margin-top:2px}
+.fc .eod-date{max-width:240px;margin-inline-start:30px}
+.fc .eod-days-count{margin:0;padding:10px 14px;border-radius:10px;background:var(--fin-teal-50);color:var(--fin-ink);font-weight:600}
+.fc .eod-run h3{margin:0;font-size:14px;color:var(--fin-ink)}
+.fc .eod-run-jobs{margin:0;padding-inline-start:22px;display:flex;flex-direction:column;gap:8px}
+.fc .eod-run-jobs li{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.fc .eod-off{color:var(--fin-muted)}
+.fc .eod-job-cards{display:flex;flex-direction:column;gap:16px}
+.fc .eod-job-card{padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.fc .eod-job-card--off{opacity:.8}
+.fc .eod-job-head{display:flex;gap:14px;align-items:flex-start}
+.fc .eod-job-no{flex:0 0 42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:800;background:var(--fin-teal-50);color:var(--fin-teal-600)}
+.fc .eod-job-head h2{margin:0;font-size:16px;color:var(--fin-ink)}
+.fc .eod-job-head p{margin:4px 0 0;color:var(--fin-muted);font-size:var(--fs-sm);line-height:1.5}
+.fc .eod-job-head .fx-chip{margin-inline-start:auto;flex:none}
+.fc .eod-job-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.fc .eod-job-fields small{color:var(--fin-muted);font-size:var(--fs-xs);line-height:1.4}
+.fc .eod-switch{display:flex;gap:10px;align-items:center;font-weight:600;color:var(--fin-ink)}
+.fc .eod-job-actions{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--fin-line);padding-top:12px}
+@media (max-width:700px){.fc .eod-job-name{width:auto}}

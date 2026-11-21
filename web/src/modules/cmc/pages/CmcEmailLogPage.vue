@@ -23,7 +23,7 @@
           <option v-for="s in ['SENT', 'FAILED', 'NOT_CONFIGURED', 'NO_ADDRESS', 'LINK_COPIED']" :key="s" :value="s">{{ tr(LABELS[s] ?? s) }}</option></select></label>
       <label class="fc-field"><span>{{ tr('Kind') }}</span>
         <select v-model="q.kindCode" class="fx-select" @change="load"><option value="">{{ tr('All') }}</option>
-          <option v-for="k in ['ACTIVATION', 'PASSWORD_RESET', 'TEST']" :key="k" :value="k">{{ tr(LABELS[k] ?? k) }}</option></select></label>
+          <option v-for="k in ['ACTIVATION', 'PASSWORD_RESET', 'TEST', 'LICENCE_NOTICE']" :key="k" :value="k">{{ tr(LABELS[k] ?? k) }}</option></select></label>
       <label class="fc-field"><span>{{ tr('From') }}</span><input v-model="q.fromDate" class="fx-search" type="date" @change="load"></label>
       <label class="fc-field"><span>{{ tr('To') }}</span><input v-model="q.toDate" class="fx-search" type="date" @change="load"></label>
     </div>

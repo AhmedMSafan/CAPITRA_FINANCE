@@ -25,8 +25,8 @@ public class SecSignIn : AuditableEntity
     public DateTime AttemptedAt { get; set; }
 
     /// <summary>
-    /// SUCCESS, UNKNOWN_USER, INACTIVE, LOCKED, BAD_PASSWORD, COMPANY_BLOCKED; with two-factor: AWAITING_CODE (password right, the code
-    /// never entered), BAD_CODE (a wrong authenticator or backup code); TWO_FACTOR_RESET (an administrator reset the user's two-factor).
+    /// SUCCESS, UNKNOWN_USER, INACTIVE, LOCKED, BAD_PASSWORD, COMPANY_BLOCKED; with two-factor: AWAITING_CODE (password right, waiting for the code),
+    /// CODE_TIMEOUT (the code never entered: closed by the End of Day), BAD_CODE (a wrong authenticator or backup code); TWO_FACTOR_RESET (an administrator reset the user's two-factor).
     /// </summary>
     public string ResultCode { get; set; } = "SUCCESS";
 

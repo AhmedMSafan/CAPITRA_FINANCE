@@ -17,7 +17,7 @@ public sealed class ScrInvoicesEodJob(ICapitraDbContext db, ScrBillingService bi
     public string JobCode => "SCR_INVOICES";
     public string ModuleCode => "SCR";
     public string NameEn => "Screening: period-end invoices";
-    public string NameAr => "الاستعلام: فواتير نهاية الفترة";
+    public string NameAr => "الفحص: فواتير نهاية الفترة";
     public string DescriptionEn => "On the last day of each member company's invoice period (monthly, quarterly or yearly), issues the period's invoice from its "
         + "price plan: user fees and inquiry fees. Companies without a price plan, and periods already invoiced, are left alone.";
     public string DescriptionAr => "في آخر يوم من فترة فوترة كل شركة عضو (شهرية أو ربع سنوية أو سنوية) تُصدر فاتورة الفترة حسب خطة الأسعار: رسوم المستخدمين "

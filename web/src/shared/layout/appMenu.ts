@@ -56,7 +56,7 @@ export const appMenu: MenuGroup[] = [
     links: [
       { label: 'Lending Workspace', to: { name: 'lnd-workspace' } },
       { label: 'Finances', to: { name: 'lnd-loans' } },
-      { label: 'End of Day', to: { name: 'lnd-eod' } },
+      { label: 'Lending end of day', to: { name: 'lnd-eod' } },
       { label: 'Lending Parameters', to: { name: 'lnd-parameters' } },
       { label: 'Finance Calculator', to: { name: 'tls-loan-calculator' } }
     ]
@@ -75,6 +75,14 @@ export const appMenu: MenuGroup[] = [
       { label: 'Billing', to: { name: 'scr-billing' } },
       { label: 'Price plans', to: { name: 'scr-price-plans' } },
       { label: 'Screening Portal', to: { name: 'scr-portal' } }
+    ]
+  },
+  {
+    title: 'End of Day',
+    icon: 'pi pi-moon',
+    links: [
+      { label: 'Run end of day', to: { name: 'eod-home' } },
+      { label: 'End of Day jobs', to: { name: 'eod-jobs' } }
     ]
   },
   {
