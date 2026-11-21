@@ -43,7 +43,7 @@
                   <span class="fa fa-envelope-o" aria-hidden="true"></span>{{ tr(u.statusCode === 'PENDING_ACTIVATION' ? 'Resend invitation' : 'Send password reset') }}
                 </button>
                 <button v-if="u.twoFactorEnabled && (federation || u.roleCode !== ADMIN)" type="button" class="fx-btn fx-btn--sm" @click="resetFor = u">
-                  <span class="fa fa-mobile" aria-hidden="true"></span>{{ tr('Reset two-factor') }}
+                  <span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Reset two-factor') }}
                 </button>
               </div>
             </td>
