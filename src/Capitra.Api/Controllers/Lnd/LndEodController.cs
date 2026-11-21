@@ -5,24 +5,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Capitra.Api.Controllers.Lnd;
 
-/// <summary>Retail Lending end of day. Reading needs LND.LOAN.VIEW; running a day LND.EOD.RUN.</summary>
+/// <summary>
+/// Retail Lending's end of day detail: its runs, the finances in non-accrual and those proposed for write-off. It runs as the job
+/// LND_DAILY of the End of Day application (api/eod), not from here.
+/// </summary>
 [ApiController]
 [Route("api/lnd/eod")]
 public sealed class LndEodController(LndEodService eod) : ControllerBase
 {
     [HttpGet]
     [HasPermission(Permissions.Lnd.LoanView)]
-    public Task<LndEodPageDto> Get(CancellationToken cancellationToken) => Page(cancellationToken);
-
-    [HttpPost("run")]
-    [HasPermission(Permissions.Lnd.EodRun)]
-    public async Task<LndEodPageDto> Run(LndEodRequestDto dto, CancellationToken cancellationToken)
-    {
-        await eod.RunAsync(dto, cancellationToken);
-        return await Page(cancellationToken);
-    }
-
-    private Task<LndEodPageDto> Page(CancellationToken cancellationToken) =>
-        eod.GetAsync(User.Claims.Any(c => c.Type == Permissions.ClaimType
-            && (c.Value == Permissions.All || string.Equals(c.Value, Permissions.Lnd.EodRun, StringComparison.OrdinalIgnoreCase))), cancellationToken);
+    public Task<LndEodPageDto> Get(CancellationToken cancellationToken) => eod.GetAsync(false, cancellationToken);
 }

@@ -12,6 +12,7 @@ import { lndRoutes } from '@/modules/lnd/routes'
 import { tlsRoutes } from '@/modules/tls/routes'
 import { scrRoutes } from '@/modules/scr/routes'
 import { cmcRoutes } from '@/modules/cmc/routes'
+import { eodRoutes } from '@/modules/eod/routes'
 
 // Every page lives under AppLayout and needs a signed-in user, except the login page.
 // Module routes are added here as each module is built (src/modules/{module}).
@@ -106,6 +107,7 @@ const router = createRouter({
         // Screening: the Federation Final List and the member companies' Screening Portal (merged from FINOVA).
         ...scrRoutes,
         ...cmcRoutes,
+        ...eodRoutes,
         // General ledger (APEX App 120).
         {
           path: 'gl',

@@ -19,6 +19,5 @@ export type EodPage = {
 const API = '/api/lnd/eod'
 
 export const eodApi = {
-  get: () => http.get<EodPage>(API),
-  run: (runDate: string | null) => http.post<EodPage>(`${API}/run`, { runDate })
+  get: () => http.get<EodPage>(API)
 }

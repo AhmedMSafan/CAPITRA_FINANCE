@@ -5767,6 +5767,305 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("CRM_LKP_STATUS_CODES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Eod.EodDay", b =>
+                {
+                    b.Property<long>("DayId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DAY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DayId"));
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date")
+                        .HasColumnName("BUSINESS_DATE");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("FINISHED_AT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("RunBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("RUN_BY");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("STARTED_AT");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DayId")
+                        .HasName("PK_EOD_DAYS");
+
+                    b.HasIndex("BusinessDate")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_EOD_DAYS_BUSINESS_DATE");
+
+                    b.ToTable("EOD_DAYS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Eod.EodDayJob", b =>
+                {
+                    b.Property<long>("DayJobId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DAY_JOB_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DayJobId"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("ATTEMPTS");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("DayId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("DAY_ID");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("ERROR_MESSAGE");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("FINISHED_AT");
+
+                    b.Property<int>("ItemsCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("ITEMS_COUNT");
+
+                    b.Property<string>("JobCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("JOB_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("RunBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("RUN_BY");
+
+                    b.Property<int>("SequenceNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEQUENCE_NO");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("STARTED_AT");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("SUMMARY");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DayJobId")
+                        .HasName("PK_EOD_DAY_JOBS");
+
+                    b.HasIndex("DayId", "JobCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_EOD_DAY_JOBS_DAY_ID_JOB_CODE");
+
+                    b.ToTable("EOD_DAY_JOBS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Eod.EodJob", b =>
+                {
+                    b.Property<long>("JobId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOB_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("JobId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ENABLED");
+
+                    b.Property<string>("JobCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("JOB_CODE");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("MODULE_CODE");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("NAME_AR");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("NAME_EN");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<int>("SequenceNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEQUENCE_NO");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("JobId")
+                        .HasName("PK_EOD_JOBS");
+
+                    b.HasIndex("JobCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_EOD_JOBS_JOB_CODE");
+
+                    b.ToTable("EOD_JOBS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Eod.EodJobParameter", b =>
+                {
+                    b.Property<long>("JobParameterId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOB_PARAMETER_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("JobParameterId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("JobId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("JOB_ID");
+
+                    b.Property<string>("ParameterCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("PARAMETER_CODE");
+
+                    b.Property<string>("ParameterValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("PARAMETER_VALUE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("JobParameterId")
+                        .HasName("PK_EOD_JOB_PARAMETERS");
+
+                    b.HasIndex("JobId", "ParameterCode")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_EOD_JOB_PARAMETERS_JOB_ID_PARAMETER_CODE");
+
+                    b.ToTable("EOD_JOB_PARAMETERS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctAgreement", b =>
                 {
                     b.Property<long>("AgreementId")
@@ -44204,6 +44503,26 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_CRM_LKP_CURRENCIES_CRM_LKP_COUNTRIES");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Eod.EodDayJob", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Eod.EodDay", null)
+                        .WithMany("Jobs")
+                        .HasForeignKey("DayId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_EOD_DAY_JOBS_EOD_DAYS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Eod.EodJobParameter", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Eod.EodJob", null)
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_EOD_JOB_PARAMETERS_EOD_JOBS");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Fct.FctAgreement", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
@@ -49639,6 +49958,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Navigation("Charges");
 
                     b.Navigation("GlLines");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Eod.EodDay", b =>
+                {
+                    b.Navigation("Jobs");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrDecision", b =>

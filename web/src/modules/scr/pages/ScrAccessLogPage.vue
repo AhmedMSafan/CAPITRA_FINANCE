@@ -28,7 +28,7 @@
       <label class="fc-field"><span>{{ tr('Result') }}</span>
         <select v-model="q.resultCode" class="fx-select" @change="load"><option value="">{{ tr('All') }}</option><option value="SUCCESS">{{ tr('Signed in') }}</option><option value="REFUSED">{{ tr('Refused') }}</option>
           <option v-for="r in REFUSALS" :key="r" :value="r">— {{ tr(LABELS[r] ?? r) }}</option>
-          <option value="AWAITING_CODE">{{ tr('Code not entered') }}</option><option value="TWO_FACTOR_RESET">{{ tr('Two-factor reset') }}</option></select></label>
+          <option value="CODE_TIMEOUT">{{ tr('Code not entered') }}</option><option value="AWAITING_CODE">{{ tr('Waiting for the code') }}</option><option value="TWO_FACTOR_RESET">{{ tr('Two-factor reset') }}</option></select></label>
       <label class="fc-field"><span>{{ tr('Search') }}</span><input v-model="q.search" class="fx-search" :placeholder="tr('User name or IP address')" @keyup.enter="load"></label>
     </div>
 
@@ -121,7 +121,7 @@ import { LABELS, errorText, scrApi, type ScrCompany, type ScrSessionInquiry, typ
 
 const REFUSALS = ['BAD_PASSWORD', 'BAD_CODE', 'UNKNOWN_USER', 'INACTIVE', 'LOCKED', 'COMPANY_BLOCKED']
 /** Success, refusal, or the in-between ones: password right but no code (warn), two-factor reset by an administrator (plain). */
-const resultChip = (code: string) => code === 'SUCCESS' ? 'fx-chip--ok' : code === 'AWAITING_CODE' ? 'fx-chip--warn' : code === 'TWO_FACTOR_RESET' ? 'fx-chip--plain' : 'fx-chip--bad'
+const resultChip = (code: string) => code === 'SUCCESS' ? 'fx-chip--ok' : code === 'AWAITING_CODE' || code === 'CODE_TIMEOUT' ? 'fx-chip--warn' : code === 'TWO_FACTOR_RESET' ? 'fx-chip--plain' : 'fx-chip--bad'
 const SESSION_CHIP: Record<string, string> = { OPEN: 'fx-chip--ok', SIGNED_OUT: 'fx-chip--plain', EXPIRED: 'fx-chip--plain' }
 const RESULT_CHIP: Record<string, string> = { NO_MATCH: 'fx-chip--ok', POSSIBLE_MATCH: 'fx-chip--warn', MATCH: 'fx-chip--bad', PREVIOUSLY_LISTED: 'fx-chip--warn' }
 

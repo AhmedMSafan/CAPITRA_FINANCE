@@ -41,7 +41,7 @@ export const cmcApi = {
 
 export const LABELS: Record<string, string> = {
   SENT: 'Sent', FAILED: 'Failed', NOT_CONFIGURED: 'No mail server', NO_ADDRESS: 'No e-mail address', LINK_COPIED: 'Link copied',
-  ACTIVATION: 'Account activation', PASSWORD_RESET: 'Password reset', TEST: 'Test e-mail',
+  ACTIVATION: 'Account activation', PASSWORD_RESET: 'Password reset', TEST: 'Test e-mail', LICENCE_NOTICE: 'Licence notice', ALREADY_SENT: 'Already sent',
   COMMUNICATION_CENTER: 'Communication Center', APPLICATION_SETTINGS: 'Application settings', NONE: 'None'
 }
 export const STATUS_CHIP: Record<string, string> = {
