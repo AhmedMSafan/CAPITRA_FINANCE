@@ -43429,6 +43429,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ROW_VERSION");
 
+                    b.Property<string>("SecondStepCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("SECOND_STEP_CODE");
+
                     b.Property<string>("SessionId")
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)")
