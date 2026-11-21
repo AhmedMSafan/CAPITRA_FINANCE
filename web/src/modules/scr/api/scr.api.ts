@@ -110,7 +110,17 @@ export type ScrInvoice = {
   userMonths: number; userAmount: number; inquiryCount: number; inquiryAmount: number; totalAmount: number; statusCode: string
   issuedAt: string | null; issuedBy: string | null; cancelledAt: string | null; cancelledBy: string | null; cancelReason: string | null; notes: string | null
   periodComplete: boolean; lines: ScrInvoiceLine[]; bands: ScrInvoiceBand[]
+  /** GL: the invoice's entry (dated the period's last day, or the issue day when earlier) and, once cancelled, its reversal. */
+  accountingDate?: string | null; glTranSetId?: string | null; cancelGlTranSetId?: string | null
+  /** UNPAID, PARTLY_PAID or PAID; balanceAmount is 0 once cancelled. */
+  paidAmount?: number; balanceAmount?: number; paymentStatusCode?: string; payments?: ScrInvoicePayment[] | null
 }
+export type ScrInvoicePayment = {
+  paymentId: number; paymentDate: string; paymentAmount: number; bankAccountId: number; bankAccountText: string; referenceNo: string | null
+  notes: string | null; glTranSetId: string | null; createdBy: string; createdAt: string
+}
+export type ScrInvoicePaymentRequest = { paymentDate: string; paymentAmount: number; bankAccountId: number | null; referenceNo: string | null; notes: string | null }
+export type ScrBankAccount = { bankAccountId: number; text: string; glAccountCode: string }
 export type ScrBillingCompany = {
   memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string; statusCode: string; pricePlanId: number | null; planCode: string | null
   billingCycleCode: string; currentFrom: string; currentTo: string; currentPeriodCode: string; activeUsersNow: number; currentUserMonths: number
@@ -181,6 +191,8 @@ export const scrApi = {
   previewInvoice: (companyId: number, periodFrom: string) => http.get<ScrInvoice>(`${API}/billing/companies/${companyId}/preview?periodFrom=${periodFrom}`),
   issueInvoice: (companyId: number, periodFrom: string, notes: string | null) => http.post<ScrInvoice>(`${API}/billing/companies/${companyId}/invoices`, { periodFrom, notes }),
   cancelInvoice: (id: number, reason: string) => http.post<ScrInvoice>(`${API}/billing/invoices/${id}/cancel`, { reason }),
+  recordPayment: (id: number, r: ScrInvoicePaymentRequest) => http.post<ScrInvoice>(`${API}/billing/invoices/${id}/payments`, r),
+  bankAccounts: () => http.get<ScrBankAccount[]>(`${API}/billing/bank-accounts`),
   letters: (search = '') => http.get<ScrLetter[]>(`${API}/letters?search=${encodeURIComponent(search)}`),
   createLetter: (r: ScrLetterRequest) => http.post<ScrLetter>(`${API}/letters`, r),
   addLetterFile: (letterId: number, file: File) => {
@@ -252,7 +264,7 @@ export const LABELS: Record<string, string> = {
   FREE: 'Free', TIER: 'Tier', FLAT: 'Each inquiry',
   SUCCESS: 'Signed in', UNKNOWN_USER: 'Unknown user', BAD_PASSWORD: 'Wrong password', LOCKED: 'Account locked', COMPANY_BLOCKED: 'Company blocked',
   OPEN: 'Session active', SIGNED_OUT: 'Signed out',
-  AWAITING_CODE: 'Waiting for the code', CODE_TIMEOUT: 'Code not entered', BAD_CODE: 'Wrong code', TWO_FACTOR_RESET: 'Two-factor reset',
+  AWAITING_CODE: 'Waiting for the code', UNPAID: 'Not paid', PARTLY_PAID: 'Partly paid', PAID: 'Paid', CODE_TIMEOUT: 'Code not entered', BAD_CODE: 'Wrong code', TWO_FACTOR_RESET: 'Two-factor reset',
   AUTHENTICATOR: 'with the app code', RECOVERY_CODE: 'with a backup code', SETUP: 'app set up',
   MONTHLY: 'Monthly', QUARTERLY: 'Quarterly', YEARLY: 'Yearly', ISSUED: 'Issued', PREVIEW: 'Preview',
   PERSON: 'Person', COMPANY: 'Company',

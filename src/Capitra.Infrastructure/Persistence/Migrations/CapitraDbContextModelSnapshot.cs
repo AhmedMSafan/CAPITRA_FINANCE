@@ -39568,6 +39568,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InvoiceId"));
 
+                    b.Property<DateOnly?>("AccountingDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ACCOUNTING_DATE");
+
+                    b.Property<string>("CancelGlTranSetId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CANCEL_GL_TRAN_SET_ID");
+
                     b.Property<string>("CancelReason")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
@@ -39601,6 +39610,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<int>("FreeInquiries")
                         .HasColumnType("integer")
                         .HasColumnName("FREE_INQUIRIES");
+
+                    b.Property<string>("GlTranSetId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("GL_TRAN_SET_ID");
 
                     b.Property<decimal>("InquiryAmount")
                         .HasPrecision(18, 2)
@@ -39640,6 +39654,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("NOTES");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PAID_AMOUNT");
 
                     b.Property<DateOnly>("PeriodFrom")
                         .HasColumnType("date")
@@ -39871,6 +39890,83 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_SCR_INVOICE_LINES_INVOICE_ID_LINE_NO");
 
                     b.ToTable("SCR_INVOICE_LINES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInvoicePayment", b =>
+                {
+                    b.Property<long>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PAYMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PaymentId"));
+
+                    b.Property<long>("BankAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BANK_ACCOUNT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("GlTranSetId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("GL_TRAN_SET_ID");
+
+                    b.Property<long>("InvoiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("INVOICE_ID");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<decimal>("PaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PAYMENT_AMOUNT");
+
+                    b.Property<DateOnly>("PaymentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PAYMENT_DATE");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REFERENCE_NO");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("PaymentId")
+                        .HasName("PK_SCR_INVOICE_PAYMENTS");
+
+                    b.HasIndex("BankAccountId")
+                        .HasDatabaseName("IX_SCR_INVOICE_PAYMENTS_BANK_ACCOUNT_ID");
+
+                    b.HasIndex("InvoiceId")
+                        .HasDatabaseName("IX_SCR_INVOICE_PAYMENTS_INVOICE_ID");
+
+                    b.ToTable("SCR_INVOICE_PAYMENTS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrLetter", b =>
@@ -49439,6 +49535,23 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_SCR_INVOICE_LINES_SCR_INVOICES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInvoicePayment", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Trs.TrsBankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_INVOICE_PAYMENTS_TRS_BANK_ACCOUNTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrInvoice", null)
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_INVOICE_PAYMENTS_SCR_INVOICES");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrLetterFile", b =>

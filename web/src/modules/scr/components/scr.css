@@ -206,6 +206,15 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-inv-meta b{color:var(--fin-ink)}
 .fc .scr-inv-meta small{color:var(--fin-muted)}
 .fc .scr-inv-notes{margin:0;font-size:var(--fs-sm)}
+.fc .scr-inv-pay{display:flex;flex-direction:column;gap:12px}
+.fc .scr-inv-pay-sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.fc .scr-inv-pay-sum > div{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid var(--fin-line);border-radius:12px;background:#fbfdfd}
+.fc .scr-inv-pay-sum span{font-size:var(--fs-xs);color:var(--fin-muted);font-weight:700}
+.fc .scr-inv-pay-sum b{font-size:16px;color:var(--fin-ink)}
+.fc .scr-inv-pay-sum b.scr-inv-due{color:#b45309}
+.fc .scr-inv-pay-table{border:1px solid var(--fin-line);border-radius:12px}
+.fc .scr-inv-gl{margin:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:var(--fs-sm);color:var(--fin-muted)}
+@media (max-width:700px){.fc .scr-inv-pay-sum{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .fc .scr-inv-foot{padding-block-start:12px;border-block-start:1px solid var(--fin-line);font-size:11.5px;color:var(--fin-muted)}
 .fc .scr-inv-stamp{display:inline-block;margin-inline-start:12px;padding:3px 12px;border:2px solid #c8321f;border-radius:8px;color:#c8321f;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;transform:rotate(-4deg)}
 @media (max-width:900px){.fc .scr-inv-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.fc .fc-span-2{grid-column:auto}}

@@ -310,6 +310,9 @@ public sealed class ScrInvoiceConfiguration : IEntityTypeConfiguration<ScrInvoic
         builder.Property(x => x.CancelledBy).HasMaxLength(256);
         builder.Property(x => x.CancelReason).HasMaxLength(1000);
         builder.Property(x => x.Notes).HasMaxLength(1000);
+        builder.Property(x => x.GlTranSetId).HasMaxLength(50);
+        builder.Property(x => x.CancelGlTranSetId).HasMaxLength(50);
+        builder.Property(x => x.PaidAmount).HasPrecision(18, 2);
         builder.HasOne<ScrMemberCompany>().WithMany().HasForeignKey(x => x.MemberCompanyId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ScrPricePlan>().WithMany().HasForeignKey(x => x.PricePlanId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(x => x.Lines).WithOne().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
@@ -345,6 +348,24 @@ public sealed class ScrInvoiceBandConfiguration : IEntityTypeConfiguration<ScrIn
         builder.Property(x => x.BandTypeCode).HasMaxLength(10);
         builder.Property(x => x.UnitPrice).HasPrecision(18, 2);
         builder.Property(x => x.Amount).HasPrecision(18, 2);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class ScrInvoicePaymentConfiguration : IEntityTypeConfiguration<ScrInvoicePayment>
+{
+    public void Configure(EntityTypeBuilder<ScrInvoicePayment> builder)
+    {
+        builder.ToTable("SCR_INVOICE_PAYMENTS");
+        builder.HasKey(x => x.PaymentId);
+        builder.HasIndex(x => x.InvoiceId);
+        builder.Property(x => x.PaymentId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.PaymentAmount).HasPrecision(18, 2);
+        builder.Property(x => x.ReferenceNo).HasMaxLength(100);
+        builder.Property(x => x.Notes).HasMaxLength(1000);
+        builder.Property(x => x.GlTranSetId).HasMaxLength(50);
+        builder.HasOne<ScrInvoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Capitra.Domain.Modules.Trs.TrsBankAccount>().WithMany().HasForeignKey(x => x.BankAccountId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }

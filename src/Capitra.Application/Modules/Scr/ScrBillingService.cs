@@ -1,5 +1,9 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Application.Modules.Adm.Products;
+using Capitra.Application.Modules.Apex;
+using Capitra.Application.Modules.Gl.Journals;
+using Capitra.Domain.Modules.Trs;
 using Capitra.Domain.Modules.Scr;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,9 +34,20 @@ public sealed record ScrInvoiceDto(
     DateOnly PeriodFrom, DateOnly PeriodTo, string PeriodCode, string PlanCode, decimal UserMonthlyFee, decimal InquiryFee, int FreeInquiries,
     string CurrencyCode, int UserMonths, decimal UserAmount, int InquiryCount, decimal InquiryAmount, decimal TotalAmount, string StatusCode,
     DateTime? IssuedAt, string? IssuedBy, DateTime? CancelledAt, string? CancelledBy, string? CancelReason, string? Notes, bool PeriodComplete,
-    IReadOnlyList<ScrInvoiceLineDto> Lines, IReadOnlyList<ScrInvoiceBandDto> Bands);
+    IReadOnlyList<ScrInvoiceLineDto> Lines, IReadOnlyList<ScrInvoiceBandDto> Bands,
+    DateOnly? AccountingDate = null, string? GlTranSetId = null, string? CancelGlTranSetId = null, decimal PaidAmount = 0, decimal BalanceAmount = 0,
+    string PaymentStatusCode = "UNPAID", IReadOnlyList<ScrInvoicePaymentDto>? Payments = null);
 
 public sealed record ScrInvoiceRequest(DateOnly? PeriodFrom, string? Notes);
+
+public sealed record ScrInvoicePaymentDto(
+    long PaymentId, DateOnly PaymentDate, decimal PaymentAmount, long BankAccountId, string BankAccountText, string? ReferenceNo, string? Notes,
+    string? GlTranSetId, string CreatedBy, DateTime CreatedAt);
+
+public sealed record ScrInvoicePaymentRequest(DateOnly? PaymentDate, decimal? PaymentAmount, long? BankAccountId, string? ReferenceNo, string? Notes);
+
+/// <summary>A bank account money can be received into: active, in EGP, with its GL account.</summary>
+public sealed record ScrBankAccountDto(long BankAccountId, string Text, string GlAccountCode);
 
 public sealed record ScrCancelInvoiceRequest(string? Reason);
 
@@ -162,7 +177,7 @@ public static class ScrBilling
 /// invoice when it is issued. Nothing is deleted: a wrong invoice is cancelled with
 /// a reason and issued again.
 /// </summary>
-public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCounts users, ICurrentUser currentUser, IClock clock)
+public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCounts users, ICurrentUser currentUser, IClock clock, ProductActionPosting posting)
 {
     // ---- price plans ------------------------------------------------------------------------------------------------------------
 
@@ -269,9 +284,17 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
         var i = await db.Set<ScrInvoice>().AsNoTracking().Include(x => x.Lines).Include(x => x.Bands).FirstOrDefaultAsync(x => x.InvoiceId == id, ct)
             ?? throw new NotFoundException("The invoice was not found.");
         var company = await db.Set<ScrMemberCompany>().AsNoTracking().FirstAsync(m => m.MemberCompanyId == i.MemberCompanyId, ct);
+        var payments = await (from p in db.Set<ScrInvoicePayment>().AsNoTracking()
+                              join a in db.Set<TrsBankAccount>().AsNoTracking() on p.BankAccountId equals a.AccountId
+                              join b in db.Set<TrsBank>().AsNoTracking() on a.BankId equals b.BankId
+                              where p.InvoiceId == id
+                              orderby p.PaymentDate, p.PaymentId
+                              select new { p, b.BankCode, a.AccountNo }).ToListAsync(ct);
         return ToDto(i, company, [.. i.Lines.OrderBy(l => l.LineNo).Select(ToDto)], ScrBilling.CairoDate(clock.UtcNow)) with
         {
             Bands = [.. i.Bands.OrderBy(b => b.BandNo).Select(b => new ScrInvoiceBandDto(b.BandNo, b.BandTypeCode, b.FromInquiry, b.ToInquiry, b.UnitPrice, b.Quantity, b.Amount))],
+            Payments = [.. payments.Select(x => new ScrInvoicePaymentDto(x.p.PaymentId, x.p.PaymentDate, x.p.PaymentAmount, x.p.BankAccountId,
+                $"{x.BankCode} · {x.AccountNo}", x.p.ReferenceNo, x.p.Notes, x.p.GlTranSetId, x.p.CreatedBy, x.p.CreatedAt))],
         };
     }
 
@@ -288,11 +311,16 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
         };
     }
 
-    /// <summary>Issues the invoice for the period: prices copied from the plan, one line per user. The period may not overlap another.</summary>
+    /// <summary>
+    /// Issues the invoice for the period: prices copied from the plan, one line per user. The period may not overlap another. Its GL entry
+    /// (action SCR_INVOICE_ISSUE: DR fees receivable / CR user and inquiry fee income) is dated the period's last day, or today when the
+    /// period has not ended; the invoice and its GL are saved together or not at all.
+    /// </summary>
     public async Task<ScrInvoiceDto> IssueAsync(long companyId, ScrInvoiceRequest r, CancellationToken ct)
     {
         var (company, plan, from, to) = await PrepareAsync(companyId, r.PeriodFrom, ct);
         var lines = await LinesAsync(company.MemberCompanyId, from, to, plan, ct);
+        var today = ScrBilling.CairoDate(clock.UtcNow);
         await using var tx = await db.BeginTransactionAsync(ct);
         var year = from.Year;
         var prefix = $"INV-{year}-";
@@ -303,27 +331,143 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
         invoice.InvoiceNo = $"{prefix}{next:000000}";
         invoice.IssuedAt = clock.UtcNow;
         invoice.IssuedBy = currentUser.UserName ?? "SYSTEM";
+        invoice.AccountingDate = to < today ? to : today;
         invoice.Lines = lines;
         db.Add(invoice);
         await db.SaveChangesAsync(ct);
+        if (invoice.TotalAmount != 0)
+        {
+            invoice.GlTranSetId = await PostAsync(ProductActions.ScreeningInvoiceIssue, invoice, invoice.AccountingDate.Value, null, reverse: false,
+                code => code switch
+                {
+                    "INVOICE_AMOUNT" => invoice.TotalAmount,
+                    "USER_FEE_AMOUNT" => invoice.UserAmount,
+                    "INQUIRY_FEE_AMOUNT" => invoice.InquiryAmount,
+                    _ => null,
+                }, $"Screening invoice {invoice.InvoiceNo}, {company.CompanyCode}, {from:yyyy-MM-dd} to {to:yyyy-MM-dd}", ct);
+            await db.SaveChangesAsync(ct);
+        }
         await tx.CommitAsync(ct);
         return await InvoiceAsync(invoice.InvoiceId, ct);
     }
 
-    /// <summary>Cancels an issued invoice (kept, with the reason); its period can then be invoiced again.</summary>
+    /// <summary>
+    /// Cancels an issued invoice (kept, with the reason); its period can then be invoiced again. Its GL entry is reversed today. An invoice
+    /// with payments cannot be cancelled.
+    /// </summary>
     public async Task<ScrInvoiceDto> CancelAsync(long id, ScrCancelInvoiceRequest r, CancellationToken ct)
     {
         var i = await db.Set<ScrInvoice>().FirstOrDefaultAsync(x => x.InvoiceId == id, ct) ?? throw new NotFoundException("The invoice was not found.");
         if (i.StatusCode != "ISSUED")
             throw new BusinessRuleException("The invoice is already cancelled.");
+        if (i.PaidAmount > 0)
+            throw new BusinessRuleException("The invoice has payments recorded, so it cannot be cancelled.");
         if (ScrValidation.Clean(r.Reason) is not { } reason)
             throw BusinessValidationException.For("reason", "Enter why the invoice is cancelled.");
+        await using var tx = await db.BeginTransactionAsync(ct);
         i.StatusCode = "CANCELLED";
         i.CancelledAt = clock.UtcNow;
         i.CancelledBy = currentUser.UserName ?? "SYSTEM";
         i.CancelReason = reason;
+        if (i.GlTranSetId is not null)
+        {
+            var company = await db.Set<ScrMemberCompany>().AsNoTracking().FirstAsync(c => c.MemberCompanyId == i.MemberCompanyId, ct);
+            i.CancelGlTranSetId = await PostAsync(ProductActions.ScreeningInvoiceIssue, i, ScrBilling.CairoDate(clock.UtcNow), null, reverse: true,
+                code => code switch
+                {
+                    "INVOICE_AMOUNT" => i.TotalAmount,
+                    "USER_FEE_AMOUNT" => i.UserAmount,
+                    "INQUIRY_FEE_AMOUNT" => i.InquiryAmount,
+                    _ => null,
+                }, $"Screening invoice {i.InvoiceNo} cancelled, {company.CompanyCode}: {reason}", ct);
+        }
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return await InvoiceAsync(id, ct);
+    }
+
+    // ---- payments ---------------------------------------------------------------------------------------------------------------
+
+    /// <summary>The bank accounts a payment can come into: active, EGP, with a GL account.</summary>
+    public async Task<IReadOnlyList<ScrBankAccountDto>> BankAccountsAsync(CancellationToken ct) =>
+        await (from a in db.Set<TrsBankAccount>().AsNoTracking()
+               join b in db.Set<TrsBank>().AsNoTracking() on a.BankId equals b.BankId
+               where a.IsActive && a.CurrencyCode == "EGP" && a.ErpAccountCode != null && a.ErpAccountCode != ""
+               orderby b.BankCode, a.AccountNo
+               select new ScrBankAccountDto(a.AccountId, b.BankCode + " · " + a.AccountNo + (a.PurposeEn == null ? "" : " · " + a.PurposeEn), a.ErpAccountCode!))
+            .ToListAsync(ct);
+
+    /// <summary>
+    /// Records money the company paid against the invoice, into one of our bank accounts, and posts it (action SCR_INVOICE_PAYMENT:
+    /// DR the bank account's GL account / CR fees receivable) on the payment date. Part payments are allowed, never more than what is due.
+    /// </summary>
+    public async Task<ScrInvoiceDto> RecordPaymentAsync(long id, ScrInvoicePaymentRequest r, CancellationToken ct)
+    {
+        var i = await db.Set<ScrInvoice>().FirstOrDefaultAsync(x => x.InvoiceId == id, ct) ?? throw new NotFoundException("The invoice was not found.");
+        if (i.StatusCode != "ISSUED")
+            throw new BusinessRuleException("The invoice is cancelled: no payment can be recorded on it.");
+        var today = ScrBilling.CairoDate(clock.UtcNow);
+        var due = i.TotalAmount - i.PaidAmount;
+        var e = new Dictionary<string, string[]>();
+        if (r.PaymentDate is not { } date)
+            e["paymentDate"] = ["Enter the date the money was received."];
+        else if (date > today)
+            e["paymentDate"] = ["The payment date cannot be after today."];
+        if (r.PaymentAmount is not { } amount || amount <= 0 || amount != ScrBilling.Money(amount))
+            e["paymentAmount"] = ["Enter the amount received, more than 0, up to 2 decimals."];
+        else if (amount > due)
+            e["paymentAmount"] = [$"The invoice has {due:#,0.00} EGP left to pay."];
+        TrsBankAccount? bank = null;
+        if (r.BankAccountId is not { } bankId)
+            e["bankAccountId"] = ["Choose the bank account the money came into."];
+        else
+        {
+            bank = await db.Set<TrsBankAccount>().AsNoTracking().FirstOrDefaultAsync(a => a.AccountId == bankId, ct);
+            if (bank is null || !bank.IsActive || bank.CurrencyCode != "EGP" || string.IsNullOrWhiteSpace(bank.ErpAccountCode))
+                e["bankAccountId"] = ["Choose an active EGP bank account that has its GL account."];
+        }
+        ScrValidation.Throw(e);
+
+        var company = await db.Set<ScrMemberCompany>().AsNoTracking().FirstAsync(c => c.MemberCompanyId == i.MemberCompanyId, ct);
+        await using var tx = await db.BeginTransactionAsync(ct);
+        var payment = new ScrInvoicePayment
+        {
+            InvoiceId = id, PaymentDate = r.PaymentDate!.Value, PaymentAmount = r.PaymentAmount!.Value, BankAccountId = bank!.AccountId,
+            ReferenceNo = ScrValidation.Clean(r.ReferenceNo), Notes = ScrValidation.Clean(r.Notes),
+        };
+        db.Add(payment);
+        i.PaidAmount += payment.PaymentAmount;
+        await db.SaveChangesAsync(ct);
+        payment.GlTranSetId = await PostAsync(ProductActions.ScreeningInvoicePayment, i, payment.PaymentDate, bank.ErpAccountCode!.Trim(), reverse: false,
+            code => code == "PAYMENT_AMOUNT" ? payment.PaymentAmount : null,
+            $"Payment of screening invoice {i.InvoiceNo}, {company.CompanyCode}" + (payment.ReferenceNo is null ? string.Empty : $", ref {payment.ReferenceNo}"), ct);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+        return await InvoiceAsync(id, ct);
+    }
+
+    /// <summary>
+    /// Posts the rule linked to the action in Admin Setup (or its reverse) for the invoice, in the caller's transaction; any GL problem stops
+    /// the whole action with the reason in words.
+    /// </summary>
+    private async Task<string> PostAsync(string action, ScrInvoice invoice, DateOnly date, string? bankGlAccount, bool reverse,
+        Func<string, decimal?> amountOf, string description, CancellationToken ct)
+    {
+        var doc = new ProductActionDocument("SCR_INVOICE", invoice.InvoiceId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            invoice.InvoiceNo, date, invoice.CurrencyCode, description);
+        try
+        {
+            var (def, plan) = await posting.PlanAsync(action, date, ct);
+            var lines = ProductActionPosting.Lines(def, plan, [(bankGlAccount, amountOf)]);
+            if (reverse)
+                lines = [.. lines.Select(l => l with { Dr = l.Cr, Cr = l.Dr, Description = "Reversal: " + l.Description })];
+            return await posting.PostLinesAsync(plan, lines, def.ModuleCode, reverse ? def.ActionNameEn + " cancelled" : def.ActionNameEn,
+                def.CostCenter, def.BusinessLine, doc, ct);
+        }
+        catch (ApexProcessException ex)
+        {
+            throw new BusinessRuleException($"GL posting failed, nothing was saved: {GlPostingApi.CleanMessage(ex.Message)}");
+        }
     }
 
     // ---- calculation ------------------------------------------------------------------------------------------------------------
@@ -432,6 +576,8 @@ public sealed class ScrBillingService(ICapitraDbContext db, IScrCompanyUserCount
             i.InvoiceId, i.InvoiceId == 0 ? null : i.InvoiceNo, i.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, i.PeriodFrom, i.PeriodTo,
             ScrBilling.PeriodCode(cycle, i.PeriodFrom), i.PlanCode, i.UserMonthlyFee, i.InquiryFee, i.FreeInquiries, i.CurrencyCode, i.UserMonths,
             i.UserAmount, i.InquiryCount, i.InquiryAmount, i.TotalAmount, i.StatusCode, i.InvoiceId == 0 ? null : i.IssuedAt,
-            i.InvoiceId == 0 ? null : i.IssuedBy, i.CancelledAt, i.CancelledBy, i.CancelReason, i.Notes, today > i.PeriodTo, lines, []);
+            i.InvoiceId == 0 ? null : i.IssuedBy, i.CancelledAt, i.CancelledBy, i.CancelReason, i.Notes, today > i.PeriodTo, lines, [],
+            i.AccountingDate, i.GlTranSetId, i.CancelGlTranSetId, i.PaidAmount, i.StatusCode == "ISSUED" ? i.TotalAmount - i.PaidAmount : 0,
+            i.PaidAmount <= 0 ? "UNPAID" : i.PaidAmount >= i.TotalAmount ? "PAID" : "PARTLY_PAID", []);
     }
 }

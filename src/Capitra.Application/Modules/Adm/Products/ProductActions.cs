@@ -17,6 +17,11 @@ public static class ProductActions
     public const string TreasuryDisburse = "TRS_DISBURSE_EXECUTE";
     public const string ReverseDrawdown = "TRS_RF_DRAWDOWN";
     public const string ReverseTransferConfirm = "TRS_RF_TRANSFER_CONFIRM";
+    public const string ScreeningInvoiceIssue = "SCR_INVOICE_ISSUE";
+    public const string ScreeningInvoicePayment = "SCR_INVOICE_PAYMENT";
+
+    /// <summary>The screening service product (Federation member companies' screening fees).</summary>
+    public const string ScreeningProduct = "SCR_SERVICES";
 
     public static readonly IReadOnlyList<ProductActionDefinition> All =
     [
@@ -39,6 +44,16 @@ public static class ProductActions
             "Treasury, Treasury Disburse page: Confirm transfer. PAYMENT_AMOUNT is the supplier's transfer, paid from our account (the rule's "
             + "bank-account lines); the buyer owes it at maturity.",
             "TRS", ["PAYMENT_AMOUNT"], "3100", "REVERSE_FACTORING"),
+        // screening billing (Ahmed, 22 Nov 2026): the invoice on its accounting date (the period's last day, issued by the End of Day), its
+        // cancellation (the same entry reversed), and each payment received
+        new(ScreeningInvoiceIssue, ScreeningProduct, "Screening invoice", "فاتورة خدمة الفحص",
+            "Screening › Billing: an invoice issued (by the End of Day on the period's last day, or by Issue). INVOICE_AMOUNT is the total the "
+            + "company owes; USER_FEE_AMOUNT and INQUIRY_FEE_AMOUNT its two parts. Cancelling the invoice posts the same entry reversed.",
+            "SCR", ["INVOICE_AMOUNT", "USER_FEE_AMOUNT", "INQUIRY_FEE_AMOUNT"], "3100", "SCREENING"),
+        new(ScreeningInvoicePayment, ScreeningProduct, "Screening invoice payment", "سداد فاتورة خدمة الفحص",
+            "Screening › Billing: Record payment. PAYMENT_AMOUNT is the money received into the bank account chosen (the rule's bank-account line) "
+            + "against the invoice's receivable.",
+            "SCR", ["PAYMENT_AMOUNT"], "3100", "SCREENING"),
     ];
 
     public static ProductActionDefinition? Find(string? actionCode) => All.FirstOrDefault(x => x.ActionCode == actionCode);

@@ -48,7 +48,8 @@ public class AdmProductEventRuleGlLine : AuditableEntity
     /// (LND_EOD: interest accrued, late fees charged, each to income or to suspense, and what moves into or out of suspense), and the
     /// retail write-off (LND_WRITE_OFF: principal, interest and late fees from income or from suspense, charges and insurance), and the
     /// recovery on a written-off loan (LND_RECOVERY: the receipt amounts above and RECOVERY_AMOUNT, the recovery income); a part prepayment
-    /// or early settlement posts LND_RECEIPT with its fee as PREPAYMENT_FEE_AMOUNT.
+    /// or early settlement posts LND_RECEIPT with its fee as PREPAYMENT_FEE_AMOUNT. A screening invoice posts INVOICE_AMOUNT (receivable),
+    /// USER_FEE_AMOUNT and INQUIRY_FEE_AMOUNT (income), and its payment PAYMENT_AMOUNT.
     /// </summary>
     public static readonly string[] RuleAmounts =
     [
@@ -58,6 +59,7 @@ public class AdmProductEventRuleGlLine : AuditableEntity
         "INTEREST_TO_SUSPENSE", "INTEREST_FROM_SUSPENSE", "LATE_FEE_TO_SUSPENSE", "LATE_FEE_FROM_SUSPENSE",
         "PRINCIPAL_WRITTEN_OFF", "INTEREST_WRITTEN_OFF", "INTEREST_SUSPENSE_WRITTEN_OFF", "LATE_FEE_WRITTEN_OFF", "LATE_FEE_SUSPENSE_WRITTEN_OFF",
         "CHARGES_WRITTEN_OFF", "INSURANCE_WRITTEN_OFF", "RECOVERY_AMOUNT", "PREPAYMENT_FEE_AMOUNT",
+        "INVOICE_AMOUNT", "USER_FEE_AMOUNT", "INQUIRY_FEE_AMOUNT", "PAYMENT_AMOUNT",
     ];
 
     /// <summary>Figures of one charge: the whole amount, or the part taken to income later (pro-rated) or at once.</summary>
