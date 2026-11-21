@@ -31,6 +31,7 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
 
     public async Task<ScrInquiryDto> ScreenAsync(ScrInquiryRequest r, CancellationToken ct)
     {
+        var receivedAt = clock.UtcNow;
         var company = await MyCompanyAsync(ct);
         var e = new Dictionary<string, string[]>();
         var type = ScrValidation.Code(r.SubjectTypeCode);
@@ -59,6 +60,7 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
             IdentityTypeCode = idType, IdentityNo = idNo, BirthDate = type == "PERSON" ? r.BirthDate : null, NationalityCode = nationality,
             PurposeCode = purpose, PurposeText = ScrValidation.Clean(r.PurposeText), CaseReference = ScrValidation.Clean(r.CaseReference),
             ResultCode = ScrMatcher.Result(hits), RegistryVersionNo = version, ScreenedAt = clock.UtcNow,
+            SessionId = currentUser.SessionId, ReceivedAt = receivedAt,
             Hits = [.. hits.Select(h => new ScrInquiryHit
             {
                 PartyId = h.Entry.PartyId, DecisionId = h.Entry.DecisionId, MatchBasisCode = h.MatchBasisCode, NameScorePct = h.NameScorePct,
@@ -70,6 +72,8 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
         db.Add(inquiry);
         await db.SaveChangesAsync(ct);
         inquiry.InquiryRef = $"SCR-{inquiry.ScreenedAt.Year}-{inquiry.InquiryId.ToString("D6", CultureInfo.InvariantCulture)}";
+        // the result is ready to send back: the time it took is kept with the inquiry (evidence of the service given)
+        inquiry.RespondedAt = clock.UtcNow;
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return ToDto(inquiry, company.CompanyCode, hits.ToDictionary(h => (h.Entry.PartyId, h.Entry.DecisionId), h => h.Entry));

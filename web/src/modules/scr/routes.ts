@@ -19,6 +19,8 @@ export const scrRoutes: RouteRecordRaw[] = [
   },
   { path: 'screening/registry', name: 'scr-registry', component: () => import('./pages/ScrRegistryPage.vue'), meta: meta('Federation Final List') },
   { path: 'screening/companies', name: 'scr-companies', component: () => import('./pages/ScrCompaniesPage.vue'), meta: meta('Member companies') },
+  // every sign-in attempt, and per session the inquiries received and answered
+  { path: 'screening/access-log', name: 'scr-access-log', component: () => import('./pages/ScrAccessLogPage.vue'), meta: meta('Sign-ins and activity') },
   // billing: price plans, each company's billing, invoices (printable)
   { path: 'screening/billing', name: 'scr-billing', component: () => import('./pages/ScrBillingPage.vue'), meta: meta('Billing') },
   { path: 'screening/billing/plans', name: 'scr-price-plans', component: () => import('./pages/ScrPricePlansPage.vue'), meta: meta('Price plans') },
