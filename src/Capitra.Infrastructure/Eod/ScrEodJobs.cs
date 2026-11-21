@@ -77,8 +77,9 @@ public sealed class ScrLicenceExpiryEodJob(CapitraDbContext db, SystemEmails ema
             }
         }
 
-        var summary = $"{companiesNoticed} compan(ies) with a licence ending in {(reminders.Count == 0 ? "0" : string.Join("/", reminders) + "/0")} day(s): {sent} e-mail(s) sent";
-        if (notSent > 0) summary += $", {notSent} not sent (no address or the mail server failed: see Communication Center › Sent e-mails)";
+        var days = string.Join(", ", reminders.Where(x => x > 0).OrderByDescending(x => x).Append(0));
+        var summary = $"Licences ending in {days} days: {companiesNoticed} company(ies); {sent} e-mail(s) sent";
+        if (notSent > 0) summary += $"; {notSent} not sent (no address, or the mail server failed: see Communication Center › Sent e-mails)";
         return new EodJobOutcome(sent, summary + ".");
     }
 }

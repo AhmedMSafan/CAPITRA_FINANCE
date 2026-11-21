@@ -35,7 +35,7 @@
             <small>{{ tr('Jobs run from the lowest number up.') }}</small></label>
           <label v-for="p in f.job.parameters" :key="p.code" class="fc-field"><span>{{ language === 'AR' ? p.labelAr : p.labelEn }}</span>
             <input v-model="f.parameters[p.code]" class="fx-search" dir="ltr" :placeholder="p.defaultValue" :disabled="!canEdit">
-            <small>{{ language === 'AR' ? p.helpAr : p.helpEn }} {{ tr('Default') }}: <b dir="ltr">{{ p.defaultValue }}</b></small></label>
+            <small>{{ language === 'AR' ? p.helpAr : p.helpEn }} {{ tr('Default') }}: <span class="eod-default" dir="ltr">{{ p.defaultValue }}</span></small></label>
           <label class="fc-field"><span>{{ tr('Notes') }}</span><input v-model="f.notes" class="fx-search" :disabled="!canEdit"></label>
         </div>
         <div v-if="canEdit" class="eod-job-actions">

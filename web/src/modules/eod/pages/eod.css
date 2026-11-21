@@ -26,14 +26,15 @@
 .fc .eod-error{color:var(--fin-bad,#b42318);margin-top:4px}
 .fc .eod-attempts{display:block;color:var(--fin-muted);margin-top:4px}
 .fc .eod-detail-link{display:inline-flex;gap:6px;align-items:center;margin-top:6px;color:var(--fin-teal-600);font-weight:600;font-size:var(--fs-sm)}
-.fc .eod-run{display:flex;flex-direction:column;gap:16px}
-.fc .eod-choice{display:flex;flex-direction:column;gap:10px}
+.fc .eod-run{display:flex;flex-direction:column;gap:18px;padding:20px var(--dlg-pad,28px) 0}
+.fc .eod-choice{display:flex;flex-direction:column;gap:12px}
+.fc .eod-choice .fc-field{flex:none}
 .fc .eod-radio{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--fin-line);border-radius:12px;cursor:pointer}
 .fc .eod-radio:has(input:checked){border-color:var(--fin-teal-600);background:var(--fin-teal-50)}
 .fc .eod-radio input{margin-top:3px}
 .fc .eod-radio b,.fc .eod-radio small{display:block}
 .fc .eod-radio small{color:var(--fin-muted);margin-top:2px}
-.fc .eod-date{max-width:240px;margin-inline-start:30px}
+.fc .eod-date{flex:none;max-width:260px;margin-inline-start:30px}
 .fc .eod-days-count{margin:0;padding:10px 14px;border-radius:10px;background:var(--fin-teal-50);color:var(--fin-ink);font-weight:600}
 .fc .eod-run h3{margin:0;font-size:14px;color:var(--fin-ink)}
 .fc .eod-run-jobs{margin:0;padding-inline-start:22px;display:flex;flex-direction:column;gap:8px}
@@ -52,3 +53,4 @@
 .fc .eod-switch{display:flex;gap:10px;align-items:center;font-weight:600;color:var(--fin-ink)}
 .fc .eod-job-actions{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--fin-line);padding-top:12px}
 @media (max-width:700px){.fc .eod-job-name{width:auto}}
+.fc .eod-default{font-weight:700;color:var(--fin-ink)}

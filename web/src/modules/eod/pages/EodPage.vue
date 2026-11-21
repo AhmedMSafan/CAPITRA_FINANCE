@@ -112,7 +112,7 @@
             <input v-model="toDate" class="fx-search" type="date" :min="page.nextDate ?? undefined" :max="page.today"></label>
         </div>
         <p class="eod-days-count"><span class="fa fa-calendar-check-o" aria-hidden="true"></span>
-          {{ dayCount }} {{ tr('day(s) will run') }}: {{ formatDate(page.nextDate!) }}<template v-if="dayCount > 1"> → {{ formatDate(target) }}</template></p>
+          {{ dayCount }} {{ tr('day(s) will run') }}: {{ formatDate(page.nextDate!) }}<template v-if="dayCount > 1"> {{ tr('to') }} {{ formatDate(target) }}</template></p>
         <h3>{{ tr('Jobs, in this order') }}</h3>
         <ol class="eod-run-jobs">
           <li v-for="j in page.jobs" :key="j.jobCode" :class="{ 'eod-off': !j.isEnabled }">

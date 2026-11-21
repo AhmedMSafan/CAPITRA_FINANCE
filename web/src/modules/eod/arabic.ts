@@ -60,4 +60,5 @@ export const EOD_AR: Record<string, string> = {
   'Licence notice': 'تنبيه الترخيص',
   'Already sent': 'أُرسلت من قبل',
   'Waiting for the code': 'بانتظار الرمز',
+  'to': 'إلى',
 }
