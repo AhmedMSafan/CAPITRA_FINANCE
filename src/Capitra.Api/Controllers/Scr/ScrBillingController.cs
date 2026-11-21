@@ -7,7 +7,7 @@ namespace Capitra.Api.Controllers.Scr;
 
 /// <summary>
 /// Screening service billing: price plans (EGP fee per user per month, fee per inquiry), each company's billing at a glance, and
-/// invoices per calendar period (preview, issue, cancel; never deleted).
+/// invoices per calendar period (preview, issue, cancel; never deleted), each posted to GL, and the payments received against them.
 /// </summary>
 [ApiController]
 [Route("api/scr/billing")]
@@ -47,4 +47,15 @@ public sealed class ScrBillingController(ScrBillingService billing) : Controller
     [HttpPost("invoices/{invoiceId:long}/cancel")]
     [HasPermission(Permissions.Scr.BillingManage)]
     public Task<ScrInvoiceDto> Cancel(long invoiceId, ScrCancelInvoiceRequest request, CancellationToken ct) => billing.CancelAsync(invoiceId, request, ct);
+
+    /// <summary>Money the company paid against the invoice: posts DR the bank account's GL account / CR fees receivable.</summary>
+    [HttpPost("invoices/{invoiceId:long}/payments")]
+    [HasPermission(Permissions.Scr.BillingManage)]
+    public Task<ScrInvoiceDto> RecordPayment(long invoiceId, ScrInvoicePaymentRequest request, CancellationToken ct) =>
+        billing.RecordPaymentAsync(invoiceId, request, ct);
+
+    /// <summary>The bank accounts a payment can come into.</summary>
+    [HttpGet("bank-accounts")]
+    [HasPermission(Permissions.Scr.BillingManage)]
+    public Task<IReadOnlyList<ScrBankAccountDto>> BankAccounts(CancellationToken ct) => billing.BankAccountsAsync(ct);
 }

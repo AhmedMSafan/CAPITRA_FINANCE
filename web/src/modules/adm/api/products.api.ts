@@ -278,7 +278,11 @@ export const RULE_AMOUNTS = [
   { value: 'CHARGES_WRITTEN_OFF', label: 'Charges due written off (retail write-off)' },
   { value: 'INSURANCE_WRITTEN_OFF', label: 'Insurance due written off (retail write-off)' },
   { value: 'RECOVERY_AMOUNT', label: 'Recovered on a written-off loan (retail recovery)' },
-  { value: 'PREPAYMENT_FEE_AMOUNT', label: 'Prepayment or early settlement fee (retail loan receipt)' }
+  { value: 'PREPAYMENT_FEE_AMOUNT', label: 'Prepayment or early settlement fee (retail loan receipt)' },
+  { value: 'INVOICE_AMOUNT', label: 'Invoice total owed (screening invoice)' },
+  { value: 'USER_FEE_AMOUNT', label: 'User fees of the invoice (screening invoice)' },
+  { value: 'INQUIRY_FEE_AMOUNT', label: 'Inquiry fees of the invoice (screening invoice)' },
+  { value: 'PAYMENT_AMOUNT', label: 'Payment received or paid (screening payment, treasury)' }
 ]
 
 /** Figures of one charge a component GL line posts. */

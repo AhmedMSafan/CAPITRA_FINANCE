@@ -112,6 +112,8 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
     [InlineData("POST", "/api/scr/billing/plans", Permissions.Scr.BillingView)]
     [InlineData("POST", "/api/scr/billing/companies/1/invoices", Permissions.Scr.BillingView)]
     [InlineData("POST", "/api/scr/billing/invoices/1/cancel", Permissions.Scr.BillingView)]
+    [InlineData("POST", "/api/scr/billing/invoices/1/payments", Permissions.Scr.BillingView)]
+    [InlineData("GET", "/api/scr/billing/bank-accounts", Permissions.Scr.BillingView)]
     [InlineData("GET", "/api/scr/access-log", Permissions.Scr.InquiryCreate)]
     [InlineData("GET", "/api/scr/access-log/1", Permissions.Scr.BillingManage)]
     public async Task Missing_permission_is_forbidden(string method, string url, string permission)

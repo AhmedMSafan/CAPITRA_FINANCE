@@ -121,6 +121,18 @@ public class ScrInvoice : AuditableEntity
 
     public string? Notes { get; set; }
 
+    /// <summary>The date of the invoice's GL entry: the period's last day (the End of Day issues it that night), or the issue day when earlier.</summary>
+    public DateOnly? AccountingDate { get; set; }
+
+    /// <summary>GL transaction set of the invoice: DR fees receivable / CR user fee income, CR inquiry fee income (rule of action SCR_INVOICE_ISSUE).</summary>
+    public string? GlTranSetId { get; set; }
+
+    /// <summary>GL transaction set of the cancellation: the invoice's entry reversed, on the cancellation day.</summary>
+    public string? CancelGlTranSetId { get; set; }
+
+    /// <summary>What the company has paid of the invoice so far (SCR_INVOICE_PAYMENTS).</summary>
+    public decimal PaidAmount { get; set; }
+
     public List<ScrInvoiceLine> Lines { get; set; } = [];
 
     /// <summary>How the period's inquiries were priced: free, then each tier (or the flat fee).</summary>
@@ -174,4 +186,26 @@ public class ScrInvoiceBand : AuditableEntity
     public int Quantity { get; set; }
 
     public decimal Amount { get; set; }
+}
+
+/// <summary>SCR_INVOICE_PAYMENTS: money a member company paid against an invoice, into one of our bank accounts; each posts DR bank / CR fees receivable.</summary>
+public class ScrInvoicePayment : AuditableEntity
+{
+    public long PaymentId { get; set; }
+
+    public long InvoiceId { get; set; }
+
+    public DateOnly PaymentDate { get; set; }
+
+    public decimal PaymentAmount { get; set; }
+
+    /// <summary>TRS_BANK_ACCOUNTS.ACCOUNT_ID: the bank account the money came into (its GL account is debited).</summary>
+    public long BankAccountId { get; set; }
+
+    /// <summary>The bank's reference, cheque or transfer number.</summary>
+    public string? ReferenceNo { get; set; }
+
+    public string? Notes { get; set; }
+
+    public string? GlTranSetId { get; set; }
 }
