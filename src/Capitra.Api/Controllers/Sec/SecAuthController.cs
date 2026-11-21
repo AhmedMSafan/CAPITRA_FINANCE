@@ -67,7 +67,7 @@ public sealed class SecAuthController(
     CompanyAccess companyAccess,
     AccountEmails emails,
     CapitraDbContext db,
-    Microsoft.AspNetCore.DataProtection.IDataProtectionProvider protection) : ControllerBase
+    IDataProtectionProvider protection) : ControllerBase
 {
     private const string InvalidLogin = "Invalid user name or password.";
 
@@ -130,8 +130,8 @@ public sealed class SecAuthController(
         return response;
     }
 
-    private Microsoft.AspNetCore.DataProtection.ITimeLimitedDataProtector Challenger() =>
-        Microsoft.AspNetCore.DataProtection.DataProtectionAdvancedExtensions.ToTimeLimitedDataProtector(
+    private ITimeLimitedDataProtector Challenger() =>
+        DataProtectionAdvancedExtensions.ToTimeLimitedDataProtector(
             protection.CreateProtector("Capitra.Sec.SignInChallenge"));
 
     /// <summary>The user and the pending sign-in a challenge stands for, if it is genuine, unexpired and the sign-in still waits.</summary>
