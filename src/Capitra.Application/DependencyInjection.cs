@@ -23,6 +23,10 @@ public static class DependencyInjection
         services.AddScoped<Modules.Lnd.LndDisbursementService>();
         services.AddScoped<Modules.Lnd.LndReceiptService>();
         services.AddScoped<Modules.Lnd.LndEodService>();
+        // End of Day: the night batch of every application; each application adds its jobs (IEodJob)
+        services.AddScoped<Modules.Eod.EodService>();
+        services.AddScoped<Modules.Eod.IEodJob, Modules.Lnd.LndDailyEodJob>();
+        services.AddScoped<Modules.Eod.IEodJob, Modules.Scr.ScrInvoicesEodJob>();
         services.AddScoped<Modules.Lnd.LndWriteOffService>();
         services.AddScoped<Modules.Lnd.LndReceiptReversalService>();
         services.AddScoped<Modules.Lnd.LndWorkspaceService>();

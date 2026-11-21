@@ -105,9 +105,7 @@ public sealed class LndEodService(ICapitraDbContext db, IClock clock, ILndParame
 
         var nonAccrualDays = await DaysAsync(LndParameterCatalog.Codes.NonAccrualDays, day, cancellationToken);
         var writeOffDays = await DaysAsync(LndParameterCatalog.Codes.WriteOffDays, day, cancellationToken);
-        if (nonAccrualDays.Count == 0 || writeOffDays.Count == 0)
-            throw new BusinessRuleException($"Set the lending parameters {LndParameterCatalog.Codes.NonAccrualDays} and {LndParameterCatalog.Codes.WriteOffDays} "
-                + "in Retail Lending > Parameters before running end of day.");
+        // each loan checks its own licence's days (ProcessAsync), so a day without loans runs without the lending parameters
 
         // ---- the run row, saved first so a failure is recorded
         var run = await db.Set<LndEodRun>().SingleOrDefaultAsync(x => x.RunDate == day, cancellationToken);
@@ -284,7 +282,7 @@ public sealed class LndEodService(ICapitraDbContext db, IClock clock, ILndParame
         return result;
     }
 
-    private async Task<DateOnly?> LastDoneAsync(CancellationToken cancellationToken) =>
+    public async Task<DateOnly?> LastDoneAsync(CancellationToken cancellationToken) =>
         await db.Set<LndEodRun>().AsNoTracking().Where(x => x.StatusCode == Statuses.Done).MaxAsync(x => (DateOnly?)x.RunDate, cancellationToken);
 
     private async Task FailAsync(long runId, string message, CancellationToken cancellationToken)

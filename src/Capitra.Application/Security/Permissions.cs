@@ -151,7 +151,7 @@ public static class Permissions
         /// <summary>Receive a customer's payment on a loan (bank deposit, collected cheque or credit balance).</summary>
         public const string LoanReceive = "LND.LOAN.RECEIVE";
 
-        /// <summary>Run Retail Lending end of day for the next business day.</summary>
+        /// <summary>Was: run Retail Lending end of day. End of Day is its own application now (<see cref="Eod"/>); roles that had it were given EOD.RUN.</summary>
         public const string EodRun = "LND.EOD.RUN";
 
         /// <summary>Ask for a loan to be written off, and withdraw one's own request.</summary>
@@ -256,6 +256,19 @@ public static class Permissions
     }
 
     /// <summary>Communication Center: the mail servers every e-mail goes through, and the log of what was sent.</summary>
+    /// <summary>End of Day: the night batch of every application.</summary>
+    public static class Eod
+    {
+        /// <summary>Read the End of Day: the days run, each job's result, and the jobs and their settings.</summary>
+        public const string View = "EOD.VIEW";
+
+        /// <summary>Run the End of Day for today or up to a day (administrators).</summary>
+        public const string Run = "EOD.RUN";
+
+        /// <summary>Switch jobs on or off, set their order and their settings (administrators).</summary>
+        public const string JobsEdit = "EOD.JOBS.EDIT";
+    }
+
     public static class Cmc
     {
         /// <summary>Add and change mail servers, send test e-mails and choose the server in use.</summary>

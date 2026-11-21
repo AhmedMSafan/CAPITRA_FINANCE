@@ -76,6 +76,10 @@ public static class DependencyInjection
         services.AddScoped<IMailTransport, SmtpMailTransport>();
         services.AddScoped<AccountEmails>();
         services.AddScoped<CompanyAccess>();
+        // notices the system sends by itself, and the Screening jobs of the End of Day
+        services.AddScoped<SystemEmails>();
+        services.AddScoped<Capitra.Application.Modules.Eod.IEodJob, Eod.ScrLicenceExpiryEodJob>();
+        services.AddScoped<Capitra.Application.Modules.Eod.IEodJob, Eod.ScrHousekeepingEodJob>();
 
         return services;
     }
