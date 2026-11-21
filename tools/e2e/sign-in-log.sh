@@ -26,7 +26,7 @@ r=$(login old.u1 'Wrong#Pass1'); check "wrong password refused" "$(status "$r")"
 r=$(login nobody.here 'Whatever#1'); check "unknown user refused" "$(status "$r")" 401
 check "recorded: BAD_PASSWORD for old.u1" "$(sql "select \"RESULT_CODE\" from \"SEC_SIGN_INS\" where \"USER_NAME\"='old.u1' order by 1 limit 1")" BAD_PASSWORD
 check "recorded: UNKNOWN_USER, no account" "$(sql "select \"RESULT_CODE\" || ' ' || coalesce(\"USER_ID\",'-') from \"SEC_SIGN_INS\" where \"USER_NAME\"='nobody.here'")" "UNKNOWN_USER -"
-check "with the address and the browser" "$(sql "select \"IP_ADDRESS\" || ' ' || (\"USER_AGENT\" like '%Chrome/131%') from \"SEC_SIGN_INS\" where \"USER_NAME\"='nobody.here'")" "127.0.0.1 true"
+check "with the address (local: 127.0.0.1 or ::1) and the browser" "$(sql "select (\"IP_ADDRESS\" in ('127.0.0.1','::1')) || ' ' || (\"USER_AGENT\" like '%Chrome/131%') from \"SEC_SIGN_INS\" where \"USER_NAME\"='nobody.here'")" "true true"
 check "no password stored anywhere" "$(sql "select count(*) from \"SEC_SIGN_INS\" where \"FAILURE_TEXT\" like '%Wrong#Pass1%' or \"USER_NAME\" like '%Pass1%'")" 0
 
 echo "3. A sign-in opens a session; inquiries point back to it"
