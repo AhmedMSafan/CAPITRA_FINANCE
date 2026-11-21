@@ -64,10 +64,10 @@ public sealed class ScrLicenceExpiryEodJob(CapitraDbContext db, SystemEmails ema
             var ar = left == 0
                 ? $"<p>ينتهي ترخيص كابيترا لشركة <b>{E(c.NameAr)}</b> <b>اليوم {end:yyyy-MM-dd}</b>. ابتداءً من الغد لن يستطيع مستخدمو الشركة تسجيل الدخول أو إجراء الاستعلامات.</p><p>تواصلوا مع الاتحاد لتجديده.</p>"
                 : $"<p>ينتهي ترخيص كابيترا لشركة <b>{E(c.NameAr)}</b> في <b>{end:yyyy-MM-dd}</b>، بعد {left} يوم. بعد هذا اليوم لن يستطيع مستخدمو الشركة تسجيل الدخول أو إجراء الاستعلامات.</p><p>تواصلوا مع الاتحاد لتجديده في الوقت المناسب.</p>";
-            var to = admins[c.MemberCompanyId].Select(a => (Email: a.Email, UserId: (string?)a.Id))
-                .Append((c.ContactEmail, (string?)null))
-                .Where(x => !string.IsNullOrWhiteSpace(x.Email))
-                .DistinctBy(x => x.Email!.Trim().ToUpperInvariant()).ToList();
+            var to = new List<(string? Email, string? UserId)>();
+            foreach (var a in admins[c.MemberCompanyId]) to.Add((a.Email, a.Id));
+            to.Add((c.ContactEmail, null));
+            to = [.. to.Where(x => !string.IsNullOrWhiteSpace(x.Email)).DistinctBy(x => x.Email!.Trim().ToUpperInvariant())];
             if (to.Count == 0) notSent++;
             foreach (var (address, userId) in to)
             {
