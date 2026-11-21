@@ -122,7 +122,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                   SELECT 'SCR_SERVICES', 'Screening services', 'خدمات الفحص', 'SCREENING', 'SERVICE',
                          CASE WHEN EXISTS (SELECT 1 FROM "ADM_PRODUCTS" WHERE "GL_TRAN_SET_CODE" = 'SCR') OR EXISTS (SELECT 1 FROM "GL_TRAN_SET_SEQUENCES" WHERE "MODULE_CODE" = 'SCR')
                               THEN NULL ELSE 'SCR' END,
-                         'EGP', DATE '2026-01-01', true, 0, 0, 0, 0, v_by, now(), 1
+                         (SELECT "CURRENCY_CODE" FROM "ADM_LKP_CURRENCIES" WHERE "CURRENCY_CODE" = 'EGP'), DATE '2026-01-01', true, 0, 0, 0, 0, v_by, now(), 1
                    WHERE NOT EXISTS (SELECT 1 FROM "ADM_PRODUCTS" WHERE "PRODUCT_CODE" = 'SCR_SERVICES');
                   SELECT "PRODUCT_ID" INTO v_product FROM "ADM_PRODUCTS" WHERE "PRODUCT_CODE" = 'SCR_SERVICES';
                   INSERT INTO "GL_TRAN_SET_SEQUENCES" ("MODULE_CODE", "YEAR_NO", "APP_CODE", "MODULE_NAME_EN", "MODULE_NAME_AR", "LAST_NO", "DIGITS", "IS_ACTIVE",
@@ -239,6 +239,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     ON CONFLICT ("ACTION_CODE") DO UPDATE SET "PRODUCT_EVENT_RULE_ID" = EXCLUDED."PRODUCT_EVENT_RULE_ID", "UPDATED_BY" = v_by, "UPDATED_AT" = now()
                      WHERE "ADM_PRODUCT_ACTIONS"."PRODUCT_EVENT_RULE_ID" IS NULL;
                   END LOOP;
+                EXCEPTION WHEN OTHERS THEN
+                  -- never stop the application from starting: the set-up is left out whole, and is done in Admin Setup instead
+                  RAISE WARNING 'Screening GL set-up skipped: %', SQLERRM;
                 END $$;
                 """);
         }
