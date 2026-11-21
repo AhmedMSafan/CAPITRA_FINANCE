@@ -252,3 +252,14 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc-modal.scr-modal > .fc-form-actions{flex:none;margin:0;padding:16px var(--dlg-pad) 20px;gap:12px;border-block-start:1px solid var(--fin-line);background:var(--fin-surface);border-radius:0 0 20px 20px}
 .fc-modal.scr-modal > .fc-form-actions .fx-btn{min-height:42px;padding-inline:20px;border-radius:12px}
 @media (max-width:700px){.fc-modal.scr-modal{--dlg-pad:18px;width:calc(100vw - 20px);max-height:calc(100vh - 20px)}}
+
+/* Sign-ins and activity */
+.fc .scr-log-filters{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.fc .scr-band-stats--5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.fc tr.scr-log-refused td:first-child{box-shadow:inset 3px 0 0 #c8321f}
+[dir='rtl'] .fc tr.scr-log-refused td:first-child{box-shadow:inset -3px 0 0 #c8321f}
+.fc .scr-session-facts > div{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;background:var(--fin-teal-50)}
+.fc .scr-session-facts span{font-size:11.5px;color:var(--fin-muted);text-transform:uppercase;letter-spacing:.04em}
+.fc .scr-session-facts b{color:var(--fin-ink)}
+.fc .scr-session-facts small{color:var(--fin-muted)}
+@media (max-width:1000px){.fc .scr-log-filters,.fc .scr-band-stats--5{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -250,6 +250,9 @@ public static class Permissions
 
         /// <summary>Billing: read invoices and what each company owes.</summary>
         public const string BillingView = "SCR.BILLING.VIEW";
+
+        /// <summary>The sign-in log: every sign-in attempt, and per session the inquiries made in it.</summary>
+        public const string AccessLogView = "SCR.ACCESS_LOG.VIEW";
     }
 
     /// <summary>Communication Center: the mail servers every e-mail goes through, and the log of what was sent.</summary>

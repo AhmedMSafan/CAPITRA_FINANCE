@@ -71,6 +71,7 @@ export const appMenu: MenuGroup[] = [
       { label: 'Parties', to: { name: 'scr-parties' } },
       { label: 'Member companies', to: { name: 'scr-companies' } },
       { label: 'Inquiry audit', to: { name: 'scr-inquiries' } },
+      { label: 'Sign-ins and activity', to: { name: 'scr-access-log' } },
       { label: 'Billing', to: { name: 'scr-billing' } },
       { label: 'Price plans', to: { name: 'scr-price-plans' } },
       { label: 'Screening Portal', to: { name: 'scr-portal' } }

@@ -10,7 +10,7 @@ public sealed class PasswordChangeGate(RequestDelegate next)
 {
     public const string Code = "PASSWORD_CHANGE_REQUIRED";
 
-    private static readonly string[] Allowed = ["/api/sec/auth/change-password", "/api/sec/auth/me"];
+    private static readonly string[] Allowed = ["/api/sec/auth/change-password", "/api/sec/auth/me", "/api/sec/auth/logout"];
 
     public async Task InvokeAsync(HttpContext context)
     {

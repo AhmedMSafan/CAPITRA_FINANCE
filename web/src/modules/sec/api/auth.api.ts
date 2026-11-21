@@ -21,7 +21,13 @@ export async function changePassword(currentPassword: string, newPassword: strin
   return response.user
 }
 
-export function logout(): void {
+/** Signs out: the server marks the session ended in the sign-in log (best effort), then the token is dropped. */
+export async function logout(): Promise<void> {
+  try {
+    await http.post<void>('/api/sec/auth/logout')
+  } catch {
+    // an expired or refused token: the session is already over for the server
+  }
   clearSession()
 }
 

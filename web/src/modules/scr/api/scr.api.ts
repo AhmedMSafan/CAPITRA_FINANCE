@@ -117,6 +117,19 @@ export type ScrBillingCompany = {
   currentInquiries: number; currentAmount: number | null; currentInvoiced: boolean; invoiceCount: number; invoicedTotal: number; lastInvoicedTo: string | null
 }
 
+// sign-ins and activity: every sign-in attempt, and per session the inquiries made in it
+export type ScrSignIn = {
+  signInId: number; sessionId: string | null; userName: string; fullName: string | null; memberCompanyId: number | null; companyCode: string | null; companyNameAr: string | null
+  attemptedAt: string; resultCode: string; failureText: string | null; ipAddress: string | null; device: string | null; userAgent: string | null
+  expiresAt: string | null; signedOutAt: string | null; sessionStateCode: string | null; inquiryCount: number; lastActivityAt: string | null
+}
+export type ScrSessionInquiry = {
+  inquiryId: number; inquiryRef: string; receivedAt: string | null; respondedAt: string | null; durationMs: number | null; subjectTypeCode: string; subjectName: string
+  identityTypeCode: string; identityNo: string; purposeCode: string; resultCode: string; hitCount: number; registryVersionNo: number
+}
+export type ScrSignInPage = { summary: { attempts: number; successful: number; refused: number; users: number; inquiries: number }; rows: ScrSignIn[] }
+export type ScrSignInQuery = { fromDate?: string; toDate?: string; memberCompanyId?: number; resultCode?: string; search?: string }
+
 /** Amounts in EGP, two decimals, Western digits in both languages. */
 /** The plan's inquiry schedule priced for a number of inquiries (graduated): the same rule as the invoices. */
 export function priceInquiries(free: number, flatFee: number, tiers: ScrTier[], inquiries: number) {
@@ -147,6 +160,11 @@ export type ScrMyCompany = { memberCompanyId: number; companyCode: string; nameE
 const API = '/api/scr'
 
 export const scrApi = {
+  accessLog: (q: ScrSignInQuery) => {
+    const p = new URLSearchParams(Object.entries(q).filter(([, v]) => v !== undefined && v !== '' && v !== null).map(([k, v]) => [k, String(v)]))
+    return http.get<ScrSignInPage>(`${API}/access-log?${p}`)
+  },
+  session: (signInId: number) => http.get<{ signIn: ScrSignIn; inquiries: ScrSessionInquiry[] }>(`${API}/access-log/${signInId}`),
   pricePlans: () => http.get<ScrPricePlan[]>(`${API}/billing/plans`),
   createPricePlan: (r: ScrPricePlanRequest) => http.post<ScrPricePlan>(`${API}/billing/plans`, r),
   updatePricePlan: (id: number, r: ScrPricePlanRequest) => http.put<ScrPricePlan>(`${API}/billing/plans/${id}`, r),
@@ -227,6 +245,8 @@ export const scrApi = {
 /** Labels of the codes, in English (tr() gives the Arabic). */
 export const LABELS: Record<string, string> = {
   FREE: 'Free', TIER: 'Tier', FLAT: 'Each inquiry',
+  SUCCESS: 'Signed in', UNKNOWN_USER: 'Unknown user', BAD_PASSWORD: 'Wrong password', LOCKED: 'Account locked', COMPANY_BLOCKED: 'Company blocked',
+  OPEN: 'Open', SIGNED_OUT: 'Signed out',
   MONTHLY: 'Monthly', QUARTERLY: 'Quarterly', YEARLY: 'Yearly', ISSUED: 'Issued', PREVIEW: 'Preview',
   PERSON: 'Person', COMPANY: 'Company',
   NATIONAL_ID: 'National ID', PASSPORT: 'Passport', COMMERCIAL_REGISTER: 'Commercial register', OTHER: 'Other',
