@@ -246,7 +246,7 @@ export const scrApi = {
 export const LABELS: Record<string, string> = {
   FREE: 'Free', TIER: 'Tier', FLAT: 'Each inquiry',
   SUCCESS: 'Signed in', UNKNOWN_USER: 'Unknown user', BAD_PASSWORD: 'Wrong password', LOCKED: 'Account locked', COMPANY_BLOCKED: 'Company blocked',
-  OPEN: 'Open', SIGNED_OUT: 'Signed out',
+  OPEN: 'Session active', SIGNED_OUT: 'Signed out',
   MONTHLY: 'Monthly', QUARTERLY: 'Quarterly', YEARLY: 'Yearly', ISSUED: 'Issued', PREVIEW: 'Preview',
   PERSON: 'Person', COMPANY: 'Company',
   NATIONAL_ID: 'National ID', PASSPORT: 'Passport', COMMERCIAL_REGISTER: 'Commercial register', OTHER: 'Other',

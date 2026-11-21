@@ -490,5 +490,6 @@ export const SCR_AR: Record<string, string> = {
   'Wrong password': 'كلمة مرور خاطئة',
   'average answer': 'متوسط الرد',
   'matches': 'تطابقات',
-  'The sign-in was not found.': 'لم يُعثر على عملية الدخول.'
+  'The sign-in was not found.': 'لم يُعثر على عملية الدخول.',
+  'Session active': 'جلسة نشطة'
 }
