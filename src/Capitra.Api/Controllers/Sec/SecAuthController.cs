@@ -243,7 +243,7 @@ public sealed class SecAuthController(
         if (!string.IsNullOrWhiteSpace(request.RecoveryCode))
         {
             method = "RECOVERY_CODE";
-            ok = (await users.RedeemTwoFactorRecoveryCodeAsync(user, request.RecoveryCode.Trim().Replace(" ", string.Empty, StringComparison.Ordinal))).Succeeded;
+            ok = (await users.RedeemTwoFactorRecoveryCodeAsync(user, NormalizeBackupCode(request.RecoveryCode))).Succeeded;
         }
         else
         {
@@ -468,4 +468,11 @@ public sealed class SecAuthController(
 
     private static ProblemDetails Problem(string detail) =>
         new() { Status = StatusCodes.Status401Unauthorized, Title = "Login failed", Detail = detail };
+
+    /// <summary>A backup code as it is stored (XXXXX-XXXXX): typed in small letters, with spaces or without the dash, it still works.</summary>
+    private static string NormalizeBackupCode(string typed)
+    {
+        var plain = new string(typed.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
+        return plain.Length == 10 ? plain[..5] + "-" + plain[5..] : typed.Trim().ToUpperInvariant();
+    }
 }
