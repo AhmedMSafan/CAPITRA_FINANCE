@@ -15,11 +15,10 @@ public sealed record ScrHit(
 /// <summary>
 /// Screens one subject against the Final List. No verdict: the Federation shows the facts and the member company decides.
 /// <list type="bullet">
-/// <item>An entry whose identity number is exactly the same (once spaces, dashes and leading zeros are left out) is always shown,
-/// whatever the name: the name's level is shown next to it.</item>
-/// <item>When the user lets fewer identity characters agree (1-13), an entry whose number is only partly the same is shown when
-/// at least that many characters agree AND the name scores at least the user's minimum (30-100, default
-/// <see cref="DefaultNameMin"/>) against the entry's Arabic or English name or another name.</item>
+/// <item>An entry is shown when at least the user's number of identity characters agree (1-14, default all of them: exactly the
+/// same number, once spaces, dashes and leading zeros are left out) OR the name scores at least the user's minimum (30-100,
+/// default <see cref="DefaultNameMin"/>) against the entry's Arabic or English name or another name. Both levels are shown.</item>
+/// <item>The basis says what reached the user's level: ID_AND_NAME, ID or NAME.</item>
 /// <item>Each point gets its level: identity number and name as a percentage, birth date and nationality same or different.</item>
 /// <item>Result: FOUND when at least one entry is shown, else NOT_FOUND. Inquiries made before 23 Nov 2026 keep the results of
 /// the time (MATCH, POSSIBLE_MATCH, PREVIOUSLY_LISTED, NO_MATCH).</item>
@@ -48,14 +47,14 @@ public static class ScrMatcher
             var (score, name) = new[] { e.NameAr, e.NameEn }.Concat(e.Aliases).Where(n => !string.IsNullOrWhiteSpace(n))
                 .Select(n => (Score: ScrNames.Score(subject.Name, n), Name: n!))
                 .OrderByDescending(x => x.Score).FirstOrDefault();
-            // the same identity number is always shown; a partly same one needs enough characters and a name alike enough
+            // enough identity characters agree OR the name is at least as alike as chosen
             var other = ScrNames.Identity(e.IdentityNo);
             var agree = Math.Max(id.Length, other.Length) - idDiff;
-            if (id.Length == 0)
+            var idOk = id.Length > 0 && other.Length > 0 && agree >= Math.Min(idMinDigits, Math.Max(id.Length, other.Length));
+            var nameOk = score >= nameMinPct;
+            if (!idOk && !nameOk)
                 continue;
-            if (idCode != "EXACT" && (agree < Math.Min(idMinDigits, Math.Max(id.Length, other.Length)) || score < nameMinPct))
-                continue;
-            const string basis = "ID_AND_NAME";
+            var basis = idOk && nameOk ? "ID_AND_NAME" : idOk ? "ID" : "NAME";
             var birth = subject.BirthDate is not { } b ? "NOT_GIVEN" : e.BirthDate is not { } eb ? "NOT_ON_LIST" : b == eb ? "SAME" : "DIFFERENT";
             var nat = string.IsNullOrWhiteSpace(subject.NationalityCode) ? "NOT_GIVEN"
                 : string.IsNullOrWhiteSpace(e.NationalityCode) ? "NOT_ON_LIST"

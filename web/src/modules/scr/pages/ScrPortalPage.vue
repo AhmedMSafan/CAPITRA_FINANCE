@@ -57,12 +57,12 @@
             <small v-if="errors.idMatchMinDigits" class="scr-err">{{ errors.idMatchMinDigits }}</small></label>
           <label class="fc-field scr-name-min"><span>{{ tr('Name match at least') }}: <b dir="ltr">{{ form.nameMatchMinPct }}%</b></span>
             <input v-model.number="form.nameMatchMinPct" type="range" min="30" max="100" step="5" :aria-valuetext="`${form.nameMatchMinPct}%`">
-            <small class="fc-muted">{{ tr('The same identity number is always shown, whatever the name. This minimum applies when fewer than 14 characters must match.') }}</small>
+            <small class="fc-muted">{{ tr('An entry is shown when the identity number OR the name reaches what you chose.') }}</small>
             <small v-if="errors.nameMatchMinPct" class="scr-err">{{ errors.nameMatchMinPct }}</small></label>
         </div>
         <div class="fc-form-actions">
           <div v-if="!result" class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-            <span><b>{{ tr('How screening works:') }}</b> {{ tr('an entry with exactly the same identity number is always shown, with how alike its name is. With fewer characters chosen, an entry is shown when the identity number and the name, in Arabic or English or another name, both reach the levels above.') }}</span></div>
+            <span><b>{{ tr('How screening works:') }}</b> {{ tr('an entry is shown when the identity number reaches the characters you chose, OR the name, in Arabic or English or another name, reaches the percentage you chose. Both levels are shown for every entry.') }}</span></div>
           <span v-else class="scr-grow"></span>
           <button type="button" class="fx-btn" @click="clear"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
           <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="screen">
