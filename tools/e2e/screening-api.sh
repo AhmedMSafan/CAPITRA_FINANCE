@@ -45,14 +45,15 @@ REF=$(body "$r" | jq -r .inquiryRef)
 check "the API's answer" "$(body "$r" | jq -r '.result + " " + .channel + " " + .caseReference + " " + (.hits|length|tostring)')" "NO_MATCH API CB-77 0"
 check "timings kept" "$(body "$r" | jq -r '(.receivedAt != null) and (.respondedAt != null)')" true
 check "kept with its channel and client" "$(sql "select \"CHANNEL_CODE\" || ' ' || \"REQUESTED_BY\" || ' ' || (\"API_CLIENT_ID\" is not null) from \"SCR_INQUIRIES\" where \"INQUIRY_REF\"='$REF'")" "API api:$CLIENT true"
-check "older inquiries are portal ones" "$(sql "select string_agg(distinct \"CHANNEL_CODE\", ',') from \"SCR_INQUIRIES\" where \"INQUIRY_REF\"<>'$REF'")" PORTAL
+sql "insert into \"SCR_INQUIRIES\" (\"INQUIRY_REF\",\"MEMBER_COMPANY_ID\",\"REQUESTED_BY\",\"SUBJECT_TYPE_CODE\",\"SUBJECT_NAME\",\"IDENTITY_TYPE_CODE\",\"IDENTITY_NO\",\"PURPOSE_CODE\",\"RESULT_CODE\",\"REGISTRY_VERSION_NO\",\"SCREENED_AT\",\"CREATED_BY\",\"CREATED_AT\",\"ROW_VERSION\") values ('SCR-2026-900001',$CID,'old.u1','PERSON','Portal Person','NATIONAL_ID','29001011234568','ONBOARDING','NO_MATCH',0,now() - interval '1 minute','E2E',now(),0)" >/dev/null
+check "an inquiry saved without a channel is a portal one" "$(sql "select \"CHANNEL_CODE\" from \"SCR_INQUIRIES\" where \"INQUIRY_REF\"='SCR-2026-900001'")" PORTAL
 r=$(call POST /api/scr/v1/inquiries "$TOKEN" '{"subjectTypeCode":"PERSON"}'); check "checked like the portal" "$(status "$r")" 400
 r=$(call GET /api/scr/v1/inquiries/$REF "$TOKEN"); check "read by reference" "$(status "$r") $(body "$r" | jq -r .inquiryRef)" "200 $REF"
 r=$(call GET /api/scr/v1/inquiries/$(echo "$REF" | tr 'A-Z' 'a-z') "$TOKEN"); check "reference in any case" "$(status "$r")" 200
 r=$(call GET /api/scr/v1/inquiries/SCR-1999-000001 "$TOKEN"); check "unknown reference" "$(status "$r") $(body "$r" | jq -r .error)" "404 not_found"
-r=$(call GET "/api/scr/v1/inquiries?take=2" "$TOKEN"); check "list: the company's inquiries, newest first" "$(status "$r") $(body "$r" | jq -r '(length|tostring) + " " + .[0].inquiryRef')" "2 $REF"
+r=$(call GET "/api/scr/v1/inquiries?take=2" "$TOKEN"); check "list: the company's inquiries, newest first" "$(status "$r") $(body "$r" | jq -r '(length|tostring) + " " + .[0].inquiryRef')" "200 2 SCR-2026-900001"
 TODAY=$(TZ=Africa/Cairo date +%F)
-r=$(call GET "/api/scr/v1/inquiries?from=$TODAY&to=$TODAY" "$TOKEN"); check "list by days: API and portal" "$(body "$r" | jq -r 'length')" 3
+r=$(call GET "/api/scr/v1/inquiries?from=$TODAY&to=$TODAY" "$TOKEN"); check "list by days: API and portal" "$(body "$r" | jq -r '[.[].channel] | sort | join(",")')" "API,PORTAL"
 
 echo "4. Tokens stay in their lane"
 r=$(call GET /api/scr/v1/inquiries "$ADMIN"); check "a user token does not open the API" "$(status "$r")" 401
