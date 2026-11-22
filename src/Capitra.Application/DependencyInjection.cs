@@ -60,6 +60,7 @@ public static class DependencyInjection
         services.AddScoped<Modules.Scr.ScrStaffService>();
         services.AddScoped<Modules.Scr.ScrStepService>();
         services.AddScoped<Modules.Scr.ScrInquiryService>();
+        services.AddScoped<Modules.Scr.ScrApiClientService>();
         services.AddScoped<Modules.Scr.ScrCompanyService>();
         services.AddScoped<Modules.Scr.ScrBillingService>();
         services.AddScoped<Modules.Wfe.IWfeTaskCompletionHandler, Modules.Scr.ScrDecisionWorkflowHandler>();

@@ -33,6 +33,16 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
     {
         var receivedAt = clock.UtcNow;
         var company = await MyCompanyAsync(ct);
+        return await ScreenForAsync(company, Me, currentUser.SessionId, "PORTAL", null, receivedAt, r, ct);
+    }
+
+    /// <summary>
+    /// Screens for a company: from the Screening Portal (its signed-in user) or from the company's own system through the API (its API
+    /// client). Both are kept, billed and audited the same way; the channel and the API client are kept with the inquiry.
+    /// </summary>
+    public async Task<ScrInquiryDto> ScreenForAsync(ScrMemberCompany company, string requestedBy, string? sessionId, string channel, long? apiClientId,
+        DateTime receivedAt, ScrInquiryRequest r, CancellationToken ct)
+    {
         var e = new Dictionary<string, string[]>();
         var type = ScrValidation.Code(r.SubjectTypeCode);
         var idType = ScrValidation.Code(r.IdentityTypeCode);
@@ -56,11 +66,11 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
         var hits = ScrMatcher.Screen(new ScrSubject(type, name!, idNo, type == "PERSON" ? r.BirthDate : null), entries);
         var inquiry = new ScrInquiry
         {
-            InquiryRef = "PENDING", MemberCompanyId = company.MemberCompanyId, RequestedBy = Me, SubjectTypeCode = type, SubjectName = name!,
+            InquiryRef = "PENDING", MemberCompanyId = company.MemberCompanyId, RequestedBy = requestedBy, SubjectTypeCode = type, SubjectName = name!,
             IdentityTypeCode = idType, IdentityNo = idNo, BirthDate = type == "PERSON" ? r.BirthDate : null, NationalityCode = nationality,
             PurposeCode = purpose, PurposeText = ScrValidation.Clean(r.PurposeText), CaseReference = ScrValidation.Clean(r.CaseReference),
             ResultCode = ScrMatcher.Result(hits), RegistryVersionNo = version, ScreenedAt = clock.UtcNow,
-            SessionId = currentUser.SessionId, ReceivedAt = receivedAt,
+            SessionId = sessionId, ReceivedAt = receivedAt, ChannelCode = channel, ApiClientId = apiClientId,
             Hits = [.. hits.Select(h => new ScrInquiryHit
             {
                 PartyId = h.Entry.PartyId, DecisionId = h.Entry.DecisionId, MatchBasisCode = h.MatchBasisCode, NameScorePct = h.NameScorePct,
@@ -100,6 +110,31 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
         return found.Count > 0 ? found[0] : throw new NotFoundException($"Inquiry {inquiryId} was not found.");
     }
 
+    /// <summary>A company's inquiry by its reference (the API), or null.</summary>
+    public async Task<ScrInquiryDto?> ByRefAsync(long companyId, string inquiryRef, CancellationToken ct)
+    {
+        var r = (inquiryRef ?? string.Empty).Trim().ToUpperInvariant();
+        var found = await ListAsync(db.Set<ScrInquiry>().Where(i => i.MemberCompanyId == companyId && i.InquiryRef == r), ct);
+        return found.Count > 0 ? found[0] : null;
+    }
+
+    /// <summary>A company's inquiries screened from one day to another (Cairo days), newest first, at most <paramref name="take"/> (the API).</summary>
+    public Task<IReadOnlyList<ScrInquiryDto>> OfCompanyAsync(long companyId, DateOnly? from, DateOnly? to, int take, CancellationToken ct)
+    {
+        var q = db.Set<ScrInquiry>().Where(i => i.MemberCompanyId == companyId);
+        if (from is { } f)
+        {
+            var start = ScrBilling.CairoStartUtc(f);
+            q = q.Where(i => i.ScreenedAt >= start);
+        }
+        if (to is { } t)
+        {
+            var end = ScrBilling.CairoStartUtc(t.AddDays(1));
+            q = q.Where(i => i.ScreenedAt < end);
+        }
+        return ListAsync(q, ct, Math.Clamp(take, 1, 500));
+    }
+
     /// <summary>Every company's inquiries (federation audit), optionally of one company or one result.</summary>
     public Task<IReadOnlyList<ScrInquiryDto>> AllAsync(long? companyId, string? result, CancellationToken ct)
     {
@@ -111,9 +146,9 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
         return ListAsync(q, ct);
     }
 
-    private async Task<IReadOnlyList<ScrInquiryDto>> ListAsync(IQueryable<ScrInquiry> q, CancellationToken ct)
+    private async Task<IReadOnlyList<ScrInquiryDto>> ListAsync(IQueryable<ScrInquiry> q, CancellationToken ct, int take = 1000)
     {
-        var list = await q.AsNoTracking().Include(i => i.Hits).OrderByDescending(i => i.InquiryId).Take(1000).ToListAsync(ct);
+        var list = await q.AsNoTracking().Include(i => i.Hits).OrderByDescending(i => i.InquiryId).Take(take).ToListAsync(ct);
         var companyIds = list.Select(i => i.MemberCompanyId).Distinct().ToList();
         var codes = await db.Set<ScrMemberCompany>().AsNoTracking().Where(c => companyIds.Contains(c.MemberCompanyId)).ToDictionaryAsync(c => c.MemberCompanyId, c => c.CompanyCode, ct);
         var partyIds = list.SelectMany(i => i.Hits.Select(h => h.PartyId)).Distinct().ToList();
@@ -139,5 +174,5 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
         [.. i.Hits.Select(h => entries.TryGetValue((h.PartyId, h.DecisionId), out var e)
             ? new ScrInquiryHitDto(h.MatchBasisCode, h.NameScorePct, h.MatchedName, h.EntryStatusCode, e.PartyTypeCode, e.NameAr, e.NameEn,
                 e.IdentityTypeCode, e.IdentityNo, e.NationalityCode, e.DecisionRef, e.OfficialNo, e.ScopeText, e.ListedFrom, e.LiftedOn)
-            : null).OfType<ScrInquiryHitDto>()]);
+            : null).OfType<ScrInquiryHitDto>()], i.ChannelCode, i.ReceivedAt, i.RespondedAt);
 }
