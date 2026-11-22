@@ -38872,6 +38872,113 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("MTG_VALUATIONS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrApiClient", b =>
+                {
+                    b.Property<long>("ApiClientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("API_CLIENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ApiClientId"));
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<string>("ClientName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("CLIENT_NAME");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("LastIpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("LAST_IP_ADDRESS");
+
+                    b.Property<DateTime?>("LastTokenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("LAST_TOKEN_AT");
+
+                    b.Property<long>("MemberCompanyId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("MEMBER_COMPANY_ID");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REVOKED_AT");
+
+                    b.Property<string>("RevokedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("REVOKED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime>("SecretCreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SECRET_CREATED_AT");
+
+                    b.Property<string>("SecretHash")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("SECRET_HASH");
+
+                    b.Property<string>("SecretHint")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("SECRET_HINT");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ApiClientId")
+                        .HasName("PK_SCR_API_CLIENTS");
+
+                    b.HasIndex("ClientId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_SCR_API_CLIENTS_CLIENT_ID");
+
+                    b.HasIndex("MemberCompanyId")
+                        .HasDatabaseName("IX_SCR_API_CLIENTS_MEMBER_COMPANY_ID");
+
+                    b.ToTable("SCR_API_CLIENTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrCompanyLicence", b =>
                 {
                     b.Property<long>("LicenceId")
@@ -39344,6 +39451,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InquiryId"));
 
+                    b.Property<long?>("ApiClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("API_CLIENT_ID");
+
                     b.Property<DateOnly?>("BirthDate")
                         .HasColumnType("date")
                         .HasColumnName("BIRTH_DATE");
@@ -39352,6 +39463,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CASE_REFERENCE");
+
+                    b.Property<string>("ChannelCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("PORTAL")
+                        .HasColumnName("CHANNEL_CODE");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -39462,6 +39581,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasKey("InquiryId")
                         .HasName("PK_SCR_INQUIRIES");
+
+                    b.HasIndex("ApiClientId")
+                        .HasDatabaseName("IX_SCR_INQUIRIES_API_CLIENT_ID");
 
                     b.HasIndex("InquiryRef")
                         .IsUnique()
@@ -49404,6 +49526,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_MTG_VALUATIONS_MTG_LKP_VALUATION_TYPES");
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrApiClient", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrMemberCompany", null)
+                        .WithMany()
+                        .HasForeignKey("MemberCompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SCR_API_CLIENTS_SCR_MEMBER_COMPANIES");
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrCompanyLicence", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Scr.ScrMemberCompany", null)
@@ -49468,6 +49600,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Capitra.Domain.Modules.Scr.ScrInquiry", b =>
                 {
+                    b.HasOne("Capitra.Domain.Modules.Scr.ScrApiClient", null)
+                        .WithMany()
+                        .HasForeignKey("ApiClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_SCR_INQUIRIES_SCR_API_CLIENTS");
+
                     b.HasOne("Capitra.Domain.Modules.Scr.ScrMemberCompany", null)
                         .WithMany()
                         .HasForeignKey("MemberCompanyId")

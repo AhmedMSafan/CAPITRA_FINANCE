@@ -121,6 +121,14 @@ export type ScrInvoicePayment = {
 }
 export type ScrInvoicePaymentRequest = { paymentDate: string; paymentAmount: number; bankAccountId: number | null; referenceNo: string | null; notes: string | null }
 export type ScrBankAccount = { bankAccountId: number; text: string; glAccountCode: string }
+/** A member company's system allowed to screen through the Screening API. */
+export type ScrApiClient = {
+  apiClientId: number; memberCompanyId: number; clientId: string; clientName: string; secretHint: string; secretCreatedAt: string; statusCode: string
+  revokedAt: string | null; revokedBy: string | null; lastTokenAt: string | null; lastIpAddress: string | null; inquiryCount: number; notes: string | null
+  createdBy: string; createdAt: string
+}
+/** A client with its secret, shown this once. */
+export type ScrApiClientSecret = { client: ScrApiClient; clientSecret: string }
 export type ScrBillingCompany = {
   memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string; statusCode: string; pricePlanId: number | null; planCode: string | null
   billingCycleCode: string; currentFrom: string; currentTo: string; currentPeriodCode: string; activeUsersNow: number; currentUserMonths: number
@@ -193,6 +201,10 @@ export const scrApi = {
   cancelInvoice: (id: number, reason: string) => http.post<ScrInvoice>(`${API}/billing/invoices/${id}/cancel`, { reason }),
   recordPayment: (id: number, r: ScrInvoicePaymentRequest) => http.post<ScrInvoice>(`${API}/billing/invoices/${id}/payments`, r),
   bankAccounts: () => http.get<ScrBankAccount[]>(`${API}/billing/bank-accounts`),
+  apiClients: (companyId: number) => http.get<ScrApiClient[]>(`${API}/companies/${companyId}/api-clients`),
+  createApiClient: (companyId: number, r: { clientName: string; notes: string | null }) => http.post<ScrApiClientSecret>(`${API}/companies/${companyId}/api-clients`, r),
+  newApiClientSecret: (companyId: number, id: number) => http.post<ScrApiClientSecret>(`${API}/companies/${companyId}/api-clients/${id}/secret`, {}),
+  revokeApiClient: (companyId: number, id: number) => http.post<ScrApiClient>(`${API}/companies/${companyId}/api-clients/${id}/revoke`, {}),
   letters: (search = '') => http.get<ScrLetter[]>(`${API}/letters?search=${encodeURIComponent(search)}`),
   createLetter: (r: ScrLetterRequest) => http.post<ScrLetter>(`${API}/letters`, r),
   addLetterFile: (letterId: number, file: File) => {

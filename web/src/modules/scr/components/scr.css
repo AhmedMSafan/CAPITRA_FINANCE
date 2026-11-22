@@ -276,3 +276,17 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 /* two-factor status in the company users list */
 .fc .scr-2fa-on{color:var(--fin-teal-600)}
 .fc .scr-2fa-off{color:#b45309}
+/* Screening API clients of a member company */
+.fc-modal.scr-modal .scr-modal-body > .scr-api{padding:20px var(--dlg-pad,28px) 0;display:flex;flex-direction:column;gap:16px}
+.fc .scr-api-intro{margin:0;color:var(--fin-muted);line-height:1.6}
+.fc .scr-api-secret{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:12px;border:1px solid #f3c98b;background:#fff8ec}
+.fc .scr-api-secret b{display:flex;gap:8px;align-items:center;color:#9a5b00}
+.fc .scr-api-secret small{color:var(--fin-muted)}
+.fc .scr-api-pair{display:grid;grid-template-columns:120px minmax(0,1fr) auto;gap:10px;align-items:center}
+.fc .scr-api-pair span{font-weight:700;color:var(--fin-ink);font-size:var(--fs-sm)}
+.fc .scr-api-pair code,.fc .scr-api-table code{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:#f1f6f7;padding:6px 10px;border-radius:8px;word-break:break-all}
+.fc .scr-api-new{display:flex;gap:12px;align-items:flex-end}
+.fc .scr-api-new .fc-field{flex:1 1 auto}
+.fc .scr-api-table{border:1px solid var(--fin-line);border-radius:12px}
+.fc .scr-api-confirm{padding:14px 16px;border:1px solid var(--fin-line);border-radius:12px;background:#f7fafa;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.fc .scr-api-confirm p{margin:0}
