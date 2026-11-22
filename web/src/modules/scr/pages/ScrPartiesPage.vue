@@ -15,6 +15,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(6)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button v-if="canEdit" type="button" class="fx-btn fx-btn--primary" @click="edit(null)"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New party') }}</button>
       </div>
     </div>
@@ -101,6 +102,7 @@ import { useUserFilter } from '../utils/userFilter'
 import ScrUserFilter from '../components/ScrUserFilter.vue'
 import ScrDialog from '../components/ScrDialog.vue'
 import { LABELS, errorText, fieldErrors, scrApi, type ScrParty, type ScrPartyRequest } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const canEdit = hasPermission('SCR.DECISION.EDIT')
 const parties = ref<ScrParty[]>([])

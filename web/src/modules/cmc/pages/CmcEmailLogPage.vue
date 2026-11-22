@@ -14,6 +14,9 @@
           </div>
         </div>
       </div>
+      <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(11)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
+      </div>
     </div>
 
     <div class="fx-card fx-card-pad fc-filters">
@@ -65,6 +68,7 @@ import { showError } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { formatDateTime } from '@/modules/scr/utils/dates'
 import { LABELS, STATUS_CHIP, cmcApi, errorText, type CmcEmailLog } from '../api/cmc.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const route = useRoute()
 const q = reactive({ search: '', statusCode: typeof route.query.statusCode === 'string' ? route.query.statusCode : '', kindCode: '', fromDate: '', toDate: '' })

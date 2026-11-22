@@ -14,6 +14,9 @@
           </div>
         </div>
       </div>
+      <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(6)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
+      </div>
     </div>
 
     <div class="fx-card fx-card-pad fc-filters">
@@ -84,6 +87,7 @@ import { tr } from '@/shared/layout/language'
 import { CHIP, LABELS, errorText, scrApi, type ScrRegistry } from '../api/scr.api'
 import { useUserFilter } from '../utils/userFilter'
 import ScrUserFilter from '../components/ScrUserFilter.vue'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const registry = ref<ScrRegistry | null>(null)
 const entries = computed(() => registry.value?.entries ?? [])

@@ -11,6 +11,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(10)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink :to="{ name: 'eod-jobs' }" class="fx-btn"><span class="fa fa-sliders" aria-hidden="true"></span>{{ tr('Jobs') }}</RouterLink>
         <button v-if="page?.canRun" type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="openRun">
           <span class="fa fa-play" aria-hidden="true"></span>{{ tr(page.isNextDayOpen ? 'Run again' : 'Run end of day') }}
@@ -142,6 +143,7 @@ import { language, tr } from '@/shared/layout/language'
 import { formatDate, formatDateTime } from '@/modules/scr/utils/dates'
 import ScrDialog from '@/modules/scr/components/ScrDialog.vue'
 import { MODULES, STATUS, STATUS_CHIP, eodApi, errorText, type EodDay, type EodDayJob, type EodPage } from '../api/eod.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const page = ref<EodPage | null>(null)
 const loading = ref(false)

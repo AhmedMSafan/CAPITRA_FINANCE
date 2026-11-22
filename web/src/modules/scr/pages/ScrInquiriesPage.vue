@@ -14,6 +14,9 @@
           </div>
         </div>
       </div>
+      <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(12)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
+      </div>
     </div>
 
     <div class="fc-indicators">
@@ -79,6 +82,7 @@ import ScrInquiryResult from '../components/ScrInquiryResult.vue'
 import { CHIP, LABELS, errorText, scrApi, type ScrInquiry } from '../api/scr.api'
 import { useUserFilter } from '../utils/userFilter'
 import ScrUserFilter from '../components/ScrUserFilter.vue'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const inquiries = ref<ScrInquiry[]>([])
 const open = ref<ScrInquiry | null>(null)

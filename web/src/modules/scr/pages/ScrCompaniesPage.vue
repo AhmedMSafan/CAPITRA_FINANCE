@@ -18,6 +18,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(7)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button type="button" class="fx-btn fx-btn--primary" @click="startNew"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New company') }}</button>
       </div>
     </div>
@@ -245,6 +246,7 @@
 </template>
 
 <script setup lang="ts">
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'

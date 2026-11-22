@@ -19,6 +19,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(5)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink v-if="canEdit" :to="{ name: 'scr-decision-new' }" class="fx-btn fx-btn--primary"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New decision') }}</RouterLink>
       </div>
     </div>
@@ -124,6 +125,7 @@ import { formatDate } from '../utils/dates'
 import ScrDoneSteps from '../components/ScrDoneSteps.vue'
 import { tr } from '@/shared/layout/language'
 import { LABELS, errorText, scrApi, type ScrDecision } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 type View = '' | 'NOT_STARTED' | 'STARTED' | 'RETURNED' | 'PUBLISHED' | 'CANCELLED'
 const KPIS: { key: Exclude<View, '' | 'CANCELLED'>; title: string; descr: string; orange?: boolean }[] = [

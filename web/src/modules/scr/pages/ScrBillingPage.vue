@@ -19,6 +19,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(9)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <RouterLink :to="{ name: 'scr-price-plans' }" class="fx-btn"><span class="fa fa-tags" aria-hidden="true"></span>{{ tr('Price plans') }}</RouterLink>
       </div>
     </div>
@@ -136,6 +137,7 @@ import ScrDialog from '../components/ScrDialog.vue'
 import ScrInvoiceLines from '../components/ScrInvoiceLines.vue'
 import { formatDate, formatDateTime } from '../utils/dates'
 import { LABELS, egp, errorText, scrApi, type ScrBillingCompany, type ScrInvoice, type ScrPricePlan } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const router = useRouter()
 const canManage = hasPermission('SCR.BILLING.MANAGE')

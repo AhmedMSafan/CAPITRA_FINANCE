@@ -16,6 +16,9 @@
             {{ tr('Inquiries this licence year') }}: <bdi dir="ltr">{{ company.quota.used.toLocaleString() }}<template v-if="company.quota.quota !== null"> / {{ company.quota.quota.toLocaleString() }}</template></bdi>
             <template v-if="company.quota.left !== null"> · {{ company.quota.left.toLocaleString() }} {{ tr('left') }}</template></small></div>
       </div>
+      <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(8)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
+      </div>
     </div>
 
     <div class="fx-card">
@@ -114,6 +117,7 @@ import ScrPortalInvoices from '../components/ScrPortalInvoices.vue'
 import ScrPortalSignIns from '../components/ScrPortalSignIns.vue'
 import { useRoute } from 'vue-router'
 import { CHIP, LABELS, errorText, fieldErrors, scrApi, type ScrInquiry, type ScrInquiryRequest, type ScrMyCompany } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const canUsers = hasPermission('SCR.COMPANY.USERS')
 const route = useRoute()

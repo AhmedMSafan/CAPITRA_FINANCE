@@ -15,6 +15,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(4)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button v-if="canEdit" type="button" class="fx-btn fx-btn--primary" @click="openNew"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New letter') }}</button>
       </div>
     </div>
@@ -51,8 +52,9 @@
               <td>{{ l.decisionCount }}</td>
               <td>
                 <div class="scr-files">
-                  <button v-for="f in l.files" :key="f.letterFileId" type="button" class="fx-btn fx-btn--sm" :title="`SHA-256 ${f.sha256Hash}`" @click="view(l, f)">
-                    <span :class="['fa', f.mimeType === 'application/pdf' ? 'fa-file-pdf-o' : 'fa-file-image-o']" aria-hidden="true"></span>{{ f.fileName }}
+                  <button v-for="f in l.files" :key="f.letterFileId" type="button" class="fx-btn fx-btn--sm scr-file" :title="`SHA-256 ${f.sha256Hash}`" @click="view(l, f)">
+                    <span :class="['fa', f.mimeType === 'application/pdf' ? 'fa-file-pdf-o' : 'fa-file-image-o']" aria-hidden="true"></span><span dir="auto">{{ f.fileName }}</span>
+                    <span class="scr-file-view"><span class="fa fa-eye" aria-hidden="true"></span>{{ tr('View') }}</span>
                   </button>
                   <label v-if="canEdit" class="fx-btn fx-btn--sm scr-upload"><span class="fa fa-paperclip" aria-hidden="true"></span>{{ tr('Attach') }}
                     <input type="file" accept="application/pdf,image/png,image/jpeg,image/tiff" @change="attach(l.letterId, $event)">
@@ -123,6 +125,7 @@ import ScrUserFilter from '../components/ScrUserFilter.vue'
 import ScrDialog from '../components/ScrDialog.vue'
 import ScrDocViewer from '../components/ScrDocViewer.vue'
 import { LABELS, errorText, fieldErrors, scrApi, type ScrLetter, type ScrLetterFile, type ScrLetterRequest } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const canEdit = hasPermission('SCR.LETTER.EDIT')
 const letters = ref<ScrLetter[]>([])

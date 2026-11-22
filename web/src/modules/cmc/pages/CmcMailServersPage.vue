@@ -19,6 +19,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(11)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button type="button" class="fx-btn fx-btn--primary" @click="edit(null)"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New mail server') }}</button>
       </div>
     </div>
@@ -130,6 +131,7 @@ import { tr } from '@/shared/layout/language'
 import { formatDateTime } from '@/modules/scr/utils/dates'
 import ScrDialog from '@/modules/scr/components/ScrDialog.vue'
 import { LABELS, STATUS_CHIP, cmcApi, errorText, fieldErrors, type CmcMailServer, type CmcMailServerRequest, type CmcMailStatus, type CmcTestResult } from '../api/cmc.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const PRESETS = [
   { name: 'Gmail', hostName: 'smtp.gmail.com', portNo: 587, isSslEnabled: true },
