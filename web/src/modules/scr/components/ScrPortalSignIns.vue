@@ -14,7 +14,7 @@
         <thead><tr><th>{{ tr('When') }}</th><th>{{ tr('User') }}</th><th>{{ tr('Result') }}</th><th>{{ tr('Device') }}</th><th>{{ tr('Inquiries') }}</th></tr></thead>
         <tbody>
           <template v-for="s in page?.rows ?? []" :key="s.signInId">
-            <tr ":class="{ 'scr-portal-click': s.inquiryCount > 0 }" @click="s.inquiryCount > 0 && toggle(s.signInId)">
+            <tr :class="{ 'scr-portal-click': s.inquiryCount > 0 }" @click="s.inquiryCount > 0 && toggle(s.signInId)">
               <td>{{ formatDateTime(s.attemptedAt) }}</td>
               <td><b dir="ltr">{{ s.userName }}</b><span v-if="s.fullName" class="fx-cell-sub">{{ s.fullName }}</span></td>
               <td><span class="fx-chip" :class="s.resultCode === 'SUCCESS' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(LABELS[s.resultCode] ?? s.resultCode) }}</span>
