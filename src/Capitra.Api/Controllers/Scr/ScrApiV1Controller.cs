@@ -28,13 +28,13 @@ public sealed record ScrApiHit(
 public sealed record ScrApiInquiry(
     string InquiryRef, string Result, int ListVersion, DateTime ScreenedAt, DateTime? ReceivedAt, DateTime? RespondedAt, string Channel,
     string SubjectType, string SubjectName, string IdentityType, string IdentityNo, DateOnly? BirthDate, string? Nationality, string Purpose,
-    string? PurposeText, string? CaseReference, IReadOnlyList<ScrApiHit> Hits)
+    string? PurposeText, string? CaseReference, IReadOnlyList<ScrApiHit> Hits, string? RecordHash)
 {
     public static ScrApiInquiry From(ScrInquiryDto i) => new(
         i.InquiryRef, i.ResultCode, i.RegistryVersionNo, i.ScreenedAt, i.ReceivedAt, i.RespondedAt, i.ChannelCode, i.SubjectTypeCode, i.SubjectName,
         i.IdentityTypeCode, i.IdentityNo, i.BirthDate, i.NationalityCode, i.PurposeCode, i.PurposeText, i.CaseReference,
         [.. i.Hits.Select(h => new ScrApiHit(h.MatchBasisCode, h.NameScorePct, h.MatchedName, h.EntryStatusCode, h.PartyTypeCode, h.NameAr, h.NameEn,
-            h.IdentityTypeCode, h.IdentityNo, h.NationalityCode, h.DecisionRef, h.OfficialNo, h.ScopeText, h.ListedFrom, h.LiftedOn))]);
+            h.IdentityTypeCode, h.IdentityNo, h.NationalityCode, h.DecisionRef, h.OfficialNo, h.ScopeText, h.ListedFrom, h.LiftedOn))], i.RecordHash);
 }
 
 /// <summary>

@@ -74,24 +74,29 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
             InquiryRef = "PENDING", MemberCompanyId = company.MemberCompanyId, RequestedBy = requestedBy, SubjectTypeCode = type, SubjectName = name!,
             IdentityTypeCode = idType, IdentityNo = idNo, BirthDate = type == "PERSON" ? r.BirthDate : null, NationalityCode = nationality,
             PurposeCode = purpose, PurposeText = ScrValidation.Clean(r.PurposeText), CaseReference = ScrValidation.Clean(r.CaseReference),
-            ResultCode = ScrMatcher.Result(hits), RegistryVersionNo = version, ScreenedAt = clock.UtcNow,
-            SessionId = sessionId, ReceivedAt = receivedAt, ChannelCode = channel, ApiClientId = apiClientId,
+            ResultCode = ScrMatcher.Result(hits), RegistryVersionNo = version, ScreenedAt = ScrInquirySeal.Micro(clock.UtcNow),
+            SessionId = sessionId, ReceivedAt = ScrInquirySeal.Micro(receivedAt), ChannelCode = channel, ApiClientId = apiClientId,
             Hits = [.. hits.Select(h => new ScrInquiryHit
             {
-                PartyId = h.Entry.PartyId, DecisionId = h.Entry.DecisionId, MatchBasisCode = h.MatchBasisCode, NameScorePct = h.NameScorePct,
+                PartyId = h.Entry.PartyId, DecisionId = h.Entry.DecisionId, MatchBasisCode = h.MatchBasisCode, NameScorePct = Math.Round(h.NameScorePct, 6),
                 MatchedName = h.MatchedName, EntryStatusCode = h.Entry.StatusCode,
             })],
         };
 
         await using var tx = await db.BeginTransactionAsync(ct);
+        // one inquiry at a time is sealed, so each is chained to the one before it
+        await db.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock(7300101)", ct);
         db.Add(inquiry);
         await db.SaveChangesAsync(ct);
         inquiry.InquiryRef = $"SCR-{inquiry.ScreenedAt.Year}-{inquiry.InquiryId.ToString("D6", CultureInfo.InvariantCulture)}";
         // the result is ready to send back: the time it took is kept with the inquiry (evidence of the service given)
-        inquiry.RespondedAt = clock.UtcNow;
+        inquiry.RespondedAt = ScrInquirySeal.Micro(clock.UtcNow);
+        inquiry.PrevHash = await db.Set<ScrInquiry>().AsNoTracking().Where(i => i.RecordHash != null).OrderByDescending(i => i.InquiryId)
+            .Select(i => i.RecordHash).FirstOrDefaultAsync(ct);
+        inquiry.RecordHash = ScrInquirySeal.Hash(inquiry, inquiry.PrevHash);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        return ToDto(inquiry, company.CompanyCode, hits.ToDictionary(h => (h.Entry.PartyId, h.Entry.DecisionId), h => h.Entry));
+        return ToDto(inquiry, company, hits.ToDictionary(h => (h.Entry.PartyId, h.Entry.DecisionId), h => h.Entry));
     }
 
     /// <summary>The signed-in company user's inquiries, newest first.</summary>
@@ -177,7 +182,7 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
     {
         var list = await q.AsNoTracking().Include(i => i.Hits).OrderByDescending(i => i.InquiryId).Take(take).ToListAsync(ct);
         var companyIds = list.Select(i => i.MemberCompanyId).Distinct().ToList();
-        var codes = await db.Set<ScrMemberCompany>().AsNoTracking().Where(c => companyIds.Contains(c.MemberCompanyId)).ToDictionaryAsync(c => c.MemberCompanyId, c => c.CompanyCode, ct);
+        var companies = await db.Set<ScrMemberCompany>().AsNoTracking().Where(c => companyIds.Contains(c.MemberCompanyId)).ToDictionaryAsync(c => c.MemberCompanyId, ct);
         var partyIds = list.SelectMany(i => i.Hits.Select(h => h.PartyId)).Distinct().ToList();
         // a hit shows the entry as it was listed; the parties and decisions are read once for all of them
         var parties = await db.Set<ScrParty>().AsNoTracking().Where(p => partyIds.Contains(p.PartyId)).ToDictionaryAsync(p => p.PartyId, ct);
@@ -192,14 +197,68 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
                 p.IdentityTypeCode, p.IdentityNo, p.NationalityCode, p.BirthDate, d.ScopeText, d.EffectiveDate, null, h.EntryStatusCode, d.LetterId, null);
         }
 
-        return [.. list.Select(i => ToDto(i, codes.GetValueOrDefault(i.MemberCompanyId) ?? "-", entries))];
+        return [.. list.Select(i => ToDto(i, companies.GetValueOrDefault(i.MemberCompanyId), entries))];
     }
 
-    private static ScrInquiryDto ToDto(ScrInquiry i, string companyCode, IReadOnlyDictionary<(long, long), ScrRegistryEntry> entries) => new(
-        i.InquiryId, i.InquiryRef, companyCode, i.RequestedBy, i.SubjectTypeCode, i.SubjectName, i.IdentityTypeCode, i.IdentityNo, i.BirthDate,
+    private static ScrInquiryDto ToDto(ScrInquiry i, ScrMemberCompany? company, IReadOnlyDictionary<(long, long), ScrRegistryEntry> entries) => new(
+        i.InquiryId, i.InquiryRef, company?.CompanyCode ?? "-", i.RequestedBy, i.SubjectTypeCode, i.SubjectName, i.IdentityTypeCode, i.IdentityNo, i.BirthDate,
         i.NationalityCode, i.PurposeCode, i.PurposeText, i.CaseReference, i.ResultCode, i.RegistryVersionNo, i.ScreenedAt,
         [.. i.Hits.Select(h => entries.TryGetValue((h.PartyId, h.DecisionId), out var e)
             ? new ScrInquiryHitDto(h.MatchBasisCode, h.NameScorePct, h.MatchedName, h.EntryStatusCode, e.PartyTypeCode, e.NameAr, e.NameEn,
                 e.IdentityTypeCode, e.IdentityNo, e.NationalityCode, e.DecisionRef, e.OfficialNo, e.ScopeText, e.ListedFrom, e.LiftedOn)
-            : null).OfType<ScrInquiryHitDto>()], i.ChannelCode, i.ReceivedAt, i.RespondedAt);
+            : null).OfType<ScrInquiryHitDto>()], i.ChannelCode, i.ReceivedAt, i.RespondedAt, i.RecordHash, i.MemberCompanyId, company?.NameEn, company?.NameAr);
+
+    // ---- seals ------------------------------------------------------------------------------------------------------------------
+
+    /// <summary>Checks one inquiry's seal: its hash recomputed and its link to the sealed inquiry before it (a company user: own only).</summary>
+    public async Task<ScrInquirySealDto> SealAsync(long inquiryId, bool anyCompany, CancellationToken ct)
+    {
+        var q = db.Set<ScrInquiry>().AsNoTracking().Include(i => i.Hits).Where(i => i.InquiryId == inquiryId);
+        if (!anyCompany)
+        {
+            var company = await MyCompanyAsync(ct);
+            q = q.Where(i => i.MemberCompanyId == company.MemberCompanyId);
+        }
+        var i = await q.FirstOrDefaultAsync(ct) ?? throw new NotFoundException($"Inquiry {inquiryId} was not found.");
+        if (i.RecordHash is null)
+            return new ScrInquirySealDto(i.InquiryRef, false, false, null, null, "Made before inquiries were sealed: no seal to check.", clock.UtcNow);
+        var before = await db.Set<ScrInquiry>().AsNoTracking().Where(x => x.InquiryId < inquiryId && x.RecordHash != null).OrderByDescending(x => x.InquiryId)
+            .Select(x => x.RecordHash).FirstOrDefaultAsync(ct);
+        var valid = ScrInquirySeal.Hash(i, i.PrevHash) == i.RecordHash && i.PrevHash == before;
+        return new ScrInquirySealDto(i.InquiryRef, true, valid, i.RecordHash, i.PrevHash,
+            valid ? "The seal is intact: the inquiry is as it was made." : "The seal does not match: the inquiry or the chain was changed.", clock.UtcNow);
+    }
+
+    /// <summary>Checks the whole chain, oldest first (federation audit).</summary>
+    public async Task<ScrSealCheckDto> SealCheckAsync(CancellationToken ct)
+    {
+        var broken = new List<string>();
+        var unsealed = new List<string>();
+        int checkedCount = 0, unsealedBefore = 0;
+        string? prev = null, first = null, last = null;
+        long after = 0;
+        while (true)
+        {
+            var batch = await db.Set<ScrInquiry>().AsNoTracking().Include(i => i.Hits).Where(i => i.InquiryId > after).OrderBy(i => i.InquiryId).Take(500).ToListAsync(ct);
+            if (batch.Count == 0)
+                break;
+            foreach (var i in batch)
+            {
+                if (i.RecordHash is null)
+                {
+                    if (first is null) unsealedBefore++;
+                    else unsealed.Add(i.InquiryRef);
+                    continue;
+                }
+                checkedCount++;
+                first ??= i.InquiryRef;
+                last = i.InquiryRef;
+                if (i.PrevHash != prev || ScrInquirySeal.Hash(i, i.PrevHash) != i.RecordHash)
+                    broken.Add(i.InquiryRef);
+                prev = i.RecordHash;
+            }
+            after = batch[^1].InquiryId;
+        }
+        return new ScrSealCheckDto(checkedCount, broken.Count, [.. broken.Take(100)], unsealed.Count, [.. unsealed.Take(100)], unsealedBefore, first, last, clock.UtcNow);
+    }
 }

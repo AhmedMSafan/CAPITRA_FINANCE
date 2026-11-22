@@ -40,6 +40,21 @@ public sealed class ScrInquiryController(ScrInquiryService inquiries, CompanyAcc
     [HasPermission(Permissions.Scr.InquiryAudit)]
     public Task<IReadOnlyList<ScrInquiryDto>> All(long? companyId, string? result, CancellationToken ct) => inquiries.AllAsync(companyId, result, ct);
 
+    /// <summary>The whole chain of sealed inquiries checked (federation audit).</summary>
+    [HttpGet("seal-check")]
+    [HasPermission(Permissions.Scr.InquiryAudit)]
+    public Task<ScrSealCheckDto> SealCheck(CancellationToken ct) => inquiries.SealCheckAsync(ct);
+
+    /// <summary>One inquiry's seal checked: an auditor any; a company user the company's own.</summary>
+    [HttpGet("{inquiryId:long}/seal")]
+    public async Task<IActionResult> Seal(long inquiryId, CancellationToken ct)
+    {
+        var audit = ScrClaims.Has(User, Permissions.Scr.InquiryAudit);
+        if (!audit && !ScrClaims.Has(User, Permissions.Scr.InquiryCreate))
+            return Forbid();
+        return Ok(await inquiries.SealAsync(inquiryId, audit, ct));
+    }
+
     /// <summary>One inquiry: an auditor reads any; a company user only the company's own.</summary>
     [HttpGet("{inquiryId:long}")]
     public async Task<IActionResult> Get(long inquiryId, CancellationToken ct)

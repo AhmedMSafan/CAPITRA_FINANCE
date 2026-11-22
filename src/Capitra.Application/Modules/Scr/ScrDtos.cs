@@ -52,7 +52,16 @@ public sealed record ScrInquiryDto(
     long InquiryId, string InquiryRef, string CompanyCode, string RequestedBy, string SubjectTypeCode, string SubjectName, string IdentityTypeCode,
     string IdentityNo, DateOnly? BirthDate, string? NationalityCode, string PurposeCode, string? PurposeText, string? CaseReference,
     string ResultCode, int RegistryVersionNo, DateTime ScreenedAt, IReadOnlyList<ScrInquiryHitDto> Hits, string ChannelCode = "PORTAL",
-    DateTime? ReceivedAt = null, DateTime? RespondedAt = null);
+    DateTime? ReceivedAt = null, DateTime? RespondedAt = null, string? RecordHash = null, long MemberCompanyId = 0, string? CompanyNameEn = null,
+    string? CompanyNameAr = null);
+
+/// <summary>One inquiry's seal checked: its hash recomputed, and its link to the sealed inquiry before it.</summary>
+public sealed record ScrInquirySealDto(string InquiryRef, bool Sealed, bool Valid, string? RecordHash, string? PrevHash, string Message, DateTime CheckedAt);
+
+/// <summary>The whole chain checked: sealed inquiries checked, the broken ones, and inquiries saved without a seal after sealing began.</summary>
+public sealed record ScrSealCheckDto(
+    int Checked, int Broken, IReadOnlyList<string> BrokenRefs, int UnsealedAfterStart, IReadOnlyList<string> UnsealedRefs, int UnsealedBeforeStart,
+    string? FirstSealedRef, string? LastSealedRef, DateTime CheckedAt);
 
 public sealed record ScrCompanyDto(
     long MemberCompanyId, string CompanyCode, string NameEn, string NameAr, string? LicenceNo, string? ContactEmail, string StatusCode, string? Notes,
