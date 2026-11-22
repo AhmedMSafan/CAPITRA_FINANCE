@@ -62,7 +62,7 @@
         </div>
         <div class="fc-form-actions">
           <div v-if="!result" class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-            <span><b>{{ tr('How screening works:') }}</b> {{ tr('an entry is shown when the identity number and the name, in Arabic or English or another name, both reach the levels you chose below.') }}</span></div>
+            <span><b>{{ tr('How screening works:') }}</b> {{ tr('an entry is shown when the identity number and the name, in Arabic or English or another name, both reach the levels you chose above.') }}</span></div>
           <span v-else class="scr-grow"></span>
           <button type="button" class="fx-btn" @click="clear"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
           <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="screen">

@@ -42,7 +42,7 @@ export const SCR_AR: Record<string, string> = {
   'Identity characters that must match': 'عدد أحرف الهوية المطلوب تطابقها',
   '14 = exactly the same number. Fewer also shows numbers with some characters different.': '١٤ = الرقم نفسه تمامًا. العدد الأقل يُظهر أيضًا أرقامًا تختلف في بعض الأحرف.',
   'An entry is shown only when both the identity number and the name reach what you chose.': 'لا يظهر القيد إلا إذا بلغ رقم الهوية والاسم معًا ما اخترته.',
-  'an entry is shown when the identity number and the name, in Arabic or English or another name, both reach the levels you chose below.': 'يظهر القيد عندما يبلغ رقم الهوية والاسم، بالعربية أو الإنجليزية أو بأي اسم آخر، المستويين اللذين تختارهما أدناه.',
+  'an entry is shown when the identity number and the name, in Arabic or English or another name, both reach the levels you chose above.': 'يظهر القيد عندما يبلغ رقم الهوية والاسم، بالعربية أو الإنجليزية أو بأي اسم آخر، المستويين اللذين تختارهما أعلاه.',
   'No Final List entry reaches the identity and name levels chosen.': 'لا يوجد قيد في القائمة النهائية يبلغ مستوى الهوية والاسم المختارين.',
   'No Final List entry found': 'لم يُعثر على أي قيد في القائمة النهائية',
   '1 Final List entry found': 'عُثر على قيد واحد في القائمة النهائية',
