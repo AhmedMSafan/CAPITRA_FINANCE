@@ -15,9 +15,11 @@ public sealed record ScrHit(
 /// <summary>
 /// Screens one subject against the Final List. No verdict: the Federation shows the facts and the member company decides.
 /// <list type="bullet">
-/// <item>An entry is shown when at least the user's number of identity characters agree (1-14, default all of them: exactly the
-/// same number, once spaces, dashes and leading zeros are left out) AND the name scores at least the user's minimum (30-100,
-/// default <see cref="DefaultNameMin"/>) against the entry's Arabic or English name or another name.</item>
+/// <item>An entry whose identity number is exactly the same (once spaces, dashes and leading zeros are left out) is always shown,
+/// whatever the name: the name's level is shown next to it.</item>
+/// <item>When the user lets fewer identity characters agree (1-13), an entry whose number is only partly the same is shown when
+/// at least that many characters agree AND the name scores at least the user's minimum (30-100, default
+/// <see cref="DefaultNameMin"/>) against the entry's Arabic or English name or another name.</item>
 /// <item>Each point gets its level: identity number and name as a percentage, birth date and nationality same or different.</item>
 /// <item>Result: FOUND when at least one entry is shown, else NOT_FOUND. Inquiries made before 23 Nov 2026 keep the results of
 /// the time (MATCH, POSSIBLE_MATCH, PREVIOUSLY_LISTED, NO_MATCH).</item>
@@ -46,10 +48,12 @@ public static class ScrMatcher
             var (score, name) = new[] { e.NameAr, e.NameEn }.Concat(e.Aliases).Where(n => !string.IsNullOrWhiteSpace(n))
                 .Select(n => (Score: ScrNames.Score(subject.Name, n), Name: n!))
                 .OrderByDescending(x => x.Score).FirstOrDefault();
-            // enough identity characters agree (all of them by default), and the name is at least as alike as chosen
+            // the same identity number is always shown; a partly same one needs enough characters and a name alike enough
             var other = ScrNames.Identity(e.IdentityNo);
             var agree = Math.Max(id.Length, other.Length) - idDiff;
-            if (id.Length == 0 || agree < Math.Min(idMinDigits, Math.Max(id.Length, other.Length)) || score < nameMinPct)
+            if (id.Length == 0)
+                continue;
+            if (idCode != "EXACT" && (agree < Math.Min(idMinDigits, Math.Max(id.Length, other.Length)) || score < nameMinPct))
                 continue;
             const string basis = "ID_AND_NAME";
             var birth = subject.BirthDate is not { } b ? "NOT_GIVEN" : e.BirthDate is not { } eb ? "NOT_ON_LIST" : b == eb ? "SAME" : "DIFFERENT";

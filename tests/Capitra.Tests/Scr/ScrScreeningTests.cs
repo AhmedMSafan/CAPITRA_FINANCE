@@ -56,7 +56,7 @@ public sealed class ScrScreeningTests
     }
 
     [Fact]
-    public void Only_the_same_ID_with_a_name_alike_enough_is_shown()
+    public void The_same_ID_is_always_shown_with_its_name_level()
     {
         var entry = Entry("أحمد محمد علي", "29801011234567");
         // same ID, same name
@@ -65,8 +65,13 @@ public sealed class ScrScreeningTests
         Assert.Equal(("EXACT", 100m), (Assert.Single(hits).IdMatchCode, hits[0].IdScorePct));
         // a mistyped ID is not shown, whatever the name
         Assert.Equal(ScrMatcher.NotFound, Screen("أحمد محمد علي", "29801011234568", entry).Result);
-        // the same ID with another name is not shown
-        Assert.Equal(ScrMatcher.NotFound, Screen("Someone Else", "29801011234567", entry).Result);
+        // the same ID with another name is still shown, with a low name level
+        var (other, found) = Screen("Someone Else", "29801011234567", entry);
+        Assert.Equal(ScrMatcher.Found, found);
+        Assert.True(Assert.Single(other).NameScorePct < ScrMatcher.DefaultNameMin);
+        // Salah Ahmed against Salah Fouad Ramadan: about half alike, same ID, shown even at a 100% name minimum
+        var salah = Entry("Salah Fouad Ramadan", "26212130193458");
+        Assert.Single(ScrMatcher.Screen(new ScrSubject("PERSON", "Salah Ahmed", "26212130193458"), [salah], 100));
     }
 
     [Fact]
@@ -83,12 +88,13 @@ public sealed class ScrScreeningTests
     [Fact]
     public void The_user_chooses_how_alike_the_name_must_be()
     {
+        // the name minimum applies when the identity number is only partly the same
         var entry = Entry("Ahmed Mohamed Ali", "29801011234567");
-        var s = new ScrSubject("PERSON", "Ahmed Mohammed Aly", "29801011234567");
+        var s = new ScrSubject("PERSON", "Ahmed Mohammed Aly", "29801011234568");
         var score = ScrNames.Score(s.Name, entry.NameAr);
-        Assert.Single(ScrMatcher.Screen(s, [entry], (int)Math.Floor(score)));
-        Assert.Empty(ScrMatcher.Screen(s, [entry], (int)Math.Floor(score) + 1));
-        Assert.Single(ScrMatcher.Screen(new ScrSubject("PERSON", "Ahmed Hassan", "29801011234567"), [entry], 30));
+        Assert.Single(ScrMatcher.Screen(s, [entry], (int)Math.Floor(score), 13));
+        Assert.Empty(ScrMatcher.Screen(s, [entry], (int)Math.Floor(score) + 1, 13));
+        Assert.Single(ScrMatcher.Screen(new ScrSubject("PERSON", "Ahmed Hassan", "29801011234568"), [entry], 30, 13));
     }
 
     [Fact]
