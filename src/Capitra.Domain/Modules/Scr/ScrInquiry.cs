@@ -54,6 +54,12 @@ public class ScrInquiry : AuditableEntity
     /// <summary>When the result was ready to send back.</summary>
     public DateTime? RespondedAt { get; set; }
 
+    /// <summary>How the inquiry came: PORTAL (a user in the Screening Portal) or API (the company's own system, SCR_API_CLIENTS).</summary>
+    public string ChannelCode { get; set; } = "PORTAL";
+
+    /// <summary>The API client that made it (API inquiries only).</summary>
+    public long? ApiClientId { get; set; }
+
     public List<ScrInquiryHit> Hits { get; set; } = [];
 }
 

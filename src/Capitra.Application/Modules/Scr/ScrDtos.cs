@@ -51,7 +51,8 @@ public sealed record ScrInquiryHitDto(
 public sealed record ScrInquiryDto(
     long InquiryId, string InquiryRef, string CompanyCode, string RequestedBy, string SubjectTypeCode, string SubjectName, string IdentityTypeCode,
     string IdentityNo, DateOnly? BirthDate, string? NationalityCode, string PurposeCode, string? PurposeText, string? CaseReference,
-    string ResultCode, int RegistryVersionNo, DateTime ScreenedAt, IReadOnlyList<ScrInquiryHitDto> Hits);
+    string ResultCode, int RegistryVersionNo, DateTime ScreenedAt, IReadOnlyList<ScrInquiryHitDto> Hits, string ChannelCode = "PORTAL",
+    DateTime? ReceivedAt = null, DateTime? RespondedAt = null);
 
 public sealed record ScrCompanyDto(
     long MemberCompanyId, string CompanyCode, string NameEn, string NameAr, string? LicenceNo, string? ContactEmail, string StatusCode, string? Notes,

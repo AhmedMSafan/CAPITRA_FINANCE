@@ -73,6 +73,7 @@
                 <div class="fc-row-actions">
                   <button type="button" class="fx-btn fx-btn--sm" @click="edit(c)"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Edit') }}</button>
                   <button type="button" class="fx-btn fx-btn--sm" @click="openLicence(c)"><span class="fa fa-id-card-o" aria-hidden="true"></span>{{ tr('Licence') }}</button>
+                  <button type="button" class="fx-btn fx-btn--sm" @click="apiOf = c"><span class="fa fa-plug" aria-hidden="true"></span>{{ tr('API') }}</button>
                   <button type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="selected = c"><span class="fa fa-users" aria-hidden="true"></span>{{ tr('Users') }}</button>
                 </div>
               </td>
@@ -85,6 +86,8 @@
 
     <ScrCompanyUsers v-if="selected" :key="selected.memberCompanyId" :company-id="selected.memberCompanyId" :company-name="`${selected.companyCode} · ${selected.nameAr}`"
                      :max-users="selected.licence?.maxUsers ?? 0" @changed="load" />
+
+    <ScrApiClients v-if="apiOf" :company-id="apiOf.memberCompanyId" :company-name="`${apiOf.companyCode} · ${apiOf.nameAr}`" @close="apiOf = null" />
 
     <!-- new company: company + licence + administrator in one step -->
     <ScrDialog v-if="creating" :title="tr('New company')" :subtitle="tr('The company, its licence and its administrator, in one step. The administrator receives an activation e-mail.')" icon="fa-building-o" @close="creating = false">
@@ -254,6 +257,7 @@ import { formatDate, formatDateTime } from '../utils/dates'
 import { useUserFilter } from '../utils/userFilter'
 import ScrUserFilter from '../components/ScrUserFilter.vue'
 import ScrCompanyUsers from '../components/ScrCompanyUsers.vue'
+import ScrApiClients from '../components/ScrApiClients.vue'
 import ScrDialog from '../components/ScrDialog.vue'
 import ScrLinkBox from '../components/ScrLinkBox.vue'
 import {
@@ -274,6 +278,7 @@ const rows = computed(() => {
 const seatPct = (c: ScrCompany) => `${c.licence?.maxUsers ? Math.min(100, Math.round(((c.seats?.usersInUse ?? 0) / c.licence.maxUsers) * 100)) : 0}%`
 
 const selected = ref<ScrCompany | null>(null)
+const apiOf = ref<ScrCompany | null>(null)
 const busy = ref(false)
 const errors = ref<Record<string, string>>({})
 const err = (k: string) => errors.value[k] ?? errors.value[k.charAt(0).toLowerCase() + k.slice(1)]

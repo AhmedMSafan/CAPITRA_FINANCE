@@ -31,7 +31,8 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
             nameof(SecAuthController.SetPasswordFromLink), nameof(SecAuthController.ForgotPassword),
             nameof(SecAuthController.SecondStepSetup), nameof(SecAuthController.SecondStepEnable), nameof(SecAuthController.SecondStepVerify)
         ];
-        Assert.Equal(expected.Select(m => $"{nameof(SecAuthController)}.{m}").Order(), anonymous.Order());
+        // and the Screening API's token request (client credentials)
+        Assert.Equal(expected.Select(m => $"{nameof(SecAuthController)}.{m}").Append("ScrApiV1Controller.Token").Order(), anonymous.Order());
     }
 
     [Fact]
@@ -49,6 +50,16 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
         var token = _factory.IssueToken(Permissions.All);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token[..^2] + "xx");
         var response = await client.GetAsync(new Uri("/api/adm/lookups", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_user_token_does_not_open_the_screening_api()
+    {
+        // the Screening API takes only its own tokens (client credentials), even a user's with every permission
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _factory.IssueToken(Permissions.All));
+        var response = await client.GetAsync(new Uri("/api/scr/v1/inquiries", UriKind.Relative));
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
@@ -113,6 +124,8 @@ public sealed class AuthorizationTests : IClassFixture<CapitraApiFactory>
     [InlineData("POST", "/api/scr/billing/companies/1/invoices", Permissions.Scr.BillingView)]
     [InlineData("POST", "/api/scr/billing/invoices/1/cancel", Permissions.Scr.BillingView)]
     [InlineData("POST", "/api/scr/billing/invoices/1/payments", Permissions.Scr.BillingView)]
+    [InlineData("GET", "/api/scr/companies/1/api-clients", Permissions.Scr.DecisionView)]
+    [InlineData("POST", "/api/scr/companies/1/api-clients", Permissions.Scr.InquiryCreate)]
     [InlineData("GET", "/api/scr/billing/bank-accounts", Permissions.Scr.BillingView)]
     [InlineData("GET", "/api/scr/access-log", Permissions.Scr.InquiryCreate)]
     [InlineData("GET", "/api/scr/access-log/1", Permissions.Scr.BillingManage)]

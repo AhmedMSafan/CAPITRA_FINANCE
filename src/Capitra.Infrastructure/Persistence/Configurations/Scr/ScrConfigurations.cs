@@ -163,6 +163,8 @@ public sealed class ScrInquiryConfiguration : IEntityTypeConfiguration<ScrInquir
         builder.Property(x => x.InquiryId).UseIdentityByDefaultColumn();
         builder.Property(x => x.InquiryRef).HasMaxLength(30);
         builder.Property(x => x.RequestedBy).HasMaxLength(256);
+        builder.Property(x => x.ChannelCode).HasMaxLength(20).HasDefaultValue("PORTAL");
+        builder.HasOne<ScrApiClient>().WithMany().HasForeignKey(x => x.ApiClientId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.SubjectTypeCode).HasMaxLength(20);
         builder.Property(x => x.SubjectName).HasMaxLength(300);
         builder.Property(x => x.IdentityTypeCode).HasMaxLength(30);
@@ -366,6 +368,28 @@ public sealed class ScrInvoicePaymentConfiguration : IEntityTypeConfiguration<Sc
         builder.Property(x => x.GlTranSetId).HasMaxLength(50);
         builder.HasOne<ScrInvoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Capitra.Domain.Modules.Trs.TrsBankAccount>().WithMany().HasForeignKey(x => x.BankAccountId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class ScrApiClientConfiguration : IEntityTypeConfiguration<ScrApiClient>
+{
+    public void Configure(EntityTypeBuilder<ScrApiClient> builder)
+    {
+        builder.ToTable("SCR_API_CLIENTS");
+        builder.HasKey(x => x.ApiClientId);
+        builder.Property(x => x.ApiClientId).UseIdentityByDefaultColumn();
+        builder.HasIndex(x => x.ClientId).IsUnique();
+        builder.HasIndex(x => x.MemberCompanyId);
+        builder.Property(x => x.ClientId).HasMaxLength(60);
+        builder.Property(x => x.ClientName).HasMaxLength(150);
+        builder.Property(x => x.SecretHash).HasMaxLength(200);
+        builder.Property(x => x.SecretHint).HasMaxLength(10);
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.Property(x => x.RevokedBy).HasMaxLength(256);
+        builder.Property(x => x.LastIpAddress).HasMaxLength(64);
+        builder.Property(x => x.Notes).HasMaxLength(1000);
+        builder.HasOne<ScrMemberCompany>().WithMany().HasForeignKey(x => x.MemberCompanyId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }
