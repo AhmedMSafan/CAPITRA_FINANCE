@@ -23,6 +23,8 @@
         <button type="button" class="fc-tab" role="tab" :aria-selected="tab === 'new'" @click="tab = 'new'"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('New inquiry') }}</button>
         <button type="button" class="fc-tab" role="tab" :aria-selected="tab === 'mine'" @click="openHistory"><span class="fa fa-history" aria-hidden="true"></span>{{ tr('My inquiries') }}<em v-if="history.length">{{ history.length }}</em></button>
         <button v-if="canUsers && company" type="button" class="fc-tab" role="tab" :aria-selected="tab === 'users'" @click="tab = 'users'"><span class="fa fa-users" aria-hidden="true"></span>{{ tr('Company users') }}</button>
+        <button v-if="canUsers && company" type="button" class="fc-tab" role="tab" :aria-selected="tab === 'invoices'" @click="tab = 'invoices'"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Invoices') }}</button>
+        <button v-if="canUsers && company" type="button" class="fc-tab" role="tab" :aria-selected="tab === 'signins'" @click="tab = 'signins'"><span class="fa fa-sign-in" aria-hidden="true"></span>{{ tr('Sign-ins') }}</button>
       </div>
 
       <template v-if="tab === 'new'">
@@ -88,6 +90,8 @@
     </div>
 
     <ScrInquiryResult v-if="tab === 'new' && result" :inquiry="result" />
+    <ScrPortalInvoices v-if="tab === 'invoices' && company" />
+    <ScrPortalSignIns v-if="tab === 'signins' && company" />
     <ScrCompanyUsers v-if="tab === 'users' && company" :company-id="company.memberCompanyId" :company-name="company.nameAr" :max-users="company.maxUsers ?? undefined" />
   </div>
 </template>
@@ -106,10 +110,14 @@ import { useUserFilter } from '../utils/userFilter'
 import ScrUserFilter from '../components/ScrUserFilter.vue'
 import ScrCompanyUsers from '../components/ScrCompanyUsers.vue'
 import ScrInquiryResult from '../components/ScrInquiryResult.vue'
+import ScrPortalInvoices from '../components/ScrPortalInvoices.vue'
+import ScrPortalSignIns from '../components/ScrPortalSignIns.vue'
+import { useRoute } from 'vue-router'
 import { CHIP, LABELS, errorText, fieldErrors, scrApi, type ScrInquiry, type ScrInquiryRequest, type ScrMyCompany } from '../api/scr.api'
 
 const canUsers = hasPermission('SCR.COMPANY.USERS')
-const tab = ref<'new' | 'mine' | 'users'>('new')
+const route = useRoute()
+const tab = ref<'new' | 'mine' | 'users' | 'invoices' | 'signins'>(route.query.tab === 'invoices' && canUsers ? 'invoices' : 'new')
 const company = ref<ScrMyCompany | null>(null)
 const result = ref<ScrInquiry | null>(null)
 const history = ref<ScrInquiry[]>([])
