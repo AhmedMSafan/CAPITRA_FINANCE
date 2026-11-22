@@ -26,7 +26,8 @@ USED=$(sql "select count(*) from \"SCR_INQUIRIES\" where \"MEMBER_COMPANY_ID\"=$
 echo "1. Yearly quota: the licence year, used and left"
 r=$(call GET /api/scr/v1/quota "$TOKEN"); check "no quota yet" "$(body "$r" | jq -r '(.quota|tostring) + " " + (.used|tostring) + " " + (.left|tostring)')" "null $USED null"
 FROM=$(sql "select \"VALID_FROM\" from \"SCR_COMPANY_LICENCES\" where \"MEMBER_COMPANY_ID\"=$CID order by \"LICENCE_ID\" desc limit 1")
-check "the licence year starts on the licence's start day" "$(body "$r" | jq -r .from)" "$FROM"
+YEAR_FROM=$(python3 -c "import datetime as d,sys; f=d.date.fromisoformat(sys.argv[1]); t=d.date.today(); y=f.replace(year=t.year); print(y if y<=t else f.replace(year=t.year-1))" "$FROM")
+check "the licence year runs from the licence's start day" "$(body "$r" | jq -r '.from + " " + .to')" "$YEAR_FROM $(python3 -c "import datetime as d,sys; f=d.date.fromisoformat(sys.argv[1]); print(f.replace(year=f.year+1)-d.timedelta(days=1))" "$YEAR_FROM")"
 sql "update \"SCR_COMPANY_LICENCES\" set \"YEARLY_INQUIRY_QUOTA\"=$((USED + 2)) where \"MEMBER_COMPANY_ID\"=$CID" >/dev/null
 r=$(screen "$TOKEN" 1); check "inquiry 1 of 2 left" "$(status "$r")" 200
 r=$(call GET /api/scr/v1/quota "$TOKEN"); check "one left" "$(body "$r" | jq -r '.left')" 1
