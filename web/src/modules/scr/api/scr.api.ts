@@ -304,11 +304,17 @@ export const LABELS: Record<string, string> = {
   LISTING: 'Listing', AMENDMENT: 'Amendment', SUSPENSION: 'Suspension', LIFTING: 'Lifting',
   DRAFT: 'Draft', IN_REVIEW: 'In review', AWAITING_APPROVAL: 'Awaiting approval', RETURNED: 'Returned', PUBLISHED: 'Published', CANCELLED: 'Cancelled',
   ACTIVE: 'Active', SUSPENDED: 'Suspended', LIFTED: 'Lifted',
-  NO_MATCH: 'No match', POSSIBLE_MATCH: 'Possible match', MATCH: 'Match', PREVIOUSLY_LISTED: 'Previously listed',
+  NO_MATCH: 'Not listed', POSSIBLE_MATCH: 'Needs review', MATCH: 'Listed', PREVIOUSLY_LISTED: 'Previously listed',
   ID_AND_NAME: 'Identity and name', ID_ONLY: 'Identity only (name differs)', NAME_ONLY: 'Name only (identity differs)',
   ONBOARDING: 'Customer onboarding', TRANSACTION: 'Transaction', PERIODIC_REVIEW: 'Periodic review',
   MEMBER_COMPANY_USER: 'Company user', MEMBER_COMPANY_ADMIN: 'Company administrator',
   PENDING_ACTIVATION: 'Pending activation', INACTIVE: 'Inactive', NOT_STARTED: 'Not started yet', EXPIRED: 'Expired', NONE: 'No licence'
+}
+
+/** The result as a sentence that says what to do (banner, certificate). */
+export const VERDICT: Record<string, string> = {
+  MATCH: 'Listed on the Final List: do not proceed', POSSIBLE_MATCH: 'Needs review: a similar name is listed',
+  PREVIOUSLY_LISTED: 'Not listed now: was listed before', NO_MATCH: 'Not listed: you can proceed'
 }
 
 export const CHIP: Record<string, string> = {

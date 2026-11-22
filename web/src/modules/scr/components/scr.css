@@ -318,3 +318,20 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-portal-click{cursor:pointer}
 .fc .scr-api-table code{white-space:nowrap;word-break:normal}
 .fc .scr-api-table td:not(:first-child){white-space:nowrap}
+/* one inquiry's result: each point checked, with a tick or a cross and a word */
+.fc .scr-grow { flex: 1; }
+.fc .scr-hit-decision { margin-inline-start: auto; font-size: var(--fs-sm); }
+.fc .scr-hit .fx-table-wrap { margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+.fc .scr-checks td, .fc .scr-checks th { vertical-align: middle; }
+.fc .scr-mark { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.fc .scr-mark .fa { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-size: 13px; }
+.fc .scr-mark--yes { color: var(--fin-ok); } .fc .scr-mark--yes .fa { background: var(--fin-ok-50); }
+.fc .scr-mark--no { color: var(--fin-bad); } .fc .scr-mark--no .fa { background: var(--fin-bad-50); }
+.fc .scr-mark--none { color: var(--fin-muted); } .fc .scr-mark--none .fa { background: var(--fin-neutral-50); }
+.fc .scr-hit .fc-note { margin: 0 14px 10px; }
+.fc .scr-hit-scope { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; padding: 10px 14px 14px; color: var(--fin-muted); }
+.fc .scr-hit-scope b { color: var(--fin-ink); }
+.fc .scr-basis { display: flex; gap: 10px; margin-top: 4px; font-size: var(--fs-xs); font-weight: 700; }
+.fc .scr-basis > span { display: inline-flex; align-items: center; gap: 4px; }
+.fc .scr-basis--yes { color: var(--fin-ok); }
+.fc .scr-basis--no { color: var(--fin-bad); }

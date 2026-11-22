@@ -53,8 +53,9 @@
           <label class="fc-field"><span>{{ tr('Case reference') }}</span><input v-model="form.caseReference" class="fx-search" dir="ltr"></label>
         </div>
         <div class="fc-form-actions">
-          <div class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-            <span>{{ tr('The name is matched in Arabic and English, including other names; the identity number exactly.') }}</span></div>
+          <div v-if="!result" class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+            <span><b>{{ tr('How screening works:') }}</b> {{ tr('we look for the identity number exactly, and for similar names in Arabic and English, other names included.') }}</span></div>
+          <span v-else class="scr-grow"></span>
           <button type="button" class="fx-btn" @click="clear"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
           <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="screen">
             <span :class="['fa', busy ? 'fa-spinner fa-spin' : 'fa-search']" aria-hidden="true"></span>{{ tr('Screen') }}
@@ -80,7 +81,11 @@
                 <td>{{ i.subjectName }}<span class="fx-cell-sub">{{ tr(LABELS[i.subjectTypeCode] ?? i.subjectTypeCode) }}</span></td>
                 <td dir="ltr">{{ i.identityNo }}</td>
                 <td>{{ tr(LABELS[i.purposeCode] ?? i.purposeCode) }}</td>
-                <td><span class="fx-chip" :class="CHIP[i.resultCode]">{{ tr(LABELS[i.resultCode] ?? i.resultCode) }}</span></td>
+                <td><span class="fx-chip" :class="CHIP[i.resultCode]">{{ tr(LABELS[i.resultCode] ?? i.resultCode) }}</span>
+                  <span v-if="i.hits.length" class="scr-basis">
+                    <span :class="i.hits[0].matchBasisCode === 'NAME_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0].matchBasisCode === 'NAME_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('ID') }}</span>
+                    <span :class="i.hits[0].matchBasisCode === 'ID_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0].matchBasisCode === 'ID_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('Name') }}</span>
+                  </span></td>
                 <td>{{ formatDateTime(i.screenedAt) }}</td>
                 <td>{{ i.requestedBy }}</td>
                 <td class="fx-r"><button type="button" class="fx-btn fx-btn--sm" @click="result = i; tab = 'new'"><span class="fa fa-eye" aria-hidden="true"></span>{{ tr('View') }}</button></td>
