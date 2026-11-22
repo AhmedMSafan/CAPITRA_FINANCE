@@ -119,7 +119,7 @@ import ScrDialog from '../components/ScrDialog.vue'
 import { formatDateTime } from '../utils/dates'
 import { LABELS, errorText, scrApi, type ScrCompany, type ScrSessionInquiry, type ScrSignIn, type ScrSignInPage } from '../api/scr.api'
 
-const REFUSALS = ['BAD_PASSWORD', 'BAD_CODE', 'UNKNOWN_USER', 'INACTIVE', 'LOCKED', 'COMPANY_BLOCKED']
+const REFUSALS = ['BAD_PASSWORD', 'BAD_CODE', 'UNKNOWN_USER', 'INACTIVE', 'LOCKED', 'COMPANY_BLOCKED', 'IP_BLOCKED']
 /** Success, refusal, or the in-between ones: password right but no code (warn), two-factor reset by an administrator (plain). */
 const resultChip = (code: string) => code === 'SUCCESS' ? 'fx-chip--ok' : code === 'AWAITING_CODE' || code === 'CODE_TIMEOUT' ? 'fx-chip--warn' : code === 'TWO_FACTOR_RESET' ? 'fx-chip--plain' : 'fx-chip--bad'
 const SESSION_CHIP: Record<string, string> = { OPEN: 'fx-chip--ok', SIGNED_OUT: 'fx-chip--plain', EXPIRED: 'fx-chip--plain' }

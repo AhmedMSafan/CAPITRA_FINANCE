@@ -78,9 +78,12 @@ public sealed class SecAuthController(
     /// <summary>The only anonymous endpoint: exchanges user name and password for a JWT.</summary>
     [HttpPost("login")]
     [AllowAnonymous]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(ScrRateLimits.SignInPolicy)]
     public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
     {
         // every attempt is recorded (SEC_SIGN_INS), with why it was refused; the user is shown the same message as before
+        if (await NetworkBlockedAsync())
+            return await RefuseAsync(request.UserName, null, "IP_BLOCKED", NetworkBlockedText);
         var user = await users.FindByNameAsync(request.UserName);
         if (user is null || !user.IsActive)
             return await RefuseAsync(request.UserName, user, user is null ? "UNKNOWN_USER" : "INACTIVE", InvalidLogin);
@@ -172,6 +175,7 @@ public sealed class SecAuthController(
 
     /// <summary>First sign-in with two-factor: the key to add to the authenticator app, as a QR code and as text.</summary>
     [AllowAnonymous]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(ScrRateLimits.SignInPolicy)]
     [HttpPost("second-step/setup")]
     public async Task<ActionResult<AuthenticatorSetupDto>> SecondStepSetup(SecondStepRequest request)
     {
@@ -201,6 +205,7 @@ public sealed class SecAuthController(
 
     /// <summary>Confirms the set-up with a first code from the app: two-factor is on, 10 backup codes are shown once, and the user is in.</summary>
     [AllowAnonymous]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(ScrRateLimits.SignInPolicy)]
     [HttpPost("second-step/enable")]
     public async Task<ActionResult<SecondStepResult>> SecondStepEnable(SecondStepRequest request)
     {
@@ -227,6 +232,7 @@ public sealed class SecAuthController(
 
     /// <summary>The second step of a sign-in: the authenticator's 6-digit code, or one of the backup codes (each works once).</summary>
     [AllowAnonymous]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(ScrRateLimits.SignInPolicy)]
     [HttpPost("second-step/verify")]
     public async Task<ActionResult<SecondStepResult>> SecondStepVerify(SecondStepRequest request)
     {
@@ -283,6 +289,28 @@ public sealed class SecAuthController(
         return NoContent();
     }
 
+    /// <summary>Failed sign-ins from one network address within <see cref="NetworkWindow"/> that block it for the rest of the window.</summary>
+    public const int NetworkFailureLimit = 20;
+
+    public static readonly TimeSpan NetworkWindow = TimeSpan.FromMinutes(15);
+
+    private const string NetworkBlockedText = "Too many failed sign-ins from your network. Try again in 15 minutes.";
+
+    /// <summary>
+    /// Whether this network address made <see cref="NetworkFailureLimit"/> failed sign-ins (wrong user, password or code) in the last
+    /// 15 minutes: guessing across many accounts is stopped, which locking each account alone does not do.
+    /// </summary>
+    private async Task<bool> NetworkBlockedAsync()
+    {
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+        if (string.IsNullOrEmpty(ip))
+            return false;
+        var since = clock.UtcNow - NetworkWindow;
+        var failures = await db.Set<SecSignIn>().AsNoTracking().CountAsync(s => s.IpAddress == ip && s.AttemptedAt >= since
+            && (s.ResultCode == "UNKNOWN_USER" || s.ResultCode == "BAD_PASSWORD" || s.ResultCode == "BAD_CODE"), HttpContext.RequestAborted);
+        return failures >= NetworkFailureLimit;
+    }
+
     private async Task<ActionResult<LoginResponse>> RefuseAsync(string userName, SecUser? user, string resultCode, string message)
     {
         db.Add(NewSignIn(userName, user, resultCode, message));
@@ -307,6 +335,7 @@ public sealed class SecAuthController(
     /// replaced or expired link answers 400.
     /// </summary>
     [AllowAnonymous]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(ScrRateLimits.SignInPolicy)]
     [HttpPost("link/check")]
     public async Task<ActionResult<AccountLinkInfo>> CheckLink(AccountLinkRequest request)
     {
@@ -319,6 +348,7 @@ public sealed class SecAuthController(
     /// voids it) and every open session ends. The user then signs in.
     /// </summary>
     [AllowAnonymous]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(ScrRateLimits.SignInPolicy)]
     [HttpPost("link/set-password")]
     public async Task<IActionResult> SetPasswordFromLink(AccountLinkPasswordRequest request)
     {
@@ -346,6 +376,7 @@ public sealed class SecAuthController(
     /// whether or not the account exists, so it cannot be used to find user names.
     /// </summary>
     [AllowAnonymous]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(ScrRateLimits.SignInPolicy)]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
     {

@@ -62,6 +62,11 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
             e["purposeText"] = ["Describe the purpose."];
         ScrValidation.Throw(e);
 
+        // the licence's yearly quota (licence years from its start day), the portal and the API together
+        if (await QuotaAsync(company.MemberCompanyId, ct) is { Quota: { } quota } use && use.Used >= quota)
+            throw new ScrQuotaExceededException(
+                $"Your company has used its yearly quota of {quota:#,0} inquiries for {use.From:yyyy-MM-dd} to {use.To:yyyy-MM-dd}. Contact the Federation.");
+
         var (entries, version, _) = await staff.ListAsync(ct);
         var hits = ScrMatcher.Screen(new ScrSubject(type, name!, idNo, type == "PERSON" ? r.BirthDate : null), entries);
         var inquiry = new ScrInquiry
@@ -108,6 +113,28 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
 
         var found = await ListAsync(q, ct);
         return found.Count > 0 ? found[0] : throw new NotFoundException($"Inquiry {inquiryId} was not found.");
+    }
+
+    /// <summary>
+    /// The licence's yearly inquiry quota and what is used of it: the licence year runs from the licence's start day, a year at a time;
+    /// null when the company has no licence covering today. Quota is null when the licence has none.
+    /// </summary>
+    public async Task<ScrQuotaDto?> QuotaAsync(long companyId, CancellationToken ct)
+    {
+        var licence = await db.Set<ScrCompanyLicence>().AsNoTracking().Where(l => l.MemberCompanyId == companyId).OrderByDescending(l => l.LicenceId)
+            .FirstOrDefaultAsync(ct);
+        var today = ScrBilling.CairoDate(clock.UtcNow);
+        if (licence is null || today < licence.ValidFrom)
+            return null;
+        var years = today.Year - licence.ValidFrom.Year;
+        var from = licence.ValidFrom.AddYears(years);
+        if (from > today)
+            from = licence.ValidFrom.AddYears(years - 1);
+        var to = from.AddYears(1).AddDays(-1);
+        var start = ScrBilling.CairoStartUtc(from);
+        var end = ScrBilling.CairoStartUtc(to.AddDays(1));
+        var used = await db.Set<ScrInquiry>().AsNoTracking().CountAsync(i => i.MemberCompanyId == companyId && i.ScreenedAt >= start && i.ScreenedAt < end, ct);
+        return new ScrQuotaDto(licence.YearlyInquiryQuota, used, licence.YearlyInquiryQuota is { } q ? Math.Max(0, q - used) : null, from, to);
     }
 
     /// <summary>A company's inquiry by its reference (the API), or null.</summary>

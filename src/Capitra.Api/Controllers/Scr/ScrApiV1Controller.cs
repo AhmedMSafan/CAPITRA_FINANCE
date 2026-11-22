@@ -7,6 +7,7 @@ using Capitra.Infrastructure.Identity;
 using Capitra.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Api.Controllers.Scr;
@@ -50,6 +51,7 @@ public sealed class ScrApiV1Controller(
     /// <summary>Client credentials for a token (an hour). The same refusal for an unknown client, a wrong secret or a revoked client.</summary>
     [HttpPost("token")]
     [AllowAnonymous]
+    [EnableRateLimiting(ScrRateLimits.TokenPolicy)]
     [ProducesResponseType<ScrApiTokenResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ScrApiError>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ScrApiError>(StatusCodes.Status403Forbidden)]
@@ -72,17 +74,34 @@ public sealed class ScrApiV1Controller(
 
     /// <summary>Screens one person or company against the Federation Final List; the inquiry is kept and its result returned.</summary>
     [HttpPost("inquiries")]
+    [EnableRateLimiting(ScrRateLimits.ApiPolicy)]
     [ProducesResponseType<ScrApiInquiry>(StatusCodes.Status200OK)]
-    public async Task<ScrApiInquiry> Screen(ScrInquiryRequest request, CancellationToken ct)
+    [ProducesResponseType<ScrApiError>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ScrApiError>(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> Screen(ScrInquiryRequest request, CancellationToken ct)
     {
         var receivedAt = clock.UtcNow;
         var company = await db.Set<ScrMemberCompany>().AsNoTracking().FirstAsync(c => c.MemberCompanyId == ScrApiAuth.CompanyOf(User), ct);
-        var dto = await inquiries.ScreenForAsync(company, User.Identity!.Name!, null, "API", ScrApiAuth.ClientOf(User), receivedAt, request, ct);
-        return ScrApiInquiry.From(dto);
+        try
+        {
+            var dto = await inquiries.ScreenForAsync(company, User.Identity!.Name!, null, "API", ScrApiAuth.ClientOf(User), receivedAt, request, ct);
+            return Ok(ScrApiInquiry.From(dto));
+        }
+        catch (ScrQuotaExceededException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ScrApiError("quota_reached", ex.Message));
+        }
     }
+
+    /// <summary>The licence's yearly inquiry quota: the quota (null: none), used and left, and the licence year.</summary>
+    [HttpGet("quota")]
+    [EnableRateLimiting(ScrRateLimits.ApiPolicy)]
+    public async Task<IActionResult> Quota(CancellationToken ct) =>
+        await inquiries.QuotaAsync(ScrApiAuth.CompanyOf(User), ct) is { } q ? Ok(q) : NotFound(new ScrApiError("no_licence", "Your company has no licence in force."));
 
     /// <summary>One of the company's inquiries by its reference (SCR-2026-000123), from the API or the portal.</summary>
     [HttpGet("inquiries/{inquiryRef}")]
+    [EnableRateLimiting(ScrRateLimits.ApiPolicy)]
     [ProducesResponseType<ScrApiInquiry>(StatusCodes.Status200OK)]
     [ProducesResponseType<ScrApiError>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(string inquiryRef, CancellationToken ct) =>
@@ -92,6 +111,7 @@ public sealed class ScrApiV1Controller(
 
     /// <summary>The company's inquiries screened between two days (Cairo time, inclusive), newest first, at most 500 (default 100).</summary>
     [HttpGet("inquiries")]
+    [EnableRateLimiting(ScrRateLimits.ApiPolicy)]
     public async Task<IReadOnlyList<ScrApiInquiry>> List(DateOnly? from, DateOnly? to, int? take, CancellationToken ct) =>
         [.. (await inquiries.OfCompanyAsync(ScrApiAuth.CompanyOf(User), from, to, take ?? 100, ct)).Select(ScrApiInquiry.From)];
 }

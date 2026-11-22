@@ -34,7 +34,7 @@ public sealed record SignInPage(SignInSummary Summary, IReadOnlyList<SignInDto> 
 public sealed class SignInLog(CapitraDbContext db, IClock clock)
 {
     /// <summary>The results that refused a sign-in (AWAITING_CODE, CODE_TIMEOUT and TWO_FACTOR_RESET are neither successes nor refusals).</summary>
-    public static readonly string[] Refusals = ["UNKNOWN_USER", "INACTIVE", "LOCKED", "BAD_PASSWORD", "COMPANY_BLOCKED", "BAD_CODE"];
+    public static readonly string[] Refusals = ["UNKNOWN_USER", "INACTIVE", "LOCKED", "BAD_PASSWORD", "COMPANY_BLOCKED", "BAD_CODE", "IP_BLOCKED"];
 
     public async Task<SignInPage> ListAsync(SignInQuery q, CancellationToken ct)
     {

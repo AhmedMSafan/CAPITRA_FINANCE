@@ -11,7 +11,10 @@
       </div>
       <div v-if="company" class="fx-card fc-summary-customer">
         <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-building-o"></span></span>
-        <div><b>{{ company.nameAr }}</b><small>{{ company.nameEn }} · {{ company.companyCode }}</small></div>
+        <div><b>{{ company.nameAr }}</b><small>{{ company.nameEn }} · {{ company.companyCode }}</small>
+          <small v-if="company.quota" class="scr-quota" :class="{ 'scr-quota--low': company.quota.left !== null && company.quota.left <= Math.max(1, (company.quota.quota ?? 0) / 10) }">
+            {{ tr('Inquiries this licence year') }}: <bdi dir="ltr">{{ company.quota.used.toLocaleString() }}<template v-if="company.quota.quota !== null"> / {{ company.quota.quota.toLocaleString() }}</template></bdi>
+            <template v-if="company.quota.left !== null"> · {{ company.quota.left.toLocaleString() }} {{ tr('left') }}</template></small></div>
       </div>
     </div>
 
@@ -138,6 +141,7 @@ async function screen() {
   try {
     result.value = await scrApi.screen({ ...form })
     history.value = [result.value, ...history.value.filter((i) => i.inquiryId !== result.value?.inquiryId)]
+    scrApi.myCompany().then((c) => (company.value = c)).catch(() => undefined)
   } catch (err) {
     errors.value = fieldErrors(err)
     if (!Object.keys(errors.value).length) showError(errorText(err))

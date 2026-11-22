@@ -290,3 +290,5 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-api-table{border:1px solid var(--fin-line);border-radius:12px}
 .fc .scr-api-confirm{padding:14px 16px;border:1px solid var(--fin-line);border-radius:12px;background:#f7fafa;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
 .fc .scr-api-confirm p{margin:0}
+.fc .scr-quota{display:block;margin-top:4px;color:var(--fin-muted)}
+.fc .scr-quota--low{color:#b45309;font-weight:700}
