@@ -6,6 +6,10 @@
 --   * kept data (users, master data, lookups, workflow definitions), or
 --   * tables of modules not built yet in Capitra (names are planned ones;
 --     remove the -- once the module exists).
+-- Updated 22 Nov 2026 (reviewed with Ahmed: only data entered or produced by users is emptied, setup is kept):
+--   adds the sign-in log, the e-mails sent, End of Day runs, and screening invoices and their payments;
+--   the Treasury lines now run inside the transaction. Kept as setup: member companies, licences, price plans,
+--   API clients, End of Day jobs and their settings, mail servers, and users' billing history (SCR_USER_ACTIVITIES).
 -- Updated 2 Nov 2026: adds factoring disbursement charges and cheques, invoices, repayments, collection batches
 -- and GL period close runs; lists every kept table at the end, so no table is left out by mistake.
 -- Updated 30 Oct 2026: adds Factoring, Collection and Repayments, Cheques Wallet and GL
@@ -20,17 +24,19 @@
 -- =====================================================================
 BEGIN;
 
---Administration (kept)
+--Administration: users, roles, mail servers and End of Day jobs (kept)
 --TRUNCATE TABLE "SEC_USERS" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "SEC_ROLES" RESTART IDENTITY CASCADE;
---TRUNCATE TABLE "SEC_SIGN_INS" RESTART IDENTITY CASCADE;
---TRUNCATE TABLE "CMC_EMAIL_LOGS" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "CMC_MAIL_SERVERS" RESTART IDENTITY CASCADE;
---TRUNCATE TABLE "EOD_DAY_JOBS" RESTART IDENTITY CASCADE;
---TRUNCATE TABLE "EOD_DAYS" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "EOD_JOB_PARAMETERS" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "EOD_JOBS" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "SYS_DATA_PROTECTION_KEYS" RESTART IDENTITY CASCADE;
+
+--Administration: the sign-in log, the e-mails sent and the End of Day runs (the next End of Day starts today)
+TRUNCATE TABLE "SEC_SIGN_INS" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "CMC_EMAIL_LOGS" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "EOD_DAY_JOBS" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "EOD_DAYS" RESTART IDENTITY CASCADE;
 
 --Workflow: running instances and their tasks (definitions are kept)
 TRUNCATE TABLE "WFE_ALERTS" RESTART IDENTITY CASCADE;
@@ -100,8 +106,9 @@ TRUNCATE TABLE "TLS_LOAN_SCENARIO_LINES" RESTART IDENTITY CASCADE;
 TRUNCATE TABLE "TLS_LOAN_SCENARIO_RATES" RESTART IDENTITY CASCADE;
 TRUNCATE TABLE "TLS_LOAN_SCENARIOS" RESTART IDENTITY CASCADE;
 
---Screening: letters, parties, decisions, the Final List versions and the companies' inquiries
---(member companies are kept: their users point at them)
+--Screening: letters, parties, decisions, the Final List versions, the companies' inquiries, invoices and payments
+--(member companies, licences, price plans and API clients are kept: their users point at them;
+-- inquiries are protected from deleting row by row, but TRUNCATE is allowed)
 TRUNCATE TABLE "SCR_INQUIRY_HITS" RESTART IDENTITY CASCADE;
 TRUNCATE TABLE "SCR_INQUIRIES" RESTART IDENTITY CASCADE;
 TRUNCATE TABLE "SCR_REGISTRY_VERSIONS" RESTART IDENTITY CASCADE;
@@ -117,10 +124,10 @@ TRUNCATE TABLE "SCR_LETTERS" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "SCR_COMPANY_LICENCES" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "SCR_PRICE_PLANS" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "SCR_USER_ACTIVITIES" RESTART IDENTITY CASCADE;
---TRUNCATE TABLE "SCR_INVOICES" RESTART IDENTITY CASCADE;
---TRUNCATE TABLE "SCR_INVOICE_LINES" RESTART IDENTITY CASCADE;
---TRUNCATE TABLE "SCR_INVOICE_BANDS" RESTART IDENTITY CASCADE;
---TRUNCATE TABLE "SCR_INVOICE_PAYMENTS" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "SCR_INVOICE_PAYMENTS" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "SCR_INVOICE_LINES" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "SCR_INVOICE_BANDS" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "SCR_INVOICES" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "SCR_API_CLIENTS" RESTART IDENTITY CASCADE;
 
 --Retail Lending: loans and their schedules
@@ -240,6 +247,12 @@ TRUNCATE TABLE "GL_CLOSE_COMMENTS" RESTART IDENTITY CASCADE;
 TRUNCATE TABLE "GL_CLOSE_ATTACHMENTS" RESTART IDENTITY CASCADE;
 TRUNCATE TABLE "GL_CLOSE_REPORTS" RESTART IDENTITY CASCADE;
 TRUNCATE TABLE "GL_CLOSE_PERIOD_LOCKS" RESTART IDENTITY CASCADE;
+
+--Treasury Disburse: the sources of funds go with the disbursements; their reserve and drawdown movements are removed, the opening balances stay
+DELETE FROM "TRS_SUBLIMIT_MOVEMENTS" WHERE "DISBURSEMENT_ID" IS NOT NULL;
+TRUNCATE TABLE "TRS_DISBURSEMENT_FUNDINGS" RESTART IDENTITY CASCADE;
+--Reverse factoring: the transfers to the suppliers go with their disbursements
+TRUNCATE TABLE "TRS_SUPPLIER_TRANSFERS" RESTART IDENTITY CASCADE;
 
 --GL tran set IDs: every module starts again at CAP-<module>-<year>-00000001 (the module rows are kept)
 UPDATE "GL_TRAN_SET_SEQUENCES" SET "LAST_NO" = 0, "ROW_VERSION" = "ROW_VERSION" + 1;
@@ -475,11 +488,6 @@ COMMIT;
 --TRUNCATE TABLE "TRS_FACILITY_CALENDAR_DAYS" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "TRS_FACILITY_REPAYMENT_PLANS" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "TRS_FACILITY_RUNOFF_OPTIONS" RESTART IDENTITY CASCADE;
---Treasury Disburse: the sources of funds go with the disbursements; their reserve and drawdown movements are removed, the opening balances stay
-DELETE FROM "TRS_SUBLIMIT_MOVEMENTS" WHERE "DISBURSEMENT_ID" IS NOT NULL;
-TRUNCATE TABLE "TRS_DISBURSEMENT_FUNDINGS" RESTART IDENTITY CASCADE;
---Reverse factoring: the transfers to the suppliers go with their disbursements
-TRUNCATE TABLE "TRS_SUPPLIER_TRANSFERS" RESTART IDENTITY CASCADE;
 --Treasury bank limits: tranches, sublimits, scopes, bank rules and sublimit movements (kept: the movements hold the opening balances)
 --TRUNCATE TABLE "TRS_BANK_RULES" RESTART IDENTITY CASCADE;
 --TRUNCATE TABLE "TRS_FACILITY_SUBLIMITS" RESTART IDENTITY CASCADE;
