@@ -14,6 +14,9 @@
           </div>
         </div>
       </div>
+      <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(10)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
+      </div>
     </div>
 
     <div v-if="loading && !forms.length" class="fx-card fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
@@ -58,6 +61,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { language, tr } from '@/shared/layout/language'
 import { eodApi, errorText, type EodJob } from '../api/eod.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 type Form = { job: EodJob; isEnabled: boolean; sequenceNo: number; notes: string; parameters: Record<string, string>; busy: boolean }
 

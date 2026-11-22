@@ -9,6 +9,9 @@
           <p>{{ tr('The mail servers every e-mail of CAPITRA goes through, and the log of every e-mail sent.') }}</p>
         </div>
       </div>
+      <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(11)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
+      </div>
     </div>
 
     <section v-if="status" class="scr-band" :aria-label="tr('Mail server in use')">
@@ -68,6 +71,7 @@ import { showError } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { formatDateTime } from '@/modules/scr/utils/dates'
 import { LABELS, cmcApi, errorText, type CmcMailStatus } from '../api/cmc.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const ALL = [
   { name: 'cmc-mail-servers', icon: 'fa-server', title: 'Mail servers', descr: 'Add the outgoing mail server, send a test e-mail and choose the one in use.', perm: 'CMC.MAIL_SERVER.EDIT', orange: true },

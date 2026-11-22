@@ -37,6 +37,7 @@
                 <button type="button" class="scr-doc-link" dir="auto" :title="tr('Open')" @click="openDoc(doc)">{{ doc.documentTitle }}</button>
                 <small>{{ doc.fileName }} · {{ size(doc.fileSizeBytes) }} · {{ doc.createdBy }} · {{ formatDateTime(doc.createdAt) }}</small>
               </div>
+              <button type="button" class="fx-btn fx-btn--sm" @click="openDoc(doc)"><span class="fa fa-eye" aria-hidden="true"></span>{{ tr('View') }}</button>
               <button v-if="doc.canRemove && !readOnly && s.status === 'OPEN'" type="button" class="fx-btn fx-btn--sm fc-btn-reject" :disabled="busy" @click="remove(doc)">
                 <span class="fa fa-times" aria-hidden="true"></span>{{ tr('Remove') }}
               </button>

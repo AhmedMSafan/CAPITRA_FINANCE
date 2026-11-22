@@ -10,6 +10,7 @@
         </nav>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(9)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button v-if="invoice?.statusCode === 'ISSUED' && canManage && !(invoice.paidAmount ?? 0)" type="button" class="fx-btn" @click="cancelling = true"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel invoice') }}</button>
         <button v-if="invoice?.statusCode === 'ISSUED' && canManage && (invoice.balanceAmount ?? 0) > 0" type="button" class="fx-btn fx-btn--teal" @click="startPayment">
           <span class="fa fa-money" aria-hidden="true"></span>{{ tr('Record payment') }}</button>
@@ -112,6 +113,7 @@ import ScrDialog from '../components/ScrDialog.vue'
 import ScrInvoiceLines from '../components/ScrInvoiceLines.vue'
 import { formatDate, formatDateTime } from '../utils/dates'
 import { LABELS, egp, errorText, scrApi, type ScrBankAccount, type ScrInvoice } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 /** portal: a member company administrator viewing the company's own invoice (read and print only). */
 const props = defineProps<{ invoiceId: number; portal?: boolean }>()

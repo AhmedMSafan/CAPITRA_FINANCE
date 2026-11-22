@@ -18,6 +18,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(7)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button type="button" class="fx-btn fx-btn--primary" @click="startNew"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New company') }}</button>
       </div>
     </div>
@@ -261,6 +262,7 @@ import ScrApiClients from '../components/ScrApiClients.vue'
 import ScrDialog from '../components/ScrDialog.vue'
 import ScrLinkBox from '../components/ScrLinkBox.vue'
 import {
+import { openScreeningManual } from '@/modules/scr/utils/manual'
   LABELS, egp, errorText, fieldErrors, scrApi,
   type ScrCompany, type ScrPricePlan, type ScrCompanyAdminRequest, type ScrCompanyRequest, type ScrCompanyUser, type ScrEmailOutcome, type ScrLicence, type ScrLicenceRequest
 } from '../api/scr.api'

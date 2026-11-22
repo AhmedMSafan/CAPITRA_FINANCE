@@ -9,6 +9,9 @@
           <p>{{ tr('The Federation Final List: letters, decisions approved through the workflow, and member company screening.') }}</p>
         </div>
       </div>
+      <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(1)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
+      </div>
     </div>
 
     <!-- the Final List at a glance: one status band, set apart from the pages below -->
@@ -75,6 +78,7 @@ import { showError } from '@/shared/feedback/feedback'
 import { formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import { errorText, scrApi, type ScrRegistry } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const ALL = [
   { name: 'scr-registry', icon: 'fa-list-alt', title: 'Federation Final List', descr: 'Every listed person and company, active, suspended and lifted.', perm: 'SCR.DECISION.VIEW', orange: true },

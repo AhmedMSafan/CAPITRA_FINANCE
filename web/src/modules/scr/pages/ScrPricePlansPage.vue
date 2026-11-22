@@ -20,6 +20,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(9)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button v-if="canManage" type="button" class="fx-btn fx-btn--primary" @click="edit(null)"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New price plan') }}</button>
       </div>
     </div>
@@ -128,6 +129,7 @@ import { tr } from '@/shared/layout/language'
 import ScrDialog from '../components/ScrDialog.vue'
 import { formatDateTime } from '../utils/dates'
 import { LABELS, egp, errorText, fieldErrors, priceInquiries, scrApi, type ScrPricePlan, type ScrPricePlanRequest } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const canManage = hasPermission('SCR.BILLING.MANAGE')
 const plans = ref<ScrPricePlan[]>([])

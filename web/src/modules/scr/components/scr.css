@@ -9,6 +9,7 @@
 .fc .scr-tag { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; margin: 3px 4px 0 0; border-radius: 999px; background: var(--fin-neutral-50); color: var(--fin-neutral); font-size: 11px; font-weight: 600; }
 .fc .scr-row { cursor: pointer; }
 .fc .scr-files { display: flex; flex-wrap: wrap; gap: 6px; }
+.fc .scr-file .scr-file-view { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: 6px; padding-inline-start: 8px; border-inline-start: 1px solid var(--fin-line); color: var(--fin-teal-700); font-weight: 600; }
 .fc .scr-upload { position: relative; overflow: hidden; }
 .fc .scr-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .fc .scr-who { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 0 16px 16px; }

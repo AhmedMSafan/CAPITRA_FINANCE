@@ -17,6 +17,9 @@
           </div>
         </div>
       </div>
+      <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(12)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
+      </div>
     </div>
 
     <div class="fx-card fx-card-pad fc-filters scr-log-filters">
@@ -118,6 +121,7 @@ import { tr } from '@/shared/layout/language'
 import ScrDialog from '../components/ScrDialog.vue'
 import { formatDateTime } from '../utils/dates'
 import { LABELS, errorText, scrApi, type ScrCompany, type ScrSessionInquiry, type ScrSignIn, type ScrSignInPage } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const REFUSALS = ['BAD_PASSWORD', 'BAD_CODE', 'UNKNOWN_USER', 'INACTIVE', 'LOCKED', 'COMPANY_BLOCKED', 'IP_BLOCKED']
 /** Success, refusal, or the in-between ones: password right but no code (warn), two-factor reset by an administrator (plain). */

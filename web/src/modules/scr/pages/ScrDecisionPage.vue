@@ -26,6 +26,7 @@
         </div>
       </div>
       <div class="fx-actions">
+        <button type="button" class="fx-btn" @click="openScreeningManual(5)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
         <button v-if="task && !viewOnly" type="button" class="fx-btn" @click="router.push({ name: 'workflow-inbox' })"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Task') }}</button>
         <button v-else-if="viewOnly" type="button" class="fx-btn" @click="router.back()"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back') }}</button>
         <RouterLink v-else :to="{ name: 'scr-decisions' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Decisions') }}</RouterLink>
@@ -183,6 +184,7 @@ import { workflowService } from '@/modules/wfe/services/workflowService'
 import ScrDecisionSteps from '../components/ScrDecisionSteps.vue'
 import type { WorkflowInboxTask } from '@/modules/wfe/models/workflow'
 import { CHIP, LABELS, errorText, fieldErrors, scrApi, type ScrDecision, type ScrDecisionRequest, type ScrLetter, type ScrParty } from '../api/scr.api'
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 
 const props = defineProps<{ decisionId?: number }>()
 const route = useRoute()
