@@ -67,6 +67,8 @@ export type ScrInquiry = {
   identityTypeCode: string; identityNo: string; birthDate: string | null; nationalityCode: string | null; purposeCode: string
   purposeText: string | null; caseReference: string | null; resultCode: string; registryVersionNo: number; screenedAt: string
   hits: ScrInquiryHit[]
+  channelCode?: string; receivedAt?: string | null; respondedAt?: string | null; recordHash?: string | null
+  memberCompanyId?: number; companyNameEn?: string | null; companyNameAr?: string | null
 }
 
 export type ScrLicence = {
@@ -177,6 +179,11 @@ export type ScrCompanyUser = {
 export type ScrCompanyUserRequest = { userName: string; email: string | null; fullName: string | null; isActive: boolean }
 /** What happened to the activation or reset e-mail: SENT, FAILED, NOT_CONFIGURED (no mail server set up) or NO_ADDRESS. */
 export type ScrEmailOutcome = { sent: boolean; statusCode: string; error: string | null }
+export type ScrInquirySeal = { inquiryRef: string; sealed: boolean; valid: boolean; recordHash: string | null; prevHash: string | null; message: string; checkedAt: string }
+export type ScrSealCheck = {
+  checked: number; broken: number; brokenRefs: string[]; unsealedAfterStart: number; unsealedRefs: string[]; unsealedBeforeStart: number
+  firstSealedRef: string | null; lastSealedRef: string | null; checkedAt: string
+}
 export type ScrQuota = { quota: number | null; used: number; left: number | null; from: string; to: string }
 export type ScrMyCompany = { memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string; maxUsers: number | null; quota?: ScrQuota | null }
 
@@ -251,6 +258,8 @@ export const scrApi = {
   allInquiries: (companyId: number | null, result: string) =>
     http.get<ScrInquiry[]>(`${API}/inquiries?result=${encodeURIComponent(result)}${companyId ? `&companyId=${companyId}` : ''}`),
   inquiry: (id: number) => http.get<ScrInquiry>(`${API}/inquiries/${id}`),
+  inquirySeal: (id: number) => http.get<ScrInquirySeal>(`${API}/inquiries/${id}/seal`),
+  sealCheck: () => http.get<ScrSealCheck>(`${API}/inquiries/seal-check`),
 
   companies: () => http.get<ScrCompany[]>(`${API}/companies`),
   /** A new company in one step: the company, its licence and its administrator (who gets an activation e-mail). */

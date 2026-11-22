@@ -7,6 +7,7 @@
         <h2 dir="ltr">{{ inquiry.inquiryRef }}</h2>
         <p>{{ formatDateTime(inquiry.screenedAt) }} · {{ inquiry.requestedBy }} · {{ inquiry.companyCode }} · {{ tr('Final List') }} V{{ inquiry.registryVersionNo }}</p>
       </div>
+      <RouterLink :to="{ name: 'scr-certificate', params: { inquiryId: inquiry.inquiryId } }" class="fx-btn fx-btn--sm"><span class="fa fa-certificate" aria-hidden="true"></span>{{ tr('Certificate') }}</RouterLink>
       <button type="button" class="fx-btn fx-btn--sm" @click="print"><span class="fa fa-print" aria-hidden="true"></span>{{ tr('Print') }}</button>
     </header>
 

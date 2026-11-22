@@ -469,8 +469,8 @@ router.beforeEach(to => {
     return { name: 'change-password', query: { forced: '1', redirect: to.fullPath } }
   if (to.name === 'login' && signedIn) return { name: isCompanyUser() ? 'scr-portal' : 'home' }
   if (to.name === 'change-password') return true
-  // a member company's users screen and nothing else: every other page leads to the Screening Portal
-  if (signedIn && isCompanyUser() && !to.meta.public && to.name !== 'scr-portal') return { name: 'scr-portal' }
+  // a member company's users screen and nothing else: every page not made for them leads to the Screening Portal
+  if (signedIn && isCompanyUser() && !to.meta.public && to.name !== 'scr-portal' && !to.meta.forCompanies) return { name: 'scr-portal' }
 
   return true
 })

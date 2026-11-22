@@ -292,3 +292,22 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-api-confirm p{margin:0}
 .fc .scr-quota{display:block;margin-top:4px;color:var(--fin-muted)}
 .fc .scr-quota--low{color:#b45309;font-weight:700}
+/* screening certificate */
+.fc .scr-cert{display:flex;flex-direction:column;gap:18px}
+.fc .scr-cert-lead{margin:0;font-size:15px;color:var(--fin-ink)}
+.fc .scr-cert-subject h2{margin:0 0 10px;font-size:15px;color:var(--fin-ink)}
+.fc .scr-cert-subject dl{margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.fc .scr-cert-subject dl div{padding:10px 14px;border:1px solid var(--fin-line);border-radius:12px;background:#fbfdfd}
+.fc .scr-cert-subject dt{font-size:var(--fs-xs);color:var(--fin-muted);font-weight:700}
+.fc .scr-cert-subject dd{margin:4px 0 0;font-weight:700;color:var(--fin-ink)}
+.fc .scr-cert-seal{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:12px;border:1px solid var(--fin-line);background:#f7fafa}
+.fc .scr-cert-seal > .fa{font-size:20px;margin-top:2px;color:var(--fin-muted)}
+.fc .scr-cert-seal div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fc .scr-cert-seal small{color:var(--fin-muted)}
+.fc .scr-cert-seal code{font-family:ui-monospace,Consolas,monospace;font-size:12px;word-break:break-all}
+.fc .scr-cert-seal--ok{border-color:#9bd3ae;background:#f0faf3}
+.fc .scr-cert-seal--ok > .fa{color:#15803d}
+.fc .scr-cert-seal--bad{border-color:#f5b4a8;background:#fef3f2}
+.fc .scr-cert-seal--bad > .fa{color:#b42318}
+.fc .scr-cert-foot{margin:0;font-size:var(--fs-sm);color:var(--fin-muted);border-top:1px solid var(--fin-line);padding-top:12px}
+@media print{.fc .scr-cert-seal,.fc .scr-cert-subject dl div{-webkit-print-color-adjust:exact;print-color-adjust:exact}}

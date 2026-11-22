@@ -78,7 +78,7 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
             SessionId = sessionId, ReceivedAt = ScrInquirySeal.Micro(receivedAt), ChannelCode = channel, ApiClientId = apiClientId,
             Hits = [.. hits.Select(h => new ScrInquiryHit
             {
-                PartyId = h.Entry.PartyId, DecisionId = h.Entry.DecisionId, MatchBasisCode = h.MatchBasisCode, NameScorePct = Math.Round(h.NameScorePct, 6),
+                PartyId = h.Entry.PartyId, DecisionId = h.Entry.DecisionId, MatchBasisCode = h.MatchBasisCode, NameScorePct = Capitra.Application.Common.Money.Round(h.NameScorePct, 6),
                 MatchedName = h.MatchedName, EntryStatusCode = h.Entry.StatusCode,
             })],
         };
