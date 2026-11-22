@@ -148,6 +148,34 @@ public sealed class ScrScreeningTests
         Assert.Equal("SUSPENDED", ScrRegistry.Derive(decisions, Parties).Single(e => e.PartyId == 101).StatusCode);
     }
 
+    // ---------------------------------------------------------------- seals
+
+    [Fact]
+    public void A_seal_changes_with_any_change_and_chains_to_the_one_before()
+    {
+        static ScrInquiry Inquiry() => new()
+        {
+            InquiryRef = "SCR-2026-000010", MemberCompanyId = 3, RequestedBy = "nfc.kyc1", ChannelCode = "PORTAL", SubjectTypeCode = "PERSON",
+            SubjectName = "Ahmed Ali", IdentityTypeCode = "NATIONAL_ID", IdentityNo = "29801011234567", PurposeCode = "ONBOARDING", ResultCode = "MATCH",
+            RegistryVersionNo = 7, ScreenedAt = new DateTime(2026, 11, 22, 9, 0, 0, DateTimeKind.Utc).AddTicks(1234567),
+            Hits = [new() { PartyId = 100, DecisionId = 1, MatchBasisCode = "ID_AND_NAME", NameScorePct = 100m, MatchedName = "أحمد علي", EntryStatusCode = "ACTIVE" }],
+        };
+        var seal = ScrInquirySeal.Hash(Inquiry(), "abc");
+        Assert.Equal(64, seal.Length);
+        Assert.Equal(seal, ScrInquirySeal.Hash(Inquiry(), "abc"));
+        // the time as the database keeps it (microseconds) seals the same
+        var read = Inquiry();
+        read.ScreenedAt = ScrInquirySeal.Micro(read.ScreenedAt);
+        Assert.Equal(seal, ScrInquirySeal.Hash(read, "abc"));
+        Assert.NotEqual(seal, ScrInquirySeal.Hash(Inquiry(), "abd"));
+        var changed = Inquiry();
+        changed.ResultCode = "NO_MATCH";
+        Assert.NotEqual(seal, ScrInquirySeal.Hash(changed, "abc"));
+        var hit = Inquiry();
+        hit.Hits[0].NameScorePct = 99.5m;
+        Assert.NotEqual(seal, ScrInquirySeal.Hash(hit, "abc"));
+    }
+
     // ---------------------------------------------------------------- segregation of duties
 
     [Fact]

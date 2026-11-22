@@ -164,6 +164,8 @@ public sealed class ScrInquiryConfiguration : IEntityTypeConfiguration<ScrInquir
         builder.Property(x => x.InquiryRef).HasMaxLength(30);
         builder.Property(x => x.RequestedBy).HasMaxLength(256);
         builder.Property(x => x.ChannelCode).HasMaxLength(20).HasDefaultValue("PORTAL");
+        builder.Property(x => x.PrevHash).HasMaxLength(64);
+        builder.Property(x => x.RecordHash).HasMaxLength(64);
         builder.HasOne<ScrApiClient>().WithMany().HasForeignKey(x => x.ApiClientId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.SubjectTypeCode).HasMaxLength(20);
         builder.Property(x => x.SubjectName).HasMaxLength(300);

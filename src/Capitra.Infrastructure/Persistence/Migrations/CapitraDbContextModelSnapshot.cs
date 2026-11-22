@@ -39509,6 +39509,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(2)")
                         .HasColumnName("NATIONALITY_CODE");
 
+                    b.Property<string>("PrevHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("PREV_HASH");
+
                     b.Property<string>("PurposeCode")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -39523,6 +39528,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("ReceivedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("RECEIVED_AT");
+
+                    b.Property<string>("RecordHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("RECORD_HASH");
 
                     b.Property<int>("RegistryVersionNo")
                         .HasColumnType("integer")

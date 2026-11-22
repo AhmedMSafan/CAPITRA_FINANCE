@@ -28,6 +28,10 @@ export const scrRoutes: RouteRecordRaw[] = [
     path: 'screening/billing/invoices/:invoiceId(\\d+)', name: 'scr-invoice', component: () => import('./pages/ScrInvoicePage.vue'),
     props: (r) => ({ invoiceId: Number(r.params.invoiceId) }), meta: meta('Invoice')
   },
+  {
+    path: 'screening/inquiries/:inquiryId(\\d+)/certificate', name: 'scr-certificate', component: () => import('./pages/ScrCertificatePage.vue'),
+    props: (r) => ({ inquiryId: Number(r.params.inquiryId) }), meta: { ...meta('Screening certificate'), forCompanies: true }
+  },
   { path: 'screening/inquiries', name: 'scr-inquiries', component: () => import('./pages/ScrInquiriesPage.vue'), meta: meta('Inquiry audit') },
   // member companies: the only page their users can open
   { path: 'screening/portal', name: 'scr-portal', component: () => import('./pages/ScrPortalPage.vue'), meta: meta('Screening Portal') }

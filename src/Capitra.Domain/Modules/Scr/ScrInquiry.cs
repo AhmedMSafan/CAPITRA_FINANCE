@@ -60,6 +60,12 @@ public class ScrInquiry : AuditableEntity
     /// <summary>The API client that made it (API inquiries only).</summary>
     public long? ApiClientId { get; set; }
 
+    /// <summary>The seal of the inquiry before it in the chain (null for the first sealed one).</summary>
+    public string? PrevHash { get; set; }
+
+    /// <summary>SHA-256 (hex) of the inquiry's evidence and PrevHash; once set, the database refuses any change (ScrInquirySeal).</summary>
+    public string? RecordHash { get; set; }
+
     public List<ScrInquiryHit> Hits { get; set; } = [];
 }
 
