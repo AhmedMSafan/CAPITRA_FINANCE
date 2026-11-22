@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Capitra.Api.Controllers.Scr;
 
 /// <param name="MaxUsers">The licence's users besides the administrator, so the company administrator sees how many are left.</param>
-public sealed record ScrMyCompanyDto(long MemberCompanyId, string CompanyCode, string NameEn, string NameAr, int? MaxUsers);
+/// <param name="Quota">The licence's yearly inquiry quota and what is used of it.</param>
+public sealed record ScrMyCompanyDto(long MemberCompanyId, string CompanyCode, string NameEn, string NameAr, int? MaxUsers, ScrQuotaDto? Quota = null);
 
 /// <summary>
 /// Screening by member companies (SCR.INQUIRY.CREATE): screen, and read one's company's inquiries. Federation auditors
@@ -23,11 +24,12 @@ public sealed class ScrInquiryController(ScrInquiryService inquiries, CompanyAcc
     {
         var c = await inquiries.MyCompanyAsync(ct);
         var licence = await companyAccess.CurrentLicenceAsync(c.MemberCompanyId, ct);
-        return new ScrMyCompanyDto(c.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, licence?.MaxUsers);
+        return new ScrMyCompanyDto(c.MemberCompanyId, c.CompanyCode, c.NameEn, c.NameAr, licence?.MaxUsers, await inquiries.QuotaAsync(c.MemberCompanyId, ct));
     }
 
     [HttpPost]
     [HasPermission(Permissions.Scr.InquiryCreate)]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(ScrRateLimits.PortalPolicy)]
     public Task<ScrInquiryDto> Screen(ScrInquiryRequest request, CancellationToken ct) => inquiries.ScreenAsync(request, ct);
 
     [HttpGet("mine")]

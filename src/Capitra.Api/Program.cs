@@ -41,6 +41,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseMiddleware<Capitra.Api.Security.PasswordChangeGate>();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 
 await DatabaseStartup.RunAsync(app.Services, app.Configuration);

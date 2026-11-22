@@ -67,6 +67,7 @@ public static class SecurityServiceCollectionExtensions
 
         // the Screening API's own token audience, for member companies' systems
         ScrApiAuth.Add(services);
+        ScrRateLimits.Add(services, configuration);
 
         services.AddAuthorizationBuilder()
             .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());

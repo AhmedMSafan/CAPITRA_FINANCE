@@ -547,4 +547,9 @@ export const SCR_AR: Record<string, string> = {
   'Secret': 'السر',
   'The client is revoked.': 'تم إلغاء العميل.',
   'e.g. Core banking onboarding': 'مثال: فتح الحسابات في النظام البنكي',
+  'Too many requests. Wait a minute and try again.': 'طلبات كثيرة جدًا. انتظر دقيقة ثم حاول مرة أخرى.',
+  'Inquiries this licence year': 'استعلامات سنة الترخيص الحالية',
+  'left': 'متبقية',
+  'Network blocked (too many failures)': 'الشبكة محظورة (محاولات فاشلة كثيرة)',
+  'Too many failed sign-ins from your network. Try again in 15 minutes.': 'محاولات دخول فاشلة كثيرة من شبكتك. حاول مرة أخرى بعد 15 دقيقة.',
 }

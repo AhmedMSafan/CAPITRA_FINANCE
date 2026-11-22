@@ -77,3 +77,9 @@ public sealed record ScrCompanySeats(string? AdminUserName, string? AdminEmail, 
 public sealed record ScrCompanyRequest(
     string? CompanyCode, string? NameEn, string? NameAr, string? LicenceNo, string? ContactEmail, string? StatusCode, string? Notes,
     long? PricePlanId = null, string? BillingCycleCode = null);
+
+/// <summary>The licence's yearly inquiry quota (null: none), used and left in the licence year From..To.</summary>
+public sealed record ScrQuotaDto(int? Quota, int Used, int? Left, DateOnly From, DateOnly To);
+
+/// <summary>The company used its yearly inquiry quota: the portal shows the message, the API answers 403 quota_reached.</summary>
+public sealed class ScrQuotaExceededException(string message) : Capitra.Application.Common.Exceptions.BusinessRuleException(message);

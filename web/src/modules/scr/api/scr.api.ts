@@ -177,7 +177,8 @@ export type ScrCompanyUser = {
 export type ScrCompanyUserRequest = { userName: string; email: string | null; fullName: string | null; isActive: boolean }
 /** What happened to the activation or reset e-mail: SENT, FAILED, NOT_CONFIGURED (no mail server set up) or NO_ADDRESS. */
 export type ScrEmailOutcome = { sent: boolean; statusCode: string; error: string | null }
-export type ScrMyCompany = { memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string; maxUsers: number | null }
+export type ScrQuota = { quota: number | null; used: number; left: number | null; from: string; to: string }
+export type ScrMyCompany = { memberCompanyId: number; companyCode: string; nameEn: string; nameAr: string; maxUsers: number | null; quota?: ScrQuota | null }
 
 const API = '/api/scr'
 
@@ -276,7 +277,7 @@ export const LABELS: Record<string, string> = {
   FREE: 'Free', TIER: 'Tier', FLAT: 'Each inquiry',
   SUCCESS: 'Signed in', UNKNOWN_USER: 'Unknown user', BAD_PASSWORD: 'Wrong password', LOCKED: 'Account locked', COMPANY_BLOCKED: 'Company blocked',
   OPEN: 'Session active', SIGNED_OUT: 'Signed out',
-  AWAITING_CODE: 'Waiting for the code', UNPAID: 'Not paid', PARTLY_PAID: 'Partly paid', PAID: 'Paid', CODE_TIMEOUT: 'Code not entered', BAD_CODE: 'Wrong code', TWO_FACTOR_RESET: 'Two-factor reset',
+  AWAITING_CODE: 'Waiting for the code', UNPAID: 'Not paid', PARTLY_PAID: 'Partly paid', PAID: 'Paid', CODE_TIMEOUT: 'Code not entered', BAD_CODE: 'Wrong code', IP_BLOCKED: 'Network blocked (too many failures)', TWO_FACTOR_RESET: 'Two-factor reset',
   AUTHENTICATOR: 'with the app code', RECOVERY_CODE: 'with a backup code', SETUP: 'app set up',
   MONTHLY: 'Monthly', QUARTERLY: 'Quarterly', YEARLY: 'Yearly', ISSUED: 'Issued', PREVIEW: 'Preview',
   PERSON: 'Person', COMPANY: 'Company',

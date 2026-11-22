@@ -21,7 +21,9 @@ export class ApiError extends Error {
     super(
       status === 403
         ? 'You do not have permission for this. Ask an administrator for it; if your roles were just changed, sign out and sign in again.'
-        : (problem?.detail ?? problem?.title ?? `Request failed (${status}).`)
+        : status === 429
+          ? 'Too many requests. Wait a minute and try again.'
+          : (problem?.detail ?? problem?.title ?? `Request failed (${status}).`)
     )
     this.name = 'ApiError'
   }
