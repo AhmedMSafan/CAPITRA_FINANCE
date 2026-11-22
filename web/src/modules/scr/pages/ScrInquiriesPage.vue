@@ -57,8 +57,8 @@
               <td>{{ tr(LABELS[i.purposeCode] ?? i.purposeCode) }}</td>
               <td><span class="fx-chip" :class="CHIP[i.resultCode]">{{ tr(LABELS[i.resultCode] ?? i.resultCode) }}</span>
                   <span v-if="i.hits.length" class="scr-basis">
-                    <span :class="i.hits[0].matchBasisCode === 'NAME_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0].matchBasisCode === 'NAME_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('ID') }}</span>
-                    <span :class="i.hits[0].matchBasisCode === 'ID_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0].matchBasisCode === 'ID_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('Name') }}</span>
+                    <span :class="i.hits[0]?.matchBasisCode === 'NAME_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0]?.matchBasisCode === 'NAME_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('ID') }}</span>
+                    <span :class="i.hits[0]?.matchBasisCode === 'ID_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0]?.matchBasisCode === 'ID_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('Name') }}</span>
                   </span></td>
               <td>{{ formatDateTime(i.screenedAt) }}</td>
               <td class="fx-r"><button type="button" class="fx-btn fx-btn--sm" @click="open = i"><span class="fa fa-eye" aria-hidden="true"></span>{{ tr('View') }}</button></td>
