@@ -315,3 +315,5 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-portal-session{margin:0;padding-inline-start:18px;display:flex;flex-direction:column;gap:6px}
 .fc .scr-portal-more{margin-inline-start:6px;color:var(--fin-muted);font-size:11px}
 .fc .scr-portal-click{cursor:pointer}
+.fc .scr-api-table code{white-space:nowrap;word-break:normal}
+.fc .scr-api-table td:not(:first-child){white-space:nowrap}
