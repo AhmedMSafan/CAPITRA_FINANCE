@@ -246,6 +246,7 @@
 </template>
 
 <script setup lang="ts">
+import { openScreeningManual } from '@/modules/scr/utils/manual'
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
@@ -262,7 +263,6 @@ import ScrApiClients from '../components/ScrApiClients.vue'
 import ScrDialog from '../components/ScrDialog.vue'
 import ScrLinkBox from '../components/ScrLinkBox.vue'
 import {
-import { openScreeningManual } from '@/modules/scr/utils/manual'
   LABELS, egp, errorText, fieldErrors, scrApi,
   type ScrCompany, type ScrPricePlan, type ScrCompanyAdminRequest, type ScrCompanyRequest, type ScrCompanyUser, type ScrEmailOutcome, type ScrLicence, type ScrLicenceRequest
 } from '../api/scr.api'
