@@ -292,3 +292,5 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-api-confirm p{margin:0}
 .fc .scr-quota{display:block;margin-top:4px;color:var(--fin-muted)}
 .fc .scr-quota--low{color:#b45309;font-weight:700}
+.fc .scr-api-table code{white-space:nowrap;word-break:normal}
+.fc .scr-api-table td:not(:first-child){white-space:nowrap}
