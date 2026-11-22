@@ -159,6 +159,8 @@ public sealed class ScrInquiryConfiguration : IEntityTypeConfiguration<ScrInquir
         builder.ToTable("SCR_INQUIRIES");
         builder.HasKey(x => x.InquiryId);
         builder.HasIndex(x => x.InquiryRef).IsUnique();
+        // a whole percent chosen by the user (30-100), not a numeric(9,6) _PCT
+        builder.Property(x => x.NameMatchMinPct).HasColumnName("NAME_MATCH_MIN");
         builder.HasIndex(x => new { x.MemberCompanyId, x.ScreenedAt });
         builder.Property(x => x.InquiryId).UseIdentityByDefaultColumn();
         builder.Property(x => x.InquiryRef).HasMaxLength(30);

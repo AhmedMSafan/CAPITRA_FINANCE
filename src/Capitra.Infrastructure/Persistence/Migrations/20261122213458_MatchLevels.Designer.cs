@@ -39513,7 +39513,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.Property<int?>("NameMatchMinPct")
                         .HasColumnType("integer")
-                        .HasColumnName("NAME_MATCH_MIN_PCT");
+                        .HasColumnName("NAME_MATCH_MIN");
 
                     b.Property<string>("NationalityCode")
                         .HasMaxLength(2)

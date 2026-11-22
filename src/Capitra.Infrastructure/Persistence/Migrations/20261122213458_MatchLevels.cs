@@ -52,7 +52,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
-                name: "NAME_MATCH_MIN_PCT",
+                name: "NAME_MATCH_MIN",
                 table: "SCR_INQUIRIES",
                 type: "integer",
                 nullable: true);
@@ -86,7 +86,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 table: "SCR_INQUIRIES");
 
             migrationBuilder.DropColumn(
-                name: "NAME_MATCH_MIN_PCT",
+                name: "NAME_MATCH_MIN",
                 table: "SCR_INQUIRIES");
         }
     }
