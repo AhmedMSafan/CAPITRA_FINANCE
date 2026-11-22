@@ -197,6 +197,10 @@ public sealed class ScrInquiryHitConfiguration : IEntityTypeConfiguration<ScrInq
         builder.Property(x => x.MatchBasisCode).HasMaxLength(20);
         builder.Property(x => x.MatchedName).HasMaxLength(300);
         builder.Property(x => x.EntryStatusCode).HasMaxLength(20);
+        builder.Property(x => x.IdMatchCode).HasMaxLength(20);
+        builder.Property(x => x.IdScorePct).HasPrecision(9, 6);
+        builder.Property(x => x.BirthMatchCode).HasMaxLength(20);
+        builder.Property(x => x.NationalityMatchCode).HasMaxLength(20);
         builder.HasOne<ScrParty>().WithMany().HasForeignKey(x => x.PartyId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ScrDecision>().WithMany().HasForeignKey(x => x.DecisionId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();

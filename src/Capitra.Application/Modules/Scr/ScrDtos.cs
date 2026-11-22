@@ -41,19 +41,20 @@ public sealed record ScrRegistryDto(int VersionNo, DateTime? PublishedAt, int Ac
 
 public sealed record ScrInquiryRequest(
     string? SubjectTypeCode, string? SubjectName, string? IdentityTypeCode, string? IdentityNo, DateOnly? BirthDate, string? NationalityCode,
-    string? PurposeCode, string? PurposeText, string? CaseReference);
+    string? PurposeCode, string? PurposeText, string? CaseReference, int? NameMatchMinPct = null, int? IdMatchMinDigits = null);
 
 public sealed record ScrInquiryHitDto(
     string MatchBasisCode, decimal NameScorePct, string MatchedName, string EntryStatusCode, string PartyTypeCode, string NameAr, string? NameEn,
     string IdentityTypeCode, string IdentityNo, string NationalityCode, string DecisionRef, string OfficialNo, string ScopeText,
-    DateOnly ListedFrom, DateOnly? LiftedOn);
+    DateOnly ListedFrom, DateOnly? LiftedOn, DateOnly? BirthDate = null, string? IdMatchCode = null, decimal? IdScorePct = null,
+    int? IdDigitsDifferent = null, string? BirthMatchCode = null, string? NationalityMatchCode = null);
 
 public sealed record ScrInquiryDto(
     long InquiryId, string InquiryRef, string CompanyCode, string RequestedBy, string SubjectTypeCode, string SubjectName, string IdentityTypeCode,
     string IdentityNo, DateOnly? BirthDate, string? NationalityCode, string PurposeCode, string? PurposeText, string? CaseReference,
     string ResultCode, int RegistryVersionNo, DateTime ScreenedAt, IReadOnlyList<ScrInquiryHitDto> Hits, string ChannelCode = "PORTAL",
     DateTime? ReceivedAt = null, DateTime? RespondedAt = null, string? RecordHash = null, long MemberCompanyId = 0, string? CompanyNameEn = null,
-    string? CompanyNameAr = null);
+    string? CompanyNameAr = null, int? NameMatchMinPct = null, int? IdMatchMinDigits = null);
 
 /// <summary>One inquiry's seal checked: its hash recomputed, and its link to the sealed inquiry before it.</summary>
 public sealed record ScrInquirySealDto(string InquiryRef, bool Sealed, bool Valid, string? RecordHash, string? PrevHash, string Message, DateTime CheckedAt);

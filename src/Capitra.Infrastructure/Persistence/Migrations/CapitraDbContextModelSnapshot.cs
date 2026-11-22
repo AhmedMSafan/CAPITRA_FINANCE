@@ -39482,6 +39482,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
 
+                    b.Property<int?>("IdMatchMinDigits")
+                        .HasColumnType("integer")
+                        .HasColumnName("ID_MATCH_MIN_DIGITS");
+
                     b.Property<string>("IdentityNo")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -39503,6 +39507,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<long>("MemberCompanyId")
                         .HasColumnType("bigint")
                         .HasColumnName("MEMBER_COMPANY_ID");
+
+                    b.Property<int?>("NameMatchMinPct")
+                        .HasColumnType("integer")
+                        .HasColumnName("NAME_MATCH_MIN_PCT");
 
                     b.Property<string>("NationalityCode")
                         .HasMaxLength(2)
@@ -39617,6 +39625,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("InquiryHitId"));
 
+                    b.Property<string>("BirthMatchCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("BIRTH_MATCH_CODE");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CREATED_AT");
@@ -39636,6 +39649,20 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("ENTRY_STATUS_CODE");
+
+                    b.Property<int?>("IdDigitsDifferent")
+                        .HasColumnType("integer")
+                        .HasColumnName("ID_DIGITS_DIFFERENT");
+
+                    b.Property<string>("IdMatchCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ID_MATCH_CODE");
+
+                    b.Property<decimal?>("IdScorePct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("ID_SCORE_PCT");
 
                     b.Property<long>("InquiryId")
                         .HasColumnType("bigint")
@@ -39657,6 +39684,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("NAME_SCORE_PCT");
+
+                    b.Property<string>("NationalityMatchCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("NATIONALITY_MATCH_CODE");
 
                     b.Property<long>("PartyId")
                         .HasColumnType("bigint")

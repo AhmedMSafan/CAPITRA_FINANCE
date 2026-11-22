@@ -5,7 +5,7 @@
       <span class="fc-sec-ic fc-sec-ic--orange" aria-hidden="true"><span class="fa fa-file-text-o"></span></span>
       <div>
         <h2 dir="ltr">{{ inquiry.inquiryRef }}</h2>
-        <p>{{ formatDateTime(inquiry.screenedAt) }} · {{ inquiry.requestedBy }} · {{ inquiry.companyCode }} · {{ tr('Final List') }} V{{ inquiry.registryVersionNo }}</p>
+        <p>{{ formatDateTime(inquiry.screenedAt) }} · {{ inquiry.requestedBy }} · {{ inquiry.companyCode }} · {{ tr('Final List') }} V{{ inquiry.registryVersionNo }}<template v-if="inquiry.nameMatchMinPct"> · {{ tr('ID') }} <bdi>{{ inquiry.idMatchMinDigits ?? 14 }}/14</bdi> · {{ tr('Name') }} <bdi>≥ {{ inquiry.nameMatchMinPct }}%</bdi></template></p>
       </div>
       <RouterLink :to="{ name: 'scr-certificate', params: { inquiryId: inquiry.inquiryId } }" class="fx-btn fx-btn--sm"><span class="fa fa-certificate" aria-hidden="true"></span>{{ tr('Certificate') }}</RouterLink>
       <button type="button" class="fx-btn fx-btn--sm" @click="print"><span class="fa fa-print" aria-hidden="true"></span>{{ tr('Print') }}</button>
@@ -23,38 +23,37 @@
         <div><span>{{ tr('Case reference') }}</span><b dir="ltr">{{ inquiry.caseReference || '-' }}</b></div></div>
     </div>
 
-    <div class="scr-verdict" :class="`scr-verdict--${inquiry.resultCode}`">
-      <span :class="['fa', ICON[inquiry.resultCode] ?? 'fa-info-circle']" aria-hidden="true"></span>
+    <div class="scr-verdict" :class="inquiry.hits.length ? 'scr-verdict--FOUND' : 'scr-verdict--NOT_FOUND'">
+      <span :class="['fa', inquiry.hits.length ? 'fa-list-ul' : 'fa-check-circle']" aria-hidden="true"></span>
       <div>
-        <b>{{ tr(VERDICT[inquiry.resultCode] ?? inquiry.resultCode) }}</b>
-        <small>{{ tr(ADVICE[inquiry.resultCode] ?? '') }}</small>
+        <b>{{ foundText(inquiry) }}</b>
+        <small>{{ inquiry.hits.length
+          ? tr("Compare each point below with the customer's documents. The decision is your company's.")
+          : tr('No Final List entry reaches the identity and name levels chosen.') }}</small>
       </div>
     </div>
 
-    <div v-for="(h, i) in inquiry.hits" :key="i" class="scr-hit" :class="{ 'scr-hit--listed': h.entryStatusCode !== 'LIFTED' }">
+    <div v-for="(h, i) in inquiry.hits" :key="i" class="scr-hit">
       <div class="scr-hit-head">
-        <span class="fc-muted">{{ tr('Final List entry') }}</span>
+        <span class="fc-muted">{{ tr('Final List entry') }} {{ i + 1 }}</span>
         <b>{{ h.nameAr }}</b><span v-if="h.nameEn" class="fc-muted">{{ h.nameEn }}</span>
-        <span class="fx-chip" :class="CHIP[h.entryStatusCode]">{{ tr(LABELS[h.entryStatusCode] ?? h.entryStatusCode) }}</span>
+        <span class="fx-chip" :class="CHIP_STATUS[h.entryStatusCode]">{{ tr(LABELS[h.entryStatusCode] ?? h.entryStatusCode) }}</span>
         <span class="scr-hit-decision fc-muted"><span dir="ltr">{{ h.decisionRef }}</span> (<span dir="ltr">{{ h.officialNo }}</span>) · {{ formatDate(h.listedFrom) }}
           <template v-if="h.liftedOn"> · {{ tr('Lifted') }} {{ formatDate(h.liftedOn) }}</template></span>
       </div>
       <div class="fx-table-wrap">
         <table class="fx-table scr-checks">
-          <thead><tr><th>{{ tr('Check') }}</th><th>{{ tr('You entered') }}</th><th>{{ tr('On the Final List') }}</th><th>{{ tr('Result') }}</th></tr></thead>
+          <thead><tr><th>{{ tr('Point') }}</th><th>{{ tr('You entered') }}</th><th>{{ tr('On the Final List') }}</th><th>{{ tr('Level of match') }}</th></tr></thead>
           <tbody>
-            <tr v-for="c in checks(h)" :key="c.label">
-              <td><b>{{ tr(c.label) }}</b></td>
+            <tr v-for="c in checkRows(inquiry, h, tr(LABELS[inquiry.identityTypeCode] ?? 'Identity number'))" :key="c.label">
+              <td><b>{{ c.label }}</b></td>
               <td><bdi>{{ c.mine }}</bdi></td>
               <td><bdi>{{ c.listed }}</bdi></td>
-              <td><span class="scr-mark" :class="`scr-mark--${c.mark}`"><span :class="['fa', MARK[c.mark]]" aria-hidden="true"></span>{{ tr(c.verdict) }}</span>
-                <span v-if="c.extra" class="fc-muted"> ({{ c.extra }})</span></td>
+              <td><span class="scr-mark" :class="`scr-mark--${c.level.mark}`"><span :class="['fa', MARK_ICON[c.level.mark]]" aria-hidden="true"></span><bdi>{{ c.level.text }}</bdi></span></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div v-if="h.matchBasisCode === 'ID_ONLY'" class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-        <span>{{ tr('Listed because the identity number is the same. The name is different: check that the identity number was typed right.') }}</span></div>
       <div class="scr-hit-scope"><span class="fa fa-balance-scale" aria-hidden="true"></span><span>{{ tr('Scope') }}:</span> <b>{{ h.scopeText }}</b></div>
     </div>
   </section>
@@ -63,42 +62,11 @@
 <script setup lang="ts">
 import { formatDate, formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
-import { CHIP, LABELS, VERDICT, type ScrInquiry, type ScrInquiryHit } from '../api/scr.api'
+import { LABELS, type ScrInquiry } from '../api/scr.api'
+import { MARK_ICON, checkRows, foundText } from '../utils/levels'
 
-const props = defineProps<{ inquiry: ScrInquiry }>()
-const ICON: Record<string, string> = { NO_MATCH: 'fa-check-circle', POSSIBLE_MATCH: 'fa-exclamation-triangle', MATCH: 'fa-ban', PREVIOUSLY_LISTED: 'fa-history' }
-const ADVICE: Record<string, string> = {
-  NO_MATCH: 'Nobody on the Federation Final List has this identity number or a similar name.',
-  POSSIBLE_MATCH: "The name is close to a listed entry but the identity number is different. Check the customer's documents before deciding.",
-  MATCH: "This identity number is on the Federation Final List. Apply the scope of the decision below.",
-  PREVIOUSLY_LISTED: 'Only lifted entries match: no measure applies today.'
-}
-const MARK: Record<string, string> = { yes: 'fa-check', no: 'fa-times', none: 'fa-minus' }
-
-interface Check { label: string; mine: string; listed: string; mark: 'yes' | 'no' | 'none'; verdict: string; extra?: string }
-
-/** Each point checked for one Final List entry: what was entered, what the list holds, and whether they agree. */
-function checks(h: ScrInquiryHit): Check[] {
-  const q = props.inquiry
-  const idSame = h.matchBasisCode !== 'NAME_ONLY'
-  const nameSame = h.matchBasisCode !== 'ID_ONLY'
-  const score = Math.round(h.nameScorePct)
-  const out: Check[] = [
-    { label: LABELS[q.identityTypeCode] ?? 'Identity number', mine: q.identityNo, listed: h.identityNo ?? '-', mark: idSame ? 'yes' : 'no', verdict: idSame ? 'Same' : 'Different' },
-    { label: 'Name', mine: q.subjectName, listed: [h.nameAr, h.nameEn].filter(Boolean).join(' · '), mark: nameSame ? 'yes' : 'no',
-      verdict: !nameSame ? 'Different' : score >= 100 ? 'Same' : 'Similar', extra: `${score}% ${tr('alike')}` }
-  ]
-  if (q.subjectTypeCode === 'PERSON') {
-    out.push(q.birthDate
-      ? { label: 'Birth date', mine: formatDate(q.birthDate), listed: '-', mark: h.matchBasisCode === 'NAME_ONLY' ? 'yes' : 'none',
-          verdict: h.matchBasisCode === 'NAME_ONLY' ? 'No conflict' : 'Not compared' }
-      : { label: 'Birth date', mine: tr('Not given'), listed: '-', mark: 'none', verdict: 'Not given' })
-  }
-  out.push(!q.nationalityCode || !h.nationalityCode
-    ? { label: 'Nationality', mine: q.nationalityCode || tr('Not given'), listed: h.nationalityCode || '-', mark: 'none', verdict: 'Not given' }
-    : { label: 'Nationality', mine: q.nationalityCode, listed: h.nationalityCode, mark: q.nationalityCode === h.nationalityCode ? 'yes' : 'no',
-        verdict: q.nationalityCode === h.nationalityCode ? 'Same' : 'Different' })
-  return out
-}
+defineProps<{ inquiry: ScrInquiry }>()
+/** The entry's status on the list, a fact: active and suspended entries in force, lifted ones history. */
+const CHIP_STATUS: Record<string, string> = { ACTIVE: 'fx-chip--bad', SUSPENDED: 'fx-chip--warn', LIFTED: 'fx-chip--teal' }
 const print = () => window.print()
 </script>

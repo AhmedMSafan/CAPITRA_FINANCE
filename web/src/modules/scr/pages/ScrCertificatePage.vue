@@ -42,24 +42,30 @@
           <div><dt>{{ tr('Full name') }}</dt><dd>{{ inquiry.subjectName }}</dd></div>
           <div><dt>{{ tr(LABELS[inquiry.identityTypeCode] ?? inquiry.identityTypeCode) }}</dt><dd dir="ltr">{{ inquiry.identityNo }}</dd></div>
           <div v-if="inquiry.birthDate"><dt>{{ tr('Birth date') }}</dt><dd>{{ formatDate(inquiry.birthDate) }}</dd></div>
+          <div v-if="inquiry.nameMatchMinPct"><dt>{{ tr('Name match at least') }}</dt><dd dir="ltr">{{ inquiry.nameMatchMinPct }}%</dd></div>
+          <div v-if="inquiry.idMatchMinDigits"><dt>{{ tr('Identity characters that must match') }}</dt><dd dir="ltr">{{ inquiry.idMatchMinDigits }} / 14</dd></div>
           <div v-if="inquiry.nationalityCode"><dt>{{ tr('Nationality') }}</dt><dd>{{ inquiry.nationalityCode }}</dd></div>
         </dl>
       </section>
 
-      <div class="scr-verdict" :class="`scr-verdict--${inquiry.resultCode}`">
+      <div class="scr-verdict" :class="inquiry.hits.length ? 'scr-verdict--FOUND' : 'scr-verdict--NOT_FOUND'">
         <span class="fa fa-shield" aria-hidden="true"></span>
-        <div><b>{{ tr(VERDICT[inquiry.resultCode] ?? inquiry.resultCode) }}</b>
-          <small>{{ inquiry.hits.length ? `${inquiry.hits.length} ${tr('Final List entries matched')}` : tr('No Final List entry matched.') }}</small></div>
+        <div><b>{{ foundText(inquiry) }}</b>
+          <small>{{ inquiry.hits.length ? tr('The level of match of each point is shown below. The decision is the member company\'s.') : tr('No Final List entry reaches the identity and name levels chosen.') }}</small></div>
       </div>
 
       <div v-if="inquiry.hits.length" class="fx-table-wrap scr-inv-pay-table">
         <table class="fx-table">
-          <thead><tr><th>{{ tr('Listed name') }}</th><th>{{ tr('Identity') }}</th><th>{{ tr('Matched on') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Decision') }}</th></tr></thead>
+          <thead><tr><th>{{ tr('Listed name') }}</th><th>{{ tr('Identity') }}</th><th>{{ tr('ID') }}</th><th>{{ tr('Name') }}</th>
+            <th v-if="inquiry.subjectTypeCode === 'PERSON'">{{ tr('Birth date') }}</th><th>{{ tr('Nationality') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Decision') }}</th></tr></thead>
           <tbody>
             <tr v-for="(h, n) in inquiry.hits" :key="n">
               <td><b>{{ h.nameAr }}</b><span v-if="h.nameEn" class="fx-cell-sub">{{ h.nameEn }}</span></td>
               <td dir="ltr">{{ h.identityNo }}</td>
-              <td>{{ tr(LABELS[h.matchBasisCode] ?? h.matchBasisCode) }}<span class="fx-cell-sub">{{ Math.round(h.nameScorePct) }}%</span></td>
+              <td><bdi>{{ idLevel(h).text }}</bdi></td>
+              <td><bdi>{{ nameLevel(h).text }}</bdi></td>
+              <td v-if="inquiry.subjectTypeCode === 'PERSON'">{{ birthLevel(inquiry, h).text }}</td>
+              <td>{{ nationalityLevel(inquiry, h).text }}</td>
               <td><span class="fx-chip" :class="CHIP[h.entryStatusCode]">{{ tr(LABELS[h.entryStatusCode] ?? h.entryStatusCode) }}</span></td>
               <td dir="ltr">{{ h.officialNo }}<span class="fx-cell-sub">{{ h.decisionRef }}</span></td>
             </tr>
@@ -91,7 +97,8 @@ import { useRouter } from 'vue-router'
 import { showError } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { formatDate, formatDateTime } from '../utils/dates'
-import { CHIP, LABELS, VERDICT, errorText, scrApi, type ScrInquiry, type ScrInquirySeal } from '../api/scr.api'
+import { CHIP, LABELS, errorText, scrApi, type ScrInquiry, type ScrInquirySeal } from '../api/scr.api'
+import { birthLevel, foundText, idLevel, nameLevel, nationalityLevel } from '../utils/levels'
 
 const props = defineProps<{ inquiryId: number }>()
 const router = useRouter()

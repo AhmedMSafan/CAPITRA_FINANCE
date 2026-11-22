@@ -127,7 +127,7 @@ const REFUSALS = ['BAD_PASSWORD', 'BAD_CODE', 'UNKNOWN_USER', 'INACTIVE', 'LOCKE
 /** Success, refusal, or the in-between ones: password right but no code (warn), two-factor reset by an administrator (plain). */
 const resultChip = (code: string) => code === 'SUCCESS' ? 'fx-chip--ok' : code === 'AWAITING_CODE' || code === 'CODE_TIMEOUT' ? 'fx-chip--warn' : code === 'TWO_FACTOR_RESET' ? 'fx-chip--plain' : 'fx-chip--bad'
 const SESSION_CHIP: Record<string, string> = { OPEN: 'fx-chip--ok', SIGNED_OUT: 'fx-chip--plain', EXPIRED: 'fx-chip--plain' }
-const RESULT_CHIP: Record<string, string> = { NO_MATCH: 'fx-chip--ok', POSSIBLE_MATCH: 'fx-chip--warn', MATCH: 'fx-chip--bad', PREVIOUSLY_LISTED: 'fx-chip--warn' }
+const RESULT_CHIP: Record<string, string> = { FOUND: 'fx-chip--warn', NOT_FOUND: 'fx-chip--teal', NO_MATCH: 'fx-chip--teal', POSSIBLE_MATCH: 'fx-chip--warn', MATCH: 'fx-chip--warn', PREVIOUSLY_LISTED: 'fx-chip--warn' }
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const q = reactive<{ fromDate: string; toDate: string; memberCompanyId?: number; resultCode: string; search: string }>({

@@ -1,58 +1,80 @@
 namespace Capitra.Application.Modules.Scr;
 
-/// <summary>What is screened: a person or company, its name, identity number and, if known, birth date.</summary>
-public sealed record ScrSubject(string PartyTypeCode, string Name, string IdentityNo, DateOnly? BirthDate = null);
-
-/// <summary>A Final List entry the subject matched, how, and how alike the names are.</summary>
-public sealed record ScrHit(ScrRegistryEntry Entry, string MatchBasisCode, decimal NameScorePct, string MatchedName);
+/// <summary>What is screened: a person or company, its name, identity number and, if known, birth date and nationality.</summary>
+public sealed record ScrSubject(string PartyTypeCode, string Name, string IdentityNo, DateOnly? BirthDate = null, string? NationalityCode = null);
 
 /// <summary>
-/// Screens one subject against the Final List. Fixes the FINOVA prototype, which reported only exact identity matches:
+/// A Final List entry shown for the subject, with how far each point agrees: the identity number (EXACT, or PARTIAL with the characters
+/// different and its similarity), the name (best similarity against the Arabic, English and other names), the birth
+/// date and the nationality (SAME, DIFFERENT or NOT_GIVEN).
+/// </summary>
+public sealed record ScrHit(
+    ScrRegistryEntry Entry, string MatchBasisCode, decimal NameScorePct, string MatchedName,
+    string IdMatchCode, decimal IdScorePct, int IdDigitsDifferent, string BirthMatchCode, string NationalityMatchCode);
+
+/// <summary>
+/// Screens one subject against the Final List. No verdict: the Federation shows the facts and the member company decides.
 /// <list type="bullet">
-/// <item>The identity number matches when equal once spaces, dashes and leading zeros are left out (any identity type: a passport
-/// number or a national ID).</item>
-/// <item>The name matches when it scores at least <see cref="ScrNames.MatchThreshold"/> against the entry's Arabic or English
-/// name or an alias. A name-only match whose birth date differs from the entry's is dropped.</item>
-/// <item>Result: MATCH when a listed (active or suspended) entry matches on identity; POSSIBLE_MATCH when it matches on the name
-/// only, to be reviewed; PREVIOUSLY_LISTED when only lifted entries match; else NO_MATCH.</item>
+/// <item>An entry is shown when at least the user's number of identity characters agree (1-14, default all of them: exactly the
+/// same number, once spaces, dashes and leading zeros are left out) AND the name scores at least the user's minimum (30-100,
+/// default <see cref="DefaultNameMin"/>) against the entry's Arabic or English name or another name.</item>
+/// <item>Each point gets its level: identity number and name as a percentage, birth date and nationality same or different.</item>
+/// <item>Result: FOUND when at least one entry is shown, else NOT_FOUND. Inquiries made before 23 Nov 2026 keep the results of
+/// the time (MATCH, POSSIBLE_MATCH, PREVIOUSLY_LISTED, NO_MATCH).</item>
 /// </list>
 /// </summary>
 public static class ScrMatcher
 {
-    public const string NoMatch = "NO_MATCH";
-    public const string PossibleMatch = "POSSIBLE_MATCH";
-    public const string Match = "MATCH";
-    public const string PreviouslyListed = "PREVIOUSLY_LISTED";
+    public const string Found = "FOUND";
+    public const string NotFound = "NOT_FOUND";
 
-    public static List<ScrHit> Screen(ScrSubject subject, IEnumerable<ScrRegistryEntry> list)
+    /// <summary>The least name similarity when the user sets none, and the range the user may choose from.</summary>
+    public const int DefaultNameMin = 80;
+    public const int NameMinFloor = 30;
+
+    /// <summary>The identity characters that must agree when the user sets none: all of them.</summary>
+    public const int DefaultIdDigits = 14;
+
+
+    public static List<ScrHit> Screen(ScrSubject subject, IEnumerable<ScrRegistryEntry> list, int nameMinPct = DefaultNameMin, int idMinDigits = DefaultIdDigits)
     {
         var id = ScrNames.Identity(subject.IdentityNo);
         var hits = new List<ScrHit>();
         foreach (var e in list.Where(e => e.PartyTypeCode == subject.PartyTypeCode))
         {
-            var byId = id.Length > 0 && ScrNames.Identity(e.IdentityNo) == id;
+            var (idCode, idPct, idDiff) = CompareIdentity(id, ScrNames.Identity(e.IdentityNo));
             var (score, name) = new[] { e.NameAr, e.NameEn }.Concat(e.Aliases).Where(n => !string.IsNullOrWhiteSpace(n))
                 .Select(n => (Score: ScrNames.Score(subject.Name, n), Name: n!))
                 .OrderByDescending(x => x.Score).FirstOrDefault();
-            var byName = score >= ScrNames.MatchThreshold;
-            if (byName && !byId && subject.BirthDate is { } b && e.BirthDate is { } eb && b != eb)
-                byName = false;
-            if (!byId && !byName)
+            // enough identity characters agree (all of them by default), and the name is at least as alike as chosen
+            var other = ScrNames.Identity(e.IdentityNo);
+            var agree = Math.Max(id.Length, other.Length) - idDiff;
+            if (id.Length == 0 || agree < Math.Min(idMinDigits, Math.Max(id.Length, other.Length)) || score < nameMinPct)
                 continue;
-            var basis = byId && byName ? "ID_AND_NAME" : byId ? "ID_ONLY" : "NAME_ONLY";
-            hits.Add(new ScrHit(e, basis, score, name ?? e.NameAr));
+            const string basis = "ID_AND_NAME";
+            var birth = subject.BirthDate is not { } b ? "NOT_GIVEN" : e.BirthDate is not { } eb ? "NOT_ON_LIST" : b == eb ? "SAME" : "DIFFERENT";
+            var nat = string.IsNullOrWhiteSpace(subject.NationalityCode) ? "NOT_GIVEN"
+                : string.IsNullOrWhiteSpace(e.NationalityCode) ? "NOT_ON_LIST"
+                : string.Equals(subject.NationalityCode.Trim(), e.NationalityCode.Trim(), StringComparison.OrdinalIgnoreCase) ? "SAME" : "DIFFERENT";
+            hits.Add(new ScrHit(e, basis, score, name ?? e.NameAr, idCode, idPct, idDiff, birth, nat));
         }
 
-        return [.. hits.OrderBy(h => h.Entry.StatusCode == ScrRegistry.Lifted).ThenBy(h => h.MatchBasisCode == "NAME_ONLY").ThenByDescending(h => h.NameScorePct)];
+        return [.. hits.OrderBy(h => h.IdMatchCode == "EXACT" ? 0 : h.IdMatchCode == "PARTIAL" ? 1 : 2)
+            .ThenByDescending(h => h.NameScorePct).ThenBy(h => h.Entry.StatusCode == ScrRegistry.Lifted)];
     }
 
-    public static string Result(IReadOnlyCollection<ScrHit> hits)
+    /// <summary>EXACT, PARTIAL (some characters different) or DIFFERENT (nothing to compare), the similarity (0-100) and the characters different.</summary>
+    public static (string Code, decimal Pct, int Diff) CompareIdentity(string a, string b)
     {
-        var listed = hits.Where(h => h.Entry.StatusCode != ScrRegistry.Lifted).ToList();
-        if (listed.Any(h => h.MatchBasisCode != "NAME_ONLY"))
-            return Match;
-        if (listed.Count > 0)
-            return PossibleMatch;
-        return hits.Count > 0 ? PreviouslyListed : NoMatch;
+        if (a.Length == 0 || b.Length == 0)
+            return ("DIFFERENT", 0m, Math.Max(a.Length, b.Length));
+        if (a == b)
+            return ("EXACT", 100m, 0);
+        var sim = ScrNames.Similarity(a, b);
+        var diff = (int)Math.Round((1 - sim) * Math.Max(a.Length, b.Length));
+        var pct = Math.Round((decimal)(sim * 100), 2, MidpointRounding.AwayFromZero);
+        return ("PARTIAL", pct, diff);
     }
+
+    public static string Result(IReadOnlyCollection<ScrHit> hits) => hits.Count > 0 ? Found : NotFound;
 }

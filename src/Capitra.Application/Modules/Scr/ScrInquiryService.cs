@@ -50,6 +50,12 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
         var name = ScrValidation.Clean(r.SubjectName);
         var purpose = ScrValidation.Code(r.PurposeCode);
         var nationality = ScrValidation.Clean(r.NationalityCode)?.ToUpperInvariant();
+        var nameMin = r.NameMatchMinPct ?? ScrMatcher.DefaultNameMin;
+        if (nameMin is < ScrMatcher.NameMinFloor or > 100)
+            e["nameMatchMinPct"] = [$"Choose a name match from {ScrMatcher.NameMinFloor}% to 100%."];
+        var idMin = r.IdMatchMinDigits ?? ScrMatcher.DefaultIdDigits;
+        if (idMin is < 1 or > ScrMatcher.DefaultIdDigits)
+            e["idMatchMinDigits"] = [$"Choose from 1 to {ScrMatcher.DefaultIdDigits} identity characters."];
         if (!ScrValidation.PartyTypes.Contains(type))
             e["subjectTypeCode"] = ["Choose person or company."];
         if (name is null)
@@ -68,18 +74,20 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
                 $"Your company has used its yearly quota of {quota:#,0} inquiries for {use.From:yyyy-MM-dd} to {use.To:yyyy-MM-dd}. Contact the Federation.");
 
         var (entries, version, _) = await staff.ListAsync(ct);
-        var hits = ScrMatcher.Screen(new ScrSubject(type, name!, idNo, type == "PERSON" ? r.BirthDate : null), entries);
+        var hits = ScrMatcher.Screen(new ScrSubject(type, name!, idNo, type == "PERSON" ? r.BirthDate : null, nationality), entries, nameMin, idMin);
         var inquiry = new ScrInquiry
         {
             InquiryRef = "PENDING", MemberCompanyId = company.MemberCompanyId, RequestedBy = requestedBy, SubjectTypeCode = type, SubjectName = name!,
             IdentityTypeCode = idType, IdentityNo = idNo, BirthDate = type == "PERSON" ? r.BirthDate : null, NationalityCode = nationality,
             PurposeCode = purpose, PurposeText = ScrValidation.Clean(r.PurposeText), CaseReference = ScrValidation.Clean(r.CaseReference),
-            ResultCode = ScrMatcher.Result(hits), RegistryVersionNo = version, ScreenedAt = ScrInquirySeal.Micro(clock.UtcNow),
+            ResultCode = ScrMatcher.Result(hits), RegistryVersionNo = version, NameMatchMinPct = nameMin, IdMatchMinDigits = idMin, ScreenedAt = ScrInquirySeal.Micro(clock.UtcNow),
             SessionId = sessionId, ReceivedAt = ScrInquirySeal.Micro(receivedAt), ChannelCode = channel, ApiClientId = apiClientId,
             Hits = [.. hits.Select(h => new ScrInquiryHit
             {
                 PartyId = h.Entry.PartyId, DecisionId = h.Entry.DecisionId, MatchBasisCode = h.MatchBasisCode, NameScorePct = Capitra.Application.Common.Money.Round(h.NameScorePct, 6),
-                MatchedName = h.MatchedName, EntryStatusCode = h.Entry.StatusCode,
+                MatchedName = h.MatchedName, EntryStatusCode = h.Entry.StatusCode, IdMatchCode = h.IdMatchCode,
+                IdScorePct = Capitra.Application.Common.Money.Round(h.IdScorePct, 6), IdDigitsDifferent = h.IdDigitsDifferent,
+                BirthMatchCode = h.BirthMatchCode, NationalityMatchCode = h.NationalityMatchCode,
             })],
         };
 
@@ -173,8 +181,16 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
         var q = db.Set<ScrInquiry>().AsQueryable();
         if (companyId is { } c)
             q = q.Where(i => i.MemberCompanyId == c);
-        if (ScrValidation.Clean(result)?.ToUpperInvariant() is { } r)
-            q = q.Where(i => i.ResultCode == r);
+        // FOUND / NOT_FOUND also take the results of inquiries made before 23 Nov 2026
+        string[]? codes = ScrValidation.Clean(result)?.ToUpperInvariant() switch
+        {
+            null => null,
+            ScrMatcher.Found => [ScrMatcher.Found, "MATCH", "POSSIBLE_MATCH", "PREVIOUSLY_LISTED"],
+            ScrMatcher.NotFound => [ScrMatcher.NotFound, "NO_MATCH"],
+            var r => [r],
+        };
+        if (codes is not null)
+            q = q.Where(i => codes.Contains(i.ResultCode));
         return ListAsync(q, ct);
     }
 
@@ -205,8 +221,9 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
         i.NationalityCode, i.PurposeCode, i.PurposeText, i.CaseReference, i.ResultCode, i.RegistryVersionNo, i.ScreenedAt,
         [.. i.Hits.Select(h => entries.TryGetValue((h.PartyId, h.DecisionId), out var e)
             ? new ScrInquiryHitDto(h.MatchBasisCode, h.NameScorePct, h.MatchedName, h.EntryStatusCode, e.PartyTypeCode, e.NameAr, e.NameEn,
-                e.IdentityTypeCode, e.IdentityNo, e.NationalityCode, e.DecisionRef, e.OfficialNo, e.ScopeText, e.ListedFrom, e.LiftedOn)
-            : null).OfType<ScrInquiryHitDto>()], i.ChannelCode, i.ReceivedAt, i.RespondedAt, i.RecordHash, i.MemberCompanyId, company?.NameEn, company?.NameAr);
+                e.IdentityTypeCode, e.IdentityNo, e.NationalityCode, e.DecisionRef, e.OfficialNo, e.ScopeText, e.ListedFrom, e.LiftedOn,
+                e.BirthDate, h.IdMatchCode, h.IdScorePct, h.IdDigitsDifferent, h.BirthMatchCode, h.NationalityMatchCode)
+            : null).OfType<ScrInquiryHitDto>()], i.ChannelCode, i.ReceivedAt, i.RespondedAt, i.RecordHash, i.MemberCompanyId, company?.NameEn, company?.NameAr, i.NameMatchMinPct, i.IdMatchMinDigits);
 
     // ---- seals ------------------------------------------------------------------------------------------------------------------
 

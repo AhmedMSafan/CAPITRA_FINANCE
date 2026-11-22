@@ -52,7 +52,7 @@ r=$(call GET "/api/scr/access-log?memberCompanyId=0" "$A"); check "Federation us
 r=$(call GET "/api/scr/access-log/$(jq -r .signInId <<<"$ROW")" "$A")
 check "session activity lists its 2 inquiries" "$(body "$r" | jq -r '[.inquiries[].subjectName] | join(",")')" "Session Person 1,Session Person 2"
 check "each with the time it took" "$(body "$r" | jq -r '[.inquiries[] | (.durationMs >= 0)] | all')" true
-check "and its result" "$(body "$r" | jq -r '.inquiries[0].resultCode')" NO_MATCH
+check "and its result" "$(body "$r" | jq -r '.inquiries[0].resultCode')" NOT_FOUND
 
 echo "5. Signing out ends the session and its token"
 r=$(call POST /api/sec/auth/logout "$T"); check "signed out" "$(status "$r")" 204

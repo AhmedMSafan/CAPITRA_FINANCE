@@ -51,10 +51,18 @@
           <label v-if="form.purposeCode === 'OTHER'" class="fc-field"><span>{{ tr('Describe the purpose') }} <b>*</b></span><input v-model="form.purposeText" class="fx-search">
             <small v-if="errors.purposeText" class="scr-err">{{ errors.purposeText }}</small></label>
           <label class="fc-field"><span>{{ tr('Case reference') }}</span><input v-model="form.caseReference" class="fx-search" dir="ltr"></label>
+          <label class="fc-field scr-name-min"><span>{{ tr('Identity characters that must match') }}: <b dir="ltr">{{ form.idMatchMinDigits }} / 14</b></span>
+            <input v-model.number="form.idMatchMinDigits" type="range" min="1" max="14" step="1" :aria-valuetext="`${form.idMatchMinDigits} / 14`">
+            <small class="fc-muted">{{ tr('14 = exactly the same number. Fewer also shows numbers with some characters different.') }}</small>
+            <small v-if="errors.idMatchMinDigits" class="scr-err">{{ errors.idMatchMinDigits }}</small></label>
+          <label class="fc-field scr-name-min"><span>{{ tr('Name match at least') }}: <b dir="ltr">{{ form.nameMatchMinPct }}%</b></span>
+            <input v-model.number="form.nameMatchMinPct" type="range" min="30" max="100" step="5" :aria-valuetext="`${form.nameMatchMinPct}%`">
+            <small class="fc-muted">{{ tr('An entry is shown only when both the identity number and the name reach what you chose.') }}</small>
+            <small v-if="errors.nameMatchMinPct" class="scr-err">{{ errors.nameMatchMinPct }}</small></label>
         </div>
         <div class="fc-form-actions">
           <div v-if="!result" class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-            <span><b>{{ tr('How screening works:') }}</b> {{ tr('we look for the identity number exactly, and for similar names in Arabic and English, other names included.') }}</span></div>
+            <span><b>{{ tr('How screening works:') }}</b> {{ tr('an entry is shown when the identity number and the name, in Arabic or English or another name, both reach the levels you chose below.') }}</span></div>
           <span v-else class="scr-grow"></span>
           <button type="button" class="fx-btn" @click="clear"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
           <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="screen">
@@ -76,15 +84,15 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="i in scoped" :key="i.inquiryId" :class="{ 'is-overdue': i.resultCode === 'MATCH' }">
+              <tr v-for="i in scoped" :key="i.inquiryId" :class="{ 'is-overdue': i.hits.length > 0 }">
                 <td dir="ltr"><b class="fc-ref">{{ i.inquiryRef }}</b></td>
                 <td>{{ i.subjectName }}<span class="fx-cell-sub">{{ tr(LABELS[i.subjectTypeCode] ?? i.subjectTypeCode) }}</span></td>
                 <td dir="ltr">{{ i.identityNo }}</td>
                 <td>{{ tr(LABELS[i.purposeCode] ?? i.purposeCode) }}</td>
-                <td><span class="fx-chip" :class="CHIP[i.resultCode]">{{ tr(LABELS[i.resultCode] ?? i.resultCode) }}</span>
-                  <span v-if="i.hits.length" class="scr-basis">
-                    <span :class="i.hits[0]?.matchBasisCode === 'NAME_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0]?.matchBasisCode === 'NAME_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('ID') }}</span>
-                    <span :class="i.hits[0]?.matchBasisCode === 'ID_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0]?.matchBasisCode === 'ID_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('Name') }}</span>
+                <td><span class="fx-chip" :class="i.hits.length ? 'fx-chip--warn' : 'fx-chip--teal'">{{ foundLabel(i) }}</span>
+                  <span v-if="i.hits[0]" class="scr-basis">
+                    <span :class="`scr-basis--${idLevel(i.hits[0]).mark}`">{{ tr('ID') }} <bdi>{{ idLevel(i.hits[0]).text.split(' · ')[0] }}</bdi></span>
+                    <span :class="`scr-basis--${nameLevel(i.hits[0]).mark}`">{{ tr('Name') }} <bdi>{{ nameLevel(i.hits[0]).text.split(' · ')[0] }}</bdi></span>
                   </span></td>
                 <td>{{ formatDateTime(i.screenedAt) }}</td>
                 <td>{{ i.requestedBy }}</td>
@@ -121,8 +129,9 @@ import ScrInquiryResult from '../components/ScrInquiryResult.vue'
 import ScrPortalInvoices from '../components/ScrPortalInvoices.vue'
 import ScrPortalSignIns from '../components/ScrPortalSignIns.vue'
 import { useRoute } from 'vue-router'
-import { CHIP, LABELS, errorText, fieldErrors, scrApi, type ScrInquiry, type ScrInquiryRequest, type ScrMyCompany } from '../api/scr.api'
+import { LABELS, errorText, fieldErrors, scrApi, type ScrInquiry, type ScrInquiryRequest, type ScrMyCompany } from '../api/scr.api'
 import { openScreeningManual } from '@/modules/scr/utils/manual'
+import { foundLabel, idLevel, nameLevel } from '../utils/levels'
 
 const canUsers = hasPermission('SCR.COMPANY.USERS')
 const route = useRoute()
@@ -136,7 +145,7 @@ const busy = ref(false)
 const errors = ref<Record<string, string>>({})
 const blank = (): ScrInquiryRequest => ({
   subjectTypeCode: 'PERSON', subjectName: '', identityTypeCode: 'NATIONAL_ID', identityNo: '', birthDate: null, nationalityCode: 'EG',
-  purposeCode: 'ONBOARDING', purposeText: null, caseReference: null
+  purposeCode: 'ONBOARDING', purposeText: null, caseReference: null, nameMatchMinPct: 80, idMatchMinDigits: 14
 })
 const form = reactive<ScrInquiryRequest>(blank())
 const idTypes = computed(() => (form.subjectTypeCode === 'PERSON' ? ['NATIONAL_ID', 'PASSPORT', 'OTHER'] : ['COMMERCIAL_REGISTER', 'OTHER']))
