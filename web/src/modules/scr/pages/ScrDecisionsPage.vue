@@ -134,7 +134,7 @@ const KPIS: { key: Exclude<View, '' | 'CANCELLED'>; title: string; descr: string
 ]
 /** Role codes shown by name when a step waits for a role. */
 const ROLES: Record<string, string> = { LEGAL_OFFICER: 'Legal officer', RISK_OFFICER: 'Risk officer', OPERATIONS_OFFICER: 'Operations officer' }
-const TYPES = ['LISTING', 'AMENDMENT', 'SUSPENSION', 'LIFTING']
+const TYPES = ['LISTING', 'AMENDMENT', 'LIFTING']
 
 const route = useRoute()
 const canEdit = hasPermission('SCR.DECISION.EDIT')

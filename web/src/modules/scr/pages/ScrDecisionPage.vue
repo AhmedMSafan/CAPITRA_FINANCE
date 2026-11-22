@@ -61,7 +61,7 @@
       <div class="fc-grid fc-grid--3">
         <label class="fc-field"><span>{{ tr('Type') }} <b>*</b></span>
           <select v-model="form.decisionTypeCode" class="fx-select" :disabled="!editable">
-            <option v-for="t in ['LISTING', 'AMENDMENT', 'SUSPENSION', 'LIFTING']" :key="t" :value="t">{{ tr(LABELS[t] ?? t) }}</option>
+            <option v-for="t in ['LISTING', 'AMENDMENT', 'LIFTING', ...(form.decisionTypeCode === 'SUSPENSION' ? ['SUSPENSION'] : [])]" :key="t" :value="t">{{ tr(LABELS[t] ?? t) }}</option>
           </select>
         </label>
         <label class="fc-field"><span>{{ tr('Official number') }} <b>*</b></span><input v-model="form.officialNo" class="fx-search" dir="ltr" :disabled="!editable">

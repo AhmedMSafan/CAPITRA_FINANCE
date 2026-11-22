@@ -144,8 +144,10 @@ public sealed class ScrScreeningTests
         Assert.Equal("ACTIVE", mohamed.StatusCode);
         Assert.Equal("Freeze of bank accounts only", mohamed.ScopeText);
 
+        // no suspension: a party is on the list or not, so a suspension published before changes nothing
         decisions[3].StatusCode = "PUBLISHED";
-        Assert.Equal("SUSPENDED", ScrRegistry.Derive(decisions, Parties).Single(e => e.PartyId == 101).StatusCode);
+        Assert.Equal("ACTIVE", ScrRegistry.Derive(decisions, Parties).Single(e => e.PartyId == 101).StatusCode);
+        Assert.DoesNotContain("SUSPENSION", ScrDecisionType.All);
     }
 
     // ---------------------------------------------------------------- segregation of duties

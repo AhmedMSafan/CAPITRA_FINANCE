@@ -27,7 +27,7 @@
         <RouterLink :to="{ name: 'scr-registry' }" class="scr-stat">
           <span class="scr-stat-ic scr-stat-ic--orange" aria-hidden="true"><span class="fa fa-user-times"></span></span>
           <span class="scr-stat-copy"><em>{{ tr('Active entries') }}</em><b>{{ registry.activeCount }}</b>
-            <small>{{ registry.suspendedCount }} {{ tr('suspended') }} · {{ registry.liftedCount }} {{ tr('lifted') }}</small></span>
+            <small>{{ registry.liftedCount }} {{ tr('lifted') }}</small></span>
         </RouterLink>
         <RouterLink :to="{ name: 'scr-decisions', query: { view: 'STARTED', user: '' } }" class="scr-stat">
           <span class="scr-stat-ic" aria-hidden="true"><span class="fa fa-hourglass-half"></span></span>
@@ -77,7 +77,7 @@ import { tr } from '@/shared/layout/language'
 import { errorText, scrApi, type ScrRegistry } from '../api/scr.api'
 
 const ALL = [
-  { name: 'scr-registry', icon: 'fa-list-alt', title: 'Federation Final List', descr: 'Every listed person and company, active, suspended and lifted.', perm: 'SCR.DECISION.VIEW', orange: true },
+  { name: 'scr-registry', icon: 'fa-list-alt', title: 'Federation Final List', descr: 'Every listed person and company, active and lifted.', perm: 'SCR.DECISION.VIEW', orange: true },
   { name: 'scr-decisions', icon: 'fa-gavel', title: 'Decisions', descr: 'Enter decisions, run their approval workflow and follow each one\'s step.', perm: 'SCR.DECISION.VIEW', orange: false },
   { name: 'scr-letters', icon: 'fa-envelope-o', title: 'Incoming letters', descr: 'Register letters and attach their scans.', perm: 'SCR.DECISION.VIEW', orange: false },
   { name: 'scr-parties', icon: 'fa-users', title: 'Parties', descr: 'The people and companies decisions are about, with their other names.', perm: 'SCR.DECISION.VIEW', orange: false },

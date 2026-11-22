@@ -4,7 +4,7 @@ namespace Capitra.Domain.Modules.Scr;
 
 /// <summary>
 /// SCR_DECISIONS: one decision entered from a letter. A LISTING puts its parties on the Federation Final List; an AMENDMENT changes
-/// the scope of a listing; a SUSPENSION suspends it; a LIFTING takes the parties off. Every decision goes through the CAPITRA
+/// the scope of a listing; a LIFTING takes the parties off (no suspension: a party is on the list or not; SUSPENSION is history only). Every decision goes through the CAPITRA
 /// workflow SCR_DECISION_APPROVAL (review, then approval) and reaches the list only when it is PUBLISHED.
 /// </summary>
 public class ScrDecision : AuditableEntity
@@ -17,7 +17,7 @@ public class ScrDecision : AuditableEntity
     /// <summary>The official number on the order, e.g. FRZ-106/2026.</summary>
     public string OfficialNo { get; set; } = string.Empty;
 
-    /// <summary>One of: LISTING, AMENDMENT, SUSPENSION, LIFTING.</summary>
+    /// <summary>One of: LISTING, AMENDMENT, LIFTING (SUSPENSION only on decisions entered before 22 Nov 2026).</summary>
     public string DecisionTypeCode { get; set; } = "LISTING";
 
     /// <summary>The listing an amendment, suspension or lifting applies to.</summary>

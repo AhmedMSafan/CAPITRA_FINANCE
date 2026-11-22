@@ -10,13 +10,15 @@ public sealed record ScrRegistryEntry(
     string? EnteredBy = null);
 
 /// <summary>
-/// The Federation Final List, worked out from published decisions (as FINOVA's deriveRegistry did): every party of every published
-/// LISTING is an entry; its latest published LIFTING (for that party) makes it LIFTED, else its latest SUSPENSION makes it
-/// SUSPENDED, and its latest AMENDMENT gives it the scope. Lifted entries stay on the list as history.
+/// The Federation Final List, worked out from published decisions: every party of every published LISTING is an entry; its latest
+/// published LIFTING (for that party) makes it LIFTED, and its latest AMENDMENT gives it the scope. A party is on the list or not: the
+/// list holds only parties under a formal legal or court decision, so there is no suspension (Ahmed, 22 Nov 2026); SUSPENSION decisions
+/// published before that are kept as history and change nothing. Lifted entries stay on the list as history.
 /// </summary>
 public static class ScrRegistry
 {
     public const string Active = "ACTIVE";
+    /// <summary>No longer given (no suspension): kept for inquiry hits recorded before.</summary>
     public const string Suspended = "SUSPENDED";
     public const string Lifted = "LIFTED";
 
@@ -34,10 +36,9 @@ public static class ScrRegistry
                     .Where(c => c.ParentDecisionId == listing.DecisionId && c.DecisionTypeCode == type && c.Parties.Any(x => x.PartyId == partyId))
                     .OrderByDescending(c => c.RegistryVersionNo ?? 0).FirstOrDefault();
                 var lift = Latest(ScrDecisionType.Lifting);
-                var suspension = Latest(ScrDecisionType.Suspension);
                 var amendment = Latest(ScrDecisionType.Amendment);
-                var status = lift is not null ? Lifted : suspension is not null ? Suspended : Active;
-                var last = new[] { lift, suspension, amendment }.Where(x => x is not null).OrderByDescending(x => x!.RegistryVersionNo ?? 0).FirstOrDefault();
+                var status = lift is not null ? Lifted : Active;
+                var last = new[] { lift, amendment }.Where(x => x is not null).OrderByDescending(x => x!.RegistryVersionNo ?? 0).FirstOrDefault();
                 entries.Add(new ScrRegistryEntry(
                     p.PartyId, listing.DecisionId, listing.DecisionRef, listing.OfficialNo, p.PartyTypeCode, p.NameAr, p.NameEn,
                     [.. p.Aliases.Select(a => a.AliasName)], p.IdentityTypeCode, p.IdentityNo, p.NationalityCode, p.BirthDate,
@@ -54,10 +55,12 @@ public static class ScrDecisionType
 {
     public const string Listing = "LISTING";
     public const string Amendment = "AMENDMENT";
+    /// <summary>No longer entered (Ahmed, 22 Nov 2026): kept so decisions entered before can be read.</summary>
     public const string Suspension = "SUSPENSION";
     public const string Lifting = "LIFTING";
 
-    public static readonly string[] All = [Listing, Amendment, Suspension, Lifting];
+    /// <summary>The types a new decision may have.</summary>
+    public static readonly string[] All = [Listing, Amendment, Lifting];
 }
 
 public static class ScrDecisionStatus

@@ -95,6 +95,7 @@ export const SCR_AR: Record<string, string> = {
   'Enter decisions from letters and send them through review and approval.': 'إدخال القرارات من الخطابات وإرسالها للمراجعة والاعتماد.',
   'Entered by': 'أدخله',
   'Every listed person and company, active, suspended and lifted.': 'كل الأفراد والشركات المدرجة: السارية والموقوفة والمرفوعة.',
+  'Every listed person and company, active and lifted.': 'كل الأفراد والشركات المدرجة: السارية والمرفوعة.',
   'Every screening by every member company, with its result.': 'كل عمليات الفحص لكل الشركات الأعضاء ونتائجها.',
   'First password': 'كلمة المرور الأولى',
   'Home': 'الرئيسية',

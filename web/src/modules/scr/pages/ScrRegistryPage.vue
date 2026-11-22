@@ -10,7 +10,7 @@
           <span class="fc-title-ic" aria-hidden="true"><span class="fa fa-list-alt"></span></span>
           <div>
             <h1>{{ tr('Federation Final List') }} <span v-if="registry" class="fx-chip fx-chip--teal fx-chip--plain">V{{ registry.versionNo }}</span></h1>
-            <p>{{ registry?.publishedAt ? `${tr('Last published')} ${formatDateTime(registry.publishedAt)}` : tr('Every listed person and company, active, suspended and lifted.') }}</p>
+            <p>{{ registry?.publishedAt ? `${tr('Last published')} ${formatDateTime(registry.publishedAt)}` : tr('Every listed person and company, active and lifted.') }}</p>
           </div>
         </div>
       </div>
@@ -30,7 +30,7 @@
       <label class="fc-field"><span>{{ tr('Status') }}</span>
         <select v-model="status" class="fx-select">
           <option value="">{{ tr('All statuses') }}</option>
-          <option v-for="s in ['ACTIVE', 'SUSPENDED', 'LIFTED']" :key="s" :value="s">{{ tr(LABELS[s] ?? s) }}</option>
+          <option v-for="s in ['ACTIVE', 'LIFTED']" :key="s" :value="s">{{ tr(LABELS[s] ?? s) }}</option>
         </select>
       </label>
     </div>
@@ -38,7 +38,7 @@
     <div class="fx-card">
       <div class="fc-card-head">
         <h2>{{ tr('Entries') }} ({{ rows.length }})</h2>
-        <span v-if="registry" class="fc-muted">{{ registry.activeCount }} {{ tr('active') }} · {{ registry.suspendedCount }} {{ tr('suspended') }} · {{ registry.liftedCount }} {{ tr('lifted') }}</span>
+        <span v-if="registry" class="fc-muted">{{ registry.activeCount }} {{ tr('active') }} · {{ registry.liftedCount }} {{ tr('lifted') }}</span>
       </div>
       <div class="fx-table-wrap">
         <table class="fx-table">
