@@ -195,6 +195,14 @@ export const scrApi = {
     return http.get<ScrSignInPage>(`${API}/access-log?${p}`)
   },
   session: (signInId: number) => http.get<{ signIn: ScrSignIn; inquiries: ScrSessionInquiry[] }>(`${API}/access-log/${signInId}`),
+  // a member company administrator's own: invoices and the company's sign-ins
+  portalInvoices: () => http.get<ScrInvoice[]>(`${API}/portal/invoices`),
+  portalInvoice: (id: number) => http.get<ScrInvoice>(`${API}/portal/invoices/${id}`),
+  portalSignIns: (q: ScrSignInQuery) => {
+    const p = new URLSearchParams(Object.entries(q).filter(([, v]) => v !== undefined && v !== '' && v !== null).map(([k, v]) => [k, String(v)]))
+    return http.get<ScrSignInPage>(`${API}/portal/sign-ins?${p}`)
+  },
+  portalSession: (signInId: number) => http.get<{ signIn: ScrSignIn; inquiries: ScrSessionInquiry[] }>(`${API}/portal/sign-ins/${signInId}`),
   pricePlans: () => http.get<ScrPricePlan[]>(`${API}/billing/plans`),
   createPricePlan: (r: ScrPricePlanRequest) => http.post<ScrPricePlan>(`${API}/billing/plans`, r),
   updatePricePlan: (id: number, r: ScrPricePlanRequest) => http.put<ScrPricePlan>(`${API}/billing/plans/${id}`, r),

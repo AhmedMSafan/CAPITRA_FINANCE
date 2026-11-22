@@ -4,8 +4,9 @@
     <div class="fx-head scr-no-print">
       <div>
         <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
-          <RouterLink :to="{ name: 'scr-home' }">{{ tr('Screening') }}</RouterLink><span aria-hidden="true">›</span>
-          <RouterLink :to="{ name: 'scr-billing' }">{{ tr('Billing') }}</RouterLink><span aria-hidden="true">›</span><b dir="ltr">{{ invoice?.invoiceNo }}</b>
+          <template v-if="portal"><RouterLink :to="{ name: 'scr-portal', query: { tab: 'invoices' } }">{{ tr('Screening Portal') }}</RouterLink><span aria-hidden="true">›</span></template>
+          <template v-else><RouterLink :to="{ name: 'scr-home' }">{{ tr('Screening') }}</RouterLink><span aria-hidden="true">›</span>
+          <RouterLink :to="{ name: 'scr-billing' }">{{ tr('Billing') }}</RouterLink><span aria-hidden="true">›</span></template><b dir="ltr">{{ invoice?.invoiceNo }}</b>
         </nav>
       </div>
       <div class="fx-actions">
@@ -47,20 +48,20 @@
         </div>
         <div v-if="invoice.payments?.length" class="fx-table-wrap scr-inv-pay-table">
           <table class="fx-table">
-            <thead><tr><th>{{ tr('Paid on') }}</th><th class="fx-r">{{ tr('Amount') }}</th><th>{{ tr('Into') }}</th><th>{{ tr('Reference') }}</th><th class="scr-no-print">{{ tr('GL') }}</th><th class="scr-no-print">{{ tr('By') }}</th></tr></thead>
+            <thead><tr><th>{{ tr('Paid on') }}</th><th class="fx-r">{{ tr('Amount') }}</th><th>{{ tr('Into') }}</th><th>{{ tr('Reference') }}</th><template v-if="!portal"><th class="scr-no-print">{{ tr('GL') }}</th><th class="scr-no-print">{{ tr('By') }}</th></template></tr></thead>
             <tbody>
               <tr v-for="p in invoice.payments" :key="p.paymentId">
                 <td>{{ formatDate(p.paymentDate) }}</td>
                 <td class="fx-r" dir="ltr"><b>{{ egp(p.paymentAmount) }}</b></td>
                 <td dir="ltr">{{ p.bankAccountText }}</td>
                 <td dir="ltr">{{ p.referenceNo ?? '-' }}<span v-if="p.notes" class="fx-cell-sub" dir="auto">{{ p.notes }}</span></td>
-                <td class="scr-no-print" dir="ltr"><small>{{ p.glTranSetId ?? '-' }}</small></td>
-                <td class="scr-no-print" dir="ltr">{{ p.createdBy }}<span class="fx-cell-sub">{{ formatDateTime(p.createdAt) }}</span></td>
+                <template v-if="!portal"><td class="scr-no-print" dir="ltr"><small>{{ p.glTranSetId ?? '-' }}</small></td>
+                <td class="scr-no-print" dir="ltr">{{ p.createdBy }}<span class="fx-cell-sub">{{ formatDateTime(p.createdAt) }}</span></td></template>
               </tr>
             </tbody>
           </table>
         </div>
-        <p class="scr-inv-gl scr-no-print"><span class="fa fa-book" aria-hidden="true"></span>
+        <p v-if="!portal" class="scr-inv-gl scr-no-print"><span class="fa fa-book" aria-hidden="true"></span>
           <template v-if="invoice.glTranSetId">{{ tr('GL entry') }} <b dir="ltr">{{ invoice.glTranSetId }}</b> {{ tr('dated') }} {{ formatDate(invoice.accountingDate ?? null) }}<template v-if="invoice.cancelGlTranSetId"> · {{ tr('reversed by') }} <b dir="ltr">{{ invoice.cancelGlTranSetId }}</b></template></template>
           <template v-else>{{ tr('No GL entry: the invoice comes to 0.00.') }}</template>
         </p>
@@ -112,8 +113,9 @@ import ScrInvoiceLines from '../components/ScrInvoiceLines.vue'
 import { formatDate, formatDateTime } from '../utils/dates'
 import { LABELS, egp, errorText, scrApi, type ScrBankAccount, type ScrInvoice } from '../api/scr.api'
 
-const props = defineProps<{ invoiceId: number }>()
-const canManage = hasPermission('SCR.BILLING.MANAGE')
+/** portal: a member company administrator viewing the company's own invoice (read and print only). */
+const props = defineProps<{ invoiceId: number; portal?: boolean }>()
+const canManage = !props.portal && hasPermission('SCR.BILLING.MANAGE')
 const invoice = ref<ScrInvoice | null>(null)
 const cancelling = ref(false)
 const reason = ref('')
@@ -153,7 +155,7 @@ async function recordPayment() {
 
 async function load() {
   try {
-    invoice.value = await scrApi.invoice(props.invoiceId)
+    invoice.value = props.portal ? await scrApi.portalInvoice(props.invoiceId) : await scrApi.invoice(props.invoiceId)
   } catch (err) {
     showError(errorText(err))
   }
