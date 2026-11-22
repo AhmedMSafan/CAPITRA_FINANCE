@@ -41,7 +41,7 @@ check "no inquiry can be deleted" "$(sqlerr "delete from \"SCR_INQUIRIES\" where
 if [ "$OLD" -gt 0 ]; then
   check "not even an old one" "$(sqlerr "delete from \"SCR_INQUIRIES\" where \"RECORD_HASH\" is null" | grep -c 'cannot be deleted')" 1
 fi
-check "still as made" "$(sql "select \"RESULT_CODE\" from \"SCR_INQUIRIES\" where \"INQUIRY_REF\"='$AREF'")" NO_MATCH
+check "still as made" "$(sql "select \"RESULT_CODE\" from \"SCR_INQUIRIES\" where \"INQUIRY_REF\"='$AREF'")" NOT_FOUND
 
 echo "3. A change made behind the application's back shows"
 sql "alter table \"SCR_INQUIRIES\" disable trigger \"TRG_SCR_INQUIRIES_GUARD\"; update \"SCR_INQUIRIES\" set \"RESULT_CODE\"='MATCH' where \"INQUIRY_REF\"='$AREF'; alter table \"SCR_INQUIRIES\" enable trigger \"TRG_SCR_INQUIRIES_GUARD\"" >/dev/null

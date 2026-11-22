@@ -55,12 +55,14 @@ export type ScrRegistry = {
 
 export type ScrInquiryRequest = {
   subjectTypeCode: string; subjectName: string; identityTypeCode: string; identityNo: string; birthDate: string | null
-  nationalityCode: string | null; purposeCode: string; purposeText: string | null; caseReference: string | null
+  nationalityCode: string | null; purposeCode: string; purposeText: string | null; caseReference: string | null; nameMatchMinPct?: number; idMatchMinDigits?: number
 }
 export type ScrInquiryHit = {
   matchBasisCode: string; nameScorePct: number; matchedName: string; entryStatusCode: string; partyTypeCode: string; nameAr: string
   nameEn: string | null; identityTypeCode: string; identityNo: string; nationalityCode: string; decisionRef: string; officialNo: string
   scopeText: string; listedFrom: string; liftedOn: string | null
+  birthDate?: string | null; idMatchCode?: string | null; idScorePct?: number | null; idDigitsDifferent?: number | null
+  birthMatchCode?: string | null; nationalityMatchCode?: string | null
 }
 export type ScrInquiry = {
   inquiryId: number; inquiryRef: string; companyCode: string; requestedBy: string; subjectTypeCode: string; subjectName: string
@@ -68,7 +70,7 @@ export type ScrInquiry = {
   purposeText: string | null; caseReference: string | null; resultCode: string; registryVersionNo: number; screenedAt: string
   hits: ScrInquiryHit[]
   channelCode?: string; receivedAt?: string | null; respondedAt?: string | null; recordHash?: string | null
-  memberCompanyId?: number; companyNameEn?: string | null; companyNameAr?: string | null
+  memberCompanyId?: number; companyNameEn?: string | null; companyNameAr?: string | null; nameMatchMinPct?: number | null; idMatchMinDigits?: number | null
 }
 
 export type ScrLicence = {
@@ -304,23 +306,17 @@ export const LABELS: Record<string, string> = {
   LISTING: 'Listing', AMENDMENT: 'Amendment', SUSPENSION: 'Suspension', LIFTING: 'Lifting',
   DRAFT: 'Draft', IN_REVIEW: 'In review', AWAITING_APPROVAL: 'Awaiting approval', RETURNED: 'Returned', PUBLISHED: 'Published', CANCELLED: 'Cancelled',
   ACTIVE: 'Active', SUSPENDED: 'Suspended', LIFTED: 'Lifted',
-  NO_MATCH: 'Not listed', POSSIBLE_MATCH: 'Needs review', MATCH: 'Listed', PREVIOUSLY_LISTED: 'Previously listed',
+  FOUND: 'Found', NOT_FOUND: 'Not found', NO_MATCH: 'Not found', POSSIBLE_MATCH: 'Found', MATCH: 'Found', PREVIOUSLY_LISTED: 'Found',
   ID_AND_NAME: 'Identity and name', ID_ONLY: 'Identity only (name differs)', NAME_ONLY: 'Name only (identity differs)',
   ONBOARDING: 'Customer onboarding', TRANSACTION: 'Transaction', PERIODIC_REVIEW: 'Periodic review',
   MEMBER_COMPANY_USER: 'Company user', MEMBER_COMPANY_ADMIN: 'Company administrator',
   PENDING_ACTIVATION: 'Pending activation', INACTIVE: 'Inactive', NOT_STARTED: 'Not started yet', EXPIRED: 'Expired', NONE: 'No licence'
 }
 
-/** The result as a sentence that says what to do (banner, certificate). */
-export const VERDICT: Record<string, string> = {
-  MATCH: 'Listed on the Final List: do not proceed', POSSIBLE_MATCH: 'Needs review: a similar name is listed',
-  PREVIOUSLY_LISTED: 'Not listed now: was listed before', NO_MATCH: 'Not listed: you can proceed'
-}
-
 export const CHIP: Record<string, string> = {
   DRAFT: 'fx-chip--teal', IN_REVIEW: 'fx-chip--warn', AWAITING_APPROVAL: 'fx-chip--warn', RETURNED: 'fx-chip--bad', PUBLISHED: 'fx-chip--ok',
   CANCELLED: 'fx-chip--bad', ACTIVE: 'fx-chip--bad', SUSPENDED: 'fx-chip--warn', LIFTED: 'fx-chip--teal',
-  NO_MATCH: 'fx-chip--ok', POSSIBLE_MATCH: 'fx-chip--warn', MATCH: 'fx-chip--bad', PREVIOUSLY_LISTED: 'fx-chip--teal'
+  FOUND: 'fx-chip--warn', NOT_FOUND: 'fx-chip--teal', NO_MATCH: 'fx-chip--teal', POSSIBLE_MATCH: 'fx-chip--warn', MATCH: 'fx-chip--warn', PREVIOUSLY_LISTED: 'fx-chip--warn'
 }
 
 export function errorText(err: unknown): string {

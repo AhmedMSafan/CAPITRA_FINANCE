@@ -66,10 +66,16 @@ public class ScrInquiry : AuditableEntity
     /// <summary>SHA-256 (hex) of the inquiry's evidence and PrevHash; once set, the database refuses any change (ScrInquirySeal).</summary>
     public string? RecordHash { get; set; }
 
+    /// <summary>The least name similarity (30-100) the user asked for; null on inquiries made before 23 Nov 2026.</summary>
+    public int? NameMatchMinPct { get; set; }
+
+    /// <summary>How many identity characters had to agree (1-14; 14 = exactly the same); null on inquiries made before 23 Nov 2026.</summary>
+    public int? IdMatchMinDigits { get; set; }
+
     public List<ScrInquiryHit> Hits { get; set; } = [];
 }
 
-/// <summary>SCR_INQUIRY_HITS: a Final List entry an inquiry matched, and how.</summary>
+/// <summary>SCR_INQUIRY_HITS: a Final List entry shown for an inquiry, and how far each point agrees.</summary>
 public class ScrInquiryHit : AuditableEntity
 {
     public long InquiryHitId { get; set; }
@@ -90,4 +96,19 @@ public class ScrInquiryHit : AuditableEntity
 
     /// <summary>The entry's status when screened: ACTIVE, SUSPENDED or LIFTED.</summary>
     public string EntryStatusCode { get; set; } = "ACTIVE";
+
+    /// <summary>The identity number against the entry's: EXACT or PARTIAL (some characters different). Null on inquiries made before 23 Nov 2026.</summary>
+    public string? IdMatchCode { get; set; }
+
+    /// <summary>Identity number similarity, 0-100.</summary>
+    public decimal? IdScorePct { get; set; }
+
+    /// <summary>Characters different between the two identity numbers.</summary>
+    public int? IdDigitsDifferent { get; set; }
+
+    /// <summary>The birth date against the entry's: SAME, DIFFERENT, NOT_GIVEN or NOT_ON_LIST.</summary>
+    public string? BirthMatchCode { get; set; }
+
+    /// <summary>The nationality against the entry's: SAME, DIFFERENT, NOT_GIVEN or NOT_ON_LIST.</summary>
+    public string? NationalityMatchCode { get; set; }
 }

@@ -159,6 +159,8 @@ public sealed class ScrInquiryConfiguration : IEntityTypeConfiguration<ScrInquir
         builder.ToTable("SCR_INQUIRIES");
         builder.HasKey(x => x.InquiryId);
         builder.HasIndex(x => x.InquiryRef).IsUnique();
+        // a whole percent chosen by the user (30-100), not a numeric(9,6) _PCT
+        builder.Property(x => x.NameMatchMinPct).HasColumnName("NAME_MATCH_MIN");
         builder.HasIndex(x => new { x.MemberCompanyId, x.ScreenedAt });
         builder.Property(x => x.InquiryId).UseIdentityByDefaultColumn();
         builder.Property(x => x.InquiryRef).HasMaxLength(30);
@@ -197,6 +199,10 @@ public sealed class ScrInquiryHitConfiguration : IEntityTypeConfiguration<ScrInq
         builder.Property(x => x.MatchBasisCode).HasMaxLength(20);
         builder.Property(x => x.MatchedName).HasMaxLength(300);
         builder.Property(x => x.EntryStatusCode).HasMaxLength(20);
+        builder.Property(x => x.IdMatchCode).HasMaxLength(20);
+        builder.Property(x => x.IdScorePct).HasPrecision(9, 6);
+        builder.Property(x => x.BirthMatchCode).HasMaxLength(20);
+        builder.Property(x => x.NationalityMatchCode).HasMaxLength(20);
         builder.HasOne<ScrParty>().WithMany().HasForeignKey(x => x.PartyId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ScrDecision>().WithMany().HasForeignKey(x => x.DecisionId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();

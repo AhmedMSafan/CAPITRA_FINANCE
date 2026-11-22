@@ -42,7 +42,7 @@ echo "3. Screening"
 r=$(call POST /api/scr/v1/inquiries "$TOKEN" '{"subjectTypeCode":"PERSON","subjectName":"Unknown Person","identityTypeCode":"NATIONAL_ID","identityNo":"29001011234567","purposeCode":"ONBOARDING","caseReference":"CB-77"}')
 check "screened" "$(status "$r")" 200
 REF=$(body "$r" | jq -r .inquiryRef)
-check "the API's answer" "$(body "$r" | jq -r '.result + " " + .channel + " " + .caseReference + " " + (.hits|length|tostring)')" "NO_MATCH API CB-77 0"
+check "the API's answer" "$(body "$r" | jq -r '.result + " " + .channel + " " + .caseReference + " " + (.hits|length|tostring)')" "NOT_FOUND API CB-77 0"
 check "timings kept" "$(body "$r" | jq -r '(.receivedAt != null) and (.respondedAt != null)')" true
 check "kept with its channel and client" "$(sql "select \"CHANNEL_CODE\" || ' ' || \"REQUESTED_BY\" || ' ' || (\"API_CLIENT_ID\" is not null) from \"SCR_INQUIRIES\" where \"INQUIRY_REF\"='$REF'")" "API api:$CLIENT true"
 sql "insert into \"SCR_INQUIRIES\" (\"INQUIRY_REF\",\"MEMBER_COMPANY_ID\",\"REQUESTED_BY\",\"SUBJECT_TYPE_CODE\",\"SUBJECT_NAME\",\"IDENTITY_TYPE_CODE\",\"IDENTITY_NO\",\"PURPOSE_CODE\",\"RESULT_CODE\",\"REGISTRY_VERSION_NO\",\"SCREENED_AT\",\"CREATED_BY\",\"CREATED_AT\",\"ROW_VERSION\") values ('SCR-2026-900001',$CID,'old.u1','PERSON','Portal Person','NATIONAL_ID','29001011234568','ONBOARDING','NO_MATCH',0,now() - interval '1 minute','E2E',now(),0)" >/dev/null

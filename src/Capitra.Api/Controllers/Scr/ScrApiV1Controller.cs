@@ -19,22 +19,24 @@ public sealed record ScrApiTokenResponse(string AccessToken, string TokenType, i
 
 public sealed record ScrApiError(string Error, string Message);
 
-/// <summary>A Final List entry the subject matched.</summary>
+/// <summary>A Final List entry shown for the subject, and how far each point agrees (no verdict: the member company decides).</summary>
 public sealed record ScrApiHit(
     string MatchBasis, decimal NameScore, string MatchedName, string EntryStatus, string PartyType, string NameAr, string? NameEn, string IdentityType,
-    string IdentityNo, string Nationality, string DecisionRef, string OfficialNo, string Scope, DateOnly ListedFrom, DateOnly? LiftedOn);
+    string IdentityNo, string Nationality, string DecisionRef, string OfficialNo, string Scope, DateOnly ListedFrom, DateOnly? LiftedOn,
+    DateOnly? BirthDate, string? IdMatch, decimal? IdScore, int? IdCharactersDifferent, string? BirthDateMatch, string? NationalityMatch);
 
 /// <summary>One screening, as the API answers it.</summary>
 public sealed record ScrApiInquiry(
     string InquiryRef, string Result, int ListVersion, DateTime ScreenedAt, DateTime? ReceivedAt, DateTime? RespondedAt, string Channel,
     string SubjectType, string SubjectName, string IdentityType, string IdentityNo, DateOnly? BirthDate, string? Nationality, string Purpose,
-    string? PurposeText, string? CaseReference, IReadOnlyList<ScrApiHit> Hits, string? RecordHash)
+    string? PurposeText, string? CaseReference, IReadOnlyList<ScrApiHit> Hits, string? RecordHash, int? NameMatchMinPct, int? IdMatchMinDigits)
 {
     public static ScrApiInquiry From(ScrInquiryDto i) => new(
         i.InquiryRef, i.ResultCode, i.RegistryVersionNo, i.ScreenedAt, i.ReceivedAt, i.RespondedAt, i.ChannelCode, i.SubjectTypeCode, i.SubjectName,
         i.IdentityTypeCode, i.IdentityNo, i.BirthDate, i.NationalityCode, i.PurposeCode, i.PurposeText, i.CaseReference,
         [.. i.Hits.Select(h => new ScrApiHit(h.MatchBasisCode, h.NameScorePct, h.MatchedName, h.EntryStatusCode, h.PartyTypeCode, h.NameAr, h.NameEn,
-            h.IdentityTypeCode, h.IdentityNo, h.NationalityCode, h.DecisionRef, h.OfficialNo, h.ScopeText, h.ListedFrom, h.LiftedOn))], i.RecordHash);
+            h.IdentityTypeCode, h.IdentityNo, h.NationalityCode, h.DecisionRef, h.OfficialNo, h.ScopeText, h.ListedFrom, h.LiftedOn,
+            h.BirthDate, h.IdMatchCode, h.IdScorePct, h.IdDigitsDifferent, h.BirthMatchCode, h.NationalityMatchCode))], i.RecordHash, i.NameMatchMinPct, i.IdMatchMinDigits);
 }
 
 /// <summary>

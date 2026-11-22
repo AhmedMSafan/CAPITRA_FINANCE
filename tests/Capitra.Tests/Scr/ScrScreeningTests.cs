@@ -56,55 +56,75 @@ public sealed class ScrScreeningTests
     }
 
     [Fact]
-    public void A_listed_name_with_a_mistyped_ID_is_a_possible_match_not_a_clear()
+    public void Only_the_same_ID_with_a_name_alike_enough_is_shown()
     {
-        // the FINOVA prototype answered "No Match" here
-        var (hits, result) = Screen("أحمد محمد علي", "29801011234568", Entry("أحمد محمد علي", "29801011234567"));
-        Assert.Equal(ScrMatcher.PossibleMatch, result);
-        Assert.Equal("NAME_ONLY", Assert.Single(hits).MatchBasisCode);
+        var entry = Entry("أحمد محمد علي", "29801011234567");
+        // same ID, same name
+        var (hits, result) = Screen("احمد محمد على", "29801011234567", entry);
+        Assert.Equal(ScrMatcher.Found, result);
+        Assert.Equal(("EXACT", 100m), (Assert.Single(hits).IdMatchCode, hits[0].IdScorePct));
+        // a mistyped ID is not shown, whatever the name
+        Assert.Equal(ScrMatcher.NotFound, Screen("أحمد محمد علي", "29801011234568", entry).Result);
+        // the same ID with another name is not shown
+        Assert.Equal(ScrMatcher.NotFound, Screen("Someone Else", "29801011234567", entry).Result);
     }
 
     [Fact]
-    public void The_listed_ID_matches_whatever_the_name()
+    public void The_user_chooses_how_many_ID_characters_must_agree()
     {
-        var (hits, result) = Screen("Someone Else", "29801011234567", Entry("أحمد محمد علي", "29801011234567"));
-        Assert.Equal(ScrMatcher.Match, result);
-        Assert.Equal("ID_ONLY", Assert.Single(hits).MatchBasisCode);
-        Assert.Equal("ID_AND_NAME", Screen("احمد محمد على", "29801011234567", Entry("أحمد محمد علي", "29801011234567")).Hits[0].MatchBasisCode);
+        var entry = Entry("أحمد محمد علي", "29801011234567");
+        var s = new ScrSubject("PERSON", "أحمد محمد علي", "29801011234568");
+        Assert.Empty(ScrMatcher.Screen(s, [entry]));
+        var h = Assert.Single(ScrMatcher.Screen(s, [entry], idMinDigits: 13));
+        Assert.Equal(("PARTIAL", 1, 92.86m), (h.IdMatchCode, h.IdDigitsDifferent, h.IdScorePct));
+        Assert.Empty(ScrMatcher.Screen(new ScrSubject("PERSON", "أحمد محمد علي", "29801011234999"), [entry], idMinDigits: 13));
     }
 
     [Fact]
-    public void A_lifted_entry_is_previously_listed_not_a_match()
+    public void The_user_chooses_how_alike_the_name_must_be()
     {
-        Assert.Equal(ScrMatcher.PreviouslyListed, Screen("أحمد محمد علي", "29801011234567", Entry("أحمد محمد علي", "29801011234567", "LIFTED")).Result);
-        Assert.Equal(ScrMatcher.Match, Screen("أحمد محمد علي", "29801011234567", Entry("أحمد محمد علي", "29801011234567", "SUSPENDED")).Result);
+        var entry = Entry("Ahmed Mohamed Ali", "29801011234567");
+        var s = new ScrSubject("PERSON", "Ahmed Mohammed Aly", "29801011234567");
+        var score = ScrNames.Score(s.Name, entry.NameAr);
+        Assert.Single(ScrMatcher.Screen(s, [entry], (int)Math.Floor(score)));
+        Assert.Empty(ScrMatcher.Screen(s, [entry], (int)Math.Floor(score) + 1));
+        Assert.Single(ScrMatcher.Screen(new ScrSubject("PERSON", "Ahmed Hassan", "29801011234567"), [entry], 30));
+    }
+
+    [Fact]
+    public void Lifted_and_suspended_entries_are_shown_with_their_status()
+    {
+        Assert.Equal("LIFTED", Screen("أحمد محمد علي", "29801011234567", Entry("أحمد محمد علي", "29801011234567", "LIFTED")).Hits[0].Entry.StatusCode);
+        Assert.Equal(ScrMatcher.Found, Screen("أحمد محمد علي", "29801011234567", Entry("أحمد محمد علي", "29801011234567", "SUSPENDED")).Result);
     }
 
     [Fact]
     public void A_foreigner_is_screened_by_passport()
     {
         var entry = Entry("حسن محمود عبدالعزيز", "A1230455") with { IdentityTypeCode = "PASSPORT", NationalityCode = "SD" };
-        Assert.Equal(ScrMatcher.Match, Screen("Hassan Mahmoud", "a1230455", entry).Result);
+        var h = Assert.Single(ScrMatcher.Screen(new ScrSubject("PERSON", "حسن محمود عبد العزيز", "a1230455", null, "SD"), [entry]));
+        Assert.Equal(("EXACT", "SAME"), (h.IdMatchCode, h.NationalityMatchCode));
     }
 
     [Fact]
     public void Aliases_and_English_names_are_screened_too()
     {
         var entry = Entry("شركة الشرق للاستثمار", "29584", type: "COMPANY", en: "Al Sharq Investment Co", aliases: ["East Investments"]);
-        Assert.Equal(ScrMatcher.PossibleMatch, Screen(new ScrSubject("COMPANY", "East Investments", "11111"), entry).Result);
-        Assert.Equal(ScrMatcher.PossibleMatch, Screen(new ScrSubject("COMPANY", "Al-Sharq Investment Co.", "11111"), entry).Result);
+        Assert.Equal(ScrMatcher.Found, Screen(new ScrSubject("COMPANY", "East Investments", "29584"), entry).Result);
+        Assert.Equal(ScrMatcher.Found, Screen(new ScrSubject("COMPANY", "Al-Sharq Investment Co.", "29584"), entry).Result);
         // a company is never matched against people
-        Assert.Equal(ScrMatcher.NoMatch, Screen(new ScrSubject("PERSON", "East Investments", "29584"), entry).Result);
+        Assert.Equal(ScrMatcher.NotFound, Screen(new ScrSubject("PERSON", "East Investments", "29584"), entry).Result);
     }
 
     [Fact]
-    public void A_name_only_match_with_another_birth_date_is_dropped()
+    public void The_birth_date_and_nationality_are_compared_not_used_to_hide()
     {
         var entry = Entry("أحمد محمد علي", "29801011234567", birth: new DateOnly(1998, 1, 1));
-        Assert.Equal(ScrMatcher.NoMatch, Screen(new ScrSubject("PERSON", "أحمد محمد علي", "30001011234567", new DateOnly(2000, 1, 1)), entry).Result);
-        Assert.Equal(ScrMatcher.PossibleMatch, Screen(new ScrSubject("PERSON", "أحمد محمد علي", "30001011234567", new DateOnly(1998, 1, 1)), entry).Result);
-        // an identity match stands whatever the birth date
-        Assert.Equal(ScrMatcher.Match, Screen(new ScrSubject("PERSON", "x", "29801011234567", new DateOnly(2000, 1, 1)), entry).Result);
+        var other = Screen(new ScrSubject("PERSON", "أحمد محمد علي", "29801011234567", new DateOnly(2000, 1, 1), "EG"), entry).Hits;
+        Assert.Equal(("DIFFERENT", "SAME"), (Assert.Single(other).BirthMatchCode, other[0].NationalityMatchCode));
+        Assert.Equal("SAME", Screen(new ScrSubject("PERSON", "أحمد محمد علي", "29801011234567", new DateOnly(1998, 1, 1)), entry).Hits[0].BirthMatchCode);
+        Assert.Equal(("NOT_GIVEN", "NOT_GIVEN"), (Screen("أحمد محمد علي", "29801011234567", entry).Hits[0].BirthMatchCode,
+            Screen("أحمد محمد علي", "29801011234567", entry).Hits[0].NationalityMatchCode));
     }
 
     // ---------------------------------------------------------------- the Final List

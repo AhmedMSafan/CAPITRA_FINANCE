@@ -20,9 +20,9 @@
     </div>
 
     <div class="fc-indicators">
-      <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ count('MATCH') }}</b><span>{{ tr('Listed') }}</span><small>{{ tr('Same identity number: measure in force') }}</small></div>
-      <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ count('POSSIBLE_MATCH') }}</b><span>{{ tr('Needs review') }}</span><small>{{ tr('Similar name, other identity number') }}</small></div>
-      <div class="fx-card fc-indicator"><b>{{ scoped.length }}</b><span>{{ tr('Inquiries') }}</span><small>{{ count('NO_MATCH') }} {{ tr('Not listed') }} · {{ count('PREVIOUSLY_LISTED') }} {{ tr('Previously listed') }}</small></div>
+      <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ found }}</b><span>{{ tr('Entries found') }}</span><small>{{ tr('At least one Final List entry shown') }}</small></div>
+      <div class="fx-card fc-indicator"><b>{{ scoped.length - found }}</b><span>{{ tr('Not found') }}</span><small>{{ tr('Nothing close on the Final List') }}</small></div>
+      <div class="fx-card fc-indicator"><b>{{ scoped.length }}</b><span>{{ tr('Inquiries') }}</span><small>{{ tr('Every member company, portal and API') }}</small></div>
     </div>
 
     <div class="fx-card fx-card-pad fc-filters fc-step-card">
@@ -33,7 +33,8 @@
       <label class="fc-field"><span>{{ tr('Result') }}</span>
         <select v-model="result" class="fx-select" @change="load">
           <option value="">{{ tr('All results') }}</option>
-          <option v-for="r in ['MATCH', 'POSSIBLE_MATCH', 'PREVIOUSLY_LISTED', 'NO_MATCH']" :key="r" :value="r">{{ tr(LABELS[r] ?? r) }}</option>
+          <option value="FOUND">{{ tr('Entries found') }}</option>
+          <option value="NOT_FOUND">{{ tr('Not found') }}</option>
         </select>
       </label>
     </div>
@@ -49,16 +50,16 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="i in rows" :key="i.inquiryId" :class="{ 'is-overdue': i.resultCode === 'MATCH' }">
+            <tr v-for="i in rows" :key="i.inquiryId" :class="{ 'is-overdue': i.hits.length > 0 }">
               <td dir="ltr"><b class="fc-ref">{{ i.inquiryRef }}</b></td>
               <td dir="ltr">{{ i.companyCode }}<span class="fx-cell-sub">{{ i.requestedBy }}</span></td>
               <td>{{ i.subjectName }}<span class="fx-cell-sub">{{ tr(LABELS[i.subjectTypeCode] ?? i.subjectTypeCode) }}</span></td>
               <td dir="ltr">{{ i.identityNo }}</td>
               <td>{{ tr(LABELS[i.purposeCode] ?? i.purposeCode) }}</td>
-              <td><span class="fx-chip" :class="CHIP[i.resultCode]">{{ tr(LABELS[i.resultCode] ?? i.resultCode) }}</span>
-                  <span v-if="i.hits.length" class="scr-basis">
-                    <span :class="i.hits[0]?.matchBasisCode === 'NAME_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0]?.matchBasisCode === 'NAME_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('ID') }}</span>
-                    <span :class="i.hits[0]?.matchBasisCode === 'ID_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0]?.matchBasisCode === 'ID_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('Name') }}</span>
+              <td><span class="fx-chip" :class="i.hits.length ? 'fx-chip--warn' : 'fx-chip--teal'">{{ foundLabel(i) }}</span>
+                  <span v-if="i.hits[0]" class="scr-basis">
+                    <span :class="`scr-basis--${idLevel(i.hits[0]).mark}`">{{ tr('ID') }} <bdi>{{ idLevel(i.hits[0]).text.split(' · ')[0] }}</bdi></span>
+                    <span :class="`scr-basis--${nameLevel(i.hits[0]).mark}`">{{ tr('Name') }} <bdi>{{ nameLevel(i.hits[0]).text.split(' · ')[0] }}</bdi></span>
                   </span></td>
               <td>{{ formatDateTime(i.screenedAt) }}</td>
               <td class="fx-r"><button type="button" class="fx-btn fx-btn--sm" @click="open = i"><span class="fa fa-eye" aria-hidden="true"></span>{{ tr('View') }}</button></td>
@@ -83,10 +84,11 @@ import { showError } from '@/shared/feedback/feedback'
 import { formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
 import ScrInquiryResult from '../components/ScrInquiryResult.vue'
-import { CHIP, LABELS, errorText, scrApi, type ScrInquiry } from '../api/scr.api'
+import { LABELS, errorText, scrApi, type ScrInquiry } from '../api/scr.api'
 import { useUserFilter } from '../utils/userFilter'
 import ScrUserFilter from '../components/ScrUserFilter.vue'
 import { openScreeningManual } from '@/modules/scr/utils/manual'
+import { foundLabel, idLevel, nameLevel } from '../utils/levels'
 
 const inquiries = ref<ScrInquiry[]>([])
 const open = ref<ScrInquiry | null>(null)
@@ -94,7 +96,7 @@ const search = ref('')
 const result = ref('')
 /** Requested by me by default (Admin: all users). */
 const { who, me, users, scoped } = useUserFilter(inquiries, (i) => i.requestedBy)
-const count = (code: string) => scoped.value.filter((i) => i.resultCode === code).length
+const found = computed(() => scoped.value.filter((i) => i.hits.length > 0).length)
 const rows = computed(() => {
   const q = search.value.trim().toLowerCase()
   return scoped.value.filter((i) => !q || `${i.inquiryRef} ${i.subjectName} ${i.identityNo} ${i.requestedBy} ${i.companyCode}`.toLowerCase().includes(q))

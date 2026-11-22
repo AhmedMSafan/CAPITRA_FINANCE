@@ -14,13 +14,18 @@ public static class ScrInquirySeal
 {
     public const string Version = "v1";
 
+    /// <summary>From 23 Nov 2026 (results FOUND / NOT_FOUND) the hits' levels are sealed too.</summary>
+    public const string Version2 = "v2";
+
+    private static bool IsV2(ScrInquiry i) => i.ResultCode is ScrMatcher.Found or ScrMatcher.NotFound;
+
     /// <summary>The text that is hashed: every field that is evidence, in a fixed order and format.</summary>
     public static string Canonical(ScrInquiry i, string? prevHash)
     {
         var c = CultureInfo.InvariantCulture;
         var b = new StringBuilder();
         void Add(string? v) => b.Append(v?.Replace("|", "\\|", StringComparison.Ordinal) ?? string.Empty).Append('|');
-        Add(Version);
+        Add(IsV2(i) ? Version2 : Version);
         Add(prevHash);
         Add(i.InquiryRef);
         Add(i.MemberCompanyId.ToString(c));
@@ -38,11 +43,19 @@ public static class ScrInquirySeal
         Add(i.CaseReference);
         Add(i.ResultCode);
         Add(i.RegistryVersionNo.ToString(c));
+        if (IsV2(i))
+        {
+            Add(i.NameMatchMinPct?.ToString(c));
+            Add(i.IdMatchMinDigits?.ToString(c));
+        }
+
         Add(Utc(i.ScreenedAt));
         Add(i.ReceivedAt is { } r ? Utc(r) : null);
         Add(i.RespondedAt is { } s ? Utc(s) : null);
         foreach (var h in i.Hits.OrderBy(h => h.PartyId).ThenBy(h => h.DecisionId))
-            Add(string.Create(c, $"{h.PartyId}:{h.DecisionId}:{h.MatchBasisCode}:{h.NameScorePct:0.000000}:{h.EntryStatusCode}:{h.MatchedName}"));
+            Add(IsV2(i)
+                ? string.Create(c, $"{h.PartyId}:{h.DecisionId}:{h.MatchBasisCode}:{h.NameScorePct:0.000000}:{h.EntryStatusCode}:{h.MatchedName}:{h.IdMatchCode}:{h.IdScorePct:0.000000}:{h.IdDigitsDifferent}:{h.BirthMatchCode}:{h.NationalityMatchCode}")
+                : string.Create(c, $"{h.PartyId}:{h.DecisionId}:{h.MatchBasisCode}:{h.NameScorePct:0.000000}:{h.EntryStatusCode}:{h.MatchedName}"));
         return b.ToString();
     }
 
