@@ -48,13 +48,13 @@
 
       <div class="scr-verdict" :class="`scr-verdict--${inquiry.resultCode}`">
         <span class="fa fa-shield" aria-hidden="true"></span>
-        <div><b>{{ tr('Result') }}: {{ tr(LABELS[inquiry.resultCode] ?? inquiry.resultCode) }}</b>
+        <div><b>{{ tr(VERDICT[inquiry.resultCode] ?? inquiry.resultCode) }}</b>
           <small>{{ inquiry.hits.length ? `${inquiry.hits.length} ${tr('Final List entries matched')}` : tr('No Final List entry matched.') }}</small></div>
       </div>
 
       <div v-if="inquiry.hits.length" class="fx-table-wrap scr-inv-pay-table">
         <table class="fx-table">
-          <thead><tr><th>{{ tr('Listed name') }}</th><th>{{ tr('Identity') }}</th><th>{{ tr('Match') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Decision') }}</th></tr></thead>
+          <thead><tr><th>{{ tr('Listed name') }}</th><th>{{ tr('Identity') }}</th><th>{{ tr('Matched on') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Decision') }}</th></tr></thead>
           <tbody>
             <tr v-for="(h, n) in inquiry.hits" :key="n">
               <td><b>{{ h.nameAr }}</b><span v-if="h.nameEn" class="fx-cell-sub">{{ h.nameEn }}</span></td>
@@ -91,7 +91,7 @@ import { useRouter } from 'vue-router'
 import { showError } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { formatDate, formatDateTime } from '../utils/dates'
-import { CHIP, LABELS, errorText, scrApi, type ScrInquiry, type ScrInquirySeal } from '../api/scr.api'
+import { CHIP, LABELS, VERDICT, errorText, scrApi, type ScrInquiry, type ScrInquirySeal } from '../api/scr.api'
 
 const props = defineProps<{ inquiryId: number }>()
 const router = useRouter()

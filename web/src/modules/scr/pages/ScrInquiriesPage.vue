@@ -20,9 +20,9 @@
     </div>
 
     <div class="fc-indicators">
-      <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ count('MATCH') }}</b><span>{{ tr('Match') }}</span><small>{{ tr('Listed: measure in force') }}</small></div>
-      <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ count('POSSIBLE_MATCH') }}</b><span>{{ tr('Possible match') }}</span><small>{{ tr('Name only: to review') }}</small></div>
-      <div class="fx-card fc-indicator"><b>{{ scoped.length }}</b><span>{{ tr('Inquiries') }}</span><small>{{ count('NO_MATCH') }} {{ tr('No match') }} · {{ count('PREVIOUSLY_LISTED') }} {{ tr('Previously listed') }}</small></div>
+      <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ count('MATCH') }}</b><span>{{ tr('Listed') }}</span><small>{{ tr('Same identity number: measure in force') }}</small></div>
+      <div class="fx-card fc-indicator fc-indicator--orange"><b>{{ count('POSSIBLE_MATCH') }}</b><span>{{ tr('Needs review') }}</span><small>{{ tr('Similar name, other identity number') }}</small></div>
+      <div class="fx-card fc-indicator"><b>{{ scoped.length }}</b><span>{{ tr('Inquiries') }}</span><small>{{ count('NO_MATCH') }} {{ tr('Not listed') }} · {{ count('PREVIOUSLY_LISTED') }} {{ tr('Previously listed') }}</small></div>
     </div>
 
     <div class="fx-card fx-card-pad fc-filters fc-step-card">
@@ -55,7 +55,11 @@
               <td>{{ i.subjectName }}<span class="fx-cell-sub">{{ tr(LABELS[i.subjectTypeCode] ?? i.subjectTypeCode) }}</span></td>
               <td dir="ltr">{{ i.identityNo }}</td>
               <td>{{ tr(LABELS[i.purposeCode] ?? i.purposeCode) }}</td>
-              <td><span class="fx-chip" :class="CHIP[i.resultCode]">{{ tr(LABELS[i.resultCode] ?? i.resultCode) }}</span></td>
+              <td><span class="fx-chip" :class="CHIP[i.resultCode]">{{ tr(LABELS[i.resultCode] ?? i.resultCode) }}</span>
+                  <span v-if="i.hits.length" class="scr-basis">
+                    <span :class="i.hits[0]?.matchBasisCode === 'NAME_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0]?.matchBasisCode === 'NAME_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('ID') }}</span>
+                    <span :class="i.hits[0]?.matchBasisCode === 'ID_ONLY' ? 'scr-basis--no' : 'scr-basis--yes'"><span :class="['fa', i.hits[0]?.matchBasisCode === 'ID_ONLY' ? 'fa-times' : 'fa-check']" aria-hidden="true"></span>{{ tr('Name') }}</span>
+                  </span></td>
               <td>{{ formatDateTime(i.screenedAt) }}</td>
               <td class="fx-r"><button type="button" class="fx-btn fx-btn--sm" @click="open = i"><span class="fa fa-eye" aria-hidden="true"></span>{{ tr('View') }}</button></td>
             </tr>
