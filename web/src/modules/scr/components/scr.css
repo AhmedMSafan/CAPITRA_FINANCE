@@ -311,3 +311,5 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-cert-seal--bad > .fa{color:#b42318}
 .fc .scr-cert-foot{margin:0;font-size:var(--fs-sm);color:var(--fin-muted);border-top:1px solid var(--fin-line);padding-top:12px}
 @media print{.fc .scr-cert-seal,.fc .scr-cert-subject dl div{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.fc .scr-api-table code{white-space:nowrap;word-break:normal}
+.fc .scr-api-table td:not(:first-child){white-space:nowrap}
