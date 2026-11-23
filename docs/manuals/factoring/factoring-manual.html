@@ -1,0 +1,921 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Finova Factoring User Manual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:400;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:500;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:600;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-700-normal.woff2) format("woff2")}
+:root{
+  --teal:#00636D; --teal-deep:#0B3E44; --teal-ink:#004C54; --orange:#E87722; --gold:#E0B04A;
+  --bg:#F6F8F8; --paper:#FFFFFF; --fg:#1B2A2C; --muted:#5A6B6D; --line:#DCE4E4; --soft:#EAF3F3;
+  --orange-soft:#FDF0E5; --ok:#1E7F4F; --ok-soft:#E5F4EC; --bad:#B42318; --bad-soft:#FBEAE8;
+  --cover-fg:#FFFFFF; --code-bg:#EEF3F3;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+[lang="ar"]{font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;line-height:1.85}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+p{margin:0}
+b{font-weight:600}
+code,.code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;background:var(--code-bg);padding:.1em .4em;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--teal-deep)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--teal-deep);color:var(--cover-fg);border-bottom:3px solid var(--orange)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.bar .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.14em;font-size:13px}
+.bar .brand svg{width:28px;height:28px}
+.bar .doc{opacity:.75;font-size:13px;letter-spacing:.02em}
+.bar .sp{flex:1}
+.lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden}
+.lang a{color:var(--cover-fg);text-decoration:none;font-size:13px;padding:5px 14px;font-weight:500}
+.lang a.on{background:var(--orange);color:#fff}
+
+/* cover */
+.cover{background:radial-gradient(1200px 500px at 85% -10%,rgba(232,119,34,.28),transparent 60%),linear-gradient(160deg,var(--teal-deep),#00535B 70%);color:var(--cover-fg);position:relative;overflow:hidden}
+.cover .wrap{padding-block:72px 64px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:end}
+.cover .mark{width:84px;height:84px;margin-bottom:28px}
+.cover .kicker{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+[lang="ar"] .cover .kicker{letter-spacing:0}
+.cover h1{font-size:clamp(34px,5.4vw,60px);font-weight:700;margin-top:10px;max-width:15ch}
+.cover .lede{margin-top:18px;font-size:18px;max-width:52ch;opacity:.88}
+.cover .meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:34px;font-size:13px;opacity:.85}
+.cover .meta span b{color:var(--gold);font-weight:600;margin-inline-end:6px}
+.cover .rings{width:230px;height:230px;opacity:.9}
+.cover::after{content:"";position:absolute;inset:auto 0 0;height:6px;background:linear-gradient(90deg,var(--orange) 0 34%,var(--gold) 34% 52%,transparent 52%)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:40px 80px}
+nav.toc{position:sticky;top:76px;align-self:start;font-size:14px}
+nav.toc .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+[lang="ar"] nav.toc .t{letter-spacing:0}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:flex;gap:10px;color:var(--fg);text-decoration:none;padding:6px 10px;border-radius:6px;border-inline-start:2px solid transparent}
+nav.toc a:hover{background:var(--soft);border-inline-start-color:var(--teal)}
+nav.toc a i{font-style:normal;color:var(--orange);font-weight:600;min-width:1.4em}
+main{min-width:0;display:grid;gap:28px}
+
+section.sec{scroll-margin-top:84px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:36px clamp(18px,4vw,44px);display:grid;gap:18px;min-width:0}
+.sec-h{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sec-h .n{font-size:13px;font-weight:700;color:#fff;background:var(--teal);border-radius:6px;padding:3px 9px;letter-spacing:.06em}
+.sec-h h2{font-size:clamp(22px,2.6vw,28px);font-weight:700;color:var(--teal-ink)}
+h3{font-size:18px;font-weight:600;color:var(--fg);margin-top:8px;display:flex;align-items:center;gap:10px}
+h3::before{content:"";width:14px;height:3px;background:var(--orange);border-radius:2px;flex:none}
+.prose{max-width:72ch;display:grid;gap:12px}
+p.prose{display:block}
+ul.b,ol.b{margin:0;padding-inline-start:1.3em;display:grid;gap:8px;max-width:72ch}
+ul.b li::marker{color:var(--orange)}
+ol.b li::marker{color:var(--teal);font-weight:700}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th,td{text-align:start;padding:10px 14px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);color:var(--teal-ink);font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+[lang="ar"] th{letter-spacing:0;text-transform:none;font-size:13.5px}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{background:var(--soft);font-weight:600}
+tr.dim td{color:var(--muted)}
+
+/* callouts */
+.note{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:14px 16px;border-radius:10px;background:var(--soft);border-inline-start:4px solid var(--teal);max-width:78ch}
+.note.warn{background:var(--orange-soft);border-inline-start-color:var(--orange)}
+.note .ic{font-weight:700;color:var(--teal-ink);font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.note.warn .ic{color:var(--orange)}
+[lang="ar"] .note .ic{letter-spacing:0}
+
+/* quick start */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.qs .card{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:8px;align-content:start;background:var(--paper);position:relative}
+.qs .card .k{font-size:12px;font-weight:700;color:var(--orange);letter-spacing:.1em;text-transform:uppercase}
+[lang="ar"] .qs .card .k{letter-spacing:0}
+.qs .card h4{margin:0;font-size:16px;color:var(--teal-ink)}
+.qs .card ol{margin:0;padding-inline-start:1.2em;display:grid;gap:4px;font-size:14.5px}
+
+/* money tree */
+.tree{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;background:linear-gradient(var(--paper),var(--paper)) padding-box}
+.node{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr) auto;gap:14px;align-items:center}
+.node .nm{font-weight:600;font-size:14.5px}
+.node .nm small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.node.l1 .nm{padding-inline-start:20px}
+.node.l2 .nm{padding-inline-start:40px}
+.node.l1 .nm,.node.l2 .nm{position:relative}
+.node.l1 .nm::before,.node.l2 .nm::before{content:"";position:absolute;inset-inline-start:calc(var(--i) - 12px);top:.7em;width:8px;height:8px;border-inline-start:2px solid var(--line);border-bottom:2px solid var(--line)}
+.node.l1{--i:20px}.node.l2{--i:40px}
+.track{height:14px;border-radius:999px;background:var(--soft);overflow:hidden;display:flex;border:1px solid var(--line)}
+.track .o{background:var(--teal)}
+.track .r{background:var(--orange)}
+.track.draft{background:repeating-linear-gradient(135deg,var(--soft) 0 6px,var(--line) 6px 8px)}
+.node .av{font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap;text-align:end;min-width:110px}
+.node .av b{color:var(--ok)}
+.node .av b.tight{color:var(--orange)}
+.node .av b.zero{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);padding-top:6px;border-top:1px dashed var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* gates */
+.gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:g}
+.gate{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.gate .who{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+[lang="ar"] .gate .who{letter-spacing:0}
+.gate h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+.gate.bank{border-color:var(--orange);background:var(--orange-soft)}
+.gate.bank h4{color:var(--orange)}
+.steps{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 14px;border:1px solid var(--line);border-radius:10px}
+.step .g{font-size:12px;font-weight:700;color:var(--teal-ink);background:var(--soft);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--orange-soft);color:var(--orange)}
+
+.pill{background:var(--soft);color:var(--teal-ink)}
+pre.code-block{margin:0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;line-height:1.6;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left;max-width:100%}
+.gate p{font-size:14.5px;color:var(--muted)}
+.step .pill{justify-self:end}
+/* screenshots */
+figure{margin:0;display:grid;gap:8px}
+figure img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(0,40,45,.45)}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--teal-ink)}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.box h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+
+.badge-row{display:flex;flex-wrap:wrap;gap:8px}
+.foot{color:var(--muted);font-size:13px;text-align:center;padding-block:10px 40px}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.toc{position:static}
+  nav.toc ol{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .cover .rings{display:none}
+  .cover .wrap{grid-template-columns:minmax(0,1fr)}
+  .gates,.shots,.two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .node{grid-template-columns:minmax(0,1fr) auto}
+  .node .track{grid-column:1 / -1;order:3}
+  .bar .doc{display:none}
+  .step{grid-template-columns:minmax(0,1fr) auto}
+  .step .g{grid-column:1 / -1;justify-self:start}
+}
+@media print{
+  :root{--bg:#fff;--paper:#fff}
+  .bar,nav.toc{display:none}
+  .layout{display:block;padding:0}
+  section.sec{border:0;border-radius:0;padding:0 0 24px;break-before:page}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:258mm;break-after:page}
+  main > section.sec:first-child{break-before:auto}
+  main{display:block}
+  section.sec{padding-bottom:0}
+  .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gates{grid-template-columns:repeat(3,minmax(0,1fr))}
+  figure img{width:auto;max-width:100%;max-height:170mm;margin-inline:auto}
+  .cover::after{display:none}
+  .cover .wrap{height:100%;align-content:center}
+  .cover .rings{display:block}
+  .track,.pill,.sec-h .n,th,tr.total td,.note,.gate.bank{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  figure,table,.tree,.step,.gate,ul.b li,ol.b li,.note,pre.code-block,.qs .card{break-inside:avoid}
+  pre.code-block,.pill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h3{break-after:avoid}
+}
+</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#134E4A"/><path d="M24 46V18h19M24 32h14" fill="none" stroke="#E0B04A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="44" cy="44" r="4.5" fill="#ffffff"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand"><svg><use href="#mark"/></svg>FINOVA</div>
+    <div class="doc" data-en="Factoring User Manual" data-ar="دليل مستخدم التخصيم">Factoring User Manual</div>
+    <div class="sp"></div>
+    <div class="lang" role="group" aria-label="Language">
+      <a href="#en" data-l="en" class="on">English</a>
+      <a href="#ar" data-l="ar" lang="ar">العربية</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== ENGLISH ============================== -->
+<div id="doc-en" lang="en" dir="ltr">
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">User manual · Factoring</div>
+      <h1>Factoring, from pricing to collection</h1>
+      <p class="lede">How Finova prices a factoring deal, approves the customer's limit through the workflow, finances the customer's invoices, funds each disbursement from Treasury and collects the charges. Written for business development, operations, credit, risk, committee, legal, treasury and collection staff.</p>
+      <div class="meta"><span><b>Version</b>1.0</span><span><b>Date</b>23 November 2026</span><span><b>Covers</b>Customers · Calculator · Applications · Limit approval · Fast track · Credit limit · Disbursement requests · Invoices · Treasury · Claims · Customer payments</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="t">Contents</div>
+    <ol>
+      <li><a href="#en-qs"><i>0</i>Quick start</a></li>
+      <li><a href="#en-1"><i>1</i>About this manual</a></li>
+      <li><a href="#en-2"><i>2</i>Key concepts and the cycle</a></li>
+      <li><a href="#en-3"><i>3</i>Customers and the workspace</a></li>
+      <li><a href="#en-4"><i>4</i>Calculator and applications</a></li>
+      <li><a href="#en-5"><i>5</i>Working with workflow tasks</a></li>
+      <li><a href="#en-6"><i>6</i>Limit approval: normal track</a></li>
+      <li><a href="#en-7"><i>7</i>Limit approval: fast track</a></li>
+      <li><a href="#en-8"><i>8</i>Agreements and the credit limit</a></li>
+      <li><a href="#en-9"><i>9</i>Disbursement requests</a></li>
+      <li><a href="#en-10"><i>10</i>Invoice upload and verification</a></li>
+      <li><a href="#en-11"><i>11</i>Treasury disburse</a></li>
+      <li><a href="#en-12"><i>12</i>Claims and customer payments</a></li>
+      <li><a href="#en-13"><i>13</i>Roles, statuses, questions</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="en-qs">
+    <div class="sec-h"><span class="n">0</span><h2>Quick start</h2></div>
+    <p class="prose">The four jobs done most often. Each one is explained in full in the sections that follow.</p>
+    <div class="qs">
+      <div class="card"><div class="k">Business development</div><h4>Price and apply</h4>
+        <ol><li>Factoring → <b>Process</b> on the customer</li><li><b>Factoring Calculator</b> → fill the deal → <b>Calculate</b></li><li><b>Use In Offer</b>, then set the application to ACCEPTED and <b>Save Status</b></li><li><b>Start Agreement Workflow</b>, choose Normal or Fast track</li></ol></div>
+      <div class="card"><div class="k">Each approver</div><h4>Approve the limit</h4>
+        <ol><li>Workflow Inbox → <b>Claim</b> the task → <b>Open</b></li><li>Fill your step's form; add documents</li><li><b>Save and Complete</b>, <b>Accept</b> or <b>Reject</b></li><li>Legal's Accept creates the credit limit</li></ol></div>
+      <div class="card"><div class="k">Operations</div><h4>Finance the invoices</h4>
+        <ol><li>Workspace → Limits → <b>Disbursement</b>, enter the gross amount → <b>Create</b></li><li>Disbursements tab → <b>Start Workflow</b></li><li>Invoice Upload: load invoices and cheques, mark eligibility</li><li><b>Create Claim</b>; when paid, <b>Save and Complete</b></li></ol></div>
+      <div class="card"><div class="k">Treasury and collection</div><h4>Fund and collect</h4>
+        <ol><li>Treasury Disburse: <b>Suggest</b> or enter the sources</li><li><b>Save and reserve</b> → <b>Execute</b> → <b>Save and Complete</b></li><li>Customer Payments: choose the claim and a payment source</li><li><b>Pay Claim</b>: the GL posts at once</li></ol></div>
+    </div>
+  </section>
+
+  <section class="sec" id="en-1">
+    <div class="sec-h"><span class="n">1</span><h2>About this manual</h2></div>
+    <p class="prose">Factoring in Finova finances a customer's sales invoices. The customer (the seller) sells on credit to its own customers (the debtors); Finova advances a share of each eligible invoice and is repaid when the invoices are paid. The work runs through four areas:</p>
+    <div class="tbl"><table>
+      <tr><th>Area</th><th>Who uses it</th><th>What it does</th></tr>
+      <tr><td><b>Factoring</b></td><td>Business development, credit, risk, committee, legal</td><td>Customers, the factoring calculator, applications, the limit approval workflow and the customer's credit limit.</td></tr>
+      <tr><td><b>Disbursement requests</b></td><td>Operations</td><td>A request against the limit, its invoices and cheques, the charges and the repayment schedule.</td></tr>
+      <tr><td><b>Treasury</b></td><td>Treasury</td><td>Which money pays each disbursement: bank sublimits or own funds, checked against the bank rules, then paid and posted to the GL.</td></tr>
+      <tr><td><b>Collection</b></td><td>Collection</td><td>The customer's payments, used to pay the claims of disbursement charges.</td></tr>
+    </table></div>
+    <figure><img src="img/en/f01-home.jpg" alt="" loading="lazy"><figcaption><b>Figure 1.</b> Factoring home: the customers, with Process to open a customer's workspace, and your Workflow Inbox.</figcaption></figure>
+    <div class="note"><span class="ic">Example</span><p>The manual follows one customer throughout, <b>Delta Food Industries</b>: its application for EGP 10 million, agreement <b>APP-17</b>, the approved limit <b>CL-APP-17</b> of EGP 9 million at 85%, and disbursement <b>DISB-2026-41</b>. The amounts and dates are sample data.</p></div>
+  </section>
+
+  <section class="sec" id="en-2">
+    <div class="sec-h"><span class="n">2</span><h2>Key concepts and the cycle</h2></div>
+    <div class="tbl"><table>
+      <tr><th>Term</th><th>Meaning</th></tr>
+      <tr><td><b>Customer</b></td><td>The company that sells its invoices to Finova (the seller). Created in Customers (CRM).</td></tr>
+      <tr><td><b>Debtor</b></td><td>The customer's own buyer, who owes the invoice and pays it when due.</td></tr>
+      <tr><td><b>Application (offer)</b></td><td>A priced proposal made from the calculator, numbered <code>OFF-yyyymmdd-nnnn</code>. Its status is DRAFT, SUBMITTED, ACCEPTED or REJECTED, then APPLICATION once its workflow starts.</td></tr>
+      <tr><td><b>Agreement</b></td><td>Created from an accepted application when its workflow starts, numbered <code>APP-n</code>. Each approval step records its part on the agreement.</td></tr>
+      <tr><td><b>Track</b></td><td>The approval route chosen for each deal: <b>Normal</b> (nine steps) or <b>Fast</b> (one approval, then contract and limit).</td></tr>
+      <tr><td><b>Credit limit</b></td><td>The approved amount the customer may use, numbered <code>CL-APP-n</code>. Created when Legal accepts the last step. Utilized + available = approved amount.</td></tr>
+      <tr><td><b>Advance rate</b></td><td>The share of an eligible invoice that Finova finances, for example 85%.</td></tr>
+      <tr><td><b>Disbursement request</b></td><td>One financing against the limit, numbered <code>DISB-yyyy-n</code>, with its invoice batch, cheques, charges and repayment schedule.</td></tr>
+      <tr><td><b>Eligible invoice</b></td><td>An invoice Finova finances. An invoice marked Not Eligible needs a reason and is not financed.</td></tr>
+      <tr><td><b>Charges and claim</b></td><td>The fees of a disbursement (setup fee, commission, handling…), claimed from the customer as one <b>claim</b> <code>CLM-yyyymm-n</code> and paid in Collection.</td></tr>
+      <tr><td><b>GL Tran Set ID</b></td><td>The reference of one set of GL entries. Every posting (charges, claim payment, treasury funding) shows it.</td></tr>
+    </table></div>
+    <h3>The cycle</h3>
+    <div class="steps">
+      <div class="step"><span class="g">1 · BD</span><div><b>Price the deal and create the application</b><br>Factoring Calculator → Use In Offer → ACCEPTED → Start Agreement Workflow.</div><span class="pill">Section 4</span></div>
+      <div class="step"><span class="g">2 · Approvers</span><div><b>Approve the limit</b><br>Normal track: Operation Received, Sales Review, Investigation, Credit Analysis, Risk Review, Committee, Client Acceptance, Contract, Legal Review. Fast track: Approval, Contract and Limit Creation.</div><span class="pill">Sections 6–7</span></div>
+      <div class="step"><span class="g">3 · Legal</span><div><b>The credit limit is created</b><br>Legal Review: Save and Accept creates <code>CL-APP-n</code> on the customer's Limits tab.</div><span class="pill">Section 8</span></div>
+      <div class="step"><span class="g">4 · Operations</span><div><b>Request a disbursement</b><br>From the limit: the request, then its workflow: Initiation, Invoice Upload, Treasury Disburse.</div><span class="pill">Sections 9–10</span></div>
+      <div class="step"><span class="g">5 · Collection</span><div><b>Collect the charges</b><br>The claim of the disbursement's charges is paid from the customer's payment source.</div><span class="pill">Section 12</span></div>
+      <div class="step"><span class="g">6 · Treasury</span><div><b>Fund and pay</b><br>Choose the sources, reserve, execute: the customer is paid and the GL posts.</div><span class="pill">Section 11</span></div>
+    </div>
+    <div class="note"><span class="ic">Order</span><p>The charges' claim must be paid <b>before</b> the Invoice Upload step can be completed, so step 5 comes before Treasury funds the disbursement.</p></div>
+  </section>
+
+  <section class="sec" id="en-3">
+    <div class="sec-h"><span class="n">3</span><h2>Customers and the workspace</h2></div>
+    <p class="prose">Open <b>Factoring</b> from the menu. The Customers list can be filtered by name, number and client type. <b>Process</b> (or the customer number) opens the <b>Factoring Customer Workspace</b>, where everything for one customer is done. The Workflow Inbox card shows how many tasks wait for you.</p>
+    <figure><img src="img/en/f02-workspace.jpg" alt="" loading="lazy"><figcaption><b>Figure 2.</b> The customer workspace: the customer card, the Factoring Calculator card and five tabs.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>Tab</th><th>What it shows</th><th>What you can do</th></tr>
+      <tr><td><b>Factoring Applications</b></td><td>Every application: amount, type, status, track, workflow step, and whether its workflow started.</td><td>Change the status and <b>Save Status</b>; <b>Start Agreement Workflow</b> (▶) on an ACCEPTED application.</td></tr>
+      <tr><td><b>Agreements</b></td><td>The agreements made from the applications, with their track and current step.</td><td>View.</td></tr>
+      <tr><td><b>Limits</b></td><td>The approved credit limits: approved, utilized and available, dates and status.</td><td><b>Disbursement</b> on an active limit opens a new disbursement request.</td></tr>
+      <tr><td><b>Disbursements</b></td><td>The customer's disbursement requests, their step and the completed steps with their GL Tran Set IDs.</td><td>Edit a request not started, <b>Start Workflow</b> (▶), or open a completed step (view only).</td></tr>
+      <tr><td><b>Claims</b></td><td>The claims of disbursement charges: total, paid, outstanding and status.</td><td><b>Pay</b> opens Customer Payments for an open claim.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="en-4">
+    <div class="sec-h"><span class="n">4</span><h2>Calculator and applications</h2></div>
+    <p class="prose">The <b>Factoring Calculator</b> prices a deal for the customer. Fill the four sections, press <b>Calculate</b> and read the Calculation Summary. The results are indicative and subject to credit approval.</p>
+    <figure><img src="img/en/f03-calculator.jpg" alt="" loading="lazy"><figcaption><b>Figure 3.</b> The calculator: Deal Basics, Risk Buffer, Market &amp; Cost and Fees &amp; Economics, with the summary on the side.</figcaption></figure>
+    <h3>How the figures are worked out</h3>
+    <div class="tbl"><table>
+      <tr><th>Result</th><th>Rule</th></tr>
+      <tr><td><b>Advance rate</b></td><td>Base advance ratio − dilution rate − risk buffer, never below the minimum advance of Module Settings (50% by default). The risk buffer is the override when given, else 2% (LOW), 4% (MEDIUM) or 7% (HIGH), plus 10% of the largest concentration above 25%.</td></tr>
+      <tr><td><b>Discount rate</b></td><td>Cost of funds + risk margin (1.25% LOW, 2.25% MEDIUM, 3.5% HIGH) + operating spread + 0.25% for each 30 days of average tenor above 90 + 0.5% when the largest concentration is above 25%.</td></tr>
+      <tr><td><b>Spread over LCR</b></td><td>Discount rate − cost of funds.</td></tr>
+      <tr><td><b>Total fees</b></td><td>Setup fee (fixed + % of the limit) + commission (% of the annual volume) + handling (fee × transactions per year) + debtor analysis (fee × debtors, at least the minimum).</td></tr>
+      <tr><td><b>Interest</b></td><td>Advance rate × annual volume × discount rate × average tenor ÷ 365.</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">Example</span><p>Base 90%, dilution 2%, LOW risk (buffer 2%): advance <b>86%</b>. Cost of funds 24% + LOW margin 1.25% + spread 3%: discount <b>28.25%</b>, spread over LCR 4.25%.</p></div>
+    <h3>Use In Offer and the application status</h3>
+    <ol class="b">
+      <li><b>Use In Offer</b> saves a new DRAFT application with the calculator's inputs and results. Unless Module Settings allows several open offers, a customer's open draft is loaded instead, and an offer already submitted or accepted stops a new one.</li>
+      <li>On the Factoring Applications tab, change the status (DRAFT, SUBMITTED, ACCEPTED or REJECTED) and press <b>Save Status</b> (💾).</li>
+      <li>When the application is ACCEPTED and saved, press <b>Start Agreement Workflow</b> (▶). Choose the track and press <b>Start Workflow</b>.</li>
+    </ol>
+    <figure><img src="img/en/f04-track.jpg" alt="" loading="lazy"><figcaption><b>Figure 4.</b> Start Agreement Workflow: the Normal track is preselected; the Fast track has one approval.</figcaption></figure>
+    <p class="prose">Starting creates the agreement <code>APP-n</code> and starts the chosen workflow in one go; the application becomes APPLICATION and its status can no longer change. The ▶ button stays disabled until the status ACCEPTED is saved, and once an agreement exists.</p>
+  </section>
+
+  <section class="sec" id="en-5">
+    <div class="sec-h"><span class="n">5</span><h2>Working with workflow tasks</h2></div>
+    <p class="prose">Every approval step, and every step of a disbursement request, is a task in the <b>Workflow Inbox</b>. A task goes to everyone in the step's role; one of them claims it.</p>
+    <figure><img src="img/en/f05-inbox.jpg" alt="" loading="lazy"><figcaption><b>Figure 5.</b> My Inbox: the agreement or disbursement, the step, the amount, and who holds each task.</figcaption></figure>
+    <ol class="b">
+      <li><b>Claim</b> the task so it is yours (others then see who holds it).</li>
+      <li><b>Open</b> it: the step's page opens for the agreement or the disbursement.</li>
+      <li>Fill the step's form. The page's own Save buttons keep your work without moving the workflow.</li>
+      <li>Press the step's action: <b>Save and Complete</b>, <b>Save and Accept</b> or <b>Save and Reject</b>. Add a comment for the workflow history if you wish, then confirm. Your changes are saved first, then the workflow moves on and you return to the inbox.</li>
+    </ol>
+    <div class="shots">
+      <figure><img src="img/en/f15-documents.jpg" alt="" loading="lazy"><figcaption><b>Figure 6.</b> Documents: choose the type and status, drop or browse a file (PDF, Word, Excel, image; up to 10 MB). Every document is kept against the agreement.</figcaption></figure>
+      <figure><img src="img/en/f16-accept.jpg" alt="" loading="lazy"><figcaption><b>Figure 7.</b> Save and Accept asks for an optional comment before the step moves on.</figcaption></figure>
+    </div>
+    <p class="prose">Each step page shows the <b>Application Summary</b> (agreement, client, requested amount, submitted date) and, from Risk Review on, the <b>Application Process</b> strip with the done, current and coming stages. <b>Documents</b> is on every step page; <b>Back to Task</b> returns to the task.</p>
+  </section>
+
+  <section class="sec" id="en-6">
+    <div class="sec-h"><span class="n">6</span><h2>Limit approval: normal track</h2></div>
+    <div class="tbl"><table>
+      <tr><th>#</th><th>Step</th><th>Role</th><th>Page</th><th>Actions</th></tr>
+      <tr><td>1</td><td>Operation Received</td><td>Operations officer</td><td>Agreement summary, next task assignment</td><td>Complete Task</td></tr>
+      <tr><td>2</td><td>Sales Review</td><td>Sales officer</td><td>Application Header Form</td><td>Complete</td></tr>
+      <tr><td>3</td><td>Investigation</td><td>Investigation officer</td><td>Client inquiry, AML, legal opinion, debtor inquiry</td><td>Complete</td></tr>
+      <tr><td>4</td><td>Credit Analysis</td><td>Credit approver</td><td>Financial analysis, credit scoring, credit memo</td><td>Complete</td></tr>
+      <tr><td>5</td><td>Risk Review</td><td>Risk officer</td><td>Indicators and risk notes</td><td>Accept · Reject (ends)</td></tr>
+      <tr><td>6</td><td>Committee Approval</td><td>Committee secretary</td><td>Committee decision: approved terms</td><td>Accept · Reject (ends)</td></tr>
+      <tr><td>7</td><td>Client Acceptance</td><td>Sales officer</td><td>Approved terms, signed acceptance, notes to operations</td><td>Accept · Reject (back to Committee)</td></tr>
+      <tr><td>8</td><td>Generate Contract</td><td>Operations officer</td><td>Contract dates and terms, contract upload</td><td>Complete</td></tr>
+      <tr><td>9</td><td>Legal Review and Limit Creation</td><td>Legal officer</td><td>Contract review, legal opinion</td><td>Accept (creates the limit) · Reject (ends)</td></tr>
+    </table></div>
+
+    <h3>1 · Operation Received</h3>
+    <p class="prose">Operations checks the new agreement. The next task (Sales Review) goes to the workflow's default role; tick <b>Assign the next task to a specific user</b> to give it to one sales officer for this agreement only. Add an optional completion comment and press <b>Complete Task</b>.</p>
+    <figure><img src="img/en/f06-operation-received.jpg" alt="" loading="lazy"><figcaption><b>Figure 8.</b> Operation Received: the agreement summary and the next task assignment.</figcaption></figure>
+
+    <h3>2 · Sales Review</h3>
+    <p class="prose">The sales officer completes the <b>Application Header Form</b>: application date, client, factoring type, recourse type, facility limit, currency, advance rate, tenor in months and notes. <b>Save Application</b> keeps it; <b>Save and Complete</b> sends the agreement to Investigation.</p>
+    <figure><img src="img/en/f07-sales-review.jpg" alt="" loading="lazy"><figcaption><b>Figure 9.</b> Sales Review: the application header and the debtors.</figcaption></figure>
+
+    <h3>3 · Investigation</h3>
+    <p class="prose">The investigation officer records three reports, each saved with its own button: the <b>Client Inquiry Form</b> (report date, credit bureau score, notes), the <b>Client AML Form</b> (date, AML risk band, result, notes) and the <b>Legal Opinion Form</b>. The <b>Debtor Inquiry Results</b> list each debtor's visit date, status, payment history and assessment.</p>
+    <figure><img src="img/en/f08-investigation.jpg" alt="" loading="lazy"><figcaption><b>Figure 10.</b> Investigation: inquiry, AML, legal opinion and the debtors.</figcaption></figure>
+
+    <h3>4 · Credit Analysis</h3>
+    <p class="prose">Three tabs: <b>Financial Analysis</b> (assessment date, result Weak, Average or Strong, notes), <b>Credit Scoring</b> (risk rating date, result, notes) and <b>Credit Memo</b> (recommended limit, advance rate and tenor, and the credit notes). Each tab has its own save and report upload; <b>Save Progress</b> saves all three. <b>Print Credit Memo</b> prints the Credit Approval Memo.</p>
+    <figure><img src="img/en/f09-credit-analysis.jpg" alt="" loading="lazy"><figcaption><b>Figure 11.</b> Credit Analysis, Financial Analysis tab.</figcaption></figure>
+
+    <h3>5 · Risk Review</h3>
+    <p class="prose">The page shows the credit bureau score, the requested facility with recourse and tenor, and the risk grade from credit. The risk officer enters the risk memo date and notes, then <b>Save and Accept</b> (to the Committee) or <b>Save and Reject</b>, which ends the workflow.</p>
+    <figure><img src="img/en/f10-risk-review.jpg" alt="" loading="lazy"><figcaption><b>Figure 12.</b> Risk Review.</figcaption></figure>
+
+    <h3>6 · Committee Approval</h3>
+    <p class="prose">The committee secretary records the decision: approval date, <b>approved limit</b>, <b>approved advance rate</b> and <b>approved tenor</b> in months. The pre-disbursement conditions are listed below. <b>Print Decision Letter</b> prints the letter. <b>Save and Accept</b> sends the terms to the client; <b>Save and Reject</b> ends the workflow.</p>
+    <figure><img src="img/en/f11-committee.jpg" alt="" loading="lazy"><figcaption><b>Figure 13.</b> Committee Decision: EGP 9,000,000 at 85% for 12 months.</figcaption></figure>
+
+    <h3>7 · Client Acceptance</h3>
+    <p class="prose">The Customer Approval page shows the approved terms. Upload the client's signed acceptance (<b>Upload Signed Acceptance</b>), write the notes to Operations and save them (<b>Save Client Response</b>, or <b>Send Contract Request</b>). <b>Save and Accept</b> moves on to the contract; <b>Save and Reject</b> sends the deal back to the Committee, for example when the client asks for other terms.</p>
+    <figure><img src="img/en/f12-client-acceptance.jpg" alt="" loading="lazy"><figcaption><b>Figure 14.</b> Customer Approval: approved terms and the client's signature.</figcaption></figure>
+
+    <h3>8 · Generate Contract</h3>
+    <p class="prose">Operations fills the contract data: agreement number, effective date, tenor, contract start, end and sign-off dates, and additional terms and conditions. <b>Generate Contract</b> saves and prints the Finova Factoring Contract; <b>Upload Contract</b> adds the draft, final or signed contract to the documents. <b>Save and Complete</b> sends it to Legal.</p>
+    <figure><img src="img/en/f13-contract.jpg" alt="" loading="lazy"><figcaption><b>Figure 15.</b> Contract Generation, with the approved terms carried from the committee.</figcaption></figure>
+
+    <h3>9 · Legal Review and Limit Creation</h3>
+    <p class="prose">The latest uploaded contract is shown for review (<b>View</b>). The legal officer records the review date and the legal opinion and can upload the final contract. <b>Save and Accept</b> ends the workflow and <b>creates the customer's credit limit</b> from the approved terms. <b>Save and Reject</b> ends the workflow with no limit.</p>
+    <figure><img src="img/en/f14-legal-review.jpg" alt="" loading="lazy"><figcaption><b>Figure 16.</b> Legal Review: Save and Accept creates the credit limit.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-7">
+    <div class="sec-h"><span class="n">7</span><h2>Limit approval: fast track</h2></div>
+    <p class="prose">When the deal is started on the <b>Fast track</b>, the workflow has two steps only:</p>
+    <ol class="b">
+      <li><b>Approval</b> (fast track approver): the Approval Decision page records the approval date, approved limit, advance rate and tenor. <b>Save and Accept</b> sends it to the contract; <b>Save and Reject</b> ends it.</li>
+      <li><b>Contract and Limit Creation</b> (legal officer): the Legal Review page, where the contract is uploaded and reviewed and the legal opinion recorded. <b>Save and Accept</b> creates the credit limit.</li>
+    </ol>
+    <figure><img src="img/en/f17-fast-approval.jpg" alt="" loading="lazy"><figcaption><b>Figure 17.</b> Fast Track Approval: the process strip shows Application, Approval, Contract and Limit Creation, Activation.</figcaption></figure>
+    <div class="note warn"><span class="ic">Choose with care</span><p>The track is chosen once, when the workflow starts, and cannot be changed for that agreement. The workspace shows each application's and agreement's track.</p></div>
+  </section>
+
+  <section class="sec" id="en-8">
+    <div class="sec-h"><span class="n">8</span><h2>Agreements and the credit limit</h2></div>
+    <p class="prose">The <b>Agreements</b> tab lists the customer's agreements with their facility limit, status, track and current step. When Legal accepts, the agreement's limit appears on the <b>Limits</b> tab, numbered <code>CL-</code> and the agreement number, active from the effective date to the expiry date.</p>
+    <div class="shots">
+      <figure><img src="img/en/f18-agreements.jpg" alt="" loading="lazy"><figcaption><b>Figure 18.</b> Agreements: APP-17 approved (workflow ended), APP-18 on the fast track at Approval.</figcaption></figure>
+      <figure><img src="img/en/f19-limits.jpg" alt="" loading="lazy"><figcaption><b>Figure 19.</b> Limits: approved 9,000,000, utilized 3,218,400, available 5,781,600.</figcaption></figure>
+    </div>
+    <p class="prose">Every disbursement uses the limit; repayments free it again. An agreement has one active agreement-level limit only.</p>
+  </section>
+
+  <section class="sec" id="en-9">
+    <div class="sec-h"><span class="n">9</span><h2>Disbursement requests</h2></div>
+    <ol class="b">
+      <li>On the <b>Limits</b> tab press <b>Disbursement</b> on the active limit. The new request shows the customer, the limit and its agreement, the facility and available limit.</li>
+      <li>Enter the disbursement date, the <b>invoices gross amount</b> and remarks, then <b>Create</b>. The request is numbered <code>DISB-yyyy-n</code>.</li>
+      <li>On the <b>Disbursements</b> tab, press <b>Start Workflow</b> (▶). From then on the request can only be viewed.</li>
+    </ol>
+    <figure><img src="img/en/f20-new-request.jpg" alt="" loading="lazy"><figcaption><b>Figure 20.</b> New Disbursement Request from limit CL-APP-17.</figcaption></figure>
+    <p class="prose">The disbursement workflow has three steps:</p>
+    <div class="tbl"><table>
+      <tr><th>Step</th><th>Role</th><th>Page</th></tr>
+      <tr><td>Initiation</td><td>Operations officer</td><td>The request; <b>Save and Complete</b> confirms it.</td></tr>
+      <tr><td>Invoice Upload</td><td>Operations officer</td><td>Invoice Entry &amp; Verification (section 10).</td></tr>
+      <tr><td>Treasury Disburse</td><td>Treasury officer</td><td>Treasury Disburse (section 11).</td></tr>
+    </table></div>
+    <figure><img src="img/en/f21-disbursements.jpg" alt="" loading="lazy"><figcaption><b>Figure 21.</b> Disbursements: one request not started (▶ Start Workflow), one at Treasury Disburse, one completed. Each completed step opens view-only and shows its GL Tran Set IDs.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-10">
+    <div class="sec-h"><span class="n">10</span><h2>Invoice upload and verification</h2></div>
+    <p class="prose">The Invoice Upload step opens <b>Invoice Entry &amp; Verification</b>. The top shows the limit, approved and available amounts, total invoices, advance rate and utilization.</p>
+    <figure><img src="img/en/f22-invoice-entry.jpg" alt="" loading="lazy"><figcaption><b>Figure 22.</b> Invoice Entry &amp; Verification for DISB-2026-41: request details, invoice batch and invoices.</figcaption></figure>
+    <figure><img src="img/en/f22b-invoice-charges.jpg" alt="" loading="lazy"><figcaption><b>Figure 23.</b> The same page, lower part: cheques, disbursement charges, the customer claim and the repayment schedule.</figcaption></figure>
+    <h3>Fill the page, top to bottom</h3>
+    <ol class="b">
+      <li><b>Disbursement Request Detail</b>: limit, currency, product, invoices gross amount (the total of the eligible invoices), advance rate from the agreement, tenor, index and spread rates, day count, and the repayment terms: schedule type (regular or irregular), principal and interest repayment and their frequency, and the payment method.</li>
+      <li><b>Invoice Batch</b>: batch name, date and type, then drop the <b>Invoices File</b> and the <b>Cheques File</b> (Excel or CSV). The rows appear as a preview; they are kept when you press <b>Save Draft</b>.</li>
+      <li><b>Invoices</b>: mark each invoice <b>Eligible</b> or <b>Not Eligible</b>. A not-eligible invoice needs a reason and is not financed. Eligible invoices take the advance rate.</li>
+      <li><b>Cheques</b>: the customer's cheques for the repayment schedule. <b>Create Cheques from Schedule</b> makes one cheque for each due date.</li>
+      <li><b>Disbursement Charges</b>: calculated from the product's rule as soon as the product is chosen: approved invoice and advance amounts, fee and tax deducted, and the <b>net amount</b> paid to the customer.</li>
+      <li><b>Customer Claim</b>: <b>Create Claim</b> claims the charges from the customer. The claim is paid in Collection (section 12). <b>Cancel Claim</b> is possible while nothing of it is paid.</li>
+    </ol>
+    <figure><img src="img/en/f23-invoice-summary.jpg" alt="" loading="lazy"><figcaption><b>Figure 24.</b> Invoice summary: received, not eligible, eligible and the value financed, by debtor.</figcaption></figure>
+    <h3>Save and Complete</h3>
+    <p class="prose"><b>Save Draft</b> only keeps your work. <b>Save and Complete</b> does everything in one step, and if any part fails only the draft is kept:</p>
+    <ul class="b">
+      <li>every invoice must be Eligible or Not Eligible (with a reason), and one at least Eligible;</li>
+      <li>the charges are calculated and the repayment schedule is built;</li>
+      <li>when there are charges, their claim must be <b>paid</b>;</li>
+      <li>the cheques must match the schedule: each due date's cheques add up to its total (within 1.00), and every cheque falls on a due date;</li>
+      <li>the cheques are loaded into the cheques wallet and their memo GL entry is posted under one GL Tran Set ID.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="en-11">
+    <div class="sec-h"><span class="n">11</span><h2>Treasury disburse</h2></div>
+    <p class="prose">The Treasury officer decides which money pays the disbursement's <b>net amount</b>. The page guides you through four steps: choose the sources, save and reserve, execute (pay and post the GL), complete the step.</p>
+    <figure><img src="img/en/f24-treasury.jpg" alt="" loading="lazy"><figcaption><b>Figure 25.</b> Treasury Disburse for DISB-2026-41: own funds and a bank sublimit cover the net amount; the GL to be posted is shown below.</figcaption></figure>
+    <ol class="b">
+      <li><b>Sources of funds</b>: the bank limits as a tree (bank › facility › tranche › sublimit) and <b>Own funds</b>. Enter an amount on a sublimit, use <b>Max</b> for the most a line allows, or <b>Suggest</b> to fill them in the order set in Module Settings. A line that cannot be used says why.</li>
+      <li><b>Bank rule checks</b> run as you type: a rule passes, warns, or blocks (a blocked line must move to another source). A rule that allows an override needs a reason, and a second user presses <b>Approve override</b>.</li>
+      <li><b>Save and reserve</b> keeps the choice and reserves the amounts. The side panel shows the debtors and the seller (with their invoices and bank account) and how each line will be paid.</li>
+      <li><b>Execute</b> pays the customer and posts the GL under one GL Tran Set ID. In reverse factoring, the suppliers are paid instead: tick <b>Confirmed</b> as the bank confirms each transfer; the GL posts when the last one is confirmed.</li>
+      <li><b>Save and Complete</b> ends the disbursement workflow.</li>
+    </ol>
+  </section>
+
+  <section class="sec" id="en-12">
+    <div class="sec-h"><span class="n">12</span><h2>Claims and customer payments</h2></div>
+    <p class="prose">The customer's payment (for example a bank transfer recorded in Collection) becomes a <b>payment source</b>. Collection uses it to pay the claim of the disbursement's charges.</p>
+    <div class="shots">
+      <figure><img src="img/en/f25-claims.jpg" alt="" loading="lazy"><figcaption><b>Figure 26.</b> Claims tab: Pay on the partly paid claim.</figcaption></figure>
+      <figure><img src="img/en/f26-customer-payments.jpg" alt="" loading="lazy"><figcaption><b>Figure 27.</b> Customer Payments: the claim's charges, its payments and the customer's payment sources.</figcaption></figure>
+    </div>
+    <ol class="b">
+      <li>Press <b>Pay</b> on the claim (or open Collection → Customer Payments and choose the customer and the open claim).</li>
+      <li>Choose a <b>payment source</b> with balance left and enter the <b>amount to pay</b> (empty pays all it can).</li>
+      <li><b>Pay Claim</b>. The claim's lines are paid in order, and the GL entries post under their own GL Tran Set ID.</li>
+    </ol>
+    <p class="prose">A claim is OPEN, PARTIALLY PAID, PAID or CANCELLED. When it is PAID, the Invoice Upload step can be completed.</p>
+  </section>
+
+  <section class="sec" id="en-13">
+    <div class="sec-h"><span class="n">13</span><h2>Roles, statuses, questions</h2></div>
+    <h3>Roles</h3>
+    <div class="tbl"><table>
+      <tr><th>Role</th><th>Does</th></tr>
+      <tr><td>Business development (FCT.EDIT)</td><td>Calculator, Use In Offer, application status, Start Agreement Workflow.</td></tr>
+      <tr><td>Operations officer</td><td>Operation Received, Generate Contract; disbursement Initiation and Invoice Upload (CRM.EDIT).</td></tr>
+      <tr><td>Sales officer</td><td>Sales Review, Client Acceptance.</td></tr>
+      <tr><td>Investigation officer · Credit approver · Risk officer</td><td>Investigation · Credit Analysis · Risk Review.</td></tr>
+      <tr><td>Committee secretary · Fast track approver</td><td>Committee Approval · fast track Approval.</td></tr>
+      <tr><td>Legal officer</td><td>Legal Review and Limit Creation (both tracks).</td></tr>
+      <tr><td>Treasury officer</td><td>Treasury Disburse; another Treasury user approves overrides.</td></tr>
+      <tr><td>Collection (COLLECTION.EDIT)</td><td>Customer Payments: pay claims.</td></tr>
+    </table></div>
+    <h3>Statuses</h3>
+    <div class="tbl"><table>
+      <tr><th>Item</th><th>Statuses</th></tr>
+      <tr><td>Application</td><td>DRAFT → SUBMITTED → ACCEPTED (or REJECTED) → APPLICATION when the workflow starts</td></tr>
+      <tr><td>Agreement</td><td>Its progress is the workflow step shown with it; the step is empty once the workflow has ended</td></tr>
+      <tr><td>Disbursement request</td><td>Workflow Not Started → WF Started (step shown) → Workflow completed</td></tr>
+      <tr><td>Treasury funding</td><td>None → Reserved → Executed</td></tr>
+      <tr><td>Claim</td><td>OPEN → PARTIALLY PAID → PAID, or CANCELLED</td></tr>
+    </table></div>
+    <h3>Questions</h3>
+    <div class="tbl"><table>
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>Start Agreement Workflow is greyed out.</td><td>Set the status to ACCEPTED and press Save Status first. It is also disabled once the agreement exists.</td></tr>
+      <tr><td>Use In Offer loaded an old draft.</td><td>The customer already has an open draft. Work on it, or ask for Module Settings to allow several open offers.</td></tr>
+      <tr><td>I cannot see the task.</td><td>It is in the inbox of the step's role. If another user claimed it, they hold it.</td></tr>
+      <tr><td>The customer has no Disbursement button.</td><td>There is no active limit yet: the Legal Review step has not been accepted.</td></tr>
+      <tr><td>Invoice Upload will not complete.</td><td>Check: every invoice marked, one eligible, the claim paid, and the cheques matching each due date of the schedule. The message lists what is missing.</td></tr>
+      <tr><td>A source of funds shows Blocked.</td><td>A bank rule or the sublimit's balance stops it. Move the amount to another sublimit or to own funds.</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">Finova · Factoring User Manual · Version 1.0 · November 2026</p>
+  </main>
+</div>
+</div>
+
+<!-- ============================== ARABIC ============================== -->
+<div id="doc-ar" lang="ar" dir="rtl" hidden>
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">دليل المستخدم · التخصيم</div>
+      <h1>التخصيم، من التسعير إلى التحصيل</h1>
+      <p class="lede">كيف تسعّر فينوفا صفقة التخصيم، وتعتمد حد العميل عبر سير العمل، وتموّل فواتير العميل، وتصرف كل دفعة من الخزينة، وتحصّل الرسوم. موجّه لفرق تطوير الأعمال والعمليات والائتمان والمخاطر واللجنة والشؤون القانونية والخزينة والتحصيل.</p>
+      <div class="meta"><span><b>الإصدار</b>١٫٠</span><span><b>التاريخ</b>٢٣ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>العملاء · الحاسبة · الطلبات · اعتماد الحد · المسار السريع · الحد الائتماني · طلبات الصرف · الفواتير · الخزينة · المطالبات · مدفوعات العملاء</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="المحتويات">
+    <div class="t">المحتويات</div>
+    <ol>
+      <li><a href="#ar-qs"><i>٠</i>البدء السريع</a></li>
+      <li><a href="#ar-1"><i>١</i>عن هذا الدليل</a></li>
+      <li><a href="#ar-2"><i>٢</i>المفاهيم الأساسية والدورة</a></li>
+      <li><a href="#ar-3"><i>٣</i>العملاء ومساحة العمل</a></li>
+      <li><a href="#ar-4"><i>٤</i>الحاسبة والطلبات</a></li>
+      <li><a href="#ar-5"><i>٥</i>العمل على مهام سير العمل</a></li>
+      <li><a href="#ar-6"><i>٦</i>اعتماد الحد: المسار العادي</a></li>
+      <li><a href="#ar-7"><i>٧</i>اعتماد الحد: المسار السريع</a></li>
+      <li><a href="#ar-8"><i>٨</i>الاتفاقيات والحد الائتماني</a></li>
+      <li><a href="#ar-9"><i>٩</i>طلبات الصرف</a></li>
+      <li><a href="#ar-10"><i>١٠</i>رفع الفواتير والتحقق منها</a></li>
+      <li><a href="#ar-11"><i>١١</i>صرف الخزينة</a></li>
+      <li><a href="#ar-12"><i>١٢</i>المطالبات ومدفوعات العملاء</a></li>
+      <li><a href="#ar-13"><i>١٣</i>الأدوار والحالات والأسئلة</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="ar-qs">
+    <div class="sec-h"><span class="n">٠</span><h2>البدء السريع</h2></div>
+    <p class="prose">أكثر أربع مهام تكرارًا، وتُشرح كل منها بالتفصيل في الأقسام التالية.</p>
+    <div class="qs">
+      <div class="card"><div class="k">تطوير الأعمال</div><h4>التسعير وتقديم الطلب</h4>
+        <ol><li>التخصيم ← <b>معالجة</b> على العميل</li><li><b>حاسبة التخصيم</b> ← أدخل بيانات الصفقة ← <b>احسب</b></li><li><b>استخدم في العرض</b>، ثم اجعل حالة الطلب ACCEPTED واضغط <b>حفظ الحالة</b></li><li><b>بدء سير عمل الاتفاقية</b>، واختر المسار العادي أو السريع</li></ol></div>
+      <div class="card"><div class="k">كل معتمِد</div><h4>اعتماد الحد</h4>
+        <ol><li>صندوق مهام سير العمل ← <b>استلم</b> المهمة ← <b>فتح</b></li><li>أكمل نموذج خطوتك وأضف المستندات</li><li><b>حفظ وإكمال</b> أو <b>حفظ وقبول</b> أو <b>حفظ ورفض</b></li><li>قبول الإدارة القانونية ينشئ الحد الائتماني</li></ol></div>
+      <div class="card"><div class="k">العمليات</div><h4>تمويل الفواتير</h4>
+        <ol><li>مساحة العمل ← الحدود ← <b>صرف</b>، أدخل إجمالي الفواتير ← <b>إنشاء</b></li><li>تبويب الصرف ← <b>بدء سير العمل</b></li><li>رفع الفواتير: حمّل الفواتير والشيكات وحدّد الأهلية</li><li><b>إنشاء مطالبة</b>، وبعد سدادها <b>حفظ وإكمال</b></li></ol></div>
+      <div class="card"><div class="k">الخزينة والتحصيل</div><h4>الصرف والتحصيل</h4>
+        <ol><li>صرف الخزينة: <b>اقتراح</b> أو أدخل المصادر بنفسك</li><li><b>حفظ وحجز</b> ← <b>تنفيذ</b> ← <b>حفظ وإكمال</b></li><li>مدفوعات العملاء: اختر المطالبة ومصدر السداد</li><li><b>سداد المطالبة</b> <span dir="ltr">(Pay Claim)</span>: تُرحَّل القيود فورًا</li></ol></div>
+    </div>
+  </section>
+
+  <section class="sec" id="ar-1">
+    <div class="sec-h"><span class="n">١</span><h2>عن هذا الدليل</h2></div>
+    <p class="prose">التخصيم في فينوفا يموّل فواتير مبيعات العميل. يبيع العميل (البائع) بالآجل لعملائه (المدينين)، فتقدّم فينوفا نسبة من كل فاتورة مؤهلة وتسترد التمويل عند سداد الفواتير. يجري العمل في أربعة مجالات:</p>
+    <div class="tbl"><table>
+      <tr><th>المجال</th><th>من يستخدمه</th><th>ماذا يفعل</th></tr>
+      <tr><td><b>التخصيم</b></td><td>تطوير الأعمال، الائتمان، المخاطر، اللجنة، الشؤون القانونية</td><td>العملاء، وحاسبة التخصيم، والطلبات، وسير عمل اعتماد الحد، والحد الائتماني للعميل.</td></tr>
+      <tr><td><b>طلبات الصرف</b></td><td>العمليات</td><td>طلب على الحد، بفواتيره وشيكاته ورسومه وجدول سداده.</td></tr>
+      <tr><td><b>الخزينة</b></td><td>الخزينة</td><td>أي أموال تموّل كل صرف: حدود فرعية لدى البنوك أو أموال ذاتية، بعد فحص شروط البنوك، ثم السداد والترحيل إلى دفتر الأستاذ.</td></tr>
+      <tr><td><b>التحصيل</b></td><td>التحصيل</td><td>مدفوعات العميل، وتُستخدم لسداد مطالبات رسوم الصرف.</td></tr>
+    </table></div>
+    <figure><img src="img/ar/f01-home.jpg" alt="" loading="lazy"><figcaption><b>شكل ١.</b> الصفحة الرئيسية للتخصيم: العملاء، وزر معالجة لفتح مساحة عمل العميل، وصندوق مهامك.</figcaption></figure>
+    <div class="note"><span class="ic">مثال</span><p>يتابع الدليل عميلًا واحدًا هو <b>دلتا للصناعات الغذائية</b>: طلبه بمبلغ ١٠ ملايين جنيه، والاتفاقية <b dir="ltr">APP-17</b>، والحد المعتمد <b dir="ltr">CL-APP-17</b> بمبلغ ٩ ملايين جنيه ونسبة تمويل ٨٥٪، وطلب الصرف <b dir="ltr">DISB-2026-41</b>. المبالغ والتواريخ بيانات توضيحية.</p></div>
+  </section>
+
+  <section class="sec" id="ar-2">
+    <div class="sec-h"><span class="n">٢</span><h2>المفاهيم الأساسية والدورة</h2></div>
+    <div class="tbl"><table>
+      <tr><th>المصطلح</th><th>المعنى</th></tr>
+      <tr><td><b>العميل</b></td><td>الشركة التي تبيع فواتيرها لفينوفا (البائع)، ويُنشأ من شاشة العملاء.</td></tr>
+      <tr><td><b>المدين</b></td><td>مشتري العميل، وهو الملتزم بالفاتورة ويسددها في موعدها.</td></tr>
+      <tr><td><b>الطلب (العرض)</b></td><td>عرض مسعّر من الحاسبة برقم <code>OFF-yyyymmdd-nnnn</code>. حالته DRAFT أو SUBMITTED أو ACCEPTED أو REJECTED، ثم APPLICATION عند بدء سير عمله.</td></tr>
+      <tr><td><b>الاتفاقية</b></td><td>تُنشأ من الطلب المقبول عند بدء سير العمل برقم <code>APP-n</code>، وتسجّل كل خطوة اعتماد جزءها عليها.</td></tr>
+      <tr><td><b>المسار</b></td><td>طريق الاعتماد المختار لكل صفقة: <b>العادي</b> (تسع خطوات) أو <b>السريع</b> (اعتماد واحد ثم العقد والحد).</td></tr>
+      <tr><td><b>الحد الائتماني</b></td><td>المبلغ المعتمد الذي يمكن للعميل استخدامه برقم <code>CL-APP-n</code>، ويُنشأ عند قبول الإدارة القانونية للخطوة الأخيرة. المستخدَم + المتاح = المعتمد.</td></tr>
+      <tr><td><b>نسبة التمويل</b></td><td>النسبة التي تموّلها فينوفا من الفاتورة المؤهلة، مثل ٨٥٪.</td></tr>
+      <tr><td><b>طلب الصرف</b></td><td>تمويل واحد على الحد برقم <code>DISB-yyyy-n</code>، له دفعة فواتير وشيكات ورسوم وجدول سداد.</td></tr>
+      <tr><td><b>الفاتورة المؤهلة</b></td><td>فاتورة تموّلها فينوفا. الفاتورة غير المؤهلة تحتاج إلى سبب ولا تُموَّل.</td></tr>
+      <tr><td><b>الرسوم والمطالبة</b></td><td>رسوم الصرف (رسوم التأسيس، والعمولة، ورسوم المعالجة…) تُطالَب من العميل في <b>مطالبة</b> واحدة <code>CLM-yyyymm-n</code> وتُسدَّد من التحصيل.</td></tr>
+      <tr><td><b>رقم مجموعة القيود</b></td><td>مرجع مجموعة واحدة من قيود دفتر الأستاذ <span dir="ltr">(GL Tran Set ID)</span>، ويظهر مع كل ترحيل: الرسوم، وسداد المطالبة، وتمويل الخزينة.</td></tr>
+    </table></div>
+    <h3>الدورة</h3>
+    <div class="steps">
+      <div class="step"><span class="g">١ · تطوير الأعمال</span><div><b>تسعير الصفقة وإنشاء الطلب</b><br>حاسبة التخصيم ← استخدم في العرض ← ACCEPTED ← بدء سير عمل الاتفاقية.</div><span class="pill">القسم ٤</span></div>
+      <div class="step"><span class="g">٢ · المعتمِدون</span><div><b>اعتماد الحد</b><br>المسار العادي: استلام العملية، مراجعة المبيعات، الاستعلام، التحليل الائتماني، مراجعة المخاطر، اللجنة، موافقة العميل، العقد، المراجعة القانونية. المسار السريع: الاعتماد، ثم العقد وإنشاء الحد.</div><span class="pill">القسمان ٦–٧</span></div>
+      <div class="step"><span class="g">٣ · القانونية</span><div><b>إنشاء الحد الائتماني</b><br>المراجعة القانونية: حفظ وقبول ينشئ <code>CL-APP-n</code> في تبويب الحدود للعميل.</div><span class="pill">القسم ٨</span></div>
+      <div class="step"><span class="g">٤ · العمليات</span><div><b>طلب صرف</b><br>من الحد: الطلب ثم سير عمله: البدء، رفع الفواتير، صرف الخزينة.</div><span class="pill">القسمان ٩–١٠</span></div>
+      <div class="step"><span class="g">٥ · التحصيل</span><div><b>تحصيل الرسوم</b><br>تُسدَّد مطالبة رسوم الصرف من مصدر سداد للعميل.</div><span class="pill">القسم ١٢</span></div>
+      <div class="step"><span class="g">٦ · الخزينة</span><div><b>التمويل والسداد</b><br>اختيار المصادر، ثم الحجز، ثم التنفيذ: يُدفع للعميل وتُرحَّل القيود.</div><span class="pill">القسم ١١</span></div>
+    </div>
+    <div class="note"><span class="ic">الترتيب</span><p>يجب سداد مطالبة الرسوم <b>قبل</b> إكمال خطوة رفع الفواتير، لذلك تأتي الخطوة ٥ قبل تمويل الخزينة.</p></div>
+  </section>
+
+  <section class="sec" id="ar-3">
+    <div class="sec-h"><span class="n">٣</span><h2>العملاء ومساحة العمل</h2></div>
+    <p class="prose">افتح <b>التخصيم</b> من القائمة. يمكن تصفية قائمة العملاء بالاسم والرقم ونوع العميل. يفتح زر <b>معالجة</b> (أو رقم العميل) <b>مساحة عمل عميل التخصيم</b>، وفيها يُنجَز كل ما يخص العميل. وتعرض بطاقة صندوق المهام عدد المهام التي تنتظرك.</p>
+    <figure><img src="img/ar/f02-workspace.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢.</b> مساحة عمل العميل: بطاقة العميل، وبطاقة حاسبة التخصيم، وخمسة تبويبات.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>التبويب</th><th>ماذا يعرض</th><th>ماذا يمكنك أن تفعل</th></tr>
+      <tr><td><b>طلبات التخصيم</b></td><td>كل الطلبات: المبلغ والنوع والحالة والمسار وخطوة سير العمل، وهل بدأ سير العمل.</td><td>تغيير الحالة ثم <b>حفظ الحالة</b>، و<b>بدء سير عمل الاتفاقية</b> (▶) على طلب ACCEPTED.</td></tr>
+      <tr><td><b>الاتفاقيات</b></td><td>الاتفاقيات المنشأة من الطلبات بمسارها وخطوتها الحالية.</td><td>عرض.</td></tr>
+      <tr><td><b>الحدود</b></td><td>الحدود الائتمانية المعتمدة: المعتمد والمستخدَم والمتاح، والتواريخ والحالة.</td><td>زر <b>صرف</b> على حد نشط يفتح طلب صرف جديدًا.</td></tr>
+      <tr><td><b>الصرف</b></td><td>طلبات الصرف للعميل، وخطوتها، والخطوات المكتملة بأرقام مجموعات القيود.</td><td>تعديل طلب لم يبدأ، أو <b>بدء سير العمل</b> (▶)، أو فتح خطوة مكتملة للعرض فقط.</td></tr>
+      <tr><td><b>المطالبات</b></td><td>مطالبات رسوم الصرف: الإجمالي والمسدد والرصيد والحالة.</td><td>زر الدفع (<b>صرف</b>) يفتح مدفوعات العملاء لمطالبة مفتوحة.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="ar-4">
+    <div class="sec-h"><span class="n">٤</span><h2>الحاسبة والطلبات</h2></div>
+    <p class="prose">تسعّر <b>حاسبة التخصيم</b> الصفقة للعميل. أكمل الأقسام الأربعة، واضغط <b>احسب</b>، واقرأ ملخص الحساب. النتائج استرشادية وتخضع للموافقة الائتمانية.</p>
+    <figure><img src="img/ar/f03-calculator.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣.</b> الحاسبة: أساسيات الصفقة، وهامش المخاطر، والسوق والتكلفة، والرسوم والعوائد، والملخص بجانبها.</figcaption></figure>
+    <h3>كيف تُحسب النتائج</h3>
+    <div class="tbl"><table>
+      <tr><th>النتيجة</th><th>القاعدة</th></tr>
+      <tr><td><b>نسبة التمويل</b></td><td>نسبة التمويل الأساسية − معدل التخفيف − هامش المخاطر، ولا تقل عن الحد الأدنى في إعدادات الوحدة (٥٠٪ افتراضيًا). هامش المخاطر هو القيمة البديلة إن أُدخلت، وإلا ٢٪ (LOW) أو ٤٪ (MEDIUM) أو ٧٪ (HIGH)، مضافًا إليه ١٠٪ مما يزيد على ٢٥٪ في أكبر تركّز.</td></tr>
+      <tr><td><b>معدل الخصم</b></td><td>تكلفة الأموال + هامش المخاطر (١٫٢٥٪ LOW، ٢٫٢٥٪ MEDIUM، ٣٫٥٪ HIGH) + هامش التشغيل + ٠٫٢٥٪ عن كل ٣٠ يومًا تزيد على ٩٠ في متوسط الأجل + ٠٫٥٪ إذا زاد أكبر تركّز على ٢٥٪.</td></tr>
+      <tr><td><b>الهامش فوق LCR</b></td><td>معدل الخصم − تكلفة الأموال.</td></tr>
+      <tr><td><b>إجمالي الرسوم</b></td><td>رسوم التأسيس (ثابت + نسبة من الحد) + العمولة (نسبة من الحجم السنوي) + رسوم المعالجة (الرسم × عدد المعاملات السنوية) + تحليل المدينين (الرسم × عدد المدينين، وبحد أدنى).</td></tr>
+      <tr><td><b>الفائدة</b></td><td>نسبة التمويل × الحجم السنوي × معدل الخصم × متوسط الأجل ÷ ٣٦٥.</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">مثال</span><p>أساسية ٩٠٪، وتخفيف ٢٪، ومخاطر LOW (هامش ٢٪): نسبة التمويل <b>٨٦٪</b>. تكلفة أموال ٢٤٪ + هامش LOW ١٫٢٥٪ + هامش تشغيل ٣٪: معدل الخصم <b>٢٨٫٢٥٪</b>، والهامش فوق LCR ٤٫٢٥٪.</p></div>
+    <h3>استخدم في العرض وحالة الطلب</h3>
+    <ol class="b">
+      <li><b>استخدم في العرض</b> يحفظ طلبًا جديدًا بحالة DRAFT بمدخلات الحاسبة ونتائجها. وما لم تسمح إعدادات الوحدة بأكثر من عرض مفتوح، تُحمَّل مسودة العميل المفتوحة بدلًا من ذلك، ويمنع عرضٌ مقدَّم أو مقبول إنشاءَ عرض جديد.</li>
+      <li>في تبويب طلبات التخصيم غيّر الحالة (DRAFT أو SUBMITTED أو ACCEPTED أو REJECTED) واضغط <b>حفظ الحالة</b> (💾).</li>
+      <li>عندما يكون الطلب ACCEPTED ومحفوظًا، اضغط <b>بدء سير عمل الاتفاقية</b> (▶)، واختر المسار ثم اضغط <b>بدء سير العمل</b>.</li>
+    </ol>
+    <figure><img src="img/ar/f04-track.jpg" alt="" loading="lazy"><figcaption><b>شكل ٤.</b> بدء سير عمل الاتفاقية: المسار العادي مختار مسبقًا، وللمسار السريع اعتماد واحد.</figcaption></figure>
+    <p class="prose">البدء ينشئ الاتفاقية <code>APP-n</code> ويبدأ سير العمل المختار معًا، ويصبح الطلب APPLICATION ولا تتغير حالته بعد ذلك. يبقى الزر ▶ غير متاح حتى تُحفظ الحالة ACCEPTED، وبعد إنشاء الاتفاقية.</p>
+  </section>
+
+  <section class="sec" id="ar-5">
+    <div class="sec-h"><span class="n">٥</span><h2>العمل على مهام سير العمل</h2></div>
+    <p class="prose">كل خطوة اعتماد، وكل خطوة من طلب الصرف، مهمة في <b>صندوق مهام سير العمل</b>. تصل المهمة إلى كل من له دور الخطوة، ويستلمها أحدهم.</p>
+    <figure><img src="img/ar/f05-inbox.jpg" alt="" loading="lazy"><figcaption><b>شكل ٥.</b> صندوق مهامي: الاتفاقية أو طلب الصرف، والخطوة، والمبلغ، ومن يحمل كل مهمة.</figcaption></figure>
+    <ol class="b">
+      <li><b>استلم</b> المهمة لتصبح لك، ويرى الآخرون من يحملها.</li>
+      <li><b>افتحها</b>: تُفتح صفحة الخطوة للاتفاقية أو لطلب الصرف.</li>
+      <li>أكمل نموذج الخطوة. أزرار الحفظ في الصفحة تحفظ عملك دون تحريك سير العمل.</li>
+      <li>اضغط إجراء الخطوة: <b>حفظ وإكمال</b> أو <b>حفظ وقبول</b> أو <b>حفظ ورفض</b>، وأضف تعليقًا لسجل سير العمل إن أردت ثم أكّد. تُحفظ تغييراتك أولًا، ثم ينتقل سير العمل وتعود إلى صندوق المهام.</li>
+    </ol>
+    <div class="shots">
+      <figure><img src="img/ar/f15-documents.jpg" alt="" loading="lazy"><figcaption><b>شكل ٦.</b> المستندات: اختر النوع والحالة، واسحب الملف أو استعرضه (PDF أو Word أو Excel أو صورة، حتى ١٠ ميجابايت). تُحفظ كل المستندات على الاتفاقية.</figcaption></figure>
+      <figure><img src="img/ar/f16-accept.jpg" alt="" loading="lazy"><figcaption><b>شكل ٧.</b> حفظ وقبول يطلب تعليقًا اختياريًا قبل انتقال الخطوة.</figcaption></figure>
+    </div>
+    <p class="prose">تعرض كل صفحة خطوة <b>ملخص الطلب</b> (الاتفاقية، والعميل، والمبلغ المطلوب، وتاريخ التقديم)، ومن مراجعة المخاطر فصاعدًا شريط <b>مراحل الطلب</b> بالمراحل المكتملة والحالية والقادمة. زر <b>المستندات</b> موجود في كل صفحة خطوة، وزر <b>العودة إلى المهمة</b> يعيدك إلى المهمة.</p>
+  </section>
+
+  <section class="sec" id="ar-6">
+    <div class="sec-h"><span class="n">٦</span><h2>اعتماد الحد: المسار العادي</h2></div>
+    <div class="tbl"><table>
+      <tr><th>#</th><th>الخطوة</th><th>الدور</th><th>الصفحة</th><th>الإجراءات</th></tr>
+      <tr><td>١</td><td>استلام العملية</td><td>مسؤول العمليات</td><td>ملخص الاتفاقية وإسناد المهمة التالية</td><td>إنجاز المهمة</td></tr>
+      <tr><td>٢</td><td>مراجعة المبيعات</td><td>مسؤول المبيعات</td><td>نموذج بيانات الطلب</td><td>إكمال</td></tr>
+      <tr><td>٣</td><td>الاستعلام</td><td>مسؤول الاستعلام</td><td>الاستعلام عن العميل، ومكافحة غسل الأموال، والرأي القانوني، والاستعلام عن المدينين</td><td>إكمال</td></tr>
+      <tr><td>٤</td><td>التحليل الائتماني</td><td>معتمِد الائتمان</td><td>التحليل المالي، والتصنيف الائتماني، والمذكرة الائتمانية</td><td>إكمال</td></tr>
+      <tr><td>٥</td><td>مراجعة المخاطر</td><td>مسؤول المخاطر</td><td>المؤشرات وملاحظات المخاطر</td><td>قبول · رفض (ينهي)</td></tr>
+      <tr><td>٦</td><td>اعتماد اللجنة</td><td>سكرتير اللجنة</td><td>قرار اللجنة: الشروط المعتمدة</td><td>قبول · رفض (ينهي)</td></tr>
+      <tr><td>٧</td><td>موافقة العميل</td><td>مسؤول المبيعات</td><td>الشروط المعتمدة، والموافقة الموقعة، وملاحظات للعمليات</td><td>قبول · رفض (يعود إلى اللجنة)</td></tr>
+      <tr><td>٨</td><td>إعداد العقد</td><td>مسؤول العمليات</td><td>تواريخ العقد وشروطه، ورفع العقد</td><td>إكمال</td></tr>
+      <tr><td>٩</td><td>المراجعة القانونية وإنشاء الحد</td><td>المسؤول القانوني</td><td>مراجعة العقد والرأي القانوني</td><td>قبول (ينشئ الحد) · رفض (ينهي)</td></tr>
+    </table></div>
+
+    <h3>١ · استلام العملية</h3>
+    <p class="prose">تراجع العمليات الاتفاقية الجديدة. تذهب المهمة التالية (مراجعة المبيعات) إلى الدور الافتراضي في سير العمل، ويمكنك تحديد <b>إسناد المهمة التالية لمستخدم محدد</b> لإعطائها لمسؤول مبيعات بعينه لهذه الاتفاقية فقط. أضف تعليق إنجاز اختياريًا واضغط <b>إنجاز المهمة</b>.</p>
+    <figure><img src="img/ar/f06-operation-received.jpg" alt="" loading="lazy"><figcaption><b>شكل ٨.</b> استلام العملية: ملخص الاتفاقية وإسناد المهمة التالية.</figcaption></figure>
+
+    <h3>٢ · مراجعة المبيعات</h3>
+    <p class="prose">يكمل مسؤول المبيعات <b>نموذج بيانات الطلب</b>: تاريخ الطلب، والعميل، ونوع التخصيم، ونوع حق الرجوع، وحد التسهيل، والعملة، ونسبة التمويل، والمدة بالأشهر، والملاحظات. يحفظه زر <b>حفظ الطلب</b>، ويرسل زر <b>حفظ وإكمال</b> الاتفاقية إلى الاستعلام.</p>
+    <figure><img src="img/ar/f07-sales-review.jpg" alt="" loading="lazy"><figcaption><b>شكل ٩.</b> مراجعة المبيعات: بيانات الطلب والمدينون.</figcaption></figure>
+
+    <h3>٣ · الاستعلام</h3>
+    <p class="prose">يسجّل مسؤول الاستعلام ثلاثة تقارير، لكل منها زر حفظ: <b>نموذج الاستعلام عن العميل</b> (تاريخ التقرير، ودرجة الجدارة الائتمانية، والملاحظات)، و<b>نموذج مكافحة غسل الأموال</b> (التاريخ، وفئة المخاطر، والنتيجة، والملاحظات)، و<b>نموذج الرأي القانوني</b>. وتعرض <b>نتائج الاستعلام عن المدينين</b> لكل مدين تاريخ الزيارة والحالة وسجل السداد والتقييم.</p>
+    <figure><img src="img/ar/f08-investigation.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٠.</b> الاستعلام: الاستعلام عن العميل، ومكافحة غسل الأموال، والرأي القانوني، والمدينون.</figcaption></figure>
+
+    <h3>٤ · التحليل الائتماني</h3>
+    <p class="prose">ثلاثة تبويبات: <b>التحليل المالي</b> (تاريخ التقييم، والنتيجة ضعيف أو متوسط أو قوي، والملاحظات)، و<b>التصنيف الائتماني</b> (تاريخ التصنيف ونتيجته وملاحظاته)، و<b>المذكرة الائتمانية</b> (الحد ونسبة التمويل والمدة الموصى بها، والملاحظات الائتمانية). لكل تبويب زر حفظ ورفع تقرير، ويحفظ زر <b>حفظ التقدم</b> الثلاثة معًا. ويطبع زر <b>طباعة المذكرة الائتمانية</b> مذكرة الموافقة الائتمانية.</p>
+    <figure><img src="img/ar/f09-credit-analysis.jpg" alt="" loading="lazy"><figcaption><b>شكل ١١.</b> التحليل الائتماني، تبويب التحليل المالي.</figcaption></figure>
+
+    <h3>٥ · مراجعة المخاطر</h3>
+    <p class="prose">تعرض الصفحة درجة الجدارة الائتمانية، والتسهيل المطلوب مع حق الرجوع والمدة، ودرجة المخاطر من الائتمان. يدخل مسؤول المخاطر تاريخ مذكرة المخاطر وملاحظاته، ثم <b>حفظ وقبول</b> (إلى اللجنة) أو <b>حفظ ورفض</b> الذي ينهي سير العمل.</p>
+    <figure><img src="img/ar/f10-risk-review.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٢.</b> مراجعة المخاطر.</figcaption></figure>
+
+    <h3>٦ · اعتماد اللجنة</h3>
+    <p class="prose">يسجّل سكرتير اللجنة القرار: تاريخ الاعتماد، و<b>الحد المعتمد</b>، و<b>نسبة التمويل المعتمدة</b>، و<b>المدة المعتمدة</b> بالأشهر، وتظهر أسفلها شروط ما قبل الصرف. يطبع زر <b>طباعة خطاب القرار</b> الخطاب. <b>حفظ وقبول</b> يرسل الشروط إلى العميل، و<b>حفظ ورفض</b> ينهي سير العمل.</p>
+    <figure><img src="img/ar/f11-committee.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٣.</b> قرار اللجنة: ٩٬٠٠٠٬٠٠٠ جنيه بنسبة ٨٥٪ لمدة ١٢ شهرًا.</figcaption></figure>
+
+    <h3>٧ · موافقة العميل</h3>
+    <p class="prose">تعرض صفحة موافقة العميل الشروط المعتمدة. ارفع موافقة العميل الموقعة (<b>رفع الموافقة الموقعة</b>)، واكتب ملاحظاتك للعمليات واحفظها (<b>حفظ رد العميل</b> أو <b>إرسال طلب العقد</b>). <b>حفظ وقبول</b> ينتقل إلى العقد، و<b>حفظ ورفض</b> يعيد الصفقة إلى اللجنة، مثلًا إذا طلب العميل شروطًا أخرى.</p>
+    <figure><img src="img/ar/f12-client-acceptance.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٤.</b> موافقة العميل: الشروط المعتمدة وتوقيع العميل.</figcaption></figure>
+
+    <h3>٨ · إعداد العقد</h3>
+    <p class="prose">تُدخل العمليات بيانات العقد: رقم الاتفاقية، وتاريخ السريان، والمدة، وتواريخ بداية العقد ونهايته وتوقيعه، والشروط الإضافية. يحفظ زر <b>إنشاء العقد</b> البيانات ويطبع عقد تخصيم فينوفا، ويضيف زر <b>رفع العقد</b> العقد (مسودة أو نهائي أو موقّع) إلى المستندات. <b>حفظ وإكمال</b> يرسله إلى الإدارة القانونية.</p>
+    <figure><img src="img/ar/f13-contract.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٥.</b> إعداد العقد، مع الشروط المعتمدة المنقولة من اللجنة.</figcaption></figure>
+
+    <h3>٩ · المراجعة القانونية وإنشاء الحد</h3>
+    <p class="prose">يظهر آخر عقد مرفوع للمراجعة (<b>عرض</b>). يسجّل المسؤول القانوني تاريخ المراجعة والرأي القانوني، ويمكنه رفع العقد النهائي. <b>حفظ وقبول</b> ينهي سير العمل و<b>ينشئ الحد الائتماني للعميل</b> من الشروط المعتمدة، و<b>حفظ ورفض</b> ينهي سير العمل دون حد.</p>
+    <figure><img src="img/ar/f14-legal-review.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٦.</b> المراجعة القانونية: حفظ وقبول ينشئ الحد الائتماني.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-7">
+    <div class="sec-h"><span class="n">٧</span><h2>اعتماد الحد: المسار السريع</h2></div>
+    <p class="prose">عند بدء الصفقة على <b>المسار السريع</b> يكون لسير العمل خطوتان فقط:</p>
+    <ol class="b">
+      <li><b>الاعتماد</b> (معتمِد المسار السريع): تسجّل صفحة قرار الاعتماد <span dir="ltr">(Fast Track Approval · Approval Decision)</span> تاريخ الاعتماد والحد المعتمد ونسبة التمويل والمدة. <b>حفظ وقبول</b> ينقلها إلى العقد، و<b>حفظ ورفض</b> ينهيها.</li>
+      <li><b>العقد وإنشاء الحد</b> (المسؤول القانوني): صفحة المراجعة القانونية، وفيها يُرفع العقد ويُراجع ويُسجَّل الرأي القانوني. <b>حفظ وقبول</b> ينشئ الحد الائتماني.</li>
+    </ol>
+    <figure><img src="img/ar/f17-fast-approval.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٧.</b> اعتماد المسار السريع: يعرض شريط المراحل الطلب، ثم الاعتماد، ثم العقد وإنشاء الحد، ثم التفعيل.</figcaption></figure>
+    <div class="note warn"><span class="ic">اختر بعناية</span><p>يُختار المسار مرة واحدة عند بدء سير العمل، ولا يتغير لتلك الاتفاقية. وتعرض مساحة العمل مسار كل طلب واتفاقية.</p></div>
+  </section>
+
+  <section class="sec" id="ar-8">
+    <div class="sec-h"><span class="n">٨</span><h2>الاتفاقيات والحد الائتماني</h2></div>
+    <p class="prose">يعرض تبويب <b>الاتفاقيات</b> اتفاقيات العميل بحد التسهيل والحالة والمسار والخطوة الحالية. وعند قبول الإدارة القانونية يظهر حد الاتفاقية في تبويب <b>الحدود</b> برقم يبدأ بـ <code>CL-</code> يليه رقم الاتفاقية، نشطًا من تاريخ السريان حتى تاريخ الانتهاء.</p>
+    <div class="shots">
+      <figure><img src="img/ar/f18-agreements.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٨.</b> الاتفاقيات: <span dir="ltr">APP-17</span> معتمدة (انتهى سير عملها)، و<span dir="ltr">APP-18</span> على المسار السريع في خطوة الاعتماد.</figcaption></figure>
+      <figure><img src="img/ar/f19-limits.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٩.</b> الحدود: المعتمد ٩٬٠٠٠٬٠٠٠، والمستخدَم ٣٬٢١٨٬٤٠٠، والمتاح ٥٬٧٨١٬٦٠٠.</figcaption></figure>
+    </div>
+    <p class="prose">كل صرف يستخدم من الحد، والسداد يعيده متاحًا. وللاتفاقية حد نشط واحد فقط على مستوى الاتفاقية.</p>
+  </section>
+
+  <section class="sec" id="ar-9">
+    <div class="sec-h"><span class="n">٩</span><h2>طلبات الصرف</h2></div>
+    <ol class="b">
+      <li>في تبويب <b>الحدود</b> اضغط <b>صرف</b> على الحد النشط. يعرض الطلب الجديد العميل والحد واتفاقيته، وحد التسهيل والحد المتاح.</li>
+      <li>أدخل تاريخ الصرف و<b>إجمالي قيمة الفواتير</b> والملاحظات ثم <b>إنشاء</b>، ويأخذ الطلب رقم <code>DISB-yyyy-n</code>.</li>
+      <li>في تبويب <b>الصرف</b> اضغط <b>بدء سير العمل</b> (▶)، وبعدها يصبح الطلب للعرض فقط.</li>
+    </ol>
+    <figure><img src="img/ar/f20-new-request.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٠.</b> طلب صرف جديد من الحد <span dir="ltr">CL-APP-17</span>.</figcaption></figure>
+    <p class="prose">لسير عمل الصرف ثلاث خطوات:</p>
+    <div class="tbl"><table>
+      <tr><th>الخطوة</th><th>الدور</th><th>الصفحة</th></tr>
+      <tr><td>البدء</td><td>مسؤول العمليات</td><td>الطلب نفسه، ويؤكده زر <b>حفظ وإكمال</b>.</td></tr>
+      <tr><td>رفع الفواتير</td><td>مسؤول العمليات</td><td>إدخال الفواتير والتحقق منها (القسم ١٠).</td></tr>
+      <tr><td>صرف الخزينة</td><td>مسؤول الخزينة</td><td>صرف الخزينة (القسم ١١).</td></tr>
+    </table></div>
+    <figure><img src="img/ar/f21-disbursements.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢١.</b> الصرف: طلب لم يبدأ (▶ بدء سير العمل)، وطلب في صرف الخزينة، وطلب مكتمل. كل خطوة مكتملة تُفتح للعرض فقط وتعرض أرقام مجموعات قيودها.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-10">
+    <div class="sec-h"><span class="n">١٠</span><h2>رفع الفواتير والتحقق منها</h2></div>
+    <p class="prose">تفتح خطوة رفع الفواتير صفحة <b>إدخال الفواتير والتحقق منها</b> <span dir="ltr">(Invoice Entry &amp; Verification)</span>. يعرض أعلاها الحد، والمعتمد والمتاح، وإجمالي الفواتير، ونسبة التمويل، ونسبة الاستخدام.</p>
+    <figure><img src="img/ar/f22-invoice-entry.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٢.</b> إدخال الفواتير والتحقق منها للطلب <span dir="ltr">DISB-2026-41</span>: بيانات الطلب، ودفعة الفواتير، والفواتير.</figcaption></figure>
+    <figure><img src="img/ar/f22b-invoice-charges.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٣.</b> الصفحة نفسها، الجزء السفلي: الشيكات، ورسوم الصرف، ومطالبة العميل، وجدول السداد.</figcaption></figure>
+    <h3>أكمل الصفحة من أعلى إلى أسفل</h3>
+    <ol class="b">
+      <li><b>تفاصيل طلب الصرف</b>: الحد، والعملة، والمنتج، وإجمالي الفواتير (مجموع الفواتير المؤهلة)، ونسبة التمويل من الاتفاقية، والمدة، وسعر المؤشر والهامش، وأساس احتساب الأيام، وشروط السداد: نوع الجدول (منتظم أو غير منتظم)، وسداد الأصل والفائدة ودوريتهما، وطريقة السداد.</li>
+      <li><b>دفعة الفواتير</b>: اسم الدفعة وتاريخها ونوعها، ثم اسحب <b>ملف الفواتير</b> و<b>ملف الشيكات</b> (Excel أو CSV). تظهر الصفوف معاينةً، وتُحفظ عند الضغط على <b>حفظ كمسودة</b>.</li>
+      <li><b>الفواتير</b>: حدّد كل فاتورة <b>مؤهلة</b> أو <b>غير مؤهلة</b>. الفاتورة غير المؤهلة تحتاج إلى سبب ولا تُموَّل، والمؤهلة تأخذ نسبة التمويل.</li>
+      <li><b>الشيكات</b>: شيكات العميل لجدول السداد. يُنشئ زر <b>إنشاء الشيكات من الجدول</b> <span dir="ltr">(Create Cheques from Schedule)</span> شيكًا لكل تاريخ استحقاق.</li>
+      <li><b>رسوم الصرف</b>: تُحسب من قاعدة المنتج بمجرد اختياره: قيمة الفواتير والتمويل المعتمدان، والرسوم والضريبة المخصومة، و<b>الصافي</b> المدفوع للعميل.</li>
+      <li><b>مطالبة العميل</b>: زر <b>إنشاء مطالبة</b> <span dir="ltr">(Create Claim)</span> يطالب العميل بالرسوم، وتُسدَّد المطالبة من التحصيل (القسم ١٢). ويمكن <b>إلغاء المطالبة</b> <span dir="ltr">(Cancel Claim)</span> ما دام لم يُسدَّد منها شيء.</li>
+    </ol>
+    <figure><img src="img/ar/f23-invoice-summary.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٤.</b> ملخص الفواتير <span dir="ltr">(Invoice summary)</span>: المستلمة، وغير المؤهلة، والمؤهلة، والقيمة الممولة، حسب المدين.</figcaption></figure>
+    <h3>حفظ وإكمال</h3>
+    <p class="prose">زر <b>حفظ كمسودة</b> يحفظ عملك فقط. أما <b>حفظ وإكمال</b> فينفّذ كل شيء في خطوة واحدة، وإذا فشل أي جزء تبقى المسودة وحدها:</p>
+    <ul class="b">
+      <li>يجب أن تكون كل فاتورة مؤهلة أو غير مؤهلة (بسبب)، وواحدة على الأقل مؤهلة؛</li>
+      <li>تُحسب الرسوم ويُنشأ جدول السداد؛</li>
+      <li>إذا وُجدت رسوم يجب أن تكون مطالبتها <b>مسددة</b>؛</li>
+      <li>يجب أن تطابق الشيكات الجدول: مجموع شيكات كل تاريخ استحقاق يساوي إجماليه (بفرق لا يزيد على ١٫٠٠)، وكل شيك يقع في تاريخ استحقاق؛</li>
+      <li>تُضاف الشيكات إلى محفظة الشيكات ويُرحَّل قيدها النظامي برقم مجموعة قيود واحد.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="ar-11">
+    <div class="sec-h"><span class="n">١١</span><h2>صرف الخزينة</h2></div>
+    <p class="prose">في صفحة صرف الخزينة <span dir="ltr">(Treasury Disburse)</span> يقرر مسؤول الخزينة أي أموال تموّل <b>صافي</b> الصرف. ترشدك الصفحة عبر أربع مراحل: اختيار المصادر، ثم الحفظ والحجز، ثم التنفيذ (السداد وترحيل القيود)، ثم إكمال الخطوة.</p>
+    <figure><img src="img/ar/f24-treasury.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٥.</b> صرف الخزينة للطلب <span dir="ltr">DISB-2026-41</span>: أموال ذاتية وحد فرعي لدى بنك يغطيان الصافي، والقيود المنتظر ترحيلها في الأسفل.</figcaption></figure>
+    <ol class="b">
+      <li><b>مصادر الأموال</b> <span dir="ltr">(Sources of funds)</span>: حدود البنوك في شكل شجرة (بنك › تسهيل › شريحة › حد فرعي) و<b>الأموال الذاتية</b>. أدخل مبلغًا على حد فرعي، أو استخدم <b>الحد الأقصى</b> <span dir="ltr">(Max)</span> لأكبر مبلغ يسمح به السطر، أو <b>اقتراح</b> <span dir="ltr">(Suggest)</span> لملئها بالترتيب المحدد في إعدادات الوحدة. والسطر الذي لا يمكن استخدامه يذكر السبب.</li>
+      <li><b>فحص شروط البنوك</b> <span dir="ltr">(Bank rule checks)</span> يجري أثناء الإدخال: الشرط ينجح أو ينبّه أو يمنع (وعندها انقل المبلغ إلى مصدر آخر). والشرط الذي يقبل التجاوز يحتاج إلى سبب، ويعتمده مستخدم ثانٍ بزر <b>اعتماد التجاوز</b> <span dir="ltr">(Approve override)</span>.</li>
+      <li><b>حفظ وحجز</b> <span dir="ltr">(Save and reserve)</span> يحفظ الاختيار ويحجز المبالغ. وتعرض اللوحة الجانبية المدينين والبائع (بفواتيرهم وحسابهم البنكي) وكيف يُسدَّد كل سطر.</li>
+      <li><b>تنفيذ</b> <span dir="ltr">(Execute)</span> يدفع للعميل ويرحّل القيود برقم مجموعة قيود واحد. وفي التخصيم العكسي يُدفع للموردين بدلًا من ذلك: حدّد <b>مؤكد</b> <span dir="ltr">(Confirmed)</span> عند تأكيد البنك لكل تحويل، وتُرحَّل القيود عند تأكيد آخر تحويل.</li>
+      <li><b>حفظ وإكمال</b> ينهي سير عمل الصرف.</li>
+    </ol>
+  </section>
+
+  <section class="sec" id="ar-12">
+    <div class="sec-h"><span class="n">١٢</span><h2>المطالبات ومدفوعات العملاء</h2></div>
+    <p class="prose">دفعة العميل (مثل تحويل بنكي مسجّل في التحصيل) تصبح <b>مصدر سداد</b>، ويستخدمه التحصيل لسداد مطالبة رسوم الصرف.</p>
+    <div class="shots">
+      <figure><img src="img/ar/f25-claims.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٦.</b> تبويب المطالبات: زر السداد على المطالبة المسددة جزئيًا.</figcaption></figure>
+      <figure><img src="img/ar/f26-customer-payments.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٧.</b> مدفوعات العملاء: رسوم المطالبة ومدفوعاتها ومصادر السداد للعميل.</figcaption></figure>
+    </div>
+    <ol class="b">
+      <li>اضغط زر <b>صرف</b> (السداد) على المطالبة (أو افتح التحصيل ← مدفوعات العملاء <span dir="ltr">(Customer Payments)</span> واختر العميل والمطالبة المفتوحة).</li>
+      <li>اختر <b>مصدر سداد</b> <span dir="ltr">(Payment Sources)</span> له رصيد متبقٍ وأدخل <b>المبلغ المراد سداده</b> <span dir="ltr">(Amount to Pay)</span> (إن تُرك فارغًا يُسدَّد أكبر ما يمكن).</li>
+      <li><b>سداد المطالبة</b>: تُسدَّد بنود المطالبة بالترتيب، وتُرحَّل القيود برقم مجموعة قيود خاص بها.</li>
+    </ol>
+    <p class="prose">حالة المطالبة OPEN أو PARTIALLY PAID أو PAID أو CANCELLED، وعندما تصبح PAID يمكن إكمال خطوة رفع الفواتير.</p>
+  </section>
+
+  <section class="sec" id="ar-13">
+    <div class="sec-h"><span class="n">١٣</span><h2>الأدوار والحالات والأسئلة</h2></div>
+    <h3>الأدوار</h3>
+    <div class="tbl"><table>
+      <tr><th>الدور</th><th>ماذا يفعل</th></tr>
+      <tr><td>تطوير الأعمال <span dir="ltr">(FCT.EDIT)</span></td><td>الحاسبة، واستخدم في العرض، وحالة الطلب، وبدء سير عمل الاتفاقية.</td></tr>
+      <tr><td>مسؤول العمليات</td><td>استلام العملية، وإعداد العقد، وبدء طلب الصرف ورفع الفواتير <span dir="ltr">(CRM.EDIT)</span>.</td></tr>
+      <tr><td>مسؤول المبيعات</td><td>مراجعة المبيعات، وموافقة العميل.</td></tr>
+      <tr><td>مسؤول الاستعلام · معتمِد الائتمان · مسؤول المخاطر</td><td>الاستعلام · التحليل الائتماني · مراجعة المخاطر.</td></tr>
+      <tr><td>سكرتير اللجنة · معتمِد المسار السريع</td><td>اعتماد اللجنة · الاعتماد في المسار السريع.</td></tr>
+      <tr><td>المسؤول القانوني</td><td>المراجعة القانونية وإنشاء الحد (في المسارين).</td></tr>
+      <tr><td>مسؤول الخزينة</td><td>صرف الخزينة، ومستخدم آخر من الخزينة يعتمد التجاوزات.</td></tr>
+      <tr><td>التحصيل <span dir="ltr">(COLLECTION.EDIT)</span></td><td>مدفوعات العملاء: سداد المطالبات.</td></tr>
+    </table></div>
+    <h3>الحالات</h3>
+    <div class="tbl"><table>
+      <tr><th>العنصر</th><th>الحالات</th></tr>
+      <tr><td>الطلب</td><td>DRAFT ← SUBMITTED ← ACCEPTED (أو REJECTED) ← APPLICATION عند بدء سير العمل</td></tr>
+      <tr><td>الاتفاقية</td><td>تقدّمها هو خطوة سير العمل الظاهرة معها، وتكون الخطوة فارغة بعد انتهاء سير العمل</td></tr>
+      <tr><td>طلب الصرف</td><td>لم يبدأ سير العمل ← بدأ سير العمل (مع الخطوة) ← اكتمل سير العمل</td></tr>
+      <tr><td>تمويل الخزينة</td><td>لا شيء ← محجوز ← منفَّذ</td></tr>
+      <tr><td>المطالبة</td><td>OPEN ← PARTIALLY PAID ← PAID، أو CANCELLED</td></tr>
+    </table></div>
+    <h3>الأسئلة</h3>
+    <div class="tbl"><table>
+      <tr><th>السؤال</th><th>الإجابة</th></tr>
+      <tr><td>زر بدء سير عمل الاتفاقية غير متاح.</td><td>اجعل الحالة ACCEPTED واضغط حفظ الحالة أولًا. ويكون غير متاح أيضًا بعد إنشاء الاتفاقية.</td></tr>
+      <tr><td>استخدم في العرض حمّل مسودة قديمة.</td><td>للعميل مسودة مفتوحة بالفعل. اعمل عليها، أو اطلب السماح بأكثر من عرض مفتوح في إعدادات الوحدة.</td></tr>
+      <tr><td>لا أرى المهمة.</td><td>هي في صندوق مهام دور الخطوة، وإذا استلمها مستخدم آخر فهي معه.</td></tr>
+      <tr><td>لا يظهر زر صرف للعميل.</td><td>لا يوجد حد نشط بعد: لم تُقبل خطوة المراجعة القانونية.</td></tr>
+      <tr><td>خطوة رفع الفواتير لا تكتمل.</td><td>تحقّق من: تحديد كل الفواتير، ووجود فاتورة مؤهلة، وسداد المطالبة، ومطابقة الشيكات لكل تاريخ استحقاق في الجدول. والرسالة تذكر الناقص.</td></tr>
+      <tr><td>مصدر أموال يظهر ممنوعًا.</td><td>شرط بنكي أو رصيد الحد الفرعي يمنعه. انقل المبلغ إلى حد فرعي آخر أو إلى الأموال الذاتية.</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">فينوفا · دليل مستخدم التخصيم · الإصدار ١٫٠ · نوفمبر ٢٠٢٦</p>
+  </main>
+</div>
+</div>
+
+<script>
+(function(){
+  var docs={en:document.getElementById('doc-en'),ar:document.getElementById('doc-ar')};
+  var label=document.querySelector('.bar .doc');
+  var bar=document.querySelector('.bar');
+  function langOf(h){h=(h||'').replace('#','');if(h==='ar'||h.indexOf('ar-')===0)return 'ar';return 'en';}
+  function show(){
+    var h=location.hash, l=langOf(h);
+    docs.en.hidden=l!=='en'; docs.ar.hidden=l!=='ar';
+    bar.setAttribute('dir',l==='ar'?'rtl':'ltr');
+    label.textContent=label.getAttribute('data-'+l);
+    label.setAttribute('lang',l);
+    document.querySelectorAll('.lang a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-l')===l)});
+    document.title=l==='ar'?'دليل مستخدم التخصيم · فينوفا':'Finova Factoring User Manual';
+    var id=h.replace('#','');
+    if(id && id!=='en' && id!=='ar'){var t=document.getElementById(id); if(t) t.scrollIntoView();}
+    else window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body></html>
