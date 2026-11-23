@@ -1,0 +1,691 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Finova General Ledger User Manual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:400;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:500;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:600;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-700-normal.woff2) format("woff2")}
+:root{
+  --teal:#00636D; --teal-deep:#0B3E44; --teal-ink:#004C54; --orange:#E87722; --gold:#E0B04A;
+  --bg:#F6F8F8; --paper:#FFFFFF; --fg:#1B2A2C; --muted:#5A6B6D; --line:#DCE4E4; --soft:#EAF3F3;
+  --orange-soft:#FDF0E5; --ok:#1E7F4F; --ok-soft:#E5F4EC; --bad:#B42318; --bad-soft:#FBEAE8;
+  --cover-fg:#FFFFFF; --code-bg:#EEF3F3;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+[lang="ar"]{font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;line-height:1.85}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+p{margin:0}
+b{font-weight:600}
+code,.code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;background:var(--code-bg);padding:.1em .4em;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--teal-deep)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--teal-deep);color:var(--cover-fg);border-bottom:3px solid var(--orange)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.bar .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.14em;font-size:13px}
+.bar .brand svg{width:28px;height:28px}
+.bar .doc{opacity:.75;font-size:13px;letter-spacing:.02em}
+.bar .sp{flex:1}
+.lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden}
+.lang a{color:var(--cover-fg);text-decoration:none;font-size:13px;padding:5px 14px;font-weight:500}
+.lang a.on{background:var(--orange);color:#fff}
+
+/* cover */
+.cover{background:radial-gradient(1200px 500px at 85% -10%,rgba(232,119,34,.28),transparent 60%),linear-gradient(160deg,var(--teal-deep),#00535B 70%);color:var(--cover-fg);position:relative;overflow:hidden}
+.cover .wrap{padding-block:72px 64px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:end}
+.cover .mark{width:84px;height:84px;margin-bottom:28px}
+.cover .kicker{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+[lang="ar"] .cover .kicker{letter-spacing:0}
+.cover h1{font-size:clamp(34px,5.4vw,60px);font-weight:700;margin-top:10px;max-width:15ch}
+.cover .lede{margin-top:18px;font-size:18px;max-width:52ch;opacity:.88}
+.cover .meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:34px;font-size:13px;opacity:.85}
+.cover .meta span b{color:var(--gold);font-weight:600;margin-inline-end:6px}
+.cover .rings{width:230px;height:230px;opacity:.9}
+.cover::after{content:"";position:absolute;inset:auto 0 0;height:6px;background:linear-gradient(90deg,var(--orange) 0 34%,var(--gold) 34% 52%,transparent 52%)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:40px 80px}
+nav.toc{position:sticky;top:76px;align-self:start;font-size:14px}
+nav.toc .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+[lang="ar"] nav.toc .t{letter-spacing:0}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:flex;gap:10px;color:var(--fg);text-decoration:none;padding:6px 10px;border-radius:6px;border-inline-start:2px solid transparent}
+nav.toc a:hover{background:var(--soft);border-inline-start-color:var(--teal)}
+nav.toc a i{font-style:normal;color:var(--orange);font-weight:600;min-width:1.4em}
+main{min-width:0;display:grid;gap:28px}
+
+section.sec{scroll-margin-top:84px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:36px clamp(18px,4vw,44px);display:grid;gap:18px;min-width:0}
+.sec-h{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sec-h .n{font-size:13px;font-weight:700;color:#fff;background:var(--teal);border-radius:6px;padding:3px 9px;letter-spacing:.06em}
+.sec-h h2{font-size:clamp(22px,2.6vw,28px);font-weight:700;color:var(--teal-ink)}
+h3{font-size:18px;font-weight:600;color:var(--fg);margin-top:8px;display:flex;align-items:center;gap:10px}
+h3::before{content:"";width:14px;height:3px;background:var(--orange);border-radius:2px;flex:none}
+.prose{max-width:72ch;display:grid;gap:12px}
+p.prose{display:block}
+ul.b,ol.b{margin:0;padding-inline-start:1.3em;display:grid;gap:8px;max-width:72ch}
+ul.b li::marker{color:var(--orange)}
+ol.b li::marker{color:var(--teal);font-weight:700}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th,td{text-align:start;padding:10px 14px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);color:var(--teal-ink);font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+[lang="ar"] th{letter-spacing:0;text-transform:none;font-size:13.5px}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{background:var(--soft);font-weight:600}
+tr.dim td{color:var(--muted)}
+
+/* callouts */
+.note{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:14px 16px;border-radius:10px;background:var(--soft);border-inline-start:4px solid var(--teal);max-width:78ch}
+.note.warn{background:var(--orange-soft);border-inline-start-color:var(--orange)}
+.note .ic{font-weight:700;color:var(--teal-ink);font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.note.warn .ic{color:var(--orange)}
+[lang="ar"] .note .ic{letter-spacing:0}
+
+/* quick start */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.qs .card{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:8px;align-content:start;background:var(--paper);position:relative}
+.qs .card .k{font-size:12px;font-weight:700;color:var(--orange);letter-spacing:.1em;text-transform:uppercase}
+[lang="ar"] .qs .card .k{letter-spacing:0}
+.qs .card h4{margin:0;font-size:16px;color:var(--teal-ink)}
+.qs .card ol{margin:0;padding-inline-start:1.2em;display:grid;gap:4px;font-size:14.5px}
+
+/* money tree */
+.tree{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;background:linear-gradient(var(--paper),var(--paper)) padding-box}
+.node{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr) auto;gap:14px;align-items:center}
+.node .nm{font-weight:600;font-size:14.5px}
+.node .nm small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.node.l1 .nm{padding-inline-start:20px}
+.node.l2 .nm{padding-inline-start:40px}
+.node.l1 .nm,.node.l2 .nm{position:relative}
+.node.l1 .nm::before,.node.l2 .nm::before{content:"";position:absolute;inset-inline-start:calc(var(--i) - 12px);top:.7em;width:8px;height:8px;border-inline-start:2px solid var(--line);border-bottom:2px solid var(--line)}
+.node.l1{--i:20px}.node.l2{--i:40px}
+.track{height:14px;border-radius:999px;background:var(--soft);overflow:hidden;display:flex;border:1px solid var(--line)}
+.track .o{background:var(--teal)}
+.track .r{background:var(--orange)}
+.track.draft{background:repeating-linear-gradient(135deg,var(--soft) 0 6px,var(--line) 6px 8px)}
+.node .av{font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap;text-align:end;min-width:110px}
+.node .av b{color:var(--ok)}
+.node .av b.tight{color:var(--orange)}
+.node .av b.zero{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);padding-top:6px;border-top:1px dashed var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* gates */
+.gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:g}
+.gate{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.gate .who{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+[lang="ar"] .gate .who{letter-spacing:0}
+.gate h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+.gate.bank{border-color:var(--orange);background:var(--orange-soft)}
+.gate.bank h4{color:var(--orange)}
+.steps{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 14px;border:1px solid var(--line);border-radius:10px}
+.step .g{font-size:12px;font-weight:700;color:var(--teal-ink);background:var(--soft);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--orange-soft);color:var(--orange)}
+
+.pill{background:var(--soft);color:var(--teal-ink)}
+pre.code-block{margin:0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;line-height:1.6;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left;max-width:100%}
+.gate p{font-size:14.5px;color:var(--muted)}
+.step .pill{justify-self:end}
+/* screenshots */
+figure{margin:0;display:grid;gap:8px}
+figure img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(0,40,45,.45)}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--teal-ink)}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.box h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+
+.badge-row{display:flex;flex-wrap:wrap;gap:8px}
+.foot{color:var(--muted);font-size:13px;text-align:center;padding-block:10px 40px}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.toc{position:static}
+  nav.toc ol{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .cover .rings{display:none}
+  .cover .wrap{grid-template-columns:minmax(0,1fr)}
+  .gates,.shots,.two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .node{grid-template-columns:minmax(0,1fr) auto}
+  .node .track{grid-column:1 / -1;order:3}
+  .bar .doc{display:none}
+  .step{grid-template-columns:minmax(0,1fr) auto}
+  .step .g{grid-column:1 / -1;justify-self:start}
+}
+@media print{
+  :root{--bg:#fff;--paper:#fff}
+  .bar,nav.toc{display:none}
+  .layout{display:block;padding:0}
+  section.sec{border:0;border-radius:0;padding:0 0 24px;break-before:page}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:258mm;break-after:page}
+  main > section.sec:first-child{break-before:auto}
+  main{display:block}
+  section.sec{padding-bottom:0}
+  .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gates{grid-template-columns:repeat(3,minmax(0,1fr))}
+  figure img{width:auto;max-width:100%;max-height:170mm;margin-inline:auto}
+  .cover::after{display:none}
+  .cover .wrap{height:100%;align-content:center}
+  .cover .rings{display:block}
+  .track,.pill,.sec-h .n,th,tr.total td,.note,.gate.bank{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  figure,table,.tree,.step,.gate,ul.b li,ol.b li,.note,pre.code-block,.qs .card{break-inside:avoid}
+  pre.code-block,.pill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h3{break-after:avoid}
+}
+</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#134E4A"/><path d="M24 46V18h19M24 32h14" fill="none" stroke="#E0B04A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="44" cy="44" r="4.5" fill="#ffffff"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand"><svg><use href="#mark"/></svg>FINOVA</div>
+    <div class="doc" data-en="General Ledger User Manual" data-ar="دليل مستخدم دفتر الأستاذ العام">General Ledger User Manual</div>
+    <div class="sp"></div>
+    <div class="lang" role="group" aria-label="Language">
+      <a href="#en" data-l="en" class="on">English</a>
+      <a href="#ar" data-l="ar" lang="ar">العربية</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== ENGLISH ============================== -->
+<div id="doc-en" lang="en" dir="ltr">
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">User manual · General Ledger</div>
+      <h1>The general ledger, from accounts to statements</h1>
+      <p class="lede">How Finova keeps its books: the account structure and chart of accounts, the accounting periods, manual journals with approval by a second person, posting and reversal, the account ledger, balances and the financial statements. Written for accountants, finance managers and auditors.</p>
+      <div class="meta"><span><b>Version</b>1.0</span><span><b>Date</b>23 November 2026</span><span><b>Covers</b>Account structure · Chart of accounts · Periods · Journals · Approval · Posting · Reversal · Account ledger · Balances · Financial statements</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="t">Contents</div>
+    <ol>
+      <li><a href="#en-qs"><i>0</i>Quick start</a></li>
+      <li><a href="#en-1"><i>1</i>About this manual</a></li>
+      <li><a href="#en-2"><i>2</i>Key concepts</a></li>
+      <li><a href="#en-3"><i>3</i>Account structure and segments</a></li>
+      <li><a href="#en-4"><i>4</i>Chart of accounts</a></li>
+      <li><a href="#en-5"><i>5</i>Accounting periods</a></li>
+      <li><a href="#en-6"><i>6</i>Journals</a></li>
+      <li><a href="#en-7"><i>7</i>Approval, posting and reversal</a></li>
+      <li><a href="#en-8"><i>8</i>Account ledger and balances</a></li>
+      <li><a href="#en-9"><i>9</i>Financial statements</a></li>
+      <li><a href="#en-10"><i>10</i>Postings from the other modules</a></li>
+      <li><a href="#en-11"><i>11</i>Roles, statuses, questions</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="en-qs">
+    <div class="sec-h"><span class="n">0</span><h2>Quick start</h2></div>
+    <p class="prose">The four jobs done most often. Each one is explained in full in the sections that follow.</p>
+    <div class="qs">
+      <div class="card"><div class="k">Once, at set-up</div><h4>Build the chart of accounts</h4>
+        <ol><li>General Ledger → <b>Account segments</b>: the structure and the values of each segment</li><li><b>Chart of accounts</b> → <b>Add account</b>: code, type, parent</li><li>Mark posting or summary, and the controls</li></ol></div>
+      <div class="card"><div class="k">Every month</div><h4>Open and close periods</h4>
+        <ol><li><b>Accounting periods</b>: <b>Generate fiscal year</b> once a year</li><li>On the ledger period, <b>Open</b> the new month</li><li>When it is done, <b>Close</b> the old one</li></ol></div>
+      <div class="card"><div class="k">Accountant, then approver</div><h4>Enter and post a journal</h4>
+        <ol><li><b>New journal</b>: date, name, category, lines until Debit = Credit</li><li><b>Submit for approval</b></li><li>A second user: <b>Approve</b></li><li><b>Post to ledger</b>: the balances change</li></ol></div>
+      <div class="card"><div class="k">Anyone with access</div><h4>Read the books</h4>
+        <ol><li><b>Account ledger</b>: an account's movements and running balance</li><li><b>Account balances</b>: every combination per period</li><li><b>Financial statements</b>: trial balance, balance sheet, income statement, cash flow</li></ol></div>
+    </div>
+  </section>
+
+  <section class="sec" id="en-1">
+    <div class="sec-h"><span class="n">1</span><h2>About this manual</h2></div>
+    <p class="prose">The General Ledger holds the books of Finova. Manual journals are entered on its own pages; the other modules (Factoring, Treasury, Collection, Lending and others) post their entries to it automatically, each under a GL Tran Set ID. Open it from Home → <b>General Ledger</b> or Menu → Accounting.</p>
+    <figure><img src="img/en/g01-home.jpg" alt="" loading="lazy"><figcaption><b>Figure 1.</b> General Ledger home: accounts, the current period, the journals waiting for you, the periods of the fiscal year, and every page of the module.</figcaption></figure>
+    <div class="note"><span class="ic">Example</span><p>The manual uses one ledger throughout, <b>FINOVA_EGP</b> (Finova primary ledger, Egyptian pounds), its chart of 28 accounts and the journals of October and November 2026. The amounts are sample data.</p></div>
+  </section>
+
+  <section class="sec" id="en-2">
+    <div class="sec-h"><span class="n">2</span><h2>Key concepts</h2></div>
+    <div class="tbl"><table>
+      <tr><th>Term</th><th>Meaning</th></tr>
+      <tr><td><b>Segment</b></td><td>One part of an account: Company, Branch, Cost centre, Natural account, Business line, Future 1 and Future 2, always in that order.</td></tr>
+      <tr><td><b>Natural account</b></td><td>The segment set up in the chart of accounts that says what the money is (asset, liability, equity, revenue or expense), for example <code>110101</code> Cash at bank – NBE.</td></tr>
+      <tr><td><b>Account combination</b></td><td>One value for every segment, joined with a dash: <code>01-HQ-1100-110101-GENERAL-000-000</code>. It is the full address of a balance.</td></tr>
+      <tr><td><b>CCID</b></td><td>The Account Combination ID: the number Finova gives a combination the first time it is used. One combination keeps one CCID.</td></tr>
+      <tr><td><b>Journal</b></td><td>A set of lines, each with a combination and a debit or a credit. Debits must equal credits.</td></tr>
+      <tr><td><b>Posting</b></td><td>Applying an approved, balanced journal to the balances of its period. Only posted journals change balances.</td></tr>
+      <tr><td><b>Reversal</b></td><td>A new journal (<code>REV-…</code>) with debit and credit swapped, which cancels a posted one. Posted journals are never edited or deleted.</td></tr>
+      <tr><td><b>Balance</b></td><td>Kept per combination, ledger, period and currency: opening, period debits and credits, closing. The closing of one period is the opening of the next.</td></tr>
+    </table></div>
+    <figure><img src="img/en/g16-help.jpg" alt="" loading="lazy"><figcaption><b>Figure 2.</b> The built-in help (General Ledger → How journals work) explains the account combination, CCID, posting, reversal and balances in seven short steps.</figcaption></figure>
+    <div class="note"><span class="ic">Remember</span><p>A natural account has no balance of its own. Its balance is the total of every combination that uses it; money is held, and posted, only on combinations.</p></div>
+  </section>
+
+  <section class="sec" id="en-3">
+    <div class="sec-h"><span class="n">3</span><h2>Account structure and segments</h2></div>
+    <p class="prose"><b>Account segments</b> shows the account structure (its delimiter, how many segments it has, whether new combinations may be created as they are used) and its seven segments. Click a segment to see and edit its values below.</p>
+    <figure><img src="img/en/g02-structure.jpg" alt="" loading="lazy"><figcaption><b>Figure 3.</b> The FINOVA_COA structure: seven segments, the journal entry default of each, and the values of the Company segment.</figcaption></figure>
+    <ul class="b">
+      <li><b>Edit structure</b> / <b>New structure</b>: code, names, delimiter, which segment is the account, balancing, branch, cost centre and business line segment, and whether combinations need approval.</li>
+      <li><b>Edit segment</b>: type, length, numeric or alphanumeric, upper case, required, summary values allowed.</li>
+      <li><b>Add value</b> / edit a value: code, names, parent (for groups), summary or posting, enabled, effective dates.</li>
+      <li><b>Journal entry default</b> (★): the value new journal lines start with, suggested or fixed.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="en-4">
+    <div class="sec-h"><span class="n">4</span><h2>Chart of accounts</h2></div>
+    <p class="prose">The chart of accounts is a tree in five groups: Assets, Liabilities, Equity, Income and Expenses. Summary accounts group the posting accounts below them. Search by code or name, filter by posting, summary, inactive or not linked, and click an account to see its details.</p>
+    <div class="shots">
+      <figure><img src="img/en/g03-chart.jpg" alt="" loading="lazy"><figcaption><b>Figure 4.</b> The tree: summary accounts with the number of accounts below, posting accounts with DR or CR and CTL for control accounts.</figcaption></figure>
+      <figure><img src="img/en/g04-chart-account.jpg" alt="" loading="lazy"><figcaption><b>Figure 5.</b> Account 120101 Factoring receivables: classification, the balances of its combinations by segment, the controls and the audit.</figcaption></figure>
+    </div>
+    <h3>Adding or changing an account</h3>
+    <ol class="b">
+      <li>Press <b>Add account</b> (or <b>Add child</b> on a summary account, or <b>Edit</b>).</li>
+      <li>Enter the code (it must fit the account segment: here 4 to 6 digits), the English and Arabic names and the parent.</li>
+      <li>Choose the account type, normal balance (Dr or Cr), the financial statement class (balance sheet or income statement) and the cash flow class (operating, investing, financing, cash equivalent or none).</li>
+      <li>Tick the controls: control account, reconciliation, manual journals, sub-ledger posting, branch / cost centre / business line required, currency revaluation, retained earnings.</li>
+      <li><b>Save account</b>. The code is also saved as a value of the Natural account segment.</li>
+    </ol>
+    <div class="note"><span class="ic">Balances by segment</span><p>The account details show the balance of each combination of the account for a ledger and period, broken down by any segment (company, branch, cost centre, business line).</p></div>
+  </section>
+
+  <section class="sec" id="en-5">
+    <div class="sec-h"><span class="n">5</span><h2>Accounting periods</h2></div>
+    <p class="prose">A calendar has fiscal years and their monthly periods. Each ledger on the calendar has its own <b>ledger period</b> for every month, with its own status. Journals can be entered and posted only in an open period.</p>
+    <figure><img src="img/en/g05-periods.jpg" alt="" loading="lazy"><figcaption><b>Figure 6.</b> FY 2026: January to September closed, October and November open, December future entry. The button next to each ledger period opens or closes it.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>Status</th><th>Meaning</th></tr>
+      <tr><td>Never opened</td><td>Created, not used yet.</td></tr>
+      <tr><td>Future entry</td><td>Journals may be entered for it ahead of time.</td></tr>
+      <tr><td>Open</td><td>Journals are entered and posted.</td></tr>
+      <tr><td>Closed</td><td>No posting. Can be opened again if a correction is needed.</td></tr>
+      <tr><td>Permanently closed</td><td>Final: never opened again.</td></tr>
+    </table></div>
+    <ul class="b">
+      <li><b>Generate fiscal year</b> makes the next year with its twelve monthly periods (and an adjustment period if asked), and the ledger periods of every ledger on the calendar.</li>
+      <li><b>Create ledger periods</b> adds any ledger periods still missing; <b>Edit year</b> and <b>Add period</b> change the year and its periods.</li>
+      <li>A period can be closed only when its close checks pass: the source modules have no work left and the required checklist tasks are done or waived.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="en-6">
+    <div class="sec-h"><span class="n">6</span><h2>Journals</h2></div>
+    <p class="prose"><b>Journals</b> finds any journal by number, name, TRAN_SET_ID or reference, by period and source, or by account and segment values. The boxes on top count the journals at each stage and are filters: Drafts, Waiting approval, Ready to post, Posted, Errors and rejected, All.</p>
+    <figure><img src="img/en/g07-journals.jpg" alt="" loading="lazy"><figcaption><b>Figure 7.</b> The journals of November 2026: one draft, one waiting approval, one ready to post, and the posted ones, including a reversal.</figcaption></figure>
+    <p class="prose">Tick several journals to submit, approve, post or cancel them together; each one gets its own result.</p>
+    <h3>Entering a journal</h3>
+    <ol class="b">
+      <li>Press <b>New journal</b>. The steps on top show where the journal is: Draft, Submit, Approve, Post to ledger.</li>
+      <li>Choose the ledger, accounting date (its period must be open), category (General, Adjustment, Accrual…) and enter the journal name, reference and description.</li>
+      <li>Enter the lines: each segment value (new lines start with the defaults of Account segments), a description, and the debit or the credit. The full combination is shown under each line.</li>
+      <li>Watch the bar: Debit, Credit and Difference. <b>Put the difference on the last line</b> balances it for you.</li>
+      <li><b>Save draft</b> keeps your work; <b>Submit for approval</b> is possible when Debit = Credit.</li>
+    </ol>
+    <div class="shots">
+      <figure><img src="img/en/g08-journal-new.jpg" alt="" loading="lazy"><figcaption><b>Figure 8.</b> A new journal: the steps, the header and the lines.</figcaption></figure>
+      <figure><img src="img/en/g12-journal-draft.jpg" alt="" loading="lazy"><figcaption><b>Figure 9.</b> A balanced draft, ready to be submitted.</figcaption></figure>
+    </div>
+    <div class="note warn"><span class="ic">Checked on save</span><p>Every combination must be valid and enabled, every account must allow manual journals, and the period must be open. A line that fails is marked in red with the reason, and the journal is not saved until it is corrected.</p></div>
+  </section>
+
+  <section class="sec" id="en-7">
+    <div class="sec-h"><span class="n">7</span><h2>Approval, posting and reversal</h2></div>
+    <p class="prose">Manual journals need two people: the one who enters and submits a journal cannot approve it. Once submitted, the lines are locked.</p>
+    <figure><img src="img/en/g10-journal-approve.jpg" alt="" loading="lazy"><figcaption><b>Figure 10.</b> Karim, the approver, opens the submitted journal: Approve, Reject (back to the author with the reason) or Cancel journal.</figcaption></figure>
+    <ol class="b">
+      <li>The approver finds the journal in <b>Inbox: waiting approval</b> (General Ledger home) or the Journals page, checks it and presses <b>Approve</b> or <b>Reject</b>.</li>
+      <li>The approved journal is <b>Ready to post</b>. Whoever posts presses <b>Post to ledger</b>: each line updates the balance of its combination for the period.</li>
+      <li>The posted journal shows the <b>posting result</b>: each combination's balance before and after, with a link to its account ledger, and the full history.</li>
+    </ol>
+    <figure><img src="img/en/g09-journal-posted.jpg" alt="" loading="lazy"><figcaption><b>Figure 11.</b> Salaries, October: posted, with the four steps done, the balances before and after, details and history.</figcaption></figure>
+    <h3>Reversing a posted journal</h3>
+    <p class="prose">A posted journal cannot change. To correct it, press <b>Reverse journal</b> and give the reversal date and reason. Finova makes the journal <code>REV-</code> + the original number, with debit and credit swapped; it is submitted, approved and posted like any other. Then enter a new journal with the right amounts.</p>
+    <figure><img src="img/en/g11-journal-reversed.jpg" alt="" loading="lazy"><figcaption><b>Figure 12.</b> Office equipment, Alexandria: posted and reversed; the balances are back to what they were before it.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-8">
+    <div class="sec-h"><span class="n">8</span><h2>Account ledger and balances</h2></div>
+    <p class="prose"><b>Account ledger</b> lists every posted movement of an account in date order, with the balance before and after each one. Enter an account code (or its first digits for a group), the periods, and optionally more segment values, a journal or a TRAN_SET_ID, then <b>Search</b>.</p>
+    <figure><img src="img/en/g13-account-ledger.jpg" alt="" loading="lazy"><figcaption><b>Figure 13.</b> 110101 Cash at bank – NBE, October to November 2026: brought forward, each movement and the running balance.</figcaption></figure>
+    <p class="prose"><b>Account balances</b> lists the balance of every account combination per ledger period, with its ledger, period, account and last posted journal. Search, filter and download it from <b>Actions</b>.</p>
+    <figure><img src="img/en/g14-balances.jpg" alt="" loading="lazy"><figcaption><b>Figure 14.</b> Account balances.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-9">
+    <div class="sec-h"><span class="n">9</span><h2>Financial statements</h2></div>
+    <p class="prose">Choose the statement (Trial balance, Balance sheet, Income statement, Cash flow), the ledger, period and currency, the columns (total only, or one column per company, branch, cost centre or business line), an account range and segment filters, then <b>Run statement</b>. <b>Export CSV</b> and <b>Print</b> keep the result.</p>
+    <figure><img src="img/en/g15-trial-balance.jpg" alt="" loading="lazy"><figcaption><b>Figure 15.</b> Trial balance, October 2026: debit and credit balances of every account, which must agree.</figcaption></figure>
+    <div class="shots">
+      <figure><img src="img/en/g15b-balance-sheet.jpg" alt="" loading="lazy"><figcaption><b>Figure 16.</b> Balance sheet, October 2026: assets against liabilities and equity, with the current year result.</figcaption></figure>
+      <figure><img src="img/en/g15c-income.jpg" alt="" loading="lazy"><figcaption><b>Figure 17.</b> Income statement, October 2026: the month's expenses, before the November revenue.</figcaption></figure>
+    </div>
+    <p class="prose">A group value (for example a summary branch) includes every value below it; an empty filter means all. The cash flow statement uses each account's cash flow class.</p>
+  </section>
+
+  <section class="sec" id="en-10">
+    <div class="sec-h"><span class="n">10</span><h2>Postings from the other modules</h2></div>
+    <p class="prose">Factoring, Treasury, Collection, Lending, the Cheques Wallet and Screening billing post to the ledger without manual journals. Each posting is one <b>GL Tran Set ID</b>, shown on the module's page and searchable on the Journals and Account ledger pages.</p>
+    <ul class="b">
+      <li><b>Sources &amp; events</b>: the accounting event catalogue of every sub-ledger.</li>
+      <li><b>Accounting events</b>: the events the modules raised; <b>Source values</b>: the values an accounting rule can read.</li>
+      <li><b>Accounting entries designer</b> (rule sets and rule lines): which accounts each event debits and credits.</li>
+      <li><b>Generated GL entries</b>: the entries made from the events, and the journals they became.</li>
+    </ul>
+    <div class="note"><span class="ic">Reference data</span><p>General Ledger → <b>Reference data</b> keeps the lists the ledger uses, such as legal entities and business lines.</p></div>
+  </section>
+
+  <section class="sec" id="en-11">
+    <div class="sec-h"><span class="n">11</span><h2>Roles, statuses, questions</h2></div>
+    <h3>Journal statuses</h3>
+    <div class="tbl"><table>
+      <tr><th>Stage</th><th>Meaning</th><th>Next</th></tr>
+      <tr><td>Draft (not submitted)</td><td>Being entered; lines can change.</td><td>Submit for approval</td></tr>
+      <tr><td>Waiting approval (submitted)</td><td>Lines locked.</td><td>Another user approves or rejects</td></tr>
+      <tr><td>Rejected</td><td>Back to the author with the reason.</td><td>Correct and submit again</td></tr>
+      <tr><td>Ready to post (approved)</td><td>Approved, balances not changed yet.</td><td>Post to ledger</td></tr>
+      <tr><td>Posted</td><td>In the balances; final.</td><td>Reverse if wrong</td></tr>
+      <tr><td>Reversed</td><td>Cancelled by its REV- journal.</td><td>—</td></tr>
+      <tr><td>Cancelled</td><td>A draft or submitted journal dropped before posting.</td><td>—</td></tr>
+    </table></div>
+    <h3>Questions</h3>
+    <div class="tbl"><table>
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>I cannot approve my own journal.</td><td>By design: another user approves it.</td></tr>
+      <tr><td>The journal will not save: "period is closed".</td><td>Use a date in an open period, or ask for the period to be opened on Accounting periods.</td></tr>
+      <tr><td>A line is red: combination not valid.</td><td>One segment value does not exist, is disabled or is a summary value. Check Account segments.</td></tr>
+      <tr><td>I searched a journal number and see two journals.</td><td>The original and its reversal (REV-…). Search with REV- to see only the reversal.</td></tr>
+      <tr><td>Can a posted journal be edited or deleted?</td><td>No. Reverse it, then post a correct journal.</td></tr>
+      <tr><td>Why does my natural account show no balance of its own?</td><td>Balances live on combinations; the account's balance is their total, shown on the account details and in the statements.</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">Finova · General Ledger User Manual · Version 1.0 · November 2026</p>
+  </main>
+</div>
+</div>
+
+<!-- ============================== ARABIC ============================== -->
+<div id="doc-ar" lang="ar" dir="rtl" hidden>
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">دليل المستخدم · دفتر الأستاذ العام</div>
+      <h1>دفتر الأستاذ العام، من الحسابات إلى القوائم المالية</h1>
+      <p class="lede">كيف تمسك فينوفا دفاترها: هيكل الحسابات ودليل الحسابات، والفترات المحاسبية، والقيود اليدوية التي يعتمدها شخص ثانٍ، والترحيل والعكس، ودفتر الحساب، والأرصدة، والقوائم المالية. موجّه للمحاسبين والمديرين الماليين والمراجعين.</p>
+      <div class="meta"><span><b>الإصدار</b>١٫٠</span><span><b>التاريخ</b>٢٣ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>هيكل الحسابات · دليل الحسابات · الفترات · القيود · الاعتماد · الترحيل · العكس · دفتر الحساب · الأرصدة · القوائم المالية</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="المحتويات">
+    <div class="t">المحتويات</div>
+    <ol>
+      <li><a href="#ar-qs"><i>٠</i>البدء السريع</a></li>
+      <li><a href="#ar-1"><i>١</i>عن هذا الدليل</a></li>
+      <li><a href="#ar-2"><i>٢</i>المفاهيم الأساسية</a></li>
+      <li><a href="#ar-3"><i>٣</i>هيكل الحسابات والقطاعات</a></li>
+      <li><a href="#ar-4"><i>٤</i>دليل الحسابات</a></li>
+      <li><a href="#ar-5"><i>٥</i>الفترات المحاسبية</a></li>
+      <li><a href="#ar-6"><i>٦</i>القيود</a></li>
+      <li><a href="#ar-7"><i>٧</i>الاعتماد والترحيل والعكس</a></li>
+      <li><a href="#ar-8"><i>٨</i>دفتر الحساب والأرصدة</a></li>
+      <li><a href="#ar-9"><i>٩</i>القوائم المالية</a></li>
+      <li><a href="#ar-10"><i>١٠</i>ترحيلات الأنظمة الأخرى</a></li>
+      <li><a href="#ar-11"><i>١١</i>الحالات والأسئلة</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="ar-qs">
+    <div class="sec-h"><span class="n">٠</span><h2>البدء السريع</h2></div>
+    <p class="prose">أكثر أربع مهام تكرارًا، وتُشرح كل منها بالتفصيل في الأقسام التالية.</p>
+    <div class="qs">
+      <div class="card"><div class="k">مرة واحدة عند الإعداد</div><h4>إعداد دليل الحسابات</h4>
+        <ol><li>دفتر الأستاذ العام ← <b>قطاعات الحساب</b>: الهيكل وقيم كل قطاع</li><li><b>دليل الحسابات</b> ← <b>إضافة حساب</b>: الرمز والنوع والحساب الأب</li><li>حدّد هل هو حساب ترحيل أو حساب تجميعي، والضوابط</li></ol></div>
+      <div class="card"><div class="k">كل شهر</div><h4>فتح الفترات وإقفالها</h4>
+        <ol><li><b>الفترات المحاسبية</b>: <b>إنشاء السنة المالية</b> مرة كل عام</li><li>على فترة الدفتر <b>افتح</b> الشهر الجديد</li><li>عند الانتهاء <b>أقفل</b> الشهر السابق</li></ol></div>
+      <div class="card"><div class="k">المحاسب ثم المعتمِد</div><h4>إدخال قيد وترحيله</h4>
+        <ol><li><b>قيد جديد</b>: التاريخ والاسم والفئة والسطور حتى يتساوى المدين والدائن</li><li><b>تقديم للاعتماد</b></li><li>مستخدم ثانٍ: <b>اعتماد</b></li><li><b>ترحيل إلى الدفتر</b>: تتغير الأرصدة</li></ol></div>
+      <div class="card"><div class="k">كل من له صلاحية</div><h4>قراءة الدفاتر</h4>
+        <ol><li><b>دفتر الحساب</b>: حركات الحساب ورصيده المتراكم</li><li><b>أرصدة الحسابات</b>: كل تركيبة لكل فترة</li><li><b>القوائم المالية</b>: ميزان المراجعة والميزانية وقائمة الدخل والتدفقات النقدية</li></ol></div>
+    </div>
+  </section>
+
+  <section class="sec" id="ar-1">
+    <div class="sec-h"><span class="n">١</span><h2>عن هذا الدليل</h2></div>
+    <p class="prose">يحفظ دفتر الأستاذ العام دفاتر فينوفا. تُدخل القيود اليدوية في صفحاته، بينما ترحّل الأنظمة الأخرى (التخصيم والخزينة والتحصيل والتمويل الاستهلاكي وغيرها) قيودها إليه تلقائيًا، كل منها برقم مجموعة قيود <span dir="ltr">(GL Tran Set ID)</span>. افتحه من الرئيسية ← <b>دفتر الأستاذ العام</b> أو من القائمة ← المحاسبة.</p>
+    <figure><img src="img/ar/g01-home.jpg" alt="" loading="lazy"><figcaption><b>شكل ١.</b> الصفحة الرئيسية لدفتر الأستاذ العام: الحسابات، والفترة الحالية، والقيود التي تنتظرك، وفترات السنة المالية، وكل صفحات النظام.</figcaption></figure>
+    <div class="note"><span class="ic">مثال</span><p>يستخدم الدليل دفترًا واحدًا هو <b dir="ltr">FINOVA_EGP</b> (الدفتر الرئيسي لفينوفا بالجنيه المصري)، ودليله المكوّن من ٢٨ حسابًا، وقيود أكتوبر ونوفمبر ٢٠٢٦. المبالغ بيانات توضيحية.</p></div>
+    <div class="note"><span class="ic">ملاحظة</span><p>صفحات دفتر الأستاذ العام تظهر بالإنجليزية حتى عند اختيار العربية، لذلك تُذكر أسماء الأزرار في هذا الدليل بالعربية مع اسمها الظاهر على الشاشة بين قوسين عند الحاجة.</p></div>
+  </section>
+
+  <section class="sec" id="ar-2">
+    <div class="sec-h"><span class="n">٢</span><h2>المفاهيم الأساسية</h2></div>
+    <div class="tbl"><table>
+      <tr><th>المصطلح</th><th>المعنى</th></tr>
+      <tr><td><b>القطاع</b></td><td>جزء من الحساب: الشركة، والفرع، ومركز التكلفة، والحساب الطبيعي، وخط الأعمال، ومستقبلي ١، ومستقبلي ٢، بهذا الترتيب دائمًا.</td></tr>
+      <tr><td><b>الحساب الطبيعي</b></td><td>القطاع المعرّف في دليل الحسابات، ويحدد طبيعة المال (أصل أو التزام أو حقوق ملكية أو إيراد أو مصروف)، مثل <code>110101</code> نقدية بالبنك الأهلي.</td></tr>
+      <tr><td><b>تركيبة الحساب</b></td><td>قيمة لكل قطاع مفصولة بشرطة: <code>01-HQ-1100-110101-GENERAL-000-000</code>، وهي العنوان الكامل للرصيد.</td></tr>
+      <tr><td><b>CCID</b></td><td>رقم تركيبة الحساب الذي تعطيه فينوفا للتركيبة عند أول استخدام لها، ويبقى ثابتًا لها.</td></tr>
+      <tr><td><b>القيد</b></td><td>مجموعة سطور، لكل سطر تركيبة ومبلغ مدين أو دائن، ويجب أن يتساوى المدين والدائن.</td></tr>
+      <tr><td><b>الترحيل</b></td><td>تطبيق قيد معتمد ومتوازن على أرصدة فترته. القيود المرحّلة وحدها تغيّر الأرصدة.</td></tr>
+      <tr><td><b>العكس</b></td><td>قيد جديد <code dir="ltr">REV-…</code> يبدّل المدين والدائن ليلغي قيدًا مرحّلًا. القيد المرحّل لا يُعدّل ولا يُحذف.</td></tr>
+      <tr><td><b>الرصيد</b></td><td>يُحفظ لكل تركيبة ودفتر وفترة وعملة: افتتاحي، ومدين ودائن الفترة، وختامي.</td></tr>
+    </table></div>
+    <figure><img src="img/ar/g16-help.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢.</b> المساعدة المدمجة (كيف تعمل القيود) تشرح تركيبة الحساب ورقمها والترحيل والعكس والأرصدة في سبع خطوات قصيرة.</figcaption></figure>
+    <div class="note"><span class="ic">تذكّر</span><p>الحساب الطبيعي ليس له رصيد خاص به؛ رصيده هو مجموع كل التركيبات التي تستخدمه، والأموال تُرحّل على التركيبات فقط.</p></div>
+  </section>
+
+  <section class="sec" id="ar-3">
+    <div class="sec-h"><span class="n">٣</span><h2>هيكل الحسابات والقطاعات</h2></div>
+    <p class="prose">تعرض صفحة <b>قطاعات الحساب</b> <span dir="ltr">(Account segments)</span> هيكل الحسابات (الفاصل، وعدد القطاعات، وهل تُنشأ التركيبات الجديدة عند استخدامها) وقطاعاته السبعة. اضغط على قطاع لعرض قيمه وتعديلها في الأسفل.</p>
+    <figure><img src="img/ar/g02-structure.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣.</b> الهيكل <span dir="ltr">FINOVA_COA</span>: سبعة قطاعات، والقيمة الافتراضية لكل قطاع في القيود، وقيم قطاع الشركة.</figcaption></figure>
+    <ul class="b">
+      <li><b>تعديل الهيكل</b> / <b>هيكل جديد</b>: الرمز والاسمان والفاصل، وأي قطاع هو الحساب، وقطاعات التوازن والفرع ومركز التكلفة وخط الأعمال، وهل تحتاج التركيبات إلى اعتماد.</li>
+      <li><b>تعديل القطاع</b>: النوع والطول، رقمي أو أبجدي رقمي، أحرف كبيرة، إلزامي، ويسمح بقيم تجميعية.</li>
+      <li><b>إضافة قيمة</b> / تعديلها: الرمز والاسمان والأب (للمجموعات)، تجميعية أو للترحيل، مفعّلة، وتواريخ السريان.</li>
+      <li><b>القيمة الافتراضية في القيود</b> (★): القيمة التي تبدأ بها سطور القيود الجديدة، مقترحة أو ثابتة.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="ar-4">
+    <div class="sec-h"><span class="n">٤</span><h2>دليل الحسابات</h2></div>
+    <p class="prose">دليل الحسابات شجرة من خمس مجموعات: الأصول، والالتزامات، وحقوق الملكية، والإيرادات، والمصروفات. الحسابات التجميعية تضم حسابات الترحيل تحتها. ابحث بالرمز أو الاسم، وصفِّ حسب الترحيل أو التجميعي أو غير النشط أو غير المرتبط، واضغط على حساب لعرض تفاصيله.</p>
+    <div class="shots">
+      <figure><img src="img/ar/g03-chart.jpg" alt="" loading="lazy"><figcaption><b>شكل ٤.</b> الشجرة: الحسابات التجميعية بعدد ما تحتها، وحسابات الترحيل بطبيعتها مدين أو دائن، و<span dir="ltr">CTL</span> لحسابات المراقبة.</figcaption></figure>
+      <figure><img src="img/ar/g04-chart-account.jpg" alt="" loading="lazy"><figcaption><b>شكل ٥.</b> الحساب ١٢٠١٠١ مستحقات التخصيم: التصنيف، وأرصدة تركيباته حسب القطاع، والضوابط، والتدقيق.</figcaption></figure>
+    </div>
+    <h3>إضافة حساب أو تعديله</h3>
+    <ol class="b">
+      <li>اضغط <b>إضافة حساب</b> (أو <b>إضافة فرعي</b> على حساب تجميعي، أو <b>تعديل</b>).</li>
+      <li>أدخل الرمز (يجب أن يطابق قطاع الحساب: هنا من ٤ إلى ٦ أرقام)، والاسمين العربي والإنجليزي، والحساب الأب.</li>
+      <li>اختر نوع الحساب، والطبيعة (مدين أو دائن)، وتصنيف القائمة المالية (الميزانية أو قائمة الدخل)، وتصنيف التدفق النقدي (تشغيلي أو استثماري أو تمويلي أو نقدية أو لا شيء).</li>
+      <li>حدّد الضوابط: حساب مراقبة، تسوية، قيود يدوية، ترحيل من الأنظمة الفرعية، الفرع أو مركز التكلفة أو خط الأعمال إلزامي، إعادة تقييم العملة، الأرباح المرحلة.</li>
+      <li><b>حفظ الحساب</b>، ويُحفظ الرمز أيضًا قيمةً في قطاع الحساب الطبيعي.</li>
+    </ol>
+  </section>
+
+  <section class="sec" id="ar-5">
+    <div class="sec-h"><span class="n">٥</span><h2>الفترات المحاسبية</h2></div>
+    <p class="prose">للتقويم سنوات مالية وفترات شهرية. ولكل دفتر على التقويم <b>فترة دفتر</b> لكل شهر بحالتها الخاصة. لا تُدخل القيود ولا تُرحّل إلا في فترة مفتوحة.</p>
+    <figure><img src="img/ar/g05-periods.jpg" alt="" loading="lazy"><figcaption><b>شكل ٦.</b> السنة المالية ٢٠٢٦: يناير إلى سبتمبر مقفلة، وأكتوبر ونوفمبر مفتوحان، وديسمبر للإدخال المستقبلي. الزر بجانب كل فترة دفتر يفتحها أو يقفلها.</figcaption></figure>
+    <div class="tbl"><table>
+      <tr><th>الحالة</th><th>المعنى</th></tr>
+      <tr><td>لم تُفتح</td><td>أُنشئت ولم تُستخدم بعد.</td></tr>
+      <tr><td>إدخال مستقبلي</td><td>يمكن إدخال قيود لها مسبقًا.</td></tr>
+      <tr><td>مفتوحة</td><td>تُدخل فيها القيود وتُرحّل.</td></tr>
+      <tr><td>مقفلة</td><td>لا ترحيل، ويمكن فتحها مرة أخرى عند الحاجة إلى تصحيح.</td></tr>
+      <tr><td>مقفلة نهائيًا</td><td>نهائي: لا تُفتح مرة أخرى.</td></tr>
+    </table></div>
+    <ul class="b">
+      <li><b>إنشاء السنة المالية</b> ينشئ السنة التالية بفتراتها الاثنتي عشرة (وفترة تسوية عند الطلب) وفترات كل دفتر على التقويم.</li>
+      <li><b>إنشاء فترات الدفتر</b> يضيف فترات الدفتر الناقصة، و<b>تعديل السنة</b> و<b>إضافة فترة</b> لتعديل السنة وفتراتها.</li>
+      <li>لا تُقفل الفترة إلا إذا اجتازت فحوص الإقفال: لا عمل متبقٍ في الأنظمة المصدر، ومهام القائمة الإلزامية منجزة أو معفاة.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="ar-6">
+    <div class="sec-h"><span class="n">٦</span><h2>القيود</h2></div>
+    <p class="prose">تبحث صفحة <b>القيود</b> <span dir="ltr">(Journals)</span> عن أي قيد بالرقم أو الاسم أو <span dir="ltr">TRAN_SET_ID</span> أو المرجع، وبالفترة والمصدر، أو بالحساب وقيم القطاعات. والمربعات في الأعلى تعدّ القيود في كل مرحلة وتعمل كمرشحات: المسودات، بانتظار الاعتماد، جاهزة للترحيل، مرحّلة، الأخطاء والمرفوضة، الكل.</p>
+    <figure><img src="img/ar/g07-journals.jpg" alt="" loading="lazy"><figcaption><b>شكل ٧.</b> قيود نوفمبر ٢٠٢٦: مسودة، وقيد بانتظار الاعتماد، وقيد جاهز للترحيل، والقيود المرحّلة ومنها قيد عكسي.</figcaption></figure>
+    <p class="prose">حدّد عدة قيود لتقديمها أو اعتمادها أو ترحيلها أو إلغائها معًا، ولكل قيد نتيجته.</p>
+    <h3>إدخال قيد</h3>
+    <ol class="b">
+      <li>اضغط <b>قيد جديد</b> <span dir="ltr">(New journal)</span>. تعرض الخطوات في الأعلى موقع القيد: مسودة، تقديم، اعتماد، ترحيل.</li>
+      <li>اختر الدفتر، وتاريخ القيد (يجب أن تكون فترته مفتوحة)، والفئة (عام، تسوية، استحقاق…)، وأدخل اسم القيد والمرجع والوصف.</li>
+      <li>أدخل السطور: قيمة كل قطاع (تبدأ السطور الجديدة بالقيم الافتراضية)، والوصف، والمبلغ المدين أو الدائن. وتظهر التركيبة الكاملة تحت كل سطر.</li>
+      <li>راقب الشريط: المدين والدائن والفرق. زر <span dir="ltr">Put the difference on the last line</span> يضع الفرق على آخر سطر.</li>
+      <li><b>حفظ كمسودة</b> يحفظ عملك، و<b>تقديم للاعتماد</b> متاح عندما يتساوى المدين والدائن.</li>
+    </ol>
+    <div class="shots">
+      <figure><img src="img/ar/g08-journal-new.jpg" alt="" loading="lazy"><figcaption><b>شكل ٨.</b> قيد جديد: الخطوات والبيانات والسطور.</figcaption></figure>
+      <figure><img src="img/ar/g12-journal-draft.jpg" alt="" loading="lazy"><figcaption><b>شكل ٩.</b> مسودة متوازنة جاهزة للتقديم.</figcaption></figure>
+    </div>
+    <div class="note warn"><span class="ic">يُفحص عند الحفظ</span><p>يجب أن تكون كل تركيبة صحيحة ومفعّلة، وأن يسمح كل حساب بالقيود اليدوية، وأن تكون الفترة مفتوحة. السطر المخالف يظهر بالأحمر مع السبب، ولا يُحفظ القيد حتى يُصحَّح.</p></div>
+  </section>
+
+  <section class="sec" id="ar-7">
+    <div class="sec-h"><span class="n">٧</span><h2>الاعتماد والترحيل والعكس</h2></div>
+    <p class="prose">القيود اليدوية تحتاج إلى شخصين: من يُدخل القيد ويقدّمه لا يعتمده. وبعد التقديم تُقفل السطور.</p>
+    <figure><img src="img/ar/g10-journal-approve.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٠.</b> كريم المعتمِد يفتح القيد المقدَّم: اعتماد، أو رفض (يعود إلى المُدخل مع السبب)، أو إلغاء القيد.</figcaption></figure>
+    <ol class="b">
+      <li>يجد المعتمِد القيد في <b>بانتظار الاعتماد</b> (الصفحة الرئيسية لدفتر الأستاذ) أو في صفحة القيود، فيراجعه ويضغط <b>اعتماد</b> <span dir="ltr">(Approve)</span> أو <b>رفض</b> <span dir="ltr">(Reject)</span>.</li>
+      <li>يصبح القيد المعتمد <b>جاهزًا للترحيل</b>، ويضغط من يرحّله <b>ترحيل إلى الدفتر</b> <span dir="ltr">(Post to ledger)</span>: يحدّث كل سطر رصيد تركيبته في الفترة.</li>
+      <li>يعرض القيد المرحّل <b>نتيجة الترحيل</b>: رصيد كل تركيبة قبل الترحيل وبعده مع رابط لدفتر حسابها، والسجل الكامل.</li>
+    </ol>
+    <figure><img src="img/ar/g09-journal-posted.jpg" alt="" loading="lazy"><figcaption><b>شكل ١١.</b> رواتب أكتوبر: مرحّل، والخطوات الأربع منجزة، والأرصدة قبل وبعد، والتفاصيل والسجل.</figcaption></figure>
+    <h3>عكس قيد مرحّل</h3>
+    <p class="prose">القيد المرحّل لا يتغير. لتصحيحه اضغط <b>عكس القيد</b> <span dir="ltr">(Reverse journal)</span> وأدخل تاريخ العكس وسببه، فتنشئ فينوفا قيدًا برقم <code dir="ltr">REV-</code> مع رقم القيد الأصلي، يبدّل المدين والدائن، ويُقدَّم ويُعتمد ويُرحّل كأي قيد آخر. ثم أدخل قيدًا جديدًا بالمبالغ الصحيحة.</p>
+    <figure><img src="img/ar/g11-journal-reversed.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٢.</b> معدات مكتب الإسكندرية: مرحّل ومعكوس، وعادت الأرصدة إلى ما كانت عليه قبله.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-8">
+    <div class="sec-h"><span class="n">٨</span><h2>دفتر الحساب والأرصدة</h2></div>
+    <p class="prose">يعرض <b>دفتر الحساب</b> <span dir="ltr">(Account ledger)</span> كل حركة مرحّلة للحساب بترتيب التاريخ، مع الرصيد قبل كل حركة وبعدها. أدخل رمز الحساب (أو أرقامه الأولى لمجموعة)، والفترات، وعند الحاجة قيم قطاعات أخرى أو قيدًا أو <span dir="ltr">TRAN_SET_ID</span>، ثم <b>بحث</b>.</p>
+    <figure><img src="img/ar/g13-account-ledger.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٣.</b> الحساب ١١٠١٠١ نقدية بالبنك الأهلي من أكتوبر إلى نوفمبر ٢٠٢٦: الرصيد المرحّل، وكل حركة، والرصيد المتراكم.</figcaption></figure>
+    <p class="prose">وتعرض <b>أرصدة الحسابات</b> <span dir="ltr">(Account balances)</span> رصيد كل تركيبة حساب لكل فترة دفتر، مع الدفتر والفترة والحساب وآخر قيد مرحّل، ويمكن البحث والتصفية والتنزيل من <span dir="ltr">Actions</span>.</p>
+    <figure><img src="img/ar/g14-balances.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٤.</b> أرصدة الحسابات.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-9">
+    <div class="sec-h"><span class="n">٩</span><h2>القوائم المالية</h2></div>
+    <p class="prose">اختر القائمة (ميزان المراجعة، الميزانية، قائمة الدخل، التدفقات النقدية)، والدفتر والفترة والعملة، والأعمدة (الإجمالي فقط، أو عمود لكل شركة أو فرع أو مركز تكلفة أو خط أعمال)، ونطاق الحسابات ومرشحات القطاعات، ثم <b>تشغيل القائمة</b> <span dir="ltr">(Run statement)</span>. ويحفظ زرا <span dir="ltr">Export CSV</span> و<span dir="ltr">Print</span> النتيجة.</p>
+    <figure><img src="img/ar/g15-trial-balance.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٥.</b> ميزان المراجعة لأكتوبر ٢٠٢٦: الأرصدة المدينة والدائنة لكل حساب، ويجب أن تتساوى.</figcaption></figure>
+    <div class="shots">
+      <figure><img src="img/ar/g15b-balance-sheet.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٦.</b> الميزانية: الأصول مقابل الالتزامات وحقوق الملكية، مع نتيجة السنة الحالية.</figcaption></figure>
+      <figure><img src="img/ar/g15c-income.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٧.</b> قائمة الدخل لأكتوبر ٢٠٢٦: مصروفات الشهر قبل إيرادات نوفمبر.</figcaption></figure>
+    </div>
+    <p class="prose">قيمة المجموعة (مثل فرع تجميعي) تشمل كل القيم تحتها، والمرشح الفارغ يعني الكل. وتستخدم قائمة التدفقات النقدية تصنيف التدفق النقدي لكل حساب.</p>
+  </section>
+
+  <section class="sec" id="ar-10">
+    <div class="sec-h"><span class="n">١٠</span><h2>ترحيلات الأنظمة الأخرى</h2></div>
+    <p class="prose">ترحّل أنظمة التخصيم والخزينة والتحصيل والتمويل الاستهلاكي ومحفظة الشيكات وفواتير الفحص إلى الدفتر دون قيود يدوية. لكل ترحيل <b>رقم مجموعة قيود</b> واحد يظهر في صفحة النظام، ويمكن البحث به في صفحتي القيود ودفتر الحساب.</p>
+    <ul class="b">
+      <li><b>المصادر والأحداث</b>: دليل الأحداث المحاسبية لكل نظام فرعي.</li>
+      <li><b>الأحداث المحاسبية</b>: الأحداث التي أطلقتها الأنظمة، و<b>قيم المصادر</b>: القيم التي تقرؤها القاعدة المحاسبية.</li>
+      <li><b>مصمم القيود المحاسبية</b> (مجموعات القواعد وسطورها): أي الحسابات يجعلها كل حدث مدينة أو دائنة.</li>
+      <li><b>قيود دفتر الأستاذ المولّدة</b>: القيود المنشأة من الأحداث والقيود التي صارت إليها.</li>
+    </ul>
+    <div class="note"><span class="ic">البيانات المرجعية</span><p>دفتر الأستاذ العام ← <b>البيانات المرجعية</b> تحفظ القوائم التي يستخدمها الدفتر مثل الكيانات القانونية وخطوط الأعمال.</p></div>
+  </section>
+
+  <section class="sec" id="ar-11">
+    <div class="sec-h"><span class="n">١١</span><h2>الحالات والأسئلة</h2></div>
+    <h3>حالات القيد</h3>
+    <div class="tbl"><table>
+      <tr><th>المرحلة</th><th>المعنى</th><th>التالي</th></tr>
+      <tr><td>مسودة (لم يُقدَّم)</td><td>قيد الإدخال، والسطور قابلة للتغيير.</td><td>تقديم للاعتماد</td></tr>
+      <tr><td>بانتظار الاعتماد (مقدَّم)</td><td>السطور مقفلة.</td><td>مستخدم آخر يعتمد أو يرفض</td></tr>
+      <tr><td>مرفوض</td><td>عاد إلى المُدخل مع السبب.</td><td>التصحيح والتقديم مرة أخرى</td></tr>
+      <tr><td>جاهز للترحيل (معتمد)</td><td>معتمد، ولم تتغير الأرصدة بعد.</td><td>ترحيل إلى الدفتر</td></tr>
+      <tr><td>مرحّل</td><td>في الأرصدة، نهائي.</td><td>العكس إذا كان خاطئًا</td></tr>
+      <tr><td>معكوس</td><td>أُلغي بقيده العكسي.</td><td>—</td></tr>
+      <tr><td>ملغى</td><td>مسودة أو قيد مقدَّم أُلغي قبل الترحيل.</td><td>—</td></tr>
+    </table></div>
+    <h3>الأسئلة</h3>
+    <div class="tbl"><table>
+      <tr><th>السؤال</th><th>الإجابة</th></tr>
+      <tr><td>لا أستطيع اعتماد قيدي.</td><td>هذا مقصود: يعتمده مستخدم آخر.</td></tr>
+      <tr><td>لا يُحفظ القيد: «الفترة مقفلة».</td><td>استخدم تاريخًا في فترة مفتوحة، أو اطلب فتح الفترة من صفحة الفترات المحاسبية.</td></tr>
+      <tr><td>سطر بالأحمر: التركيبة غير صحيحة.</td><td>قيمة قطاع غير موجودة أو معطّلة أو تجميعية. راجع قطاعات الحساب.</td></tr>
+      <tr><td>بحثت برقم قيد فظهر قيدان.</td><td>الأصلي وعكسه <span dir="ltr">(REV-…)</span>. ابحث بـ <span dir="ltr">REV-</span> لعرض العكسي فقط.</td></tr>
+      <tr><td>هل يمكن تعديل قيد مرحّل أو حذفه؟</td><td>لا. اعكسه ثم رحّل قيدًا صحيحًا.</td></tr>
+      <tr><td>لماذا لا يظهر رصيد للحساب الطبيعي نفسه؟</td><td>الأرصدة على التركيبات، ورصيد الحساب هو مجموعها، ويظهر في تفاصيل الحساب والقوائم.</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">فينوفا · دليل مستخدم دفتر الأستاذ العام · الإصدار ١٫٠ · نوفمبر ٢٠٢٦</p>
+  </main>
+</div>
+</div>
+
+<script>
+(function(){
+  var docs={en:document.getElementById('doc-en'),ar:document.getElementById('doc-ar')};
+  var label=document.querySelector('.bar .doc');
+  var bar=document.querySelector('.bar');
+  function langOf(h){h=(h||'').replace('#','');if(h==='ar'||h.indexOf('ar-')===0)return 'ar';return 'en';}
+  function show(){
+    var h=location.hash, l=langOf(h);
+    docs.en.hidden=l!=='en'; docs.ar.hidden=l!=='ar';
+    bar.setAttribute('dir',l==='ar'?'rtl':'ltr');
+    label.textContent=label.getAttribute('data-'+l);
+    label.setAttribute('lang',l);
+    document.querySelectorAll('.lang a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-l')===l)});
+    document.title=l==='ar'?'دليل مستخدم دفتر الأستاذ العام · فينوفا':'Finova General Ledger User Manual';
+    var id=h.replace('#','');
+    if(id && id!=='en' && id!=='ar'){var t=document.getElementById(id); if(t) t.scrollIntoView();}
+    else window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body></html>

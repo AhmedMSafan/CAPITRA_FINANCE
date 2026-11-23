@@ -1,0 +1,487 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Finova Overview</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:400;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:500;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:600;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-700-normal.woff2) format("woff2")}
+:root{
+  --teal:#00636D; --teal-deep:#0B3E44; --teal-ink:#004C54; --orange:#E87722; --gold:#E0B04A;
+  --bg:#F6F8F8; --paper:#FFFFFF; --fg:#1B2A2C; --muted:#5A6B6D; --line:#DCE4E4; --soft:#EAF3F3;
+  --orange-soft:#FDF0E5; --ok:#1E7F4F; --ok-soft:#E5F4EC; --bad:#B42318; --bad-soft:#FBEAE8;
+  --cover-fg:#FFFFFF; --code-bg:#EEF3F3;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+[lang="ar"]{font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;line-height:1.85}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+p{margin:0}
+b{font-weight:600}
+code,.code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;background:var(--code-bg);padding:.1em .4em;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--teal-deep)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--teal-deep);color:var(--cover-fg);border-bottom:3px solid var(--orange)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.bar .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.14em;font-size:13px}
+.bar .brand svg{width:28px;height:28px}
+.bar .doc{opacity:.75;font-size:13px;letter-spacing:.02em}
+.bar .sp{flex:1}
+.lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden}
+.lang a{color:var(--cover-fg);text-decoration:none;font-size:13px;padding:5px 14px;font-weight:500}
+.lang a.on{background:var(--orange);color:#fff}
+
+/* cover */
+.cover{background:radial-gradient(1200px 500px at 85% -10%,rgba(232,119,34,.28),transparent 60%),linear-gradient(160deg,var(--teal-deep),#00535B 70%);color:var(--cover-fg);position:relative;overflow:hidden}
+.cover .wrap{padding-block:72px 64px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:end}
+.cover .mark{width:84px;height:84px;margin-bottom:28px}
+.cover .kicker{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+[lang="ar"] .cover .kicker{letter-spacing:0}
+.cover h1{font-size:clamp(34px,5.4vw,60px);font-weight:700;margin-top:10px;max-width:15ch}
+.cover .lede{margin-top:18px;font-size:18px;max-width:52ch;opacity:.88}
+.cover .meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:34px;font-size:13px;opacity:.85}
+.cover .meta span b{color:var(--gold);font-weight:600;margin-inline-end:6px}
+.cover .rings{width:230px;height:230px;opacity:.9}
+.cover::after{content:"";position:absolute;inset:auto 0 0;height:6px;background:linear-gradient(90deg,var(--orange) 0 34%,var(--gold) 34% 52%,transparent 52%)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:40px 80px}
+nav.toc{position:sticky;top:76px;align-self:start;font-size:14px}
+nav.toc .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+[lang="ar"] nav.toc .t{letter-spacing:0}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:flex;gap:10px;color:var(--fg);text-decoration:none;padding:6px 10px;border-radius:6px;border-inline-start:2px solid transparent}
+nav.toc a:hover{background:var(--soft);border-inline-start-color:var(--teal)}
+nav.toc a i{font-style:normal;color:var(--orange);font-weight:600;min-width:1.4em}
+main{min-width:0;display:grid;gap:28px}
+
+section.sec{scroll-margin-top:84px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:36px clamp(18px,4vw,44px);display:grid;gap:18px;min-width:0}
+.sec-h{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sec-h .n{font-size:13px;font-weight:700;color:#fff;background:var(--teal);border-radius:6px;padding:3px 9px;letter-spacing:.06em}
+.sec-h h2{font-size:clamp(22px,2.6vw,28px);font-weight:700;color:var(--teal-ink)}
+h3{font-size:18px;font-weight:600;color:var(--fg);margin-top:8px;display:flex;align-items:center;gap:10px}
+h3::before{content:"";width:14px;height:3px;background:var(--orange);border-radius:2px;flex:none}
+.prose{max-width:72ch;display:grid;gap:12px}
+p.prose{display:block}
+ul.b,ol.b{margin:0;padding-inline-start:1.3em;display:grid;gap:8px;max-width:72ch}
+ul.b li::marker{color:var(--orange)}
+ol.b li::marker{color:var(--teal);font-weight:700}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th,td{text-align:start;padding:10px 14px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);color:var(--teal-ink);font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+[lang="ar"] th{letter-spacing:0;text-transform:none;font-size:13.5px}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{background:var(--soft);font-weight:600}
+tr.dim td{color:var(--muted)}
+
+/* callouts */
+.note{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:14px 16px;border-radius:10px;background:var(--soft);border-inline-start:4px solid var(--teal);max-width:78ch}
+.note.warn{background:var(--orange-soft);border-inline-start-color:var(--orange)}
+.note .ic{font-weight:700;color:var(--teal-ink);font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.note.warn .ic{color:var(--orange)}
+[lang="ar"] .note .ic{letter-spacing:0}
+
+/* quick start */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.qs .card{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:8px;align-content:start;background:var(--paper);position:relative}
+.qs .card .k{font-size:12px;font-weight:700;color:var(--orange);letter-spacing:.1em;text-transform:uppercase}
+[lang="ar"] .qs .card .k{letter-spacing:0}
+.qs .card h4{margin:0;font-size:16px;color:var(--teal-ink)}
+.qs .card ol{margin:0;padding-inline-start:1.2em;display:grid;gap:4px;font-size:14.5px}
+
+/* money tree */
+.tree{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;background:linear-gradient(var(--paper),var(--paper)) padding-box}
+.node{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr) auto;gap:14px;align-items:center}
+.node .nm{font-weight:600;font-size:14.5px}
+.node .nm small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.node.l1 .nm{padding-inline-start:20px}
+.node.l2 .nm{padding-inline-start:40px}
+.node.l1 .nm,.node.l2 .nm{position:relative}
+.node.l1 .nm::before,.node.l2 .nm::before{content:"";position:absolute;inset-inline-start:calc(var(--i) - 12px);top:.7em;width:8px;height:8px;border-inline-start:2px solid var(--line);border-bottom:2px solid var(--line)}
+.node.l1{--i:20px}.node.l2{--i:40px}
+.track{height:14px;border-radius:999px;background:var(--soft);overflow:hidden;display:flex;border:1px solid var(--line)}
+.track .o{background:var(--teal)}
+.track .r{background:var(--orange)}
+.track.draft{background:repeating-linear-gradient(135deg,var(--soft) 0 6px,var(--line) 6px 8px)}
+.node .av{font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap;text-align:end;min-width:110px}
+.node .av b{color:var(--ok)}
+.node .av b.tight{color:var(--orange)}
+.node .av b.zero{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);padding-top:6px;border-top:1px dashed var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* gates */
+.gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:g}
+.gate{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.gate .who{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+[lang="ar"] .gate .who{letter-spacing:0}
+.gate h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+.gate.bank{border-color:var(--orange);background:var(--orange-soft)}
+.gate.bank h4{color:var(--orange)}
+.steps{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 14px;border:1px solid var(--line);border-radius:10px}
+.step .g{font-size:12px;font-weight:700;color:var(--teal-ink);background:var(--soft);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--orange-soft);color:var(--orange)}
+
+.pill{background:var(--soft);color:var(--teal-ink)}
+pre.code-block{margin:0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;line-height:1.6;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left;max-width:100%}
+.gate p{font-size:14.5px;color:var(--muted)}
+.step .pill{justify-self:end}
+/* screenshots */
+figure{margin:0;display:grid;gap:8px}
+figure img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(0,40,45,.45)}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--teal-ink)}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.box h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+
+.badge-row{display:flex;flex-wrap:wrap;gap:8px}
+.foot{color:var(--muted);font-size:13px;text-align:center;padding-block:10px 40px}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.toc{position:static}
+  nav.toc ol{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .cover .rings{display:none}
+  .cover .wrap{grid-template-columns:minmax(0,1fr)}
+  .gates,.shots,.two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .node{grid-template-columns:minmax(0,1fr) auto}
+  .node .track{grid-column:1 / -1;order:3}
+  .bar .doc{display:none}
+  .step{grid-template-columns:minmax(0,1fr) auto}
+  .step .g{grid-column:1 / -1;justify-self:start}
+}
+@media print{
+  :root{--bg:#fff;--paper:#fff}
+  .bar,nav.toc{display:none}
+  .layout{display:block;padding:0}
+  section.sec{border:0;border-radius:0;padding:0 0 24px;break-before:page}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:258mm;break-after:page}
+  main > section.sec:first-child{break-before:auto}
+  main{display:block}
+  section.sec{padding-bottom:0}
+  .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gates{grid-template-columns:repeat(3,minmax(0,1fr))}
+  figure img{width:auto;max-width:100%;max-height:170mm;margin-inline:auto}
+  .cover::after{display:none}
+  .cover .wrap{height:100%;align-content:center}
+  .cover .rings{display:block}
+  .track,.pill,.sec-h .n,th,tr.total td,.note,.gate.bank{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  figure,table,.tree,.step,.gate,ul.b li,ol.b li,.note,pre.code-block,.qs .card{break-inside:avoid}
+  pre.code-block,.pill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h3{break-after:avoid}
+}
+</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#134E4A"/><path d="M24 46V18h19M24 32h14" fill="none" stroke="#E0B04A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="44" cy="44" r="4.5" fill="#ffffff"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand"><svg><use href="#mark"/></svg>FINOVA</div>
+    <div class="doc" data-en="Overview" data-ar="نظرة عامة">Overview</div>
+    <div class="sp"></div>
+    <div class="lang" role="group" aria-label="Language">
+      <a href="#en" data-l="en" class="on">English</a>
+      <a href="#ar" data-l="ar" lang="ar">العربية</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== ENGLISH ============================== -->
+<div id="doc-en" lang="en" dir="ltr">
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">Overview</div>
+      <h1>Finova at a glance</h1>
+      <p class="lede">A short tour of the platform: signing in, the home page, the menu and the main screen of each application. For the full steps, see the manual of each application.</p>
+      <div class="meta"><span><b>Version</b>1.0</span><span><b>Date</b>23 November 2026</span><span><b>Covers</b>Sign-in · Home · Menu · Factoring · General Ledger · Treasury · Screening · Workflow · Administration</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="t">Contents</div>
+    <ol>
+      <li><a href="#en-1"><i>1</i>Signing in</a></li>
+      <li><a href="#en-2"><i>2</i>Home</a></li>
+      <li><a href="#en-3"><i>3</i>Menu and the top bar</a></li>
+      <li><a href="#en-4"><i>4</i>The applications</a></li>
+      <li><a href="#en-5"><i>5</i>Main screens</a></li>
+      <li><a href="#en-6"><i>6</i>The detailed manuals</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="en-1">
+    <div class="sec-h"><span class="n">1</span><h2>Signing in</h2></div>
+    <p class="prose">Open Finova in your browser and sign in once with your user name and password: the same sign-in opens every application you are allowed to use. <b>Remember username</b> keeps your user name on this computer; <b>Forgot password?</b> sends you a link to set a new one. The <b>ع / EN</b> button switches the page to Arabic or English.</p>
+    <figure><img src="img/en/o01-sign-in.jpg" alt="" loading="lazy"><figcaption><b>Figure 1.</b> The sign-in page.</figcaption></figure>
+    <div class="note"><span class="ic">Note</span><p>A password set by the administrator is temporary: you choose your own at the first sign-in. Member companies of the Screening service also enter a code from an authenticator app.</p></div>
+  </section>
+
+  <section class="sec" id="en-2">
+    <div class="sec-h"><span class="n">2</span><h2>Home</h2></div>
+    <p class="prose">After signing in you see your home page: a greeting, the number of applications you can use, the workflow tasks waiting for you, and today's date. <b>Open my inbox</b> lists your tasks; <b>Start a request</b> starts a request of a workflow (for example a leave or an expense claim).</p>
+    <figure><img src="img/en/o02-home.jpg" alt="" loading="lazy"><figcaption><b>Figure 2.</b> Home: the business applications on top and the shared services below. Each card opens its application.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-3">
+    <div class="sec-h"><span class="n">3</span><h2>Menu and the top bar</h2></div>
+    <p class="prose">The top bar is the same on every page:</p>
+    <div class="tbl"><table>
+      <tr><th>Button</th><th>What it does</th></tr>
+      <tr><td><b>Home</b></td><td>Back to the home page.</td></tr>
+      <tr><td><b>Menu</b></td><td>All pages you may open, grouped by application, with a filter to find a page by name.</td></tr>
+      <tr><td><b>EN / ع</b></td><td>English or Arabic. The choice is kept for your next visit.</td></tr>
+      <tr><td><b>Bell</b></td><td>Alerts: tasks due soon or overdue, and tasks given to you.</td></tr>
+      <tr><td><b>Inbox</b></td><td>Your workflow tasks, with the number waiting.</td></tr>
+      <tr><td><b>Your name</b></td><td>Change password and sign out.</td></tr>
+    </table></div>
+    <figure><img src="img/en/o03-menu.jpg" alt="" loading="lazy"><figcaption><b>Figure 3.</b> Menu: all pages, grouped by application.</figcaption></figure>
+    <p class="prose">Most pages also have a <b>Help</b> button that opens the matching part of the manual.</p>
+  </section>
+
+  <section class="sec" id="en-4">
+    <div class="sec-h"><span class="n">4</span><h2>The applications</h2></div>
+    <div class="tbl"><table>
+      <tr><th>Application</th><th>What it does</th></tr>
+      <tr><td><b>Mortgage</b></td><td>Mortgage portfolio purchase, approvals, disbursement, repayment schedules and monitoring; subsidised and personal mortgage.</td></tr>
+      <tr><td><b>Factoring</b></td><td>Factoring applications, the limit approval workflow, credit limits, disbursement requests with invoices, and claims.</td></tr>
+      <tr><td><b>Screening</b></td><td>The Federation Final List: letters and decisions approved through the workflow, and the screening of customers by member companies.</td></tr>
+      <tr><td><b>Retail Lending</b></td><td>Microfinance and consumer finance: payout, repayments, end of day, write-off and recovery.</td></tr>
+      <tr><td><b>Collection and Repayments</b></td><td>Customer payments, cheques collection and collection batches.</td></tr>
+      <tr><td><b>General Ledger</b></td><td>Chart of accounts, periods, journals with approval and posting, the account ledger and the financial statements.</td></tr>
+      <tr><td><b>Treasury</b></td><td>Bank facilities, tranches and sublimits, the bank rules, and the source of funds of each disbursement.</td></tr>
+      <tr><td><b>Workflow Engine</b></td><td>The approval workflows: design, versions, inbox, deadlines and out-of-office.</td></tr>
+      <tr><td><b>Finance Calculator · Cheques Wallet</b></td><td>Repayment schedules with saved scenarios; customers' cheques from upload to deposit.</td></tr>
+      <tr><td><b>End of Day · Communication Center</b></td><td>The night batch of every application; the mail servers and the log of every e-mail sent.</td></tr>
+      <tr><td><b>Admin Setup · CRM</b></td><td>Users, roles, products and module settings; customers, their compliance, bank accounts and factoring offers.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="en-5">
+    <div class="sec-h"><span class="n">5</span><h2>Main screens</h2></div>
+    <h3>Factoring</h3>
+    <p class="prose">Everything for one customer is done from the <b>Factoring Customer Workspace</b>: the calculator, applications, agreements, limits, disbursements and claims.</p>
+    <figure><img src="img/en/x-factoring.jpg" alt="" loading="lazy"><figcaption><b>Figure 4.</b> Factoring Customer Workspace.</figcaption></figure>
+    <h3>General Ledger</h3>
+    <p class="prose">The ledger home gives the chart of accounts, the current period, the journals waiting for you, and every page of the module.</p>
+    <figure><img src="img/en/x-gl.jpg" alt="" loading="lazy"><figcaption><b>Figure 5.</b> General Ledger home.</figcaption></figure>
+    <figure><img src="img/en/x-gl-journal.jpg" alt="" loading="lazy"><figcaption><b>Figure 6.</b> A posted journal: the four steps from draft to posting, the lines and the balances before and after.</figcaption></figure>
+    <h3>Treasury</h3>
+    <p class="prose"><b>Bank Limits</b> shows each bank's facilities as a tree; <b>Treasury Disburse</b> chooses the money that pays each disbursement and checks it against the bank rules.</p>
+    <div class="shots">
+      <figure><img src="img/en/x-trs-limits.jpg" alt="" loading="lazy"><figcaption><b>Figure 7.</b> Bank Limits.</figcaption></figure>
+      <figure><img src="img/en/x-trs-disburse.jpg" alt="" loading="lazy"><figcaption><b>Figure 8.</b> Treasury Disburse.</figcaption></figure>
+    </div>
+    <h3>Screening</h3>
+    <figure><img src="img/en/x-screening.jpg" alt="" loading="lazy"><figcaption><b>Figure 9.</b> Screening home: the Final List in force, its entries and the decisions in the workflow.</figcaption></figure>
+    <h3>Workflow</h3>
+    <figure><img src="img/en/x-inbox.jpg" alt="" loading="lazy"><figcaption><b>Figure 10.</b> My Inbox: claim a task, open it, and complete it on its page.</figcaption></figure>
+    <h3>Administration</h3>
+    <figure><img src="img/en/x-admin.jpg" alt="" loading="lazy"><figcaption><b>Figure 11.</b> Admin Setup: users, roles, products and the settings of each module.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-6">
+    <div class="sec-h"><span class="n">6</span><h2>The detailed manuals</h2></div>
+    <div class="tbl"><table>
+      <tr><th>Manual</th><th>For</th></tr>
+      <tr><td>Factoring</td><td>From pricing to collection: calculator, approval workflow, limits, disbursements, Treasury and claims.</td></tr>
+      <tr><td>General Ledger</td><td>Accounts, periods, journals, approval, posting, reversal and statements.</td></tr>
+      <tr><td>Treasury</td><td>Bank limits, rules and the source of funds of each disbursement.</td></tr>
+      <tr><td>Screening</td><td>The Final List, member companies, the portal, billing and the API.</td></tr>
+      <tr><td>Workflow</td><td>Tasks, the inbox, designing workflows, forms and documents.</td></tr>
+      <tr><td>Module Settings</td><td>The settings of each module and their approval.</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">Finova · Overview · Version 1.0 · November 2026</p>
+  </main>
+</div>
+</div>
+
+<!-- ============================== ARABIC ============================== -->
+<div id="doc-ar" lang="ar" dir="rtl" hidden>
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">نظرة عامة</div>
+      <h1>فينوفا في لمحة</h1>
+      <p class="lede">جولة قصيرة في المنصة: تسجيل الدخول، والصفحة الرئيسية، والقائمة، والشاشة الرئيسية لكل تطبيق. للخطوات الكاملة راجع دليل كل تطبيق.</p>
+      <div class="meta"><span><b>الإصدار</b>١٫٠</span><span><b>التاريخ</b>٢٣ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>تسجيل الدخول · الرئيسية · القائمة · التخصيم · دفتر الأستاذ العام · الخزينة · الفحص · سير العمل · الإدارة</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="المحتويات">
+    <div class="t">المحتويات</div>
+    <ol>
+      <li><a href="#ar-1"><i>١</i>تسجيل الدخول</a></li>
+      <li><a href="#ar-2"><i>٢</i>الصفحة الرئيسية</a></li>
+      <li><a href="#ar-3"><i>٣</i>القائمة والشريط العلوي</a></li>
+      <li><a href="#ar-4"><i>٤</i>التطبيقات</a></li>
+      <li><a href="#ar-5"><i>٥</i>الشاشات الرئيسية</a></li>
+      <li><a href="#ar-6"><i>٦</i>الأدلة التفصيلية</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="ar-1">
+    <div class="sec-h"><span class="n">١</span><h2>تسجيل الدخول</h2></div>
+    <p class="prose">افتح فينوفا في المتصفح وسجّل الدخول مرة واحدة باسم المستخدم وكلمة المرور، فيفتح لك الدخول نفسه كل التطبيقات المسموح لك باستخدامها. خيار <b>تذكر اسم المستخدم</b> يحفظ اسمك على هذا الجهاز، ورابط <b>نسيت كلمة المرور؟</b> يرسل إليك رابطًا لتعيين كلمة جديدة. وزر <b>ع / EN</b> يبدّل الصفحة بين العربية والإنجليزية.</p>
+    <figure><img src="img/ar/o01-sign-in.jpg" alt="" loading="lazy"><figcaption><b>شكل ١.</b> صفحة تسجيل الدخول.</figcaption></figure>
+    <div class="note"><span class="ic">ملاحظة</span><p>كلمة المرور التي يضعها المسؤول مؤقتة، وتختار كلمتك عند أول دخول. ويُدخل مستخدمو الشركات الأعضاء في خدمة الفحص أيضًا رمزًا من تطبيق المصادقة.</p></div>
+  </section>
+
+  <section class="sec" id="ar-2">
+    <div class="sec-h"><span class="n">٢</span><h2>الصفحة الرئيسية</h2></div>
+    <p class="prose">بعد تسجيل الدخول تظهر صفحتك الرئيسية: تحية، وعدد التطبيقات المتاحة لك، ومهام سير العمل التي تنتظرك، وتاريخ اليوم. زر <b>افتح صندوق مهامي</b> يعرض مهامك، وزر <b>بدء طلب</b> يبدأ طلبًا في سير عمل (مثل إجازة أو مطالبة مصروفات).</p>
+    <figure><img src="img/ar/o02-home.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢.</b> الرئيسية: تطبيقات الأعمال في الأعلى والخدمات المشتركة في الأسفل، وكل بطاقة تفتح تطبيقها.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-3">
+    <div class="sec-h"><span class="n">٣</span><h2>القائمة والشريط العلوي</h2></div>
+    <p class="prose">الشريط العلوي واحد في كل الصفحات:</p>
+    <div class="tbl"><table>
+      <tr><th>الزر</th><th>ماذا يفعل</th></tr>
+      <tr><td><b>الرئيسية</b></td><td>العودة إلى الصفحة الرئيسية.</td></tr>
+      <tr><td><b>القائمة</b></td><td>كل الصفحات المتاحة لك مجمعة حسب التطبيق، مع خانة للبحث عن صفحة بالاسم.</td></tr>
+      <tr><td><b>EN / ع</b></td><td>الإنجليزية أو العربية، ويُحفظ اختيارك للزيارة التالية.</td></tr>
+      <tr><td><b>الجرس</b></td><td>التنبيهات: المهام التي اقترب موعدها أو تأخرت، والمهام التي أُسندت إليك.</td></tr>
+      <tr><td><b>صندوق المهام</b></td><td>مهام سير العمل الخاصة بك وعدد المنتظر منها.</td></tr>
+      <tr><td><b>اسمك</b></td><td>تغيير كلمة المرور وتسجيل الخروج.</td></tr>
+    </table></div>
+    <figure><img src="img/ar/o03-menu.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣.</b> القائمة: كل الصفحات مجمعة حسب التطبيق.</figcaption></figure>
+    <p class="prose">وفي معظم الصفحات زر <b>مساعدة</b> يفتح الجزء المناسب من الدليل.</p>
+  </section>
+
+  <section class="sec" id="ar-4">
+    <div class="sec-h"><span class="n">٤</span><h2>التطبيقات</h2></div>
+    <div class="tbl"><table>
+      <tr><th>التطبيق</th><th>ماذا يفعل</th></tr>
+      <tr><td><b>التمويل العقاري</b></td><td>شراء محافظ التمويل العقاري، والاعتمادات، والصرف، وجداول السداد والمتابعة، والتمويل العقاري المدعوم والشخصي.</td></tr>
+      <tr><td><b>التخصيم</b></td><td>طلبات التخصيم، وسير عمل اعتماد الحد، والحدود الائتمانية، وطلبات الصرف بالفواتير، والمطالبات.</td></tr>
+      <tr><td><b>الفحص</b></td><td>القائمة النهائية للاتحاد: الخطابات والقرارات المعتمدة عبر سير العمل، وفحص العملاء لدى الشركات الأعضاء.</td></tr>
+      <tr><td><b>التمويل الاستهلاكي</b></td><td>التمويل متناهي الصغر والاستهلاكي: الصرف، والسداد، وإقفال اليوم، والإعدام والاسترداد.</td></tr>
+      <tr><td><b>التحصيل والسداد</b></td><td>مدفوعات العملاء، وتحصيل الشيكات، ودفعات التحصيل.</td></tr>
+      <tr><td><b>دفتر الأستاذ العام</b></td><td>دليل الحسابات، والفترات، والقيود بالاعتماد والترحيل، ودفتر الحساب، والقوائم المالية.</td></tr>
+      <tr><td><b>الخزينة</b></td><td>تسهيلات البنوك وشرائحها وحدودها الفرعية، وشروط البنوك، ومصدر تمويل كل صرف.</td></tr>
+      <tr><td><b>محرك سير العمل</b></td><td>سير عمل الاعتمادات: التصميم، والإصدارات، وصندوق المهام، والمهل، والغياب.</td></tr>
+      <tr><td><b>حاسبة التمويل · محفظة الشيكات</b></td><td>جداول السداد مع حفظ السيناريوهات، وشيكات العملاء من الرفع حتى الإيداع.</td></tr>
+      <tr><td><b>إقفال اليوم · مركز الاتصالات</b></td><td>الدفعة الليلية لكل تطبيق، وخوادم البريد وسجل كل رسالة مرسلة.</td></tr>
+      <tr><td><b>الإعدادات الإدارية · إدارة علاقات العملاء</b></td><td>المستخدمون والأدوار والمنتجات وإعدادات الوحدات، والعملاء وامتثالهم وحساباتهم البنكية وعروض التخصيم.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="ar-5">
+    <div class="sec-h"><span class="n">٥</span><h2>الشاشات الرئيسية</h2></div>
+    <h3>التخصيم</h3>
+    <p class="prose">يُنجز كل ما يخص العميل من <b>مساحة عمل عميل التخصيم</b>: الحاسبة، والطلبات، والاتفاقيات، والحدود، والصرف، والمطالبات.</p>
+    <figure><img src="img/ar/x-factoring.jpg" alt="" loading="lazy"><figcaption><b>شكل ٤.</b> مساحة عمل عميل التخصيم.</figcaption></figure>
+    <h3>دفتر الأستاذ العام</h3>
+    <p class="prose">تعرض الصفحة الرئيسية للدفتر دليل الحسابات، والفترة الحالية، والقيود التي تنتظرك، وكل صفحات النظام.</p>
+    <figure><img src="img/ar/x-gl.jpg" alt="" loading="lazy"><figcaption><b>شكل ٥.</b> الصفحة الرئيسية لدفتر الأستاذ العام.</figcaption></figure>
+    <figure><img src="img/ar/x-gl-journal.jpg" alt="" loading="lazy"><figcaption><b>شكل ٦.</b> قيد مرحّل: الخطوات الأربع من المسودة إلى الترحيل، والسطور، والأرصدة قبل وبعد.</figcaption></figure>
+    <h3>الخزينة</h3>
+    <p class="prose">تعرض صفحة <b>حدود البنوك</b> تسهيلات كل بنك في شكل شجرة، وتختار صفحة <b>صرف الخزينة</b> الأموال التي تموّل كل صرف بعد فحص شروط البنوك.</p>
+    <div class="shots">
+      <figure><img src="img/ar/x-trs-limits.jpg" alt="" loading="lazy"><figcaption><b>شكل ٧.</b> حدود البنوك.</figcaption></figure>
+      <figure><img src="img/ar/x-trs-disburse.jpg" alt="" loading="lazy"><figcaption><b>شكل ٨.</b> صرف الخزينة.</figcaption></figure>
+    </div>
+    <h3>الفحص</h3>
+    <figure><img src="img/ar/x-screening.jpg" alt="" loading="lazy"><figcaption><b>شكل ٩.</b> الصفحة الرئيسية للفحص: القائمة النهائية السارية وقيودها والقرارات في سير العمل.</figcaption></figure>
+    <h3>سير العمل</h3>
+    <figure><img src="img/ar/x-inbox.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٠.</b> صندوق مهامي: استلم المهمة وافتحها وأنجزها في صفحتها.</figcaption></figure>
+    <h3>الإدارة</h3>
+    <figure><img src="img/ar/x-admin.jpg" alt="" loading="lazy"><figcaption><b>شكل ١١.</b> الإعدادات الإدارية: المستخدمون والأدوار والمنتجات وإعدادات كل وحدة.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-6">
+    <div class="sec-h"><span class="n">٦</span><h2>الأدلة التفصيلية</h2></div>
+    <div class="tbl"><table>
+      <tr><th>الدليل</th><th>يشمل</th></tr>
+      <tr><td>التخصيم</td><td>من التسعير إلى التحصيل: الحاسبة، وسير عمل الاعتماد، والحدود، والصرف، والخزينة، والمطالبات.</td></tr>
+      <tr><td>دفتر الأستاذ العام</td><td>الحسابات، والفترات، والقيود، والاعتماد، والترحيل، والعكس، والقوائم المالية.</td></tr>
+      <tr><td>الخزينة</td><td>حدود البنوك وشروطها ومصدر تمويل كل صرف.</td></tr>
+      <tr><td>الفحص</td><td>القائمة النهائية، والشركات الأعضاء، والبوابة، والفوترة، والواجهة البرمجية.</td></tr>
+      <tr><td>سير العمل</td><td>المهام، وصندوق المهام، وتصميم سير العمل، والنماذج والمستندات.</td></tr>
+      <tr><td>إعدادات الوحدات</td><td>إعدادات كل وحدة واعتمادها.</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">فينوفا · نظرة عامة · الإصدار ١٫٠ · نوفمبر ٢٠٢٦</p>
+  </main>
+</div>
+</div>
+
+<script>
+(function(){
+  var docs={en:document.getElementById('doc-en'),ar:document.getElementById('doc-ar')};
+  var label=document.querySelector('.bar .doc');
+  var bar=document.querySelector('.bar');
+  function langOf(h){h=(h||'').replace('#','');if(h==='ar'||h.indexOf('ar-')===0)return 'ar';return 'en';}
+  function show(){
+    var h=location.hash, l=langOf(h);
+    docs.en.hidden=l!=='en'; docs.ar.hidden=l!=='ar';
+    bar.setAttribute('dir',l==='ar'?'rtl':'ltr');
+    label.textContent=label.getAttribute('data-'+l);
+    label.setAttribute('lang',l);
+    document.querySelectorAll('.lang a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-l')===l)});
+    document.title=l==='ar'?'نظرة عامة · فينوفا':'Finova Overview';
+    var id=h.replace('#','');
+    if(id && id!=='en' && id!=='ar'){var t=document.getElementById(id); if(t) t.scrollIntoView();}
+    else window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body></html>
