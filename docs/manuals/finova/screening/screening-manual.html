@@ -1,0 +1,1161 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>FINOVA Screening User Manual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:400;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:500;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:600;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5/files/ibm-plex-sans-latin-700-normal.woff2) format("woff2")}
+:root{
+  --teal:#00636D; --teal-deep:#0B3E44; --teal-ink:#004C54; --orange:#E87722; --gold:#E0B04A;
+  --bg:#F6F8F8; --paper:#FFFFFF; --fg:#1B2A2C; --muted:#5A6B6D; --line:#DCE4E4; --soft:#EAF3F3;
+  --orange-soft:#FDF0E5; --ok:#1E7F4F; --ok-soft:#E5F4EC; --bad:#B42318; --bad-soft:#FBEAE8;
+  --cover-fg:#FFFFFF; --code-bg:#EEF3F3;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --teal:#3FB3BC; --teal-deep:#0A2F33; --teal-ink:#7FD2D8; --orange:#F2944C; --gold:#E7C06A;
+  --bg:#0E1718; --paper:#152224; --fg:#E3ECEC; --muted:#9AB0B2; --line:#284043; --soft:#1A3236;
+  --orange-soft:#3A2614; --ok:#5CC48C; --ok-soft:#163626; --bad:#F07A6E; --bad-soft:#3B1C1A;
+  --cover-fg:#FFFFFF; --code-bg:#1D3134; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+[lang="ar"]{font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;line-height:1.85}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+p{margin:0}
+b{font-weight:600}
+code,.code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;background:var(--code-bg);padding:.1em .4em;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--teal-deep)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--teal-deep);color:var(--cover-fg);border-bottom:3px solid var(--orange)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.bar .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.14em;font-size:13px}
+.bar .brand svg{width:28px;height:28px}
+.bar .doc{opacity:.75;font-size:13px;letter-spacing:.02em}
+.bar .sp{flex:1}
+.lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden}
+.lang a{color:var(--cover-fg);text-decoration:none;font-size:13px;padding:5px 14px;font-weight:500}
+.lang a.on{background:var(--orange);color:#fff}
+
+/* cover */
+.cover{background:radial-gradient(1200px 500px at 85% -10%,rgba(232,119,34,.28),transparent 60%),linear-gradient(160deg,var(--teal-deep),#00535B 70%);color:var(--cover-fg);position:relative;overflow:hidden}
+.cover .wrap{padding-block:72px 64px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:end}
+.cover .mark{width:84px;height:84px;margin-bottom:28px}
+.cover .kicker{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+[lang="ar"] .cover .kicker{letter-spacing:0}
+.cover h1{font-size:clamp(34px,5.4vw,60px);font-weight:700;margin-top:10px;max-width:15ch}
+.cover .lede{margin-top:18px;font-size:18px;max-width:52ch;opacity:.88}
+.cover .meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:34px;font-size:13px;opacity:.85}
+.cover .meta span b{color:var(--gold);font-weight:600;margin-inline-end:6px}
+.cover .rings{width:230px;height:230px;opacity:.9}
+.cover::after{content:"";position:absolute;inset:auto 0 0;height:6px;background:linear-gradient(90deg,var(--orange) 0 34%,var(--gold) 34% 52%,transparent 52%)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:40px 80px}
+nav.toc{position:sticky;top:76px;align-self:start;font-size:14px}
+nav.toc .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+[lang="ar"] nav.toc .t{letter-spacing:0}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:flex;gap:10px;color:var(--fg);text-decoration:none;padding:6px 10px;border-radius:6px;border-inline-start:2px solid transparent}
+nav.toc a:hover{background:var(--soft);border-inline-start-color:var(--teal)}
+nav.toc a i{font-style:normal;color:var(--orange);font-weight:600;min-width:1.4em}
+main{min-width:0;display:grid;gap:28px}
+
+section.sec{scroll-margin-top:84px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:36px clamp(18px,4vw,44px);display:grid;gap:18px;min-width:0}
+.sec-h{display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sec-h .n{font-size:13px;font-weight:700;color:#fff;background:var(--teal);border-radius:6px;padding:3px 9px;letter-spacing:.06em}
+.sec-h h2{font-size:clamp(22px,2.6vw,28px);font-weight:700;color:var(--teal-ink)}
+h3{font-size:18px;font-weight:600;color:var(--fg);margin-top:8px;display:flex;align-items:center;gap:10px}
+h3::before{content:"";width:14px;height:3px;background:var(--orange);border-radius:2px;flex:none}
+.prose{max-width:72ch;display:grid;gap:12px}
+p.prose{display:block}
+ul.b,ol.b{margin:0;padding-inline-start:1.3em;display:grid;gap:8px;max-width:72ch}
+ul.b li::marker{color:var(--orange)}
+ol.b li::marker{color:var(--teal);font-weight:700}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th,td{text-align:start;padding:10px 14px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);color:var(--teal-ink);font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+[lang="ar"] th{letter-spacing:0;text-transform:none;font-size:13.5px}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{background:var(--soft);font-weight:600}
+tr.dim td{color:var(--muted)}
+
+/* callouts */
+.note{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:14px 16px;border-radius:10px;background:var(--soft);border-inline-start:4px solid var(--teal);max-width:78ch}
+.note.warn{background:var(--orange-soft);border-inline-start-color:var(--orange)}
+.note .ic{font-weight:700;color:var(--teal-ink);font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.note.warn .ic{color:var(--orange)}
+[lang="ar"] .note .ic{letter-spacing:0}
+
+/* quick start */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.qs .card{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:8px;align-content:start;background:var(--paper);position:relative}
+.qs .card .k{font-size:12px;font-weight:700;color:var(--orange);letter-spacing:.1em;text-transform:uppercase}
+[lang="ar"] .qs .card .k{letter-spacing:0}
+.qs .card h4{margin:0;font-size:16px;color:var(--teal-ink)}
+.qs .card ol{margin:0;padding-inline-start:1.2em;display:grid;gap:4px;font-size:14.5px}
+
+/* money tree */
+.tree{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;background:linear-gradient(var(--paper),var(--paper)) padding-box}
+.node{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr) auto;gap:14px;align-items:center}
+.node .nm{font-weight:600;font-size:14.5px}
+.node .nm small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.node.l1 .nm{padding-inline-start:20px}
+.node.l2 .nm{padding-inline-start:40px}
+.node.l1 .nm,.node.l2 .nm{position:relative}
+.node.l1 .nm::before,.node.l2 .nm::before{content:"";position:absolute;inset-inline-start:calc(var(--i) - 12px);top:.7em;width:8px;height:8px;border-inline-start:2px solid var(--line);border-bottom:2px solid var(--line)}
+.node.l1{--i:20px}.node.l2{--i:40px}
+.track{height:14px;border-radius:999px;background:var(--soft);overflow:hidden;display:flex;border:1px solid var(--line)}
+.track .o{background:var(--teal)}
+.track .r{background:var(--orange)}
+.track.draft{background:repeating-linear-gradient(135deg,var(--soft) 0 6px,var(--line) 6px 8px)}
+.node .av{font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap;text-align:end;min-width:110px}
+.node .av b{color:var(--ok)}
+.node .av b.tight{color:var(--orange)}
+.node .av b.zero{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);padding-top:6px;border-top:1px dashed var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* gates */
+.gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:g}
+.gate{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.gate .who{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+[lang="ar"] .gate .who{letter-spacing:0}
+.gate h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+.gate.bank{border-color:var(--orange);background:var(--orange-soft)}
+.gate.bank h4{color:var(--orange)}
+.steps{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 14px;border:1px solid var(--line);border-radius:10px}
+.step .g{font-size:12px;font-weight:700;color:var(--teal-ink);background:var(--soft);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--orange-soft);color:var(--orange)}
+
+.pill{background:var(--soft);color:var(--teal-ink)}
+pre.code-block{margin:0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;line-height:1.6;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left;max-width:100%}
+.gate p{font-size:14.5px;color:var(--muted)}
+.step .pill{justify-self:end}
+/* screenshots */
+figure{margin:0;display:grid;gap:8px}
+figure img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(0,40,45,.45)}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--teal-ink)}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.box h4{margin:0;font-size:15.5px;color:var(--teal-ink)}
+
+.badge-row{display:flex;flex-wrap:wrap;gap:8px}
+.foot{color:var(--muted);font-size:13px;text-align:center;padding-block:10px 40px}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.toc{position:static}
+  nav.toc ol{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .cover .rings{display:none}
+  .cover .wrap{grid-template-columns:minmax(0,1fr)}
+  .gates,.shots,.two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .node{grid-template-columns:minmax(0,1fr) auto}
+  .node .track{grid-column:1 / -1;order:3}
+  .bar .doc{display:none}
+  .step{grid-template-columns:minmax(0,1fr) auto}
+  .step .g{grid-column:1 / -1;justify-self:start}
+}
+@media print{
+  :root{--bg:#fff;--paper:#fff}
+  .bar,nav.toc{display:none}
+  .layout{display:block;padding:0}
+  section.sec{border:0;border-radius:0;padding:0 0 24px;break-before:page}
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:258mm;break-after:page}
+  main > section.sec:first-child{break-before:auto}
+  main{display:block}
+  section.sec{padding-bottom:0}
+  .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gates{grid-template-columns:repeat(3,minmax(0,1fr))}
+  figure img{width:auto;max-width:100%;max-height:170mm;margin-inline:auto}
+  .cover::after{display:none}
+  .cover .wrap{height:100%;align-content:center}
+  .cover .rings{display:block}
+  .track,.pill,.sec-h .n,th,tr.total td,.note,.gate.bank{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  figure,table,.tree,.step,.gate,ul.b li,ol.b li,.note,pre.code-block,.qs .card{break-inside:avoid}
+  pre.code-block,.pill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h3{break-after:avoid}
+}
+</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#134E4A"/><path d="M24 46V18h19M24 32h14" fill="none" stroke="#E0B04A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="44" cy="44" r="4.5" fill="#ffffff"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand"><svg><use href="#mark"/></svg>FINOVA</div>
+    <div class="doc" data-en="Screening User Manual" data-ar="دليل مستخدم الفحص">Screening User Manual</div>
+    <div class="sp"></div>
+    <div class="lang" role="group" aria-label="Language">
+      <a href="#en" data-l="en" class="on">English</a>
+      <a href="#ar" data-l="ar" lang="ar">العربية</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== ENGLISH ============================== -->
+<div id="doc-en" lang="en" dir="ltr">
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">User manual · Screening</div>
+      <h1>The Final List and member company screening</h1>
+      <p class="lede">How the Federation turns legal and court decisions into the Final List, and how member companies screen their customers against it, on the portal or from their own systems. Written for Federation staff, member company users and their IT teams.</p>
+      <div class="meta"><span><b>Version</b>1.0</span><span><b>Date</b>22 November 2026</span><span><b>Covers</b>Letters · Decisions · Final List · Companies · Portal · Billing · End of Day · E-mail · Audit · API</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="t">Contents</div>
+    <ol>
+      <li><a href="#en-qs"><i>0</i>Quick start</a></li>
+      <li><a href="#en-1"><i>1</i>About this manual</a></li>
+      <li><a href="#en-2"><i>2</i>Key concepts</a></li>
+      <li><a href="#en-3"><i>3</i>Signing in and two-factor</a></li>
+      <li><a href="#en-4"><i>4</i>Letters</a></li>
+      <li><a href="#en-5"><i>5</i>Decisions and approval</a></li>
+      <li><a href="#en-6"><i>6</i>The Final List and matching</a></li>
+      <li><a href="#en-7"><i>7</i>Member companies</a></li>
+      <li><a href="#en-8"><i>8</i>The Screening Portal</a></li>
+      <li><a href="#en-9"><i>9</i>Billing and GL</a></li>
+      <li><a href="#en-10"><i>10</i>End of Day</a></li>
+      <li><a href="#en-11"><i>11</i>Communication Center</a></li>
+      <li><a href="#en-12"><i>12</i>Sign-ins, audit and security</a></li>
+      <li><a href="#en-13"><i>13</i>Screening API (for IT teams)</a></li>
+      <li><a href="#en-14"><i>14</i>Permissions, statuses, questions</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="en-qs">
+    <div class="sec-h"><span class="n">0</span><h2>Quick start</h2></div>
+    <p class="prose">The four jobs done most often. Each one is explained in full in the sections that follow.</p>
+    <div class="qs">
+      <div class="card"><div class="k">Federation · data entry</div><h4>From letter to decision</h4>
+        <ol><li>Screening → Letters → <b>New letter</b>, attach the scans</li><li>Decisions → <b>New decision</b>: type, official number, scope, parties</li><li><b>Save</b></li><li>In the Decisions list press <b>Run</b></li></ol></div>
+      <div class="card"><div class="k">Federation · review and approval</div><h4>Publish to the Final List</h4>
+        <ol><li>Open the task from the Workflow inbox</li><li>Check the decision against its letter and parties</li><li>Reviewer: <b>Accept review</b> · Approver: <b>Approve and publish</b></li><li>Or <b>Return to data entry</b> with the reason</li></ol></div>
+      <div class="card"><div class="k">Member company · every customer</div><h4>Screen a customer</h4>
+        <ol><li>Sign in: password, then the 6-digit app code</li><li>Screening Portal → <b>New inquiry</b></li><li>Name, identity type and number, purpose</li><li><b>Screen</b>; keep the certificate if needed</li></ol></div>
+      <div class="card"><div class="k">Federation · finance</div><h4>Bill and collect</h4>
+        <ol><li>End of Day issues each invoice at the end of the company's period</li><li>Billing → open the invoice</li><li><b>Record payment</b> when the money arrives</li><li>The GL entries post at once</li></ol></div>
+    </div>
+  </section>
+
+  <section class="sec" id="en-1">
+    <div class="sec-h"><span class="n">1</span><h2>About this manual</h2></div>
+    <p class="prose">Screening checks customers against the Federation <b>Final List</b>: the people and companies named in a formal legal decision or a court decision. It has three parts:</p>
+    <div class="tbl"><table>
+      <tr><th>Part</th><th>Who uses it</th><th>What it does</th></tr>
+      <tr><td><b>Screening back office</b> (inside FINOVA)</td><td>Federation staff</td><td>Letters, decisions and their approval, the Final List, member companies and licences, billing, End of Day, e-mail, sign-in log and audit.</td></tr>
+      <tr><td><b>Screening Portal</b></td><td>Member company users</td><td>Screen customers, see past inquiries and certificates. Company administrators also manage their users and see their invoices and sign-ins.</td></tr>
+      <tr><td><b>Screening API</b></td><td>Member companies' systems</td><td>Screen customers automatically from the company's own applications (section 13).</td></tr>
+    </table></div>
+    <figure><img src="img/en/m01-home.jpg" alt="" loading="lazy"><figcaption><b>Figure 1.</b> Screening home: the Final List version in force, its entries, the decisions in the workflow, and the services you have access to.</figcaption></figure>
+    <div class="note"><span class="ic">Example</span><p>The manual uses one company throughout, <b>National Finance Co (NFC)</b>, and one listed person, <b>Mahmoud Hassan Ali</b>, so the figures connect.</p></div>
+  </section>
+
+  <section class="sec" id="en-2">
+    <div class="sec-h"><span class="n">2</span><h2>Key concepts</h2></div>
+    <h3>The Final List</h3>
+    <ul class="b">
+      <li>Holds only people and companies for whom there is a <b>formal legal decision or a court decision</b>.</li>
+      <li>Every approved decision publishes the next <b>version</b> of the list (14, 15, …). Each inquiry records the version it was checked against.</li>
+      <li>Nothing reaches the list without <b>three different people</b>: one enters the decision, a second reviews it, a third approves it.</li>
+    </ul>
+    <div class="gates">
+      <div class="gate"><div class="who">Data entry · SCR.DECISION.EDIT</div><h4>1. Enter and Run</h4><p>Registers the letter, enters the decision and its parties, then presses Run.</p></div>
+      <div class="gate"><div class="who">Reviewer · SCR.DECISION.REVIEW</div><h4>2. Review</h4><p>Checks the decision against the letter. Accept sends it for approval; Return sends it back.</p></div>
+      <div class="gate bank"><div class="who">Approver · SCR.DECISION.APPROVE</div><h4>3. Approve and publish</h4><p>Publishes it as the next Final List version, or returns it.</p></div>
+    </div>
+    <h3>Decision types</h3>
+    <div class="tbl"><table>
+      <tr><th>Type</th><th>Effect on the Final List</th><th>What screening returns</th></tr>
+      <tr><td><b>Listing</b></td><td>Adds its parties to the list.</td><td>Match</td></tr>
+      <tr><td><b>Amendment</b></td><td>Changes the scope text of the listing it names.</td><td>Match</td></tr>
+      <tr><td><b>Suspension</b></td><td>The entry shows <span class="pill warn">Suspended</span>; the person stays on the list.</td><td>Match</td></tr>
+      <tr><td><b>Lifting</b></td><td>The entry shows <span class="pill ok">Lifted</span> and stays as history.</td><td>Previously listed</td></tr>
+    </table></div>
+    <h3>Screening results</h3>
+    <div class="tbl"><table>
+      <tr><th>Result</th><th>Meaning</th><th>What to do</th></tr>
+      <tr><td><span class="pill bad">Match</span></td><td>A listed (or suspended) entry matches the identity number.</td><td>Do not proceed; follow your compliance procedure.</td></tr>
+      <tr><td><span class="pill warn">Possible match</span></td><td>The name matches but the identity number does not.</td><td>Check the customer's documents against the entry before deciding.</td></tr>
+      <tr><td><span class="pill">Previously listed</span></td><td>Only lifted entries match.</td><td>The person is no longer listed; keep the result on file.</td></tr>
+      <tr><td><span class="pill ok">No match</span></td><td>Nothing on the list matches.</td><td>Proceed.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="en-3">
+    <div class="sec-h"><span class="n">3</span><h2>Signing in and two-factor</h2></div>
+    <h3>Activating an account</h3>
+    <ul class="b">
+      <li>A new user receives an activation e-mail. The link opens a page where the user chooses a password.</li>
+      <li>Activation and password-reset links work <b>once</b> and expire after <b>48 hours</b>. Sending a newer link voids the older one.</li>
+      <li>If the user name was left empty, the <b>e-mail address is the user name</b>.</li>
+      <li><b>Forgot password</b> always shows the same message, whether or not the account exists.</li>
+    </ul>
+    <h3>Two-factor verification (every member company account)</h3>
+    <ol class="b">
+      <li>At the first sign-in a QR code appears. Scan it with an authenticator app (Google Authenticator, Microsoft Authenticator, Authy…).</li>
+      <li>Type the 6-digit code the app shows.</li>
+      <li>You are shown <b>10 backup codes</b> in the form <code>XXXXX-XXXXX</code>. Print or store them: they are shown only once.</li>
+      <li>Every later sign-in: password, then the current 6-digit code.</li>
+    </ol>
+    <div class="two">
+      <figure><img src="img/en/m13-2fa-setup.jpg" alt="" loading="lazy"><figcaption><b>Figure 2.</b> First sign-in: scan the QR code and enter the code.</figcaption></figure>
+      <figure><img src="img/en/m14-backup-codes.jpg" alt="" loading="lazy"><figcaption><b>Figure 3.</b> The 10 backup codes, shown once.</figcaption></figure>
+    </div>
+    <div class="two">
+      <figure><img src="img/en/m15-2fa-code.jpg" alt="" loading="lazy"><figcaption><b>Figure 4.</b> Every sign-in after: the app's code.</figcaption></figure>
+      <figure><img src="img/en/m16-backup-code.jpg" alt="" loading="lazy"><figcaption><b>Figure 5.</b> No phone? Use a backup code. Each works once; capitals or small letters, with or without the dash.</figcaption></figure>
+    </div>
+    <h3>Limits that protect accounts</h3>
+    <div class="tbl"><table>
+      <tr><th>Rule</th><th>Value</th></tr>
+      <tr><td>Time to enter the code after the password</td><td>5 minutes, then sign in again</td></tr>
+      <tr><td>Wrong codes before the account locks</td><td>5, then locked for 15 minutes</td></tr>
+      <tr><td>Session</td><td>60 minutes</td></tr>
+      <tr><td>Sign-in pages</td><td>30 requests a minute per network address</td></tr>
+      <tr><td>Network block</td><td>20 failed sign-ins within 15 minutes block that network address</td></tr>
+    </table></div>
+    <div class="note warn"><span class="ic">Lost phone</span><p>Ask for a <b>two-factor reset</b>. The Federation can reset any user; a company administrator can reset the company's other users (Users → Reset two-factor). The user sets the app up again at the next sign-in. Every reset is recorded in the sign-in log.</p></div>
+  </section>
+
+  <section class="sec" id="en-4">
+    <div class="sec-h"><span class="n">4</span><h2>Letters</h2></div>
+    <p class="prose">Every decision comes from an official letter. <b>Screening → Letters</b> (SCR.LETTER.EDIT) keeps the letters with their scans.</p>
+    <ol class="b">
+      <li>Press <b>New letter</b>.</li>
+      <li>Enter the <b>sender</b> (court or authority), the <b>sender reference</b>, the <b>channel</b> (Courier, Email, By hand, Portal) and the <b>letter date</b>.</li>
+      <li>Drop the scans: PDF, PNG, JPEG or TIFF, up to 20 MB each. Each file is kept with its SHA-256 fingerprint, so it can be proved unchanged.</li>
+      <li><b>Save</b>. The letter gets its number, e.g. <code>LTR-2026-000004</code>.</li>
+    </ol>
+    <figure><img src="img/en/m02-letters.jpg" alt="" loading="lazy"><figcaption><b>Figure 6.</b> Letters: status Received, Indexed (its decisions entered) or Closed, with the scans and the decisions made from each.</figcaption></figure>
+    <figure><img src="img/en/m03-new-letter.jpg" alt="" loading="lazy"><figcaption><b>Figure 7.</b> New letter.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-5">
+    <div class="sec-h"><span class="n">5</span><h2>Decisions and approval</h2></div>
+    <h3>Enter a decision</h3>
+    <ol class="b">
+      <li><b>Screening → Decisions → New decision</b> (SCR.DECISION.EDIT).</li>
+      <li>Choose the <b>type</b>. For an amendment, suspension or lifting, choose the <b>listing it changes</b>.</li>
+      <li>Enter the <b>official number</b>, the <b>effective date</b>, the <b>scope</b> and the <b>letter</b>.</li>
+      <li>Add the <b>parties</b>: Arabic and English name, identity type and number, nationality, birth date and every known <b>other name</b>. Other names are searched like the main name.</li>
+      <li><b>Save</b>. The decision waits in the list as <i>Workflow not started</i>.</li>
+      <li>Press <b>Run</b> in the Decisions list. The approval workflow starts and the decision goes <i>In review</i>.</li>
+    </ol>
+    <figure><img src="img/en/m04-decisions.jpg" alt="" loading="lazy"><figcaption><b>Figure 8.</b> Decisions: the workflow step and who holds it, Run for decisions not started or returned, and the return reason.</figcaption></figure>
+    <figure><img src="img/en/m05-decision-draft.jpg" alt="" loading="lazy"><figcaption><b>Figure 9.</b> A decision being entered: type, official number, letter, scope and parties.</figcaption></figure>
+    <h3>Review and approval</h3>
+    <p class="prose">The reviewer and approver open their task from the <b>Workflow inbox</b>. The decision opens with the task panel:</p>
+    <div class="steps">
+      <div class="step"><span class="g">Review</span><div><b>Accept review</b> sends it for approval. <b>Return to data entry</b> needs a comment saying why.</div><span class="pill warn">Awaiting approval</span></div>
+      <div class="step"><span class="g">Approval</span><div><b>Approve and publish</b> publishes it as the next Final List version. Return sends it back to data entry.</div><span class="pill ok">Published</span></div>
+      <div class="step"><span class="g">Returned</span><div>The person who entered it sees the reason, corrects the decision and presses <b>Run</b> again.</div><span class="pill bad">Returned</span></div>
+    </div>
+    <figure><img src="img/en/m06-decision-approve.jpg" alt="" loading="lazy"><figcaption><b>Figure 10.</b> The approver's task: the completed steps with their comments and documents, then Approve and publish or Return.</figcaption></figure>
+    <div class="note"><span class="ic">Rule</span><p>The reviewer and approver are never the person who entered the decision, and the approver is never the reviewer. A decision that should not go ahead can be <b>cancelled</b>; it is kept, never published.</p></div>
+  </section>
+
+  <section class="sec" id="en-6">
+    <div class="sec-h"><span class="n">6</span><h2>The Final List and matching</h2></div>
+    <p class="prose"><b>Screening → Final List</b> (SCR.DECISION.VIEW) shows every listed person and company, active, suspended and lifted, with the decision behind each entry and the version in force.</p>
+    <figure><img src="img/en/m07-registry.jpg" alt="" loading="lazy"><figcaption><b>Figure 11.</b> The Federation Final List, version 14.</figcaption></figure>
+    <h3>How a customer is matched</h3>
+    <ul class="b">
+      <li><b>Identity number:</b> compared ignoring spaces, dashes and leading zeros, so <code>2850615-1234567</code> and <code>28506151234567</code> match.</li>
+      <li><b>Name:</b> compared with the Arabic name, the English name and every other name. A similarity of <b>85% or more</b> is a name hit.</li>
+      <li><b>Birth date:</b> a name-only hit is dropped when both birth dates are known and differ.</li>
+      <li>Each hit shows its basis: <i>Identity and name</i>, <i>Identity only</i> or <i>Name only</i>.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="en-7">
+    <div class="sec-h"><span class="n">7</span><h2>Member companies</h2></div>
+    <p class="prose"><b>Screening → Member companies</b> (SCR.COMPANY.ADMIN): each company with its licence, administrator, users and API clients.</p>
+    <figure><img src="img/en/m08-companies.jpg" alt="" loading="lazy"><figcaption><b>Figure 12.</b> Member companies: licence, seats in use, quota and the buttons Edit, Licence, Users and API.</figcaption></figure>
+    <h3>Add a company</h3>
+    <p class="prose"><b>New company</b> creates the company, its licence and its administrator in one step. The administrator receives the activation e-mail and then manages the company's own users from the portal. On the Billing part choose the <b>price plan</b> and how often it is invoiced: monthly, quarterly or yearly.</p>
+    <figure><img src="img/en/m09-new-company.jpg" alt="" loading="lazy"><figcaption><b>Figure 13.</b> New company: company, licence, billing and administrator.</figcaption></figure>
+    <h3>Licences</h3>
+    <div class="tbl"><table>
+      <tr><th>Item</th><th>Meaning</th></tr>
+      <tr><td>Valid from / to</td><td>The licence year starts on the licence's start day, not on 1 January. Empty end = open-ended.</td></tr>
+      <tr><td>Users besides the administrator</td><td>The licence covers the administrator + X users. A user waiting for activation holds a seat.</td></tr>
+      <tr><td>Yearly inquiry quota</td><td>Counted per licence year. When used up, screening is refused until the next licence year or a new licence. Empty = no limit.</td></tr>
+    </table></div>
+    <p class="prose"><b>Licence</b> changes the users or the dates as a new licence; earlier licences are kept. End of Day e-mails the company before its licence ends (section 10). From the day after the end, its users can no longer sign in or screen. Companies created before licences existed were given an opening licence.</p>
+    <div class="two">
+      <figure><img src="img/en/m10-licence.jpg" alt="" loading="lazy"><figcaption><b>Figure 14.</b> Licence: a new licence for a renewal or a change.</figcaption></figure>
+      <figure><img src="img/en/m11-users.jpg" alt="" loading="lazy"><figcaption><b>Figure 15.</b> Users: send the link again, copy it, edit, reset two-factor.</figcaption></figure>
+    </div>
+    <div class="note warn"><span class="ic">Suspend</span><p>Setting a company's status to <b>Suspended</b> stops its users and API clients at once; the sign-in log shows <i>Company blocked</i>. Set it back to Active to restore access.</p></div>
+    <h3>API clients</h3>
+    <ol class="b">
+      <li>Press <b>API</b> on the company, then <b>New client</b> and give it a name (e.g. <i>Core banking onboarding</i>).</li>
+      <li>The <b>client ID</b> and <b>client secret</b> are shown. The secret is shown <b>only once</b>: copy it and hand it over securely.</li>
+      <li><b>New secret</b> replaces a lost or exposed secret; the old one stops working at once.</li>
+      <li><b>Revoke</b> stops the client for good; it is kept with its inquiries.</li>
+    </ol>
+    <figure><img src="img/en/m12-api-clients.jpg" alt="" loading="lazy"><figcaption><b>Figure 16.</b> Screening API clients: last token, network address and inquiries made.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-8">
+    <div class="sec-h"><span class="n">8</span><h2>The Screening Portal</h2></div>
+    <p class="prose">Member company users screen their customers here (SCR.INQUIRY.CREATE). The top shows the company and the <b>inquiries left this licence year</b>.</p>
+    <ol class="b">
+      <li>On <b>New inquiry</b> choose Person or Company.</li>
+      <li>Enter the <b>full name</b> as on the identity document (Arabic or English), the <b>identity type</b> and <b>number</b>. Add the nationality and birth date when you have them: they cut false possible matches.</li>
+      <li>Choose the <b>purpose</b>: customer onboarding, transaction, periodic review or other, and your <b>case reference</b> if you like.</li>
+      <li>Press <b>Screen</b>. The result appears at once with any matching entries.</li>
+    </ol>
+    <figure><img src="img/en/m17-portal-form.jpg" alt="" loading="lazy"><figcaption><b>Figure 17.</b> New inquiry, with the quota left this licence year.</figcaption></figure>
+    <figure><img src="img/en/m18-portal-result.jpg" alt="" loading="lazy"><figcaption><b>Figure 18.</b> The result: here a Match on identity and name, with the decision and its scope.</figcaption></figure>
+    <p class="prose"><b>My inquiries</b> lists earlier inquiries. <b>View</b> shows one again; the <b>certificate</b> is a printable page (<b>Print / PDF</b>) with the result, the Final List version and the inquiry's seal.</p>
+    <div class="two">
+      <figure><img src="img/en/m19-my-inquiries.jpg" alt="" loading="lazy"><figcaption><b>Figure 19.</b> My inquiries.</figcaption></figure>
+      <figure><img src="img/en/m20-certificate.jpg" alt="" loading="lazy"><figcaption><b>Figure 20.</b> The screening certificate.</figcaption></figure>
+    </div>
+    <h3>For company administrators</h3>
+    <p class="prose">With SCR.COMPANY.USERS the portal shows three more tabs:</p>
+    <div class="tbl"><table>
+      <tr><th>Tab</th><th>What you can do</th></tr>
+      <tr><td><b>Company users</b></td><td>Add users within the licence's seats, deactivate them, send the activation link again, reset two-factor for the other users.</td></tr>
+      <tr><td><b>Invoices</b></td><td>The company's invoices with what is paid and due; open and print each one.</td></tr>
+      <tr><td><b>Sign-ins</b></td><td>Every sign-in of the company's users, the result, and the inquiries made in each session.</td></tr>
+    </table></div>
+    <figure><img src="img/en/m21-portal-users.jpg" alt="" loading="lazy"><figcaption><b>Figure 21.</b> Company users, managed by the company administrator.</figcaption></figure>
+    <div class="two">
+      <figure><img src="img/en/m22-portal-invoices.jpg" alt="" loading="lazy"><figcaption><b>Figure 22.</b> Invoices: paid, partly paid or not paid.</figcaption></figure>
+      <figure><img src="img/en/m23-portal-signins.jpg" alt="" loading="lazy"><figcaption><b>Figure 23.</b> Sign-ins, with a session's inquiries.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sec" id="en-9">
+    <div class="sec-h"><span class="n">9</span><h2>Billing and GL</h2></div>
+    <h3>Price plans</h3>
+    <p class="prose"><b>Screening → Billing → Price plans</b> (SCR.BILLING.MANAGE). A plan sets, in EGP:</p>
+    <ul class="b">
+      <li>a <b>fee per user per month</b>: a user active on any day of a month pays the month; the administrator counts;</li>
+      <li><b>free inquiries</b> per invoice period (0 = none);</li>
+      <li>the inquiry price: <b>one price per inquiry</b>, or <b>tiers</b> where the price changes with the number of inquiries in the period.</li>
+    </ul>
+    <p class="prose">Every inquiry counts, whatever its result, portal and API alike. API clients pay no user fee. No VAT is charged. New prices apply to invoices issued from then on.</p>
+    <div class="two">
+      <figure><img src="img/en/m27-price-plans.jpg" alt="" loading="lazy"><figcaption><b>Figure 24.</b> Price plans.</figcaption></figure>
+      <figure><img src="img/en/m28-plan-tiers.jpg" alt="" loading="lazy"><figcaption><b>Figure 25.</b> A plan with tiers, and the Try box that prices a number of inquiries.</figcaption></figure>
+    </div>
+    <h3>Invoices</h3>
+    <p class="prose">Each company is invoiced <b>monthly, quarterly or yearly</b>. The invoice is issued at the <b>end of the company's period</b>, which is not always the end of a calendar month:</p>
+    <ul class="b">
+      <li>by End of Day, on the last day of the period (job <code>SCR_INVOICES</code>), or</li>
+      <li>by hand with <b>New invoice</b> on Billing.</li>
+    </ul>
+    <figure><img src="img/en/m24-billing.jpg" alt="" loading="lazy"><figcaption><b>Figure 26.</b> Billing: each company's current period so far, and its invoices.</figcaption></figure>
+    <figure><img src="img/en/m25-invoice.jpg" alt="" loading="lazy"><figcaption><b>Figure 27.</b> An invoice: users, inquiry bands, payments, balance due and its GL entries.</figcaption></figure>
+    <h3>Payments and cancelling</h3>
+    <ul class="b">
+      <li><b>Record payment</b>: date, amount, the bank account the money came into and the bank reference. A part payment leaves the rest due.</li>
+      <li><b>Cancel invoice</b> keeps the invoice, marked cancelled with the reason, and reverses its GL entry today. Its period can then be invoiced again. An invoice with payments cannot be cancelled.</li>
+    </ul>
+    <figure><img src="img/en/m26-payment.jpg" alt="" loading="lazy"><figcaption><b>Figure 28.</b> Record payment.</figcaption></figure>
+    <h3>GL entries</h3>
+    <p class="prose">Product <b>SCR_SERVICES</b>, GL code <b>SCR</b>. Entries are numbered <code>CAP-SCR-…</code> and post at once, without waiting for End of Day.</p>
+    <div class="tbl"><table>
+      <tr><th>Event</th><th>Rule</th><th>Debit</th><th>Credit</th></tr>
+      <tr><td>Invoice issued</td><td><code>SCR_INVOICE</code></td><td>120701 Screening fees receivable</td><td>410701 User fee income · 410702 Inquiry fee income</td></tr>
+      <tr><td>Payment received</td><td><code>SCR_PAYMENT</code></td><td>The bank account's GL account</td><td>120701 Screening fees receivable</td></tr>
+      <tr><td>Invoice cancelled</td><td>reversal</td><td colspan="2">The invoice's entry reversed on the cancel date</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">Date</span><p>The invoice entry is dated the last day of the period, or the issue day when the invoice is issued before the period ends.</p></div>
+  </section>
+
+  <section class="sec" id="en-10">
+    <div class="sec-h"><span class="n">10</span><h2>End of Day</h2></div>
+    <p class="prose"><b>End of Day</b> is the night batch of every FINOVA application (EOD.VIEW, EOD.RUN, EOD.JOBS.EDIT). An administrator runs it:</p>
+    <ul class="b">
+      <li><b>One day</b>: the next day to run, or</li>
+      <li><b>Several days, up to</b> a date: every day from the next one, in order. It stops at a day where a job fails. Days never run ahead of today.</li>
+    </ul>
+    <div class="tbl"><table>
+      <tr><th>Order</th><th>Job</th><th>What it does</th><th>Setting</th></tr>
+      <tr><td>10</td><td><code>LND_DAILY</code></td><td>Retail Lending: daily accrual and arrears.</td><td>–</td></tr>
+      <tr><td>20</td><td><code>SCR_LICENCE_EXPIRY</code></td><td>E-mails the company administrator and contact e-mail before the licence ends and on its last day.</td><td>Reminder days, default 30,7,1</td></tr>
+      <tr><td>30</td><td><code>SCR_INVOICES</code></td><td>Issues and posts the invoice of each company whose period ends that day.</td><td>Issue invoices of zero, default N</td></tr>
+      <tr><td>40</td><td><code>SCR_HOUSEKEEPING</code></td><td>Closes sign-ins left waiting for the code (<i>Code not entered</i>); counts accounts whose activation link expired.</td><td>–</td></tr>
+    </table></div>
+    <figure><img src="img/en/m29-eod.jpg" alt="" loading="lazy"><figcaption><b>Figure 29.</b> End of Day: each business day with its jobs. Here a job failed, so the day stays open.</figcaption></figure>
+    <div class="two">
+      <figure><img src="img/en/m30-eod-run.jpg" alt="" loading="lazy"><figcaption><b>Figure 30.</b> Run: one day, or several days up to a date.</figcaption></figure>
+      <figure><img src="img/en/m31-eod-jobs.jpg" alt="" loading="lazy"><figcaption><b>Figure 31.</b> Jobs: switch a job on or off and set its settings.</figcaption></figure>
+    </div>
+    <div class="note warn"><span class="ic">A job failed</span><p>The other jobs still run, but the day stays open. Read the job's message, fix the cause, and press <b>Run</b> again: only the jobs not done run, so nothing is posted twice.</p></div>
+  </section>
+
+  <section class="sec" id="en-11">
+    <div class="sec-h"><span class="n">11</span><h2>Communication Center</h2></div>
+    <p class="prose">Every system e-mail goes through here: activation and reset links, licence reminders, invoices.</p>
+    <ol class="b">
+      <li><b>Communication Center → Mail servers → New mail server</b> (CMC.MAIL_SERVER.EDIT): host, port, SSL, user name, password, sender name and address.</li>
+      <li><b>Send a test e-mail</b>. A server must pass a test before <b>Use this server</b> is available.</li>
+      <li><b>Use this server</b> makes it the one that sends.</li>
+    </ol>
+    <figure><img src="img/en/m32-mail-servers.jpg" alt="" loading="lazy"><figcaption><b>Figure 32.</b> Mail servers: the one in use and each server's last test.</figcaption></figure>
+    <div class="note"><span class="ic">Gmail</span><p>Turn on 2-Step Verification in the Google account and create a 16-letter <b>app password</b>; use it instead of the normal password. Host <code>smtp.gmail.com</code>, port 587, SSL on. For tests, <code>name+bank1@gmail.com</code> reaches <code>name@gmail.com</code>, so many test users can share one mailbox.</p></div>
+    <figure><img src="img/en/m33-email-log.jpg" alt="" loading="lazy"><figcaption><b>Figure 33.</b> Sent e-mails (CMC.EMAIL_LOG.VIEW): every e-mail, sent or failed, with the error.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="en-12">
+    <div class="sec-h"><span class="n">12</span><h2>Sign-ins, audit and security</h2></div>
+    <h3>Sign-ins and activity</h3>
+    <p class="prose"><b>Screening → Sign-ins and activity</b> (SCR.ACCESS_LOG.VIEW): every sign-in attempt with user, company, time, network address, device and result; open a session to see the inquiries made in it.</p>
+    <figure><img src="img/en/m34-access-log.jpg" alt="" loading="lazy"><figcaption><b>Figure 34.</b> Sign-ins and activity.</figcaption></figure>
+    <h3>Inquiry audit and seals</h3>
+    <p class="prose"><b>Screening → Inquiry audit</b> (SCR.INQUIRY.AUDIT) lists every inquiry of every company, from the portal and the API.</p>
+    <ul class="b">
+      <li>Each inquiry is <b>sealed</b> when made: a SHA-256 hash that also covers the seal of the inquiry before it, forming a chain.</li>
+      <li>The database itself refuses any change to a sealed inquiry and any deletion.</li>
+      <li>The certificate checks its inquiry's seal each time it opens. IT can check the whole chain with <code>GET /api/scr/inquiries/seal-check</code>.</li>
+    </ul>
+    <figure><img src="img/en/m35-inquiries.jpg" alt="" loading="lazy"><figcaption><b>Figure 35.</b> Inquiry audit.</figcaption></figure>
+    <h3>Built-in protections</h3>
+    <div class="tbl"><table>
+      <tr><th>Protection</th><th>Limit</th></tr>
+      <tr><td>Portal screening</td><td>30 a minute per user</td></tr>
+      <tr><td>Sign-in pages</td><td>30 requests a minute per network address</td></tr>
+      <tr><td>Network block</td><td>20 failed sign-ins in 15 minutes</td></tr>
+      <tr><td>Account lock</td><td>5 wrong passwords or codes, 15 minutes</td></tr>
+      <tr><td>API</td><td>60 calls a minute per client; 10 token requests a minute per network address</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="en-13">
+    <div class="sec-h"><span class="n">13</span><h2>Screening API (for IT teams)</h2></div>
+    <p class="prose">A member company's own systems screen customers through the API. API inquiries are kept, sealed, billed and audited exactly like portal inquiries, and show in the company's history. The client must be active and the company's licence in force. All calls are HTTPS and JSON, field names in camelCase, times in UTC.</p>
+    <h3>1. Get the credentials</h3>
+    <p class="prose">The Federation creates the API client (section 7) and gives you the <b>client ID</b> and <b>client secret</b>. Keep the secret in your secrets vault, never in source code.</p>
+    <h3>2. Get a token (valid 1 hour)</h3>
+    <pre class="code-block" dir="ltr">POST /api/scr/v1/token
+Content-Type: application/json
+
+{ "clientId": "scr_nfc_7k2m9q4x", "clientSecret": "••••••••" }
+
+200 → { "accessToken": "eyJ…", "tokenType": "Bearer", "expiresIn": 3600, "expiresAt": "2026-11-22T10:15:00Z" }</pre>
+    <p class="prose">Send it on every other call as <code>Authorization: Bearer &lt;accessToken&gt;</code>. Reuse it until shortly before it expires; do not ask for a token per inquiry.</p>
+    <h3>3. Screen a customer</h3>
+    <pre class="code-block" dir="ltr">POST /api/scr/v1/inquiries
+Authorization: Bearer eyJ…
+
+{ "subjectTypeCode": "PERSON", "subjectName": "Mahmoud Hassan Ali",
+  "identityTypeCode": "NATIONAL_ID", "identityNo": "28506151234567",
+  "birthDate": "1985-06-15", "nationalityCode": "EG",
+  "purposeCode": "ONBOARDING", "purposeText": null, "caseReference": "CB-2026-4471" }
+
+200 → { "inquiryRef": "SCR-2026-004812", "result": "MATCH", "listVersion": 14,
+        "screenedAt": "…", "channel": "API", "caseReference": "CB-2026-4471",
+        "hits": [ { "matchBasis": "ID_AND_NAME", "nameScore": 100, "entryStatus": "ACTIVE",
+                    "decisionRef": "DEC-000031", "officialNo": "FRZ-106/2026", "scope": "…",
+                    "listedFrom": "2026-03-02", "liftedOn": null } ],
+        "recordHash": "9f2c…" }</pre>
+    <div class="tbl"><table>
+      <tr><th>Field</th><th>Required</th><th>Values</th></tr>
+      <tr><td><code>subjectTypeCode</code></td><td>Yes</td><td>PERSON or COMPANY</td></tr>
+      <tr><td><code>subjectName</code></td><td>Yes</td><td>Arabic or English name</td></tr>
+      <tr><td><code>identityTypeCode</code></td><td>Yes</td><td>Person: NATIONAL_ID, PASSPORT, OTHER · Company: COMMERCIAL_REGISTER, OTHER</td></tr>
+      <tr><td><code>identityNo</code></td><td>Yes</td><td>National ID 14 digits · passport 5–20 letters and digits · commercial register up to 15 digits · other 3–30 characters</td></tr>
+      <tr><td><code>birthDate</code></td><td>No</td><td>yyyy-mm-dd, persons only</td></tr>
+      <tr><td><code>nationalityCode</code></td><td>No</td><td>Two-letter country code (EG, SA…)</td></tr>
+      <tr><td><code>purposeCode</code></td><td>Yes</td><td>ONBOARDING, TRANSACTION, PERIODIC_REVIEW, OTHER</td></tr>
+      <tr><td><code>purposeText</code></td><td>With OTHER</td><td>Free text</td></tr>
+      <tr><td><code>caseReference</code></td><td>No</td><td>Your own reference, returned with the result</td></tr>
+    </table></div>
+    <p class="prose"><code>result</code> is MATCH, POSSIBLE_MATCH, PREVIOUSLY_LISTED or NO_MATCH (section 2). Keep <code>inquiryRef</code> with your case: it names the sealed record.</p>
+    <h3>4. Other calls</h3>
+    <div class="tbl"><table>
+      <tr><th>Call</th><th>Returns</th></tr>
+      <tr><td><code>GET /api/scr/v1/inquiries/{inquiryRef}</code></td><td>One of your company's inquiries, from the API or the portal</td></tr>
+      <tr><td><code>GET /api/scr/v1/inquiries?from=2026-11-01&amp;to=2026-11-22&amp;take=100</code></td><td>Your inquiries between two days (Cairo time), newest first; <code>take</code> default 100, at most 500</td></tr>
+      <tr><td><code>GET /api/scr/v1/quota</code></td><td><code>quota</code> (null = no limit), <code>used</code>, <code>left</code> and the licence year <code>from</code>/<code>to</code></td></tr>
+    </table></div>
+    <h3>5. Errors and limits</h3>
+    <div class="tbl"><table>
+      <tr><th>Status</th><th>error</th><th>Meaning · what to do</th></tr>
+      <tr><td>400</td><td>(per field)</td><td>A field is missing or wrong; the answer names each field. Fix it; do not resend unchanged.</td></tr>
+      <tr><td>401</td><td><code>invalid_client</code></td><td>Wrong client ID or secret, or the client is revoked (the same answer for all three).</td></tr>
+      <tr><td>401</td><td>–</td><td>Token missing or expired: get a new token.</td></tr>
+      <tr><td>403</td><td><code>company_blocked</code></td><td>The company is suspended or its licence has ended.</td></tr>
+      <tr><td>403</td><td><code>quota_reached</code></td><td>The licence year's quota is used up.</td></tr>
+      <tr><td>404</td><td><code>not_found</code> · <code>no_licence</code></td><td>No such inquiry for your company · no licence in force.</td></tr>
+      <tr><td>429</td><td><code>rate_limited</code></td><td>Too many calls: wait the seconds in the <code>Retry-After</code> header.</td></tr>
+    </table></div>
+    <p class="prose">Errors look like <code>{ "error": "quota_reached", "message": "…" }</code>. Limits: 60 calls a minute per client; 10 token requests a minute per network address.</p>
+    <div class="note"><span class="ic">Good practice</span><p>Reuse tokens. Retry a 429 only after <code>Retry-After</code>. Never retry a 400 or 403 unchanged. Treat POSSIBLE_MATCH as a case for a person to check.</p></div>
+  </section>
+
+  <section class="sec" id="en-14">
+    <div class="sec-h"><span class="n">14</span><h2>Permissions, statuses and questions</h2></div>
+    <h3>Permissions</h3>
+    <div class="tbl"><table>
+      <tr><th>Permission</th><th>Allows</th></tr>
+      <tr><td><code>SCR.LETTER.EDIT</code></td><td>Register letters and attach their scans</td></tr>
+      <tr><td><code>SCR.DECISION.VIEW</code></td><td>Read decisions and the Final List</td></tr>
+      <tr><td><code>SCR.DECISION.EDIT</code></td><td>Enter decisions and Run their workflow</td></tr>
+      <tr><td><code>SCR.DECISION.REVIEW</code></td><td>Review a decision (never one you entered)</td></tr>
+      <tr><td><code>SCR.DECISION.APPROVE</code></td><td>Approve and publish (never one you entered or reviewed)</td></tr>
+      <tr><td><code>SCR.COMPANY.ADMIN</code></td><td>Federation: member companies, licences, API clients, any company user</td></tr>
+      <tr><td><code>SCR.COMPANY.USERS</code></td><td>Company administrator: own users, Invoices and Sign-ins in the portal</td></tr>
+      <tr><td><code>SCR.INQUIRY.CREATE</code></td><td>Screen customers in the portal</td></tr>
+      <tr><td><code>SCR.INQUIRY.AUDIT</code></td><td>Every company's inquiries</td></tr>
+      <tr><td><code>SCR.BILLING.MANAGE</code> · <code>SCR.BILLING.VIEW</code></td><td>Price plans, invoices, payments · read billing only</td></tr>
+      <tr><td><code>SCR.ACCESS_LOG.VIEW</code></td><td>Sign-ins and activity</td></tr>
+      <tr><td><code>EOD.VIEW</code> · <code>EOD.RUN</code> · <code>EOD.JOBS.EDIT</code></td><td>See End of Day · run it · change its jobs</td></tr>
+      <tr><td><code>CMC.MAIL_SERVER.EDIT</code> · <code>CMC.EMAIL_LOG.VIEW</code></td><td>Mail servers · sent e-mails</td></tr>
+    </table></div>
+    <h3>Statuses</h3>
+    <div class="tbl"><table>
+      <tr><th>Item</th><th>Statuses</th></tr>
+      <tr><td>Letter</td><td>Received · Indexed · Closed</td></tr>
+      <tr><td>Decision</td><td>Draft · In review · Awaiting approval · Returned · Published · Cancelled</td></tr>
+      <tr><td>Final List entry</td><td>Active · Suspended · Lifted</td></tr>
+      <tr><td>Company</td><td>Active · Suspended</td></tr>
+      <tr><td>Company user</td><td>Pending activation · Active · Inactive</td></tr>
+      <tr><td>Invoice</td><td>Issued · Cancelled; Not paid · Partly paid · Paid</td></tr>
+      <tr><td>End of Day day / job</td><td>Open · Done / Done · Failed · Skipped</td></tr>
+    </table></div>
+    <h3>Common questions</h3>
+    <div class="tbl"><table>
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>The activation e-mail did not arrive.</td><td>Check spam, then ask for the link again (Users → send the e-mail, or copy the link). Only the newest link works, for 48 hours.</td></tr>
+      <tr><td>The app's codes are refused.</td><td>Set the phone's clock to automatic. After 5 wrong codes the account locks for 15 minutes.</td></tr>
+      <tr><td>I cannot add another user.</td><td>The licence's seats are full; a user waiting for activation holds a seat. Ask the Federation for a new licence.</td></tr>
+      <tr><td>Screening says the quota is reached.</td><td>The licence year's inquiries are used up. The count restarts on the licence's start day each year.</td></tr>
+      <tr><td>Can an inquiry be corrected or deleted?</td><td>No: it is sealed. Screen again with the right details; both are kept.</td></tr>
+      <tr><td>Why does a suspended person still give Match?</td><td>Suspension does not take anyone off the list. Only an approved lifting gives Previously listed.</td></tr>
+      <tr><td>End of Day shows the day open.</td><td>A job failed. Read its message, fix the cause and press Run again.</td></tr>
+      <tr><td>Use this server is greyed out.</td><td>Send a test e-mail first; for Gmail use an app password.</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">FINOVA · Screening User Manual · v1.0 · November 2026</p>
+  </main>
+</div>
+</div>
+
+<!-- ============================== ARABIC ============================== -->
+<div id="doc-ar" lang="ar" dir="rtl" hidden>
+<section class="cover">
+  <div class="wrap">
+    <div>
+      <svg class="mark"><use href="#mark"/></svg>
+      <div class="kicker">دليل المستخدم · خدمة الفحص</div>
+      <h1>القائمة النهائية وفحص عملاء الشركات الأعضاء</h1>
+      <p class="lede">كيف يحوّل الاتحاد القرارات القانونية والأحكام القضائية إلى القائمة النهائية، وكيف تفحص الشركات الأعضاء عملاءها مقابلها من البوابة أو من أنظمتها الخاصة. لموظفي الاتحاد ومستخدمي الشركات الأعضاء وفرق تقنية المعلومات لديها.</p>
+      <div class="meta"><span><b>الإصدار</b>١٫٠</span><span><b>التاريخ</b>٢٢ نوفمبر ٢٠٢٦</span><span><b>يشمل</b>الخطابات · القرارات · القائمة النهائية · الشركات · البوابة · الفوترة · إقفال اليوم · البريد · التدقيق · API</span></div>
+    </div>
+    <svg class="rings" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#E87722" stroke-width="14" stroke-dasharray="190 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#3FB3BC" stroke-width="14" stroke-dasharray="140 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="40" fill="none" stroke="#E0B04A" stroke-width="14" stroke-dasharray="120 600" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+    </svg>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="المحتويات">
+    <div class="t">المحتويات</div>
+    <ol>
+      <li><a href="#ar-qs"><i>٠</i>البدء السريع</a></li>
+      <li><a href="#ar-1"><i>١</i>عن هذا الدليل</a></li>
+      <li><a href="#ar-2"><i>٢</i>المفاهيم الأساسية</a></li>
+      <li><a href="#ar-3"><i>٣</i>تسجيل الدخول والتحقق بخطوتين</a></li>
+      <li><a href="#ar-4"><i>٤</i>الخطابات</a></li>
+      <li><a href="#ar-5"><i>٥</i>القرارات واعتمادها</a></li>
+      <li><a href="#ar-6"><i>٦</i>القائمة النهائية والمطابقة</a></li>
+      <li><a href="#ar-7"><i>٧</i>الشركات الأعضاء</a></li>
+      <li><a href="#ar-8"><i>٨</i>بوابة الفحص</a></li>
+      <li><a href="#ar-9"><i>٩</i>الفوترة والقيود</a></li>
+      <li><a href="#ar-10"><i>١٠</i>إقفال اليوم</a></li>
+      <li><a href="#ar-11"><i>١١</i>مركز الاتصالات</a></li>
+      <li><a href="#ar-12"><i>١٢</i>الدخول والتدقيق والأمان</a></li>
+      <li><a href="#ar-13"><i>١٣</i>واجهة برمجة الفحص (لفرق التقنية)</a></li>
+      <li><a href="#ar-14"><i>١٤</i>الصلاحيات والحالات والأسئلة</a></li>
+    </ol>
+  </nav>
+  <main>
+
+  <section class="sec" id="ar-qs">
+    <div class="sec-h"><span class="n">٠</span><h2>البدء السريع</h2></div>
+    <p class="prose">أكثر أربع مهام ستقوم بها، وكل منها مشروح بالتفصيل في الأقسام التالية.</p>
+    <div class="qs">
+      <div class="card"><div class="k">الاتحاد · الإدخال</div><h4>من الخطاب إلى القرار</h4>
+        <ol><li>الفحص ← الخطابات ← <b>خطاب جديد</b>، وأرفق المسح الضوئي</li><li>القرارات ← <b>قرار جديد</b>: النوع والرقم الرسمي والنطاق والأطراف</li><li><b>حفظ</b></li><li>في قائمة القرارات اضغط <b>تشغيل</b></li></ol></div>
+      <div class="card"><div class="k">الاتحاد · المراجعة والاعتماد</div><h4>النشر في القائمة النهائية</h4>
+        <ol><li>افتح المهمة من صندوق المهام</li><li>طابق القرار مع خطابه وأطرافه</li><li>المراجع: <b>قبول المراجعة</b> · المعتمد: <b>اعتماد ونشر</b></li><li>أو <b>إعادة إلى الإدخال</b> مع ذكر السبب</li></ol></div>
+      <div class="card"><div class="k">الشركة العضو · كل عميل</div><h4>فحص عميل</h4>
+        <ol><li>سجّل الدخول: كلمة المرور ثم رمز التطبيق من ٦ أرقام</li><li>بوابة الفحص ← <b>استعلام جديد</b></li><li>الاسم ونوع الهوية ورقمها والغرض</li><li><b>فحص</b>، واحتفظ بالشهادة عند الحاجة</li></ol></div>
+      <div class="card"><div class="k">الاتحاد · المالية</div><h4>الفوترة والتحصيل</h4>
+        <ol><li>يُصدر إقفال اليوم الفاتورة في نهاية فترة الشركة</li><li>الفوترة ← افتح الفاتورة</li><li><b>تسجيل سداد</b> عند وصول المبلغ</li><li>تُرحّل القيود فورًا</li></ol></div>
+    </div>
+  </section>
+
+  <section class="sec" id="ar-1">
+    <div class="sec-h"><span class="n">١</span><h2>عن هذا الدليل</h2></div>
+    <p class="prose">يفحص نظام الفحص العملاء مقابل <b>القائمة النهائية</b> للاتحاد: الأشخاص والشركات الصادر بشأنهم قرار قانوني رسمي أو حكم قضائي. ويتكون من ثلاثة أجزاء:</p>
+    <div class="tbl"><table>
+      <tr><th>الجزء</th><th>المستخدم</th><th>ماذا يفعل</th></tr>
+      <tr><td><b>المكتب الخلفي للفحص</b> (داخل فينوفا)</td><td>موظفو الاتحاد</td><td>الخطابات والقرارات واعتمادها، والقائمة النهائية، والشركات الأعضاء وتراخيصها، والفوترة، وإقفال اليوم، والبريد، وسجل الدخول والتدقيق.</td></tr>
+      <tr><td><b>بوابة الفحص</b></td><td>مستخدمو الشركات الأعضاء</td><td>فحص العملاء والاطلاع على الاستعلامات السابقة والشهادات. ويدير مسؤول الشركة مستخدميها ويطّلع على فواتيرها وسجل دخولها.</td></tr>
+      <tr><td><b>واجهة برمجة الفحص API</b></td><td>أنظمة الشركات الأعضاء</td><td>فحص العملاء آليًا من تطبيقات الشركة (القسم ١٣).</td></tr>
+    </table></div>
+    <figure><img src="img/ar/m01-home.jpg" alt="" loading="lazy"><figcaption><b>شكل ١.</b> الصفحة الرئيسية للفحص: إصدار القائمة النهائية الساري وقيودها، والقرارات في مسار الاعتماد، والخدمات المتاحة لك.</figcaption></figure>
+    <div class="note"><span class="ic">مثال</span><p>نستخدم في كل الدليل شركة واحدة هي <b>الشركة الوطنية للتمويل (NFC)</b> وشخصًا مدرجًا واحدًا هو <b>محمود حسن علي</b>، حتى ترتبط الأشكال ببعضها.</p></div>
+  </section>
+
+  <section class="sec" id="ar-2">
+    <div class="sec-h"><span class="n">٢</span><h2>المفاهيم الأساسية</h2></div>
+    <h3>القائمة النهائية</h3>
+    <ul class="b">
+      <li>لا تضم إلا الأشخاص والشركات الصادر بشأنهم <b>قرار قانوني رسمي أو حكم قضائي</b>.</li>
+      <li>كل قرار يُعتمد ينشر <b>الإصدار</b> التالي من القائمة (١٤، ١٥، …). ويسجّل كل استعلام الإصدار الذي فُحص مقابله.</li>
+      <li>لا يصل شيء إلى القائمة إلا عبر <b>ثلاثة أشخاص مختلفين</b>: واحد يُدخل القرار، وثانٍ يراجعه، وثالث يعتمده.</li>
+    </ul>
+    <div class="gates">
+      <div class="gate"><div class="who">الإدخال · SCR.DECISION.EDIT</div><h4>١. الإدخال والتشغيل</h4><p>يسجّل الخطاب ويُدخل القرار وأطرافه، ثم يضغط تشغيل.</p></div>
+      <div class="gate"><div class="who">المراجع · SCR.DECISION.REVIEW</div><h4>٢. المراجعة</h4><p>يطابق القرار مع الخطاب. القبول يرسله للاعتماد، والإعادة ترجعه للإدخال.</p></div>
+      <div class="gate bank"><div class="who">المعتمد · SCR.DECISION.APPROVE</div><h4>٣. الاعتماد والنشر</h4><p>ينشره كإصدار جديد من القائمة النهائية، أو يعيده.</p></div>
+    </div>
+    <h3>أنواع القرارات</h3>
+    <div class="tbl"><table>
+      <tr><th>النوع</th><th>أثره على القائمة النهائية</th><th>نتيجة الفحص</th></tr>
+      <tr><td><b>إدراج</b></td><td>يضيف أطرافه إلى القائمة.</td><td>مطابقة</td></tr>
+      <tr><td><b>تعديل</b></td><td>يغيّر نص نطاق قرار الإدراج الذي يشير إليه.</td><td>مطابقة</td></tr>
+      <tr><td><b>إيقاف</b></td><td>يظهر القيد <span class="pill warn">موقوف</span>، ويبقى الشخص في القائمة.</td><td>مطابقة</td></tr>
+      <tr><td><b>رفع</b></td><td>يظهر القيد <span class="pill ok">مرفوع</span> ويبقى كسجل تاريخي.</td><td>مدرج سابقًا</td></tr>
+    </table></div>
+    <h3>نتائج الفحص</h3>
+    <div class="tbl"><table>
+      <tr><th>النتيجة</th><th>المعنى</th><th>ماذا تفعل</th></tr>
+      <tr><td><span class="pill bad">مطابقة</span></td><td>قيد مدرج (أو موقوف) يطابق رقم الهوية.</td><td>لا تكمل، واتبع إجراءات الالتزام لديك.</td></tr>
+      <tr><td><span class="pill warn">مطابقة محتملة</span></td><td>الاسم مطابق ورقم الهوية غير مطابق.</td><td>راجع مستندات العميل مقابل القيد قبل القرار.</td></tr>
+      <tr><td><span class="pill">مدرج سابقًا</span></td><td>التطابق مع قيود مرفوعة فقط.</td><td>الشخص لم يعد مدرجًا؛ احتفظ بالنتيجة في الملف.</td></tr>
+      <tr><td><span class="pill ok">لا تطابق</span></td><td>لا شيء في القائمة يطابق.</td><td>أكمل.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="ar-3">
+    <div class="sec-h"><span class="n">٣</span><h2>تسجيل الدخول والتحقق بخطوتين</h2></div>
+    <h3>تفعيل الحساب</h3>
+    <ul class="b">
+      <li>يصل المستخدم الجديد بريد تفعيل، ويفتح الرابط صفحة يختار فيها كلمة المرور.</li>
+      <li>روابط التفعيل وإعادة تعيين كلمة المرور تعمل <b>مرة واحدة</b> وتنتهي بعد <b>٤٨ ساعة</b>. وإرسال رابط أحدث يُلغي السابق.</li>
+      <li>إذا تُرك اسم المستخدم فارغًا يصبح <b>البريد الإلكتروني هو اسم المستخدم</b>.</li>
+      <li>صفحة <b>نسيت كلمة المرور</b> تعرض الرسالة نفسها دائمًا، سواء كان الحساب موجودًا أم لا.</li>
+    </ul>
+    <h3>التحقق بخطوتين (لكل حسابات الشركات الأعضاء)</h3>
+    <ol class="b">
+      <li>عند أول دخول يظهر رمز QR. امسحه بتطبيق مصادقة (Google Authenticator أو Microsoft Authenticator أو Authy…).</li>
+      <li>اكتب الرمز المكوّن من ٦ أرقام الذي يظهر في التطبيق.</li>
+      <li>تظهر لك <b>١٠ رموز احتياطية</b> بالشكل <code>XXXXX-XXXXX</code>. اطبعها أو احفظها: لا تظهر إلا مرة واحدة.</li>
+      <li>في كل دخول بعد ذلك: كلمة المرور ثم رمز التطبيق الحالي.</li>
+    </ol>
+    <div class="two">
+      <figure><img src="img/ar/m13-2fa-setup.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢.</b> أول دخول: امسح رمز QR وأدخل الرمز.</figcaption></figure>
+      <figure><img src="img/ar/m14-backup-codes.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣.</b> الرموز الاحتياطية العشرة، تظهر مرة واحدة.</figcaption></figure>
+    </div>
+    <div class="two">
+      <figure><img src="img/ar/m15-2fa-code.jpg" alt="" loading="lazy"><figcaption><b>شكل ٤.</b> كل دخول بعد ذلك: رمز التطبيق.</figcaption></figure>
+      <figure><img src="img/ar/m16-backup-code.jpg" alt="" loading="lazy"><figcaption><b>شكل ٥.</b> لا يوجد هاتف؟ استخدم رمزًا احتياطيًا. كل رمز يعمل مرة واحدة، بحروف كبيرة أو صغيرة، بالشرطة أو بدونها.</figcaption></figure>
+    </div>
+    <h3>حدود لحماية الحسابات</h3>
+    <div class="tbl"><table>
+      <tr><th>القاعدة</th><th>القيمة</th></tr>
+      <tr><td>مهلة إدخال الرمز بعد كلمة المرور</td><td>٥ دقائق، ثم تسجيل الدخول من جديد</td></tr>
+      <tr><td>الرموز الخاطئة قبل قفل الحساب</td><td>٥، ثم قفل لمدة ١٥ دقيقة</td></tr>
+      <tr><td>الجلسة</td><td>٦٠ دقيقة</td></tr>
+      <tr><td>صفحات تسجيل الدخول</td><td>٣٠ طلبًا في الدقيقة لكل عنوان شبكة</td></tr>
+      <tr><td>حظر الشبكة</td><td>٢٠ محاولة فاشلة خلال ١٥ دقيقة تحظر عنوان الشبكة</td></tr>
+    </table></div>
+    <div class="note warn"><span class="ic">فقدان الهاتف</span><p>اطلب <b>إعادة تعيين التحقق بخطوتين</b>. يستطيع الاتحاد إعادة التعيين لأي مستخدم، ويستطيع مسؤول الشركة إعادة التعيين لباقي مستخدمي شركته (المستخدمون ← إعادة تعيين التحقق بخطوتين). يُعِدّ المستخدم التطبيق من جديد عند الدخول التالي، وتُسجَّل كل إعادة تعيين في سجل الدخول.</p></div>
+  </section>
+
+  <section class="sec" id="ar-4">
+    <div class="sec-h"><span class="n">٤</span><h2>الخطابات</h2></div>
+    <p class="prose">كل قرار مصدره خطاب رسمي. تحفظ شاشة <b>الفحص ← الخطابات</b> (SCR.LETTER.EDIT) الخطابات مع مسحها الضوئي.</p>
+    <ol class="b">
+      <li>اضغط <b>خطاب جديد</b>.</li>
+      <li>أدخل <b>الجهة المرسلة</b> (محكمة أو جهة) و<b>مرجعها</b> و<b>طريقة الورود</b> (بريد سريع، بريد إلكتروني، تسليم باليد، البوابة) و<b>تاريخ الخطاب</b>.</li>
+      <li>أضف المسح الضوئي: PDF أو PNG أو JPEG أو TIFF حتى ٢٠ ميجابايت لكل ملف. يُحفظ كل ملف ببصمة SHA-256 لإثبات أنه لم يتغير.</li>
+      <li><b>حفظ</b>. يأخذ الخطاب رقمه، مثل <code>LTR-2026-000004</code>.</li>
+    </ol>
+    <figure><img src="img/ar/m02-letters.jpg" alt="" loading="lazy"><figcaption><b>شكل ٦.</b> الخطابات: الحالة مستلم أو مفهرس (أُدخلت قراراته) أو مغلق، مع المسح الضوئي والقرارات الصادرة عن كل خطاب.</figcaption></figure>
+    <figure><img src="img/ar/m03-new-letter.jpg" alt="" loading="lazy"><figcaption><b>شكل ٧.</b> خطاب جديد.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-5">
+    <div class="sec-h"><span class="n">٥</span><h2>القرارات واعتمادها</h2></div>
+    <h3>إدخال قرار</h3>
+    <ol class="b">
+      <li><b>الفحص ← القرارات ← قرار جديد</b> (SCR.DECISION.EDIT).</li>
+      <li>اختر <b>النوع</b>. للتعديل أو الإيقاف أو الرفع اختر <b>قرار الإدراج الذي يغيّره</b>.</li>
+      <li>أدخل <b>الرقم الرسمي</b> و<b>تاريخ السريان</b> و<b>النطاق</b> و<b>الخطاب</b>.</li>
+      <li>أضف <b>الأطراف</b>: الاسم بالعربية والإنجليزية، ونوع الهوية ورقمها، والجنسية، وتاريخ الميلاد، وكل <b>الأسماء الأخرى</b> المعروفة. يُبحث في الأسماء الأخرى كما يُبحث في الاسم الأساسي.</li>
+      <li><b>حفظ</b>. ينتظر القرار في القائمة بحالة <i>لم يبدأ مسار العمل</i>.</li>
+      <li>اضغط <b>تشغيل</b> في قائمة القرارات. يبدأ مسار الاعتماد ويصبح القرار <i>قيد المراجعة</i>.</li>
+    </ol>
+    <figure><img src="img/ar/m04-decisions.jpg" alt="" loading="lazy"><figcaption><b>شكل ٨.</b> القرارات: خطوة مسار العمل ومن لديه المهمة، وزر التشغيل للقرارات التي لم تبدأ أو أُعيدت، وسبب الإعادة.</figcaption></figure>
+    <figure><img src="img/ar/m05-decision-draft.jpg" alt="" loading="lazy"><figcaption><b>شكل ٩.</b> إدخال قرار: النوع والرقم الرسمي والخطاب والنطاق والأطراف.</figcaption></figure>
+    <h3>المراجعة والاعتماد</h3>
+    <p class="prose">يفتح المراجع والمعتمد المهمة من <b>صندوق المهام</b>، فيفتح القرار مع لوحة المهمة:</p>
+    <div class="steps">
+      <div class="step"><span class="g">المراجعة</span><div><b>قبول المراجعة</b> يرسله للاعتماد. و<b>الإعادة إلى الإدخال</b> تتطلب تعليقًا بالسبب.</div><span class="pill warn">بانتظار الاعتماد</span></div>
+      <div class="step"><span class="g">الاعتماد</span><div><b>اعتماد ونشر</b> ينشره كإصدار جديد من القائمة النهائية، والإعادة ترجعه إلى الإدخال.</div><span class="pill ok">منشور</span></div>
+      <div class="step"><span class="g">مُعاد</span><div>يرى من أدخله السبب، فيصحح القرار ويضغط <b>تشغيل</b> مجددًا.</div><span class="pill bad">مُعاد</span></div>
+    </div>
+    <figure><img src="img/ar/m06-decision-approve.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٠.</b> مهمة المعتمد: الخطوات المكتملة بتعليقاتها ومستنداتها، ثم الاعتماد والنشر أو الإعادة.</figcaption></figure>
+    <div class="note"><span class="ic">قاعدة</span><p>المراجع والمعتمد ليسا أبدًا من أدخل القرار، والمعتمد ليس المراجع. ويمكن <b>إلغاء</b> القرار الذي لا ينبغي المضي فيه؛ فيُحفظ ولا يُنشر.</p></div>
+  </section>
+
+  <section class="sec" id="ar-6">
+    <div class="sec-h"><span class="n">٦</span><h2>القائمة النهائية والمطابقة</h2></div>
+    <p class="prose">تعرض <b>الفحص ← القائمة النهائية</b> (SCR.DECISION.VIEW) كل شخص وشركة مدرجين، ساريًا أو موقوفًا أو مرفوعًا، مع القرار الذي يستند إليه كل قيد والإصدار الساري.</p>
+    <figure><img src="img/ar/m07-registry.jpg" alt="" loading="lazy"><figcaption><b>شكل ١١.</b> القائمة النهائية للاتحاد، الإصدار ١٤.</figcaption></figure>
+    <h3>كيف تتم مطابقة العميل</h3>
+    <ul class="b">
+      <li><b>رقم الهوية:</b> يُقارن مع تجاهل المسافات والشرطات والأصفار البادئة، فيتطابق <code>2850615-1234567</code> مع <code>28506151234567</code>.</li>
+      <li><b>الاسم:</b> يُقارن بالاسم العربي والإنجليزي وكل الأسماء الأخرى. التشابه بنسبة <b>٨٥٪ أو أكثر</b> يُعد تطابقًا في الاسم.</li>
+      <li><b>تاريخ الميلاد:</b> يُستبعد التطابق في الاسم فقط إذا عُرف التاريخان واختلفا.</li>
+      <li>يظهر لكل تطابق أساسه: <i>الهوية والاسم</i> أو <i>الهوية فقط</i> أو <i>الاسم فقط</i>.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="ar-7">
+    <div class="sec-h"><span class="n">٧</span><h2>الشركات الأعضاء</h2></div>
+    <p class="prose"><b>الفحص ← الشركات الأعضاء</b> (SCR.COMPANY.ADMIN): كل شركة مع ترخيصها ومسؤولها ومستخدميها وعملاء API الخاصين بها.</p>
+    <figure><img src="img/ar/m08-companies.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٢.</b> الشركات الأعضاء: الترخيص والمقاعد المستخدمة والحد السنوي، وأزرار تعديل والترخيص والمستخدمون وAPI.</figcaption></figure>
+    <h3>إضافة شركة</h3>
+    <p class="prose"><b>شركة جديدة</b> تنشئ الشركة وترخيصها ومسؤولها في خطوة واحدة. يصل المسؤولَ بريدُ التفعيل، ثم يدير مستخدمي شركته من البوابة. وفي جزء الفوترة اختر <b>خطة الأسعار</b> ودورة الفوترة: شهرية أو ربع سنوية أو سنوية.</p>
+    <figure><img src="img/ar/m09-new-company.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٣.</b> شركة جديدة: الشركة والترخيص والفوترة والمسؤول.</figcaption></figure>
+    <h3>التراخيص</h3>
+    <div class="tbl"><table>
+      <tr><th>البند</th><th>المعنى</th></tr>
+      <tr><td>ساري من / إلى</td><td>تبدأ سنة الترخيص من يوم بدء الترخيص وليس من ١ يناير. ترك تاريخ الانتهاء فارغًا يعني ترخيصًا مفتوحًا.</td></tr>
+      <tr><td>المستخدمون بخلاف المسؤول</td><td>يغطي الترخيص المسؤول + عدد X من المستخدمين. والمستخدم بانتظار التفعيل يحجز مقعدًا.</td></tr>
+      <tr><td>الحد السنوي للاستعلامات</td><td>يُحسب لكل سنة ترخيص. وعند استنفاده يُرفض الفحص حتى سنة الترخيص التالية أو ترخيص جديد. فارغ = بلا حد.</td></tr>
+    </table></div>
+    <p class="prose">زر <b>الترخيص</b> يغيّر عدد المستخدمين أو التواريخ كترخيص جديد، وتبقى التراخيص السابقة محفوظة. يرسل إقفال اليوم بريدًا للشركة قبل انتهاء ترخيصها (القسم ١٠)، ومن اليوم التالي للانتهاء لا يستطيع مستخدموها الدخول أو الفحص. والشركات المنشأة قبل إضافة التراخيص حصلت على ترخيص افتتاحي.</p>
+    <div class="two">
+      <figure><img src="img/ar/m10-licence.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٤.</b> الترخيص: ترخيص جديد للتجديد أو التغيير.</figcaption></figure>
+      <figure><img src="img/ar/m11-users.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٥.</b> المستخدمون: إعادة إرسال الرابط أو نسخه، التعديل، إعادة تعيين التحقق بخطوتين.</figcaption></figure>
+    </div>
+    <div class="note warn"><span class="ic">الإيقاف</span><p>تغيير حالة الشركة إلى <b>موقوفة</b> يوقف مستخدميها وعملاء API الخاصين بها فورًا، ويظهر في سجل الدخول <i>الشركة محظورة</i>. أعدها إلى نشطة لاستعادة الوصول.</p></div>
+    <h3>عملاء API</h3>
+    <ol class="b">
+      <li>اضغط <b>API</b> على الشركة، ثم <b>عميل جديد</b> وأعطه اسمًا (مثل <i>فتح حسابات النظام المصرفي</i>).</li>
+      <li>يظهر <b>معرّف العميل</b> و<b>السر</b>. السر يظهر <b>مرة واحدة فقط</b>: انسخه وسلّمه بطريقة آمنة.</li>
+      <li><b>سر جديد</b> يستبدل سرًا مفقودًا أو مكشوفًا، ويتوقف القديم فورًا.</li>
+      <li><b>إلغاء</b> يوقف العميل نهائيًا، ويبقى محفوظًا مع استعلاماته.</li>
+    </ol>
+    <figure><img src="img/ar/m12-api-clients.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٦.</b> عملاء واجهة برمجة الفحص: آخر رمز دخول وعنوان الشبكة وعدد الاستعلامات.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-8">
+    <div class="sec-h"><span class="n">٨</span><h2>بوابة الفحص</h2></div>
+    <p class="prose">هنا يفحص مستخدمو الشركات الأعضاء عملاءهم (SCR.INQUIRY.CREATE). يعرض أعلى الصفحة الشركة و<b>الاستعلامات المتبقية في سنة الترخيص</b>.</p>
+    <ol class="b">
+      <li>في <b>استعلام جديد</b> اختر شخص أو شركة.</li>
+      <li>أدخل <b>الاسم الكامل</b> كما في مستند الهوية (بالعربية أو الإنجليزية) و<b>نوع الهوية</b> و<b>رقمها</b>. أضف الجنسية وتاريخ الميلاد عند توفرهما: فهما يقللان المطابقات المحتملة الخاطئة.</li>
+      <li>اختر <b>الغرض</b>: فتح حساب أو عملية أو مراجعة دورية أو أخرى، و<b>مرجع الحالة</b> إن شئت.</li>
+      <li>اضغط <b>فحص</b>. تظهر النتيجة فورًا مع القيود المطابقة إن وُجدت.</li>
+    </ol>
+    <figure><img src="img/ar/m17-portal-form.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٧.</b> استعلام جديد، مع الاستعلامات المتبقية في سنة الترخيص.</figcaption></figure>
+    <figure><img src="img/ar/m18-portal-result.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٨.</b> النتيجة: هنا مطابقة في الهوية والاسم، مع القرار ونطاقه.</figcaption></figure>
+    <p class="prose">تعرض <b>استعلاماتي</b> الاستعلامات السابقة. <b>عرض</b> يُظهر أحدها من جديد، و<b>الشهادة</b> صفحة قابلة للطباعة (<b>طباعة / PDF</b>) فيها النتيجة وإصدار القائمة النهائية وختم الاستعلام.</p>
+    <div class="two">
+      <figure><img src="img/ar/m19-my-inquiries.jpg" alt="" loading="lazy"><figcaption><b>شكل ١٩.</b> استعلاماتي.</figcaption></figure>
+      <figure><img src="img/ar/m20-certificate.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٠.</b> شهادة الفحص.</figcaption></figure>
+    </div>
+    <h3>لمسؤولي الشركات</h3>
+    <p class="prose">بصلاحية SCR.COMPANY.USERS تظهر في البوابة ثلاثة تبويبات أخرى:</p>
+    <div class="tbl"><table>
+      <tr><th>التبويب</th><th>ما يمكنك فعله</th></tr>
+      <tr><td><b>مستخدمو الشركة</b></td><td>إضافة مستخدمين في حدود مقاعد الترخيص، وتعطيلهم، وإعادة إرسال رابط التفعيل، وإعادة تعيين التحقق بخطوتين لباقي المستخدمين.</td></tr>
+      <tr><td><b>الفواتير</b></td><td>فواتير الشركة مع المسدد والمستحق، وفتح كل فاتورة وطباعتها.</td></tr>
+      <tr><td><b>سجل الدخول</b></td><td>كل محاولات دخول مستخدمي الشركة ونتيجتها، والاستعلامات في كل جلسة.</td></tr>
+    </table></div>
+    <figure><img src="img/ar/m21-portal-users.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢١.</b> مستخدمو الشركة، يديرهم مسؤول الشركة.</figcaption></figure>
+    <div class="two">
+      <figure><img src="img/ar/m22-portal-invoices.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٢.</b> الفواتير: مسددة أو مسددة جزئيًا أو غير مسددة.</figcaption></figure>
+      <figure><img src="img/ar/m23-portal-signins.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٣.</b> سجل الدخول مع استعلامات الجلسة.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sec" id="ar-9">
+    <div class="sec-h"><span class="n">٩</span><h2>الفوترة والقيود</h2></div>
+    <h3>خطط الأسعار</h3>
+    <p class="prose"><b>الفحص ← الفوترة ← خطط الأسعار</b> (SCR.BILLING.MANAGE). تحدد الخطة بالجنيه المصري:</p>
+    <ul class="b">
+      <li><b>رسم المستخدم الشهري</b>: المستخدم النشط في أي يوم من الشهر يُحاسَب عن الشهر، والمسؤول يُحتسب؛</li>
+      <li><b>الاستعلامات المجانية</b> في كل فترة فوترة (٠ = لا شيء)؛</li>
+      <li>سعر الاستعلام: <b>سعر واحد لكل استعلام</b>، أو <b>شرائح</b> يتغير فيها السعر حسب عدد الاستعلامات في الفترة.</li>
+    </ul>
+    <p class="prose">كل استعلام يُحتسب أيًا كانت نتيجته، من البوابة أو من API. ولا يدفع عميل API رسم مستخدم. لا تُحتسب ضريبة قيمة مضافة. والأسعار الجديدة تسري على الفواتير التي تصدر بعد ذلك.</p>
+    <div class="two">
+      <figure><img src="img/ar/m27-price-plans.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٤.</b> خطط الأسعار.</figcaption></figure>
+      <figure><img src="img/ar/m28-plan-tiers.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٥.</b> خطة بشرائح، ومربع التجربة الذي يسعّر عددًا من الاستعلامات.</figcaption></figure>
+    </div>
+    <h3>الفواتير</h3>
+    <p class="prose">تُفوتر كل شركة <b>شهريًا أو ربع سنويًا أو سنويًا</b>. وتصدر الفاتورة في <b>نهاية فترة الشركة</b>، وهي ليست دائمًا نهاية شهر ميلادي:</p>
+    <ul class="b">
+      <li>عبر إقفال اليوم في آخر يوم من الفترة (المهمة <code>SCR_INVOICES</code>)، أو</li>
+      <li>يدويًا بزر <b>فاتورة جديدة</b> في الفوترة.</li>
+    </ul>
+    <figure><img src="img/ar/m24-billing.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٦.</b> الفوترة: الفترة الحالية لكل شركة حتى الآن، وفواتيرها.</figcaption></figure>
+    <figure><img src="img/ar/m25-invoice.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٧.</b> فاتورة: المستخدمون وشرائح الاستعلامات والمدفوعات والرصيد المستحق وقيودها.</figcaption></figure>
+    <h3>السداد والإلغاء</h3>
+    <ul class="b">
+      <li><b>تسجيل سداد</b>: التاريخ والمبلغ والحساب البنكي الذي وصل إليه المبلغ ومرجع البنك. السداد الجزئي يترك الباقي مستحقًا.</li>
+      <li><b>إلغاء الفاتورة</b> يحفظها مُعلَّمة بالإلغاء مع السبب، ويعكس قيدها بتاريخ اليوم، ويمكن بعدها فوترة الفترة من جديد. ولا يمكن إلغاء فاتورة عليها مدفوعات.</li>
+    </ul>
+    <figure><img src="img/ar/m26-payment.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٨.</b> تسجيل سداد.</figcaption></figure>
+    <h3>القيود المحاسبية</h3>
+    <p class="prose">المنتج <b>SCR_SERVICES</b> برمز الأستاذ العام <b>SCR</b>. تُرقّم القيود <code>CAP-SCR-…</code> وتُرحّل فورًا دون انتظار إقفال اليوم.</p>
+    <div class="tbl"><table>
+      <tr><th>الحدث</th><th>القاعدة</th><th>مدين</th><th>دائن</th></tr>
+      <tr><td>إصدار الفاتورة</td><td><code>SCR_INVOICE</code></td><td>120701 رسوم فحص مستحقة التحصيل</td><td>410701 إيراد رسوم المستخدمين · 410702 إيراد رسوم الاستعلامات</td></tr>
+      <tr><td>استلام سداد</td><td><code>SCR_PAYMENT</code></td><td>حساب الأستاذ العام للحساب البنكي</td><td>120701 رسوم فحص مستحقة التحصيل</td></tr>
+      <tr><td>إلغاء الفاتورة</td><td>عكس</td><td colspan="2">عكس قيد الفاتورة بتاريخ الإلغاء</td></tr>
+    </table></div>
+    <div class="note"><span class="ic">التاريخ</span><p>يُؤرَّخ قيد الفاتورة بآخر يوم في الفترة، أو بيوم الإصدار إذا صدرت الفاتورة قبل نهاية الفترة.</p></div>
+  </section>
+
+  <section class="sec" id="ar-10">
+    <div class="sec-h"><span class="n">١٠</span><h2>إقفال اليوم</h2></div>
+    <p class="prose"><b>إقفال اليوم</b> هو المعالجة الليلية لكل تطبيقات فينوفا (EOD.VIEW وEOD.RUN وEOD.JOBS.EDIT). يشغّله المسؤول:</p>
+    <ul class="b">
+      <li><b>يوم واحد</b>: اليوم التالي المطلوب تشغيله، أو</li>
+      <li><b>عدة أيام حتى</b> تاريخ: كل يوم من التالي بالترتيب، ويتوقف عند يوم تفشل فيه مهمة. ولا تُشغَّل الأيام بعد تاريخ اليوم.</li>
+    </ul>
+    <div class="tbl"><table>
+      <tr><th>الترتيب</th><th>المهمة</th><th>ماذا تفعل</th><th>الإعداد</th></tr>
+      <tr><td>10</td><td><code>LND_DAILY</code></td><td>التمويل الاستهلاكي: الاستحقاق اليومي والمتأخرات.</td><td>–</td></tr>
+      <tr><td>20</td><td><code>SCR_LICENCE_EXPIRY</code></td><td>ترسل بريدًا لمسؤول الشركة وبريد التواصل قبل انتهاء الترخيص وفي آخر يوم له.</td><td>أيام التذكير، افتراضيًا 30,7,1</td></tr>
+      <tr><td>30</td><td><code>SCR_INVOICES</code></td><td>تُصدر وتُرحّل فاتورة كل شركة تنتهي فترتها في ذلك اليوم.</td><td>إصدار الفواتير الصفرية، افتراضيًا N</td></tr>
+      <tr><td>40</td><td><code>SCR_HOUSEKEEPING</code></td><td>تغلق محاولات الدخول التي بقيت بانتظار الرمز (<i>لم يُدخل الرمز</i>)، وتُحصي الحسابات التي انتهى رابط تفعيلها.</td><td>–</td></tr>
+    </table></div>
+    <figure><img src="img/ar/m29-eod.jpg" alt="" loading="lazy"><figcaption><b>شكل ٢٩.</b> إقفال اليوم: كل يوم عمل بمهامه. هنا فشلت مهمة فبقي اليوم مفتوحًا.</figcaption></figure>
+    <div class="two">
+      <figure><img src="img/ar/m30-eod-run.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣٠.</b> التشغيل: يوم واحد أو عدة أيام حتى تاريخ.</figcaption></figure>
+      <figure><img src="img/ar/m31-eod-jobs.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣١.</b> المهام: تشغيل المهمة أو إيقافها وضبط إعداداتها.</figcaption></figure>
+    </div>
+    <div class="note warn"><span class="ic">فشل مهمة</span><p>تستمر باقي المهام لكن يبقى اليوم مفتوحًا. اقرأ رسالة المهمة وعالج السبب ثم اضغط <b>تشغيل</b> مرة أخرى: تُشغَّل فقط المهام التي لم تكتمل، فلا يُرحَّل شيء مرتين.</p></div>
+  </section>
+
+  <section class="sec" id="ar-11">
+    <div class="sec-h"><span class="n">١١</span><h2>مركز الاتصالات</h2></div>
+    <p class="prose">تمر من هنا كل رسائل النظام: روابط التفعيل وإعادة التعيين، وتذكيرات التراخيص، والفواتير.</p>
+    <ol class="b">
+      <li><b>مركز الاتصالات ← خوادم البريد ← خادم بريد جديد</b> (CMC.MAIL_SERVER.EDIT): الخادم والمنفذ وSSL واسم المستخدم وكلمة المرور واسم المرسل وعنوانه.</li>
+      <li><b>إرسال رسالة تجريبية</b>. يجب أن ينجح الخادم في الاختبار قبل أن يصبح زر <b>استخدام هذا الخادم</b> متاحًا.</li>
+      <li><b>استخدام هذا الخادم</b> يجعله الخادم الذي يرسل منه النظام.</li>
+    </ol>
+    <figure><img src="img/ar/m32-mail-servers.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣٢.</b> خوادم البريد: الخادم المستخدم وآخر اختبار لكل خادم.</figcaption></figure>
+    <div class="note"><span class="ic">Gmail</span><p>فعّل التحقق بخطوتين في حساب Google وأنشئ <b>كلمة مرور تطبيق</b> من ١٦ حرفًا، واستخدمها بدل كلمة المرور العادية. الخادم <code>smtp.gmail.com</code> والمنفذ 587 مع SSL. وللاختبار: <code>name+bank1@gmail.com</code> يصل إلى <code>name@gmail.com</code>، فيمكن لعدة مستخدمين تجريبيين مشاركة صندوق واحد.</p></div>
+    <figure><img src="img/ar/m33-email-log.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣٣.</b> الرسائل المرسلة (CMC.EMAIL_LOG.VIEW): كل رسالة، أُرسلت أو فشلت، مع سبب الخطأ.</figcaption></figure>
+  </section>
+
+  <section class="sec" id="ar-12">
+    <div class="sec-h"><span class="n">١٢</span><h2>الدخول والتدقيق والأمان</h2></div>
+    <h3>سجل الدخول والنشاط</h3>
+    <p class="prose"><b>الفحص ← سجل الدخول والنشاط</b> (SCR.ACCESS_LOG.VIEW): كل محاولة دخول بالمستخدم والشركة والوقت وعنوان الشبكة والجهاز والنتيجة، وافتح الجلسة لترى الاستعلامات التي تمت فيها.</p>
+    <figure><img src="img/ar/m34-access-log.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣٤.</b> سجل الدخول والنشاط.</figcaption></figure>
+    <h3>تدقيق الاستعلامات والأختام</h3>
+    <p class="prose"><b>الفحص ← تدقيق الاستعلامات</b> (SCR.INQUIRY.AUDIT) يعرض كل استعلامات كل الشركات، من البوابة ومن API.</p>
+    <ul class="b">
+      <li>يُختم كل استعلام عند إجرائه: بصمة SHA-256 تشمل أيضًا ختم الاستعلام السابق له، فتتكون سلسلة.</li>
+      <li>ترفض قاعدة البيانات نفسها أي تعديل على استعلام مختوم وأي حذف.</li>
+      <li>تتحقق الشهادة من ختم استعلامها في كل مرة تُفتح. ويمكن لفريق التقنية فحص السلسلة كاملة عبر <code>GET /api/scr/inquiries/seal-check</code>.</li>
+    </ul>
+    <figure><img src="img/ar/m35-inquiries.jpg" alt="" loading="lazy"><figcaption><b>شكل ٣٥.</b> تدقيق الاستعلامات.</figcaption></figure>
+    <h3>الحمايات المدمجة</h3>
+    <div class="tbl"><table>
+      <tr><th>الحماية</th><th>الحد</th></tr>
+      <tr><td>الفحص من البوابة</td><td>٣٠ في الدقيقة لكل مستخدم</td></tr>
+      <tr><td>صفحات تسجيل الدخول</td><td>٣٠ طلبًا في الدقيقة لكل عنوان شبكة</td></tr>
+      <tr><td>حظر الشبكة</td><td>٢٠ محاولة فاشلة خلال ١٥ دقيقة</td></tr>
+      <tr><td>قفل الحساب</td><td>٥ كلمات مرور أو رموز خاطئة، ١٥ دقيقة</td></tr>
+      <tr><td>API</td><td>٦٠ طلبًا في الدقيقة لكل عميل، و١٠ طلبات رمز دخول في الدقيقة لكل عنوان شبكة</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec" id="ar-13">
+    <div class="sec-h"><span class="n">١٣</span><h2>واجهة برمجة الفحص (لفرق التقنية)</h2></div>
+    <p class="prose">تفحص أنظمة الشركة العضو عملاءها عبر واجهة البرمجة. تُحفظ استعلامات API وتُختم وتُفوتر وتُدقق تمامًا مثل استعلامات البوابة، وتظهر في سجل الشركة. يجب أن يكون العميل نشطًا وترخيص الشركة ساريًا. كل الطلبات HTTPS وJSON، وأسماء الحقول بصيغة camelCase، والأوقات بتوقيت UTC.</p>
+    <h3>١. بيانات الدخول</h3>
+    <p class="prose">ينشئ الاتحاد عميل API (القسم ٧) ويسلّمك <b>معرّف العميل</b> و<b>السر</b>. احفظ السر في خزنة الأسرار، ولا تضعه أبدًا في الشيفرة المصدرية.</p>
+    <h3>٢. الحصول على رمز دخول (صالح ساعة)</h3>
+    <pre class="code-block" dir="ltr">POST /api/scr/v1/token
+Content-Type: application/json
+
+{ "clientId": "scr_nfc_7k2m9q4x", "clientSecret": "••••••••" }
+
+200 → { "accessToken": "eyJ…", "tokenType": "Bearer", "expiresIn": 3600, "expiresAt": "2026-11-22T10:15:00Z" }</pre>
+    <p class="prose">أرسله في كل طلب بعد ذلك بالشكل <code>Authorization: Bearer &lt;accessToken&gt;</code>. أعد استخدامه حتى قرب انتهائه، ولا تطلب رمزًا لكل استعلام.</p>
+    <h3>٣. فحص عميل</h3>
+    <pre class="code-block" dir="ltr">POST /api/scr/v1/inquiries
+Authorization: Bearer eyJ…
+
+{ "subjectTypeCode": "PERSON", "subjectName": "Mahmoud Hassan Ali",
+  "identityTypeCode": "NATIONAL_ID", "identityNo": "28506151234567",
+  "birthDate": "1985-06-15", "nationalityCode": "EG",
+  "purposeCode": "ONBOARDING", "purposeText": null, "caseReference": "CB-2026-4471" }
+
+200 → { "inquiryRef": "SCR-2026-004812", "result": "MATCH", "listVersion": 14,
+        "screenedAt": "…", "channel": "API", "caseReference": "CB-2026-4471",
+        "hits": [ { "matchBasis": "ID_AND_NAME", "nameScore": 100, "entryStatus": "ACTIVE",
+                    "decisionRef": "DEC-000031", "officialNo": "FRZ-106/2026", "scope": "…",
+                    "listedFrom": "2026-03-02", "liftedOn": null } ],
+        "recordHash": "9f2c…" }</pre>
+    <div class="tbl"><table>
+      <tr><th>الحقل</th><th>إلزامي</th><th>القيم</th></tr>
+      <tr><td><code>subjectTypeCode</code></td><td>نعم</td><td>PERSON (شخص) أو COMPANY (شركة)</td></tr>
+      <tr><td><code>subjectName</code></td><td>نعم</td><td>الاسم بالعربية أو الإنجليزية</td></tr>
+      <tr><td><code>identityTypeCode</code></td><td>نعم</td><td>للشخص: NATIONAL_ID أو PASSPORT أو OTHER · للشركة: COMMERCIAL_REGISTER أو OTHER</td></tr>
+      <tr><td><code>identityNo</code></td><td>نعم</td><td>الرقم القومي ١٤ رقمًا · جواز السفر من ٥ إلى ٢٠ حرفًا ورقمًا · السجل التجاري حتى ١٥ رقمًا · أخرى من ٣ إلى ٣٠ حرفًا</td></tr>
+      <tr><td><code>birthDate</code></td><td>لا</td><td>yyyy-mm-dd، للأشخاص فقط</td></tr>
+      <tr><td><code>nationalityCode</code></td><td>لا</td><td>رمز الدولة من حرفين (EG، SA…)</td></tr>
+      <tr><td><code>purposeCode</code></td><td>نعم</td><td>ONBOARDING أو TRANSACTION أو PERIODIC_REVIEW أو OTHER</td></tr>
+      <tr><td><code>purposeText</code></td><td>مع OTHER</td><td>نص حر</td></tr>
+      <tr><td><code>caseReference</code></td><td>لا</td><td>مرجعك الخاص، يعود مع النتيجة</td></tr>
+    </table></div>
+    <p class="prose">قيمة <code>result</code> هي MATCH أو POSSIBLE_MATCH أو PREVIOUSLY_LISTED أو NO_MATCH (القسم ٢). احتفظ بـ <code>inquiryRef</code> مع الحالة لديك: فهو اسم السجل المختوم.</p>
+    <h3>٤. طلبات أخرى</h3>
+    <div class="tbl"><table>
+      <tr><th>الطلب</th><th>ما يعيده</th></tr>
+      <tr><td><code>GET /api/scr/v1/inquiries/{inquiryRef}</code></td><td>استعلام واحد لشركتك، من API أو من البوابة</td></tr>
+      <tr><td><code>GET /api/scr/v1/inquiries?from=2026-11-01&amp;to=2026-11-22&amp;take=100</code></td><td>استعلاماتك بين يومين (بتوقيت القاهرة)، الأحدث أولًا؛ <code>take</code> افتراضيًا ١٠٠ وبحد أقصى ٥٠٠</td></tr>
+      <tr><td><code>GET /api/scr/v1/quota</code></td><td><code>quota</code> (null = بلا حد) و<code>used</code> و<code>left</code> وسنة الترخيص <code>from</code>/<code>to</code></td></tr>
+    </table></div>
+    <h3>٥. الأخطاء والحدود</h3>
+    <div class="tbl"><table>
+      <tr><th>الحالة</th><th>error</th><th>المعنى · ماذا تفعل</th></tr>
+      <tr><td>400</td><td>(لكل حقل)</td><td>حقل ناقص أو خاطئ، ويذكر الرد كل حقل. صحّحه ولا تعد الإرسال دون تغيير.</td></tr>
+      <tr><td>401</td><td><code>invalid_client</code></td><td>معرّف العميل أو السر خاطئ، أو العميل ملغى (الرد نفسه في الحالات الثلاث).</td></tr>
+      <tr><td>401</td><td>–</td><td>رمز الدخول غير موجود أو منتهٍ: اطلب رمزًا جديدًا.</td></tr>
+      <tr><td>403</td><td><code>company_blocked</code></td><td>الشركة موقوفة أو انتهى ترخيصها.</td></tr>
+      <tr><td>403</td><td><code>quota_reached</code></td><td>استُنفد الحد السنوي لسنة الترخيص.</td></tr>
+      <tr><td>404</td><td><code>not_found</code> · <code>no_licence</code></td><td>لا يوجد هذا الاستعلام لشركتك · لا يوجد ترخيص سارٍ.</td></tr>
+      <tr><td>429</td><td><code>rate_limited</code></td><td>طلبات كثيرة: انتظر عدد الثواني في ترويسة <code>Retry-After</code>.</td></tr>
+    </table></div>
+    <p class="prose">شكل الخطأ: <code>{ "error": "quota_reached", "message": "…" }</code>. الحدود: ٦٠ طلبًا في الدقيقة لكل عميل، و١٠ طلبات رمز دخول في الدقيقة لكل عنوان شبكة.</p>
+    <div class="note"><span class="ic">ممارسات جيدة</span><p>أعد استخدام رمز الدخول. لا تُعد طلبًا رُفض بـ 429 إلا بعد <code>Retry-After</code>. لا تُعد طلبًا رُفض بـ 400 أو 403 دون تغيير. وعامل POSSIBLE_MATCH كحالة يراجعها شخص.</p></div>
+  </section>
+
+  <section class="sec" id="ar-14">
+    <div class="sec-h"><span class="n">١٤</span><h2>الصلاحيات والحالات والأسئلة</h2></div>
+    <h3>الصلاحيات</h3>
+    <div class="tbl"><table>
+      <tr><th>الصلاحية</th><th>تسمح بـ</th></tr>
+      <tr><td><code>SCR.LETTER.EDIT</code></td><td>تسجيل الخطابات وإرفاق مسحها الضوئي</td></tr>
+      <tr><td><code>SCR.DECISION.VIEW</code></td><td>الاطلاع على القرارات والقائمة النهائية</td></tr>
+      <tr><td><code>SCR.DECISION.EDIT</code></td><td>إدخال القرارات وتشغيل مسار عملها</td></tr>
+      <tr><td><code>SCR.DECISION.REVIEW</code></td><td>مراجعة قرار (وليس قرارًا أدخلته)</td></tr>
+      <tr><td><code>SCR.DECISION.APPROVE</code></td><td>الاعتماد والنشر (وليس قرارًا أدخلته أو راجعته)</td></tr>
+      <tr><td><code>SCR.COMPANY.ADMIN</code></td><td>الاتحاد: الشركات الأعضاء والتراخيص وعملاء API وأي مستخدم</td></tr>
+      <tr><td><code>SCR.COMPANY.USERS</code></td><td>مسؤول الشركة: مستخدمو شركته، والفواتير وسجل الدخول في البوابة</td></tr>
+      <tr><td><code>SCR.INQUIRY.CREATE</code></td><td>فحص العملاء في البوابة</td></tr>
+      <tr><td><code>SCR.INQUIRY.AUDIT</code></td><td>استعلامات كل الشركات</td></tr>
+      <tr><td><code>SCR.BILLING.MANAGE</code> · <code>SCR.BILLING.VIEW</code></td><td>خطط الأسعار والفواتير والمدفوعات · الاطلاع فقط</td></tr>
+      <tr><td><code>SCR.ACCESS_LOG.VIEW</code></td><td>سجل الدخول والنشاط</td></tr>
+      <tr><td><code>EOD.VIEW</code> · <code>EOD.RUN</code> · <code>EOD.JOBS.EDIT</code></td><td>رؤية إقفال اليوم · تشغيله · تعديل مهامه</td></tr>
+      <tr><td><code>CMC.MAIL_SERVER.EDIT</code> · <code>CMC.EMAIL_LOG.VIEW</code></td><td>خوادم البريد · الرسائل المرسلة</td></tr>
+    </table></div>
+    <h3>الحالات</h3>
+    <div class="tbl"><table>
+      <tr><th>العنصر</th><th>الحالات</th></tr>
+      <tr><td>الخطاب</td><td>مستلم · مفهرس · مغلق</td></tr>
+      <tr><td>القرار</td><td>مسودة · قيد المراجعة · بانتظار الاعتماد · مُعاد · منشور · ملغى</td></tr>
+      <tr><td>قيد القائمة النهائية</td><td>ساري · موقوف · مرفوع</td></tr>
+      <tr><td>الشركة</td><td>نشطة · موقوفة</td></tr>
+      <tr><td>مستخدم الشركة</td><td>بانتظار التفعيل · نشط · غير نشط</td></tr>
+      <tr><td>الفاتورة</td><td>صادرة · ملغاة؛ غير مسددة · مسددة جزئيًا · مسددة</td></tr>
+      <tr><td>يوم / مهمة إقفال اليوم</td><td>مفتوح · مكتمل / مكتملة · فاشلة · متخطاة</td></tr>
+    </table></div>
+    <h3>أسئلة شائعة</h3>
+    <div class="tbl"><table>
+      <tr><th>السؤال</th><th>الإجابة</th></tr>
+      <tr><td>لم يصل بريد التفعيل.</td><td>راجع البريد غير المرغوب، ثم اطلب الرابط من جديد (المستخدمون ← إرسال البريد، أو نسخ الرابط). يعمل أحدث رابط فقط ولمدة ٤٨ ساعة.</td></tr>
+      <tr><td>رموز التطبيق مرفوضة.</td><td>اضبط ساعة الهاتف على التلقائي. بعد ٥ رموز خاطئة يُقفل الحساب ١٥ دقيقة.</td></tr>
+      <tr><td>لا أستطيع إضافة مستخدم آخر.</td><td>مقاعد الترخيص ممتلئة، والمستخدم بانتظار التفعيل يحجز مقعدًا. اطلب من الاتحاد ترخيصًا جديدًا.</td></tr>
+      <tr><td>الفحص يقول إن الحد السنوي استُنفد.</td><td>استُنفدت استعلامات سنة الترخيص، ويبدأ العد من جديد في يوم بدء الترخيص كل عام.</td></tr>
+      <tr><td>هل يمكن تصحيح استعلام أو حذفه؟</td><td>لا: فهو مختوم. أعد الفحص بالبيانات الصحيحة، ويُحفظ الاستعلامان.</td></tr>
+      <tr><td>لماذا يعطي الشخص الموقوف مطابقة؟</td><td>الإيقاف لا يحذف أحدًا من القائمة. وحده قرار الرفع المعتمد يعطي مدرج سابقًا.</td></tr>
+      <tr><td>إقفال اليوم يُظهر اليوم مفتوحًا.</td><td>فشلت مهمة. اقرأ رسالتها وعالج السبب ثم اضغط تشغيل مرة أخرى.</td></tr>
+      <tr><td>زر استخدام هذا الخادم غير متاح.</td><td>أرسل رسالة تجريبية أولًا، ومع Gmail استخدم كلمة مرور تطبيق.</td></tr>
+    </table></div>
+  </section>
+  <p class="foot">FINOVA · دليل مستخدم الفحص · الإصدار ١٫٠ · نوفمبر ٢٠٢٦</p>
+  </main>
+</div>
+</div>
+
+<script>
+(function(){
+  var docs={en:document.getElementById('doc-en'),ar:document.getElementById('doc-ar')};
+  var label=document.querySelector('.bar .doc');
+  var bar=document.querySelector('.bar');
+  function langOf(h){h=(h||'').replace('#','');if(h==='ar'||h.indexOf('ar-')===0)return 'ar';return 'en';}
+  function show(){
+    var h=location.hash, l=langOf(h);
+    docs.en.hidden=l!=='en'; docs.ar.hidden=l!=='ar';
+    bar.setAttribute('dir',l==='ar'?'rtl':'ltr');
+    label.textContent=label.getAttribute('data-'+l);
+    label.setAttribute('lang',l);
+    document.querySelectorAll('.lang a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-l')===l)});
+    document.title=l==='ar'?'دليل مستخدم الفحص · FINOVA':'FINOVA Screening User Manual';
+    var id=h.replace('#','');
+    if(id && id!=='en' && id!=='ar'){var t=document.getElementById(id); if(t) t.scrollIntoView();}
+    else window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body></html>
