@@ -3,6 +3,7 @@
 | Module | English | Arabic |
 | --- | --- | --- |
 | Module Settings (Administration) | [administration/module-settings-manual.html](administration/module-settings-manual.html) | [administration/module-settings-manual.html#ar](administration/module-settings-manual.html#ar) |
+| Factoring (Finova edition) | [factoring/factoring-manual.html](factoring/factoring-manual.html) | [factoring/factoring-manual.html#ar](factoring/factoring-manual.html#ar) |
 | Screening | [screening/screening-manual.html](screening/screening-manual.html) | [screening/screening-manual.html#ar](screening/screening-manual.html#ar) |
 | Treasury | [treasury/treasury-manual.html](treasury/treasury-manual.html) | [treasury/treasury-manual.html#ar](treasury/treasury-manual.html#ar) |
 | Workflow | [workflow/workflow-manual.html](workflow/workflow-manual.html) | [workflow/workflow-manual.html#ar](workflow/workflow-manual.html#ar) |
