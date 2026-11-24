@@ -340,3 +340,8 @@ html[dir=rtl] .fc .scr-hit--listed { box-shadow: inset -4px 0 0 var(--fin-bad); 
 .fc .scr-basis--yes { color: var(--fin-ok); }
 .fc .scr-basis--no { color: var(--fin-bad); }
 .fc .scr-name-min input[type=range] { width: 100%; accent-color: var(--fin-teal-600); min-height: 44px; }
+/* the decisions behind a Final List entry in an inquiry result, with their letters' scans */
+.fc .scr-hit-docs-btn { margin-inline-start: auto; }
+.fc .scr-hit-docs { display: grid; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--fin-line); background: var(--fin-surface-2, #f7faf9); }
+.fc .scr-hit-doc { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+@media print { .fc .scr-hit-docs-btn, .fc .scr-hit-docs { display: none; } }

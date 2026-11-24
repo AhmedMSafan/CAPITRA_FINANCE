@@ -40,6 +40,25 @@
         <span class="fx-chip" :class="CHIP_STATUS[h.entryStatusCode]">{{ tr(LABELS[h.entryStatusCode] ?? h.entryStatusCode) }}</span>
         <span class="scr-hit-decision fc-muted"><span dir="ltr">{{ h.decisionRef }}</span> (<span dir="ltr">{{ h.officialNo }}</span>) · {{ formatDate(h.listedFrom) }}
           <template v-if="h.liftedOn"> · {{ tr('Lifted') }} {{ formatDate(h.liftedOn) }}</template></span>
+        <button v-if="h.partyId" type="button" class="fx-btn fx-btn--sm scr-hit-docs-btn" :aria-expanded="!!open[h.partyId]" @click="toggle(h.partyId)">
+          <span class="fa fa-file-image-o" aria-hidden="true"></span>{{ tr('Decision documents') }}
+          <span :class="['fa', open[h.partyId] ? 'fa-chevron-up' : 'fa-chevron-down']" aria-hidden="true"></span></button>
+      </div>
+      <div v-if="h.partyId && open[h.partyId]" class="scr-hit-docs">
+        <div v-if="!docs[h.partyId]" class="fc-muted"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span> {{ tr('Loading...') }}</div>
+        <div v-else-if="!docs[h.partyId]!.length" class="fc-muted">{{ tr('No decision documents.') }}</div>
+        <div v-for="d in docs[h.partyId] ?? []" v-else :key="d.decisionId" class="scr-hit-doc">
+          <span class="fx-chip">{{ tr(LABELS[d.decisionTypeCode] ?? d.decisionTypeCode) }}</span>
+          <span><b dir="ltr">{{ d.decisionRef }}</b> (<span dir="ltr">{{ d.officialNo }}</span>) · {{ formatDate(d.effectiveDate) }}
+            <template v-if="d.letterNo"> · {{ tr('Letter') }} <span dir="ltr">{{ d.letterNo }}</span></template></span>
+          <div class="scr-files">
+            <button v-for="f in d.files" :key="f.letterFileId" type="button" class="fx-btn fx-btn--sm scr-file" @click="viewing = { partyId: h.partyId, decision: d, file: f }">
+              <span :class="['fa', f.mimeType === 'application/pdf' ? 'fa-file-pdf-o' : 'fa-file-image-o']" aria-hidden="true"></span><span dir="auto">{{ f.fileName }}</span>
+              <span class="scr-file-view"><span class="fa fa-eye" aria-hidden="true"></span>{{ tr('View') }}</span>
+            </button>
+            <span v-if="!d.files.length" class="fc-muted">{{ tr('No scan attached') }}</span>
+          </div>
+        </div>
       </div>
       <div class="fx-table-wrap">
         <table class="fx-table scr-checks">
@@ -56,16 +75,42 @@
       </div>
       <div class="scr-hit-scope"><span class="fa fa-balance-scale" aria-hidden="true"></span><span>{{ tr('Scope') }}:</span> <b>{{ h.scopeText }}</b></div>
     </div>
+    <ScrDocViewer v-if="viewing" :title="`${viewing.decision.decisionRef} (${viewing.decision.officialNo})`" :file-name="viewing.file.fileName"
+                  :mime-type="viewing.file.mimeType" :subtitle="`${tr(LABELS[viewing.decision.decisionTypeCode] ?? viewing.decision.decisionTypeCode)} · ${formatDate(viewing.decision.effectiveDate)}`"
+                  :load="() => scrApi.hitFile(inquiry.inquiryId, viewing!.partyId, viewing!.file.letterFileId)" @close="viewing = null" />
   </section>
 </template>
 
 <script setup lang="ts">
+import { reactive, ref, watch } from 'vue'
 import { formatDate, formatDateTime } from '../utils/dates'
 import { tr } from '@/shared/layout/language'
-import { LABELS, type ScrInquiry } from '../api/scr.api'
+import { showError } from '@/shared/feedback/feedback'
+import ScrDocViewer from './ScrDocViewer.vue'
+import { LABELS, errorText, scrApi, type ScrHitDecision, type ScrInquiry } from '../api/scr.api'
 import { MARK_ICON, checkRows, foundText } from '../utils/levels'
 
-defineProps<{ inquiry: ScrInquiry }>()
+const props = defineProps<{ inquiry: ScrInquiry }>()
+
+/** The decisions behind each entry (its listing and any later decision on it), read when the user opens them. */
+const open = reactive<Record<number, boolean>>({})
+const docs = reactive<Record<number, ScrHitDecision[] | undefined>>({})
+const viewing = ref<{ partyId: number; decision: ScrHitDecision; file: ScrHitDecision['files'][number] } | null>(null)
+watch(() => props.inquiry.inquiryId, () => {
+  for (const k of Object.keys(open)) delete open[Number(k)]
+  for (const k of Object.keys(docs)) delete docs[Number(k)]
+  viewing.value = null
+})
+async function toggle(partyId: number) {
+  open[partyId] = !open[partyId]
+  if (!open[partyId] || docs[partyId]) return
+  try {
+    docs[partyId] = await scrApi.hitDecisions(props.inquiry.inquiryId, partyId)
+  } catch (err) {
+    open[partyId] = false
+    showError(errorText(err))
+  }
+}
 /** The entry's status on the list, a fact: active and suspended entries in force, lifted ones history. */
 const CHIP_STATUS: Record<string, string> = { ACTIVE: 'fx-chip--bad', SUSPENDED: 'fx-chip--warn', LIFTED: 'fx-chip--teal' }
 const print = () => window.print()

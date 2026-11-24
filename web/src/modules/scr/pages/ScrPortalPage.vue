@@ -21,7 +21,16 @@
       </div>
     </div>
 
-    <div class="fx-card">
+    <div v-if="notMember" class="fx-card scr-no-access">
+      <span class="fa fa-info-circle" aria-hidden="true"></span>
+      <div>
+        <b>{{ tr('The Screening Portal is for member company users') }}</b>
+        <p>{{ tr(notMember) }} {{ tr('Federation staff see every company\'s screenings in Inquiry audit.') }}</p>
+        <RouterLink v-if="canAudit" :to="{ name: 'scr-inquiries' }" class="fx-btn fx-btn--sm"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('Open Inquiry audit') }}</RouterLink>
+      </div>
+    </div>
+
+    <div v-else class="fx-card">
       <div class="fc-tabs" role="tablist">
         <button type="button" class="fc-tab" role="tab" :aria-selected="tab === 'new'" @click="tab = 'new'"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('New inquiry') }}</button>
         <button type="button" class="fc-tab" role="tab" :aria-selected="tab === 'mine'" @click="openHistory"><span class="fa fa-history" aria-hidden="true"></span>{{ tr('My inquiries') }}<em v-if="history.length">{{ history.length }}</em></button>
@@ -134,6 +143,7 @@ import { openScreeningManual } from '@/modules/scr/utils/manual'
 import { foundLabel, idLevel, nameLevel } from '../utils/levels'
 
 const canUsers = hasPermission('SCR.COMPANY.USERS')
+const canAudit = hasPermission('SCR.INQUIRY.AUDIT')
 const route = useRoute()
 const tab = ref<'new' | 'mine' | 'users' | 'invoices' | 'signins'>(route.query.tab === 'invoices' && canUsers ? 'invoices' : 'new')
 const company = ref<ScrMyCompany | null>(null)
@@ -189,9 +199,16 @@ async function openHistory() {
   await loadHistory()
 }
 
+/** Set when the signed-in user belongs to no member company (federation staff): the page explains instead of failing. */
+const notMember = ref<string | null>(null)
 onMounted(async () => {
   try {
     company.value = await scrApi.myCompany()
+  } catch (err) {
+    notMember.value = errorText(err)
+    return
+  }
+  try {
     await loadHistory()
   } catch (err) {
     showError(errorText(err))

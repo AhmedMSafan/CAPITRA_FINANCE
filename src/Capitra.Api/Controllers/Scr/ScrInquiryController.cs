@@ -64,6 +64,29 @@ public sealed class ScrInquiryController(ScrInquiryService inquiries, CompanyAcc
             return Forbid();
         return Ok(await inquiries.GetAsync(inquiryId, audit, ct));
     }
+
+    /// <summary>The decisions behind one entry an inquiry found, with their letters' scans: an auditor any; a company user the company's own.</summary>
+    [HttpGet("{inquiryId:long}/hits/{partyId:long}/decisions")]
+    public async Task<IActionResult> HitDecisions(long inquiryId, long partyId, CancellationToken ct)
+    {
+        var audit = ScrClaims.Has(User, Permissions.Scr.InquiryAudit);
+        if (!audit && !ScrClaims.Has(User, Permissions.Scr.InquiryCreate))
+            return Forbid();
+        return Ok(await inquiries.HitDecisionsAsync(inquiryId, partyId, audit, ct));
+    }
+
+    /// <summary>One scan of a decision behind an inquiry's hit, shown in the browser.</summary>
+    [HttpGet("{inquiryId:long}/hits/{partyId:long}/files/{letterFileId:long}")]
+    public async Task<IActionResult> HitFile(long inquiryId, long partyId, long letterFileId, CancellationToken ct)
+    {
+        var audit = ScrClaims.Has(User, Permissions.Scr.InquiryAudit);
+        if (!audit && !ScrClaims.Has(User, Permissions.Scr.InquiryCreate))
+            return Forbid();
+        var f = await inquiries.HitFileAsync(inquiryId, partyId, letterFileId, audit, ct);
+        Response.Headers.ContentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("inline") { FileNameStar = f.FileName }.ToString();
+        Response.Headers["X-Content-SHA256"] = f.Sha256Hash;
+        return File(f.FileBlob, f.MimeType);
+    }
 }
 
 /// <summary>The permission check for actions open to either of two permissions ([HasPermission] twice means both).</summary>

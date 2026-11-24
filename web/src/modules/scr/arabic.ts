@@ -636,4 +636,11 @@ export const SCR_AR: Record<string, string> = {
   'When': 'الوقت',
   'refused': 'مرفوضة',
   'successful': 'ناجحة',
+  'Decision documents': 'مستندات القرار',
+  'No decision documents.': 'لا توجد مستندات للقرار.',
+  'No scan attached': 'لا توجد صورة مرفقة',
+  'The Screening Portal is for member company users': 'بوابة الفحص مخصصة لمستخدمي الشركات الأعضاء',
+  'Federation staff see every company\'s screenings in Inquiry audit.': 'يطّلع موظفو الاتحاد على استعلامات كل الشركات من تدقيق الاستعلامات.',
+  'Open Inquiry audit': 'فتح تدقيق الاستعلامات',
+  'Screening is for users of a member company.': 'الفحص مخصص لمستخدمي الشركات الأعضاء.',
 }
