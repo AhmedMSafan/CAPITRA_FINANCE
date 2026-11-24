@@ -222,8 +222,53 @@ public sealed class ScrInquiryService(ICapitraDbContext db, ICurrentUser current
         [.. i.Hits.Select(h => entries.TryGetValue((h.PartyId, h.DecisionId), out var e)
             ? new ScrInquiryHitDto(h.MatchBasisCode, h.NameScorePct, h.MatchedName, h.EntryStatusCode, e.PartyTypeCode, e.NameAr, e.NameEn,
                 e.IdentityTypeCode, e.IdentityNo, e.NationalityCode, e.DecisionRef, e.OfficialNo, e.ScopeText, e.ListedFrom, e.LiftedOn,
-                e.BirthDate, h.IdMatchCode, h.IdScorePct, h.IdDigitsDifferent, h.BirthMatchCode, h.NationalityMatchCode)
+                e.BirthDate, h.IdMatchCode, h.IdScorePct, h.IdDigitsDifferent, h.BirthMatchCode, h.NationalityMatchCode, h.PartyId)
             : null).OfType<ScrInquiryHitDto>()], i.ChannelCode, i.ReceivedAt, i.RespondedAt, i.RecordHash, i.MemberCompanyId, company?.NameEn, company?.NameAr, i.NameMatchMinPct, i.IdMatchMinDigits);
+
+    // ---- the decisions behind a hit -------------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// The decisions behind one entry an inquiry found: its listing and the amendments, suspensions and liftings of that party
+    /// published by the inquiry's Final List version, each with its letter's scans. An auditor reads any inquiry; a company user
+    /// only the company's own.
+    /// </summary>
+    public async Task<IReadOnlyList<ScrHitDecisionDto>> HitDecisionsAsync(long inquiryId, long partyId, bool anyCompany, CancellationToken ct)
+    {
+        var decisions = await HitDecisionListAsync(inquiryId, partyId, anyCompany, ct);
+        var letterIds = decisions.Where(d => d.LetterId is not null).Select(d => d.LetterId!.Value).Distinct().ToList();
+        var letters = await db.Set<ScrLetter>().AsNoTracking().Where(l => letterIds.Contains(l.LetterId)).ToDictionaryAsync(l => l.LetterId, ct);
+        var files = await db.Set<ScrLetterFile>().AsNoTracking().Where(f => letterIds.Contains(f.LetterId)).OrderBy(f => f.LetterFileId)
+            .Select(f => new { f.LetterId, f.LetterFileId, f.FileName, f.MimeType, f.FileSizeBytes }).ToListAsync(ct);
+        return [.. decisions.Select(d => new ScrHitDecisionDto(d.DecisionId, d.DecisionRef, d.OfficialNo, d.DecisionTypeCode, d.EffectiveDate, d.RegistryVersionNo,
+            d.LetterId is { } lid && letters.TryGetValue(lid, out var l) ? l.LetterNo : null,
+            [.. files.Where(f => f.LetterId == d.LetterId).Select(f => new ScrHitFileDto(f.LetterFileId, f.FileName, f.MimeType, f.FileSizeBytes))]))];
+    }
+
+    /// <summary>One scan of a decision behind an inquiry's hit; refused for a file of any other decision.</summary>
+    public async Task<ScrLetterFile> HitFileAsync(long inquiryId, long partyId, long letterFileId, bool anyCompany, CancellationToken ct)
+    {
+        var letterIds = (await HitDecisionListAsync(inquiryId, partyId, anyCompany, ct)).Where(d => d.LetterId is not null).Select(d => d.LetterId!.Value).ToList();
+        return await db.Set<ScrLetterFile>().AsNoTracking().FirstOrDefaultAsync(f => f.LetterFileId == letterFileId && letterIds.Contains(f.LetterId), ct)
+            ?? throw new NotFoundException($"File {letterFileId} was not found.");
+    }
+
+    private async Task<List<ScrDecision>> HitDecisionListAsync(long inquiryId, long partyId, bool anyCompany, CancellationToken ct)
+    {
+        var q = db.Set<ScrInquiry>().AsNoTracking().Include(i => i.Hits).Where(i => i.InquiryId == inquiryId);
+        if (!anyCompany)
+        {
+            var company = await MyCompanyAsync(ct);
+            q = q.Where(i => i.MemberCompanyId == company.MemberCompanyId);
+        }
+        var inquiry = await q.FirstOrDefaultAsync(ct) ?? throw new NotFoundException($"Inquiry {inquiryId} was not found.");
+        var hit = inquiry.Hits.FirstOrDefault(h => h.PartyId == partyId) ?? throw new NotFoundException("This entry is not in the inquiry's result.");
+        var version = inquiry.RegistryVersionNo;
+        var list = await db.Set<ScrDecision>().AsNoTracking()
+            .Where(d => d.StatusCode == ScrDecisionStatus.Published && (d.RegistryVersionNo ?? 0) <= version
+                && (d.DecisionId == hit.DecisionId || (d.ParentDecisionId == hit.DecisionId && d.Parties.Any(x => x.PartyId == partyId))))
+            .ToListAsync(ct);
+        return [.. list.OrderBy(d => d.RegistryVersionNo ?? 0).ThenBy(d => d.DecisionId)];
+    }
 
     // ---- seals ------------------------------------------------------------------------------------------------------------------
 

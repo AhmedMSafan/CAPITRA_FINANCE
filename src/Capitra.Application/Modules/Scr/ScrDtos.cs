@@ -47,7 +47,14 @@ public sealed record ScrInquiryHitDto(
     string MatchBasisCode, decimal NameScorePct, string MatchedName, string EntryStatusCode, string PartyTypeCode, string NameAr, string? NameEn,
     string IdentityTypeCode, string IdentityNo, string NationalityCode, string DecisionRef, string OfficialNo, string ScopeText,
     DateOnly ListedFrom, DateOnly? LiftedOn, DateOnly? BirthDate = null, string? IdMatchCode = null, decimal? IdScorePct = null,
-    int? IdDigitsDifferent = null, string? BirthMatchCode = null, string? NationalityMatchCode = null);
+    int? IdDigitsDifferent = null, string? BirthMatchCode = null, string? NationalityMatchCode = null, long PartyId = 0);
+
+/// <summary>A decision behind a Final List entry found by an inquiry (its listing, and any amendment, suspension or lifting published
+/// by the inquiry's Final List version), with the scans of its letter.</summary>
+public sealed record ScrHitDecisionDto(long DecisionId, string DecisionRef, string OfficialNo, string DecisionTypeCode, DateOnly EffectiveDate,
+    int? RegistryVersionNo, string? LetterNo, IReadOnlyList<ScrHitFileDto> Files);
+
+public sealed record ScrHitFileDto(long LetterFileId, string FileName, string MimeType, long FileSizeBytes);
 
 public sealed record ScrInquiryDto(
     long InquiryId, string InquiryRef, string CompanyCode, string RequestedBy, string SubjectTypeCode, string SubjectName, string IdentityTypeCode,

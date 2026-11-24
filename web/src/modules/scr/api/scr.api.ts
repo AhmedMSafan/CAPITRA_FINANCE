@@ -62,7 +62,12 @@ export type ScrInquiryHit = {
   nameEn: string | null; identityTypeCode: string; identityNo: string; nationalityCode: string; decisionRef: string; officialNo: string
   scopeText: string; listedFrom: string; liftedOn: string | null
   birthDate?: string | null; idMatchCode?: string | null; idScorePct?: number | null; idDigitsDifferent?: number | null
-  birthMatchCode?: string | null; nationalityMatchCode?: string | null
+  birthMatchCode?: string | null; nationalityMatchCode?: string | null; partyId?: number
+}
+/** A decision behind a Final List entry an inquiry found, with its letter's scans. */
+export type ScrHitDecision = {
+  decisionId: number; decisionRef: string; officialNo: string; decisionTypeCode: string; effectiveDate: string; registryVersionNo: number | null
+  letterNo: string | null; files: { letterFileId: number; fileName: string; mimeType: string; fileSizeBytes: number }[]
 }
 export type ScrInquiry = {
   inquiryId: number; inquiryRef: string; companyCode: string; requestedBy: string; subjectTypeCode: string; subjectName: string
@@ -263,6 +268,9 @@ export const scrApi = {
   registry: () => http.get<ScrRegistry>(`${API}/registry`),
 
   myCompany: () => http.get<ScrMyCompany>(`${API}/inquiries/my-company`),
+  /** The decisions behind one entry an inquiry found, with their letters' scans. */
+  hitDecisions: (inquiryId: number, partyId: number) => http.get<ScrHitDecision[]>(`${API}/inquiries/${inquiryId}/hits/${partyId}/decisions`),
+  hitFile: (inquiryId: number, partyId: number, letterFileId: number) => http.blob(`${API}/inquiries/${inquiryId}/hits/${partyId}/files/${letterFileId}`),
   screen: (r: ScrInquiryRequest) => http.post<ScrInquiry>(`${API}/inquiries`, r),
   myInquiries: () => http.get<ScrInquiry[]>(`${API}/inquiries/mine`),
   allInquiries: (companyId: number | null, result: string) =>

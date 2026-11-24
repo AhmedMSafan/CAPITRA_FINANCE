@@ -72,7 +72,7 @@ import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
 import '../components/scr.css'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
 import { formatDateTime } from '../utils/dates'
@@ -91,10 +91,13 @@ const ALL = [
   { name: 'scr-inquiries', icon: 'fa-search', title: 'Inquiry audit', descr: 'Every screening by every member company, with its result.', perm: 'SCR.INQUIRY.AUDIT', orange: false },
   { name: 'scr-portal', icon: 'fa-shield', title: 'Screening Portal', descr: 'Screen a person or company against the Final List.', perm: 'SCR.INQUIRY.CREATE', orange: true }
 ]
-const cards = ALL.filter((c) => hasPermission(c.perm))
+/** The Screening Portal is for users of a member company: staff without a company do not see it. */
+const member = ref(false)
+const cards = computed(() => ALL.filter((c) => hasPermission(c.perm) && (c.name !== 'scr-portal' || member.value)))
 const registry = ref<ScrRegistry | null>(null)
 
 onMounted(async () => {
+  if (hasPermission('SCR.INQUIRY.CREATE')) scrApi.myCompany().then(() => { member.value = true }).catch(() => { member.value = false })
   if (!hasPermission('SCR.DECISION.VIEW')) return
   try {
     registry.value = await scrApi.registry()
