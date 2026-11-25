@@ -83,7 +83,7 @@ public class CrmCfSupplierApplication : AuditableEntity
 
     // ---- set by the workflow steps
 
-    /// <summary>LOW, MEDIUM or HIGH, set at the compliance step; HIGH adds the committee approval.</summary>
+    /// <summary>LOW, MEDIUM or HIGH: the customer's risk grade when the compliance step accepted it; HIGH adds the committee approval.</summary>
     public string? RiskRatingCode { get; set; }
 
     public DateOnly? SiteVisitDate { get; set; }
@@ -91,8 +91,6 @@ public class CrmCfSupplierApplication : AuditableEntity
     public DateTime? ActivatedAt { get; set; }
 
     public string? Notes { get; set; }
-}
-
 }
 
 /// <summary>
