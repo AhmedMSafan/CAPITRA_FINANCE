@@ -17,29 +17,35 @@
       </div>
     </div>
 
+    <!-- one compact row (Ahmed, 25 Nov 2026): who the customer is on the left, the three answers on the right -->
     <section class="fx-card c3-head">
-      <div class="fc-customer-main">
-        <span class="fc-title-ic" aria-hidden="true"><span class="fa fa-building-o"></span></span>
-        <div>
-          <span class="fc-customer-no">{{ p?.clientNumber || '—' }}</span>
-          <b class="fc-customer-name">{{ p?.clientName || (loading ? tr('Loading...') : '—') }}</b>
-          <span class="fc-customer-ar">{{ p?.clientNameAr || '' }}</span>
-          <div class="c3-ids">
+      <div class="c3-who">
+        <span class="c3-ic" aria-hidden="true"><span class="fa fa-building-o"></span></span>
+        <div class="c3-who-txt">
+          <div class="c3-line">
+            <span class="c3-no" dir="ltr">{{ p?.clientNumber || '—' }}</span>
+            <b class="c3-name">{{ p?.clientName || (loading ? tr('Loading...') : '—') }}</b>
+            <span v-if="p?.clientNameAr" class="c3-ar" dir="auto">{{ p.clientNameAr }}</span>
+          </div>
+          <div class="c3-line c3-sub">
             <span v-if="p?.taxNumber">{{ tr('Tax No.') }} <b>{{ p.taxNumber }}</b></span>
             <span v-if="p?.registrationNumber">{{ tr('Reg. No.') }} <b>{{ p.registrationNumber }}</b></span>
             <span v-if="p?.countryName">{{ p.countryName }}</span>
-          </div>
-          <div class="c3-roles">
-            <span v-for="r in data?.roles ?? []" :key="r.clientRoleId" class="fx-chip" :class="chip(r.statusCode)" :title="tr(label(r.statusCode))">{{ tr(r.roleLabel) }}</span>
+            <span v-for="r in data?.roles ?? []" :key="r.clientRoleId" class="c3-role" :title="tr(label(r.statusCode))">
+              <span class="c3-dot" :class="`c3-dot--${roleTone(r.statusCode)}`" aria-hidden="true"></span>{{ tr(r.roleLabel) }}
+            </span>
             <span v-if="data && !data.roles.length" class="c3-muted">{{ tr('No roles yet') }}</span>
           </div>
         </div>
       </div>
-      <button v-for="b in badges" :key="b.key" type="button" class="c3-badge" :class="`c3-badge--${tone(b.badge.code)}`" @click="tab = b.tab">
-        <span class="c3-badge-k"><span class="fa" :class="b.icon" aria-hidden="true"></span>{{ tr(b.title) }}</span>
-        <b>{{ tr(b.badge.label) }}</b>
-        <small v-if="b.badge.reasons.length">{{ tr(b.badge.reasons[0] ?? '') }}<template v-if="b.badge.reasons.length > 1"> (+{{ b.badge.reasons.length - 1 }})</template></small>
-      </button>
+      <div class="c3-badges">
+        <button v-for="b in badges" :key="b.key" type="button" class="c3-badge" :class="`c3-badge--${tone(b.badge.code)}`"
+                :title="b.badge.reasons.map((r) => tr(r)).join('\n')" @click="tab = b.tab">
+          <span class="c3-badge-k"><span class="fa" :class="b.icon" aria-hidden="true"></span>{{ tr(b.title) }}</span>
+          <b>{{ tr(b.badge.label) }}</b>
+          <small v-if="b.badge.reasons.length">{{ tr(b.badge.reasons[0] ?? '') }}<template v-if="b.badge.reasons.length > 1"> (+{{ b.badge.reasons.length - 1 }})</template></small>
+        </button>
+      </div>
     </section>
 
     <section class="fx-card">
@@ -54,12 +60,6 @@
 
         <template v-else-if="data">
           <div v-if="tab === 'overview'" class="c3-tab">
-            <div v-if="data.readyToPay.reasons.length" class="c3-panel">
-              <header class="c3-panel-head">
-                <h3><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Why this customer cannot be paid yet') }}</h3>
-              </header>
-              <ul class="c3-reasons"><li v-for="r in data.readyToPay.reasons" :key="r">{{ tr(r) }}</li></ul>
-            </div>
             <div class="fm-grid fm-grid--1 cw-grid">
               <component :is="w.to ? 'router-link' : 'div'" v-for="w in workspaces" :key="w.name" :to="w.to" class="fm-card fm-card--t2"
                          :class="{ 'is-off': !w.to }" :aria-disabled="w.to ? undefined : 'true'" :style="{ '--c': w.color, '--cl': w.tint }">
@@ -125,7 +125,7 @@ import Crm360Compliance from '../components/Crm360Compliance.vue'
 import Crm360Roles from '../components/Crm360Roles.vue'
 import CfSupplierPanel from '../components/CfSupplierPanel.vue'
 import CrmClientDialog from '../components/CrmClientDialog.vue'
-import { chip, label } from '../components/crm360'
+import { label } from '../components/crm360'
 
 const props = defineProps<{ clientId: number }>()
 
@@ -142,6 +142,8 @@ const canEdit = hasPermission('CRM.EDIT')
 const canVerify = hasPermission('CRM.VERIFY')
 const p = computed(() => data.value?.profile)
 
+// the role's status as a small dot: Active green, Onboarding amber, Suspended red
+const roleTone = (code: string) => ({ ACTIVE: 'ok', ONBOARDING: 'warn', SUSPENDED: 'bad' } as Record<string, string>)[code] ?? 'none'
 const tone = (code: string) => ({ CLEAR: 'ok', VERIFIED: 'ok', YES: 'ok', DUE: 'warn', PENDING: 'warn', WAITING: 'warn' } as Record<string, string>)[code] ?? 'bad'
 const badges = computed(() => data.value ? [
   { key: 'c', title: 'Compliance', icon: 'fa-shield', badge: data.value.complianceBadge, tab: 'compliance' },
@@ -200,30 +202,44 @@ async function load() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  void load()
+  // for "Recently opened" on the Customers page; a failure here never stops the page
+  crmApi.opened(props.clientId).catch(() => undefined)
+})
 </script>
 
 <style scoped>
 @import '../components/crm360.css';
-.c3-head { display: grid; grid-template-columns: minmax(280px, 1.6fr) repeat(3, minmax(150px, 1fr)); gap: 14px; align-items: stretch; padding: 16px 18px; }
-.c3-ids { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-block-start: 6px; font-size: var(--fs-xs); color: var(--fin-muted); }
-.c3-ids b { color: var(--fin-ink); }
-.c3-roles { display: flex; flex-wrap: wrap; gap: 6px; margin-block-start: 8px; }
-.c3-badge { appearance: none; display: flex; flex-direction: column; gap: 4px; text-align: start; font: inherit; padding: 12px 14px; cursor: pointer;
-  border: 1px solid var(--fin-line); border-inline-start: 4px solid var(--c3-c); border-radius: var(--fin-radius); background: var(--c3-bg); }
+.c3-head { display: flex; align-items: center; gap: 16px; padding: 12px 16px; }
+.c3-who { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }
+.c3-ic { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: #fdf1e6; color: #c46a1c; font-size: 18px; }
+.c3-who-txt { min-width: 0; }
+.c3-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.c3-no { font-size: 12px; font-weight: 700; color: var(--fin-orange-700, #b5651d); }
+.c3-name { font-size: 18px; color: var(--fin-ink); }
+.c3-ar { font-size: 13px; color: var(--fin-muted); }
+.c3-sub { align-items: center; margin-block-start: 3px; font-size: 12.5px; color: var(--fin-muted); }
+.c3-sub b { color: var(--fin-ink); }
+.c3-role { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 11.5px; font-weight: 600; }
+.c3-dot { width: 6px; height: 6px; border-radius: 50%; background: #8a98a3; }
+.c3-dot--ok { background: #2e9e6a; } .c3-dot--warn { background: #d39b2a; } .c3-dot--bad { background: #c0392b; }
+.c3-badges { flex: none; display: flex; gap: 8px; }
+.c3-badge { appearance: none; display: flex; flex-direction: column; gap: 1px; min-width: 150px; max-width: 210px; text-align: start; font: inherit; padding: 7px 12px;
+  cursor: pointer; border: 1px solid var(--fin-line); border-inline-start: 3px solid var(--c3-c); border-radius: 10px; background: #fff; }
 .c3-badge:hover { box-shadow: var(--fin-shadow); }
-.c3-badge-k { display: flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; color: var(--fin-muted); }
-.c3-badge b { font-size: var(--fs-lg); color: var(--c3-c); }
-.c3-badge small { color: var(--fin-ink); font-size: var(--fs-xs); line-height: 1.35; }
-.c3-badge--ok { --c3-c: var(--fin-ok); --c3-bg: var(--fin-ok-50); }
-.c3-badge--warn { --c3-c: var(--fin-warn); --c3-bg: var(--fin-warn-50); }
-.c3-badge--bad { --c3-c: var(--fin-bad); --c3-bg: var(--fin-bad-50); }
+.c3-badge-k { display: flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--fin-muted); }
+.c3-badge b { font-size: 13.5px; color: var(--c3-c); }
+.c3-badge small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--fin-muted); font-size: 11px; }
+.c3-badge--ok { --c3-c: var(--fin-ok); }
+.c3-badge--warn { --c3-c: var(--fin-warn); }
+.c3-badge--bad { --c3-c: var(--fin-bad); }
 .c3-body { padding: 16px; }
 .cw-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .cw-grid a, .cw-grid a * { text-decoration: none; }
 .fm-ico .fa { font-size: 22px; }
 .fm-go .fa { margin-inline-start: 6px; }
-@media (max-width: 1100px) { .c3-head { grid-template-columns: repeat(3, minmax(0, 1fr)); } .c3-head > .fc-customer-main { grid-column: 1 / -1; }
+@media (max-width: 1100px) { .c3-head { flex-wrap: wrap; } .c3-badges { width: 100%; } .c3-badge { flex: 1; max-width: none; }
   .cw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .c3-head, .cw-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .cw-grid { grid-template-columns: 1fr; } .c3-badges { flex-direction: column; } }
 </style>

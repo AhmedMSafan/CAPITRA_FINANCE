@@ -2,54 +2,40 @@
   <!-- FINOVA_FINANCEING CrmHomePage "Customers": the same filters, sortable columns and paging, in this app's fx- theme.
        Workspaces opens the customer's workspaces; New Customer and Edit open the client dialog. -->
   <div class="fx fc">
-    <div class="fx-head">
-      <div class="fc-title">
+    <!-- one line (Ahmed, 25 Nov 2026): the title, the customers this user opened last in Customer 360, and New Customer -->
+    <div class="fx-head crm-head">
+      <div class="fc-title crm-title">
         <span class="fc-title-ic" aria-hidden="true"><span class="fa fa-users"></span></span>
-        <div>
-          <h1>{{ tr('Customers') }}</h1>
-          <p>{{ tr('View and manage customer information.') }}</p>
-        </div>
+        <h1>{{ tr('Customers') }}</h1>
       </div>
+      <nav v-if="recent.length" class="crm-recent" :aria-label="tr('Recently opened')">
+        <span class="crm-recent-lb"><span class="fa fa-clock-o" aria-hidden="true"></span>{{ tr('Recently opened') }}:</span>
+        <RouterLink v-for="c in recent" :key="c.clientId" :to="workspace(c.clientId)" class="crm-recent-chip" :title="`${c.clientName} · ${tr('Customer 360')}`">
+          <b dir="ltr">{{ c.clientNumber }}</b><span>{{ c.clientName }}</span>
+        </RouterLink>
+      </nav>
       <button v-if="canEdit" type="button" class="fx-btn fx-btn--teal" @click="openClient(null)">
         <span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New Customer') }}
       </button>
     </div>
 
-    <!-- the customers with the latest transactions, one click from their workspaces (Ahmed, 31 Oct 2026) -->
-    <section v-if="recent.length" class="fx-card crm-recent" :aria-label="tr('Recent Customers')">
-      <div class="crm-recent-head">
-        <h2><span class="fa fa-clock-o" aria-hidden="true"></span>{{ tr('Recent Customers') }}</h2>
-        <small>· {{ tr('latest application, agreement or disbursement') }}</small>
-      </div>
-      <div class="crm-recent-grid">
-        <RouterLink v-for="c in recent" :key="c.clientId" :to="workspace(c.clientId)" class="crm-recent-card" :title="tr('Customer 360')">
-          <span class="crm-recent-ic" aria-hidden="true"><span class="fa" :class="ACTIVITY_ICON[c.lastActivityType!]"></span></span>
-          <span class="crm-recent-copy">
-            <span class="crm-recent-no">{{ c.clientNumber }}</span>
-            <b>{{ c.clientName }}</b>
-            <small>{{ tr(c.lastActivityType!) }} {{ c.lastActivityRef }} · {{ formatDate(c.lastActivityAt) }}</small>
-          </span>
-          <span class="fa fa-arrow-right" aria-hidden="true"></span>
-        </RouterLink>
-      </div>
-    </section>
-
-    <div class="fx-card fx-card-pad fc-filters">
-      <label class="fc-field">
-        <span>{{ tr('Customer Name') }}</span>
-        <input v-model="customerName" class="fx-search" type="text" :placeholder="tr('Enter customer name...')" @keyup.enter="search">
+    <!-- the search on one short line: labels beside their boxes -->
+    <div class="fx-card crm-filters">
+      <label class="crm-f">
+        <span>{{ tr('Name') }}</span>
+        <input v-model="customerName" class="fx-search" type="text" :placeholder="tr('Customer name...')" @keyup.enter="search">
       </label>
-      <label class="fc-field">
-        <span>{{ tr('Customer Number') }}</span>
-        <input v-model="customerNumber" class="fx-search" type="text" :placeholder="tr('Enter customer number...')" @keyup.enter="search">
+      <label class="crm-f">
+        <span>{{ tr('Number') }}</span>
+        <input v-model="customerNumber" class="fx-search" type="text" :placeholder="tr('Customer number...')" @keyup.enter="search">
       </label>
-      <label class="fc-field">
-        <span>{{ tr('Client Type') }}</span>
+      <label class="crm-f crm-f--type">
+        <span>{{ tr('Type') }}</span>
         <select v-model="clientType" class="fx-select">
           <option v-for="t in clientTypes" :key="t" :value="t">{{ t === ALL ? tr(ALL) : t }}</option>
         </select>
       </label>
-      <div class="fc-filter-actions">
+      <div class="crm-f-actions">
         <button type="button" class="fx-btn fx-btn--teal" @click="search"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('Search') }}</button>
         <button type="button" class="fx-btn" @click="clearFilters"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
       </div>
@@ -75,20 +61,20 @@
           <tbody>
             <tr v-for="c in paged" :key="c.clientId">
               <td class="fc-muted">{{ c.clientId }}</td>
-              <td><RouterLink :to="workspace(c.clientId)">{{ c.clientNumber }}</RouterLink></td>
+              <td><RouterLink class="crm-num" :to="workspace(c.clientId)">{{ c.clientNumber }}</RouterLink></td>
               <td>{{ c.clientName }}</td>
               <td><span class="fx-chip fx-chip--plain">{{ c.clientType || '-' }}</span></td>
               <td>{{ c.phoneNumber || '-' }}</td>
               <td>{{ c.email || '-' }}</td>
-              <td><span class="fx-chip" :class="c.isActive ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(c.isActive ? 'Active' : 'Inactive') }}</span></td>
+              <td><span class="crm-status"><span class="crm-dot" :class="{ 'crm-dot--off': !c.isActive }" aria-hidden="true"></span>{{ tr(c.isActive ? 'Active' : 'Inactive') }}</span></td>
               <td>
                 <span v-if="c.lastActivityAt" class="crm-last"><b>{{ formatDate(c.lastActivityAt) }}</b><small>{{ tr(c.lastActivityType!) }} {{ c.lastActivityRef }}</small></span>
                 <span v-else class="fc-muted">-</span>
               </td>
               <td class="fx-r crm-acts">
-                <!-- compact round buttons (Ahmed, 25 Nov 2026): 360 opens Customer 360, the pencil edits the customer -->
-                <RouterLink class="crm-round crm-round--360" :to="workspace(c.clientId)" :title="tr('Customer 360')" :aria-label="tr('Customer 360')">360</RouterLink>
-                <button v-if="canEdit" type="button" class="crm-round" :title="tr('Edit')" :aria-label="tr('Edit')" @click="openClient(c.clientId)">
+                <!-- quiet buttons (Ahmed, 25 Nov 2026): neutral, teal only on hover; 360 opens Customer 360, the pencil edits the customer -->
+                <RouterLink class="crm-act" :to="workspace(c.clientId)" :title="tr('Customer 360')" :aria-label="tr('Customer 360')"><svg class="crm-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12M2 8h12"/></svg>360</RouterLink>
+                <button v-if="canEdit" type="button" class="crm-act crm-act--icon" :title="tr('Edit')" :aria-label="tr('Edit')" @click="openClient(c.clientId)">
                   <span class="fa fa-pencil" aria-hidden="true"></span>
                 </button>
               </td>
@@ -121,7 +107,7 @@ import { useFeedback } from '@/shared/feedback/useFeedback'
 import { tr } from '@/shared/layout/language'
 import { hasPermission } from '@/shared/auth/session'
 import { formatDate } from '@/shared/format/datetime'
-import { crmApi, type CrmClientRow } from '../api/crm.api'
+import { crmApi, type CrmClientRow, type CrmRecentClient } from '../api/crm.api'
 import CrmClientDialog from '../components/CrmClientDialog.vue'
 
 type SortField = 'clientId' | 'clientNumber' | 'clientName' | 'clientType' | 'phoneNumber' | 'email' | 'isActive' | 'lastActivityAt'
@@ -139,10 +125,10 @@ const COLUMNS: { field: SortField; label: string }[] = [
   { field: 'isActive', label: 'Status' },
   { field: 'lastActivityAt', label: 'Last Activity' }
 ]
-const RECENT_COUNT = 8
-const ACTIVITY_ICON = { Application: 'fa-file-text-o', Agreement: 'fa-handshake-o', Disbursement: 'fa-money' } as const
 
 const customers = ref<CrmClientRow[]>([])
+// the customers this user opened last in Customer 360 (kept on the server)
+const recent = ref<CrmRecentClient[]>([])
 const canEdit = hasPermission('CRM.EDIT')
 const dialogOpen = ref(false)
 const dialogClientId = ref<number | null>(null)
@@ -185,7 +171,6 @@ function byActivity(a: CrmClientRow, b: CrmClientRow, dir: number) {
   if (x == null || y == null) return x == null && y == null ? a.clientId - b.clientId : x == null ? 1 : -1
   return dir * (x - y) || a.clientId - b.clientId
 }
-const recent = computed(() => customers.value.filter((c) => c.lastActivityAt).sort((a, b) => byActivity(a, b, -1)).slice(0, RECENT_COUNT))
 const pageCount = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
 const pages = computed(() => Array.from({ length: pageCount.value }, (_, i) => i + 1))
 const paged = computed(() => filtered.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
@@ -224,7 +209,9 @@ function clearFilters() {
 async function load() {
   loading.value = true
   try {
-    customers.value = await crmApi.clients()
+    const [list, opened] = await Promise.all([crmApi.clients(), crmApi.recent().catch(() => [] as CrmRecentClient[])])
+    customers.value = list
+    recent.value = opened
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
   } finally {
@@ -236,34 +223,43 @@ onMounted(load)
 </script>
 
 <style scoped>
-.crm-recent { margin-bottom: 14px; padding: 14px 16px; }
-.crm-recent-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
-.crm-recent-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; color: var(--fin-teal-700); }
-.crm-recent-head h2 .fa { color: var(--fin-orange); }
-.crm-recent-head small { font-size: 12px; color: var(--fin-muted); }
-.crm-recent-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.crm-recent-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--fin-line); border-radius: 12px; background: #fff; color: var(--fin-ink); text-decoration: none; }
-.crm-recent-card:hover { border-color: var(--fin-teal-600); }
-.crm-recent-card > .fa { color: var(--fin-teal-600); }
-.crm-recent-ic { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--fin-teal-50); color: var(--fin-teal-600); }
-.crm-recent-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.crm-recent-copy b, .crm-recent-copy small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.crm-recent-copy b { font-size: 14px; }
-.crm-recent-copy small { font-size: 11.5px; color: var(--fin-muted); }
-.crm-recent-no { font-size: 11px; font-weight: 700; color: var(--fin-orange-700); }
+.crm-head { gap: 12px; flex-wrap: wrap; }
+.crm-title { align-items: center; }
+.crm-title h1 { margin: 0; }
+.crm-recent { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; overflow: hidden; }
+.crm-recent-lb { display: inline-flex; align-items: center; gap: 5px; flex: none; font-size: 12px; color: var(--fin-muted); white-space: nowrap; }
+.crm-recent-chip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; max-width: 220px; padding: 0 10px; border: 1px solid var(--fin-line);
+  border-radius: 999px; background: #fff; color: var(--fin-ink); font-size: 12.5px; text-decoration: none; }
+.crm-recent-chip span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.crm-recent-chip b { flex: none; font-size: 11px; color: var(--fin-orange-700, #b5651d); }
+.crm-recent-chip:hover { border-color: var(--fin-teal-600); }
+.crm-filters { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; padding: 10px 16px; }
+.crm-f { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+.crm-f > span { flex: none; font-size: 12.5px; font-weight: 600; color: var(--fin-muted); }
+.crm-f .fx-search, .crm-f .fx-select { flex: 1; min-width: 0; height: 34px; }
+.crm-f--type { flex: .7; }
+.crm-f-actions { flex: none; display: flex; gap: 8px; }
+@media (max-width: 900px) {
+  .crm-recent { order: 3; flex-basis: 100%; flex-wrap: wrap; overflow: visible; }
+  .crm-filters { flex-wrap: wrap; }
+  .crm-f { flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 4px; }
+}
 .crm-last { display: flex; flex-direction: column; gap: 1px; line-height: 1.25; }
 .crm-last small { font-size: 11.5px; color: var(--fin-muted); }
-@media (max-width: 1100px) { .crm-recent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .crm-recent-grid { grid-template-columns: 1fr; } }
 .crm-sort { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; white-space: nowrap; }
 .crm-sort .fa { font-size: 11px; opacity: .45; }
 .crm-sort.is-on { margin-inline-start: 6px; }
 .crm-acts { white-space: nowrap; }
-.crm-round { display: inline-grid; place-items: center; width: 30px; height: 30px; margin-inline-start: 6px; padding: 0; border: 1px solid var(--fin-line); border-radius: 50%;
-  background: #fff; color: var(--fin-teal-700); font: 700 10.5px/1 inherit; letter-spacing: -.2px; text-decoration: none; cursor: pointer; vertical-align: middle;
-  transition: background .15s, border-color .15s, color .15s; }
-.crm-round:hover, .crm-round:focus-visible { border-color: var(--fin-teal-600); background: var(--fin-teal-50); }
-.crm-round--360 { border-color: var(--fin-teal-600); background: var(--fin-teal-600); color: #fff; }
-.crm-round--360:hover, .crm-round--360:focus-visible { background: var(--fin-teal-700); color: #fff; }
+.crm-act { display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 28px; margin-inline-start: 6px; padding: 0 9px;
+  border: 1px solid #d5dce2; border-radius: 8px; background: #fff; color: #34495a; font: 600 12px/1 inherit; text-decoration: none; cursor: pointer;
+  vertical-align: middle; transition: background .15s, border-color .15s, color .15s; }
+.crm-act--icon { width: 28px; padding: 0; }
+.crm-act:hover, .crm-act:focus-visible { border-color: var(--fin-teal-600); background: var(--fin-teal-50); color: var(--fin-teal-700); }
+.crm-ic { width: 14px; height: 14px; }
+.crm-num { font-weight: 600; color: #1f3b4d; text-decoration: none; }
+.crm-num:hover { color: var(--fin-teal-700); text-decoration: underline; }
+.crm-status { display: inline-flex; align-items: center; gap: 6px; color: #3d4b56; }
+.crm-dot { width: 7px; height: 7px; border-radius: 50%; background: #2e9e6a; }
+.crm-dot--off { background: #c0392b; }
 .crm-sort.is-on .fa { color: var(--fin-teal-600); opacity: 1; }
 </style>
