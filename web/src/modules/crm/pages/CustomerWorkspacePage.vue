@@ -59,22 +59,7 @@
         <div v-if="loading && !data" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading customer...') }}</div>
 
         <template v-else-if="data">
-          <div v-if="tab === 'overview'" class="c3-tab">
-            <div class="fm-grid fm-grid--1 cw-grid">
-              <component :is="w.to ? 'router-link' : 'div'" v-for="w in workspaces" :key="w.name" :to="w.to" class="fm-card fm-card--t2"
-                         :class="{ 'is-off': !w.to }" :aria-disabled="w.to ? undefined : 'true'" :style="{ '--c': w.color, '--cl': w.tint }">
-                <div class="fm-top">
-                  <span class="fm-ico"><span class="fa" :class="w.icon" aria-hidden="true"></span></span>
-                  <span class="fm-pill" :class="w.to ? 'fm-pill--live' : 'fm-pill--soon'">{{ tr(w.to ? 'Live' : 'Coming soon') }}</span>
-                </div>
-                <div class="fm-body"><small>{{ tr(w.short) }}</small><h3>{{ tr(w.name) }}</h3><p>{{ tr(w.descr) }}</p></div>
-                <div class="fm-foot">
-                  <span v-if="w.to" class="fm-go">{{ tr('Open ' + w.name) }}<span class="fa fa-arrow-right" aria-hidden="true"></span></span>
-                  <span v-else class="fm-muted">{{ tr('In preparation · available soon') }}</span>
-                </div>
-              </component>
-            </div>
-          </div>
+          <Crm360Overview v-if="tab === 'overview'" :client-id="clientId" :version="version" @open-tab="tab = $event" />
 
           <div v-else-if="tab === 'profile'" class="c3-tab">
             <section class="c3-panel">
@@ -122,6 +107,7 @@ import { tr } from '@/shared/layout/language'
 import { crm360Api, crmApi, type CrmBadge, type CrmCustomer360, type CrmOption } from '../api/crm.api'
 import Crm360BankAccounts from '../components/Crm360BankAccounts.vue'
 import Crm360Compliance from '../components/Crm360Compliance.vue'
+import Crm360Overview from '../components/Crm360Overview.vue'
 import Crm360Roles from '../components/Crm360Roles.vue'
 import CfSupplierPanel from '../components/CfSupplierPanel.vue'
 import CrmClientDialog from '../components/CrmClientDialog.vue'
@@ -134,6 +120,8 @@ const currencies = ref<CrmOption[]>([])
 const baseCurrencyId = ref(0)
 const loading = ref(false)
 const editing = ref(false)
+// changes after every load, so the Overview reads its data again
+const version = ref(0)
 const route = useRoute()
 // ?tab= opens a tab (cf-supplier from the supplier list or a workflow task); ?inboxId= is the user's task on the supplier application
 const tab = ref(typeof route.query.tab === 'string' ? route.query.tab : 'overview')
@@ -175,15 +163,6 @@ const profileFacts = computed(() => {
   ]
 })
 
-// Factoring opens the Factoring Customer Workspace; Mortgage is shown disabled until the mortgage customer workspace is built
-const workspaces = computed(() => [
-  { name: 'Factoring Workspace', short: 'Factoring', descr: 'Factoring applications, agreements, limits, disbursements and claims of this customer.',
-    to: { name: 'FactoringCustomerWorkspace', params: { clientId: props.clientId }, query: { from: 'customer' } }, color: '#00636D', tint: '#E6F3F4',
-    icon: 'fa-file-text-o' },
-  { name: 'Mortgage Workspace', short: 'Mortgage', descr: 'Mortgage applications and finance of this customer.', to: null, color: '#E87722', tint: '#FFF1E6',
-    icon: 'fa-home' }
-])
-
 async function load() {
   loading.value = true
   try {
@@ -193,6 +172,7 @@ async function load() {
       crmApi.client(props.clientId)
     ])
     data.value = d
+    version.value++
     if (opts) currencies.value = opts.currencies
     baseCurrencyId.value = client.baseCurrencyId
   } catch (e) {
@@ -235,11 +215,6 @@ onMounted(() => {
 .c3-badge--warn { --c3-c: var(--fin-warn); }
 .c3-badge--bad { --c3-c: var(--fin-bad); }
 .c3-body { padding: 16px; }
-.cw-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.cw-grid a, .cw-grid a * { text-decoration: none; }
-.fm-ico .fa { font-size: 22px; }
-.fm-go .fa { margin-inline-start: 6px; }
-@media (max-width: 1100px) { .c3-head { flex-wrap: wrap; } .c3-badges { width: 100%; } .c3-badge { flex: 1; max-width: none; }
-  .cw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .cw-grid { grid-template-columns: 1fr; } .c3-badges { flex-direction: column; } }
+@media (max-width: 1100px) { .c3-head { flex-wrap: wrap; } .c3-badges { width: 100%; } .c3-badge { flex: 1; max-width: none; } }
+@media (max-width: 640px) { .c3-badges { flex-direction: column; } }
 </style>

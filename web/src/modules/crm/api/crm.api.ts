@@ -127,8 +127,17 @@ export type CrmBankAccountForm = {
 
 const c360 = (id: number) => `${API}/${id}`
 
+export type CrmOverviewRole = { clientRoleId: number; roleLabel: string; statusCode: string; detail: string; step: string | null; since: string | null; tab: string }
+export type CrmOverviewOpen = { kind: string; label: string; reference: string; detail: string; step: string | null; since: string; tab: string; id: number | null }
+export type CrmOverviewEvent = { at: string; by: string | null; subject: string; reference: string | null; text: string; detail: string | null }
+export type CrmCustomerOverview = {
+  roles: CrmOverviewRole[]; open: CrmOverviewOpen[]; activity: CrmOverviewEvent[]; workspaces: { code: string; label: string }[]
+}
+
 export const crm360Api = {
   get: (id: number) => http.get<CrmCustomer360>(`${c360(id)}/360`),
+  /** The Overview tab: roles, open work, latest activity and the customer's workspaces. */
+  overview: (id: number) => http.get<CrmCustomerOverview>(`${c360(id)}/360/overview`),
   saveCompliance: (id: number, body: CrmCompliance) => http.put<void>(`${c360(id)}/compliance`, body),
   verifyCompliance: (id: number, notes: string | null) => http.post<void>(`${c360(id)}/compliance/verify`, { notes }),
   addRole: (id: number, roleCode: string, notes: string | null, businessLineCode: string | null = null) =>
