@@ -4714,93 +4714,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("CRM_CF_SUPPLIER_APPLICATIONS", (string)null);
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierParty", b =>
-                {
-                    b.Property<long>("PartyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("PARTY_ID");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PartyId"));
-
-                    b.Property<long>("ApplicationId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("APPLICATION_ID");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("CREATED_AT");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("CREATED_BY");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("FULL_NAME");
-
-                    b.Property<string>("NationalIdNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("NATIONAL_ID_NO");
-
-                    b.Property<string>("Nationality")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("NATIONALITY");
-
-                    b.Property<decimal?>("OwnershipPct")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("OWNERSHIP_PCT");
-
-                    b.Property<string>("PartyTypeCode")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("PARTY_TYPE_CODE");
-
-                    b.Property<int>("RowVersion")
-                        .IsConcurrencyToken()
-                        .HasColumnType("integer")
-                        .HasColumnName("ROW_VERSION");
-
-                    b.Property<DateTime?>("ScreenedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("SCREENED_AT");
-
-                    b.Property<string>("ScreenedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
-                        .HasColumnName("SCREENED_BY");
-
-                    b.Property<string>("ScreeningResultCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("SCREENING_RESULT_CODE");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("UPDATED_AT");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("UPDATED_BY");
-
-                    b.HasKey("PartyId")
-                        .HasName("PK_CRM_CF_SUPPLIER_PARTIES");
-
-                    b.HasIndex("ApplicationId")
-                        .HasDatabaseName("IX_CRM_CF_SUPPLIER_PARTIES_APPLICATION_ID");
-
-                    b.ToTable("CRM_CF_SUPPLIER_PARTIES", (string)null);
-                });
-
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierDocument", b =>
                 {
                     b.Property<long>("DocumentId")
@@ -5779,6 +5692,93 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_CRM_CLIENT_COMPLIANCE_HISTORY_CLIENT_ID");
 
                     b.ToTable("CRM_CLIENT_COMPLIANCE_HISTORY", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmClientParty", b =>
+                {
+                    b.Property<long>("PartyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PARTY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PartyId"));
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("FULL_NAME");
+
+                    b.Property<string>("NationalIdNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("NATIONAL_ID_NO");
+
+                    b.Property<string>("Nationality")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NATIONALITY");
+
+                    b.Property<decimal?>("OwnershipPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("OWNERSHIP_PCT");
+
+                    b.Property<string>("PartyTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PARTY_TYPE_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("ScreenedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SCREENED_AT");
+
+                    b.Property<string>("ScreenedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("SCREENED_BY");
+
+                    b.Property<string>("ScreeningResultCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("SCREENING_RESULT_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("PartyId")
+                        .HasName("PK_CRM_CLIENT_PARTIES");
+
+                    b.HasIndex("ClientId")
+                        .HasDatabaseName("IX_CRM_CLIENT_PARTIES_CLIENT_ID");
+
+                    b.ToTable("CRM_CLIENT_PARTIES", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmClientRole", b =>
@@ -45200,16 +45200,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasConstraintName("FK_CRM_CF_SUPPLIER_APPLICATIONS_CRM_CLIENT_ROLES");
                 });
 
-            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierParty", b =>
-                {
-                    b.HasOne("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", null)
-                        .WithMany()
-                        .HasForeignKey("ApplicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_CRM_CF_SUPPLIER_PARTIES_CRM_CF_SUPPLIER_APPLICATIONS");
-                });
-
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierDocument", b =>
                 {
                     b.HasOne("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", null)
@@ -45295,6 +45285,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_CRM_CLIENT_COMPLIANCE_HISTORY_CRM_CLIENTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmClientParty", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CLIENT_PARTIES_CRM_CLIENTS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmClientRole", b =>

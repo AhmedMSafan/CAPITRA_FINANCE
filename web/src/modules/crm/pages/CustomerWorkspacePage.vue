@@ -77,7 +77,7 @@
           </div>
 
           <Crm360Compliance v-else-if="tab === 'compliance'" :client-id="clientId" :state="data.compliance" :badge="data.complianceBadge"
-                            :history="data.complianceHistory" :maker-checker="data.complianceMakerChecker" :can-edit="canEdit" :can-verify="canVerify" @changed="load" />
+                            :history="data.complianceHistory" :parties="data.parties" :maker-checker="data.complianceMakerChecker" :can-edit="canEdit" :can-verify="canVerify" @changed="load" />
 
           <Crm360BankAccounts v-else-if="tab === 'bank'" :client-id="clientId" :accounts="data.bankAccounts" :history="data.bankAccountHistory"
                               :badge="data.bankBadge" :currencies="currencies" :default-currency-id="baseCurrencyId" :holder-name="data.profile.clientName"
@@ -86,7 +86,7 @@
           <Crm360Roles v-else-if="tab === 'roles'" :client-id="clientId" :roles="data.roles" :programs="data.programs" :can-edit="canEdit" @changed="load"
                        @open-tab="(t) => (tab = t)" />
 
-          <CfSupplierPanel v-else-if="tab === 'cf-supplier'" :client-id="clientId" :inbox-id="inboxId" @changed="load" />
+          <CfSupplierPanel v-else-if="tab === 'cf-supplier'" :client-id="clientId" :inbox-id="inboxId" @changed="load" @open-tab="tab = $event" />
         </template>
       </div>
     </section>

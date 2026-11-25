@@ -2,7 +2,7 @@
   <!--
     Customer 360 > Consumer Finance Supplier tab: the customer's supplier application (Ahmed, 25 Nov 2026). Sales enters the supplier, its agreement terms, owners and
     signatories and documents, then submits it to CF_SUPPLIER_APPROVAL. Opened from the inbox (?inboxId=), it is the page of the step:
-    compliance records the screening and the risk rating, the site visit its date and report, the contract step the signed agreement
+    compliance checks the customer's compliance in Customer 360 (one place for KYC), the site visit its date and report, the contract step the signed agreement
     and the bank account. Accepting the contract step activates the supplier. No step is done by the person who entered it.
   -->
   <div class="cf-panel">
@@ -92,17 +92,13 @@
         <div><h2>{{ tr('Owners and signatories') }} ({{ app.parties.length }})</h2>
           <p>{{ tr('At least one owner and one authorised signatory.') }}</p></div>
       </header>
-      <div v-if="editable" class="scr-toolbar cf-party-add">
-        <select v-model="party.partyTypeCode" class="fx-select" :aria-label="tr('Type')"><option v-for="o in options?.partyTypes ?? []" :key="o.code" :value="o.code">{{ tr(o.name) }}</option></select>
-        <input v-model="party.fullName" class="fx-search" :placeholder="tr('Full name')" maxlength="300">
-        <input v-model="party.nationalIdNo" class="fx-search" :placeholder="tr('National ID / passport')" maxlength="50" dir="ltr">
-        <input v-model="party.nationality" class="fx-search" :placeholder="tr('Nationality')" maxlength="100">
-        <input v-if="party.partyTypeCode === 'OWNER'" v-model.number="party.ownershipPct" class="fx-search cf-share" type="number" min="0" max="100" step="0.01" :placeholder="tr('Share %')">
-        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy || !party.fullName.trim()" @click="addParty"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Add') }}</button>
+      <div class="cf-from360">
+        <span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Kept with the customer in Customer 360 > Compliance, with their screening.') }}
+        <button type="button" class="cf-linkbtn" @click="emit('open-tab', 'compliance')">{{ tr('Open Compliance') }} <span class="fa fa-angle-right" aria-hidden="true"></span></button>
       </div>
       <div class="fx-table-wrap">
         <table class="fx-table">
-          <thead><tr><th>{{ tr('Type') }}</th><th>{{ tr('Name') }}</th><th>{{ tr('National ID / passport') }}</th><th>{{ tr('Nationality') }}</th><th class="num">{{ tr('Share %') }}</th><th>{{ tr('Screening') }}</th><th v-if="editable"></th></tr></thead>
+          <thead><tr><th>{{ tr('Type') }}</th><th>{{ tr('Name') }}</th><th>{{ tr('National ID / passport') }}</th><th>{{ tr('Nationality') }}</th><th class="num">{{ tr('Share %') }}</th><th>{{ tr('Screening') }}</th></tr></thead>
           <tbody>
             <tr v-for="p in app.parties" :key="p.partyId">
               <td>{{ tr(PARTY[p.partyTypeCode] ?? p.partyTypeCode) }}</td>
@@ -114,9 +110,6 @@
                 <span v-if="p.screeningResultCode" class="fx-chip" :class="p.screeningResultCode === 'CLEAR' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(p.screeningResultCode === 'CLEAR' ? 'Clear' : 'Match') }}</span>
                 <span v-else class="c3-muted">{{ tr('Not screened') }}</span>
                 <small v-if="p.screenedBy" class="fx-cell-sub">{{ p.screenedBy }}</small>
-              </td>
-              <td v-if="editable" class="fx-r">
-                <button type="button" class="fx-btn fx-btn--sm fc-btn-reject" :disabled="busy" @click="removeParty(p.partyId)"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Remove') }}</button>
               </td>
             </tr>
           </tbody>
@@ -141,31 +134,27 @@
         <span v-if="app.siteVisitDate && !atStep('CFS_SITE_VISIT')">{{ tr('Site visit date') }}: <b>{{ formatDate(app.siteVisitDate) }}</b></span>
       </div>
 
-      <!-- compliance: the screening of every owner and signatory, and the risk rating -->
+      <!-- compliance enters nothing here (Ahmed, 26 Nov 2026): it checks the customer's compliance in Customer 360 and accepts or returns -->
       <template v-if="atStep('CFS_COMPLIANCE')">
-        <div class="fx-table-wrap cf-screen">
-          <table class="fx-table">
-            <thead><tr><th>{{ tr('Name') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('National ID / passport') }}</th><th>{{ tr('Screening') }} <b>*</b></th></tr></thead>
-            <tbody>
-              <tr v-for="p in app.parties" :key="p.partyId">
-                <td><b>{{ p.fullName }}</b></td>
-                <td>{{ tr(PARTY[p.partyTypeCode] ?? p.partyTypeCode) }}</td>
-                <td dir="ltr">{{ p.nationalIdNo || '—' }}</td>
-                <td>
-                  <select v-model="screening[p.partyId]" class="fx-select fx-select--sm" :aria-label="`${tr('Screening')}: ${p.fullName}`">
-                    <option :value="null">{{ tr('Not screened') }}</option><option value="CLEAR">{{ tr('Clear') }}</option><option value="MATCH">{{ tr('Match') }}</option>
-                  </select>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <ul class="cf-checks">
+          <li :class="['CLEAR', 'DUE'].includes(app.compliance.code) ? 'is-ok' : 'is-bad'">
+            <span class="fa" :class="['CLEAR', 'DUE'].includes(app.compliance.code) ? 'fa-check-circle' : 'fa-times-circle'" aria-hidden="true"></span>
+            {{ tr('Customer compliance') }}: <b>{{ tr(app.compliance.label) }}</b>
+            <small v-if="app.compliance.reasons.length"> · {{ app.compliance.reasons.map((r) => tr(r)).join(' ') }}</small>
+          </li>
+          <li :class="app.customerRiskGrade ? 'is-ok' : 'is-bad'">
+            <span class="fa" :class="app.customerRiskGrade ? 'fa-check-circle' : 'fa-times-circle'" aria-hidden="true"></span>
+            {{ tr('Risk grade') }}: <b>{{ app.customerRiskGrade ? tr(riskName(app.customerRiskGrade)) : tr('not set') }}</b>
+            <small v-if="app.customerRiskGrade === 'HIGH'"> · {{ tr('goes to the committee') }}</small>
+          </li>
+          <li :class="screenedAll ? 'is-ok' : 'is-bad'">
+            <span class="fa" :class="screenedAll ? 'fa-check-circle' : 'fa-times-circle'" aria-hidden="true"></span>
+            {{ tr('Owners and signatories screened clear') }}: <b>{{ app.parties.filter((p) => p.screeningResultCode === 'CLEAR').length }} / {{ app.parties.length }}</b>
+          </li>
+        </ul>
         <div class="cf-step-row">
-          <label class="fc-field"><span>{{ tr('Risk rating') }} <b>*</b></span>
-            <select v-model="riskRating" class="fx-select">
-              <option :value="null">—</option><option v-for="o in options?.riskRatings ?? []" :key="o.code" :value="o.code">{{ tr(o.name) }}</option>
-            </select></label>
-          <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveCompliance"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save screening and rating') }}</button>
+          <button type="button" class="fx-btn" @click="emit('open-tab', 'compliance')"><span class="fa fa-shield" aria-hidden="true"></span>{{ tr('Open Compliance') }}</button>
+          <span class="c3-muted">{{ tr('Fix anything here in Customer 360 > Compliance (verified by a second person), then accept the step.') }}</span>
         </div>
       </template>
 
@@ -225,10 +214,10 @@ import type { WorkflowInboxTask } from '@/modules/wfe/models/workflow'
 import { errorText, fieldErrors } from '@/modules/scr/api/scr.api'
 import CfSupplierDocuments from './CfSupplierDocuments.vue'
 import CfSupplierSteps from './CfSupplierSteps.vue'
-import { CF_CHIP, CF_STATUS, cfSuppliersApi, type CfOptions, type CfPartyRequest, type CfSupplier, type CfSupplierRequest } from '../api/cfSuppliers.api'
+import { CF_CHIP, CF_STATUS, cfSuppliersApi, type CfOptions, type CfSupplier, type CfSupplierRequest } from '../api/cfSuppliers.api'
 
 const props = defineProps<{ clientId: number; inboxId: number | null }>()
-const emit = defineEmits<{ changed: [] }>()
+const emit = defineEmits<{ changed: []; 'open-tab': [tab: string] }>()
 const router = useRouter()
 const canEdit = hasPermission('CRM.CF_SUPPLIER.EDIT')
 
@@ -252,16 +241,14 @@ const version = ref(0)
 const busy = ref(false)
 const comment = ref('')
 const errors = ref<Record<string, string>>({})
-const riskRating = ref<string | null>(null)
 const siteVisitDate = ref<string | null>(null)
-const screening = reactive<Record<number, string | null>>({})
 
 const blank = (): CfSupplierRequest => ({
   goodsCategoryCodes: [], minDownPaymentPct: 10, downPaymentCollectorCode: 'SUPPLIER', commissionPct: 0, paymentDays: 7, quotationValidityDays: 7,
   deliveryDays: 5, validFromDate: null, validToDate: null, clientBankAccountId: null, notes: null
 })
 const form = reactive<CfSupplierRequest>(blank())
-const party = reactive<CfPartyRequest>({ partyTypeCode: 'OWNER', fullName: '', nationalIdNo: null, nationality: null, ownershipPct: null })
+const screenedAll = computed(() => !!app.value?.parties.length && app.value.parties.every((p) => p.screeningResultCode === 'CLEAR'))
 
 const editable = computed(() => canEdit && !task.value && (!app.value || app.value.canEdit))
 const taskOpen = computed(() => !!task.value && (task.value.status === 'IN_PROGRESS' || task.value.status === 'CLAIMED') && task.value.instanceId === app.value?.workflowInstanceId)
@@ -276,7 +263,7 @@ const process = computed(() => {
     { code: 'CFS_RISK_REVIEW', title: 'Risk review', who: 'Risk' },
     { code: 'CFS_MANAGER_APPROVAL', title: 'Manager approval', who: 'Manager' }
   ]
-  if (app.value?.riskRatingCode === 'HIGH') list.push({ code: 'CFS_COMMITTEE_APPROVAL', title: 'Committee approval', who: 'Committee' })
+  if ((app.value?.riskRatingCode ?? app.value?.customerRiskGrade) === 'HIGH') list.push({ code: 'CFS_COMMITTEE_APPROVAL', title: 'Committee approval', who: 'Committee' })
   list.push({ code: 'CFS_CONTRACT', title: 'Contract signing', who: 'Legal' }, { code: 'ACTIVE', title: 'Active', who: '' })
   return list
 })
@@ -295,9 +282,7 @@ function fill(a: CfSupplier) {
     commissionPct: a.commissionPct, paymentDays: a.paymentDays, quotationValidityDays: a.quotationValidityDays, deliveryDays: a.deliveryDays,
     validFromDate: a.validFromDate, validToDate: a.validToDate, clientBankAccountId: a.clientBankAccountId, notes: a.notes
   })
-  riskRating.value = a.riskRatingCode
   siteVisitDate.value = a.siteVisitDate
-  for (const p of a.parties) screening[p.partyId] = p.screeningResultCode
 }
 
 async function run(work: () => Promise<void>) {
@@ -325,24 +310,11 @@ const save = () => run(async () => {
   emit('changed')
 })
 
-const addParty = () => run(async () => {
-  fill(await cfSuppliersApi.addParty(app.value!.applicationId, { ...party, nationalIdNo: party.nationalIdNo || null, nationality: party.nationality || null }))
-  Object.assign(party, { fullName: '', nationalIdNo: null, nationality: null, ownershipPct: null })
-})
-
-const removeParty = (partyId: number) => run(async () => { fill(await cfSuppliersApi.removeParty(app.value!.applicationId, partyId)) })
-
 const submit = () => run(async () => {
   await cfSuppliersApi.update(app.value!.applicationId, { ...form })
   fill(await cfSuppliersApi.submit(app.value!.applicationId))
   showSuccess(tr('Submitted for approval.'))
   emit('changed')
-})
-
-const saveCompliance = () => run(async () => {
-  fill(await cfSuppliersApi.saveCompliance(app.value!.applicationId, task.value!.inboxId, riskRating.value,
-    app.value!.parties.map((p) => ({ partyId: p.partyId, resultCode: screening[p.partyId] ?? null }))))
-  showSuccess(tr('Saved.'))
 })
 
 const saveSiteVisit = () => run(async () => {
@@ -363,9 +335,6 @@ const complete = (action: 'ACCEPT' | 'REJECT') => run(async () => {
     return
   }
   // what was entered at the step is kept before the step is accepted
-  if (action === 'ACCEPT' && atStep('CFS_COMPLIANCE'))
-    await cfSuppliersApi.saveCompliance(app.value!.applicationId, task.value!.inboxId, riskRating.value,
-      app.value!.parties.map((p) => ({ partyId: p.partyId, resultCode: screening[p.partyId] ?? null })))
   if (action === 'ACCEPT' && atStep('CFS_SITE_VISIT'))
     await cfSuppliersApi.saveSiteVisit(app.value!.applicationId, task.value!.inboxId, siteVisitDate.value || null)
   await cfSuppliersApi.completeStep(app.value!.applicationId, task.value!.inboxId, action, comment.value.trim() || null)
@@ -400,12 +369,16 @@ watch(() => [props.clientId, props.inboxId], load, { immediate: true })
 .cf-cats { display: flex; flex-wrap: wrap; gap: 8px; }
 .cf-cat { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--fin-border, #dbe3ea); border-radius: 999px; cursor: pointer; font-size: 13px; }
 .cf-cat.is-on { border-color: var(--fin-teal, #00636d); background: var(--fin-teal-50, #eef9f8); }
-.cf-party-add { flex-wrap: wrap; }
-.cf-party-add .fx-search { min-width: 160px; flex: 1; }
+.cf-from360 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0 16px 10px; font-size: 12.5px; color: var(--fin-muted); }
+.cf-linkbtn { padding: 0; border: 0; background: none; color: var(--fin-teal-700); font: 600 12.5px/1 inherit; cursor: pointer; }
+.cf-checks { margin: 4px 16px 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+.cf-checks li { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.cf-checks small { color: var(--fin-muted); }
+.cf-checks .is-ok .fa { color: #2e9e6a; }
+.cf-checks .is-bad .fa { color: #c0392b; }
 .cf-share { max-width: 110px; }
 .cf-facts { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0 16px 4px; font-size: 13px; color: var(--fin-muted); }
 .cf-facts b { color: var(--fin-ink); }
-.cf-screen { margin: 0 16px; }
 .cf-step-row { display: flex; align-items: flex-end; gap: 12px; padding: 12px 16px 16px; }
 .cf-step-row .fc-field { width: 260px; }
 .cf-hint { margin: 0 16px 14px; font-size: 12px; }

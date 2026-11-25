@@ -23,6 +23,8 @@ export type CfSupplier = {
   paymentDays: number; quotationValidityDays: number; deliveryDays: number; validFromDate: string; validToDate: string | null
   clientBankAccountId: number | null; riskRatingCode: string | null; siteVisitDate: string | null; activatedAt: string | null; notes: string | null
   parties: CfParty[]; bankAccounts: CfBankAccount[]; openStepCode: string | null; openStepName: string | null; canEdit: boolean
+  /** From the customer (Customer 360 > Compliance): its compliance answer and risk grade. */
+  compliance: { code: string; label: string; reasons: string[] }; customerRiskGrade: string | null
 }
 
 export type CfOptions = { goodsCategories: CfOption[]; collectors: CfOption[]; partyTypes: CfOption[]; riskRatings: CfOption[]; documentTypes: CfOption[] }
@@ -32,8 +34,6 @@ export type CfSupplierRequest = {
   commissionPct: number | null; paymentDays: number | null; quotationValidityDays: number | null; deliveryDays: number | null
   validFromDate: string | null; validToDate: string | null; clientBankAccountId: number | null; notes: string | null
 }
-
-export type CfPartyRequest = { partyTypeCode: string; fullName: string; nationalIdNo: string | null; nationality: string | null; ownershipPct: number | null }
 
 export type CfDocument = {
   documentId: number; documentTypeCode: string | null; documentTitle: string; fileName: string; mimeType: string; fileSizeBytes: number
@@ -56,12 +56,8 @@ export const cfSuppliersApi = {
   byClient: (clientId: number) => http.get<{ applicationId: number | null }>(`${API}/by-client/${clientId}`),
   create: (r: CfSupplierRequest) => http.post<CfSupplier>(API, r),
   update: (id: number, r: CfSupplierRequest) => http.put<CfSupplier>(`${API}/${id}`, r),
-  addParty: (id: number, r: CfPartyRequest) => http.post<CfSupplier>(`${API}/${id}/parties`, r),
-  removeParty: (id: number, partyId: number) => http.post<CfSupplier>(`${API}/${id}/parties/${partyId}/remove`),
   submit: (id: number) => http.post<CfSupplier>(`${API}/${id}/submit`),
   steps: (id: number) => http.get<CfStepView[]>(`${API}/${id}/steps`),
-  saveCompliance: (id: number, inboxId: number, riskRatingCode: string | null, screening: { partyId: number; resultCode: string | null }[]) =>
-    http.post<CfSupplier>(`${API}/${id}/steps/${inboxId}/compliance`, { riskRatingCode, screening }),
   saveSiteVisit: (id: number, inboxId: number, siteVisitDate: string | null) =>
     http.post<CfSupplier>(`${API}/${id}/steps/${inboxId}/site-visit`, { siteVisitDate }),
   saveBankAccount: (id: number, inboxId: number, bankAccountId: number | null) =>

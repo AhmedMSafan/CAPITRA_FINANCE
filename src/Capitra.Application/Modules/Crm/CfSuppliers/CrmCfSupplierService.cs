@@ -28,7 +28,8 @@ public sealed record CrmCfSupplierListItemDto(
 
 /// <summary>
 /// A supplier application with what the page needs: OpenStepCode is the workflow step waiting now (null when none); CanEdit: the
-/// terms, parties and entry documents can be changed (draft or returned).
+/// terms can be changed (draft or returned). Parties, Compliance and CustomerRiskGrade come from the customer (Customer 360 >
+/// Compliance, one place for KYC); RiskRatingCode is the grade the compliance step accepted.
 /// </summary>
 public sealed record CrmCfSupplierDto(
     long ApplicationId, string ApplicationRef, long ClientId, string ClientNumber, string ClientName, string? RegistrationNumber, string? TaxNumber,
@@ -37,7 +38,7 @@ public sealed record CrmCfSupplierDto(
     int QuotationValidityDays, int DeliveryDays, DateOnly ValidFromDate, DateOnly? ValidToDate, long? ClientBankAccountId,
     string? RiskRatingCode, DateOnly? SiteVisitDate, DateTime? ActivatedAt, string? Notes,
     IReadOnlyList<CrmCfPartyDto> Parties, IReadOnlyList<CrmCfBankAccountOptionDto> BankAccounts,
-    string? OpenStepCode, string? OpenStepName, bool CanEdit);
+    string? OpenStepCode, string? OpenStepName, bool CanEdit, CrmBadgeDto Compliance, string? CustomerRiskGrade);
 
 public sealed record CrmCfSupplierOptionsDto(
     IReadOnlyList<CrmCfOptionDto> GoodsCategories, IReadOnlyList<CrmCfOptionDto> Collectors, IReadOnlyList<CrmCfOptionDto> PartyTypes,
@@ -49,14 +50,6 @@ public sealed record CrmCfSupplierRequest(
     int? PaymentDays, int? QuotationValidityDays, int? DeliveryDays, DateOnly? ValidFromDate, DateOnly? ValidToDate, long? ClientBankAccountId,
     string? Notes);
 
-public sealed record CrmCfPartyRequest(string? PartyTypeCode, string? FullName, string? NationalIdNo, string? Nationality, decimal? OwnershipPct);
-
-public sealed record CrmCfScreeningRequest(long PartyId, string? ResultCode);
-
-/// <summary>Compliance step: the risk rating and each party's screening result.</summary>
-public sealed record CrmCfComplianceRequest(string? RiskRatingCode, IReadOnlyList<CrmCfScreeningRequest>? Screening);
-
-/// <summary>Site visit step: the date of the visit.</summary>
 public sealed record CrmCfSiteVisitRequest(DateOnly? SiteVisitDate);
 
 public sealed record CrmCfCompleteStepRequest(string? Action, string? Comment);
@@ -78,7 +71,8 @@ public sealed record CrmCfDocumentFile(string FileName, string MimeType, string 
 /// the site visit) are entered by whoever holds that step's task, and anyone who can see the application adds its documents at any time; the step's checks run when it is accepted
 /// (<see cref="CrmCfSupplierWorkflowHandler"/>). One open application per customer.
 /// </summary>
-public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, IScrUserProfiles profiles, WfeRuntime runtime, WfeInbox inbox)
+public sealed class CrmCfSupplierService(
+    ICapitraDbContext db, ICurrentUser currentUser, IClock clock, IScrUserProfiles profiles, WfeRuntime runtime, WfeInbox inbox, CrmCustomer360Service customers)
 {
     public const string DataEntryStep = "DATA_ENTRY";
     public const string DataEntryName = "Data entry";
@@ -157,7 +151,7 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
             ?? throw new NotFoundException($"Supplier application {applicationId} was not found.");
         var c = await db.Set<CrmClient>().AsNoTracking().FirstAsync(x => x.ClientId == a.ClientId, ct);
         var roleStatus = await db.Set<CrmClientRole>().AsNoTracking().Where(x => x.ClientRoleId == a.ClientRoleId).Select(x => x.StatusCode).FirstAsync(ct);
-        var parties = await db.Set<CrmCfSupplierParty>().AsNoTracking().Where(x => x.ApplicationId == applicationId).OrderBy(x => x.PartyId)
+        var parties = await db.Set<CrmClientParty>().AsNoTracking().Where(x => x.ClientId == a.ClientId).OrderBy(x => x.PartyId)
             .Select(x => new CrmCfPartyDto(x.PartyId, x.PartyTypeCode, x.FullName, x.NationalIdNo, x.Nationality, x.OwnershipPct, x.ScreeningResultCode,
                 x.ScreenedBy, x.ScreenedAt)).ToListAsync(ct);
         var banks = await db.Set<CrmClientBankAccount>().AsNoTracking().Where(x => x.ClientId == a.ClientId).OrderByDescending(x => x.IsPrimary)
@@ -170,7 +164,8 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
             a.ClientRoleId, roleStatus, a.StatusCode, a.WorkflowInstanceId, a.EnteredBy, a.ReturnReason, CrmCfSupplierRules.Codes(a.GoodsCategoryCodes),
             a.MinDownPaymentPct, a.DownPaymentCollectorCode, a.CommissionPct, a.PaymentDays, a.QuotationValidityDays, a.DeliveryDays, a.ValidFromDate,
             a.ValidToDate, a.ClientBankAccountId, a.RiskRatingCode, a.SiteVisitDate, a.ActivatedAt, a.Notes, parties, banks,
-            step, step is null ? null : CrmCfSupplierWorkflowHandler.StepName(step), EntryOpen(a));
+            step, step is null ? null : CrmCfSupplierWorkflowHandler.StepName(step), EntryOpen(a),
+            await customers.ComplianceBadgeAsync(a.ClientId, ct), c.RiskGrade);
     }
 
     /// <summary>
@@ -228,42 +223,12 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
         return await GetAsync(applicationId, ct);
     }
 
-    public async Task<CrmCfSupplierDto> AddPartyAsync(long applicationId, CrmCfPartyRequest r, CancellationToken ct)
-    {
-        await EditableAsync(applicationId, ct);
-        var type = (r.PartyTypeCode ?? "").Trim().ToUpperInvariant();
-        var e = new Dictionary<string, string[]>();
-        if (!CrmCfSupplierRules.PartyTypes.Contains(type)) e["partyTypeCode"] = ["Choose owner, manager or signatory."];
-        var name = ScrValidation.Clean(r.FullName);
-        if (name is null) e["fullName"] = ["Enter the full name."];
-        else if (name.Length > 300) e["fullName"] = ["The name is longer than 300 characters."];
-        if (r.OwnershipPct is < 0 or > 100) e["ownershipPct"] = ["The share is from 0% to 100%."];
-        if (e.Count > 0) throw new BusinessValidationException(e);
-        db.Add(new CrmCfSupplierParty
-        {
-            ApplicationId = applicationId, PartyTypeCode = type, FullName = name!, NationalIdNo = Cut(ScrValidation.Clean(r.NationalIdNo), 50),
-            Nationality = Cut(ScrValidation.Clean(r.Nationality), 100), OwnershipPct = type == "OWNER" ? r.OwnershipPct : null,
-        });
-        await db.SaveChangesAsync(ct);
-        return await GetAsync(applicationId, ct);
-    }
-
-    public async Task<CrmCfSupplierDto> RemovePartyAsync(long applicationId, long partyId, CancellationToken ct)
-    {
-        await EditableAsync(applicationId, ct);
-        var p = await db.Set<CrmCfSupplierParty>().FirstOrDefaultAsync(x => x.PartyId == partyId && x.ApplicationId == applicationId, ct)
-            ?? throw new NotFoundException("The party was not found.");
-        db.Remove(p);
-        await db.SaveChangesAsync(ct);
-        return await GetAsync(applicationId, ct);
-    }
-
     /// <summary>Submits the application to CF_SUPPLIER_APPROVAL (a returned one starts a new run).</summary>
     public async Task<CrmCfSupplierDto> SubmitAsync(long applicationId, CancellationToken ct)
     {
         var a = await EditableAsync(applicationId, ct);
         await CheckTermsAsync(a, ct);
-        var parties = await db.Set<CrmCfSupplierParty>().AsNoTracking().Where(x => x.ApplicationId == applicationId).ToListAsync(ct);
+        var parties = await db.Set<CrmClientParty>().AsNoTracking().Where(x => x.ClientId == a.ClientId).ToListAsync(ct);
         var problems = CrmCfSupplierRules.CheckSubmit(parties);
         if (problems.Count > 0) throw new BusinessRuleException(string.Join(" ", problems));
 
@@ -285,29 +250,6 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
     }
 
     // ---------------------------------------------------------------- the steps' own inputs
-
-    /// <summary>Compliance: the risk rating and the screening result of each party, by whoever holds the compliance task.</summary>
-    public async Task<CrmCfSupplierDto> SaveComplianceAsync(long applicationId, long inboxId, CrmCfComplianceRequest r, CancellationToken ct)
-    {
-        var a = await StepApplicationAsync(applicationId, inboxId, CrmCfSupplierRules.Compliance, ct);
-        var rating = ScrValidation.Clean(r.RiskRatingCode)?.ToUpperInvariant();
-        if (rating is not null && !CrmCfSupplierRules.RiskRatings.Contains(rating)) throw BusinessValidationException.For("riskRatingCode", "Choose low, medium or high.");
-        a.RiskRatingCode = rating;
-        var parties = await db.Set<CrmCfSupplierParty>().Where(x => x.ApplicationId == applicationId).ToListAsync(ct);
-        foreach (var s in r.Screening ?? [])
-        {
-            var p = parties.FirstOrDefault(x => x.PartyId == s.PartyId) ?? throw new NotFoundException($"Party {s.PartyId} is not on this application.");
-            var result = ScrValidation.Clean(s.ResultCode)?.ToUpperInvariant();
-            if (result is not null && !CrmCfSupplierRules.ScreeningResults.Contains(result))
-                throw BusinessValidationException.For("screening", "A screening result is clear or match.");
-            if (result == p.ScreeningResultCode) continue;
-            p.ScreeningResultCode = result;
-            p.ScreenedBy = result is null ? null : Me;
-            p.ScreenedAt = result is null ? null : clock.UtcNow;
-        }
-        await db.SaveChangesAsync(ct);
-        return await GetAsync(applicationId, ct);
-    }
 
     /// <summary>Site visit: the date of the visit, by whoever holds the site visit task (the report is attached at the step).</summary>
     public async Task<CrmCfSupplierDto> SaveSiteVisitAsync(long applicationId, long inboxId, CrmCfSiteVisitRequest r, CancellationToken ct)

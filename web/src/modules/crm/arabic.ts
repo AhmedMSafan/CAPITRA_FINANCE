@@ -167,5 +167,18 @@ export const CRM_AR: Record<string, string> = {
   'returned at': 'أُعيد في',
   'requested': 'طُلب',
   'approved: the supplier is active': 'اعتُمد: المورد نشط',
-  'Factoring Workspace': 'مساحة عمل التخصيم'
+  'Factoring Workspace': 'مساحة عمل التخصيم',
+  'Kept with the customer in Customer 360 > Compliance, with their screening.': 'محفوظون مع العميل في عرض العميل 360 > الالتزام، مع نتيجة فحصهم.',
+  'Open Compliance': 'فتح الالتزام',
+  'Customer compliance': 'التزام العميل',
+  'Risk grade': 'درجة المخاطر',
+  'not set': 'غير محددة',
+  'goes to the committee': 'يُحال إلى اللجنة',
+  'Owners and signatories screened clear': 'الملاك والمفوضون الذين اجتازوا الفحص',
+  'Fix anything here in Customer 360 > Compliance (verified by a second person), then accept the step.': 'صحح أي شيء من عرض العميل 360 > الالتزام (يتحقق منه شخص ثانٍ)، ثم اقبل الخطوة.',
+  'At least one owner and one authorised signatory. Screen each person.': 'مالك واحد ومفوض بالتوقيع واحد على الأقل. افحص كل شخص.',
+  'Added. The compliance profile needs verifying again.': 'تمت الإضافة. يحتاج ملف الالتزام إلى تحقق جديد.',
+  'Removed. The compliance profile needs verifying again.': 'تم الحذف. يحتاج ملف الالتزام إلى تحقق جديد.',
+  'Screening saved. The compliance profile needs verifying again.': 'تم حفظ الفحص. يحتاج ملف الالتزام إلى تحقق جديد.',
+  'Not every owner and signatory is screened.': 'لم يُفحص كل الملاك والمفوضين.'
 }

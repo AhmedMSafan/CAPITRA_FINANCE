@@ -1,5 +1,6 @@
 <template>
-  <!-- Customer 360 > Compliance: the profile (KYC, AML, sanctions, PEP, blacklist, review), Edit and Verify (four eyes), and the history. -->
+  <!-- Customer 360 > Compliance: the profile (KYC, AML, sanctions, PEP, blacklist, review), Edit and Verify (four eyes), the owners and
+       signatories with their screening, and the history. -->
   <div class="c3-tab">
     <section class="c3-panel">
       <header class="c3-panel-head">
@@ -28,6 +29,8 @@
         <div><dt>{{ tr('Verified') }}</dt><dd>{{ state.verifiedBy ? `${state.verifiedBy} · ${formatDateTime(state.verifiedAt)}` : tr('Not verified') }}</dd></div>
       </dl>
     </section>
+
+    <Crm360Parties :client-id="clientId" :parties="parties" :can-edit="canEdit" @changed="emit('changed')" />
 
     <section class="c3-panel">
       <header class="c3-panel-head"><h3><span class="fa fa-history" aria-hidden="true"></span>{{ tr('History') }}</h3></header>
@@ -92,11 +95,12 @@ import { ApiError } from '@/shared/api/http'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
-import { crm360Api, type CrmBadge, type CrmCompliance, type CrmComplianceHistory, type CrmComplianceState } from '../api/crm.api'
+import { crm360Api, type CrmBadge, type CrmCompliance, type CrmComplianceHistory, type CrmComplianceState, type CrmParty } from '../api/crm.api'
 import Crm360Dialog from './Crm360Dialog.vue'
+import Crm360Parties from './Crm360Parties.vue'
 import { chip } from './crm360'
 
-const props = defineProps<{ clientId: number; state: CrmComplianceState; badge: CrmBadge; history: CrmComplianceHistory[]; makerChecker: boolean; canEdit: boolean; canVerify: boolean }>()
+const props = defineProps<{ clientId: number; state: CrmComplianceState; badge: CrmBadge; history: CrmComplianceHistory[]; parties: CrmParty[]; makerChecker: boolean; canEdit: boolean; canVerify: boolean }>()
 const emit = defineEmits<{ changed: [] }>()
 
 const KYC = ['PENDING', 'APPROVED', 'REJECTED']

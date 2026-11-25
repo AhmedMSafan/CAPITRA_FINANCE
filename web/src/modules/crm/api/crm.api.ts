@@ -118,7 +118,15 @@ export type CrmCustomer360 = {
   programs: CrmProgram[]; bankAccountWaitingDays: number
   /** Module Settings: whether a second user must verify a bank account change / a compliance change. */
   bankAccountMakerChecker: boolean; complianceMakerChecker: boolean
+  /** Owners, managers and authorised signatories, with their screening (part of the compliance). */
+  parties: CrmParty[]
 }
+
+export type CrmParty = {
+  partyId: number; partyTypeCode: string; fullName: string; nationalIdNo: string | null; nationality: string | null; ownershipPct: number | null
+  screeningResultCode: string | null; screenedBy: string | null; screenedAt: string | null
+}
+export type CrmPartyForm = { partyTypeCode: string; fullName: string; nationalIdNo: string | null; nationality: string | null; ownershipPct: number | null }
 
 export type CrmBankAccountForm = {
   bankName: string; branchName: string | null; swiftCode: string | null; accountNumber: string | null; iban: string | null
@@ -140,6 +148,9 @@ export const crm360Api = {
   overview: (id: number) => http.get<CrmCustomerOverview>(`${c360(id)}/360/overview`),
   saveCompliance: (id: number, body: CrmCompliance) => http.put<void>(`${c360(id)}/compliance`, body),
   verifyCompliance: (id: number, notes: string | null) => http.post<void>(`${c360(id)}/compliance/verify`, { notes }),
+  addParty: (id: number, form: CrmPartyForm) => http.post<void>(`${c360(id)}/parties`, form),
+  removeParty: (id: number, partyId: number) => http.post<void>(`${c360(id)}/parties/${partyId}/remove`),
+  screenParty: (id: number, partyId: number, resultCode: string | null) => http.post<void>(`${c360(id)}/parties/${partyId}/screening`, { resultCode }),
   addRole: (id: number, roleCode: string, notes: string | null, businessLineCode: string | null = null) =>
     http.post<void>(`${c360(id)}/roles`, { roleCode, notes, businessLineCode }),
   activateRole: (id: number, roleId: number) => http.post<void>(`${c360(id)}/roles/${roleId}/activate`, {}),
