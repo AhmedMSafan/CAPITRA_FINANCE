@@ -100,7 +100,8 @@ const props = defineProps<{ clientId: number; roles: CrmRole[]; programs: CrmPro
 const emit = defineEmits<{ changed: []; 'open-tab': [tab: string] }>()
 
 // a company can be a Factoring Supplier and a Consumer Finance Supplier (two roles)
-const free = computed(() => ROLES.filter((o) => !props.roles.some((r) => choiceOf(r) === o.value)))
+// Client is every customer's built-in role (Ahmed, 25 Nov 2026), so it is never added by hand
+const free = computed(() => ROLES.filter((o) => o.value !== 'CLIENT' && !props.roles.some((r) => choiceOf(r) === o.value)))
 
 const adding = ref(false)
 const suspending = ref(false)

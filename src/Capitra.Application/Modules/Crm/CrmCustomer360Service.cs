@@ -519,6 +519,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         // Factoring Supplier and Consumer Finance Supplier are the SUPPLIER role of their business line
         (code, var line) = Choice(code, dto.BusinessLineCode);
         if (Roles.All(x => x.Value != code)) throw BusinessValidationException.For("roleCode", "Choose the role.");
+        if (code == "CLIENT") throw new BusinessRuleException("Every customer has the Client role from its creation; it is not added by hand.");
         if (code == Supplier && SupplierBusinessLines.All(x => x.Value != line))
             throw BusinessValidationException.For("businessLineCode", "Choose the business line the supplier serves.");
         var role = new CrmClientRole { ClientId = clientId, RoleCode = code, BusinessLineCode = line, StatusCode = CrmClientRole.Onboarding, Notes = Blank(dto.Notes) };

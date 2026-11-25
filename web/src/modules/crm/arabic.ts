@@ -185,5 +185,6 @@ export const CRM_AR: Record<string, string> = {
   'from its owners and signatories': 'من ملاكه ومفوضيه',
   'Enhanced due diligence': 'العناية الواجبة المعززة',
   'Owners and signatories screened, no sanctions match': 'الملاك والمفوضون المفحوصون دون تطابق مع العقوبات',
-  'At least one owner and one authorised signatory. Screen each person against sanctions, blacklist and PEP lists.': 'مالك واحد ومفوض بالتوقيع واحد على الأقل. افحص كل شخص مقابل قوائم العقوبات والقوائم السوداء والأشخاص المعرضين سياسياً.'
+  'At least one owner and one authorised signatory. Screen each person against sanctions, blacklist and PEP lists.': 'مالك واحد ومفوض بالتوقيع واحد على الأقل. افحص كل شخص مقابل قوائم العقوبات والقوائم السوداء والأشخاص المعرضين سياسياً.',
+  'Every customer has the Client role from its creation; it is not added by hand.': 'لكل عميل دور عميل منذ إنشائه؛ لا يُضاف يدوياً.'
 }
