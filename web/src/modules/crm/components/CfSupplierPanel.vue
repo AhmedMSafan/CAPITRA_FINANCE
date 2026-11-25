@@ -90,7 +90,7 @@
       <header class="fc-sec-head">
         <span class="fc-sec-ic" aria-hidden="true"><span class="fa fa-users"></span></span>
         <div><h2>{{ tr('Owners and signatories') }} ({{ app.parties.length }})</h2>
-          <p>{{ atStep('CFS_COMPLIANCE') ? tr('Screen each person against sanctions lists, blacklists and PEP lists, and record the result.') : tr('At least one owner and one authorised signatory.') }}</p></div>
+          <p>{{ tr('At least one owner and one authorised signatory.') }}</p></div>
       </header>
       <div v-if="editable" class="scr-toolbar cf-party-add">
         <select v-model="party.partyTypeCode" class="fx-select" :aria-label="tr('Type')"><option v-for="o in options?.partyTypes ?? []" :key="o.code" :value="o.code">{{ tr(o.name) }}</option></select>
@@ -111,14 +111,9 @@
               <td>{{ p.nationality || '—' }}</td>
               <td class="num">{{ p.ownershipPct ?? '' }}</td>
               <td>
-                <select v-if="atStep('CFS_COMPLIANCE')" v-model="screening[p.partyId]" class="fx-select fx-select--sm" :aria-label="tr('Screening')">
-                  <option :value="null">{{ tr('Not screened') }}</option><option value="CLEAR">{{ tr('Clear') }}</option><option value="MATCH">{{ tr('Match') }}</option>
-                </select>
-                <template v-else>
-                  <span v-if="p.screeningResultCode" class="fx-chip" :class="p.screeningResultCode === 'CLEAR' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(p.screeningResultCode === 'CLEAR' ? 'Clear' : 'Match') }}</span>
-                  <span v-else class="c3-muted">{{ tr('Not screened') }}</span>
-                  <small v-if="p.screenedBy" class="fx-cell-sub">{{ p.screenedBy }}</small>
-                </template>
+                <span v-if="p.screeningResultCode" class="fx-chip" :class="p.screeningResultCode === 'CLEAR' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(p.screeningResultCode === 'CLEAR' ? 'Clear' : 'Match') }}</span>
+                <span v-else class="c3-muted">{{ tr('Not screened') }}</span>
+                <small v-if="p.screenedBy" class="fx-cell-sub">{{ p.screenedBy }}</small>
               </td>
               <td v-if="editable" class="fx-r">
                 <button type="button" class="fx-btn fx-btn--sm fc-btn-reject" :disabled="busy" @click="removeParty(p.partyId)"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Remove') }}</button>
@@ -130,25 +125,59 @@
       <div v-if="!app.parties.length" class="fx-empty"><span class="fa fa-users" aria-hidden="true"></span>{{ tr('No owners or signatories yet.') }}</div>
     </section>
 
-    <!-- compliance and site visit, filled at their steps -->
-    <section v-if="app && app.statusCode !== 'DRAFT'" class="fx-card fc-step-card">
+    <!-- the step box (Ahmed, 25 Nov 2026): only what the open step enters, with what earlier steps decided as plain text;
+         later steps' fields are not shown -->
+    <section v-if="app && (atStep('CFS_COMPLIANCE') || atStep('CFS_SITE_VISIT') || atStep('CFS_CONTRACT') || app.riskRatingCode || app.siteVisitDate)" class="fx-card fc-step-card">
       <header class="fc-sec-head">
-        <span class="fc-sec-ic" aria-hidden="true"><span class="fa fa-shield"></span></span>
-        <div><h2>{{ tr('Compliance and site visit') }}</h2><p>{{ tr('A HIGH risk supplier also needs the approval of every committee member.') }}</p></div>
+        <span class="fc-sec-ic" aria-hidden="true"><span class="fa" :class="atStep('CFS_SITE_VISIT') ? 'fa-map-marker' : 'fa-shield'"></span></span>
+        <div><h2>{{ tr(atStep('CFS_COMPLIANCE') ? 'Compliance' : atStep('CFS_SITE_VISIT') ? 'Site visit' : atStep('CFS_CONTRACT') ? 'Contract signing' : 'Compliance and site visit') }}</h2>
+          <p>{{ tr(atStep('CFS_COMPLIANCE') ? 'Screen each person against sanctions lists, blacklists and PEP lists, then set the risk rating. A HIGH risk supplier also needs every committee member.'
+            : atStep('CFS_SITE_VISIT') ? 'Enter the visit date and add the visit report to the documents.' : 'What the earlier steps decided.') }}</p></div>
       </header>
-      <div class="fc-grid fc-grid--3">
-        <label class="fc-field"><span>{{ tr('Risk rating') }} <b v-if="atStep('CFS_COMPLIANCE')">*</b></span>
-          <select v-model="riskRating" class="fx-select" :disabled="!atStep('CFS_COMPLIANCE')">
-            <option :value="null">—</option><option v-for="o in options?.riskRatings ?? []" :key="o.code" :value="o.code">{{ tr(o.name) }}</option>
-          </select></label>
-        <label class="fc-field"><span>{{ tr('Site visit date') }} <b v-if="atStep('CFS_SITE_VISIT')">*</b></span>
-          <input v-model="siteVisitDate" class="fx-search" type="date" :disabled="!atStep('CFS_SITE_VISIT')"></label>
-        <div class="fc-field cf-step-save">
-          <button v-if="atStep('CFS_COMPLIANCE')" type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveCompliance"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save screening and rating') }}</button>
-          <button v-if="atStep('CFS_SITE_VISIT')" type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveSiteVisit"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save visit date') }}</button>
-        </div>
+
+      <!-- what earlier steps decided -->
+      <div v-if="(app.riskRatingCode && !atStep('CFS_COMPLIANCE')) || (app.siteVisitDate && !atStep('CFS_SITE_VISIT'))" class="cf-facts">
+        <span v-if="app.riskRatingCode && !atStep('CFS_COMPLIANCE')">{{ tr('Risk rating') }}: <b>{{ tr(riskName(app.riskRatingCode)) }}</b></span>
+        <span v-if="app.siteVisitDate && !atStep('CFS_SITE_VISIT')">{{ tr('Site visit date') }}: <b>{{ formatDate(app.siteVisitDate) }}</b></span>
       </div>
-      <p v-if="atStep('CFS_SITE_VISIT')" class="c3-muted cf-hint">{{ tr('Add the visit report (type: Site visit report) and photos to the documents below.') }}</p>
+
+      <!-- compliance: the screening of every owner and signatory, and the risk rating -->
+      <template v-if="atStep('CFS_COMPLIANCE')">
+        <div class="fx-table-wrap cf-screen">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('Name') }}</th><th>{{ tr('Type') }}</th><th>{{ tr('National ID / passport') }}</th><th>{{ tr('Screening') }} <b>*</b></th></tr></thead>
+            <tbody>
+              <tr v-for="p in app.parties" :key="p.partyId">
+                <td><b>{{ p.fullName }}</b></td>
+                <td>{{ tr(PARTY[p.partyTypeCode] ?? p.partyTypeCode) }}</td>
+                <td dir="ltr">{{ p.nationalIdNo || '—' }}</td>
+                <td>
+                  <select v-model="screening[p.partyId]" class="fx-select fx-select--sm" :aria-label="`${tr('Screening')}: ${p.fullName}`">
+                    <option :value="null">{{ tr('Not screened') }}</option><option value="CLEAR">{{ tr('Clear') }}</option><option value="MATCH">{{ tr('Match') }}</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cf-step-row">
+          <label class="fc-field"><span>{{ tr('Risk rating') }} <b>*</b></span>
+            <select v-model="riskRating" class="fx-select">
+              <option :value="null">—</option><option v-for="o in options?.riskRatings ?? []" :key="o.code" :value="o.code">{{ tr(o.name) }}</option>
+            </select></label>
+          <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveCompliance"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save screening and rating') }}</button>
+        </div>
+      </template>
+
+      <!-- site visit: the date; the report goes to the documents -->
+      <template v-if="atStep('CFS_SITE_VISIT')">
+        <div class="cf-step-row">
+          <label class="fc-field"><span>{{ tr('Site visit date') }} <b>*</b></span>
+            <input v-model="siteVisitDate" class="fx-search" type="date"></label>
+          <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveSiteVisit"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save visit date') }}</button>
+        </div>
+        <p class="c3-muted cf-hint">{{ tr('Add the visit report (type: Site visit report) and photos to the documents below.') }}</p>
+      </template>
       <p v-if="atStep('CFS_CONTRACT')" class="c3-muted cf-hint">{{ tr('Add the signed agreement (type: Signed agreement) to the documents below, and choose the verified bank account above.') }}</p>
     </section>
 
@@ -204,6 +233,7 @@ const router = useRouter()
 const canEdit = hasPermission('CRM.CF_SUPPLIER.EDIT')
 
 const PARTY: Record<string, string> = { OWNER: 'Owner', MANAGER: 'Manager', SIGNATORY: 'Authorised signatory' }
+const riskName = (code: string) => options.value?.riskRatings.find((o) => o.code === code)?.name ?? code
 const BANK_STATUS: Record<string, string> = { PENDING: 'Pending verification', VERIFIED: 'Verified', SUSPENDED: 'Suspended' }
 const STEP_HINT: Record<string, string> = {
   CFS_DOCUMENT_CHECK: 'Check the commercial register, tax card, activity licence and the bank letter (account in the supplier\'s own name).',
@@ -373,7 +403,11 @@ watch(() => [props.clientId, props.inboxId], load, { immediate: true })
 .cf-party-add { flex-wrap: wrap; }
 .cf-party-add .fx-search { min-width: 160px; flex: 1; }
 .cf-share { max-width: 110px; }
-.cf-step-save { justify-content: flex-end; flex-direction: row; align-items: flex-end; gap: 8px; }
-.cf-hint { margin: 8px 16px 0; font-size: 12px; }
+.cf-facts { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0 16px 4px; font-size: 13px; color: var(--fin-muted); }
+.cf-facts b { color: var(--fin-ink); }
+.cf-screen { margin: 0 16px; }
+.cf-step-row { display: flex; align-items: flex-end; gap: 12px; padding: 12px 16px 16px; }
+.cf-step-row .fc-field { width: 260px; }
+.cf-hint { margin: 0 16px 14px; font-size: 12px; }
 .num { text-align: end; }
 </style>

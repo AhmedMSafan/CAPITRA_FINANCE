@@ -6213,6 +6213,66 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("CRM_LKP_STATUS_CODES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmRecentClient", b =>
+                {
+                    b.Property<long>("RecentClientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("RECENT_CLIENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RecentClientId"));
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("OPENED_AT");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("USER_NAME");
+
+                    b.HasKey("RecentClientId")
+                        .HasName("PK_CRM_RECENT_CLIENTS");
+
+                    b.HasIndex("ClientId")
+                        .HasDatabaseName("IX_CRM_RECENT_CLIENTS_CLIENT_ID");
+
+                    b.HasIndex("UserName", "ClientId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CRM_RECENT_CLIENTS_USER_NAME_CLIENT_ID");
+
+                    b.ToTable("CRM_RECENT_CLIENTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Eod.EodDay", b =>
                 {
                     b.Property<long>("DayId")
@@ -45245,6 +45305,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_CRM_CLIENT_ROLES_CRM_CLIENTS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmRecentClient", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_RECENT_CLIENTS_CRM_CLIENTS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmLkpCurrency", b =>

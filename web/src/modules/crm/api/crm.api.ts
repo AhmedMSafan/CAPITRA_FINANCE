@@ -50,8 +50,13 @@ export const crmApi = {
   options: () => http.get<CrmClientOptions>(`${API}/options`),
   client: (clientId: number) => http.get<CrmClientForm>(`${API}/${clientId}`),
   create: (form: CrmClientForm) => http.post<CrmClientForm>(API, form),
-  update: (clientId: number, form: CrmClientForm) => http.put<CrmClientForm>(`${API}/${clientId}`, form)
+  update: (clientId: number, form: CrmClientForm) => http.put<CrmClientForm>(`${API}/${clientId}`, form),
+  /** The customers the signed-in user opened last in Customer 360, newest first. */
+  recent: () => http.get<CrmRecentClient[]>(`${API}/recent`),
+  opened: (clientId: number) => http.post<void>(`${API}/${clientId}/opened`)
 }
+
+export type CrmRecentClient = { clientId: number; clientNumber: string; clientName: string; openedAt: string }
 
 // ---------------------------------------------------------------- Customer 360 (api/crm/clients/{id}/360)
 

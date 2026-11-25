@@ -133,5 +133,13 @@ export const CRM_AR: Record<string, string> = {
   'Owner / signatory ID': 'هوية المالك / المفوض',
   'Site visit report': 'تقرير الزيارة الميدانية',
   'Signed agreement': 'اتفاقية موقعة',
-  'A new customer starts as a Client. Add its other roles in Customer 360.': 'يبدأ العميل الجديد بدور عميل. أضف أدواره الأخرى من عرض العميل 360.'
+  'A new customer starts as a Client. Add its other roles in Customer 360.': 'يبدأ العميل الجديد بدور عميل. أضف أدواره الأخرى من عرض العميل 360.',
+  Number: 'الرقم',
+  'Recently opened': 'آخر ما فتحته',
+  'Customer name...': 'اسم العميل...',
+  'Customer number...': 'رقم العميل...',
+  'Screen each person against sanctions lists, blacklists and PEP lists, then set the risk rating. A HIGH risk supplier also needs every committee member.':
+    'افحص كل شخص مقابل قوائم العقوبات والقوائم السوداء والأشخاص المعرضين سياسياً، ثم حدد تصنيف المخاطر. يحتاج المورد عالي المخاطر موافقة كل أعضاء اللجنة.',
+  'Enter the visit date and add the visit report to the documents.': 'أدخل تاريخ الزيارة وأضف تقريرها إلى المستندات.',
+  'What the earlier steps decided.': 'ما قررته الخطوات السابقة.'
 }

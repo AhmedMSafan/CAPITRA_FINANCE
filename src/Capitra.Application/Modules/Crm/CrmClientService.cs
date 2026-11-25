@@ -10,6 +10,9 @@ namespace Capitra.Application.Modules.Crm;
 /// CRM_CLIENTS, as the CRM home lists them, with the client's latest transaction: the newest of its factoring applications
 /// (FCT_OFFERS), agreements and disbursement requests by creation time (Ahmed, 31 Oct 2026); null when it has none.
 /// </summary>
+/// <summary>A customer the user opened in Customer 360 ("Recently opened").</summary>
+public sealed record CrmRecentClientDto(long ClientId, string ClientNumber, string ClientName, DateTime OpenedAt);
+
 public sealed record CrmClientListDto(
     long ClientId, string ClientNumber, string ClientName, string ClientType, string? PhoneNumber, string? Email, bool IsActive,
     DateTime? LastActivityAt, string? LastActivityType, string? LastActivityRef);
@@ -32,8 +35,11 @@ public sealed record CrmClientOptionsDto(IReadOnlyList<CrmOptionDto> Countries, 
 /// The CRM clients, from FINOVA_FINANCEING ClientsController / ClientService and its LOVs: list, read, create and update
 /// CRM_CLIENTS. Only the dialog's fields are written; the other columns keep their values.
 /// </summary>
-public sealed class CrmClientService(ICapitraDbContext db)
+public sealed class CrmClientService(ICapitraDbContext db, ICurrentUser currentUser)
 {
+    /// <summary>How many customers "Recently opened" keeps per user.</summary>
+    public const int RecentCount = 8;
+
     /// <summary>The client roles FINOVA's code knows (no roles table in the database): the developer and investor lists use them.</summary>
     public static readonly IReadOnlyList<CrmOptionDto> ClientRoles =
     [
@@ -64,9 +70,44 @@ public sealed class CrmClientService(ICapitraDbContext db)
             .Select(x => new Activity(x.ClientId, "Agreement", x.AgreementNumber, x.CreatedAt)).ToListAsync(cancellationToken);
         var disbursements = await db.Set<FctDisbursement>().AsNoTracking()
             .Select(x => new Activity(x.ClientId, "Disbursement", x.DisbursementNumber, x.CreatedAt)).ToListAsync(cancellationToken);
-        return offers.Concat(agreements).Concat(disbursements)
+        // Consumer Finance supplier applications count too (Ahmed, 25 Nov 2026)
+        var suppliers = await db.Set<CrmCfSupplierApplication>().AsNoTracking()
+            .Select(x => new Activity(x.ClientId, "Supplier application", x.ApplicationRef, x.CreatedAt)).ToListAsync(cancellationToken);
+        return offers.Concat(agreements).Concat(disbursements).Concat(suppliers)
             .GroupBy(x => x.ClientId)
             .ToDictionary(g => g.Key, g => g.MaxBy(x => x.At)!);
+    }
+
+    /// <summary>The customers the signed-in user opened last in Customer 360, newest first ("Recently opened").</summary>
+    public async Task<IReadOnlyList<CrmRecentClientDto>> RecentAsync(CancellationToken cancellationToken)
+    {
+        var user = currentUser.UserName ?? "";
+        return await (
+            from r in db.Set<CrmRecentClient>().AsNoTracking()
+            join c in db.Set<CrmClient>().AsNoTracking() on r.ClientId equals c.ClientId
+            where r.UserName == user
+            orderby r.OpenedAt descending
+            select new CrmRecentClientDto(c.ClientId, c.ClientNumber, c.ClientName, r.OpenedAt))
+            .Take(RecentCount).ToListAsync(cancellationToken);
+    }
+
+    /// <summary>Notes that the signed-in user opened the customer in Customer 360; only the newest few are kept per user.</summary>
+    public async Task OpenedAsync(long clientId, CancellationToken cancellationToken)
+    {
+        var user = currentUser.UserName;
+        if (string.IsNullOrEmpty(user) || !await db.Set<CrmClient>().AnyAsync(x => x.ClientId == clientId, cancellationToken)) return;
+        var mine = await db.Set<CrmRecentClient>().Where(x => x.UserName == user).OrderByDescending(x => x.OpenedAt).ToListAsync(cancellationToken);
+        var now = DateTime.UtcNow;
+        var row = mine.FirstOrDefault(x => x.ClientId == clientId);
+        if (row is null)
+        {
+            row = new CrmRecentClient { UserName = user, ClientId = clientId, OpenedAt = now };
+            db.Set<CrmRecentClient>().Add(row);
+            mine.Insert(0, row);
+        }
+        else row.OpenedAt = now;
+        foreach (var old in mine.Where(x => x != row).Skip(RecentCount - 1)) db.Set<CrmRecentClient>().Remove(old);
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<CrmClientFormDto> GetAsync(long clientId, CancellationToken cancellationToken) =>

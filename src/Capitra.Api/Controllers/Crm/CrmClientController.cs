@@ -18,6 +18,16 @@ public sealed class CrmClientController(CrmClientService clients) : ControllerBa
     [HasPermission(Permissions.Crm.View)]
     public Task<CrmClientOptionsDto> Options(CancellationToken cancellationToken) => clients.OptionsAsync(cancellationToken);
 
+    /// <summary>The customers the signed-in user opened last in Customer 360.</summary>
+    [HttpGet("recent")]
+    [HasPermission(Permissions.Crm.View)]
+    public Task<IReadOnlyList<CrmRecentClientDto>> Recent(CancellationToken cancellationToken) => clients.RecentAsync(cancellationToken);
+
+    /// <summary>Customer 360 calls this when it opens a customer, for "Recently opened".</summary>
+    [HttpPost("{clientId:long}/opened")]
+    [HasPermission(Permissions.Crm.View)]
+    public Task Opened(long clientId, CancellationToken cancellationToken) => clients.OpenedAsync(clientId, cancellationToken);
+
     [HttpGet("{clientId:long}")]
     [HasPermission(Permissions.Crm.View)]
     public Task<CrmClientFormDto> Get(long clientId, CancellationToken cancellationToken) => clients.GetAsync(clientId, cancellationToken);
