@@ -180,5 +180,6 @@ export const CRM_AR: Record<string, string> = {
   'Added. The compliance profile needs verifying again.': 'تمت الإضافة. يحتاج ملف الالتزام إلى تحقق جديد.',
   'Removed. The compliance profile needs verifying again.': 'تم الحذف. يحتاج ملف الالتزام إلى تحقق جديد.',
   'Screening saved. The compliance profile needs verifying again.': 'تم حفظ الفحص. يحتاج ملف الالتزام إلى تحقق جديد.',
-  'Not every owner and signatory is screened.': 'لم يُفحص كل الملاك والمفوضين.'
+  'Not every owner and signatory is screened.': 'لم يُفحص كل الملاك والمفوضين.',
+  'Every customer has the Client role from its creation; it is not added by hand.': 'لكل عميل دور عميل منذ إنشائه؛ لا يُضاف يدوياً.'
 }
