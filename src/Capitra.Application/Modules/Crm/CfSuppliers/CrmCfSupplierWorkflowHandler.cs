@@ -45,15 +45,16 @@ public sealed class CrmCfSupplierWorkflowHandler(ICapitraDbContext db, IClock cl
 
         var step = (context.StepCode ?? "").ToUpperInvariant();
         var parties = await db.Set<CrmCfSupplierParty>().AsNoTracking().Where(x => x.ApplicationId == a.ApplicationId).ToListAsync(cancellationToken);
-        var stepDocuments = await db.Set<CrmCfSupplierDocument>().CountAsync(
-            x => x.ApplicationId == a.ApplicationId && x.WorkflowInstanceId == a.WorkflowInstanceId && x.StepCode == step && x.IsActive, cancellationToken);
+        var documentTypes = await db.Set<CrmCfSupplierDocument>().AsNoTracking()
+            .Where(x => x.ApplicationId == a.ApplicationId && x.IsActive && x.DocumentTypeCode != null).Select(x => x.DocumentTypeCode!).Distinct()
+            .ToListAsync(cancellationToken);
         var bank = a.ClientBankAccountId is { } bankId
             ? await db.Set<CrmClientBankAccount>().AsNoTracking().Where(x => x.BankAccountId == bankId && x.ClientId == a.ClientId)
                 .Select(x => x.StatusCode).FirstOrDefaultAsync(cancellationToken)
             : null;
         var client = await db.Set<CrmClient>().AsNoTracking().FirstAsync(x => x.ClientId == a.ClientId, cancellationToken);
         var today = GlTime.Today(clock);
-        var problems = CrmCfSupplierRules.CheckAccept(step, a, parties, stepDocuments, bank,
+        var problems = CrmCfSupplierRules.CheckAccept(step, a, parties, documentTypes, bank,
             !string.IsNullOrWhiteSpace(client.RegistrationNumber) && !string.IsNullOrWhiteSpace(client.TaxNumber), today);
         if (problems.Count > 0)
             throw new BusinessRuleException($"{StepName(step)} cannot be accepted: {string.Join(" ", problems)}");

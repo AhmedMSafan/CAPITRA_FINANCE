@@ -59,6 +59,7 @@ public sealed class CrmCfSupplierDocumentConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.StepCode).HasMaxLength(50);
         builder.Property(x => x.StepName).HasMaxLength(200);
         builder.Property(x => x.DocumentTitle).HasMaxLength(300);
+        builder.Property(x => x.DocumentTypeCode).HasMaxLength(30);
         builder.Property(x => x.FileName).HasMaxLength(260);
         builder.Property(x => x.MimeType).HasMaxLength(100);
         builder.Property(x => x.Sha256Hash).HasMaxLength(64);

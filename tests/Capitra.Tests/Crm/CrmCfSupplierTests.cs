@@ -90,42 +90,46 @@ public sealed class CrmCfSupplierTests
     }
 
     [Fact]
-    public void Submitting_needs_an_owner_a_signatory_shares_up_to_100_and_documents()
+    public void Submitting_needs_an_owner_a_signatory_and_shares_up_to_100_but_no_documents()
     {
-        Assert.Empty(CrmCfSupplierRules.CheckSubmit([Party("OWNER", 60), Party("OWNER", 40), Party("SIGNATORY")], 2));
-        Assert.Equal(3, CrmCfSupplierRules.CheckSubmit([Party("OWNER", 70), Party("OWNER", 40)], 0).Count); // no signatory, > 100%, no files
-        Assert.Single(CrmCfSupplierRules.CheckSubmit([Party("SIGNATORY")], 1)); // no owner
+        Assert.Empty(CrmCfSupplierRules.CheckSubmit([Party("OWNER", 60), Party("OWNER", 40), Party("SIGNATORY")]));
+        Assert.Equal(2, CrmCfSupplierRules.CheckSubmit([Party("OWNER", 70), Party("OWNER", 40)]).Count); // no signatory, > 100%
+        Assert.Single(CrmCfSupplierRules.CheckSubmit([Party("SIGNATORY")])); // no owner
     }
 
     [Fact]
     public void Compliance_needs_a_rating_and_every_party_screened_clear()
     {
         var a = App();
-        Assert.Equal(2, CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER")], 0, null, true, Today).Count);
+        Assert.Equal(2, CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER")], None, null, true, Today).Count);
         a.RiskRatingCode = "HIGH";
-        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "CLEAR")], 0, null, true, Today));
-        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "MATCH")], 0, null, true, Today));
+        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "CLEAR")], None, null, true, Today));
+        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "MATCH")], None, null, true, Today));
     }
+
+    private static readonly string[] None = [];
+    private static readonly string[] Report = ["TAX_CARD", CrmCfSupplierRules.SiteVisitReport];
+    private static readonly string[] Signed = [CrmCfSupplierRules.SignedAgreement];
 
     [Fact]
     public void Site_visit_needs_a_past_date_and_its_report()
     {
         var a = App();
-        Assert.Equal(2, CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.SiteVisit, a, [], 0, null, true, Today).Count);
+        Assert.Equal(2, CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.SiteVisit, a, [], None, null, true, Today).Count);
         a.SiteVisitDate = Today.AddDays(1);
-        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.SiteVisit, a, [], 1, null, true, Today));
+        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.SiteVisit, a, [], Report, null, true, Today));
         a.SiteVisitDate = Today;
-        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.SiteVisit, a, [], 1, null, true, Today));
+        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.SiteVisit, a, [], Report, null, true, Today));
     }
 
     [Fact]
     public void Contract_needs_the_signed_agreement_and_a_verified_bank_account()
     {
         var a = App();
-        Assert.Equal(2, CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Contract, a, [], 0, null, true, Today).Count);
-        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Contract, a, [], 1, CrmClientBankAccount.Pending, true, Today));
-        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Contract, a, [], 1, CrmClientBankAccount.Verified, true, Today));
-        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.DocumentCheck, a, [], 0, null, false, Today));
+        Assert.Equal(2, CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Contract, a, [], None, null, true, Today).Count);
+        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Contract, a, [], Signed, CrmClientBankAccount.Pending, true, Today));
+        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Contract, a, [], Signed, CrmClientBankAccount.Verified, true, Today));
+        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.DocumentCheck, a, [], None, null, false, Today));
     }
 
     [Fact]

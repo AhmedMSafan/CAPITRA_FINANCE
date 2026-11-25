@@ -41,12 +41,6 @@
                   <option v-for="t in withCurrent(CLIENT_TYPES, form.clientType)" :key="t" :value="t">{{ t }}</option>
                 </select>
               </label>
-              <label v-if="!clientId" class="fc-field" :class="bad('initialRoleCode')">
-                <span>{{ tr('First Role') }}<b> *</b></span>
-                <select v-model="form.initialRoleCode" class="fx-select">
-                  <option v-for="r in ROLES" :key="r.value" :value="r.value">{{ tr(r.label) }}</option>
-                </select>
-              </label>
               <label class="fc-field" :class="bad('legalStructure')">
                 <span>{{ tr('Legal Structure') }}<b> *</b></span>
                 <select v-model="form.legalStructure" class="fx-select">
@@ -127,6 +121,7 @@
         </template>
 
         <footer class="crm-foot">
+          <small v-if="!clientId" class="crm-foot-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('A new customer starts as a Client. Add its other roles in Customer 360.') }}</small>
           <button type="button" class="fx-btn" :disabled="saving" @click="close"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Cancel') }}</button>
           <button type="button" class="fx-btn fx-btn--teal" :disabled="saving || loading" @click="save">
             <span class="fa" :class="saving ? 'fa-spinner fa-spin' : 'fa-check'" aria-hidden="true"></span>{{ tr(clientId ? 'Update' : 'Save') }}
@@ -139,18 +134,15 @@
 
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { ApiError } from '@/shared/api/http'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
 import { crmApi, type CrmClientForm, type CrmClientOptions } from '../api/crm.api'
-import { ROLES } from './crm360'
 
 // clientId null = Add Client
 const props = defineProps<{ clientId: number | null }>()
 const visible = defineModel<boolean>('visible', { required: true })
 const emit = defineEmits<{ saved: [client: CrmClientForm] }>()
-const router = useRouter()
 
 // FINOVA's fixed lists
 const CLIENT_TYPES = ['CORPORATE', 'SME', 'INDIVIDUAL', 'GOVERNMENT']
@@ -159,7 +151,7 @@ const LEGAL_STRUCTURES = ['LLC', 'JSC', 'PARTNERSHIP', 'SOLE']
 const empty = (): CrmClientForm => ({
   clientId: null, clientNumber: '', clientName: '', clientNameAr: '', shortName: null, clientType: '', clientRoleCode: null,
   legalStructure: '', registrationNumber: null, taxNumber: null, email: null, phoneNumber: null, mobileNumber: null, website: null,
-  countryId: 0, baseCurrencyId: 0, statusId: 0, isActive: true, isSupplier: false, isRelatedParty: false, initialRoleCode: 'CLIENT'
+  countryId: 0, baseCurrencyId: 0, statusId: 0, isActive: true, isSupplier: false, isRelatedParty: false
 })
 
 const form = reactive<CrmClientForm>(empty())
@@ -180,7 +172,6 @@ function check(): Record<string, string[]> {
   if (!form.clientNameAr.trim()) e.clientNameAr = ['Arabic Client Name is required.']
   if (!form.clientType.trim()) e.clientType = ['Client Type is required.']
   if (!form.legalStructure.trim()) e.legalStructure = ['Legal Structure is required.']
-  if (!props.clientId && !form.initialRoleCode) e.initialRoleCode = ["Choose the customer's first role."]
   return e
 }
 
@@ -199,9 +190,6 @@ async function save() {
     visible.value = false
     showSuccess(tr(props.clientId ? 'Client updated.' : 'Client created.'))
     emit('saved', saved)
-    // a new Consumer Finance Supplier goes straight on to its supplier application in Customer 360
-    if (!props.clientId && form.initialRoleCode === 'CF_SUPPLIER' && saved.clientId)
-      await router.push({ name: 'crm-customer-workspace', params: { clientId: saved.clientId }, query: { tab: 'cf-supplier' } })
   } catch (err) {
     if (err instanceof ApiError && err.problem?.errors) report(err.problem.errors)
     else showError(err instanceof Error ? err.message : String(err))
@@ -240,5 +228,6 @@ watch(visible, async (open) => {
 .crm-grid .fc-field { flex: none; }
 .crm-bad .fx-search, .crm-bad .fx-select { border-color: var(--fin-bad); }
 .crm-foot { display: flex; justify-content: flex-end; gap: 8px; margin: 0; }
+.crm-foot-note { display: inline-flex; align-items: center; gap: 6px; margin-inline-end: auto; font-size: 12px; color: var(--fin-muted); }
 @media (max-width: 760px) { .crm-grid { grid-template-columns: 1fr; } }
 </style>

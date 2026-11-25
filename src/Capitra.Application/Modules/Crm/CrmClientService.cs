@@ -15,14 +15,13 @@ public sealed record CrmClientListDto(
     DateTime? LastActivityAt, string? LastActivityType, string? LastActivityRef);
 
 /// <summary>
-/// The fields of the client dialog (Basic Information, Contact Information, Classification). InitialRoleCode is asked only when a
-/// customer is created: its first Customer 360 role (CRM_CLIENT_ROLES), which starts as ONBOARDING.
+/// The fields of the client dialog (Basic Information, Contact Information, Classification). A new customer gets the CLIENT role
+/// (CRM_CLIENT_ROLES, ONBOARDING); its other roles are added in Customer 360.
 /// </summary>
 public sealed record CrmClientFormDto(
     long? ClientId, string ClientNumber, string ClientName, string ClientNameAr, string? ShortName, string ClientType, string? ClientRoleCode,
     string LegalStructure, string? RegistrationNumber, string? TaxNumber, string? Email, string? PhoneNumber, string? MobileNumber,
-    string? Website, long CountryId, long BaseCurrencyId, long StatusId, bool IsActive, bool IsSupplier, bool IsRelatedParty,
-    string? InitialRoleCode = null);
+    string? Website, long CountryId, long BaseCurrencyId, long StatusId, bool IsActive, bool IsSupplier, bool IsRelatedParty);
 
 public sealed record CrmOptionDto(string Value, string Label);
 
@@ -75,7 +74,7 @@ public sealed class CrmClientService(ICapitraDbContext db)
             .Where(x => x.ClientId == clientId)
             .Select(x => new CrmClientFormDto(x.ClientId, x.ClientNumber, x.ClientName, x.ClientNameAr, x.ShortName, x.ClientType, x.ClientRoleCode,
                 x.LegalStructure, x.RegistrationNumber, x.TaxNumber, x.Email, x.PhoneNumber, x.MobileNumber, x.Website,
-                x.CountryId, x.BaseCurrencyId, x.StatusId, x.IsActive, x.IsSupplier, x.IsRelatedParty, null))
+                x.CountryId, x.BaseCurrencyId, x.StatusId, x.IsActive, x.IsSupplier, x.IsRelatedParty))
             .SingleOrDefaultAsync(cancellationToken)
         ?? throw new NotFoundException($"Client with ID {clientId} was not found.");
 
@@ -95,20 +94,14 @@ public sealed class CrmClientService(ICapitraDbContext db)
         await ValidateAsync(dto, requireNumber: true, cancellationToken);
         if (await db.Set<CrmClient>().AnyAsync(x => x.ClientNumber == number, cancellationToken))
             throw BusinessValidationException.For("clientNumber", $"Client Number {number} already exists.");
-        var (firstRole, firstLine) = CrmCustomer360Service.Choice(dto.InitialRoleCode);
-        if (CrmCustomer360Service.Roles.All(x => x.Value != firstRole)) throw BusinessValidationException.For("initialRoleCode", "Choose the customer's first role.");
 
         // FINOVA's defaults: active, not blacklisted, not a related party, not a supplier unless chosen
         var client = new CrmClient { ClientNumber = number };
         Apply(client, dto);
         db.Set<CrmClient>().Add(client);
         await db.SaveChangesAsync(cancellationToken);
-        // Factoring Supplier or Consumer Finance Supplier: the SUPPLIER role of that business line (the latter is activated by its workflow)
-        db.Set<CrmClientRole>().Add(new CrmClientRole
-        {
-            ClientId = client.ClientId, RoleCode = firstRole, StatusCode = CrmClientRole.Onboarding,
-            BusinessLineCode = firstLine,
-        });
+        // every new customer starts as a Client (Ahmed, 25 Nov 2026); its other roles are added in Customer 360
+        db.Set<CrmClientRole>().Add(new CrmClientRole { ClientId = client.ClientId, RoleCode = "CLIENT", StatusCode = CrmClientRole.Onboarding });
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(client.ClientId, cancellationToken);
     }

@@ -4830,6 +4830,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("DOCUMENT_TITLE");
 
+                    b.Property<string>("DocumentTypeCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DOCUMENT_TYPE_CODE");
+
                     b.Property<byte[]>("FileBlob")
                         .IsRequired()
                         .HasColumnType("bytea")
