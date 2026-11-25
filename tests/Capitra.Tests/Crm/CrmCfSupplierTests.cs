@@ -106,6 +106,9 @@ public sealed class CrmCfSupplierTests
         Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "CLEAR")], None, null, true, Today, "CLEAR", "HIGH"));
         Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "CLEAR")], None, null, true, Today, "DUE", "LOW"));
         Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "MATCH")], None, null, true, Today, "CLEAR", "LOW"));
+        // a PEP passes the screening; the customer's compliance (EDD until HIGH and verified) decides
+        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "PEP")], None, null, true, Today, "CLEAR", "HIGH"));
+        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "PEP")], None, null, true, Today, "EDD", "LOW"));
     }
 
     private static readonly string[] None = [];

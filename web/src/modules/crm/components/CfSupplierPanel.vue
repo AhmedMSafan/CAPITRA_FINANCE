@@ -107,7 +107,7 @@
               <td>{{ p.nationality || '—' }}</td>
               <td class="num">{{ p.ownershipPct ?? '' }}</td>
               <td>
-                <span v-if="p.screeningResultCode" class="fx-chip" :class="p.screeningResultCode === 'CLEAR' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(p.screeningResultCode === 'CLEAR' ? 'Clear' : 'Match') }}</span>
+                <span v-if="p.screeningResultCode" class="fx-chip" :class="SCREEN_CHIP[p.screeningResultCode]">{{ tr(SCREEN_NAME[p.screeningResultCode] ?? p.screeningResultCode) }}</span>
                 <span v-else class="c3-muted">{{ tr('Not screened') }}</span>
                 <small v-if="p.screenedBy" class="fx-cell-sub">{{ p.screenedBy }}</small>
               </td>
@@ -149,7 +149,7 @@
           </li>
           <li :class="screenedAll ? 'is-ok' : 'is-bad'">
             <span class="fa" :class="screenedAll ? 'fa-check-circle' : 'fa-times-circle'" aria-hidden="true"></span>
-            {{ tr('Owners and signatories screened clear') }}: <b>{{ app.parties.filter((p) => p.screeningResultCode === 'CLEAR').length }} / {{ app.parties.length }}</b>
+            {{ tr('Owners and signatories screened, no sanctions match') }}: <b>{{ app.parties.filter((p) => p.screeningResultCode && p.screeningResultCode !== 'MATCH').length }} / {{ app.parties.length }}</b>
           </li>
         </ul>
         <div class="cf-step-row">
@@ -248,7 +248,9 @@ const blank = (): CfSupplierRequest => ({
   deliveryDays: 5, validFromDate: null, validToDate: null, clientBankAccountId: null, notes: null
 })
 const form = reactive<CfSupplierRequest>(blank())
-const screenedAll = computed(() => !!app.value?.parties.length && app.value.parties.every((p) => p.screeningResultCode === 'CLEAR'))
+const screenedAll = computed(() => !!app.value?.parties.length && app.value.parties.every((p) => !!p.screeningResultCode && p.screeningResultCode !== 'MATCH'))
+const SCREEN_NAME: Record<string, string> = { CLEAR: 'Clear', PEP: 'PEP', MATCH: 'Sanctions match' }
+const SCREEN_CHIP: Record<string, string> = { CLEAR: 'fx-chip--ok', PEP: 'fx-chip--warn', MATCH: 'fx-chip--bad' }
 
 const editable = computed(() => canEdit && !task.value && (!app.value || app.value.canEdit))
 const taskOpen = computed(() => !!task.value && (task.value.status === 'IN_PROGRESS' || task.value.status === 'CLAIMED') && task.value.instanceId === app.value?.workflowInstanceId)

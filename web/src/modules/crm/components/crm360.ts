@@ -1,7 +1,7 @@
 // Customer 360: one chip colour per status code, used on every tab.
 const OK = ['CLEAR', 'APPROVED', 'VERIFIED', 'ACTIVE', 'YES']
 const BAD = ['REJECTED', 'BLOCKED', 'MATCH', 'EXPIRED', 'SUSPENDED', 'NO', 'MISSING']
-const WARN = ['PENDING', 'REVIEW', 'DUE', 'ONBOARDING', 'WAITING']
+const WARN = ['PENDING', 'REVIEW', 'DUE', 'ONBOARDING', 'WAITING', 'EDD', 'PEP']
 
 export function chip(code: string | null | undefined): string {
   const c = (code ?? '').toUpperCase()

@@ -174,11 +174,16 @@ export const CRM_AR: Record<string, string> = {
   'Risk grade': 'درجة المخاطر',
   'not set': 'غير محددة',
   'goes to the committee': 'يُحال إلى اللجنة',
-  'Owners and signatories screened clear': 'الملاك والمفوضون الذين اجتازوا الفحص',
   'Fix anything here in Customer 360 > Compliance (verified by a second person), then accept the step.': 'صحح أي شيء من عرض العميل 360 > الالتزام (يتحقق منه شخص ثانٍ)، ثم اقبل الخطوة.',
-  'At least one owner and one authorised signatory. Screen each person.': 'مالك واحد ومفوض بالتوقيع واحد على الأقل. افحص كل شخص.',
   'Added. The compliance profile needs verifying again.': 'تمت الإضافة. يحتاج ملف الالتزام إلى تحقق جديد.',
   'Removed. The compliance profile needs verifying again.': 'تم الحذف. يحتاج ملف الالتزام إلى تحقق جديد.',
   'Screening saved. The compliance profile needs verifying again.': 'تم حفظ الفحص. يحتاج ملف الالتزام إلى تحقق جديد.',
-  'Not every owner and signatory is screened.': 'لم يُفحص كل الملاك والمفوضين.'
+  'Not every owner and signatory is screened.': 'لم يُفحص كل الملاك والمفوضين.',
+  'PEP': 'شخص معرض سياسياً',
+  'Sanctions match': 'تطابق مع العقوبات',
+  'PEP-related': 'مرتبط بشخص معرض سياسياً',
+  'from its owners and signatories': 'من ملاكه ومفوضيه',
+  'Enhanced due diligence': 'العناية الواجبة المعززة',
+  'Owners and signatories screened, no sanctions match': 'الملاك والمفوضون المفحوصون دون تطابق مع العقوبات',
+  'At least one owner and one authorised signatory. Screen each person against sanctions, blacklist and PEP lists.': 'مالك واحد ومفوض بالتوقيع واحد على الأقل. افحص كل شخص مقابل قوائم العقوبات والقوائم السوداء والأشخاص المعرضين سياسياً.'
 }
