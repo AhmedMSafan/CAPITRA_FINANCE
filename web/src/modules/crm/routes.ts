@@ -17,9 +17,9 @@ export const crmRoutes: RouteRecordRaw[] = [
     component: () => import('./pages/DisbursementRequestPage.vue'),
     props: (r) => ({ clientId: Number(r.params.clientId), limitId: Number(r.params.limitId) }), meta: meta('Disbursement Request Detail')
   },
-  // Consumer Finance suppliers (Ahmed, 25 Nov 2026); the supplier page is also the page of every CF_SUPPLIER_APPROVAL step (?inboxId=)
+  // Consumer Finance suppliers (Ahmed, 25 Nov 2026): the list; an application (and every CF_SUPPLIER_APPROVAL step, ?inboxId=) opens
+  // the customer's Consumer Finance Supplier tab in Customer 360
   { path: 'crm/cf-suppliers', name: 'crm-cf-suppliers', component: () => import('./pages/CfSuppliersPage.vue'), meta: meta('Consumer Finance Suppliers') },
-  { path: 'crm/cf-suppliers/new', name: 'crm-cf-supplier-new', component: () => import('./pages/CfSupplierPage.vue'), meta: meta('New supplier application') },
   {
     path: 'crm/cf-suppliers/:applicationId(\\d+)', name: 'crm-cf-supplier', component: () => import('./pages/CfSupplierPage.vue'),
     props: (r) => ({ applicationId: Number(r.params.applicationId) }), meta: meta('Supplier application')

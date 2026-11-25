@@ -134,4 +134,26 @@ public sealed class CrmCfSupplierTests
         Assert.Throws<BusinessRuleException>(() => CrmCfSupplierRules.CheckPerson("EMP:100", "EMP:100"));
         CrmCfSupplierRules.CheckPerson("EMP:100", "EMP:200");
     }
+
+    [Theory]
+    [InlineData("CF_SUPPLIER", null, "SUPPLIER", "CONSUMER_FINANCE")]
+    [InlineData("factoring_supplier", null, "SUPPLIER", "FACTORING")]
+    [InlineData("SUPPLIER", null, "SUPPLIER", "FACTORING")]
+    [InlineData("SUPPLIER", "consumer_finance", "SUPPLIER", "CONSUMER_FINANCE")]
+    [InlineData("DEBTOR", null, "DEBTOR", null)]
+    public void The_two_supplier_types_are_the_supplier_role_of_their_business_line(string chosen, string? line, string role, string? expectedLine)
+    {
+        var (r, l) = Capitra.Application.Modules.Crm.CrmCustomer360Service.Choice(chosen, line);
+        Assert.Equal(role, r);
+        Assert.Equal(expectedLine, l);
+    }
+
+    [Fact]
+    public void Supplier_roles_are_named_by_their_type()
+    {
+        Assert.Equal("Consumer Finance Supplier", Capitra.Application.Modules.Crm.CrmCustomer360Service.RoleLabel(
+            new CrmClientRole { RoleCode = "SUPPLIER", BusinessLineCode = "CONSUMER_FINANCE" }));
+        Assert.Equal("Factoring Supplier", Capitra.Application.Modules.Crm.CrmCustomer360Service.RoleLabel(
+            new CrmClientRole { RoleCode = "SUPPLIER", BusinessLineCode = "FACTORING" }));
+    }
 }

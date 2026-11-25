@@ -143,6 +143,11 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
 
     // ---------------------------------------------------------------- one application
 
+    /// <summary>The customer's supplier application (the latest that is not withdrawn), for its Customer 360 tab; null when none.</summary>
+    public async Task<long?> ApplicationOfClientAsync(long clientId, CancellationToken ct) =>
+        await db.Set<CrmCfSupplierApplication>().AsNoTracking().Where(x => x.ClientId == clientId && x.StatusCode != CrmCfSupplierStatus.Withdrawn)
+            .OrderByDescending(x => x.ApplicationId).Select(x => (long?)x.ApplicationId).FirstOrDefaultAsync(ct);
+
     public async Task<CrmCfSupplierDto> GetAsync(long applicationId, CancellationToken ct)
     {
         var a = await db.Set<CrmCfSupplierApplication>().AsNoTracking().FirstOrDefaultAsync(x => x.ApplicationId == applicationId, ct)
