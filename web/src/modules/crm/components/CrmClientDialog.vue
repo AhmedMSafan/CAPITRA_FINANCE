@@ -139,6 +139,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ApiError } from '@/shared/api/http'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
@@ -149,6 +150,7 @@ import { ROLES } from './crm360'
 const props = defineProps<{ clientId: number | null }>()
 const visible = defineModel<boolean>('visible', { required: true })
 const emit = defineEmits<{ saved: [client: CrmClientForm] }>()
+const router = useRouter()
 
 // FINOVA's fixed lists
 const CLIENT_TYPES = ['CORPORATE', 'SME', 'INDIVIDUAL', 'GOVERNMENT']
@@ -197,6 +199,9 @@ async function save() {
     visible.value = false
     showSuccess(tr(props.clientId ? 'Client updated.' : 'Client created.'))
     emit('saved', saved)
+    // a new Consumer Finance Supplier goes straight on to its supplier application in Customer 360
+    if (!props.clientId && form.initialRoleCode === 'CF_SUPPLIER' && saved.clientId)
+      await router.push({ name: 'crm-customer-workspace', params: { clientId: saved.clientId }, query: { tab: 'cf-supplier' } })
   } catch (err) {
     if (err instanceof ApiError && err.problem?.errors) report(err.problem.errors)
     else showError(err instanceof Error ? err.message : String(err))

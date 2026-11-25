@@ -107,10 +107,15 @@ export const CRM_AR: Record<string, string> = {
   'Business line': 'خط النشاط',
   Factoring: 'التخصيم',
   'Consumer Finance': 'التمويل الاستهلاكي',
-  'Supplier - Factoring': 'مورد - التخصيم',
-  'Supplier - Consumer Finance': 'مورد - التمويل الاستهلاكي',
-  'A Consumer Finance supplier is activated by its approval workflow. Start its supplier application from CRM > Consumer Finance Suppliers.':
-    'يُفعَّل مورد التمويل الاستهلاكي عبر مسار اعتماده. ابدأ طلب المورد من إدارة العملاء > موردو التمويل الاستهلاكي.',
+  'Factoring Supplier': 'مورد تخصيم',
+  'Consumer Finance Supplier': 'مورد تمويل استهلاكي',
+  'A Consumer Finance Supplier is activated by its approval workflow: fill in its tab Consumer Finance Supplier and submit it for approval.':
+    'يُفعَّل مورد التمويل الاستهلاكي عبر مسار اعتماده: املأ تبويب مورد تمويل استهلاكي وأرسله للاعتماد.',
+  'Enter the agreement terms and save; then add the owners, signatories and documents, and submit for approval.':
+    'أدخل شروط الاتفاقية واحفظ، ثم أضف الملاك والمفوضين والمستندات، وأرسل للاعتماد.',
+  'New supplier: from Customers': 'مورد جديد: من العملاء',
+  'A new one starts in Customer 360: add the role Consumer Finance Supplier, then fill in its tab.':
+    'يبدأ المورد الجديد من ملف العميل 360: أضف دور مورد تمويل استهلاكي، ثم املأ تبويبه.',
   'Activated by the Consumer Finance supplier approval workflow.': 'يُفعَّل عبر مسار اعتماد موردي التمويل الاستهلاكي.',
   CRM: 'إدارة العملاء',
   Customers: 'العملاء',

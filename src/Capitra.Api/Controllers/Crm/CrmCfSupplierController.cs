@@ -25,6 +25,11 @@ public sealed class CrmCfSupplierController(CrmCfSupplierService service) : Cont
     [HasPermission(Permissions.Crm.CfSupplierEdit)]
     public Task<IReadOnlyList<CrmCfClientOptionDto>> Clients([FromQuery] string? search, CancellationToken ct) => service.ClientsAsync(search, ct);
 
+    /// <summary>The customer's supplier application, for its Customer 360 tab: { applicationId } (null when it has none yet).</summary>
+    [HttpGet("by-client/{clientId:long}")]
+    [HasPermission(Permissions.Crm.CfSupplierView)]
+    public async Task<object> ByClient(long clientId, CancellationToken ct) => new { applicationId = await service.ApplicationOfClientAsync(clientId, ct) };
+
     [HttpGet("{applicationId:long}")]
     [HasPermission(Permissions.Crm.CfSupplierView)]
     public Task<CrmCfSupplierDto> Get(long applicationId, CancellationToken ct) => service.GetAsync(applicationId, ct);

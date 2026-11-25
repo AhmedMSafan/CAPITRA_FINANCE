@@ -98,7 +98,10 @@
                               :badge="data.bankBadge" :currencies="currencies" :default-currency-id="baseCurrencyId" :holder-name="data.profile.clientName"
                               :waiting-days="data.bankAccountWaitingDays" :maker-checker="data.bankAccountMakerChecker" :can-edit="canEdit" :can-verify="canVerify" @changed="load" />
 
-          <Crm360Roles v-else-if="tab === 'roles'" :client-id="clientId" :roles="data.roles" :programs="data.programs" :can-edit="canEdit" @changed="load" />
+          <Crm360Roles v-else-if="tab === 'roles'" :client-id="clientId" :roles="data.roles" :programs="data.programs" :can-edit="canEdit" @changed="load"
+                       @open-tab="(t) => (tab = t)" />
+
+          <CfSupplierPanel v-else-if="tab === 'cf-supplier'" :client-id="clientId" :inbox-id="inboxId" @changed="load" />
         </template>
       </div>
     </section>
@@ -112,6 +115,7 @@ import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
 import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
@@ -119,6 +123,7 @@ import { crm360Api, crmApi, type CrmBadge, type CrmCustomer360, type CrmOption }
 import Crm360BankAccounts from '../components/Crm360BankAccounts.vue'
 import Crm360Compliance from '../components/Crm360Compliance.vue'
 import Crm360Roles from '../components/Crm360Roles.vue'
+import CfSupplierPanel from '../components/CfSupplierPanel.vue'
 import CrmClientDialog from '../components/CrmClientDialog.vue'
 import { chip, label } from '../components/crm360'
 
@@ -129,7 +134,10 @@ const currencies = ref<CrmOption[]>([])
 const baseCurrencyId = ref(0)
 const loading = ref(false)
 const editing = ref(false)
-const tab = ref('overview')
+const route = useRoute()
+// ?tab= opens a tab (cf-supplier from the supplier list or a workflow task); ?inboxId= is the user's task on the supplier application
+const tab = ref(typeof route.query.tab === 'string' ? route.query.tab : 'overview')
+const inboxId = computed(() => Number(route.query.inboxId) || null)
 const canEdit = hasPermission('CRM.EDIT')
 const canVerify = hasPermission('CRM.VERIFY')
 const p = computed(() => data.value?.profile)
@@ -146,7 +154,10 @@ const tabs = computed(() => [
   { key: 'profile', label: 'Profile', icon: 'fa-id-card-o' },
   { key: 'compliance', label: 'Compliance', icon: 'fa-shield' },
   { key: 'bank', label: 'Bank Accounts', icon: 'fa-university', count: data.value?.bankAccounts.length },
-  { key: 'roles', label: 'Roles and Programs', icon: 'fa-tags', count: data.value?.roles.length }
+  { key: 'roles', label: 'Roles and Programs', icon: 'fa-tags', count: data.value?.roles.length },
+  // a Consumer Finance Supplier: its application, terms and approval workflow
+  ...(data.value?.roles.some((r) => r.byWorkflow) || tab.value === 'cf-supplier'
+    ? [{ key: 'cf-supplier', label: 'Consumer Finance Supplier', icon: 'fa-handshake-o', count: undefined }] : [])
 ])
 
 const profileFacts = computed(() => {

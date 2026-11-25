@@ -97,6 +97,26 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     public const string ByWorkflowBlocker = "Activated by the Consumer Finance supplier approval workflow.";
 
+    /// <summary>The two supplier types chosen on screen (Ahmed, 25 Nov 2026): kept as the SUPPLIER role with its business line.</summary>
+    public const string FactoringSupplier = "FACTORING_SUPPLIER";
+    public const string CfSupplier = "CF_SUPPLIER";
+
+    /// <summary>
+    /// A role as chosen on screen: FACTORING_SUPPLIER and CF_SUPPLIER are the SUPPLIER role of that business line; SUPPLIER takes the
+    /// business line given (Factoring when none); any other role has no business line.
+    /// </summary>
+    public static (string Role, string? Line) Choice(string? code, string? businessLine = null)
+    {
+        var c = (code ?? "").Trim().ToUpperInvariant();
+        return c switch
+        {
+            FactoringSupplier => (Supplier, Factoring),
+            CfSupplier => (Supplier, ConsumerFinance),
+            Supplier => (Supplier, string.IsNullOrWhiteSpace(businessLine) ? Factoring : businessLine.Trim().ToUpperInvariant()),
+            _ => (c, null),
+        };
+    }
+
     public static readonly string[] KycStatuses = ["PENDING", "APPROVED", "REJECTED"];
     public static readonly string[] AmlStatuses = ["PENDING", "CLEAR", "REVIEW", "BLOCKED"];
     public static readonly string[] SanctionsStatuses = ["PENDING", "CLEAR", "MATCH", "BLOCKED"];
@@ -270,10 +290,10 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     private static string RoleLabel(string code) => Roles.FirstOrDefault(x => x.Value == code)?.Label ?? code;
 
-    /// <summary>Supplier - Consumer Finance, Supplier - Factoring; other roles by their name.</summary>
+    /// <summary>Factoring Supplier, Consumer Finance Supplier; other roles by their name.</summary>
     public static string RoleLabel(CrmClientRole r) =>
         r.RoleCode == Supplier && SupplierBusinessLines.FirstOrDefault(x => x.Value == r.BusinessLineCode) is { } line
-            ? $"{RoleLabel(r.RoleCode)} - {line.Label}" : RoleLabel(r.RoleCode);
+            ? $"{line.Label} Supplier" : RoleLabel(r.RoleCode);
 
     /// <summary>What still stops a customer's role from becoming active (for the supplier approval workflow's activation).</summary>
     internal async Task<List<string>> ActivationBlockersAsync(long clientId, string roleCode, CancellationToken cancellationToken)
@@ -380,9 +400,9 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
     {
         await ClientAsync(clientId, cancellationToken);
         var code = dto.RoleCode?.Trim().ToUpperInvariant() ?? "";
+        // Factoring Supplier and Consumer Finance Supplier are the SUPPLIER role of their business line
+        (code, var line) = Choice(code, dto.BusinessLineCode);
         if (Roles.All(x => x.Value != code)) throw BusinessValidationException.For("roleCode", "Choose the role.");
-        // a supplier is a supplier of one business line; the other roles have none
-        var line = code == Supplier ? dto.BusinessLineCode?.Trim().ToUpperInvariant() : null;
         if (code == Supplier && SupplierBusinessLines.All(x => x.Value != line))
             throw BusinessValidationException.For("businessLineCode", "Choose the business line the supplier serves.");
         var role = new CrmClientRole { ClientId = clientId, RoleCode = code, BusinessLineCode = line, StatusCode = CrmClientRole.Onboarding, Notes = Blank(dto.Notes) };

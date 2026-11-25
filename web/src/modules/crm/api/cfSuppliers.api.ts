@@ -52,6 +52,7 @@ export const cfSuppliersApi = {
   options: () => http.get<CfOptions>(`${API}/options`),
   clients: (search: string) => http.get<CfClient[]>(`${API}/clients?search=${encodeURIComponent(search)}`),
   get: (id: number) => http.get<CfSupplier>(`${API}/${id}`),
+  byClient: (clientId: number) => http.get<{ applicationId: number | null }>(`${API}/by-client/${clientId}`),
   create: (r: CfSupplierRequest) => http.post<CfSupplier>(API, r),
   update: (id: number, r: CfSupplierRequest) => http.put<CfSupplier>(`${API}/${id}`, r),
   addParty: (id: number, r: CfPartyRequest) => http.post<CfSupplier>(`${API}/${id}/parties`, r),

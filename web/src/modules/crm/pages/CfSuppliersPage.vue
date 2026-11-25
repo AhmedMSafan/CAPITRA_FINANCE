@@ -7,10 +7,11 @@
           <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span><b>{{ tr('Consumer Finance Suppliers') }}</b>
         </nav>
         <h1>{{ tr('Consumer Finance Suppliers') }}</h1>
-        <p class="c3-muted">{{ tr('Merchants that sell goods on consumer finance. A supplier is active only after its approval workflow.') }}</p>
+        <p class="c3-muted">{{ tr('Merchants that sell goods on consumer finance. A supplier is active only after its approval workflow.') }}
+          {{ tr('A new one starts in Customer 360: add the role Consumer Finance Supplier, then fill in its tab.') }}</p>
       </div>
       <div class="fx-actions">
-        <RouterLink v-if="canEdit" :to="{ name: 'crm-cf-supplier-new' }" class="fx-btn fx-btn--teal"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New supplier application') }}</RouterLink>
+        <RouterLink :to="{ name: 'crm-customers' }" class="fx-btn fx-btn--teal"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New supplier: from Customers') }}</RouterLink>
       </div>
     </div>
 
@@ -26,7 +27,7 @@
         <table class="fx-table">
           <thead><tr><th>{{ tr('Application') }}</th><th>{{ tr('Supplier') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Waiting at') }}</th><th>{{ tr('Risk rating') }}</th><th>{{ tr('Entered by') }}</th><th>{{ tr('Created') }}</th></tr></thead>
           <tbody>
-            <tr v-for="a in shown" :key="a.applicationId" class="cf-row" @click="router.push({ name: 'crm-cf-supplier', params: { applicationId: a.applicationId } })">
+            <tr v-for="a in shown" :key="a.applicationId" class="cf-row" @click="router.push({ name: 'crm-customer-workspace', params: { clientId: a.clientId }, query: { tab: 'cf-supplier' } })">
               <td><b dir="ltr">{{ a.applicationRef }}</b></td>
               <td><b>{{ a.clientName }}</b><span class="fx-cell-sub">{{ a.clientNumber }}</span></td>
               <td><span class="fx-chip" :class="CF_CHIP[a.statusCode]">{{ tr(CF_STATUS[a.statusCode] ?? a.statusCode) }}</span></td>
@@ -51,7 +52,6 @@ import '@/modules/fct/pages/factoring.css'
 import '@/modules/scr/components/scr.css'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
 import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
@@ -59,7 +59,6 @@ import { errorText } from '@/modules/scr/api/scr.api'
 import { CF_CHIP, CF_STATUS, cfSuppliersApi, type CfSupplierListItem } from '../api/cfSuppliers.api'
 
 const router = useRouter()
-const canEdit = hasPermission('CRM.CF_SUPPLIER.EDIT')
 const RISK: Record<string, string> = { LOW: 'Low', MEDIUM: 'Medium', HIGH: 'High' }
 const rows = ref<CfSupplierListItem[]>([])
 const loading = ref(false)

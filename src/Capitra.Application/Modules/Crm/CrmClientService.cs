@@ -95,7 +95,7 @@ public sealed class CrmClientService(ICapitraDbContext db)
         await ValidateAsync(dto, requireNumber: true, cancellationToken);
         if (await db.Set<CrmClient>().AnyAsync(x => x.ClientNumber == number, cancellationToken))
             throw BusinessValidationException.For("clientNumber", $"Client Number {number} already exists.");
-        var firstRole = dto.InitialRoleCode?.Trim().ToUpperInvariant() ?? "";
+        var (firstRole, firstLine) = CrmCustomer360Service.Choice(dto.InitialRoleCode);
         if (CrmCustomer360Service.Roles.All(x => x.Value != firstRole)) throw BusinessValidationException.For("initialRoleCode", "Choose the customer's first role.");
 
         // FINOVA's defaults: active, not blacklisted, not a related party, not a supplier unless chosen
@@ -103,11 +103,11 @@ public sealed class CrmClientService(ICapitraDbContext db)
         Apply(client, dto);
         db.Set<CrmClient>().Add(client);
         await db.SaveChangesAsync(cancellationToken);
-        // a first SUPPLIER role is a factoring supplier; a Consumer Finance supplier starts from its supplier application
+        // Factoring Supplier or Consumer Finance Supplier: the SUPPLIER role of that business line (the latter is activated by its workflow)
         db.Set<CrmClientRole>().Add(new CrmClientRole
         {
             ClientId = client.ClientId, RoleCode = firstRole, StatusCode = CrmClientRole.Onboarding,
-            BusinessLineCode = firstRole == CrmCustomer360Service.Supplier ? CrmCustomer360Service.Factoring : null,
+            BusinessLineCode = firstLine,
         });
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(client.ClientId, cancellationToken);
