@@ -85,12 +85,11 @@
                 <span v-if="c.lastActivityAt" class="crm-last"><b>{{ formatDate(c.lastActivityAt) }}</b><small>{{ tr(c.lastActivityType!) }} {{ c.lastActivityRef }}</small></span>
                 <span v-else class="fc-muted">-</span>
               </td>
-              <td class="fx-r">
-                <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="workspace(c.clientId)" :title="tr('Customer 360')">
-                  <span class="fa fa-th-large" aria-hidden="true"></span>{{ tr('Customer 360') }}
-                </RouterLink>
-                <button v-if="canEdit" type="button" class="fx-btn fx-btn--sm crm-edit" :title="tr('Edit')" @click="openClient(c.clientId)">
-                  <span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Edit') }}
+              <td class="fx-r crm-acts">
+                <!-- compact round buttons (Ahmed, 25 Nov 2026): 360 opens Customer 360, the pencil edits the customer -->
+                <RouterLink class="crm-round crm-round--360" :to="workspace(c.clientId)" :title="tr('Customer 360')" :aria-label="tr('Customer 360')">360</RouterLink>
+                <button v-if="canEdit" type="button" class="crm-round" :title="tr('Edit')" :aria-label="tr('Edit')" @click="openClient(c.clientId)">
+                  <span class="fa fa-pencil" aria-hidden="true"></span>
                 </button>
               </td>
             </tr>
@@ -258,7 +257,13 @@ onMounted(load)
 @media (max-width: 640px) { .crm-recent-grid { grid-template-columns: 1fr; } }
 .crm-sort { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; white-space: nowrap; }
 .crm-sort .fa { font-size: 11px; opacity: .45; }
-.crm-edit { margin-inline-start: 6px; }
-.crm-sort.is-on, .crm-edit { margin-inline-start: 6px; }
+.crm-sort.is-on { margin-inline-start: 6px; }
+.crm-acts { white-space: nowrap; }
+.crm-round { display: inline-grid; place-items: center; width: 30px; height: 30px; margin-inline-start: 6px; padding: 0; border: 1px solid var(--fin-line); border-radius: 50%;
+  background: #fff; color: var(--fin-teal-700); font: 700 10.5px/1 inherit; letter-spacing: -.2px; text-decoration: none; cursor: pointer; vertical-align: middle;
+  transition: background .15s, border-color .15s, color .15s; }
+.crm-round:hover, .crm-round:focus-visible { border-color: var(--fin-teal-600); background: var(--fin-teal-50); }
+.crm-round--360 { border-color: var(--fin-teal-600); background: var(--fin-teal-600); color: #fff; }
+.crm-round--360:hover, .crm-round--360:focus-visible { background: var(--fin-teal-700); color: #fff; }
 .crm-sort.is-on .fa { color: var(--fin-teal-600); opacity: 1; }
 </style>

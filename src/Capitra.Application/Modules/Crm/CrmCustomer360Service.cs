@@ -432,6 +432,20 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
     {
         var role = await RoleAsync(clientId, roleId, cancellationToken);
         if (string.IsNullOrWhiteSpace(dto.Notes)) throw BusinessValidationException.For("notes", "Give the reason for the suspension.");
+        if (ByWorkflow(role))
+        {
+            // the Consumer Finance supplier is stopped here, not on its application (Ahmed, 25 Nov 2026): the application goes back to
+            // Sales, and the supplier comes back only through approval again
+            var app = await db.Set<CrmCfSupplierApplication>().Where(x => x.ClientRoleId == role.ClientRoleId && x.StatusCode != CrmCfSupplierStatus.Withdrawn)
+                .OrderByDescending(x => x.ApplicationId).FirstOrDefaultAsync(cancellationToken);
+            if (app?.StatusCode == CrmCfSupplierStatus.InWorkflow)
+                throw new BusinessRuleException($"Supplier application {app.ApplicationRef} is in approval: return it to Sales first, then suspend the supplier.");
+            if (app?.StatusCode == CrmCfSupplierStatus.Active)
+            {
+                app.StatusCode = CrmCfSupplierStatus.Returned;
+                app.ReturnReason = $"The supplier was suspended: {dto.Notes.Trim()}";
+            }
+        }
         role.StatusCode = CrmClientRole.Suspended;
         role.Notes = dto.Notes.Trim();
         await db.SaveChangesAsync(cancellationToken);

@@ -120,7 +120,10 @@ public class CrmCfSupplierParty : AuditableEntity
     public DateTime? ScreenedAt { get; set; }
 }
 
-/// <summary>CRM_CF_SUPPLIER_DOCUMENTS: a file added at data entry or at a workflow step of a supplier application.</summary>
+/// <summary>
+/// CRM_CF_SUPPLIER_DOCUMENTS: a file of a supplier application (Ahmed, 25 Nov 2026): one list, added by any Capitra user at any time
+/// (before submitting, at any workflow step, or after activation). STEP_CODE records where it was added.
+/// </summary>
 public class CrmCfSupplierDocument : AuditableEntity
 {
     public long DocumentId { get; set; }
@@ -135,6 +138,12 @@ public class CrmCfSupplierDocument : AuditableEntity
     public string StepName { get; set; } = string.Empty;
 
     public string DocumentTitle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// COMMERCIAL_REGISTER, TAX_CARD, ACTIVITY_LICENCE, BANK_LETTER, ID_DOCUMENT, SITE_VISIT_REPORT, SIGNED_AGREEMENT or OTHER. The site
+    /// visit step needs a SITE_VISIT_REPORT and the contract step a SIGNED_AGREEMENT; null for a file without a type.
+    /// </summary>
+    public string? DocumentTypeCode { get; set; }
 
     public string FileName { get; set; } = string.Empty;
 

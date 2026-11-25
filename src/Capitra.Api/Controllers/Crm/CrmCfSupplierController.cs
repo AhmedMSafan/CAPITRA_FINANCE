@@ -54,11 +54,7 @@ public sealed class CrmCfSupplierController(CrmCfSupplierService service) : Cont
     [HasPermission(Permissions.Crm.CfSupplierEdit)]
     public Task<CrmCfSupplierDto> Submit(long applicationId, CancellationToken ct) => service.SubmitAsync(applicationId, ct);
 
-    [HttpPost("{applicationId:long}/withdraw")]
-    [HasPermission(Permissions.Crm.CfSupplierEdit)]
-    public Task<CrmCfSupplierDto> Withdraw(long applicationId, CancellationToken ct) => service.WithdrawAsync(applicationId, ct);
-
-    /// <summary>Every step of the application with its documents; completed steps are view-only.</summary>
+    /// <summary>Every step of the application with its decision; completed steps are view-only.</summary>
     [HttpGet("{applicationId:long}/steps")]
     [HasPermission(Permissions.Crm.CfSupplierView)]
     public Task<IReadOnlyList<CrmCfStepViewDto>> Steps(long applicationId, CancellationToken ct) => service.StepsAsync(applicationId, ct);
@@ -87,29 +83,23 @@ public sealed class CrmCfSupplierController(CrmCfSupplierService service) : Cont
     public Task<CrmCfSupplierDto> CompleteStep(long applicationId, long inboxId, CrmCfCompleteStepRequest request, CancellationToken ct) =>
         service.CompleteAsync(applicationId, inboxId, request, ct);
 
-    /// <summary>Adds a file at data entry (draft or returned application).</summary>
-    [HttpPost("{applicationId:long}/documents")]
-    [HasPermission(Permissions.Crm.CfSupplierEdit)]
-    [RequestSizeLimit(CrmCfSupplierService.MaxFileBytes + 1024 * 1024)]
-    public async Task<CrmCfDocumentDto> AddDocument(long applicationId, IFormFile file, [FromForm] string? title, CancellationToken ct)
-    {
-        using var buffer = new MemoryStream();
-        await file.CopyToAsync(buffer, ct);
-        return await service.AddEntryDocumentAsync(applicationId, title, file.FileName, file.ContentType, buffer.ToArray(), ct);
-    }
+    /// <summary>The application's documents (one list, added at any time).</summary>
+    [HttpGet("{applicationId:long}/documents")]
+    [HasPermission(Permissions.Crm.CfSupplierView)]
+    public Task<IReadOnlyList<CrmCfDocumentDto>> Documents(long applicationId, CancellationToken ct) => service.DocumentsAsync(applicationId, ct);
 
-    /// <summary>Adds a file at the workflow step of the user's task.</summary>
-    [HttpPost("{applicationId:long}/steps/{inboxId:long}/documents")]
+    /// <summary>Adds a document to the application, at any time: before submit, at any step, or after activation.</summary>
+    [HttpPost("{applicationId:long}/documents")]
     [HasPermission(Permissions.Crm.CfSupplierView)]
     [RequestSizeLimit(CrmCfSupplierService.MaxFileBytes + 1024 * 1024)]
-    public async Task<CrmCfDocumentDto> AddStepDocument(long applicationId, long inboxId, IFormFile file, [FromForm] string? title, CancellationToken ct)
+    public async Task<CrmCfDocumentDto> AddDocument(long applicationId, IFormFile file, [FromForm] string? title, [FromForm] string? documentTypeCode, CancellationToken ct)
     {
         using var buffer = new MemoryStream();
         await file.CopyToAsync(buffer, ct);
-        return await service.AddStepDocumentAsync(applicationId, inboxId, title, file.FileName, file.ContentType, buffer.ToArray(), ct);
+        return await service.AddDocumentAsync(applicationId, documentTypeCode, title, file.FileName, file.ContentType, buffer.ToArray(), ct);
     }
 
-    /// <summary>Removes a file the user added while its step is open (it is kept, marked inactive).</summary>
+    /// <summary>Removes a document the user added, while the supplier is not active (it is kept, marked inactive).</summary>
     [HttpPost("documents/{documentId:long}/remove")]
     [HasPermission(Permissions.Crm.CfSupplierView)]
     public Task RemoveDocument(long documentId, CancellationToken ct) => service.RemoveDocumentAsync(documentId, ct);

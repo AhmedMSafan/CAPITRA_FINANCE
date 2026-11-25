@@ -148,20 +148,22 @@
           <button v-if="atStep('CFS_SITE_VISIT')" type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveSiteVisit"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save visit date') }}</button>
         </div>
       </div>
-      <p v-if="atStep('CFS_SITE_VISIT')" class="c3-muted cf-hint">{{ tr('Attach the visit report and photos at the Site visit step below.') }}</p>
-      <p v-if="atStep('CFS_CONTRACT')" class="c3-muted cf-hint">{{ tr('Attach the signed supplier agreement at the Contract signing step below, and choose the verified bank account above.') }}</p>
+      <p v-if="atStep('CFS_SITE_VISIT')" class="c3-muted cf-hint">{{ tr('Add the visit report (type: Site visit report) and photos to the documents below.') }}</p>
+      <p v-if="atStep('CFS_CONTRACT')" class="c3-muted cf-hint">{{ tr('Add the signed agreement (type: Signed agreement) to the documents below, and choose the verified bank account above.') }}</p>
     </section>
 
-    <!-- every step, completed ones view-only, with its documents -->
-    <CfSupplierSteps v-if="app" :application-id="app.applicationId" :data-entry-open="editable" :inbox-id="taskOpen ? task!.inboxId : null"
-                     :task-step-code="task?.stepCode ?? null" :read-only="false" :focus-step="null" :version="version" />
+    <!-- the application's documents: one list, added at any time -->
+    <CfSupplierDocuments v-if="app" :application-id="app.applicationId" :status-code="app.statusCode" :types="options?.documentTypes ?? []"
+                         :read-only="false" :version="version" />
+
+    <!-- every step with its decision -->
+    <CfSupplierSteps v-if="app" :application-id="app.applicationId" :focus-step="null" :version="version" />
 
     <!-- data entry actions -->
     <section v-if="editable" class="fx-card fc-step-card">
       <div class="fc-form-actions" style="padding-top:16px">
         <div class="fc-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
-          <span>{{ app ? tr('Attach the commercial register, tax card and bank letter at Data entry, then submit for approval.') : tr('Save first; then add the owners, signatories and documents.') }}</span></div>
-        <button v-if="app" type="button" class="fx-btn fc-btn-reject" :disabled="busy" @click="withdraw"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Withdraw') }}</button>
+          <span>{{ app ? tr('Add the owners and signatories, then submit for approval. Documents can be added now or at any step.') : tr('Save first; then add the owners, signatories and documents.') }}</span></div>
         <button type="button" class="fx-btn" :disabled="busy" @click="save"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save') }}</button>
         <button v-if="app" type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="submit"><span class="fa fa-paper-plane" aria-hidden="true"></span>{{ tr('Submit for approval') }}</button>
       </div>
@@ -192,6 +194,7 @@ import { tr } from '@/shared/layout/language'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 import type { WorkflowInboxTask } from '@/modules/wfe/models/workflow'
 import { errorText, fieldErrors } from '@/modules/scr/api/scr.api'
+import CfSupplierDocuments from './CfSupplierDocuments.vue'
 import CfSupplierSteps from './CfSupplierSteps.vue'
 import { CF_CHIP, CF_STATUS, cfSuppliersApi, type CfOptions, type CfPartyRequest, type CfSupplier, type CfSupplierRequest } from '../api/cfSuppliers.api'
 
@@ -205,11 +208,11 @@ const BANK_STATUS: Record<string, string> = { PENDING: 'Pending verification', V
 const STEP_HINT: Record<string, string> = {
   CFS_DOCUMENT_CHECK: 'Check the commercial register, tax card, activity licence and the bank letter (account in the supplier\'s own name).',
   CFS_COMPLIANCE: 'Screen every owner, manager and signatory, set the risk rating and save them before accepting.',
-  CFS_SITE_VISIT: 'Enter the visit date and attach the visit report and photos before accepting.',
+  CFS_SITE_VISIT: 'Enter the visit date and add the visit report (type: Site visit report) to the documents before accepting.',
   CFS_RISK_REVIEW: 'Review fraud indicators, the sector and the agreement terms; write your recommendation.',
   CFS_MANAGER_APPROVAL: 'Approve the supplier and its agreement terms. A HIGH risk supplier then goes to the committee.',
   CFS_COMMITTEE_APPROVAL: 'Every committee member approves a HIGH risk supplier.',
-  CFS_CONTRACT: 'Attach the signed agreement and choose the verified bank account. Accepting activates the supplier.'
+  CFS_CONTRACT: 'Add the signed agreement (type: Signed agreement) to the documents and choose the verified bank account. Accepting activates the supplier.'
 }
 
 const app = ref<CfSupplier | null>(null)
@@ -304,11 +307,6 @@ const submit = () => run(async () => {
   fill(await cfSuppliersApi.submit(app.value!.applicationId))
   showSuccess(tr('Submitted for approval.'))
   emit('changed')
-})
-
-const withdraw = () => run(async () => {
-  if (!window.confirm(tr('Withdraw this supplier application?'))) return
-  fill(await cfSuppliersApi.withdraw(app.value!.applicationId))
 })
 
 const saveCompliance = () => run(async () => {

@@ -26,6 +26,12 @@ public static class CrmCfSupplierRules
     public static readonly string[] Collectors = ["SUPPLIER", "COMPANY"];
     public static readonly string[] ScreeningResults = ["CLEAR", "MATCH"];
 
+    public const string SiteVisitReport = "SITE_VISIT_REPORT";
+    public const string SignedAgreement = "SIGNED_AGREEMENT";
+
+    public static readonly string[] DocumentTypes =
+        ["COMMERCIAL_REGISTER", "TAX_CARD", "ACTIVITY_LICENCE", "BANK_LETTER", "ID_DOCUMENT", SiteVisitReport, SignedAgreement, "OTHER"];
+
     /// <summary>The agreement terms: categories known, percentages and days in range, dates in order.</summary>
     public static Dictionary<string, string[]> CheckTerms(CrmCfSupplierApplication a, IReadOnlyCollection<string> knownCategories)
     {
@@ -43,24 +49,23 @@ public static class CrmCfSupplierRules
         return e;
     }
 
-    /// <summary>What an application needs to be submitted, besides its terms.</summary>
-    public static List<string> CheckSubmit(IReadOnlyCollection<CrmCfSupplierParty> parties, int entryDocuments)
+    /// <summary>What an application needs to be submitted, besides its terms (documents can come at any time).</summary>
+    public static List<string> CheckSubmit(IReadOnlyCollection<CrmCfSupplierParty> parties)
     {
         var p = new List<string>();
         if (!parties.Any(x => x.PartyTypeCode == "OWNER")) p.Add("Add the supplier's owners.");
         if (!parties.Any(x => x.PartyTypeCode == "SIGNATORY")) p.Add("Add who signs for the supplier (authorised signatory).");
         if (parties.Where(x => x.PartyTypeCode == "OWNER").Sum(x => x.OwnershipPct ?? 0) > 100) p.Add("The owners' shares add up to more than 100%.");
-        if (entryDocuments == 0) p.Add("Attach the supplier's documents (commercial register, tax card, bank letter).");
         return p;
     }
 
     /// <summary>
-    /// What a step needs before it is accepted. <paramref name="stepDocuments"/> are the files added at this step of this run;
+    /// What a step needs before it is accepted. <paramref name="documentTypes"/> are the types of the application's documents;
     /// <paramref name="bankAccountStatus"/> is the status of the account chosen to pay the supplier, or null when none is chosen.
     /// </summary>
     public static List<string> CheckAccept(
-        string stepCode, CrmCfSupplierApplication a, IReadOnlyCollection<CrmCfSupplierParty> parties, int stepDocuments, string? bankAccountStatus,
-        bool hasRegisterAndTaxNumbers, DateOnly today)
+        string stepCode, CrmCfSupplierApplication a, IReadOnlyCollection<CrmCfSupplierParty> parties, IReadOnlyCollection<string> documentTypes,
+        string? bankAccountStatus, bool hasRegisterAndTaxNumbers, DateOnly today)
     {
         var p = new List<string>();
         switch (stepCode)
@@ -76,10 +81,10 @@ public static class CrmCfSupplierRules
             case SiteVisit:
                 if (a.SiteVisitDate is null) p.Add("Enter the date of the site visit.");
                 else if (a.SiteVisitDate > today) p.Add("The site visit date cannot be in the future.");
-                if (stepDocuments == 0) p.Add("Attach the site visit report.");
+                if (!documentTypes.Contains(SiteVisitReport)) p.Add("Add the site visit report to the documents (type: Site visit report).");
                 break;
             case Contract:
-                if (stepDocuments == 0) p.Add("Attach the signed supplier agreement.");
+                if (!documentTypes.Contains(SignedAgreement)) p.Add("Add the signed supplier agreement to the documents (type: Signed agreement).");
                 if (bankAccountStatus is null) p.Add("Choose the bank account the supplier is paid to.");
                 else if (bankAccountStatus != CrmClientBankAccount.Verified) p.Add("The supplier's bank account must be verified first (Customer 360 > Bank Accounts).");
                 break;

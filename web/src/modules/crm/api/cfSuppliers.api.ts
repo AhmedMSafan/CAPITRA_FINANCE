@@ -25,7 +25,7 @@ export type CfSupplier = {
   parties: CfParty[]; bankAccounts: CfBankAccount[]; openStepCode: string | null; openStepName: string | null; canEdit: boolean
 }
 
-export type CfOptions = { goodsCategories: CfOption[]; collectors: CfOption[]; partyTypes: CfOption[]; riskRatings: CfOption[] }
+export type CfOptions = { goodsCategories: CfOption[]; collectors: CfOption[]; partyTypes: CfOption[]; riskRatings: CfOption[]; documentTypes: CfOption[] }
 
 export type CfSupplierRequest = {
   clientId?: number | null; goodsCategoryCodes: string[]; minDownPaymentPct: number | null; downPaymentCollectorCode: string
@@ -36,13 +36,14 @@ export type CfSupplierRequest = {
 export type CfPartyRequest = { partyTypeCode: string; fullName: string; nationalIdNo: string | null; nationality: string | null; ownershipPct: number | null }
 
 export type CfDocument = {
-  documentId: number; stepCode: string; stepName: string; documentTitle: string; fileName: string; mimeType: string; fileSizeBytes: number
-  createdBy: string; createdAt: string; canRemove: boolean
+  documentId: number; documentTypeCode: string | null; documentTitle: string; fileName: string; mimeType: string; fileSizeBytes: number
+  /** Where it was added: Data entry, a workflow step, or After activation. */
+  stepName: string; createdBy: string; createdAt: string; canRemove: boolean
 }
 
 export type CfStepView = {
   key: string; round: number; stepCode: string; stepName: string; status: 'DONE' | 'OPEN'; action: string | null; doneBy: string | null
-  doneAt: string | null; comment: string | null; documents: CfDocument[]
+  doneAt: string | null; comment: string | null
 }
 
 const API = '/api/crm/cf-suppliers'
@@ -58,7 +59,6 @@ export const cfSuppliersApi = {
   addParty: (id: number, r: CfPartyRequest) => http.post<CfSupplier>(`${API}/${id}/parties`, r),
   removeParty: (id: number, partyId: number) => http.post<CfSupplier>(`${API}/${id}/parties/${partyId}/remove`),
   submit: (id: number) => http.post<CfSupplier>(`${API}/${id}/submit`),
-  withdraw: (id: number) => http.post<CfSupplier>(`${API}/${id}/withdraw`),
   steps: (id: number) => http.get<CfStepView[]>(`${API}/${id}/steps`),
   saveCompliance: (id: number, inboxId: number, riskRatingCode: string | null, screening: { partyId: number; resultCode: string | null }[]) =>
     http.post<CfSupplier>(`${API}/${id}/steps/${inboxId}/compliance`, { riskRatingCode, screening }),
@@ -68,12 +68,14 @@ export const cfSuppliersApi = {
     http.post<CfSupplier>(`${API}/${id}/steps/${inboxId}/bank-account${bankAccountId ? `?bankAccountId=${bankAccountId}` : ''}`),
   completeStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null) =>
     http.post<CfSupplier>(`${API}/${id}/steps/${inboxId}/complete`, { action, comment }),
-  /** Adds a file at data entry (inboxId null) or at the workflow step of the user's task. */
-  addDocument: (id: number, inboxId: number | null, file: File, title: string) => {
+  documents: (id: number) => http.get<CfDocument[]>(`${API}/${id}/documents`),
+  /** Adds a document to the application, at any time (before submit, at any step, or after activation). */
+  addDocument: (id: number, file: File, title: string, documentTypeCode: string | null) => {
     const form = new FormData()
     form.append('file', file)
     form.append('title', title)
-    return http.upload<CfDocument>(inboxId ? `${API}/${id}/steps/${inboxId}/documents` : `${API}/${id}/documents`, form)
+    if (documentTypeCode) form.append('documentTypeCode', documentTypeCode)
+    return http.upload<CfDocument>(`${API}/${id}/documents`, form)
   },
   removeDocument: (documentId: number) => http.post<void>(`${API}/documents/${documentId}/remove`),
   documentFile: (documentId: number) => http.blob(`${API}/documents/${documentId}`)

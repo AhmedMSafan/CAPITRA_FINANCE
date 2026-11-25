@@ -60,15 +60,15 @@ export const CRM_AR: Record<string, string> = {
   'Site visit date': 'تاريخ الزيارة الميدانية',
   'Save screening and rating': 'حفظ الفحص والتصنيف',
   'Save visit date': 'حفظ تاريخ الزيارة',
-  'Attach the visit report and photos at the Site visit step below.': 'أرفق تقرير الزيارة والصور في خطوة الزيارة الميدانية أدناه.',
-  'Attach the signed supplier agreement at the Contract signing step below, and choose the verified bank account above.':
-    'أرفق اتفاقية المورد الموقعة في خطوة توقيع العقد أدناه، واختر الحساب البنكي المُتحقق منه أعلاه.',
-  'Attach the commercial register, tax card and bank letter at Data entry, then submit for approval.':
-    'أرفق السجل التجاري والبطاقة الضريبية وخطاب البنك في إدخال البيانات، ثم أرسل للاعتماد.',
+  'Add the visit report (type: Site visit report) and photos to the documents below.':
+    'أضف تقرير الزيارة (النوع: تقرير الزيارة الميدانية) والصور إلى المستندات أدناه.',
+  'Add the signed agreement (type: Signed agreement) to the documents below, and choose the verified bank account above.':
+    'أضف الاتفاقية الموقعة (النوع: اتفاقية موقعة) إلى المستندات أدناه، واختر الحساب البنكي المُتحقق منه أعلاه.',
+  'Add the owners and signatories, then submit for approval. Documents can be added now or at any step.':
+    'أضف الملاك والمفوضين ثم أرسل للاعتماد. يمكن إضافة المستندات الآن أو في أي خطوة.',
   'Save first; then add the owners, signatories and documents.': 'احفظ أولاً، ثم أضف الملاك والمفوضين والمستندات.',
   'Submit for approval': 'إرسال للاعتماد',
   'Submitted for approval.': 'تم الإرسال للاعتماد.',
-  'Withdraw this supplier application?': 'سحب طلب المورد هذا؟',
   'Return to Sales': 'إعادة إلى المبيعات',
   'Returned to Sales.': 'أُعيد إلى المبيعات.',
   Accept: 'قبول',
@@ -97,13 +97,14 @@ export const CRM_AR: Record<string, string> = {
     'راجع السجل التجاري والبطاقة الضريبية ورخصة النشاط وخطاب البنك (حساب باسم المورد نفسه).',
   'Screen every owner, manager and signatory, set the risk rating and save them before accepting.':
     'افحص كل مالك ومدير ومفوض، وحدد تصنيف المخاطر واحفظهما قبل القبول.',
-  'Enter the visit date and attach the visit report and photos before accepting.': 'أدخل تاريخ الزيارة وأرفق تقريرها والصور قبل القبول.',
+  'Enter the visit date and add the visit report (type: Site visit report) to the documents before accepting.':
+    'أدخل تاريخ الزيارة وأضف تقريرها (النوع: تقرير الزيارة الميدانية) إلى المستندات قبل القبول.',
   'Review fraud indicators, the sector and the agreement terms; write your recommendation.': 'راجع مؤشرات الاحتيال والقطاع وشروط الاتفاقية، واكتب توصيتك.',
   'Approve the supplier and its agreement terms. A HIGH risk supplier then goes to the committee.':
     'اعتمد المورد وشروط اتفاقيته. يُحال المورد عالي المخاطر بعدها إلى اللجنة.',
   'Every committee member approves a HIGH risk supplier.': 'يوافق كل أعضاء اللجنة على المورد عالي المخاطر.',
-  'Attach the signed agreement and choose the verified bank account. Accepting activates the supplier.':
-    'أرفق الاتفاقية الموقعة واختر الحساب البنكي المُتحقق منه. القبول يُفعّل المورد.',
+  'Add the signed agreement (type: Signed agreement) to the documents and choose the verified bank account. Accepting activates the supplier.':
+    'أضف الاتفاقية الموقعة (النوع: اتفاقية موقعة) إلى المستندات واختر الحساب البنكي المُتحقق منه. القبول يُفعّل المورد.',
   'Business line': 'خط النشاط',
   Factoring: 'التخصيم',
   'Consumer Finance': 'التمويل الاستهلاكي',
@@ -119,5 +120,18 @@ export const CRM_AR: Record<string, string> = {
   'Activated by the Consumer Finance supplier approval workflow.': 'يُفعَّل عبر مسار اعتماد موردي التمويل الاستهلاكي.',
   CRM: 'إدارة العملاء',
   Customers: 'العملاء',
-  Submitted: 'تم الإرسال'
+  Submitted: 'تم الإرسال',
+  'Add any document at any time; it stays with the supplier.': 'أضف أي مستند في أي وقت، ويبقى مع المورد.',
+  'Document type': 'نوع المستند',
+  'Type (optional)': 'النوع (اختياري)',
+  'No documents yet.': 'لا توجد مستندات بعد.',
+  'What was decided at each step, by whom and when.': 'ما تقرر في كل خطوة، ومن قرره ومتى.',
+  'After activation': 'بعد التفعيل',
+  'Tax card': 'البطاقة الضريبية',
+  'Activity licence': 'رخصة النشاط',
+  'Bank letter': 'خطاب البنك',
+  'Owner / signatory ID': 'هوية المالك / المفوض',
+  'Site visit report': 'تقرير الزيارة الميدانية',
+  'Signed agreement': 'اتفاقية موقعة',
+  'A new customer starts as a Client. Add its other roles in Customer 360.': 'يبدأ العميل الجديد بدور عميل. أضف أدواره الأخرى من عرض العميل 360.'
 }

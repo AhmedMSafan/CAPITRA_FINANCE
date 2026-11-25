@@ -41,7 +41,7 @@ public sealed record CrmCfSupplierDto(
 
 public sealed record CrmCfSupplierOptionsDto(
     IReadOnlyList<CrmCfOptionDto> GoodsCategories, IReadOnlyList<CrmCfOptionDto> Collectors, IReadOnlyList<CrmCfOptionDto> PartyTypes,
-    IReadOnlyList<CrmCfOptionDto> RiskRatings);
+    IReadOnlyList<CrmCfOptionDto> RiskRatings, IReadOnlyList<CrmCfOptionDto> DocumentTypes);
 
 /// <summary>The agreement terms Sales enters; ClientId only when the application is created.</summary>
 public sealed record CrmCfSupplierRequest(
@@ -61,21 +61,21 @@ public sealed record CrmCfSiteVisitRequest(DateOnly? SiteVisitDate);
 
 public sealed record CrmCfCompleteStepRequest(string? Action, string? Comment);
 
+/// <summary>A document of the application; StepName: where it was added (data entry, a workflow step, or after activation).</summary>
 public sealed record CrmCfDocumentDto(
-    long DocumentId, string StepCode, string StepName, string DocumentTitle, string FileName, string MimeType, long FileSizeBytes,
+    long DocumentId, string? DocumentTypeCode, string DocumentTitle, string FileName, string MimeType, long FileSizeBytes, string StepName,
     string CreatedBy, DateTime CreatedAt, bool CanRemove);
 
-/// <summary>One step of an application: data entry, then each workflow step of each run (Round 2... after a return).</summary>
+/// <summary>One step of an application: data entry, then each workflow step of each run (Round 2... after a return), with its decision.</summary>
 public sealed record CrmCfStepViewDto(
-    string Key, int Round, string StepCode, string StepName, string Status, string? Action, string? DoneBy, DateTime? DoneAt, string? Comment,
-    IReadOnlyList<CrmCfDocumentDto> Documents);
+    string Key, int Round, string StepCode, string StepName, string Status, string? Action, string? DoneBy, DateTime? DoneAt, string? Comment);
 
 public sealed record CrmCfDocumentFile(string FileName, string MimeType, string Sha256Hash, byte[] Content);
 
 /// <summary>
 /// Consumer Finance suppliers (Ahmed, 25 Nov 2026): Sales enters the supplier's application (agreement terms, owners and
-/// signatories, documents) and submits it to CF_SUPPLIER_APPROVAL. The steps' own inputs (risk rating and screening at compliance,
-/// visit date at the site visit) and files are entered by whoever holds that step's task; the step's checks run when it is accepted
+/// signatories) and submits it to CF_SUPPLIER_APPROVAL. The steps' own inputs (risk rating and screening at compliance, visit date at
+/// the site visit) are entered by whoever holds that step's task, and anyone who can see the application adds its documents at any time; the step's checks run when it is accepted
 /// (<see cref="CrmCfSupplierWorkflowHandler"/>). One open application per customer.
 /// </summary>
 public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, IScrUserProfiles profiles, WfeRuntime runtime, WfeInbox inbox)
@@ -124,7 +124,10 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
         return new CrmCfSupplierOptionsDto(goods,
             [new("SUPPLIER", "The supplier"), new("COMPANY", "Our company")],
             [new("OWNER", "Owner"), new("MANAGER", "Manager"), new("SIGNATORY", "Authorised signatory")],
-            [new("LOW", "Low"), new("MEDIUM", "Medium"), new("HIGH", "High")]);
+            [new("LOW", "Low"), new("MEDIUM", "Medium"), new("HIGH", "High")],
+            [new("COMMERCIAL_REGISTER", "Commercial register"), new("TAX_CARD", "Tax card"), new("ACTIVITY_LICENCE", "Activity licence"),
+                new("BANK_LETTER", "Bank letter"), new("ID_DOCUMENT", "Owner / signatory ID"), new(CrmCfSupplierRules.SiteVisitReport, "Site visit report"),
+                new(CrmCfSupplierRules.SignedAgreement, "Signed agreement"), new("OTHER", "Other")]);
     }
 
     /// <summary>Customers by number, name or register number, for a new application.</summary>
@@ -261,8 +264,7 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
         var a = await EditableAsync(applicationId, ct);
         await CheckTermsAsync(a, ct);
         var parties = await db.Set<CrmCfSupplierParty>().AsNoTracking().Where(x => x.ApplicationId == applicationId).ToListAsync(ct);
-        var entryDocs = await db.Set<CrmCfSupplierDocument>().CountAsync(x => x.ApplicationId == applicationId && x.StepCode == DataEntryStep && x.IsActive, ct);
-        var problems = CrmCfSupplierRules.CheckSubmit(parties, entryDocs);
+        var problems = CrmCfSupplierRules.CheckSubmit(parties);
         if (problems.Count > 0) throw new BusinessRuleException(string.Join(" ", problems));
 
         await using var tx = await db.BeginTransactionAsync(ct);
@@ -279,14 +281,6 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
         a.ReturnReason = null;
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        return await GetAsync(applicationId, ct);
-    }
-
-    public async Task<CrmCfSupplierDto> WithdrawAsync(long applicationId, CancellationToken ct)
-    {
-        var a = await EditableAsync(applicationId, ct);
-        a.StatusCode = CrmCfSupplierStatus.Withdrawn;
-        await db.SaveChangesAsync(ct);
         return await GetAsync(applicationId, ct);
     }
 
@@ -371,28 +365,59 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
 
     // ---------------------------------------------------------------- documents
 
-    public async Task<CrmCfDocumentDto> AddEntryDocumentAsync(long applicationId, string? title, string fileName, string mimeType, byte[] content, CancellationToken ct)
-    {
-        var a = await EditableAsync(applicationId, ct);
-        return await AddDocumentAsync(a, null, DataEntryStep, DataEntryName, title, fileName, mimeType, content, ct);
-    }
-
-    public async Task<CrmCfDocumentDto> AddStepDocumentAsync(long applicationId, long inboxId, string? title, string fileName, string mimeType, byte[] content, CancellationToken ct)
+    /// <summary>The application's documents, newest first.</summary>
+    public async Task<IReadOnlyList<CrmCfDocumentDto>> DocumentsAsync(long applicationId, CancellationToken ct)
     {
         var a = await ApplicationAsync(applicationId, ct, tracking: false);
-        var step = await OpenStepAsync(a, inboxId, ct);
-        return await AddDocumentAsync(a, a.WorkflowInstanceId, step.StepCode ?? "", step.StepName ?? step.StepCode ?? "", title, fileName, mimeType, content, ct);
+        var docs = await db.Set<CrmCfSupplierDocument>().AsNoTracking().Where(x => x.ApplicationId == applicationId && x.IsActive)
+            .OrderByDescending(x => x.DocumentId)
+            .Select(x => new { x.DocumentId, x.DocumentTypeCode, x.DocumentTitle, x.FileName, x.MimeType, x.FileSizeBytes, x.StepName, x.CreatedBy, x.CreatedAt })
+            .ToListAsync(ct);
+        return [.. docs.Select(x => new CrmCfDocumentDto(x.DocumentId, x.DocumentTypeCode, x.DocumentTitle, x.FileName, x.MimeType, x.FileSizeBytes, x.StepName,
+            x.CreatedBy, x.CreatedAt, CanRemove(x.CreatedBy, a)))];
     }
 
-    /// <summary>Removes a file its user added while its step is open (kept, marked inactive).</summary>
+    /// <summary>
+    /// Adds a document to the application, by any user who can see it, at any time (Ahmed, 25 Nov 2026): it is kept with the
+    /// application, noting where it was added (data entry, the workflow step waiting now, or after activation).
+    /// </summary>
+    public async Task<CrmCfDocumentDto> AddDocumentAsync(long applicationId, string? typeCode, string? title, string fileName, string mimeType, byte[] content, CancellationToken ct)
+    {
+        var a = await ApplicationAsync(applicationId, ct, tracking: false);
+        if (a.StatusCode == CrmCfSupplierStatus.Withdrawn) throw new BusinessRuleException($"Supplier application {a.ApplicationRef} is withdrawn.");
+        var type = ScrValidation.Clean(typeCode)?.ToUpperInvariant();
+        if (type is not null && !CrmCfSupplierRules.DocumentTypes.Contains(type)) throw BusinessValidationException.For("documentTypeCode", "Choose the document type.");
+        if (content.Length == 0 || content.Length > MaxFileBytes) throw BusinessValidationException.For("file", "The file is empty or larger than 20 MB.");
+        var mime = mimeType.Trim().ToLowerInvariant();
+        if (!Mimes.Contains(mime)) throw BusinessValidationException.For("file", "Attach a PDF, image, Word, Excel or text file.");
+
+        var (stepCode, stepName) = (DataEntryStep, DataEntryName);
+        if (a.StatusCode == CrmCfSupplierStatus.Active) (stepCode, stepName) = ("ACTIVE", "After activation");
+        else if (a.StatusCode == CrmCfSupplierStatus.InWorkflow && a.WorkflowInstanceId is { } run
+            && (await OpenStepsAsync([run], ct)).GetValueOrDefault(run) is { } open)
+            (stepCode, stepName) = (open, CrmCfSupplierWorkflowHandler.StepName(open));
+
+        var name = Path.GetFileName(fileName.Trim());
+        var doc = new CrmCfSupplierDocument
+        {
+            ApplicationId = a.ApplicationId, WorkflowInstanceId = a.WorkflowInstanceId, StepCode = stepCode, StepName = stepName, DocumentTypeCode = type,
+            DocumentTitle = Cut(ScrValidation.Clean(title) ?? Path.GetFileNameWithoutExtension(name), 300)!, FileName = Cut(name, 260)!,
+            MimeType = mime, FileSizeBytes = content.Length, Sha256Hash = Convert.ToHexStringLower(SHA256.HashData(content)), FileBlob = content,
+        };
+        db.Add(doc);
+        await db.SaveChangesAsync(ct);
+        return new CrmCfDocumentDto(doc.DocumentId, doc.DocumentTypeCode, doc.DocumentTitle, doc.FileName, doc.MimeType, doc.FileSizeBytes, doc.StepName,
+            Me, doc.CreatedAt, CanRemove(Me, a));
+    }
+
+    /// <summary>Removes a document (kept, marked inactive): only by the user who added it, and not once the supplier is active.</summary>
     public async Task RemoveDocumentAsync(long documentId, CancellationToken ct)
     {
         var doc = await db.Set<CrmCfSupplierDocument>().FirstOrDefaultAsync(x => x.DocumentId == documentId && x.IsActive, ct)
             ?? throw new NotFoundException("The document was not found.");
         var a = await ApplicationAsync(doc.ApplicationId, ct, tracking: false);
-        var openStep = a.WorkflowInstanceId is { } i ? (await OpenStepsAsync([i], ct)).GetValueOrDefault(i) : null;
-        if (!CanRemove(doc, a, openStep))
-            throw new BusinessRuleException("Only the user who added a document can remove it, and only while its step is open.");
+        if (!CanRemove(doc.CreatedBy, a))
+            throw new BusinessRuleException("Only the user who added a document can remove it, and not once the supplier is active.");
         doc.IsActive = false;
         await db.SaveChangesAsync(ct);
     }
@@ -406,7 +431,7 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
 
     // ---------------------------------------------------------------- the steps
 
-    /// <summary>Every step of the application, in order, with its documents: data entry, then each workflow run's steps.</summary>
+    /// <summary>Every step of the application, in order, with its decision: data entry, then each workflow run's steps.</summary>
     public async Task<IReadOnlyList<CrmCfStepViewDto>> StepsAsync(long applicationId, CancellationToken ct)
     {
         var a = await ApplicationAsync(applicationId, ct, tracking: false);
@@ -423,39 +448,23 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
             .Select(s => new { s.WorkflowInstanceId, s.StepInstanceId, s.StepCode, s.StepName, s.StepStatus, s.CompletedAt, s.CompletedBy, s.Outcome })
             .ToListAsync(ct);
         var notes = await db.Set<CrmCfSupplierStepNote>().AsNoTracking().Where(n => n.ApplicationId == applicationId).ToDictionaryAsync(n => n.StepInstanceId, ct);
-        var docs = await db.Set<CrmCfSupplierDocument>().AsNoTracking().Where(x => x.ApplicationId == applicationId && x.IsActive).OrderBy(x => x.DocumentId)
-            .Select(x => new CrmCfSupplierDocument
-            {
-                DocumentId = x.DocumentId, ApplicationId = x.ApplicationId, WorkflowInstanceId = x.WorkflowInstanceId, StepCode = x.StepCode,
-                StepName = x.StepName, DocumentTitle = x.DocumentTitle, FileName = x.FileName, MimeType = x.MimeType, FileSizeBytes = x.FileSizeBytes,
-                CreatedBy = x.CreatedBy, CreatedAt = x.CreatedAt, IsActive = true,
-            }).ToListAsync(ct);
-        var openStep = a.WorkflowInstanceId is { } current ? (await OpenStepsAsync([current], ct)).GetValueOrDefault(current) : null;
-
         var list = new List<CrmCfStepViewDto>();
-        List<CrmCfDocumentDto> EntryDocs(DateTime? from, DateTime? to) => [.. docs
-            .Where(x => x.StepCode == DataEntryStep && (from is null || x.CreatedAt > from) && (to is null || x.CreatedAt <= to)).Select(x => ToDto(x, a, openStep))];
-        DateTime? previous = null;
         var round = 0;
         foreach (var run in runs)
         {
             round++;
-            list.Add(new CrmCfStepViewDto($"{DataEntryStep}-{round}", round, DataEntryStep, DataEntryName, Done, "SUBMIT", run.StartedBy, run.StartedAt, null,
-                EntryDocs(previous, run.StartedAt)));
-            previous = run.StartedAt;
+            list.Add(new CrmCfStepViewDto($"{DataEntryStep}-{round}", round, DataEntryStep, DataEntryName, Done, "SUBMIT", run.StartedBy, run.StartedAt, null));
             foreach (var s in steps.Where(s => s.WorkflowInstanceId == run.WorkflowInstanceId))
             {
                 var done = s.StepStatus == WfeRuntime.Completed;
                 var note = notes.GetValueOrDefault(s.StepInstanceId);
                 list.Add(new CrmCfStepViewDto($"{s.StepCode}-{round}-{s.StepInstanceId}", round, s.StepCode!, s.StepName ?? s.StepCode!, done ? Done : Open,
                     note?.ActionCode ?? (done ? s.Outcome : null), done ? note?.DoneBy ?? s.CompletedBy : null, done ? note?.DoneAt ?? s.CompletedAt : null,
-                    note?.CommentText,
-                    [.. docs.Where(x => x.WorkflowInstanceId == run.WorkflowInstanceId && x.StepCode == s.StepCode).Select(x => ToDto(x, a, openStep))]));
+                    note?.CommentText));
             }
         }
         if (EntryOpen(a))
-            list.Add(new CrmCfStepViewDto($"{DataEntryStep}-{round + 1}", round + 1, DataEntryStep, DataEntryName, Open, null, a.EnteredBy, null, null,
-                EntryDocs(previous, null)));
+            list.Add(new CrmCfStepViewDto($"{DataEntryStep}-{round + 1}", round + 1, DataEntryStep, DataEntryName, Open, null, a.EnteredBy, null, null));
         return list;
     }
 
@@ -540,35 +549,8 @@ public sealed class CrmCfSupplierService(ICapitraDbContext db, ICurrentUser curr
         return result;
     }
 
-    private bool CanRemove(CrmCfSupplierDocument doc, CrmCfSupplierApplication a, string? openStep)
-    {
-        if (!string.Equals(doc.CreatedBy, currentUser.UserName, StringComparison.OrdinalIgnoreCase)) return false;
-        return doc.StepCode == DataEntryStep
-            ? EntryOpen(a)
-            : a.StatusCode == CrmCfSupplierStatus.InWorkflow && doc.WorkflowInstanceId == a.WorkflowInstanceId && doc.StepCode == openStep;
-    }
-
-    private CrmCfDocumentDto ToDto(CrmCfSupplierDocument x, CrmCfSupplierApplication a, string? openStep) => new(
-        x.DocumentId, x.StepCode, x.StepName, x.DocumentTitle, x.FileName, x.MimeType, x.FileSizeBytes, x.CreatedBy, x.CreatedAt, CanRemove(x, a, openStep));
-
-    private async Task<CrmCfDocumentDto> AddDocumentAsync(CrmCfSupplierApplication a, long? instanceId, string stepCode, string stepName, string? title,
-        string fileName, string mimeType, byte[] content, CancellationToken ct)
-    {
-        if (content.Length == 0 || content.Length > MaxFileBytes) throw BusinessValidationException.For("file", "The file is empty or larger than 20 MB.");
-        var mime = mimeType.Trim().ToLowerInvariant();
-        if (!Mimes.Contains(mime)) throw BusinessValidationException.For("file", "Attach a PDF, image, Word, Excel or text file.");
-        var name = Path.GetFileName(fileName.Trim());
-        var doc = new CrmCfSupplierDocument
-        {
-            ApplicationId = a.ApplicationId, WorkflowInstanceId = instanceId, StepCode = stepCode, StepName = stepName,
-            DocumentTitle = Cut(ScrValidation.Clean(title) ?? Path.GetFileNameWithoutExtension(name), 300)!, FileName = Cut(name, 260)!,
-            MimeType = mime, FileSizeBytes = content.Length, Sha256Hash = Convert.ToHexStringLower(SHA256.HashData(content)), FileBlob = content,
-        };
-        db.Add(doc);
-        await db.SaveChangesAsync(ct);
-        doc.CreatedBy = string.IsNullOrEmpty(doc.CreatedBy) ? Me : doc.CreatedBy;
-        return ToDto(doc, a, stepCode);
-    }
+    private bool CanRemove(string createdBy, CrmCfSupplierApplication a) =>
+        string.Equals(createdBy, currentUser.UserName, StringComparison.OrdinalIgnoreCase) && a.StatusCode != CrmCfSupplierStatus.Active;
 
     private static string? Cut(string? s, int max) => s is null ? null : s.Length <= max ? s : s[..max];
 }
