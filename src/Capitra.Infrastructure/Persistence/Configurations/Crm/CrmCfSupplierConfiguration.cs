@@ -29,25 +29,6 @@ public sealed class CrmCfSupplierApplicationConfiguration : IEntityTypeConfigura
     }
 }
 
-public sealed class CrmCfSupplierPartyConfiguration : IEntityTypeConfiguration<CrmCfSupplierParty>
-{
-    public void Configure(EntityTypeBuilder<CrmCfSupplierParty> builder)
-    {
-        builder.ToTable("CRM_CF_SUPPLIER_PARTIES");
-        builder.HasKey(x => x.PartyId);
-        builder.HasIndex(x => x.ApplicationId);
-        builder.Property(x => x.PartyId).UseIdentityByDefaultColumn();
-        builder.Property(x => x.PartyTypeCode).HasMaxLength(20);
-        builder.Property(x => x.FullName).HasMaxLength(300);
-        builder.Property(x => x.NationalIdNo).HasMaxLength(50);
-        builder.Property(x => x.Nationality).HasMaxLength(100);
-        builder.Property(x => x.ScreeningResultCode).HasMaxLength(20);
-        builder.Property(x => x.ScreenedBy).HasMaxLength(256);
-        builder.HasOne<CrmCfSupplierApplication>().WithMany().HasForeignKey(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
-        builder.ConfigureAudit();
-    }
-}
-
 public sealed class CrmCfSupplierDocumentConfiguration : IEntityTypeConfiguration<CrmCfSupplierDocument>
 {
     public void Configure(EntityTypeBuilder<CrmCfSupplierDocument> builder)

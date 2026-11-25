@@ -42,14 +42,6 @@ public sealed class CrmCfSupplierController(CrmCfSupplierService service) : Cont
     [HasPermission(Permissions.Crm.CfSupplierEdit)]
     public Task<CrmCfSupplierDto> Update(long applicationId, CrmCfSupplierRequest request, CancellationToken ct) => service.UpdateAsync(applicationId, request, ct);
 
-    [HttpPost("{applicationId:long}/parties")]
-    [HasPermission(Permissions.Crm.CfSupplierEdit)]
-    public Task<CrmCfSupplierDto> AddParty(long applicationId, CrmCfPartyRequest request, CancellationToken ct) => service.AddPartyAsync(applicationId, request, ct);
-
-    [HttpPost("{applicationId:long}/parties/{partyId:long}/remove")]
-    [HasPermission(Permissions.Crm.CfSupplierEdit)]
-    public Task<CrmCfSupplierDto> RemoveParty(long applicationId, long partyId, CancellationToken ct) => service.RemovePartyAsync(applicationId, partyId, ct);
-
     [HttpPost("{applicationId:long}/submit")]
     [HasPermission(Permissions.Crm.CfSupplierEdit)]
     public Task<CrmCfSupplierDto> Submit(long applicationId, CancellationToken ct) => service.SubmitAsync(applicationId, ct);
@@ -58,12 +50,6 @@ public sealed class CrmCfSupplierController(CrmCfSupplierService service) : Cont
     [HttpGet("{applicationId:long}/steps")]
     [HasPermission(Permissions.Crm.CfSupplierView)]
     public Task<IReadOnlyList<CrmCfStepViewDto>> Steps(long applicationId, CancellationToken ct) => service.StepsAsync(applicationId, ct);
-
-    /// <summary>Compliance step: risk rating and screening results (the user's own task).</summary>
-    [HttpPost("{applicationId:long}/steps/{inboxId:long}/compliance")]
-    [HasPermission(Permissions.Crm.CfSupplierView)]
-    public Task<CrmCfSupplierDto> Compliance(long applicationId, long inboxId, CrmCfComplianceRequest request, CancellationToken ct) =>
-        service.SaveComplianceAsync(applicationId, inboxId, request, ct);
 
     /// <summary>Site visit step: the visit date (the user's own task).</summary>
     [HttpPost("{applicationId:long}/steps/{inboxId:long}/site-visit")]

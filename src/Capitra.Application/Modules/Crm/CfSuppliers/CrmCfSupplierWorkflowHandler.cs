@@ -14,7 +14,8 @@ namespace Capitra.Application.Modules.Crm.CfSuppliers;
 /// <list type="bullet">
 /// <item>Any step, REJECT: the application is RETURNED to Sales and the run ends.</item>
 /// <item>Any step, ACCEPT: the step's checks (<see cref="CrmCfSupplierRules.CheckAccept"/>) and segregation of duties.</item>
-/// <item>Compliance ACCEPT: the risk rating becomes the run's risk_rating, which sends a HIGH risk supplier to the committee.</item>
+/// <item>Compliance ACCEPT: the customer's risk grade (Customer 360) is kept on the application and becomes the run's risk_rating,
+/// which sends a HIGH risk supplier to the committee.</item>
 /// <item>Contract ACCEPT: the supplier role becomes ACTIVE and the application ACTIVE (the agreement in force from its start date).</item>
 /// </list>
 /// </summary>
@@ -44,7 +45,7 @@ public sealed class CrmCfSupplierWorkflowHandler(ICapitraDbContext db, IClock cl
         CrmCfSupplierRules.CheckPerson(a.EnteredByPerson, ScrDuties.PersonKey(profile?.EmployeeNo, context.User));
 
         var step = (context.StepCode ?? "").ToUpperInvariant();
-        var parties = await db.Set<CrmCfSupplierParty>().AsNoTracking().Where(x => x.ApplicationId == a.ApplicationId).ToListAsync(cancellationToken);
+        var parties = await db.Set<CrmClientParty>().AsNoTracking().Where(x => x.ClientId == a.ClientId).ToListAsync(cancellationToken);
         var documentTypes = await db.Set<CrmCfSupplierDocument>().AsNoTracking()
             .Where(x => x.ApplicationId == a.ApplicationId && x.IsActive && x.DocumentTypeCode != null).Select(x => x.DocumentTypeCode!).Distinct()
             .ToListAsync(cancellationToken);
@@ -54,13 +55,17 @@ public sealed class CrmCfSupplierWorkflowHandler(ICapitraDbContext db, IClock cl
             : null;
         var client = await db.Set<CrmClient>().AsNoTracking().FirstAsync(x => x.ClientId == a.ClientId, cancellationToken);
         var today = GlTime.Today(clock);
+        var compliance = step == CrmCfSupplierRules.Compliance ? (await customers.ComplianceBadgeAsync(a.ClientId, cancellationToken)).Code : null;
         var problems = CrmCfSupplierRules.CheckAccept(step, a, parties, documentTypes, bank,
-            !string.IsNullOrWhiteSpace(client.RegistrationNumber) && !string.IsNullOrWhiteSpace(client.TaxNumber), today);
+            !string.IsNullOrWhiteSpace(client.RegistrationNumber) && !string.IsNullOrWhiteSpace(client.TaxNumber), today, compliance, client.RiskGrade);
         if (problems.Count > 0)
             throw new BusinessRuleException($"{StepName(step)} cannot be accepted: {string.Join(" ", problems)}");
 
         if (step == CrmCfSupplierRules.Compliance)
-            await SetVariableAsync(context.WorkflowInstanceId, "risk_rating", a.RiskRatingCode!, cancellationToken);
+        {
+            a.RiskRatingCode = client.RiskGrade;
+            await SetVariableAsync(context.WorkflowInstanceId, "risk_rating", client.RiskGrade!, cancellationToken);
+        }
 
         if (step == CrmCfSupplierRules.Contract)
         {

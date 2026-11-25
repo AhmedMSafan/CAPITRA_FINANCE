@@ -44,6 +44,15 @@ public sealed record CrmBankAccountHistoryDto(
     long BankAccountHistoryId, long BankAccountId, string ActionCode, string BankName, string? AccountNumber, string? Iban, string CurrencyCode,
     bool IsPrimary, string StatusCode, string? VerificationMethodCode, string? Notes, string By, DateTime At);
 
+/// <summary>An owner, manager or authorised signatory of the customer, with its screening.</summary>
+public sealed record CrmPartyDto(
+    long PartyId, string PartyTypeCode, string FullName, string? NationalIdNo, string? Nationality, decimal? OwnershipPct, string? ScreeningResultCode,
+    string? ScreenedBy, DateTime? ScreenedAt);
+
+public sealed record CrmPartyFormDto(string? PartyTypeCode, string? FullName, string? NationalIdNo, string? Nationality, decimal? OwnershipPct);
+
+public sealed record CrmScreeningDto(string? ResultCode);
+
 public sealed record CrmProgramDto(
     long AgreementId, string AgreementNumber, string ProgramRole, string? FactoringType, string? StatusCode, string? CurrencyCode,
     decimal? ApprovedLimit, decimal? UtilizedAmount, decimal? AvailableAmount);
@@ -52,7 +61,7 @@ public sealed record CrmCustomer360Dto(
     CrmProfileDto Profile, CrmBadgeDto ComplianceBadge, CrmBadgeDto BankBadge, CrmBadgeDto ReadyToPay, CrmComplianceStateDto Compliance,
     IReadOnlyList<CrmComplianceHistoryDto> ComplianceHistory, IReadOnlyList<CrmRoleDto> Roles, IReadOnlyList<CrmBankAccountDto> BankAccounts,
     IReadOnlyList<CrmBankAccountHistoryDto> BankAccountHistory, IReadOnlyList<CrmProgramDto> Programs, int BankAccountWaitingDays,
-    bool BankAccountMakerChecker, bool ComplianceMakerChecker);
+    bool BankAccountMakerChecker, bool ComplianceMakerChecker, IReadOnlyList<CrmPartyDto> Parties);
 
 public sealed record CrmBankAccountFormDto(
     string BankName, string? BranchName, string? SwiftCode, string? AccountNumber, string? Iban, string AccountHolderName,
@@ -160,9 +169,10 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         var bankHistory = await db.Set<CrmClientBankAccountHistory>().AsNoTracking().Where(x => x.ClientId == clientId)
             .OrderByDescending(x => x.BankAccountHistoryId).Take(100).ToListAsync(cancellationToken);
         var programs = await ProgramsAsync(clientId, currencies, cancellationToken);
+        var parties = await PartiesAsync(clientId, cancellationToken);
 
         var now = clock.UtcNow;
-        var compliance = ComplianceBadge(c);
+        var compliance = ComplianceBadge(c, parties);
         var bank = BankBadge(accounts, now);
         var ready = ReadyToPay(c, compliance, accounts, now);
 
@@ -186,8 +196,94 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
             [.. bankHistory.Select(h => new CrmBankAccountHistoryDto(h.BankAccountHistoryId, h.BankAccountId, h.ActionCode, h.BankName,
                 h.AccountNumber, h.Iban, currencies.GetValueOrDefault(h.CurrencyId) ?? "", h.IsPrimary, h.StatusCode, h.VerificationMethodCode,
                 h.Notes, h.CreatedBy, h.CreatedAt))],
-            programs, rules.WaitingDays, rules.BankAccountMakerChecker, rules.ComplianceMakerChecker);
+            programs, rules.WaitingDays, rules.BankAccountMakerChecker, rules.ComplianceMakerChecker,
+            [.. parties.Select(p => new CrmPartyDto(p.PartyId, p.PartyTypeCode, p.FullName, p.NationalIdNo, p.Nationality, p.OwnershipPct,
+                p.ScreeningResultCode, p.ScreenedBy, p.ScreenedAt))]);
     }
+
+    private Task<List<CrmClientParty>> PartiesAsync(long clientId, CancellationToken cancellationToken) =>
+        db.Set<CrmClientParty>().AsNoTracking().Where(x => x.ClientId == clientId).OrderBy(x => x.PartyId).ToListAsync(cancellationToken);
+
+    /// <summary>The customer's compliance answer (Clear, Pending, ...) with its owners' and signatories' screening, for other modules.</summary>
+    public async Task<CrmBadgeDto> ComplianceBadgeAsync(long clientId, CancellationToken cancellationToken)
+    {
+        await LoadSettingsAsync(cancellationToken);
+        var c = await db.Set<CrmClient>().AsNoTracking().FirstOrDefaultAsync(x => x.ClientId == clientId, cancellationToken)
+            ?? throw new NotFoundException($"Customer {clientId} was not found.");
+        return ComplianceBadge(c, await PartiesAsync(clientId, cancellationToken));
+    }
+
+    // ---------------------------------------------------------------- owners and signatories (one place for KYC, Ahmed 26 Nov 2026)
+
+    public static readonly string[] PartyTypes = ["OWNER", "MANAGER", "SIGNATORY"];
+    public static readonly string[] ScreeningResults = ["CLEAR", "MATCH"];
+
+    /// <summary>Adds an owner, manager or signatory; the compliance profile then needs verifying again.</summary>
+    public async Task AddPartyAsync(long clientId, CrmPartyFormDto dto, CancellationToken cancellationToken)
+    {
+        var c = await ClientAsync(clientId, cancellationToken);
+        var type = (dto.PartyTypeCode ?? "").Trim().ToUpperInvariant();
+        var e = new Dictionary<string, string[]>();
+        if (!PartyTypes.Contains(type)) e["partyTypeCode"] = ["Choose owner, manager or signatory."];
+        var name = Blank(dto.FullName);
+        if (name is null) e["fullName"] = ["Enter the full name."];
+        else if (name.Length > 300) e["fullName"] = ["The name is longer than 300 characters."];
+        if (dto.OwnershipPct is < 0 or > 100) e["ownershipPct"] = ["The share is from 0% to 100%."];
+        if (e.Count > 0) throw new BusinessValidationException(e);
+        var shares = await db.Set<CrmClientParty>().Where(x => x.ClientId == clientId && x.PartyTypeCode == "OWNER").SumAsync(x => x.OwnershipPct ?? 0, cancellationToken);
+        if (type == "OWNER" && shares + (dto.OwnershipPct ?? 0) > 100) throw BusinessValidationException.For("ownershipPct", "The owners' shares would add up to more than 100%.");
+        db.Set<CrmClientParty>().Add(new CrmClientParty
+        {
+            ClientId = clientId, PartyTypeCode = type, FullName = name!, NationalIdNo = Cut(Blank(dto.NationalIdNo), 50),
+            Nationality = Cut(Blank(dto.Nationality), 100), OwnershipPct = type == "OWNER" ? dto.OwnershipPct : null,
+        });
+        Unverify(c, "PARTY_ADDED", $"{name} ({type.ToLowerInvariant()}) added.");
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RemovePartyAsync(long clientId, long partyId, CancellationToken cancellationToken)
+    {
+        var c = await ClientAsync(clientId, cancellationToken);
+        var p = await db.Set<CrmClientParty>().FirstOrDefaultAsync(x => x.PartyId == partyId && x.ClientId == clientId, cancellationToken)
+            ?? throw new NotFoundException("The owner or signatory was not found.");
+        db.Set<CrmClientParty>().Remove(p);
+        Unverify(c, "PARTY_REMOVED", $"{p.FullName} removed.");
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Records a person's screening (CLEAR or MATCH, or null to clear it); a MATCH blocks the customer and suspends its roles.</summary>
+    public async Task ScreenPartyAsync(long clientId, long partyId, CrmScreeningDto dto, CancellationToken cancellationToken)
+    {
+        await LoadSettingsAsync(cancellationToken);
+        var c = await ClientAsync(clientId, cancellationToken);
+        var p = await db.Set<CrmClientParty>().FirstOrDefaultAsync(x => x.PartyId == partyId && x.ClientId == clientId, cancellationToken)
+            ?? throw new NotFoundException("The owner or signatory was not found.");
+        var result = Blank(dto.ResultCode)?.ToUpperInvariant();
+        if (result is not null && !ScreeningResults.Contains(result)) throw BusinessValidationException.For("resultCode", "A screening result is clear or match.");
+        if (result == p.ScreeningResultCode) return;
+        p.ScreeningResultCode = result;
+        p.ScreenedBy = result is null ? null : User;
+        p.ScreenedAt = result is null ? null : clock.UtcNow;
+        Unverify(c, "PARTY_SCREENED", $"{p.FullName}: {result?.ToLowerInvariant() ?? "not screened"}.");
+        await db.SaveChangesAsync(cancellationToken);
+        if (result == "MATCH")
+        {
+            await SuspendRolesIfBlockedAsync(c, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    /// <summary>A change to the owners or their screening is a change to the compliance profile: it needs verifying again.</summary>
+    private void Unverify(CrmClient c, string action, string notes)
+    {
+        c.ComplianceChangedBy = User;
+        c.ComplianceChangedAt = clock.UtcNow;
+        c.ComplianceVerifiedBy = null;
+        c.ComplianceVerifiedAt = null;
+        AddHistory(c, action, notes);
+    }
+
+    private static string? Cut(string? value, int max) => value is null || value.Length <= max ? value : value[..max];
 
     /// <summary>The factoring agreements (programs) where the customer is the client, with the agreement-level limit.</summary>
     private async Task<IReadOnlyList<CrmProgramDto>> ProgramsAsync(long clientId, Dictionary<long, string> currencies, CancellationToken cancellationToken)
@@ -210,7 +306,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     private DateOnly Today => GlTime.Today(clock);
 
-    internal CrmBadgeDto ComplianceBadge(CrmClient c)
+    internal CrmBadgeDto ComplianceBadge(CrmClient c, IReadOnlyCollection<CrmClientParty> parties)
     {
         var today = Today;
         var blocked = new List<string>();
@@ -218,6 +314,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         if (c.KycStatus == "REJECTED") blocked.Add("KYC rejected.");
         if (c.AmlStatus == "BLOCKED") blocked.Add("AML blocked.");
         if (c.SanctionsStatus is "MATCH" or "BLOCKED") blocked.Add($"Sanctions {c.SanctionsStatus!.ToLowerInvariant()}.");
+        foreach (var m in parties.Where(x => x.ScreeningResultCode == "MATCH")) blocked.Add($"{m.FullName} matched the screening.");
         if (blocked.Count > 0) return new("BLOCKED", "Blocked", blocked);
 
         if (c.KycExpiryDate is { } exp && exp < today) return new("EXPIRED", "Expired", [$"KYC expired on {exp:dd-MMM-yyyy}."]);
@@ -227,6 +324,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         if (c.KycExpiryDate is null) pending.Add("KYC expiry date is missing.");
         if (c.AmlStatus != "CLEAR") pending.Add("AML is not clear.");
         if (c.SanctionsStatus != "CLEAR") pending.Add("Sanctions screening is not clear.");
+        if (parties.Any(x => x.ScreeningResultCode is null)) pending.Add("Not every owner and signatory is screened.");
         if (c.ComplianceVerifiedAt is null) pending.Add("The compliance profile is not verified.");
         if (pending.Count > 0) return new("PENDING", "Pending", pending);
 
@@ -300,7 +398,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
     {
         await LoadSettingsAsync(cancellationToken);
         var c = await ClientAsync(clientId, cancellationToken);
-        return RoleBlockers(roleCode, c, ComplianceBadge(c));
+        return RoleBlockers(roleCode, c, ComplianceBadge(c, await PartiesAsync(clientId, cancellationToken)));
     }
 
     private bool SameUser(string? by) => by is not null && string.Equals(by, User, StringComparison.OrdinalIgnoreCase);
@@ -385,7 +483,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
     /// <summary>A blocked customer cannot keep active roles: they are suspended with the reason.</summary>
     private async Task SuspendRolesIfBlockedAsync(CrmClient c, CancellationToken cancellationToken)
     {
-        var badge = ComplianceBadge(c);
+        var badge = ComplianceBadge(c, await PartiesAsync(c.ClientId, cancellationToken));
         if (badge.Code != "BLOCKED") return;
         foreach (var r in await db.Set<CrmClientRole>().Where(x => x.ClientId == c.ClientId && x.StatusCode == CrmClientRole.Active).ToListAsync(cancellationToken))
         {
@@ -420,7 +518,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         if (ByWorkflow(role))
             throw new BusinessRuleException("A Consumer Finance supplier is activated by its approval workflow: open its supplier application.");
         var c = await ClientAsync(clientId, cancellationToken);
-        var blockers = RoleBlockers(role.RoleCode, c, ComplianceBadge(c));
+        var blockers = RoleBlockers(role.RoleCode, c, ComplianceBadge(c, await PartiesAsync(clientId, cancellationToken)));
         if (blockers.Count > 0)
             throw new BusinessRuleException($"The {RoleLabel(role)} role cannot be activated: {string.Join(" ", blockers)}");
         role.StatusCode = CrmClientRole.Active;

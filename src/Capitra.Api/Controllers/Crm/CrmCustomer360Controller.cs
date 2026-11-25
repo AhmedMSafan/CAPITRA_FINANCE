@@ -29,6 +29,22 @@ public sealed class CrmCustomer360Controller(CrmCustomer360Service service, CrmC
     public Task VerifyCompliance(long clientId, CrmVerifyDto dto, CancellationToken cancellationToken) =>
         service.VerifyComplianceAsync(clientId, dto, cancellationToken);
 
+    /// <summary>Owners, managers and authorised signatories of the customer (part of its compliance; each change needs verifying again).</summary>
+    [HttpPost("parties")]
+    [HasPermission(Permissions.Crm.Edit)]
+    public Task AddParty(long clientId, CrmPartyFormDto dto, CancellationToken cancellationToken) => service.AddPartyAsync(clientId, dto, cancellationToken);
+
+    [HttpPost("parties/{partyId:long}/remove")]
+    [HasPermission(Permissions.Crm.Edit)]
+    public Task RemoveParty(long clientId, long partyId, CancellationToken cancellationToken) =>
+        service.RemovePartyAsync(clientId, partyId, cancellationToken);
+
+    /// <summary>Records a person's screening: CLEAR or MATCH (sanctions, blacklists, PEP).</summary>
+    [HttpPost("parties/{partyId:long}/screening")]
+    [HasPermission(Permissions.Crm.Edit)]
+    public Task ScreenParty(long clientId, long partyId, CrmScreeningDto dto, CancellationToken cancellationToken) =>
+        service.ScreenPartyAsync(clientId, partyId, dto, cancellationToken);
+
     [HttpPost("roles")]
     [HasPermission(Permissions.Crm.Edit)]
     public Task AddRole(long clientId, CrmAddRoleDto dto, CancellationToken cancellationToken) => service.AddRoleAsync(clientId, dto, cancellationToken);

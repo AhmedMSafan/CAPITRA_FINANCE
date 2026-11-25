@@ -21,10 +21,8 @@ public static class CrmCfSupplierRules
 
     public static readonly string[] Steps = [DocumentCheck, Compliance, SiteVisit, RiskReview, ManagerApproval, CommitteeApproval, Contract];
 
-    public static readonly string[] PartyTypes = ["OWNER", "MANAGER", "SIGNATORY"];
     public static readonly string[] RiskRatings = ["LOW", "MEDIUM", "HIGH"];
     public static readonly string[] Collectors = ["SUPPLIER", "COMPANY"];
-    public static readonly string[] ScreeningResults = ["CLEAR", "MATCH"];
 
     public const string SiteVisitReport = "SITE_VISIT_REPORT";
     public const string SignedAgreement = "SIGNED_AGREEMENT";
@@ -50,11 +48,11 @@ public static class CrmCfSupplierRules
     }
 
     /// <summary>What an application needs to be submitted, besides its terms (documents can come at any time).</summary>
-    public static List<string> CheckSubmit(IReadOnlyCollection<CrmCfSupplierParty> parties)
+    public static List<string> CheckSubmit(IReadOnlyCollection<CrmClientParty> parties)
     {
         var p = new List<string>();
-        if (!parties.Any(x => x.PartyTypeCode == "OWNER")) p.Add("Add the supplier's owners.");
-        if (!parties.Any(x => x.PartyTypeCode == "SIGNATORY")) p.Add("Add who signs for the supplier (authorised signatory).");
+        if (!parties.Any(x => x.PartyTypeCode == "OWNER")) p.Add("Add the supplier's owners (Customer 360 > Compliance).");
+        if (!parties.Any(x => x.PartyTypeCode == "SIGNATORY")) p.Add("Add who signs for the supplier (authorised signatory, Customer 360 > Compliance).");
         if (parties.Where(x => x.PartyTypeCode == "OWNER").Sum(x => x.OwnershipPct ?? 0) > 100) p.Add("The owners' shares add up to more than 100%.");
         return p;
     }
@@ -62,10 +60,12 @@ public static class CrmCfSupplierRules
     /// <summary>
     /// What a step needs before it is accepted. <paramref name="documentTypes"/> are the types of the application's documents;
     /// <paramref name="bankAccountStatus"/> is the status of the account chosen to pay the supplier, or null when none is chosen.
+    /// The compliance step enters nothing (Ahmed, 26 Nov 2026): it checks the customer's compliance in Customer 360 —
+    /// <paramref name="complianceCode"/> (CLEAR or DUE once complete and verified), <paramref name="riskGrade"/> and the owners' screening.
     /// </summary>
     public static List<string> CheckAccept(
-        string stepCode, CrmCfSupplierApplication a, IReadOnlyCollection<CrmCfSupplierParty> parties, IReadOnlyCollection<string> documentTypes,
-        string? bankAccountStatus, bool hasRegisterAndTaxNumbers, DateOnly today)
+        string stepCode, CrmCfSupplierApplication a, IReadOnlyCollection<CrmClientParty> parties, IReadOnlyCollection<string> documentTypes,
+        string? bankAccountStatus, bool hasRegisterAndTaxNumbers, DateOnly today, string? complianceCode = null, string? riskGrade = null)
     {
         var p = new List<string>();
         switch (stepCode)
@@ -74,9 +74,10 @@ public static class CrmCfSupplierRules
                 if (!hasRegisterAndTaxNumbers) p.Add("The customer record needs the commercial register number and the tax number.");
                 break;
             case Compliance:
-                if (!RiskRatings.Contains(a.RiskRatingCode ?? "")) p.Add("Set the supplier's risk rating.");
-                if (parties.Any(x => x.ScreeningResultCode is null)) p.Add("Record the screening result of every owner, manager and signatory.");
-                if (parties.Any(x => x.ScreeningResultCode == "MATCH")) p.Add("A party matched a sanctions or blacklist entry: return the application.");
+                if (complianceCode is not ("CLEAR" or "DUE")) p.Add("The customer's compliance must be clear and verified (Customer 360 > Compliance).");
+                if (!RiskRatings.Contains(riskGrade ?? "")) p.Add("Set the customer's risk grade (Customer 360 > Compliance).");
+                if (parties.Any(x => x.ScreeningResultCode is null)) p.Add("Screen every owner, manager and signatory (Customer 360 > Compliance).");
+                if (parties.Any(x => x.ScreeningResultCode == "MATCH")) p.Add("An owner or signatory matched the screening: return the application.");
                 break;
             case SiteVisit:
                 if (a.SiteVisitDate is null) p.Add("Enter the date of the site visit.");

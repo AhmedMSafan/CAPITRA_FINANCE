@@ -102,3 +102,22 @@ public sealed class CrmClientBankAccountHistoryConfiguration : IEntityTypeConfig
         builder.ConfigureAudit();
     }
 }
+
+public sealed class CrmClientPartyConfiguration : IEntityTypeConfiguration<CrmClientParty>
+{
+    public void Configure(EntityTypeBuilder<CrmClientParty> builder)
+    {
+        builder.ToTable("CRM_CLIENT_PARTIES");
+        builder.HasKey(x => x.PartyId);
+        builder.HasIndex(x => x.ClientId);
+        builder.Property(x => x.PartyId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.PartyTypeCode).HasMaxLength(20);
+        builder.Property(x => x.FullName).HasMaxLength(300);
+        builder.Property(x => x.NationalIdNo).HasMaxLength(50);
+        builder.Property(x => x.Nationality).HasMaxLength(100);
+        builder.Property(x => x.ScreeningResultCode).HasMaxLength(20);
+        builder.Property(x => x.ScreenedBy).HasMaxLength(256);
+        builder.HasOne<CrmClient>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Cascade);
+        builder.ConfigureAudit();
+    }
+}

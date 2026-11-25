@@ -19,7 +19,7 @@ public sealed class CrmCfSupplierTests
         QuotationValidityDays = 7, DeliveryDays = 5, ValidFromDate = Today, EnteredByPerson = "EMP:100",
     };
 
-    private static CrmCfSupplierParty Party(string type, decimal? share = null, string? screening = null) =>
+    private static CrmClientParty Party(string type, decimal? share = null, string? screening = null) =>
         new() { PartyTypeCode = type, FullName = "X", OwnershipPct = share, ScreeningResultCode = screening };
 
     private static List<string> Path(string risk)
@@ -98,13 +98,14 @@ public sealed class CrmCfSupplierTests
     }
 
     [Fact]
-    public void Compliance_needs_a_rating_and_every_party_screened_clear()
+    public void Compliance_checks_the_customer_compliance_its_risk_grade_and_every_person_screened_clear()
     {
+        // the step enters nothing: it reads Customer 360 > Compliance (Ahmed, 26 Nov 2026)
         var a = App();
-        Assert.Equal(2, CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER")], None, null, true, Today).Count);
-        a.RiskRatingCode = "HIGH";
-        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "CLEAR")], None, null, true, Today));
-        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "MATCH")], None, null, true, Today));
+        Assert.Equal(3, CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER")], None, null, true, Today, "PENDING", null).Count);
+        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "CLEAR")], None, null, true, Today, "CLEAR", "HIGH"));
+        Assert.Empty(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "CLEAR")], None, null, true, Today, "DUE", "LOW"));
+        Assert.Single(CrmCfSupplierRules.CheckAccept(CrmCfSupplierRules.Compliance, a, [Party("OWNER", screening: "MATCH")], None, null, true, Today, "CLEAR", "LOW"));
     }
 
     private static readonly string[] None = [];

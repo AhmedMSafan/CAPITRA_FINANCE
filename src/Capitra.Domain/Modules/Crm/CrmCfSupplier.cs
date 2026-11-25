@@ -83,7 +83,7 @@ public class CrmCfSupplierApplication : AuditableEntity
 
     // ---- set by the workflow steps
 
-    /// <summary>LOW, MEDIUM or HIGH, set at the compliance step; HIGH adds the committee approval.</summary>
+    /// <summary>LOW, MEDIUM or HIGH: the customer's risk grade when the compliance step accepted it; HIGH adds the committee approval.</summary>
     public string? RiskRatingCode { get; set; }
 
     public DateOnly? SiteVisitDate { get; set; }
@@ -91,33 +91,6 @@ public class CrmCfSupplierApplication : AuditableEntity
     public DateTime? ActivatedAt { get; set; }
 
     public string? Notes { get; set; }
-}
-
-/// <summary>CRM_CF_SUPPLIER_PARTIES: an owner, manager or authorised signatory of the supplier, screened at the compliance step.</summary>
-public class CrmCfSupplierParty : AuditableEntity
-{
-    public long PartyId { get; set; }
-
-    public long ApplicationId { get; set; }
-
-    /// <summary>OWNER, MANAGER or SIGNATORY.</summary>
-    public string PartyTypeCode { get; set; } = "OWNER";
-
-    public string FullName { get; set; } = string.Empty;
-
-    public string? NationalIdNo { get; set; }
-
-    public string? Nationality { get; set; }
-
-    /// <summary>The share of an owner, in %.</summary>
-    public decimal? OwnershipPct { get; set; }
-
-    /// <summary>CLEAR or MATCH (sanctions, blacklists, PEP), recorded at the compliance step; null until then.</summary>
-    public string? ScreeningResultCode { get; set; }
-
-    public string? ScreenedBy { get; set; }
-
-    public DateTime? ScreenedAt { get; set; }
 }
 
 /// <summary>
