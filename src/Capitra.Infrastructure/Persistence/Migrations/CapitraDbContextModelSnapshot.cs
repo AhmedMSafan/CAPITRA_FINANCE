@@ -4831,6 +4831,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnName("DOCUMENT_TITLE");
 
                     b.Property<byte[]>("FileBlob")
+                        .IsRequired()
                         .HasColumnType("bytea")
                         .HasColumnName("FILE_BLOB");
 
