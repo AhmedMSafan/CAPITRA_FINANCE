@@ -30,8 +30,9 @@ public sealed record CrmComplianceHistoryDto(
     long ComplianceHistoryId, string ActionCode, string? KycStatus, DateOnly? KycExpiryDate, string? AmlStatus, string? SanctionsStatus,
     bool IsPep, bool IsBlacklisted, string? RiskGrade, DateOnly? NextReviewDate, string? Notes, string By, DateTime At);
 
+/// <summary>BusinessLineCode: FACTORING or CONSUMER_FINANCE for a supplier; ByWorkflow: the role is activated by its approval workflow.</summary>
 public sealed record CrmRoleDto(long ClientRoleId, string RoleCode, string RoleLabel, string StatusCode, DateOnly? ActiveSinceDate, string? Notes,
-    IReadOnlyList<string> ActivationBlockers);
+    IReadOnlyList<string> ActivationBlockers, string? BusinessLineCode = null, bool ByWorkflow = false);
 
 public sealed record CrmBankAccountDto(
     long BankAccountId, string BankName, string? BranchName, string? SwiftCode, string? AccountNumber, string? Iban, string AccountHolderName,
@@ -59,7 +60,8 @@ public sealed record CrmBankAccountFormDto(
 
 public sealed record CrmVerifyDto(string? VerificationMethodCode, string? Notes);
 
-public sealed record CrmAddRoleDto(string RoleCode, string? Notes);
+/// <summary>BusinessLineCode is asked for a supplier: FACTORING or CONSUMER_FINANCE.</summary>
+public sealed record CrmAddRoleDto(string RoleCode, string? Notes, string? BusinessLineCode = null);
 
 /// <summary>
 /// Customer 360 (agreed with Ahmed, 4 Nov 2026): one customer record with its roles, its compliance profile and its bank accounts.
@@ -78,6 +80,22 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         new("REAL_ESTATE_DEVELOPER", "Real Estate Developer"),
         new("INVESTOR", "Investor"),
     ];
+
+    /// <summary>The business lines a supplier can serve (one SUPPLIER role each).</summary>
+    public static readonly IReadOnlyList<CrmOptionDto> SupplierBusinessLines =
+    [
+        new(Factoring, "Factoring"),
+        new(ConsumerFinance, "Consumer Finance"),
+    ];
+
+    public const string Supplier = "SUPPLIER";
+    public const string Factoring = "FACTORING";
+    public const string ConsumerFinance = "CONSUMER_FINANCE";
+
+    /// <summary>A Consumer Finance supplier is activated only by CF_SUPPLIER_APPROVAL (Ahmed, 25 Nov 2026), never by hand.</summary>
+    public static bool ByWorkflow(CrmClientRole r) => r.RoleCode == Supplier && r.BusinessLineCode == ConsumerFinance;
+
+    public const string ByWorkflowBlocker = "Activated by the Consumer Finance supplier approval workflow.";
 
     public static readonly string[] KycStatuses = ["PENDING", "APPROVED", "REJECTED"];
     public static readonly string[] AmlStatuses = ["PENDING", "CLEAR", "REVIEW", "BLOCKED"];
@@ -141,8 +159,9 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
                 canVerify, blocked),
             [.. complianceHistory.Select(h => new CrmComplianceHistoryDto(h.ComplianceHistoryId, h.ActionCode, h.KycStatus, h.KycExpiryDate,
                 h.AmlStatus, h.SanctionsStatus, h.IsPep, h.IsBlacklisted, h.RiskGrade, h.NextReviewDate, h.Notes, h.CreatedBy, h.CreatedAt))],
-            [.. roles.Select(r => new CrmRoleDto(r.ClientRoleId, r.RoleCode, RoleLabel(r.RoleCode), r.StatusCode, r.ActiveSinceDate, r.Notes,
-                r.StatusCode == CrmClientRole.Active ? [] : RoleBlockers(r.RoleCode, c, compliance)))],
+            [.. roles.Select(r => new CrmRoleDto(r.ClientRoleId, r.RoleCode, RoleLabel(r), r.StatusCode, r.ActiveSinceDate, r.Notes,
+                r.StatusCode == CrmClientRole.Active ? [] : ByWorkflow(r) ? [ByWorkflowBlocker] : RoleBlockers(r.RoleCode, c, compliance),
+                r.BusinessLineCode, ByWorkflow(r)))],
             [.. accounts.Select(a => ToDto(a, currencies, now))],
             [.. bankHistory.Select(h => new CrmBankAccountHistoryDto(h.BankAccountHistoryId, h.BankAccountId, h.ActionCode, h.BankName,
                 h.AccountNumber, h.Iban, currencies.GetValueOrDefault(h.CurrencyId) ?? "", h.IsPrimary, h.StatusCode, h.VerificationMethodCode,
@@ -251,6 +270,19 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     private static string RoleLabel(string code) => Roles.FirstOrDefault(x => x.Value == code)?.Label ?? code;
 
+    /// <summary>Supplier - Consumer Finance, Supplier - Factoring; other roles by their name.</summary>
+    public static string RoleLabel(CrmClientRole r) =>
+        r.RoleCode == Supplier && SupplierBusinessLines.FirstOrDefault(x => x.Value == r.BusinessLineCode) is { } line
+            ? $"{RoleLabel(r.RoleCode)} - {line.Label}" : RoleLabel(r.RoleCode);
+
+    /// <summary>What still stops a customer's role from becoming active (for the supplier approval workflow's activation).</summary>
+    internal async Task<List<string>> ActivationBlockersAsync(long clientId, string roleCode, CancellationToken cancellationToken)
+    {
+        await LoadSettingsAsync(cancellationToken);
+        var c = await ClientAsync(clientId, cancellationToken);
+        return RoleBlockers(roleCode, c, ComplianceBadge(c));
+    }
+
     private bool SameUser(string? by) => by is not null && string.Equals(by, User, StringComparison.OrdinalIgnoreCase);
 
     private CrmBankAccountDto ToDto(CrmClientBankAccount a, Dictionary<long, string> currencies, DateTime now) =>
@@ -349,9 +381,14 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         await ClientAsync(clientId, cancellationToken);
         var code = dto.RoleCode?.Trim().ToUpperInvariant() ?? "";
         if (Roles.All(x => x.Value != code)) throw BusinessValidationException.For("roleCode", "Choose the role.");
-        if (await db.Set<CrmClientRole>().AnyAsync(x => x.ClientId == clientId && x.RoleCode == code, cancellationToken))
-            throw new BusinessRuleException($"The customer already has the role {RoleLabel(code)}.");
-        db.Set<CrmClientRole>().Add(new CrmClientRole { ClientId = clientId, RoleCode = code, StatusCode = CrmClientRole.Onboarding, Notes = Blank(dto.Notes) });
+        // a supplier is a supplier of one business line; the other roles have none
+        var line = code == Supplier ? dto.BusinessLineCode?.Trim().ToUpperInvariant() : null;
+        if (code == Supplier && SupplierBusinessLines.All(x => x.Value != line))
+            throw BusinessValidationException.For("businessLineCode", "Choose the business line the supplier serves.");
+        var role = new CrmClientRole { ClientId = clientId, RoleCode = code, BusinessLineCode = line, StatusCode = CrmClientRole.Onboarding, Notes = Blank(dto.Notes) };
+        if (await db.Set<CrmClientRole>().AnyAsync(x => x.ClientId == clientId && x.RoleCode == code && x.BusinessLineCode == line, cancellationToken))
+            throw new BusinessRuleException($"The customer already has the role {RoleLabel(role)}.");
+        db.Set<CrmClientRole>().Add(role);
         await db.SaveChangesAsync(cancellationToken);
     }
 
@@ -360,10 +397,12 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         await LoadSettingsAsync(cancellationToken);
         var role = await RoleAsync(clientId, roleId, cancellationToken);
         if (role.StatusCode == CrmClientRole.Active) return;
+        if (ByWorkflow(role))
+            throw new BusinessRuleException("A Consumer Finance supplier is activated by its approval workflow: open its supplier application.");
         var c = await ClientAsync(clientId, cancellationToken);
         var blockers = RoleBlockers(role.RoleCode, c, ComplianceBadge(c));
         if (blockers.Count > 0)
-            throw new BusinessRuleException($"The {RoleLabel(role.RoleCode)} role cannot be activated: {string.Join(" ", blockers)}");
+            throw new BusinessRuleException($"The {RoleLabel(role)} role cannot be activated: {string.Join(" ", blockers)}");
         role.StatusCode = CrmClientRole.Active;
         role.ActiveSinceDate ??= Today;
         await db.SaveChangesAsync(cancellationToken);

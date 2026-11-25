@@ -103,7 +103,12 @@ public sealed class CrmClientService(ICapitraDbContext db)
         Apply(client, dto);
         db.Set<CrmClient>().Add(client);
         await db.SaveChangesAsync(cancellationToken);
-        db.Set<CrmClientRole>().Add(new CrmClientRole { ClientId = client.ClientId, RoleCode = firstRole, StatusCode = CrmClientRole.Onboarding });
+        // a first SUPPLIER role is a factoring supplier; a Consumer Finance supplier starts from its supplier application
+        db.Set<CrmClientRole>().Add(new CrmClientRole
+        {
+            ClientId = client.ClientId, RoleCode = firstRole, StatusCode = CrmClientRole.Onboarding,
+            BusinessLineCode = firstRole == CrmCustomer360Service.Supplier ? CrmCustomer360Service.Factoring : null,
+        });
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(client.ClientId, cancellationToken);
     }
