@@ -8,11 +8,16 @@ namespace Capitra.Api.Controllers.Crm;
 /// <summary>Customer 360: compliance, roles and bank accounts of one customer. Verifying needs CRM.VERIFY (four eyes).</summary>
 [ApiController]
 [Route("api/crm/clients/{clientId:long}")]
-public sealed class CrmCustomer360Controller(CrmCustomer360Service service) : ControllerBase
+public sealed class CrmCustomer360Controller(CrmCustomer360Service service, CrmCustomerOverviewService overview) : ControllerBase
 {
     [HttpGet("360")]
     [HasPermission(Permissions.Crm.View)]
     public Task<CrmCustomer360Dto> Get(long clientId, CancellationToken cancellationToken) => service.GetAsync(clientId, cancellationToken);
+
+    /// <summary>The Overview tab: roles and where each stands, the work still running, the latest activity and the workspaces.</summary>
+    [HttpGet("360/overview")]
+    [HasPermission(Permissions.Crm.View)]
+    public Task<CrmCustomerOverviewDto> Overview(long clientId, CancellationToken cancellationToken) => overview.GetAsync(clientId, cancellationToken);
 
     [HttpPut("compliance")]
     [HasPermission(Permissions.Crm.Edit)]
