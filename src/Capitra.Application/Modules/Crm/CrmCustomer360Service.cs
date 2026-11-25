@@ -216,7 +216,11 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
     // ---------------------------------------------------------------- owners and signatories (one place for KYC, Ahmed 26 Nov 2026)
 
     public static readonly string[] PartyTypes = ["OWNER", "MANAGER", "SIGNATORY"];
-    public static readonly string[] ScreeningResults = ["CLEAR", "MATCH"];
+    /// <summary>
+    /// One screening per person against sanctions, blacklist and PEP lists (Ahmed, 26 Nov 2026): CLEAR, PEP (allowed, needs enhanced due
+    /// diligence) or MATCH (a sanctions or blacklist hit: the customer is blocked).
+    /// </summary>
+    public static readonly string[] ScreeningResults = ["CLEAR", "PEP", "MATCH"];
 
     /// <summary>Adds an owner, manager or signatory; the compliance profile then needs verifying again.</summary>
     public async Task AddPartyAsync(long clientId, CrmPartyFormDto dto, CancellationToken cancellationToken)
@@ -249,6 +253,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         db.Set<CrmClientParty>().Remove(p);
         Unverify(c, "PARTY_REMOVED", $"{p.FullName} removed.");
         await db.SaveChangesAsync(cancellationToken);
+        await SyncPepAsync(c, cancellationToken);
     }
 
     /// <summary>Records a person's screening (CLEAR or MATCH, or null to clear it); a MATCH blocks the customer and suspends its roles.</summary>
@@ -259,18 +264,28 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         var p = await db.Set<CrmClientParty>().FirstOrDefaultAsync(x => x.PartyId == partyId && x.ClientId == clientId, cancellationToken)
             ?? throw new NotFoundException("The owner or signatory was not found.");
         var result = Blank(dto.ResultCode)?.ToUpperInvariant();
-        if (result is not null && !ScreeningResults.Contains(result)) throw BusinessValidationException.For("resultCode", "A screening result is clear or match.");
+        if (result is not null && !ScreeningResults.Contains(result)) throw BusinessValidationException.For("resultCode", "A screening result is clear, PEP or match.");
         if (result == p.ScreeningResultCode) return;
         p.ScreeningResultCode = result;
         p.ScreenedBy = result is null ? null : User;
         p.ScreenedAt = result is null ? null : clock.UtcNow;
         Unverify(c, "PARTY_SCREENED", $"{p.FullName}: {result?.ToLowerInvariant() ?? "not screened"}.");
         await db.SaveChangesAsync(cancellationToken);
+        await SyncPepAsync(c, cancellationToken);
         if (result == "MATCH")
         {
             await SuspendRolesIfBlockedAsync(c, cancellationToken);
             await db.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    /// <summary>The customer is PEP-related when one of its people screened as PEP; no longer entered by hand.</summary>
+    private async Task SyncPepAsync(CrmClient c, CancellationToken cancellationToken)
+    {
+        var pep = await db.Set<CrmClientParty>().AnyAsync(x => x.ClientId == c.ClientId && x.ScreeningResultCode == "PEP", cancellationToken);
+        if (c.IsPep == pep) return;
+        c.IsPep = pep;
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>A change to the owners or their screening is a change to the compliance profile: it needs verifying again.</summary>
@@ -325,8 +340,12 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         if (c.AmlStatus != "CLEAR") pending.Add("AML is not clear.");
         if (c.SanctionsStatus != "CLEAR") pending.Add("Sanctions screening is not clear.");
         if (parties.Any(x => x.ScreeningResultCode is null)) pending.Add("Not every owner and signatory is screened.");
+        // a PEP is allowed with enhanced due diligence: a HIGH risk grade and a verified profile
+        var peps = parties.Where(x => x.ScreeningResultCode == "PEP").ToList();
+        if (peps.Count > 0 && c.RiskGrade != "HIGH")
+            pending.Add($"{string.Join(", ", peps.Select(x => x.FullName))} politically exposed: set the risk grade to HIGH.");
         if (c.ComplianceVerifiedAt is null) pending.Add("The compliance profile is not verified.");
-        if (pending.Count > 0) return new("PENDING", "Pending", pending);
+        if (pending.Count > 0) return peps.Count > 0 ? new("EDD", "Enhanced due diligence", pending) : new("PENDING", "Pending", pending);
 
         var due = new List<string>();
         if (c.NextReviewDate is { } review && review <= today) due.Add($"Review was due on {review:dd-MMM-yyyy}.");
@@ -434,7 +453,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         var reason = dto.IsBlacklisted ? dto.BlacklistReason!.Trim() : null;
         var changed = c.RiskGrade != dto.RiskGrade || c.KycStatus != dto.KycStatus || c.KycExpiryDate != dto.KycExpiryDate
             || c.AmlStatus != dto.AmlStatus || c.AmlCheckDate != dto.AmlCheckDate || c.SanctionsStatus != dto.SanctionsStatus
-            || c.IsPep != dto.IsPep || c.IsBlacklisted != dto.IsBlacklisted || c.BlacklistReason != reason || c.NextReviewDate != dto.NextReviewDate;
+            || c.IsBlacklisted != dto.IsBlacklisted || c.BlacklistReason != reason || c.NextReviewDate != dto.NextReviewDate;
         if (!changed) return;
 
         c.RiskGrade = dto.RiskGrade;
@@ -443,7 +462,6 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         c.AmlStatus = dto.AmlStatus;
         c.AmlCheckDate = dto.AmlCheckDate;
         c.SanctionsStatus = dto.SanctionsStatus;
-        c.IsPep = dto.IsPep;
         c.IsBlacklisted = dto.IsBlacklisted;
         c.BlacklistReason = reason;
         c.NextReviewDate = dto.NextReviewDate;

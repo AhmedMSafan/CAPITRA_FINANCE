@@ -4,7 +4,7 @@
   <section class="c3-panel">
     <header class="c3-panel-head">
       <h3><span class="fa fa-users" aria-hidden="true"></span>{{ tr('Owners and signatories') }} ({{ parties.length }})</h3>
-      <span class="c3-muted">{{ tr('At least one owner and one authorised signatory. Screen each person.') }}</span>
+      <span class="c3-muted">{{ tr('At least one owner and one authorised signatory. Screen each person against sanctions, blacklist and PEP lists.') }}</span>
     </header>
     <div v-if="canEdit" class="pt-add">
       <select v-model="form.partyTypeCode" class="fx-select" :aria-label="tr('Type')">
@@ -29,9 +29,9 @@
             <td>
               <select v-if="canEdit" :value="p.screeningResultCode" class="fx-select fx-select--sm" :class="`pt-scr--${(p.screeningResultCode || 'none').toLowerCase()}`"
                       :disabled="busy" :aria-label="`${tr('Screening')}: ${p.fullName}`" @change="screen(p, ($event.target as HTMLSelectElement).value || null)">
-                <option :value="null">{{ tr('Not screened') }}</option><option value="CLEAR">{{ tr('Clear') }}</option><option value="MATCH">{{ tr('Match') }}</option>
+                <option :value="null">{{ tr('Not screened') }}</option><option value="CLEAR">{{ tr('Clear') }}</option><option value="PEP">{{ tr('PEP') }}</option><option value="MATCH">{{ tr('Sanctions match') }}</option>
               </select>
-              <span v-else-if="p.screeningResultCode" class="fx-chip" :class="p.screeningResultCode === 'CLEAR' ? 'fx-chip--ok' : 'fx-chip--bad'">{{ tr(p.screeningResultCode === 'CLEAR' ? 'Clear' : 'Match') }}</span>
+              <span v-else-if="p.screeningResultCode" class="fx-chip" :class="SCREEN_CHIP[p.screeningResultCode]">{{ tr(SCREEN_NAME[p.screeningResultCode] ?? p.screeningResultCode) }}</span>
               <span v-else class="c3-muted">{{ tr('Not screened') }}</span>
               <small v-if="p.screenedBy" class="fx-cell-sub">{{ p.screenedBy }} · {{ formatDateTime(p.screenedAt) }}</small>
             </td>
@@ -59,6 +59,9 @@ const emit = defineEmits<{ changed: [] }>()
 
 const TYPES = [{ code: 'OWNER', name: 'Owner' }, { code: 'MANAGER', name: 'Manager' }, { code: 'SIGNATORY', name: 'Authorised signatory' }]
 const typeName = (code: string) => TYPES.find((t) => t.code === code)?.name ?? code
+// one screening against sanctions, blacklist and PEP lists: Clear, PEP (enhanced due diligence) or a sanctions match (blocks the customer)
+const SCREEN_NAME: Record<string, string> = { CLEAR: 'Clear', PEP: 'PEP', MATCH: 'Sanctions match' }
+const SCREEN_CHIP: Record<string, string> = { CLEAR: 'fx-chip--ok', PEP: 'fx-chip--warn', MATCH: 'fx-chip--bad' }
 
 const busy = ref(false)
 const form = reactive<CrmPartyForm>({ partyTypeCode: 'OWNER', fullName: '', nationalIdNo: null, nationality: null, ownershipPct: null })
@@ -101,4 +104,5 @@ const screen = (p: CrmParty, result: string | null) =>
 .pt-num { text-align: end; }
 .pt-scr--clear { border-color: #2e9e6a; }
 .pt-scr--match { border-color: #c0392b; }
+.pt-scr--pep { border-color: #d39b2a; background: #fffaf0; }
 </style>

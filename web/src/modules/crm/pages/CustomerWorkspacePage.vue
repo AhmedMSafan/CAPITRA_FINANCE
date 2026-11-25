@@ -132,7 +132,7 @@ const p = computed(() => data.value?.profile)
 
 // the role's status as a small dot: Active green, Onboarding amber, Suspended red
 const roleTone = (code: string) => ({ ACTIVE: 'ok', ONBOARDING: 'warn', SUSPENDED: 'bad' } as Record<string, string>)[code] ?? 'none'
-const tone = (code: string) => ({ CLEAR: 'ok', VERIFIED: 'ok', YES: 'ok', DUE: 'warn', PENDING: 'warn', WAITING: 'warn' } as Record<string, string>)[code] ?? 'bad'
+const tone = (code: string) => ({ CLEAR: 'ok', VERIFIED: 'ok', YES: 'ok', DUE: 'warn', PENDING: 'warn', EDD: 'warn', WAITING: 'warn' } as Record<string, string>)[code] ?? 'bad'
 const badges = computed(() => data.value ? [
   { key: 'c', title: 'Compliance', icon: 'fa-shield', badge: data.value.complianceBadge, tab: 'compliance' },
   { key: 'b', title: 'Bank Account', icon: 'fa-university', badge: data.value.bankBadge, tab: 'bank' },

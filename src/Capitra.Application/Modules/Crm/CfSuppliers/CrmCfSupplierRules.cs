@@ -77,7 +77,7 @@ public static class CrmCfSupplierRules
                 if (complianceCode is not ("CLEAR" or "DUE")) p.Add("The customer's compliance must be clear and verified (Customer 360 > Compliance).");
                 if (!RiskRatings.Contains(riskGrade ?? "")) p.Add("Set the customer's risk grade (Customer 360 > Compliance).");
                 if (parties.Any(x => x.ScreeningResultCode is null)) p.Add("Screen every owner, manager and signatory (Customer 360 > Compliance).");
-                if (parties.Any(x => x.ScreeningResultCode == "MATCH")) p.Add("An owner or signatory matched the screening: return the application.");
+                if (parties.Any(x => x.ScreeningResultCode == "MATCH")) p.Add("An owner or signatory matched a sanctions or blacklist entry: return the application.");
                 break;
             case SiteVisit:
                 if (a.SiteVisitDate is null) p.Add("Enter the date of the site visit.");

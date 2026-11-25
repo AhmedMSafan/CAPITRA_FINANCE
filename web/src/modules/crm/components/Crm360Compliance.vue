@@ -22,7 +22,7 @@
         <div><dt>{{ tr('AML') }}</dt><dd><span class="fx-chip" :class="chip(p.amlStatus)">{{ p.amlStatus || '—' }}</span></dd></div>
         <div><dt>{{ tr('AML Check Date') }}</dt><dd>{{ formatDate(p.amlCheckDate) || '—' }}</dd></div>
         <div><dt>{{ tr('Sanctions') }}</dt><dd><span class="fx-chip" :class="chip(p.sanctionsStatus)">{{ p.sanctionsStatus || '—' }}</span></dd></div>
-        <div><dt>{{ tr('Politically Exposed') }}</dt><dd>{{ tr(p.isPep ? 'Yes' : 'No') }}</dd></div>
+        <div><dt>{{ tr('PEP-related') }}</dt><dd>{{ tr(pepRelated ? 'Yes' : 'No') }} <small class="c3-muted">· {{ tr('from its owners and signatories') }}</small></dd></div>
         <div><dt>{{ tr('Blacklisted') }}</dt><dd>{{ tr(p.isBlacklisted ? 'Yes' : 'No') }}<template v-if="p.blacklistReason"> · {{ p.blacklistReason }}</template></dd></div>
         <div><dt>{{ tr('Next Review') }}</dt><dd>{{ formatDate(p.nextReviewDate) || '—' }}</dd></div>
         <div><dt>{{ tr('Last Changed') }}</dt><dd>{{ state.changedBy ? `${state.changedBy} · ${formatDateTime(state.changedAt)}` : '—' }}</dd></div>
@@ -63,8 +63,6 @@
         <label class="fc-field"><span>{{ tr('AML Check Date') }}</span><input v-model="form.amlCheckDate" type="date" class="fx-search"></label>
         <label class="fc-field" :class="bad('sanctionsStatus')"><span>{{ tr('Sanctions Screening') }}<b> *</b></span>
           <select v-model="form.sanctionsStatus" class="fx-select"><option v-for="v in SANCTIONS" :key="v" :value="v">{{ v }}</option></select></label>
-        <label class="fc-field"><span>{{ tr('Politically Exposed Person') }}</span>
-          <select v-model="form.isPep" class="fx-select"><option :value="false">{{ tr('No') }}</option><option :value="true">{{ tr('Yes') }}</option></select></label>
         <label class="fc-field"><span>{{ tr('Blacklisted') }}</span>
           <select v-model="form.isBlacklisted" class="fx-select"><option :value="false">{{ tr('No') }}</option><option :value="true">{{ tr('Yes') }}</option></select></label>
         <label class="fc-field"><span>{{ tr('Next Review Date') }}</span><input v-model="form.nextReviewDate" type="date" class="fx-search"></label>
@@ -109,7 +107,9 @@ const SANCTIONS = ['PENDING', 'CLEAR', 'MATCH', 'BLOCKED']
 const RISK = ['LOW', 'MEDIUM', 'HIGH']
 
 const p = computed(() => props.state.profile)
-const tone = (code: string) => ({ CLEAR: 'fx-chip--ok', DUE: 'fx-chip--warn', PENDING: 'fx-chip--warn', EXPIRED: 'fx-chip--bad', BLOCKED: 'fx-chip--bad' } as Record<string, string>)[code] ?? 'fx-chip--teal'
+// PEP is part of each person's screening (Ahmed, 26 Nov 2026): the customer is PEP-related when one of its people is a PEP
+const pepRelated = computed(() => props.parties.some((x) => x.screeningResultCode === 'PEP'))
+const tone = (code: string) => ({ CLEAR: 'fx-chip--ok', DUE: 'fx-chip--warn', PENDING: 'fx-chip--warn', EDD: 'fx-chip--warn', EXPIRED: 'fx-chip--bad', BLOCKED: 'fx-chip--bad' } as Record<string, string>)[code] ?? 'fx-chip--teal'
 
 const editing = ref(false)
 const verifying = ref(false)
