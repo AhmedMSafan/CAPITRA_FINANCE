@@ -4557,6 +4557,440 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("COL_REPAYMENT_TRANSACTIONS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", b =>
+                {
+                    b.Property<long>("ApplicationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ApplicationId"));
+
+                    b.Property<DateTime?>("ActivatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ACTIVATED_AT");
+
+                    b.Property<string>("ApplicationRef")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("APPLICATION_REF");
+
+                    b.Property<long?>("ClientBankAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_BANK_ACCOUNT_ID");
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ID");
+
+                    b.Property<long>("ClientRoleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLIENT_ROLE_ID");
+
+                    b.Property<decimal>("CommissionPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("COMMISSION_PCT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<int>("DeliveryDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("DELIVERY_DAYS");
+
+                    b.Property<string>("DownPaymentCollectorCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("DOWN_PAYMENT_COLLECTOR_CODE");
+
+                    b.Property<string>("EnteredBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("ENTERED_BY");
+
+                    b.Property<string>("EnteredByPerson")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("ENTERED_BY_PERSON");
+
+                    b.Property<string>("GoodsCategoryCodes")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("GOODS_CATEGORY_CODES");
+
+                    b.Property<decimal>("MinDownPaymentPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("MIN_DOWN_PAYMENT_PCT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("NOTES");
+
+                    b.Property<int>("PaymentDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("PAYMENT_DAYS");
+
+                    b.Property<int>("QuotationValidityDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("QUOTATION_VALIDITY_DAYS");
+
+                    b.Property<string>("ReturnReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("RETURN_REASON");
+
+                    b.Property<string>("RiskRatingCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("RISK_RATING_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateOnly?>("SiteVisitDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SITE_VISIT_DATE");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<DateOnly>("ValidFromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VALID_FROM_DATE");
+
+                    b.Property<DateOnly?>("ValidToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VALID_TO_DATE");
+
+                    b.Property<long?>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("ApplicationId")
+                        .HasName("PK_CRM_CF_SUPPLIER_APPLICATIONS");
+
+                    b.HasIndex("ApplicationRef")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CRM_CF_SUPPLIER_APPLICATIONS_APPLICATION_REF");
+
+                    b.HasIndex("ClientId")
+                        .HasDatabaseName("IX_CRM_CF_SUPPLIER_APPLICATIONS_CLIENT_ID");
+
+                    b.HasIndex("ClientRoleId")
+                        .HasDatabaseName("IX_CRM_CF_SUPPLIER_APPLICATIONS_CLIENT_ROLE_ID");
+
+                    b.HasIndex("StatusCode")
+                        .HasDatabaseName("IX_CRM_CF_SUPPLIER_APPLICATIONS_STATUS_CODE");
+
+                    b.ToTable("CRM_CF_SUPPLIER_APPLICATIONS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierParty", b =>
+                {
+                    b.Property<long>("PartyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("PARTY_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PartyId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("FULL_NAME");
+
+                    b.Property<string>("NationalIdNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("NATIONAL_ID_NO");
+
+                    b.Property<string>("Nationality")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("NATIONALITY");
+
+                    b.Property<decimal?>("OwnershipPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("OWNERSHIP_PCT");
+
+                    b.Property<string>("PartyTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("PARTY_TYPE_CODE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("ScreenedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SCREENED_AT");
+
+                    b.Property<string>("ScreenedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("SCREENED_BY");
+
+                    b.Property<string>("ScreeningResultCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("SCREENING_RESULT_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("PartyId")
+                        .HasName("PK_CRM_CF_SUPPLIER_PARTIES");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_CRM_CF_SUPPLIER_PARTIES_APPLICATION_ID");
+
+                    b.ToTable("CRM_CF_SUPPLIER_PARTIES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierDocument", b =>
+                {
+                    b.Property<long>("DocumentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DocumentId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DocumentTitle")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("DOCUMENT_TITLE");
+
+                    b.Property<byte[]>("FileBlob")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("FILE_BLOB");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)")
+                        .HasColumnName("FILE_NAME");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FILE_SIZE_BYTES");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("MIME_TYPE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("Sha256Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("SHA256_HASH");
+
+                    b.Property<string>("StepCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STEP_CODE");
+
+                    b.Property<string>("StepName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STEP_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long?>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("DocumentId")
+                        .HasName("PK_CRM_CF_SUPPLIER_DOCUMENTS");
+
+                    b.HasIndex("ApplicationId", "StepCode")
+                        .HasDatabaseName("IX_CRM_CF_SUPPLIER_DOCUMENTS_APPLICATION_ID_STEP_CODE");
+
+                    b.ToTable("CRM_CF_SUPPLIER_DOCUMENTS", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierStepNote", b =>
+                {
+                    b.Property<long>("StepNoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("STEP_NOTE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("StepNoteId"));
+
+                    b.Property<string>("ActionCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ACTION_CODE");
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<string>("CommentText")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("COMMENT_TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateTime>("DoneAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DONE_AT");
+
+                    b.Property<string>("DoneBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("DONE_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StepCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STEP_CODE");
+
+                    b.Property<long>("StepInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("STEP_INSTANCE_ID");
+
+                    b.Property<string>("StepName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STEP_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.Property<long>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
+                    b.HasKey("StepNoteId")
+                        .HasName("PK_CRM_CF_SUPPLIER_STEP_NOTES");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_CRM_CF_SUPPLIER_STEP_NOTES_APPLICATION_ID");
+
+                    b.HasIndex("StepInstanceId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CRM_CF_SUPPLIER_STEP_NOTES_STEP_INSTANCE_ID");
+
+                    b.ToTable("CRM_CF_SUPPLIER_STEP_NOTES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmClient", b =>
                 {
                     b.Property<long>("ClientId")
@@ -5355,6 +5789,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("ACTIVE_SINCE_DATE");
 
+                    b.Property<string>("BusinessLineCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("BUSINESS_LINE_CODE");
+
                     b.Property<long>("ClientId")
                         .HasColumnType("bigint")
                         .HasColumnName("CLIENT_ID");
@@ -5403,9 +5842,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.HasKey("ClientRoleId")
                         .HasName("PK_CRM_CLIENT_ROLES");
 
-                    b.HasIndex("ClientId", "RoleCode")
+                    b.HasIndex("ClientId", "RoleCode", "BusinessLineCode")
                         .IsUnique()
-                        .HasDatabaseName("UQ_CRM_CLIENT_ROLES_CLIENT_ID_ROLE_CODE");
+                        .HasDatabaseName("UQ_CRM_CLIENT_ROLES_CLIENT_ID_ROLE_CODE_BUSINESS_LINE_CODE");
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ClientId", "RoleCode", "BusinessLineCode"), false);
 
                     b.HasIndex("RoleCode", "StatusCode")
                         .HasDatabaseName("IX_CRM_CLIENT_ROLES_ROLE_CODE_STATUS_CODE");
@@ -44675,6 +45116,53 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("SourceRepaymentTxnId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_COL_REPAYMENT_SOURCES_COL_REPAYMENT_TRANSACTIONS_SO_EC080C4A");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClient", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CF_SUPPLIER_APPLICATIONS_CRM_CLIENTS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmClientRole", null)
+                        .WithMany()
+                        .HasForeignKey("ClientRoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CF_SUPPLIER_APPLICATIONS_CRM_CLIENT_ROLES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierParty", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CF_SUPPLIER_PARTIES_CRM_CF_SUPPLIER_APPLICATIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierDocument", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CF_SUPPLIER_DOCUMENTS_CRM_CF_SUPPLIER_APPLICATIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierStepNote", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CF_SUPPLIER_STEP_NOTES_CRM_CF_SUPPLIER_APPLICATIONS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmClient", b =>

@@ -99,6 +99,12 @@ public static class Permissions
 
         /// <summary>Verify a customer's compliance profile and bank accounts (four eyes: never one's own change).</summary>
         public const string Verify = "CRM.VERIFY";
+
+        /// <summary>Read Consumer Finance supplier applications (the CFS_* workflow step roles have it).</summary>
+        public const string CfSupplierView = "CRM.CF_SUPPLIER.VIEW";
+
+        /// <summary>Enter, submit and withdraw Consumer Finance supplier applications (Sales).</summary>
+        public const string CfSupplierEdit = "CRM.CF_SUPPLIER.EDIT";
     }
 
     public static class Trs

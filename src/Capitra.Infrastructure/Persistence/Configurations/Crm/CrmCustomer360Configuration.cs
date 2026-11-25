@@ -10,12 +10,14 @@ public sealed class CrmClientRoleConfiguration : IEntityTypeConfiguration<CrmCli
     {
         builder.ToTable("CRM_CLIENT_ROLES");
         builder.HasKey(x => x.ClientRoleId);
-        builder.HasIndex(x => new { x.ClientId, x.RoleCode }).IsUnique();
+        // one role of a kind per customer, and per business line for suppliers (a null business line counts as one value)
+        builder.HasIndex(x => new { x.ClientId, x.RoleCode, x.BusinessLineCode }).IsUnique().AreNullsDistinct(false);
         builder.HasIndex(x => new { x.RoleCode, x.StatusCode });
 
         builder.Property(x => x.ClientRoleId).UseIdentityByDefaultColumn();
         builder.Property(x => x.RoleCode).HasMaxLength(30);
         builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.Property(x => x.BusinessLineCode).HasMaxLength(30);
         builder.Property(x => x.Notes).HasMaxLength(1000);
 
         builder.HasOne<CrmClient>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Cascade);

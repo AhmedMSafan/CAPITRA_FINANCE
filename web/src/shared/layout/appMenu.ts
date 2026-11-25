@@ -51,6 +51,14 @@ export const appMenu: MenuGroup[] = [
     links: [{ label: 'Bank Limits', to: { name: 'trs-bank-limits' } }]
   },
   {
+    title: 'CRM',
+    icon: 'pi pi-users',
+    links: [
+      { label: 'Customers', to: { name: 'crm-customers' } },
+      { label: 'Consumer Finance Suppliers', to: { name: 'crm-cf-suppliers' } }
+    ]
+  },
+  {
     title: 'Retail Lending',
     icon: 'pi pi-shopping-cart',
     links: [

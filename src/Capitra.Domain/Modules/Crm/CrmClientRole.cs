@@ -21,6 +21,13 @@ public class CrmClientRole : AuditableEntity
 
     public string StatusCode { get; set; } = Onboarding;
 
+    /// <summary>
+    /// For a SUPPLIER role, the business line it supplies (Ahmed, 25 Nov 2026): FACTORING or CONSUMER_FINANCE. A company can be a
+    /// supplier in both, as two roles. A Consumer Finance supplier becomes ACTIVE only through its approval workflow
+    /// (CF_SUPPLIER_APPROVAL); a Factoring supplier is activated as before. Null for the other roles, and for suppliers added before.
+    /// </summary>
+    public string? BusinessLineCode { get; set; }
+
     /// <summary>The day the role became active.</summary>
     public DateOnly? ActiveSinceDate { get; set; }
 

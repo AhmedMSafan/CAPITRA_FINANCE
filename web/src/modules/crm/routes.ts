@@ -17,6 +17,13 @@ export const crmRoutes: RouteRecordRaw[] = [
     component: () => import('./pages/DisbursementRequestPage.vue'),
     props: (r) => ({ clientId: Number(r.params.clientId), limitId: Number(r.params.limitId) }), meta: meta('Disbursement Request Detail')
   },
+  // Consumer Finance suppliers (Ahmed, 25 Nov 2026); the supplier page is also the page of every CF_SUPPLIER_APPROVAL step (?inboxId=)
+  { path: 'crm/cf-suppliers', name: 'crm-cf-suppliers', component: () => import('./pages/CfSuppliersPage.vue'), meta: meta('Consumer Finance Suppliers') },
+  { path: 'crm/cf-suppliers/new', name: 'crm-cf-supplier-new', component: () => import('./pages/CfSupplierPage.vue'), meta: meta('New supplier application') },
+  {
+    path: 'crm/cf-suppliers/:applicationId(\\d+)', name: 'crm-cf-supplier', component: () => import('./pages/CfSupplierPage.vue'),
+    props: (r) => ({ applicationId: Number(r.params.applicationId) }), meta: meta('Supplier application')
+  },
   {
     path: 'crm/disbursement-requests/:disbursementId(\\d+)', name: 'crm-disbursement-request', component: () => import('./pages/DisbursementRequestPage.vue'),
     props: (r) => ({ disbursementId: Number(r.params.disbursementId) }), meta: meta('Disbursement Request Detail')

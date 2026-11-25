@@ -25,7 +25,10 @@
               <td>{{ r.notes || '' }}</td>
               <td v-if="canEdit">
                 <div class="c3-row-actions">
-                  <button v-if="r.statusCode !== 'ACTIVE'" type="button" class="fx-btn fx-btn--sm fx-btn--teal" :disabled="busy || r.activationBlockers.length > 0"
+                  <RouterLink v-if="r.byWorkflow" :to="{ name: 'crm-cf-suppliers' }" class="fx-btn fx-btn--sm">
+                    <span class="fa fa-handshake-o" aria-hidden="true"></span>{{ tr('Supplier application') }}
+                  </RouterLink>
+                  <button v-if="r.statusCode !== 'ACTIVE' && !r.byWorkflow" type="button" class="fx-btn fx-btn--sm fx-btn--teal" :disabled="busy || r.activationBlockers.length > 0"
                           :title="r.activationBlockers.length ? tr('Close the open checks first.') : ''" @click="activate(r)">
                     <span class="fa fa-play" aria-hidden="true"></span>{{ tr('Activate') }}
                   </button>
@@ -63,6 +66,10 @@
       <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('A new role starts as Onboarding. Activate it when its checks pass.') }}</p>
       <label class="fc-field"><span>{{ tr('Role') }}<b> *</b></span>
         <select v-model="newRole" class="fx-select"><option v-for="o in free" :key="o.value" :value="o.value">{{ tr(o.label) }}</option></select></label>
+      <label v-if="newRole === 'SUPPLIER'" class="fc-field"><span>{{ tr('Business line') }}<b> *</b></span>
+        <select v-model="businessLine" class="fx-select"><option v-for="o in freeLines" :key="o.value" :value="o.value">{{ tr(o.label) }}</option></select></label>
+      <p v-if="newRole === 'SUPPLIER' && businessLine === 'CONSUMER_FINANCE'" class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+        {{ tr('A Consumer Finance supplier is activated by its approval workflow. Start its supplier application from CRM > Consumer Finance Suppliers.') }}</p>
       <label class="fc-field"><span>{{ tr('Notes') }}</span><input v-model="notes" class="fx-search" maxlength="1000"></label>
       <template #footer>
         <button type="button" class="fx-btn" :disabled="busy" @click="adding = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Cancel') }}</button>
@@ -94,7 +101,11 @@ import { chip, label, ROLES } from './crm360'
 const props = defineProps<{ clientId: number; roles: CrmRole[]; programs: CrmProgram[]; canEdit: boolean }>()
 const emit = defineEmits<{ changed: [] }>()
 
-const free = computed(() => ROLES.filter((o) => !props.roles.some((r) => r.roleCode === o.value)))
+const LINES = [{ value: 'FACTORING', label: 'Factoring' }, { value: 'CONSUMER_FINANCE', label: 'Consumer Finance' }]
+// a supplier can serve both business lines (one role each)
+const freeLines = computed(() => LINES.filter((l) => !props.roles.some((r) => r.roleCode === 'SUPPLIER' && (r.businessLineCode ?? 'FACTORING') === l.value)))
+const free = computed(() => ROLES.filter((o) => o.value === 'SUPPLIER' ? freeLines.value.length > 0 : !props.roles.some((r) => r.roleCode === o.value)))
+const businessLine = ref('FACTORING')
 
 const adding = ref(false)
 const suspending = ref(false)
@@ -105,6 +116,7 @@ const current = ref<CrmRole | null>(null)
 
 function openAdd() {
   newRole.value = free.value[0]?.value ?? ''
+  businessLine.value = freeLines.value[0]?.value ?? 'FACTORING'
   notes.value = ''
   adding.value = true
 }
@@ -130,7 +142,8 @@ async function run(action: () => Promise<void>, done: string, close: () => void 
   }
 }
 
-const add = () => run(() => crm360Api.addRole(props.clientId, newRole.value, notes.value || null), 'Role added.', () => (adding.value = false))
+const add = () => run(() => crm360Api.addRole(props.clientId, newRole.value, notes.value || null, newRole.value === 'SUPPLIER' ? businessLine.value : null),
+  'Role added.', () => (adding.value = false))
 const activate = (r: CrmRole) => run(() => crm360Api.activateRole(props.clientId, r.clientRoleId), 'Role activated.')
 const suspend = () => run(() => crm360Api.suspendRole(props.clientId, current.value!.clientRoleId, notes.value.trim()), 'Role suspended.',
   () => (suspending.value = false))

@@ -86,6 +86,10 @@ export type CrmComplianceHistory = {
 export type CrmRole = {
   clientRoleId: number; roleCode: string; roleLabel: string; statusCode: string; activeSinceDate: string | null; notes: string | null
   activationBlockers: string[]
+  /** FACTORING or CONSUMER_FINANCE for a supplier. */
+  businessLineCode: string | null
+  /** A Consumer Finance supplier: activated by its approval workflow, not by hand. */
+  byWorkflow: boolean
 }
 
 export type CrmBankAccount = {
@@ -124,7 +128,8 @@ export const crm360Api = {
   get: (id: number) => http.get<CrmCustomer360>(`${c360(id)}/360`),
   saveCompliance: (id: number, body: CrmCompliance) => http.put<void>(`${c360(id)}/compliance`, body),
   verifyCompliance: (id: number, notes: string | null) => http.post<void>(`${c360(id)}/compliance/verify`, { notes }),
-  addRole: (id: number, roleCode: string, notes: string | null) => http.post<void>(`${c360(id)}/roles`, { roleCode, notes }),
+  addRole: (id: number, roleCode: string, notes: string | null, businessLineCode: string | null = null) =>
+    http.post<void>(`${c360(id)}/roles`, { roleCode, notes, businessLineCode }),
   activateRole: (id: number, roleId: number) => http.post<void>(`${c360(id)}/roles/${roleId}/activate`, {}),
   suspendRole: (id: number, roleId: number, notes: string) => http.post<void>(`${c360(id)}/roles/${roleId}/suspend`, { notes }),
   addBankAccount: (id: number, body: CrmBankAccountForm) => http.post<number>(`${c360(id)}/bank-accounts`, body),
