@@ -14,14 +14,24 @@ namespace Capitra.Application.Modules.Lnd;
 public sealed record LndLoanRequestDto(long? ClientId, long? ProductId, decimal? PrincipalAmount, int? TermMonths, DateOnly? DisbursementDate, DateOnly? FirstDueDate, string? Notes,
     string? GoodsCategoryCode = null, string? GoodsDescription = null, string? GoodsBrandModel = null, string? MerchantName = null,
     decimal? GoodsPriceAmount = null, decimal? DownPaymentAmount = null, long? ScenarioId = null, decimal? RatePct = null,
-    TlsScenarioRequest? Calculation = null);
+    TlsScenarioRequest? Calculation = null, long? SupplierApplicationId = null);
+
+/// <summary>
+/// An active Consumer Finance supplier agreement, offered on New Finance with its terms (Ahmed, 26 Nov 2026): active application and
+/// supplier role, and valid today.
+/// </summary>
+public sealed record LndCfSupplierOptionDto(
+    long ApplicationId, string ApplicationRef, long ClientId, string ClientNumber, string SupplierName, IReadOnlyList<string> GoodsCategoryCodes,
+    decimal MinDownPaymentPct, string DownPaymentCollectorCode, decimal CommissionPct, int PaymentDays, int DeliveryDays,
+    DateOnly ValidFromDate, DateOnly? ValidToDate);
 
 /// <summary>A saved Finance Calculator scenario offered on New Finance, with its amount and rate.</summary>
 public sealed record LndScenarioOptionDto(long Id, string Name, decimal PrincipalAmount, decimal RatePct, string ScheduleMode, string PrincipalMethod);
 
 /// <summary>The financed item of a consumer finance loan.</summary>
 public sealed record LndGoodsDto(string CategoryCode, string CategoryName, string Description, string? BrandModel, string? MerchantName,
-    decimal PriceAmount, decimal DownPaymentAmount);
+    decimal PriceAmount, decimal DownPaymentAmount, long? SupplierApplicationId = null, string? DownPaymentCollectorCode = null,
+    decimal? SupplierMinDownPaymentPct = null, decimal? SupplierCommissionPct = null, int? SupplierPaymentDays = null, int? SupplierDeliveryDays = null);
 
 public sealed record LndScheduleLineDto(int InstallmentNo, DateOnly DueDate, decimal OpeningPrincipal, decimal Principal, decimal Interest, decimal Total, decimal ClosingPrincipal);
 
@@ -112,6 +122,50 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             .Select(p => new LndOptionDto(p.ProductId, p.ProductCode, p.ProductNameEn, LndProductTerms.Licences[p.BusinessLineCode]))];
     }
 
+    /// <summary>The supplier agreements a consumer finance can be bought under today (New Finance), by supplier name.</summary>
+    public async Task<IReadOnlyList<LndCfSupplierOptionDto>> CfSuppliersAsync(CancellationToken cancellationToken)
+    {
+        var today = Today;
+        var rows = await (
+            from a in db.Set<CrmCfSupplierApplication>().AsNoTracking()
+            join r in db.Set<CrmClientRole>().AsNoTracking() on a.ClientRoleId equals r.ClientRoleId
+            join c in db.Set<CrmClient>().AsNoTracking() on a.ClientId equals c.ClientId
+            where a.StatusCode == CrmCfSupplierStatus.Active && r.StatusCode == CrmClientRole.Active
+                && a.ValidFromDate <= today && (a.ValidToDate == null || a.ValidToDate >= today)
+            orderby c.ClientName
+            select new { a, c.ClientNumber, c.ClientName }).ToListAsync(cancellationToken);
+        return [.. rows.Select(x => Option(x.a, x.ClientNumber, x.ClientName))];
+    }
+
+    private static LndCfSupplierOptionDto Option(CrmCfSupplierApplication a, string clientNumber, string clientName) =>
+        new(a.ApplicationId, a.ApplicationRef, a.ClientId, clientNumber, clientName,
+            [.. a.GoodsCategoryCodes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)],
+            a.MinDownPaymentPct, a.DownPaymentCollectorCode, a.CommissionPct, a.PaymentDays, a.DeliveryDays, a.ValidFromDate, a.ValidToDate);
+
+    /// <summary>
+    /// The supplier of a consumer finance (Ahmed, 26 Nov 2026): an active agreement valid today, a goods category it may sell, and a
+    /// down payment of at least its minimum % of the price.
+    /// </summary>
+    public static Dictionary<string, string[]> CheckSupplier(LndLoanRequestDto dto, LndCfSupplierOptionDto? supplier)
+    {
+        var e = new Dictionary<string, string[]>();
+        if (supplier is null)
+        {
+            e["supplierApplicationId"] = [dto.SupplierApplicationId is null ? "Choose the supplier." : "The supplier is not active, or its agreement is not valid today."];
+            return e;
+        }
+        var category = dto.GoodsCategoryCode?.Trim().ToUpperInvariant();
+        if (category is not null && !supplier.GoodsCategoryCodes.Contains(category))
+            e["goodsCategoryCode"] = [$"{supplier.SupplierName} may not sell this goods category."];
+        if (dto.GoodsPriceAmount is > 0)
+        {
+            var min = Money.Round(dto.GoodsPriceAmount.Value * supplier.MinDownPaymentPct / 100m, 2);
+            if (Money.Round(dto.DownPaymentAmount ?? 0, 2) < min)
+                e["downPaymentAmount"] = [$"The down payment must be at least {supplier.MinDownPaymentPct:0.##}% of the price ({min:#,0.00})."];
+        }
+        return e;
+    }
+
     /// <summary>The active goods categories, for the financed item of a consumer finance loan.</summary>
     public async Task<IReadOnlyList<LndOptionDto>> GoodsCategoriesAsync(CancellationToken cancellationToken)
     {
@@ -165,9 +219,17 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             loan.GoodsCategoryCode = dto.GoodsCategoryCode!.Trim().ToUpperInvariant();
             loan.GoodsDescription = dto.GoodsDescription!.Trim();
             loan.GoodsBrandModel = Blank(dto.GoodsBrandModel);
-            loan.MerchantName = Blank(dto.MerchantName);
             loan.GoodsPriceAmount = Money.Round(dto.GoodsPriceAmount!.Value, 2);
             loan.DownPaymentAmount = Money.Round(dto.DownPaymentAmount ?? 0, 2);
+            // the supplier agreement's terms are copied, so a later change to it does not change this finance
+            var sup = t.Supplier!;
+            loan.SupplierApplicationId = sup.ApplicationId;
+            loan.MerchantName = sup.SupplierName;
+            loan.DownPaymentCollectorCode = sup.DownPaymentCollectorCode;
+            loan.SupplierMinDownPaymentPct = sup.MinDownPaymentPct;
+            loan.SupplierCommissionPct = sup.CommissionPct;
+            loan.SupplierPaymentDays = sup.PaymentDays;
+            loan.SupplierDeliveryDays = sup.DeliveryDays;
         }
         db.Set<LndLoan>().Add(loan);
         await db.SaveChangesAsync(cancellationToken);
@@ -209,7 +271,8 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             [.. events.Select(v => new LndLoanEventDto(v.EventCode, v.EventDate, v.EventAmount, v.GlTranSetId, v.Notes, v.CreatedBy, v.CreatedAt))],
             l.GoodsCategoryCode is null ? null : new LndGoodsDto(l.GoodsCategoryCode,
                 await db.Set<LndLkpGoodsCategory>().AsNoTracking().Where(x => x.Code == l.GoodsCategoryCode).Select(x => x.NameEn).SingleOrDefaultAsync(cancellationToken) ?? l.GoodsCategoryCode,
-                l.GoodsDescription ?? "", l.GoodsBrandModel, l.MerchantName, l.GoodsPriceAmount ?? 0, l.DownPaymentAmount ?? 0));
+                l.GoodsDescription ?? "", l.GoodsBrandModel, l.MerchantName, l.GoodsPriceAmount ?? 0, l.DownPaymentAmount ?? 0, l.SupplierApplicationId,
+                l.DownPaymentCollectorCode, l.SupplierMinDownPaymentPct, l.SupplierCommissionPct, l.SupplierPaymentDays, l.SupplierDeliveryDays));
     }
 
     /// <summary>Cancels a loan that has not been paid out. The schedule is kept as it was, for the record.</summary>
@@ -235,7 +298,8 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
     /// <summary>What a request is made on: the product version in force, the amount, term and dates, and the schedule.</summary>
     private sealed record Terms(
         AdmProduct Product, LndProductVersion Version, decimal Amount, int Term, DateOnly Disbursement, DateOnly First,
-        IReadOnlyList<LndScheduleLine> Lines, decimal RatePct, string? DayCountCode, string? ScenarioName, decimal? ScenarioRatePct = null);
+        IReadOnlyList<LndScheduleLine> Lines, decimal RatePct, string? DayCountCode, string? ScenarioName, decimal? ScenarioRatePct = null,
+        LndCfSupplierOptionDto? Supplier = null);
 
     /// <summary>
     /// The terms a request can be made on, checked against the product version in force on the disbursement date. With a saved
@@ -245,6 +309,7 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
     private async Task<Terms> CheckAsync(LndLoanRequestDto dto, CancellationToken cancellationToken)
     {
         var e = new Dictionary<string, string[]>();
+        LndCfSupplierOptionDto? supplier = null;
         TlsScenario? scenario = null;
         if (dto.ScenarioId is { } scenarioId)
         {
@@ -319,6 +384,9 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             var categories = await db.Set<LndLkpGoodsCategory>().AsNoTracking().Where(x => x.IsActive).Select(x => x.Code).ToListAsync(cancellationToken);
             e = CheckGoods(dto, amount, categories);
             if (e.Count > 0) throw new BusinessValidationException(e);
+            supplier = (await CfSuppliersAsync(cancellationToken)).FirstOrDefault(x => x.ApplicationId == dto.SupplierApplicationId);
+            e = CheckSupplier(dto, supplier);
+            if (e.Count > 0) throw new BusinessValidationException(e);
         }
         e = CheckTerms(version, amount, term, disbursement, first);
         if (scenario is not null && e.Count > 0)
@@ -326,7 +394,7 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
         if (e.Count > 0) throw new BusinessValidationException(e);
         if (scenario is null) lines = LndSchedule.Build(amount, term, version.RepaymentFrequencyCode, version.InterestMethodCode, version.AnnualRatePct, first);
         return new Terms(product, version, amount, term, disbursement, first, lines, rate, dayCount, scenario?.Scenario.ScenarioName,
-            scenario?.Rates[0].InterestRatePct);
+            scenario?.Rates[0].InterestRatePct, supplier);
     }
 
     private sealed record TlsScenario(TlsLoanScenario Scenario, List<TlsLoanScenarioRate> Rates, List<TlsLoanScenarioLine> Lines);

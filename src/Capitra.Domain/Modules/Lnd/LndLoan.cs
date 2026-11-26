@@ -106,8 +106,29 @@ public class LndLoan : AuditableEntity
 
     public string? GoodsBrandModel { get; set; }
 
-    /// <summary>The shop or seller, as written for now (no merchant list yet).</summary>
+    /// <summary>The supplier's name, kept for lists; the supplier itself is <see cref="SupplierApplicationId"/>.</summary>
     public string? MerchantName { get; set; }
+
+    /// <summary>
+    /// Consumer finance: the active supplier agreement (CRM_CF_SUPPLIER_APPLICATIONS) the goods are bought under (Ahmed, 26 Nov 2026).
+    /// Its terms below are copied when the finance is created, so a later change to the agreement does not change this finance.
+    /// </summary>
+    public long? SupplierApplicationId { get; set; }
+
+    /// <summary>Who takes the down payment from the consumer: SUPPLIER or COMPANY (us).</summary>
+    public string? DownPaymentCollectorCode { get; set; }
+
+    /// <summary>The supplier's least down payment, as a % of the price, when the finance was created.</summary>
+    public decimal? SupplierMinDownPaymentPct { get; set; }
+
+    /// <summary>The supplier's agreed commission %, when the finance was created (it overrides the commission charge's default rate).</summary>
+    public decimal? SupplierCommissionPct { get; set; }
+
+    /// <summary>We pay the supplier this many days after delivery.</summary>
+    public int? SupplierPaymentDays { get; set; }
+
+    /// <summary>The supplier delivers within this many days of our delivery order.</summary>
+    public int? SupplierDeliveryDays { get; set; }
 
     /// <summary>Consumer finance: the item's price; the loan amount is the price less the down payment.</summary>
     public decimal? GoodsPriceAmount { get; set; }

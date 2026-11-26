@@ -530,4 +530,17 @@ export const LND_AR: Record<string, string> = {
   'Changed from the scenario rate': 'تم التغيير من سعر السيناريو',
   'The schedule is worked out again for this finance; the saved scenario is not changed.': 'يُعاد حساب الجدول لهذا التمويل فقط؛ لا يتغير السيناريو المحفوظ.',
   'From the scenario. Change it for this finance if needed.': 'من السيناريو. يمكن تغييره لهذا التمويل عند الحاجة.',
+  'Supplier': 'المورد',
+  'Choose the supplier': 'اختر المورد',
+  'No active supplier': 'لا يوجد مورد نشط',
+  'Choose the supplier first': 'اختر المورد أولاً',
+  'Agreement': 'الاتفاقية',
+  'Min down payment': 'أقل مقدم',
+  'Down payment collected by': 'يحصّل المقدم',
+  'Us': 'نحن',
+  'Commission': 'العمولة',
+  'We pay after': 'ندفع بعد',
+  'Delivers within': 'يسلّم خلال',
+  'days': 'يوم',
+  'At least': 'على الأقل'
 }

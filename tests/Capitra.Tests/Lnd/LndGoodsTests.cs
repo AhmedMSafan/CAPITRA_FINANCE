@@ -35,4 +35,24 @@ public sealed class LndGoodsTests
         Assert.Contains("downPaymentAmount", LndLoanService.CheckGoods(Request(down: 30000, amount: 0), 0, Active).Keys);
         Assert.Contains("principalAmount", LndLoanService.CheckGoods(Request(), 26000, Active).Keys);
     }
+
+    // a supplier selling electronics and mobiles, with at least 20% down
+    private static LndCfSupplierOptionDto Supplier() =>
+        new(7, "CFS-000007", 464, "CLT-1234567", "LG Egypt", ["ELECTRONICS", "MOBILE"], 20m, "SUPPLIER", 3m, 7, 3, new DateOnly(2026, 11, 1), null);
+
+    [Fact]
+    public void The_supplier_must_be_chosen_and_active()
+    {
+        Assert.Equal("Choose the supplier.", LndLoanService.CheckSupplier(Request(), null)["supplierApplicationId"][0]);
+        Assert.Empty(LndLoanService.CheckSupplier(Request(down: 6000, amount: 24000), Supplier()));
+    }
+
+    [Fact]
+    public void The_goods_must_be_ones_the_supplier_sells_and_the_down_payment_at_least_its_minimum()
+    {
+        Assert.Contains("goodsCategoryCode", LndLoanService.CheckSupplier(Request(category: "FURNITURE"), Supplier()).Keys);
+        // 20% of 30,000 = 6,000: 5,000 is too little, 6,000 is enough
+        Assert.Contains("downPaymentAmount", LndLoanService.CheckSupplier(Request(down: 5000), Supplier()).Keys);
+        Assert.DoesNotContain("downPaymentAmount", LndLoanService.CheckSupplier(Request(down: 6000, amount: 24000), Supplier()).Keys);
+    }
 }

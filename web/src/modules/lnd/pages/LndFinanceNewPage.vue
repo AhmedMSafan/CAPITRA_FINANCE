@@ -32,13 +32,28 @@
             </select>
           </template>
         </label>
+        <!-- the supplier the goods are bought from (Ahmed, 26 Nov 2026): active suppliers only; its agreement decides the goods and the down payment -->
+        <label class="fc-field" :class="bad('supplierApplicationId')"><span>{{ tr('Supplier') }}<b> *</b></span>
+          <select v-model="form.supplierApplicationId" class="fx-select">
+            <option :value="null" disabled>{{ suppliers.length ? tr('Choose the supplier') : tr('No active supplier') }}</option>
+            <option v-for="s in suppliers" :key="s.applicationId" :value="s.applicationId">{{ s.supplierName }} · {{ s.clientNumber }}</option>
+          </select>
+        </label>
         <label class="fc-field" :class="bad('goodsCategoryCode')"><span>{{ tr('Product') }}<b> *</b></span>
-          <select v-model="form.goodsCategoryCode" class="fx-select">
-            <option :value="null" disabled>{{ tr('Choose the product') }}</option>
-            <option v-for="g in goods" :key="g.code" :value="g.code">{{ tr(g.name) }}</option>
+          <select v-model="form.goodsCategoryCode" class="fx-select" :disabled="!supplier">
+            <option :value="null" disabled>{{ supplier ? tr('Choose the product') : tr('Choose the supplier first') }}</option>
+            <option v-for="g in supplierGoods" :key="g.code" :value="g.code">{{ tr(g.name) }}</option>
           </select>
         </label>
         <label class="fc-field"><span>{{ tr('Notes') }}</span><input v-model="form.notes" class="fx-search" maxlength="2000"></label>
+      </div>
+      <div v-if="supplier" class="nf-terms">
+        <span class="nf-term">{{ tr('Agreement') }} <b dir="ltr">{{ supplier.applicationRef }}</b></span>
+        <span class="nf-term">{{ tr('Min down payment') }} <b>{{ supplier.minDownPaymentPct }}%</b></span>
+        <span class="nf-term">{{ tr('Down payment collected by') }} <b>{{ tr(supplier.downPaymentCollectorCode === 'COMPANY' ? 'Us' : 'Supplier') }}</b></span>
+        <span class="nf-term">{{ tr('Commission') }} <b>{{ supplier.commissionPct }}%</b></span>
+        <span class="nf-term">{{ tr('We pay after') }} <b>{{ supplier.paymentDays }} {{ tr('days') }}</b></span>
+        <span class="nf-term">{{ tr('Delivers within') }} <b>{{ supplier.deliveryDays }} {{ tr('days') }}</b></span>
       </div>
     </section>
 
@@ -47,9 +62,11 @@
       <div class="nf-grid">
         <label class="fc-field" :class="bad('goodsDescription')"><span>{{ tr('Item description') }}<b> *</b></span><input v-model="form.goodsDescription" class="fx-search" maxlength="300" :placeholder="tr('e.g. Samsung 55 inch TV')"></label>
         <label class="fc-field" :class="bad('goodsBrandModel')"><span>{{ tr('Brand / model') }}</span><input v-model="form.goodsBrandModel" class="fx-search" maxlength="200"></label>
-        <label class="fc-field" :class="bad('merchantName')"><span>{{ tr('Merchant') }}</span><input v-model="form.merchantName" class="fx-search" maxlength="200"></label>
         <label class="fc-field" :class="bad('goodsPriceAmount')"><span>{{ tr('Item price') }} ({{ tr('EGP') }})<b> *</b></span><input v-model.number="form.goodsPriceAmount" type="number" min="0" step="any" class="fx-search"></label>
-        <label class="fc-field" :class="bad('downPaymentAmount')"><span>{{ tr('Down payment') }} ({{ tr('EGP') }})</span><input v-model.number="form.downPaymentAmount" type="number" min="0" step="any" class="fx-search"></label>
+        <label class="fc-field" :class="bad('downPaymentAmount')"><span>{{ tr('Down payment') }} ({{ tr('EGP') }})<b v-if="minDown"> *</b></span>
+          <input v-model.number="form.downPaymentAmount" type="number" min="0" step="any" class="fx-search">
+          <small v-if="minDown !== null" class="c3-muted">{{ tr('At least') }} {{ supplier!.minDownPaymentPct }}% = {{ money(minDown) }}</small>
+        </label>
         <label class="fc-field" :class="bad('principalAmount')"><span>{{ tr('Finance amount') }} ({{ tr('EGP') }})</span>
           <input :value="financeAmount === null ? '' : money(financeAmount)" class="fx-search" readonly>
           <small class="c3-muted">{{ tr('Price less down payment. The scenario must have this amount.') }}</small>
@@ -132,7 +149,7 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import type { LoanScenarioResult } from '@/modules/tls/api/loanScenarios.api'
-import { loansApi, type LoanOption, type LoanPreview, type LoanRequest, type ScenarioOption } from '../api/loans.api'
+import { loansApi, type CfSupplierOption, type LoanOption, type LoanPreview, type LoanRequest, type ScenarioOption } from '../api/loans.api'
 import { lendingWsApi } from '../api/workspace.api'
 import { FINANCE_CALCULATION_KEY, FINANCE_CALCULATION_RESULT_KEY, FINANCE_DRAFT_KEY, keep, take, type FinanceCalculation } from '../financeDraft'
 
@@ -151,6 +168,15 @@ const busy = ref(false)
 const clients = ref<LoanOption[]>([])
 const clientSearch = ref('')
 const goods = ref<LoanOption[]>([])
+const suppliers = ref<CfSupplierOption[]>([])
+const supplier = computed(() => suppliers.value.find((s) => s.applicationId === form.supplierApplicationId) ?? null)
+// only the goods the supplier may sell
+const supplierGoods = computed(() => (supplier.value ? goods.value.filter((g) => supplier.value!.goodsCategoryCodes.includes(g.code)) : []))
+// the supplier's least down payment for this price
+const minDown = computed(() => {
+  const price = Number(form.goodsPriceAmount) || 0
+  return supplier.value && price > 0 ? Math.round(price * supplier.value.minDownPaymentPct) / 100 : null
+})
 const scenarios = ref<ScenarioOption[]>([])
 const preview = ref<LoanPreview | null>(null)
 // the schedule the calculator showed, shown at once on return until it is checked for this finance
@@ -162,6 +188,7 @@ const bad = (f: string) => ({ 'c3-bad': !!errors.value[f] })
 const form = reactive<LoanRequest>({
   clientId: fixedClientId, productId: null, principalAmount: null, termMonths: null, disbursementDate: null, firstDueDate: null, notes: null,
   goodsCategoryCode: null, goodsDescription: null, goodsBrandModel: null, merchantName: null, goodsPriceAmount: null, downPaymentAmount: null,
+  supplierApplicationId: null,
   scenarioId: null, ratePct: null
 })
 
@@ -216,6 +243,11 @@ const financeAmount = computed(() => {
   return price > 0 ? Math.round((price - (Number(form.downPaymentAmount) || 0)) * 100) / 100 : null
 })
 
+// a product the new supplier does not sell is cleared
+watch(() => form.supplierApplicationId, () => {
+  if (form.goodsCategoryCode && !supplierGoods.value.some((g) => g.code === form.goodsCategoryCode)) form.goodsCategoryCode = null
+})
+
 // any change of the request makes the shown schedule stale
 watch(() => ({ ...form, notes: null }), () => (preview.value = null), { deep: true })
 
@@ -234,7 +266,7 @@ function findClients() {
 
 const body = (): LoanRequest => ({
   ...form, principalAmount: financeAmount.value, notes: form.notes || null, goodsDescription: form.goodsDescription || null,
-  goodsBrandModel: form.goodsBrandModel || null, merchantName: form.merchantName || null, downPaymentAmount: form.downPaymentAmount || 0,
+  goodsBrandModel: form.goodsBrandModel || null, merchantName: null, downPaymentAmount: form.downPaymentAmount || 0,
   ratePct: form.ratePct === null || (form.ratePct as unknown) === '' ? null : Number(form.ratePct),
   scenarioId: calculation.value ? null : form.scenarioId, calculation: calculation.value
 })
@@ -282,8 +314,9 @@ async function loadScenarios() {
 
 onMounted(async () => {
   try {
-    const [g] = await Promise.all([loansApi.goodsCategories(), loadScenarios()])
+    const [g, sup] = await Promise.all([loansApi.goodsCategories(), loansApi.cfSuppliers(), loadScenarios()])
     goods.value = g
+    suppliers.value = sup
     // back from the calculator: what was typed before, and the schedule it handed back (if any)
     const draft = take<{ clientId: number | null; form: LoanRequest; clientSearch: string; clients: LoanOption[] }>(FINANCE_DRAFT_KEY)
     if (draft && draft.clientId === fixedClientId) {
@@ -315,6 +348,9 @@ onMounted(async () => {
 
 <style scoped>
 @import '@/modules/crm/components/crm360.css';
+.nf-terms { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.nf-term { padding: 4px 10px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 12px; }
+.nf-term b { color: var(--fin-ink); }
 .nf-card { padding: 16px 20px; }
 .nf-title { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 15px; font-weight: 800; }
 .nf-title .fa { color: var(--fin-teal, #00636d); }
