@@ -300,7 +300,7 @@ async function showPreview() {
 async function create() {
   const loan = await call(() => loansApi.create(body()))
   if (!loan) return
-  showSuccess(`${tr('Finance created:')} ${loan.loanNumber}`)
+  showSuccess(loan.statusCode === 'IN_APPROVAL' ? `${tr('Finance submitted for credit approval:')} ${loan.loanNumber}` : `${tr('Finance created:')} ${loan.loanNumber}`)
   router.push({ name: 'lnd-loan', params: { loanId: loan.loanId } })
 }
 

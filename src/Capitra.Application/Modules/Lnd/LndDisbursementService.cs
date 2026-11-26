@@ -86,6 +86,8 @@ public sealed class LndDisbursementService(
     {
         var loan = await LoanAsync(loanId, true, cancellationToken);
         if (loan.StatusCode != St.Approved) throw new BusinessRuleException("Only an approved loan can be paid out.");
+        if (loan.WorkflowInstanceId is not null)
+            throw new BusinessRuleException("A consumer finance from a supplier is paid to the supplier at the Supplier payment step of its workflow.");
         if (await db.Set<LndDisbursement>().AnyAsync(x => x.LoanId == loanId && x.StatusCode == Statuses.Requested, cancellationToken))
             throw new BusinessRuleException("A payout of this loan is already waiting. Pay, reject or withdraw it first.");
 

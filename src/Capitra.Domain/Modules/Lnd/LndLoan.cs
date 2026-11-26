@@ -130,6 +130,12 @@ public class LndLoan : AuditableEntity
     /// <summary>The supplier delivers within this many days of our delivery order.</summary>
     public int? SupplierDeliveryDays { get; set; }
 
+    /// <summary>The CF_FINANCE workflow run of a consumer finance from a supplier.</summary>
+    public long? WorkflowInstanceId { get; set; }
+
+    /// <summary>The person who entered the finance (employee number, or user name): none of its workflow steps may be done by them.</summary>
+    public string? EnteredByPerson { get; set; }
+
     /// <summary>Consumer finance: the item's price; the loan amount is the price less the down payment.</summary>
     public decimal? GoodsPriceAmount { get; set; }
 

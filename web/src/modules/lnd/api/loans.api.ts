@@ -3,6 +3,8 @@ import { http } from '@/shared/api/http'
 
 export type LoanOption = { id: number; code: string; name: string; licenceCode?: string | null }
 
+export type CfStep = { stepCode: string; stepName: string; inboxId: number | null; isMine: boolean }
+
 export type CfSupplierOption = {
   applicationId: number; applicationRef: string; clientId: number; clientNumber: string; supplierName: string; goodsCategoryCodes: string[]
   minDownPaymentPct: number; downPaymentCollectorCode: string; commissionPct: number; paymentDays: number; deliveryDays: number
@@ -111,6 +113,10 @@ export const loansApi = {
   preview: (body: LoanRequest) => http.post<LoanPreview>(`${API}/preview`, body),
   create: (body: LoanRequest) => http.post<Loan>(API, body),
   cancel: (id: number, reason: string, rowVersion: number) => http.post<Loan>(`${API}/${id}/cancel`, { reason, rowVersion }),
+  /** The CF_FINANCE step waiting now (null when the finance is not in its workflow); with inboxId, whether it is the user's task. */
+  cfStep: (id: number, inboxId: number | null) => http.get<CfStep | null>(`${API}/${id}/cf-step${inboxId ? `?inboxId=${inboxId}` : ''}`),
+  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null) =>
+    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment }),
   payouts: (id: number) => http.get<DisbursementPage>(`${API}/${id}/disbursements`),
   requestPayout: (id: number, body: PayoutRequest) => http.post<DisbursementPage>(`${API}/${id}/disbursements`, body),
   pay: (id: number, d: number, notes: string | null) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/pay`, { notes }),

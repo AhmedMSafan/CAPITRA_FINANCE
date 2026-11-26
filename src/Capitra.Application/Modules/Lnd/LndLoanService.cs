@@ -1,7 +1,9 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common;
 using Capitra.Application.Common.Exceptions;
+using Capitra.Application.Modules.Scr;
 using Capitra.Application.Modules.Tls;
+using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Lnd;
@@ -72,11 +74,15 @@ public sealed record LndLoanStatusChangeDto(string? Reason, int? RowVersion);
 /// it copies; its schedule comes from LndSchedule. Only this service changes a loan's status, through the transition table, and every
 /// change writes LND_LOAN_STATUS_HIST. Disbursement, GL, receipts and end of day come in the next steps.
 /// </summary>
-public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock)
+public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IScrUserProfiles profiles)
 {
     public static class Statuses
     {
+        /// <summary>A consumer finance in its CF_FINANCE workflow, before credit approval.</summary>
+        public const string InApproval = "IN_APPROVAL";
         public const string Approved = "APPROVED";
+        /// <summary>Rejected in its workflow.</summary>
+        public const string Rejected = "REJECTED";
         public const string Active = "ACTIVE";
         public const string Closed = "CLOSED";
         public const string Cancelled = "CANCELLED";
@@ -86,7 +92,9 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
     /// <summary>The allowed status changes. Disbursement (APPROVED to ACTIVE), closing, write-off and reopening (a receipt reversed) come with their own steps.</summary>
     public static readonly IReadOnlyDictionary<string, string[]> Transitions = new Dictionary<string, string[]>
     {
+        [Statuses.InApproval] = [Statuses.Approved, Statuses.Rejected, Statuses.Cancelled],
         [Statuses.Approved] = [Statuses.Active, Statuses.Cancelled],
+        [Statuses.Rejected] = [],
         [Statuses.Active] = [Statuses.Closed, Statuses.WrittenOff],
         [Statuses.Closed] = [Statuses.Active],
         [Statuses.WrittenOff] = [],
@@ -97,7 +105,9 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
 
     private string User => currentUser.UserName ?? currentUser.UserId ?? "SYSTEM";
 
-    private DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(clock.UtcNow, Cairo));
+    private DateOnly Today => CairoToday(clock);
+
+    public static DateOnly CairoToday(IClock clock) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(clock.UtcNow, Cairo));
 
     public async Task<IReadOnlyList<LndLoanListDto>> ListAsync(CancellationToken cancellationToken) =>
         await (from l in db.Set<LndLoan>().AsNoTracking()
@@ -125,17 +135,21 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
     /// <summary>The supplier agreements a consumer finance can be bought under today (New Finance), by supplier name.</summary>
     public async Task<IReadOnlyList<LndCfSupplierOptionDto>> CfSuppliersAsync(CancellationToken cancellationToken)
     {
-        var today = Today;
         var rows = await (
-            from a in db.Set<CrmCfSupplierApplication>().AsNoTracking()
-            join r in db.Set<CrmClientRole>().AsNoTracking() on a.ClientRoleId equals r.ClientRoleId
+            from a in ActiveSupplierAgreements(db, Today)
             join c in db.Set<CrmClient>().AsNoTracking() on a.ClientId equals c.ClientId
-            where a.StatusCode == CrmCfSupplierStatus.Active && r.StatusCode == CrmClientRole.Active
-                && a.ValidFromDate <= today && (a.ValidToDate == null || a.ValidToDate >= today)
             orderby c.ClientName
             select new { a, c.ClientNumber, c.ClientName }).ToListAsync(cancellationToken);
         return [.. rows.Select(x => Option(x.a, x.ClientNumber, x.ClientName))];
     }
+
+    /// <summary>Supplier agreements a finance can be bought under on a day: active application and supplier role, valid that day.</summary>
+    public static IQueryable<CrmCfSupplierApplication> ActiveSupplierAgreements(ICapitraDbContext db, DateOnly day) =>
+        from a in db.Set<CrmCfSupplierApplication>().AsNoTracking()
+        join r in db.Set<CrmClientRole>().AsNoTracking() on a.ClientRoleId equals r.ClientRoleId
+        where a.StatusCode == CrmCfSupplierStatus.Active && r.StatusCode == CrmClientRole.Active
+            && a.ValidFromDate <= day && (a.ValidToDate == null || a.ValidToDate >= day)
+        select a;
 
     private static LndCfSupplierOptionDto Option(CrmCfSupplierApplication a, string clientNumber, string clientName) =>
         new(a.ApplicationId, a.ApplicationRef, a.ClientId, clientNumber, clientName,
@@ -200,6 +214,9 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
     {
         var t = await CheckAsync(dto, cancellationToken);
         var (product, version, amount, term, disbursement, first, lines) = (t.Product, t.Version, t.Amount, t.Term, t.Disbursement, t.First, t.Lines);
+        // a consumer finance from a supplier goes through CF_FINANCE: creating it submits it for credit approval
+        var workflow = t.Supplier is not null;
+        await using var tx = await db.BeginTransactionAsync(cancellationToken);
         var loan = new LndLoan
         {
             LoanNumber = "PENDING-" + Guid.NewGuid().ToString("N")[..20].ToUpperInvariant(),
@@ -230,6 +247,9 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             loan.SupplierCommissionPct = sup.CommissionPct;
             loan.SupplierPaymentDays = sup.PaymentDays;
             loan.SupplierDeliveryDays = sup.DeliveryDays;
+            var profile = await profiles.ByUserNameAsync(User, cancellationToken);
+            loan.EnteredByPerson = ScrDuties.PersonKey(profile?.EmployeeNo, User);
+            loan.StatusCode = Statuses.InApproval;
         }
         db.Set<LndLoan>().Add(loan);
         await db.SaveChangesAsync(cancellationToken);
@@ -240,8 +260,15 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
             LoanId = loan.LoanId, InstallmentNo = x.InstallmentNo, DueDate = x.DueDate, OpeningPrincipalAmount = x.OpeningPrincipal,
             PrincipalDueAmount = x.Principal, InterestDueAmount = x.Interest, ClosingPrincipalAmount = x.ClosingPrincipal,
         }));
-        db.Set<LndLoanStatusHist>().Add(new LndLoanStatusHist { LoanId = loan.LoanId, ToStatusCode = Statuses.Approved, Reason = History(t) });
+        db.Set<LndLoanStatusHist>().Add(new LndLoanStatusHist { LoanId = loan.LoanId, ToStatusCode = loan.StatusCode, Reason = History(t) });
         await db.SaveChangesAsync(cancellationToken);
+        if (workflow)
+        {
+            var run = await runtime.StartAsync(LndCfFinanceRules.WorkflowCode, loan.LoanNumber, LndCfFinanceService.Variables(loan), User, cancellationToken);
+            loan.WorkflowInstanceId = run.WorkflowInstanceId;
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        await tx.CommitAsync(cancellationToken);
         return loan.LoanId;
     }
 
@@ -276,10 +303,14 @@ public sealed class LndLoanService(ICapitraDbContext db, ICurrentUser currentUse
     }
 
     /// <summary>Cancels a loan that has not been paid out. The schedule is kept as it was, for the record.</summary>
-    public Task CancelAsync(long loanId, LndLoanStatusChangeDto dto, CancellationToken cancellationToken) =>
-        ChangeStatusAsync(loanId, Statuses.Cancelled,
+    public async Task CancelAsync(long loanId, LndLoanStatusChangeDto dto, CancellationToken cancellationToken)
+    {
+        if (await db.Set<LndLoan>().AnyAsync(x => x.LoanId == loanId && x.WorkflowInstanceId != null, cancellationToken))
+            throw new BusinessRuleException("This finance is in its workflow: reject it at the open step instead.");
+        await ChangeStatusAsync(loanId, Statuses.Cancelled,
             string.IsNullOrWhiteSpace(dto.Reason) ? throw BusinessValidationException.For("reason", "Give the reason for the cancellation.") : dto.Reason.Trim(),
             dto.RowVersion, cancellationToken);
+    }
 
     /// <summary>The one place a loan's status changes: the transition must be in the table, and the change is written to the history.</summary>
     public async Task ChangeStatusAsync(long loanId, string toStatus, string? reason, int? rowVersion, CancellationToken cancellationToken)

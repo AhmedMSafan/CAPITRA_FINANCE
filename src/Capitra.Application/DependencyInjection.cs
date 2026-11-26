@@ -67,6 +67,8 @@ public static class DependencyInjection
         services.AddScoped<Modules.Wfe.IWfeTaskCompletionHandler, Modules.Scr.ScrDecisionWorkflowHandler>();
         services.AddScoped<Modules.Crm.CfSuppliers.CrmCfSupplierService>();
         services.AddScoped<Modules.Wfe.IWfeTaskCompletionHandler, Modules.Crm.CfSuppliers.CrmCfSupplierWorkflowHandler>();
+        services.AddScoped<Modules.Wfe.IWfeTaskCompletionHandler, Modules.Lnd.LndCfFinanceWorkflowHandler>();
+        services.AddScoped<Modules.Lnd.LndCfFinanceService>();
 
 
 

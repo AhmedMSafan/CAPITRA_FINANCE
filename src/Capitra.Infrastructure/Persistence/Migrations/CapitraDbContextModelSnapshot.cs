@@ -28532,6 +28532,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("EARLY_SETTLEMENT_FEE_PCT");
 
+                    b.Property<string>("EnteredByPerson")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ENTERED_BY_PERSON");
+
                     b.Property<DateOnly>("FirstDueDate")
                         .HasColumnType("date")
                         .HasColumnName("FIRST_DUE_DATE");
@@ -28740,6 +28745,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("UPDATED_BY");
 
+                    b.Property<long?>("WorkflowInstanceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("WORKFLOW_INSTANCE_ID");
+
                     b.HasKey("LoanId")
                         .HasName("PK_LND_LOANS");
 
@@ -28758,6 +28767,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SupplierApplicationId")
                         .HasDatabaseName("IX_LND_LOANS_SUPPLIER_APPLICATION_ID");
+
+                    b.HasIndex("WorkflowInstanceId")
+                        .HasDatabaseName("IX_LND_LOANS_WORKFLOW_INSTANCE_ID");
 
                     b.HasIndex("ClientId", "StatusCode")
                         .HasDatabaseName("IX_LND_LOANS_CLIENT_ID_STATUS_CODE");

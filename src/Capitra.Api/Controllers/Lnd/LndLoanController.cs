@@ -8,7 +8,7 @@ namespace Capitra.Api.Controllers.Lnd;
 /// <summary>Retail Lending > Loans. Reading needs LND.LOAN.VIEW; previewing, creating and cancelling a loan LND.LOAN.EDIT.</summary>
 [ApiController]
 [Route("api/lnd/loans")]
-public sealed class LndLoanController(LndLoanService loans) : ControllerBase
+public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService workflow) : ControllerBase
 {
     [HttpGet]
     [HasPermission(Permissions.Lnd.LoanView)]
@@ -47,6 +47,21 @@ public sealed class LndLoanController(LndLoanService loans) : ControllerBase
     [HasPermission(Permissions.Lnd.LoanEdit)]
     public async Task<LndLoanDto> Create(LndLoanRequestDto dto, CancellationToken cancellationToken) =>
         await loans.GetAsync(await loans.CreateAsync(dto, cancellationToken), cancellationToken);
+
+    /// <summary>The CF_FINANCE step waiting now; with inboxId, whether it is the signed-in user's task.</summary>
+    [HttpGet("{loanId:long}/cf-step")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public Task<LndCfStepDto?> CfStep(long loanId, [FromQuery] long? inboxId, CancellationToken cancellationToken) =>
+        workflow.StepAsync(loanId, inboxId, cancellationToken);
+
+    /// <summary>Completes the signed-in user's CF_FINANCE task on the finance: ACCEPT, or REJECT with the reason.</summary>
+    [HttpPost("{loanId:long}/cf-step/{inboxId:long}/complete")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public async Task<LndLoanDto> CompleteCfStep(long loanId, long inboxId, LndCfCompleteRequest request, CancellationToken cancellationToken)
+    {
+        await workflow.CompleteAsync(loanId, inboxId, request, cancellationToken);
+        return await loans.GetAsync(loanId, cancellationToken);
+    }
 
     [HttpPost("{loanId:long}/cancel")]
     [HasPermission(Permissions.Lnd.LoanEdit)]
