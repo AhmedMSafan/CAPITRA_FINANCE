@@ -35,16 +35,16 @@
       <h4>{{ tr('Charges') }} <small v-if="charges.decided" class="c3-muted">· {{ tr('decided by Credit') }}</small></h4>
       <p v-if="charges.problem" class="cfs-bad">{{ charges.problem }}</p>
       <table v-else-if="charges.charges.length" class="fx-table">
-        <thead><tr><th>{{ tr('Charge') }}</th><th>{{ tr('Basis') }}</th><th class="fx-r">{{ tr('Amount') }}</th><th>{{ tr('How paid') }}</th></tr></thead>
+        <thead><tr><th>{{ tr('Charge') }}</th><th>{{ tr('Basis') }}</th><th class="cfs-c">{{ tr('Amount') }}</th><th class="cfs-c">{{ tr('How paid') }}</th></tr></thead>
         <tbody>
           <tr v-for="c in charges.charges" :key="c.chargeCode">
             <td>{{ tr(c.chargeName) }}</td><td>{{ tr(c.basisText) || '—' }}</td>
-            <td v-if="deciding" class="fx-r">
+            <td v-if="deciding" class="cfs-c">
               <input v-model.number="amounts[c.chargeCode]" type="number" min="0" step="any" class="fx-search cfs-amt" :class="{ chg: amountOf(c) !== c.ruleAmount }">
               <small class="c3-muted cfs-rule">{{ tr('rule') }}: {{ money(c.ruleAmount) }}</small>
             </td>
-            <td v-else class="fx-r">{{ money(c.amount + c.taxAmount) }}<small v-if="c.taxAmount" class="c3-muted"> ({{ tr('incl. tax') }} {{ money(c.taxAmount) }})</small></td>
-            <td>
+            <td v-else class="cfs-c">{{ money(c.amount + c.taxAmount) }}<small v-if="c.taxAmount" class="c3-muted"> ({{ tr('incl. tax') }} {{ money(c.taxAmount) }})</small></td>
+            <td class="cfs-c">
               <span v-if="deciding" class="cfs-seg" role="group" :aria-label="tr('How paid')">
                 <button type="button" :class="{ on: timing(c) === UPFRONT }" @click="setTiming(c, UPFRONT)">{{ tr('Upfront') }}</button>
                 <button type="button" :class="{ on: timing(c) === FINANCED }" @click="setTiming(c, FINANCED)">{{ tr('Add to schedule') }}</button>
@@ -263,7 +263,11 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-rate input { width: 90px; height: 30px; text-align: end; }
 .cfs-eff { padding: 3px 12px; border-radius: 999px; background: var(--fin-teal-50); color: var(--fin-teal-700); }
 .cfs-amt { width: 110px; height: 30px; text-align: end; }
-.cfs-rule { display: block; margin-top: 2px; }
+.cfs-rule { margin-inline-start: 6px; white-space: nowrap; }
+/* every row on one centred line; amount and timing centred in their columns */
+.cfs :deep(.fx-table) th, .cfs :deep(.fx-table) td { vertical-align: middle; }
+.cfs .cfs-c { text-align: center; white-space: nowrap; }
+.cfs-deal { align-items: center; }
 .chg { border-color: #d39b2a !important; background: #fffaf0 !important; }
 .cfs-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--fin-teal-50); color: var(--fin-teal-700); flex: none; }
 .cfs-box { margin-top: 12px; padding-top: 10px; border-top: 1px solid #f0f2f4; }
