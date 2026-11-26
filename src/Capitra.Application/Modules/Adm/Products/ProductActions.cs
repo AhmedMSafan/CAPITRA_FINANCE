@@ -20,6 +20,7 @@ public static class ProductActions
     public const string ScreeningInvoiceIssue = "SCR_INVOICE_ISSUE";
     public const string ScreeningInvoicePayment = "SCR_INVOICE_PAYMENT";
     public const string CfNewFinance = "CF_NEW_FINANCE";
+    public const string CfClaimPayment = "CF_CLAIM_PAYMENT";
 
     /// <summary>The consumer finance product (goods bought from a supplier on finance).</summary>
     public const string ConsumerFinanceProduct = "CONSUMER_GOODS_FINANCE";
@@ -64,6 +65,11 @@ public static class ProductActions
             "Retail Lending, New Finance: the customer's charges are worked out from the linked rule's charges, each paid upfront or added to "
             + "the finance, before the schedule. Posts no GL: the finance keeps the charges and the Delivery step of its workflow posts them.",
             "LND", [], "3100", "CONSUMER_FINANCE"),
+        new(CfClaimPayment, ConsumerFinanceProduct, "Consumer finance claim payment", "سداد مطالبة التمويل الاستهلاكي",
+            "Retail Lending, a consumer finance at its Agreement step: Record payment of the upfront claim. PAYMENT_AMOUNT is the money received "
+            + "into the bank account chosen; CHARGES_PAID_AMOUNT the upfront charges in it (receivable paid, and earned); DOWN_PAYMENT_AMOUNT the "
+            + "down payment we take, held for the supplier.",
+            "LND", ["PAYMENT_AMOUNT", "CHARGES_PAID_AMOUNT", "DOWN_PAYMENT_AMOUNT"], "3100", "CONSUMER_FINANCE"),
     ];
 
     public static ProductActionDefinition? Find(string? actionCode) => All.FirstOrDefault(x => x.ActionCode == actionCode);
