@@ -28522,6 +28522,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("DOWN_PAYMENT_AMOUNT");
 
+                    b.Property<string>("DownPaymentCollectorCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("DOWN_PAYMENT_COLLECTOR_CODE");
+
                     b.Property<decimal>("EarlySettlementFeePct")
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
@@ -28695,6 +28700,28 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("STATUS_CODE");
 
+                    b.Property<long?>("SupplierApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUPPLIER_APPLICATION_ID");
+
+                    b.Property<decimal?>("SupplierCommissionPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("SUPPLIER_COMMISSION_PCT");
+
+                    b.Property<int?>("SupplierDeliveryDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("SUPPLIER_DELIVERY_DAYS");
+
+                    b.Property<decimal?>("SupplierMinDownPaymentPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("SUPPLIER_MIN_DOWN_PAYMENT_PCT");
+
+                    b.Property<int?>("SupplierPaymentDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("SUPPLIER_PAYMENT_DAYS");
+
                     b.Property<int>("TermMonths")
                         .HasColumnType("integer")
                         .HasColumnName("TERM_MONTHS");
@@ -28728,6 +28755,9 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProductVersionId")
                         .HasDatabaseName("IX_LND_LOANS_PRODUCT_VERSION_ID");
+
+                    b.HasIndex("SupplierApplicationId")
+                        .HasDatabaseName("IX_LND_LOANS_SUPPLIER_APPLICATION_ID");
 
                     b.HasIndex("ClientId", "StatusCode")
                         .HasDatabaseName("IX_LND_LOANS_CLIENT_ID_STATUS_CODE");
@@ -48714,6 +48744,12 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_LND_LOANS_LND_PRODUCT_VERSIONS");
+
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", null)
+                        .WithMany()
+                        .HasForeignKey("SupplierApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_LND_LOANS_CRM_CF_SUPPLIER_APPLICATIONS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanEvent", b =>

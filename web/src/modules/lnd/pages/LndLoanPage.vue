@@ -28,10 +28,16 @@
           <div><small>{{ tr('Category') }}</small><b>{{ tr(loan.goods.categoryName) }}</b></div>
           <div><small>{{ tr('Item description') }}</small><b>{{ loan.goods.description }}</b></div>
           <div><small>{{ tr('Brand / model') }}</small><b>{{ loan.goods.brandModel || '—' }}</b></div>
-          <div><small>{{ tr('Merchant') }}</small><b>{{ loan.goods.merchantName || '—' }}</b></div>
+          <div><small>{{ tr('Supplier') }}</small><b>{{ loan.goods.merchantName || '—' }}</b></div>
           <div><small>{{ tr('Item price') }}</small><b>{{ money(loan.goods.priceAmount) }}</b></div>
           <div><small>{{ tr('Down payment') }}</small><b>{{ money(loan.goods.downPaymentAmount) }}</b></div>
           <div><small>{{ tr('Financed') }}</small><b>{{ money(loan.principalAmount) }}</b></div>
+          <template v-if="loan.goods.supplierApplicationId">
+            <div><small>{{ tr('Down payment collected by') }}</small><b>{{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'Us' : 'Supplier') }}</b></div>
+            <div><small>{{ tr('Commission') }}</small><b>{{ loan.goods.supplierCommissionPct ?? 0 }}%</b></div>
+            <div><small>{{ tr('We pay after') }}</small><b>{{ loan.goods.supplierPaymentDays }} {{ tr('days') }}</b></div>
+            <div><small>{{ tr('Delivers within') }}</small><b>{{ loan.goods.supplierDeliveryDays }} {{ tr('days') }}</b></div>
+          </template>
         </div>
       </section>
 

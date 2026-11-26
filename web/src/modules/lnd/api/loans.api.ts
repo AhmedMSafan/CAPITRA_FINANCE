@@ -3,6 +3,12 @@ import { http } from '@/shared/api/http'
 
 export type LoanOption = { id: number; code: string; name: string; licenceCode?: string | null }
 
+export type CfSupplierOption = {
+  applicationId: number; applicationRef: string; clientId: number; clientNumber: string; supplierName: string; goodsCategoryCodes: string[]
+  minDownPaymentPct: number; downPaymentCollectorCode: string; commissionPct: number; paymentDays: number; deliveryDays: number
+  validFromDate: string; validToDate: string | null
+}
+
 export type LoanRequest = {
   clientId: number | null
   productId: number | null
@@ -18,6 +24,8 @@ export type LoanRequest = {
   merchantName: string | null
   goodsPriceAmount: number | null
   downPaymentAmount: number | null
+  /** Consumer finance: the active supplier agreement the goods are bought under. */
+  supplierApplicationId?: number | null
   // New Finance: a saved scenario of the Finance Calculator gives the amount, dates, rate and schedule
   scenarioId?: number | null
   // the rate for this finance only; when it differs from the scenario's, the schedule is worked out again (the scenario is unchanged)
@@ -57,7 +65,11 @@ export type Loan = {
   installments: Installment[]
   history: { fromStatusCode: string | null; toStatusCode: string; reason: string | null; by: string; at: string }[]
   events: { eventCode: string; eventDate: string; eventAmount: number; glTranSetId: string | null; notes: string | null; by: string; at: string }[]
-  goods: { categoryCode: string; categoryName: string; description: string; brandModel: string | null; merchantName: string | null; priceAmount: number; downPaymentAmount: number } | null
+  goods: {
+    categoryCode: string; categoryName: string; description: string; brandModel: string | null; merchantName: string | null; priceAmount: number; downPaymentAmount: number
+    supplierApplicationId: number | null; downPaymentCollectorCode: string | null; supplierMinDownPaymentPct: number | null; supplierCommissionPct: number | null
+    supplierPaymentDays: number | null; supplierDeliveryDays: number | null
+  } | null
 }
 
 export type PayingAccount = { accountId: number; bankName: string; accountRef: string; accountNo: string; accountTypeCode: string; glAccountCode: string | null }
@@ -92,6 +104,8 @@ export const loansApi = {
   get: (id: number) => http.get<Loan>(`${API}/${id}`),
   products: () => http.get<LoanOption[]>(`${API}/products`),
   goodsCategories: () => http.get<LoanOption[]>(`${API}/goods-categories`),
+  /** Active Consumer Finance suppliers a finance can be bought from today, with their agreed terms. */
+  cfSuppliers: () => http.get<CfSupplierOption[]>(`${API}/cf-suppliers`),
   scenarios: () => http.get<ScenarioOption[]>(`${API}/scenarios`),
   clients: (q: string) => http.get<LoanOption[]>(`${API}/clients?q=${encodeURIComponent(q)}`),
   preview: (body: LoanRequest) => http.post<LoanPreview>(`${API}/preview`, body),
