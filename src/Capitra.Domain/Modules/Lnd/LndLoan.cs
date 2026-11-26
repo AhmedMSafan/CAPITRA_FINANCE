@@ -70,6 +70,12 @@ public class LndLoan : AuditableEntity
 
     public decimal AnnualRatePct { get; set; }
 
+    /// <summary>
+    /// Consumer finance: the margin Credit added to (or took off) the product rate at Credit approval; AnnualRatePct is the product rate
+    /// plus this margin.
+    /// </summary>
+    public decimal RateMarginPct { get; set; }
+
     public string DayCountCode { get; set; } = string.Empty;
 
     public int LateFeeGraceDays { get; set; }

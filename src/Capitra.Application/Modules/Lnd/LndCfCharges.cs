@@ -4,11 +4,11 @@ using Capitra.Application.Modules.Adm.Products;
 namespace Capitra.Application.Modules.Lnd;
 
 /// <summary>
-/// A consumer finance charge: its amount and tax, its rule's default (upfront or added to the schedule), what Credit decided, and
-/// whether that changed the default.
+/// A consumer finance charge: its amount and tax, its rule's default (upfront or added to the schedule) and amount, what Credit
+/// decided, and whether that changed the rule's timing or amount.
 /// </summary>
 public sealed record LndCfChargeDto(string ChargeCode, string ChargeName, string BasisText, decimal Amount, decimal TaxAmount, string TimingCode,
-    string DefaultTimingCode, bool IsOverridden);
+    string DefaultTimingCode, bool IsOverridden, decimal RuleAmount);
 
 /// <summary>The charges of a consumer finance, the part added to the schedule and the part paid upfront; Decided once Credit approved them.</summary>
 public sealed record LndCfChargesDto(IReadOnlyList<LndCfChargeDto> Charges, decimal FinancedAmount, decimal AddedToFinance, decimal PaidUpfront, decimal LoanAmount,
@@ -32,10 +32,11 @@ public static class LndCfCharges
 
     /// <summary>
     /// Each charge of the rule worked out on the price (GOODS_PRICE) or the price less the down payment (FINANCED_AMOUNT, LOAN_AMOUNT),
-    /// with the timing chosen for it (else the rule's default). The loan amount is the price less the down payment plus the charges
-    /// (with their tax) added to the schedule.
+    /// with the timing and amount Credit chose for it (else the rule's; 0 waives it, the tax follows the amount). The loan amount is the
+    /// price less the down payment plus the charges (with their tax) added to the schedule.
     /// </summary>
-    public static LndCfChargesDto Work(IReadOnlyList<ProductEventCharge> charges, decimal price, decimal down, IReadOnlyDictionary<string, string>? chosen)
+    public static LndCfChargesDto Work(IReadOnlyList<ProductEventCharge> charges, decimal price, decimal down, IReadOnlyDictionary<string, string>? chosen,
+        IReadOnlyDictionary<string, decimal>? amounts = null)
     {
         var financed = Money.Round(price - down, 2);
         decimal? BaseOf(string code) => code switch
@@ -52,8 +53,14 @@ public static class LndCfCharges
                 return new LndCfChargesDto([], financed, 0, 0, financed, $"Charge {c.ChargeCode} cannot be worked out: {amount.Problem}.");
             var def = DefaultTiming(c);
             var timing = chosen is not null && chosen.TryGetValue(c.ChargeCode, out var t) && t is Upfront or Financed ? t : def;
-            var tax = Money.Round(amount.Amount * c.TaxRate / 100m, 2);
-            rows.Add(new LndCfChargeDto(c.ChargeCode, c.ChargeNameEn, Basis(c), amount.Amount, tax, timing, def, timing != def));
+            var value = amount.Amount;
+            if (amounts is not null && amounts.TryGetValue(c.ChargeCode, out var a))
+            {
+                if (a < 0) return new LndCfChargesDto([], financed, 0, 0, financed, $"The amount of {c.ChargeNameEn} cannot be below zero.");
+                value = Money.Round(a, 2);
+            }
+            var tax = Money.Round(value * c.TaxRate / 100m, 2);
+            rows.Add(new LndCfChargeDto(c.ChargeCode, c.ChargeNameEn, Basis(c), value, tax, timing, def, timing != def || value != amount.Amount, amount.Amount));
         }
         return Totals(rows, financed, false);
     }

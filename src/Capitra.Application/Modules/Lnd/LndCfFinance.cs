@@ -91,6 +91,15 @@ public static class LndCfFinanceRules
         (charges.Where(x => x.TimingCode == LndCfCharges.Upfront).Sum(x => x.ChargeAmount + x.TaxAmount),
          downPaymentCollectorCode == "COMPANY" ? Money.Round(downPayment ?? 0, 2) : 0);
 
+    /// <summary>The finance rate: the product rate plus Credit's margin, from 0 to 100%.</summary>
+    public static decimal FinanceRate(decimal productRatePct, decimal marginPct)
+    {
+        var rate = productRatePct + marginPct;
+        if (rate < 0 || rate > 100)
+            throw BusinessValidationException.For("rateMarginPct", $"The product rate {productRatePct:0.####}% plus the margin must be from 0 to 100%.");
+        return rate;
+    }
+
     /// <summary>Step 3 can be accepted when the claim is paid, or when nothing is paid upfront.</summary>
     public static string? CheckClaim(string? claimStatus, decimal claimTotal) => claimStatus switch
     {
@@ -102,10 +111,14 @@ public static class LndCfFinanceRules
 
 /// <summary>The open step of a finance, whether the signed-in user holds its task, and what the step shows.</summary>
 public sealed record LndCfStepDto(string StepCode, string StepName, long? InboxId, bool IsMine, LndCfChargesDto? Charges = null,
-    IReadOnlyList<LndPayingAccountDto>? Accounts = null);
+    IReadOnlyList<LndPayingAccountDto>? Accounts = null, decimal? ProductRatePct = null, decimal RateMarginPct = 0);
 
-/// <summary>ACCEPT or REJECT; at Credit approval, ChargeTimings is Credit's decision per charge code (PAID_UPFRONT or FINANCE_WITH_PRINCIPAL).</summary>
-public sealed record LndCfCompleteRequest(string? Action, string? Comment, IReadOnlyDictionary<string, string>? ChargeTimings = null);
+/// <summary>
+/// ACCEPT or REJECT. At Credit approval: ChargeTimings and ChargeAmounts are Credit's decision per charge code (PAID_UPFRONT or
+/// FINANCE_WITH_PRINCIPAL; the amount, 0 to waive), and RateMarginPct the margin on the product rate (+ or -).
+/// </summary>
+public sealed record LndCfCompleteRequest(string? Action, string? Comment, IReadOnlyDictionary<string, string>? ChargeTimings = null,
+    IReadOnlyDictionary<string, decimal>? ChargeAmounts = null, decimal? RateMarginPct = null);
 
 public sealed record LndCfClaimPaymentRequest(long? BankAccountId, string? PaymentMethodCode, string? PaymentReference);
 
@@ -139,8 +152,7 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
         var saved = await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loan.LoanId).OrderBy(x => x.LoanChargeId).ToListAsync(ct);
         if (saved.Count > 0 && timings is null)
             return LndCfCharges.Totals([.. saved.Select(x => new LndCfChargeDto(x.ChargeCode, x.ChargeName, "", x.ChargeAmount, x.TaxAmount, x.TimingCode,
-                x.IsOverridden ? (x.TimingCode == LndCfCharges.Upfront ? LndCfCharges.Financed : LndCfCharges.Upfront) : x.TimingCode, x.IsOverridden))],
-                financed, true);
+                x.TimingCode, x.IsOverridden, x.ChargeAmount))], financed, true);
         var (productCode, _, _, plan, ruleCode) = await PlanAsync(loan, ct);
         if (plan is null)
             return new LndCfChargesDto([], financed, 0, 0, financed,
@@ -149,17 +161,19 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
     }
 
     /// <summary>
-    /// Saves Credit's decision on a tracked finance: its charges (each marked when it changed the rule's default) and its amount, the
-    /// financed amount plus the charges added to the schedule. Not saved to the database here.
+    /// Saves Credit's decision on a tracked finance: its charges (each marked when it changed the rule's timing or amount) and its amount,
+    /// the financed amount plus the charges added to the schedule. Not saved to the database here. Returns what Credit changed, for the
+    /// history.
     /// </summary>
-    public async Task DecideAsync(LndLoan loan, IReadOnlyDictionary<string, string>? timings, CancellationToken ct)
+    public async Task<List<string>> DecideAsync(LndLoan loan, IReadOnlyDictionary<string, string>? timings, CancellationToken ct,
+        IReadOnlyDictionary<string, decimal>? amounts = null)
     {
         var old = await db.Set<LndLoanCharge>().Where(x => x.LoanId == loan.LoanId).ToListAsync(ct);
         db.Set<LndLoanCharge>().RemoveRange(old);
         var (productCode, _, _, plan, ruleCode) = await PlanAsync(loan, ct);
         if (plan is null)
             throw new BusinessRuleException($"Product {productCode} has no active rule {ruleCode} today. Add it in Admin Setup > Product Catalog > {productCode} > Rules.");
-        var work = LndCfCharges.Work(plan.Charges, Money.Round(loan.GoodsPriceAmount ?? 0, 2), Money.Round(loan.DownPaymentAmount ?? 0, 2), timings);
+        var work = LndCfCharges.Work(plan.Charges, Money.Round(loan.GoodsPriceAmount ?? 0, 2), Money.Round(loan.DownPaymentAmount ?? 0, 2), timings, amounts);
         if (work.Problem is not null) throw new BusinessRuleException(work.Problem);
         db.Set<LndLoanCharge>().AddRange(work.Charges.Select(c => new LndLoanCharge
         {
@@ -167,6 +181,9 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
             TimingCode = c.TimingCode, IsOverridden = c.IsOverridden,
         }));
         loan.PrincipalAmount = work.LoanAmount;
+        return [.. work.Charges.Where(c => c.IsOverridden).Select(c =>
+            $"{c.ChargeName}{(c.Amount != c.RuleAmount ? $" {c.RuleAmount:#,0.00} → {c.Amount:#,0.00}" : "")}"
+            + $"{(c.TimingCode != c.DefaultTimingCode ? (c.TimingCode == LndCfCharges.Upfront ? ", upfront" : ", added to schedule") : "")}")];
     }
 }
 
@@ -298,7 +315,9 @@ public sealed class LndCfFinanceService(
         var step = open.ToUpperInvariant();
         LndCfChargesDto? charges = step is LndCfFinanceRules.Credit or LndCfFinanceRules.Charges ? await planner.WorkAsync(loan, null, ct) : null;
         IReadOnlyList<LndPayingAccountDto>? accounts = step == LndCfFinanceRules.Charges && mine ? await AccountsAsync(loan.CurrencyCode, ct) : null;
-        return new LndCfStepDto(open, LndCfFinanceRules.StepName(open), mine ? inboxId : null, mine, charges, accounts);
+        var productRate = await db.Set<LndProductVersion>().AsNoTracking().Where(x => x.ProductVersionId == loan.ProductVersionId)
+            .Select(x => (decimal?)x.AnnualRatePct).FirstOrDefaultAsync(ct);
+        return new LndCfStepDto(open, LndCfFinanceRules.StepName(open), mine ? inboxId : null, mine, charges, accounts, productRate, loan.RateMarginPct);
     }
 
     /// <summary>
@@ -315,19 +334,28 @@ public sealed class LndCfFinanceService(
 
         await using var tx = await db.BeginTransactionAsync(ct);
         var (loan, item) = await TaskAsync(loanId, inboxId, null, ct);
+        var changes = new List<string>();
         if (action == "ACCEPT" && string.Equals(item.StepCode, LndCfFinanceRules.Credit, StringComparison.OrdinalIgnoreCase))
         {
-            await planner.DecideAsync(loan, r.ChargeTimings, ct);
+            changes = await planner.DecideAsync(loan, r.ChargeTimings, ct, r.ChargeAmounts);
+            // the product rate stays fixed; Credit adds or takes off a margin for this finance
+            var productRate = await db.Set<LndProductVersion>().Where(x => x.ProductVersionId == loan.ProductVersionId).Select(x => x.AnnualRatePct).SingleAsync(ct);
+            var margin = Money.Round(r.RateMarginPct ?? 0, 6);
+            var rate = LndCfFinanceRules.FinanceRate(productRate, margin);
+            loan.RateMarginPct = margin;
+            loan.AnnualRatePct = rate;
+            if (margin != 0) changes.Add($"margin {margin:+0.####;-0.####}% → rate {rate:0.####}%");
             await db.SaveChangesAsync(ct);
         }
         await inbox.CompleteAsync(inboxId, new CompleteInboxItemRequest(action, comment), ct);
-        if (comment is not null)
+        var note = string.Join(" ", new[] { changes.Count > 0 ? $"Changed: {string.Join("; ", changes)}." : null, comment }.OfType<string>());
+        if (note.Length > 0)
         {
-            // the step's comment goes with the status change it made
+            // what Credit changed and the step's comment go with the status change it made
             var last = await db.Set<LndLoanStatusHist>().Where(x => x.LoanId == loanId).OrderByDescending(x => x.LoanStatusHistId).FirstOrDefaultAsync(ct);
             if (last is not null && last.Reason?.Contains(LndCfFinanceRules.StepName(item.StepCode), StringComparison.Ordinal) == true)
             {
-                last.Reason = $"{last.Reason} {comment}";
+                last.Reason = $"{last.Reason} {note}";
                 if (last.Reason.Length > 500) last.Reason = last.Reason[..500];
                 await db.SaveChangesAsync(ct);
             }

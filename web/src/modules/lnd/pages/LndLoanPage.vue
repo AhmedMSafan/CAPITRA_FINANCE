@@ -100,7 +100,7 @@
         </div>
       </section>
 
-      <section v-if="receipts && loan.statusCode !== 'APPROVED' && loan.statusCode !== 'CANCELLED'" class="fx-card">
+      <section v-if="receipts && ['ACTIVE', 'CLOSED', 'WRITTEN_OFF'].includes(loan.statusCode)" class="fx-card">
         <header class="c3-panel-head lp-head">
           <h3><span class="fa fa-download" aria-hidden="true"></span>{{ tr('Payments') }}</h3>
           <button v-if="receipts.canReceive" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openReceive('RECEIPT')"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr(receipts.writtenOffAmount !== null ? 'Receive recovery' : 'Receive payment') }}</button>
@@ -383,18 +383,23 @@ const facts = computed<[string, string][]>(() => {
   if (!l) return []
   const fee = l.lateFeeTypeCode === 'NONE' ? tr('None')
     : `${l.lateFeeTypeCode === 'FLAT' ? `${tr('EGP')} ${money(l.lateFeeFlatAmount ?? 0)}` : `${l.lateFeeRatePct}%${l.lateFeeTypeCode === 'PCT_DAILY' ? ' ' + tr('a day') : ''}`} · ${l.lateFeeGraceDays} ${tr('grace days')}`
+  // a consumer finance in its workflow has no schedule yet (built at Schedule and contract): no instalment, interest or dates
+  const scheduled = l.installments.length > 0
+  const margin = l.rateMarginPct ? ` (${Math.round((l.annualRatePct - l.rateMarginPct) * 10000) / 10000}% ${l.rateMarginPct > 0 ? '+' : '−'} ${Math.abs(l.rateMarginPct)})` : ''
   return [
     ['Customer', l.clientName],
     ['Product', `${l.productName} · ${tr('Version')} ${l.versionNo}`],
     ['Licence', tr(l.licenceCode === 'MF' ? 'Microfinance' : 'Consumer Finance')],
     ['Amount', `${tr('EGP')} ${money(l.principalAmount)}`],
-    ['Term', `${l.termMonths} ${tr('months')} · ${l.installmentCount} × ${money(l.installmentAmount)}`],
+    ['Term', `${l.termMonths} ${tr('months')}${scheduled ? ` · ${l.installmentCount} × ${money(l.installmentAmount)}` : ''}`],
     ['Repayment', tr(FREQ[l.repaymentFrequencyCode] ?? l.repaymentFrequencyCode)],
-    ['Yearly rate', `${l.annualRatePct}% · ${tr(l.interestMethodCode === 'FLAT' ? 'Flat' : 'Declining balance')}`],
-    ['Total interest', money(l.totalInterestAmount)],
-    ['Disbursement', formatDate(l.disbursementDate)],
-    ['First instalment', formatDate(l.firstDueDate)],
-    ['Maturity', formatDate(l.maturityDate)],
+    ['Yearly rate', `${l.annualRatePct}%${margin} · ${tr(l.interestMethodCode === 'FLAT' ? 'Flat' : 'Declining balance')}`],
+    ...(scheduled ? [
+      ['Total interest', money(l.totalInterestAmount)],
+      ['Disbursement', formatDate(l.disbursementDate)],
+      ['First instalment', formatDate(l.firstDueDate)],
+      ['Maturity', formatDate(l.maturityDate)]
+    ] as [string, string][] : []),
     ['Late fee', fee],
     ...(l.lastEodDate ? [
       ['Days late', `${l.daysLate}${l.isNonAccrual ? ' · ' + tr('In non-accrual') : ''}${l.isWriteOffProposed ? ' · ' + tr('Proposed for write-off') : ''}`],
