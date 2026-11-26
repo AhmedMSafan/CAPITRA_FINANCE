@@ -127,10 +127,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 
                   -- New Finance (a screen) reaches its rule through the product action CF_NEW_FINANCE: linked to CF_DELIVERY
                   INSERT INTO "ADM_PRODUCT_ACTIONS" ("PRODUCT_ID", "ACTION_CODE", "PRODUCT_EVENT_RULE_ID", "IS_ACTIVE", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
-                  SELECT r."PRODUCT_ID", 'CF_NEW_FINANCE', r."PRODUCT_EVENT_RULE_ID", true, v_by, now(), 1
-                    FROM "ADM_PRODUCT_EVENT_RULES" r JOIN "ADM_PRODUCTS" p ON p."PRODUCT_ID" = r."PRODUCT_ID"
-                   WHERE r."RULE_CODE" = 'CF_DELIVERY' AND p."BUSINESS_LINE_CODE" = 'CONSUMER_FINANCE'
-                   ORDER BY (p."PRODUCT_CODE" = 'CONSUMER_GOODS_FINANCE') DESC, p."PRODUCT_ID"
+                  -- (aliases er / pr: p is the loop record above)
+                  SELECT er."PRODUCT_ID", 'CF_NEW_FINANCE', er."PRODUCT_EVENT_RULE_ID", true, v_by, now(), 1
+                    FROM "ADM_PRODUCT_EVENT_RULES" er JOIN "ADM_PRODUCTS" pr ON pr."PRODUCT_ID" = er."PRODUCT_ID"
+                   WHERE er."RULE_CODE" = 'CF_DELIVERY' AND pr."BUSINESS_LINE_CODE" = 'CONSUMER_FINANCE'
+                   ORDER BY (pr."PRODUCT_CODE" = 'CONSUMER_GOODS_FINANCE') DESC, pr."PRODUCT_ID"
                    LIMIT 1
                   ON CONFLICT ("ACTION_CODE") DO NOTHING;
                 END $$;
