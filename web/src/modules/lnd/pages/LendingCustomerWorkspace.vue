@@ -1,6 +1,6 @@
 <template>
-  <!-- Retail Lending > Lending Workspace > a customer (as the Factoring Customer Workspace): the customer card, the summary, a new
-       loan with the customer filled in, and the Loans and Payments tabs. A loan opens its own page (schedule, payout, payments). -->
+  <!-- Retail Lending > Lending Workspace > a customer: one compact card (the customer and its figures), New Finance on the title
+       line, and the Loans and Payments tabs. A loan opens its own page (schedule, payout, payments). -->
   <div class="fx fc">
     <div class="fx-head">
       <div>
@@ -12,40 +12,35 @@
         <h1>{{ tr('Lending Customer Workspace') }}</h1>
       </div>
       <div class="fx-actions">
+        <RouterLink v-if="canEdit" :to="{ name: 'lnd-finance-new', query: { clientId: String(clientId) } }" class="fx-btn fx-btn--teal">
+          <span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New Finance') }}
+        </RouterLink>
         <RouterLink :to="{ name: 'lnd-workspace' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Lending Workspace') }}</RouterLink>
       </div>
     </div>
 
-    <section class="fx-card fc-customer">
-      <div class="fc-customer-main">
-        <span class="fc-title-ic" aria-hidden="true"><span class="fa fa-user-o"></span></span>
-        <div>
-          <span class="fc-customer-no">{{ ws?.clientNumber || '—' }}</span>
-          <b class="fc-customer-name">{{ ws?.clientName || (loading ? tr('Loading...') : '—') }}</b>
-          <span class="fc-customer-ar">{{ ws?.clientNameAr || '' }}</span>
-        </div>
+    <!-- one compact card (Ahmed, 26 Nov 2026): who the customer is on one line, its figures on the next; New Finance is on the title line -->
+    <section class="fx-card lw-card">
+      <div class="lw-who">
+        <span class="lw-ic" aria-hidden="true"><span class="fa fa-user-o"></span></span>
+        <span class="lw-no" dir="ltr">{{ ws?.clientNumber || '—' }}</span>
+        <b class="lw-name">{{ ws?.clientName || (loading ? tr('Loading...') : '—') }}</b>
+        <span v-if="ws?.clientNameAr" class="lw-ar" dir="auto">{{ ws.clientNameAr }}</span>
+        <span v-if="ws?.clientType" class="lw-chip">{{ ws.clientType }}</span>
+        <span class="lw-facts">
+          <span>{{ tr('National ID') }} <b>{{ ws?.nationalId || '—' }}</b></span>
+          <span>{{ tr('Relationship Manager') }} <b>{{ ws?.relationshipManager || '—' }}</b></span>
+          <span><span class="fa fa-phone" aria-hidden="true"></span> <b dir="ltr">{{ ws?.mobileNumber || ws?.phoneNumber || '—' }}</b></span>
+          <span><span class="fa fa-envelope-o" aria-hidden="true"></span> <b>{{ ws?.email || '—' }}</b></span>
+        </span>
       </div>
-      <div class="fc-info"><span>{{ tr('Client Type') }}</span><span class="fx-chip fx-chip--teal fx-chip--plain">{{ ws?.clientType || '—' }}</span></div>
-      <div class="fc-info"><span>{{ tr('National ID') }}</span><b>{{ ws?.nationalId || '—' }}</b></div>
-      <div class="fc-info"><span>{{ tr('Relationship Manager') }}</span><b>{{ ws?.relationshipManager || '—' }}</b></div>
-      <div class="fc-info"><span>{{ tr('Mobile') }}</span><b><span class="fa fa-phone" aria-hidden="true"></span> {{ ws?.mobileNumber || ws?.phoneNumber || '—' }}</b></div>
-      <div class="fc-info"><span>{{ tr('Email') }}</span><b class="fc-email"><span class="fa fa-envelope-o" aria-hidden="true"></span> {{ ws?.email || '—' }}</b></div>
-    </section>
-
-    <section v-if="ws" class="lw-kpis">
-      <div class="fx-card lw-kpi"><small>{{ tr('Active finances') }}</small><b>{{ ws.summary.activeLoans }}</b></div>
-      <div class="fx-card lw-kpi"><small>{{ tr('Principal outstanding') }}</small><b>{{ money(ws.summary.outstandingPrincipal) }}</b></div>
-      <div class="fx-card lw-kpi" :class="{ 'lw-kpi--bad': ws.summary.overdueAmount > 0 }"><small>{{ tr('Overdue today') }}</small><b>{{ money(ws.summary.overdueAmount) }}</b></div>
-      <div class="fx-card lw-kpi" :class="{ 'lw-kpi--bad': ws.summary.maxDaysLate > 0 }"><small>{{ tr('Days late') }}</small><b>{{ ws.summary.maxDaysLate }}</b></div>
-      <div class="fx-card lw-kpi"><small>{{ tr('Customer credit balance') }}</small><b>{{ money(ws.summary.creditBalance) }}</b></div>
-    </section>
-
-    <section v-if="canEdit" class="fc-quick fc-quick--3">
-      <RouterLink :to="{ name: 'lnd-finance-new', query: { clientId: String(clientId) } }" class="fx-card fc-quick-card fc-quick-card--calc">
-        <span class="fc-quick-ic" aria-hidden="true"><span class="fa fa-plus-circle"></span></span>
-        <span class="fc-quick-copy"><b>{{ tr('New Finance') }}</b><small>{{ tr('A consumer finance for this customer, from a saved calculator scenario') }}</small></span>
-        <span class="fa fa-arrow-right" aria-hidden="true"></span>
-      </RouterLink>
+      <div v-if="ws" class="lw-kpis">
+        <div class="lw-kpi"><small>{{ tr('Active finances') }}</small><b>{{ ws.summary.activeLoans }}</b></div>
+        <div class="lw-kpi"><small>{{ tr('Principal outstanding') }}</small><b>{{ money(ws.summary.outstandingPrincipal) }}</b></div>
+        <div class="lw-kpi" :class="{ 'lw-kpi--bad': ws.summary.overdueAmount > 0 }"><small>{{ tr('Overdue today') }}</small><b>{{ money(ws.summary.overdueAmount) }}</b></div>
+        <div class="lw-kpi" :class="{ 'lw-kpi--bad': ws.summary.maxDaysLate > 0 }"><small>{{ tr('Days late') }}</small><b>{{ ws.summary.maxDaysLate }}</b></div>
+        <div class="lw-kpi"><small>{{ tr('Customer credit balance') }}</small><b>{{ money(ws.summary.creditBalance) }}</b></div>
+      </div>
     </section>
 
     <section class="fx-card">
@@ -161,10 +156,24 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.lw-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
-.lw-kpi { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; }
+.lw-card { padding: 0; margin-bottom: 14px; }
+.lw-who { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 12px 16px; border-bottom: 1px solid var(--fin-line); }
+.lw-ic { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: #fdf1e6; color: #c46a1c; }
+.lw-no { font-size: 12px; font-weight: 700; color: var(--fin-orange-700, #b5651d); }
+.lw-name { font-size: 18px; }
+.lw-ar { color: var(--fin-muted); font-size: 13px; }
+.lw-chip { padding: 3px 9px; border-radius: 999px; background: #f2f4f6; color: #5b6b78; font-size: 11px; font-weight: 700; }
+.lw-facts { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-inline-start: auto; font-size: 12.5px; color: var(--fin-muted); }
+.lw-facts b { color: var(--fin-ink); font-weight: 600; }
+.lw-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.lw-kpi { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border-inline-end: 1px solid var(--fin-line); }
+.lw-kpi:last-child { border-inline-end: 0; }
 .lw-kpi small { color: var(--fin-muted); font-size: 12px; }
-.lw-kpi b { font-size: 18px; }
+.lw-kpi b { font-size: 17px; }
 .lw-kpi--bad b, .lw-bad { color: var(--fin-danger, #b42318); }
-@media (max-width: 900px) { .lw-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) {
+  .lw-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lw-kpi { border-inline-end: 0; border-bottom: 1px solid var(--fin-line); }
+  .lw-facts { margin-inline-start: 0; }
+}
 </style>
