@@ -78,3 +78,19 @@ public sealed class LndLoanStatusHistConfiguration : IEntityTypeConfiguration<Ln
         builder.ConfigureAudit();
     }
 }
+
+public sealed class LndLoanChargeConfiguration : IEntityTypeConfiguration<LndLoanCharge>
+{
+    public void Configure(EntityTypeBuilder<LndLoanCharge> builder)
+    {
+        builder.ToTable("LND_LOAN_CHARGES");
+        builder.HasKey(x => x.LoanChargeId);
+        builder.HasIndex(x => x.LoanId);
+        builder.Property(x => x.LoanChargeId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.ChargeCode).HasMaxLength(50);
+        builder.Property(x => x.ChargeName).HasMaxLength(200);
+        builder.Property(x => x.TimingCode).HasMaxLength(30);
+        builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Cascade);
+        builder.ConfigureAudit();
+    }
+}

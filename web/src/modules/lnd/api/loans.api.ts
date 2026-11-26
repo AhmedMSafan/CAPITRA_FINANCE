@@ -3,6 +3,9 @@ import { http } from '@/shared/api/http'
 
 export type LoanOption = { id: number; code: string; name: string; licenceCode?: string | null }
 
+export type CfCharge = { chargeCode: string; chargeName: string; basisText: string; amount: number; taxAmount: number; timingCode: string }
+export type CfCharges = { charges: CfCharge[]; financedAmount: number; addedToFinance: number; paidUpfront: number; loanAmount: number; problem: string | null }
+
 export type CfStep = { stepCode: string; stepName: string; inboxId: number | null; isMine: boolean }
 
 export type CfSupplierOption = {
@@ -28,6 +31,8 @@ export type LoanRequest = {
   downPaymentAmount: number | null
   /** Consumer finance: the active supplier agreement the goods are bought under. */
   supplierApplicationId?: number | null
+  /** Consumer finance: per charge code, PAID_UPFRONT (default) or FINANCE_WITH_PRINCIPAL. */
+  chargeTimings?: Record<string, string> | null
   // New Finance: a saved scenario of the Finance Calculator gives the amount, dates, rate and schedule
   scenarioId?: number | null
   // the rate for this finance only; when it differs from the scenario's, the schedule is worked out again (the scenario is unchanged)
@@ -72,6 +77,7 @@ export type Loan = {
     supplierApplicationId: number | null; downPaymentCollectorCode: string | null; supplierMinDownPaymentPct: number | null; supplierCommissionPct: number | null
     supplierPaymentDays: number | null; supplierDeliveryDays: number | null
   } | null
+  charges?: CfCharge[] | null
 }
 
 export type PayingAccount = { accountId: number; bankName: string; accountRef: string; accountNo: string; accountTypeCode: string; glAccountCode: string | null }
@@ -108,6 +114,9 @@ export const loansApi = {
   goodsCategories: () => http.get<LoanOption[]>(`${API}/goods-categories`),
   /** Active Consumer Finance suppliers a finance can be bought from today, with their agreed terms. */
   cfSuppliers: () => http.get<CfSupplierOption[]>(`${API}/cf-suppliers`),
+  /** The customer's charges for a price and down payment, each paid upfront or added to the finance. */
+  cfCharges: (goodsPriceAmount: number, downPaymentAmount: number, chargeTimings: Record<string, string>) =>
+    http.post<CfCharges>(`${API}/cf-charges`, { goodsPriceAmount, downPaymentAmount, chargeTimings }),
   scenarios: () => http.get<ScenarioOption[]>(`${API}/scenarios`),
   clients: (q: string) => http.get<LoanOption[]>(`${API}/clients?q=${encodeURIComponent(q)}`),
   preview: (body: LoanRequest) => http.post<LoanPreview>(`${API}/preview`, body),

@@ -28848,6 +28848,80 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("LND_LOANS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanCharge", b =>
+                {
+                    b.Property<long>("LoanChargeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_CHARGE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LoanChargeId"));
+
+                    b.Property<decimal>("ChargeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHARGE_AMOUNT");
+
+                    b.Property<string>("ChargeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CHARGE_CODE");
+
+                    b.Property<string>("ChargeName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("CHARGE_NAME");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TAX_AMOUNT");
+
+                    b.Property<string>("TimingCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("TIMING_CODE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("LoanChargeId")
+                        .HasName("PK_LND_LOAN_CHARGES");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_LND_LOAN_CHARGES_LOAN_ID");
+
+                    b.ToTable("LND_LOAN_CHARGES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanEvent", b =>
                 {
                     b.Property<long>("LoanEventId")
@@ -48840,6 +48914,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("SupplierApplicationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_LND_LOANS_CRM_CF_SUPPLIER_APPLICATIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanCharge", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Lnd.LndLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_LND_LOAN_CHARGES_LND_LOANS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanEvent", b =>

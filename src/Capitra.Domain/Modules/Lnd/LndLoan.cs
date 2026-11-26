@@ -204,3 +204,24 @@ public class LndLoanStatusHist : AuditableEntity
 
     public string? Reason { get; set; }
 }
+
+/// <summary>
+/// LND_LOAN_CHARGES: a customer charge of a consumer finance, worked out on New Finance from the product's rule CF_DELIVERY and either
+/// paid upfront (PAID_UPFRONT) or added to the finance (FINANCE_WITH_PRINCIPAL) (Ahmed, 26 Nov 2026).
+/// </summary>
+public class LndLoanCharge : AuditableEntity
+{
+    public long LoanChargeId { get; set; }
+
+    public long LoanId { get; set; }
+
+    public string ChargeCode { get; set; } = string.Empty;
+
+    public string ChargeName { get; set; } = string.Empty;
+
+    public decimal ChargeAmount { get; set; }
+
+    public decimal TaxAmount { get; set; }
+
+    public string TimingCode { get; set; } = "PAID_UPFRONT";
+}

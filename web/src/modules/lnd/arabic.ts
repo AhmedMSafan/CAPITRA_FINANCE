@@ -562,5 +562,16 @@ export const LND_AR: Record<string, string> = {
   'Check the customer, the supplier and the schedule. Approving needs the customer\'s compliance to be clear.': 'راجع العميل والمورد والجدول. يتطلب الاعتماد أن يكون التزام العميل سليماً.',
   'Credit (CREDIT_OFFICER)': 'الائتمان (CREDIT_OFFICER)',
   'Operations (OPERATIONS_OFFICER)': 'العمليات (OPERATIONS_OFFICER)',
-  'Treasury (TREASURY_OFFICER)': 'الخزينة (TREASURY_OFFICER)'
+  'Treasury (TREASURY_OFFICER)': 'الخزينة (TREASURY_OFFICER)',
+  'Charge': 'الرسم',
+  'Basis': 'الأساس',
+  'How paid': 'طريقة السداد',
+  'Pay upfront': 'تُدفع مقدماً',
+  'Add to finance': 'تُضاف للتمويل',
+  'Added to the finance': 'مضافة للتمويل',
+  'Paid upfront before delivery': 'تُدفع مقدماً قبل التسليم',
+  'incl. tax': 'شاملة الضريبة',
+  'Administration fee': 'رسوم إدارية',
+  'Price less down payment plus the charges added to the finance. The scenario must have this amount.': 'السعر ناقص المقدم مضافاً إليه الرسوم المضافة للتمويل. يجب أن يكون للسيناريو هذا المبلغ.',
+  'Fixed': 'ثابت'
 }
