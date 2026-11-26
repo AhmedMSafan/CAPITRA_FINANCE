@@ -27,11 +27,6 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
     [HasPermission(Permissions.Lnd.LoanEdit)]
     public Task<IReadOnlyList<LndCfSupplierOptionDto>> CfSuppliers(CancellationToken cancellationToken) => loans.CfSuppliersAsync(cancellationToken);
 
-    /// <summary>The customer's charges of a consumer finance for a price and down payment, each paid upfront or added to the finance.</summary>
-    [HttpPost("cf-charges")]
-    [HasPermission(Permissions.Lnd.LoanEdit)]
-    public Task<LndCfChargesDto> CfCharges(LndCfChargesRequest request, CancellationToken cancellationToken) => loans.CfChargesAsync(request, cancellationToken);
-
     [HttpGet("goods-categories")]
     [HasPermission(Permissions.Lnd.LoanEdit)]
     public Task<IReadOnlyList<LndOptionDto>> GoodsCategories(CancellationToken cancellationToken) => loans.GoodsCategoriesAsync(cancellationToken);
@@ -59,12 +54,33 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
     public Task<LndCfStepDto?> CfStep(long loanId, [FromQuery] long? inboxId, CancellationToken cancellationToken) =>
         workflow.StepAsync(loanId, inboxId, cancellationToken);
 
-    /// <summary>Completes the signed-in user's CF_FINANCE task on the finance: ACCEPT, or REJECT with the reason.</summary>
+    /// <summary>
+    /// Completes the signed-in user's CF_FINANCE task on the finance: ACCEPT, or REJECT with the reason. At Credit approval it carries
+    /// Credit's decision on each charge.
+    /// </summary>
     [HttpPost("{loanId:long}/cf-step/{inboxId:long}/complete")]
     [HasPermission(Permissions.Lnd.LoanView)]
     public async Task<LndLoanDto> CompleteCfStep(long loanId, long inboxId, LndCfCompleteRequest request, CancellationToken cancellationToken)
     {
         await workflow.CompleteAsync(loanId, inboxId, request, cancellationToken);
+        return await loans.GetAsync(loanId, cancellationToken);
+    }
+
+    /// <summary>Charges and claim: creates the upfront claim (the rule's charge GL lines), or NONE when nothing is paid upfront.</summary>
+    [HttpPost("{loanId:long}/cf-step/{inboxId:long}/claim")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public async Task<LndLoanDto> CreateCfClaim(long loanId, long inboxId, CancellationToken cancellationToken)
+    {
+        await workflow.CreateClaimAsync(loanId, inboxId, cancellationToken);
+        return await loans.GetAsync(loanId, cancellationToken);
+    }
+
+    /// <summary>Charges and claim: records the customer's payment of the claim (product action CF_CLAIM_PAYMENT).</summary>
+    [HttpPost("{loanId:long}/cf-step/{inboxId:long}/claim/payment")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public async Task<LndLoanDto> PayCfClaim(long loanId, long inboxId, LndCfClaimPaymentRequest request, CancellationToken cancellationToken)
+    {
+        await workflow.PayClaimAsync(loanId, inboxId, request, cancellationToken);
         return await loans.GetAsync(loanId, cancellationToken);
     }
 

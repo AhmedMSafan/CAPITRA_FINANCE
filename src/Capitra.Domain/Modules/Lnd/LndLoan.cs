@@ -136,6 +136,30 @@ public class LndLoan : AuditableEntity
     /// <summary>The person who entered the finance (employee number, or user name): none of its workflow steps may be done by them.</summary>
     public string? EnteredByPerson { get; set; }
 
+    /// <summary>
+    /// The upfront claim of a consumer finance (step Charges and claim): the charges Credit made upfront, and the down payment when we take
+    /// it. ClaimStatusCode: OPEN once claimed (GL posted by the step's rule), PAID once its payment is recorded (GL of CF_CLAIM_PAYMENT),
+    /// NONE when there was nothing to claim.
+    /// </summary>
+    public decimal? ClaimChargesAmount { get; set; }
+
+    public decimal? ClaimDownPaymentAmount { get; set; }
+
+    public string? ClaimStatusCode { get; set; }
+
+    public string? ClaimGlTranSetId { get; set; }
+
+    public DateTime? ClaimPaidAt { get; set; }
+
+    public string? ClaimPaidBy { get; set; }
+
+    /// <summary>CASH, BANK_TRANSFER, PAYMENT_NETWORK or WALLET (no cheques in consumer finance).</summary>
+    public string? ClaimPaymentMethodCode { get; set; }
+
+    public string? ClaimPaymentReference { get; set; }
+
+    public string? ClaimPaymentGlTranSetId { get; set; }
+
     /// <summary>Consumer finance: the item's price; the loan amount is the price less the down payment.</summary>
     public decimal? GoodsPriceAmount { get; set; }
 
@@ -224,4 +248,7 @@ public class LndLoanCharge : AuditableEntity
     public decimal TaxAmount { get; set; }
 
     public string TimingCode { get; set; } = "PAID_UPFRONT";
+
+    /// <summary>Credit changed the rule's default treatment (upfront or added to the schedule) for this finance.</summary>
+    public bool IsOverridden { get; set; }
 }

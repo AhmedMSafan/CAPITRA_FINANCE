@@ -28551,6 +28551,50 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("ANNUAL_RATE_PCT");
 
+                    b.Property<decimal?>("ClaimChargesAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CLAIM_CHARGES_AMOUNT");
+
+                    b.Property<decimal?>("ClaimDownPaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CLAIM_DOWN_PAYMENT_AMOUNT");
+
+                    b.Property<string>("ClaimGlTranSetId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CLAIM_GL_TRAN_SET_ID");
+
+                    b.Property<DateTime?>("ClaimPaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CLAIM_PAID_AT");
+
+                    b.Property<string>("ClaimPaidBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CLAIM_PAID_BY");
+
+                    b.Property<string>("ClaimPaymentGlTranSetId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("CLAIM_PAYMENT_GL_TRAN_SET_ID");
+
+                    b.Property<string>("ClaimPaymentMethodCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("CLAIM_PAYMENT_METHOD_CODE");
+
+                    b.Property<string>("ClaimPaymentReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CLAIM_PAYMENT_REFERENCE");
+
+                    b.Property<string>("ClaimStatusCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("CLAIM_STATUS_CODE");
+
                     b.Property<long>("ClientId")
                         .HasColumnType("bigint")
                         .HasColumnName("CLIENT_ID");
@@ -28883,6 +28927,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("CREATED_BY");
+
+                    b.Property<bool>("IsOverridden")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_OVERRIDDEN");
 
                     b.Property<long>("LoanId")
                         .HasColumnType("bigint")

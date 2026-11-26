@@ -69,30 +69,9 @@
         </label>
         <label class="fc-field" :class="bad('principalAmount')"><span>{{ tr('Finance amount') }} ({{ tr('EGP') }})</span>
           <input :value="financeAmount === null ? '' : money(financeAmount)" class="fx-search" readonly>
-          <small class="c3-muted">{{ tr(charges?.addedToFinance ? 'Price less down payment plus the charges added to the finance. The scenario must have this amount.' : 'Price less down payment. The scenario must have this amount.') }}</small>
+          <small class="c3-muted">{{ tr('Price less down payment. The scenario must have this amount.') }}</small>
         </label>
       </div>
-      <!-- the customer's charges, decided before the schedule (Ahmed, 26 Nov 2026): paid upfront (default) or added to the finance -->
-      <div v-if="charges?.charges.length" class="nf-charges">
-        <h3>{{ tr('Charges') }}</h3>
-        <table class="fx-table">
-          <thead><tr><th>{{ tr('Charge') }}</th><th>{{ tr('Basis') }}</th><th class="fx-r">{{ tr('Amount') }}</th><th>{{ tr('How paid') }}</th></tr></thead>
-          <tbody>
-            <tr v-for="c in charges.charges" :key="c.chargeCode">
-              <td>{{ tr(c.chargeName) }}</td><td>{{ tr(c.basisText) }}</td>
-              <td class="fx-r">{{ money(c.amount + c.taxAmount) }}<small v-if="c.taxAmount" class="c3-muted"> ({{ tr('incl. tax') }} {{ money(c.taxAmount) }})</small></td>
-              <td>
-                <span class="nf-seg" role="group" :aria-label="tr('How paid')">
-                  <button type="button" :class="{ on: c.timingCode === 'PAID_UPFRONT' }" @click="setTiming(c.chargeCode, 'PAID_UPFRONT')">{{ tr('Pay upfront') }}</button>
-                  <button type="button" :class="{ on: c.timingCode === 'FINANCE_WITH_PRINCIPAL' }" @click="setTiming(c.chargeCode, 'FINANCE_WITH_PRINCIPAL')">{{ tr('Add to finance') }}</button>
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="c3-muted nf-charges-sum">{{ tr('Paid upfront before delivery') }}: <b>{{ money(charges.paidUpfront) }}</b> · {{ tr('Added to the finance') }}: <b>{{ money(charges.addedToFinance) }}</b></p>
-      </div>
-      <p v-else-if="charges?.problem" class="c3-bad-text">{{ charges.problem }}</p>
     </section>
 
     <section class="fx-card nf-card">
@@ -127,6 +106,7 @@
       <div v-if="shown" ref="scheduleBox" class="nf-preview">
         <p v-if="!preview" class="nf-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('The schedule from the calculator. Click Check and show schedule to check it with this finance before creating it.') }}</p>
         <p v-else class="nf-ok"><span class="fa fa-check-circle" aria-hidden="true"></span>{{ tr('Checked for this finance. You can create it.') }}</p>
+        <p class="nf-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Indicative only: Credit decides the charges, and the schedule is built at the Schedule and contract step.') }}</p>
         <div class="nf-facts">
           <div><small>{{ tr('Instalments') }}</small><b>{{ shown.installmentCount }}</b></div>
           <div><small>{{ tr('Yearly rate') }}</small><b>{{ shown.annualRatePct }}%</b></div>
@@ -170,7 +150,7 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import type { LoanScenarioResult } from '@/modules/tls/api/loanScenarios.api'
-import { loansApi, type CfCharges, type CfSupplierOption, type LoanOption, type LoanPreview, type LoanRequest, type ScenarioOption } from '../api/loans.api'
+import { loansApi, type CfSupplierOption, type LoanOption, type LoanPreview, type LoanRequest, type ScenarioOption } from '../api/loans.api'
 import { lendingWsApi } from '../api/workspace.api'
 import { FINANCE_CALCULATION_KEY, FINANCE_CALCULATION_RESULT_KEY, FINANCE_DRAFT_KEY, keep, take, type FinanceCalculation } from '../financeDraft'
 
@@ -209,7 +189,7 @@ const bad = (f: string) => ({ 'c3-bad': !!errors.value[f] })
 const form = reactive<LoanRequest>({
   clientId: fixedClientId, productId: null, principalAmount: null, termMonths: null, disbursementDate: null, firstDueDate: null, notes: null,
   goodsCategoryCode: null, goodsDescription: null, goodsBrandModel: null, merchantName: null, goodsPriceAmount: null, downPaymentAmount: null,
-  supplierApplicationId: null, chargeTimings: {},
+  supplierApplicationId: null,
   scenarioId: null, ratePct: null
 })
 
@@ -259,33 +239,10 @@ function goCalculator() {
   router.push({ name: 'tls-loan-calculator', query })
 }
 
-// the customer's charges for this price and down payment; those added to the finance make the loan amount
-const charges = ref<CfCharges | null>(null)
-let chargesTimer: ReturnType<typeof setTimeout> | undefined
-function loadCharges() {
-  clearTimeout(chargesTimer)
-  const price = Number(form.goodsPriceAmount) || 0
-  if (price <= 0) {
-    charges.value = null
-    return
-  }
-  chargesTimer = setTimeout(async () => {
-    try {
-      charges.value = await loansApi.cfCharges(price, Number(form.downPaymentAmount) || 0, form.chargeTimings ?? {})
-    } catch {
-      charges.value = null
-    }
-  }, 300)
-}
-function setTiming(code: string, timing: string) {
-  form.chargeTimings = { ...form.chargeTimings, [code]: timing }
-}
-watch(() => [form.goodsPriceAmount, form.downPaymentAmount, form.chargeTimings], loadCharges, { deep: true })
-
 const financeAmount = computed(() => {
   const price = Number(form.goodsPriceAmount) || 0
   if (price <= 0) return null
-  return Math.round((price - (Number(form.downPaymentAmount) || 0) + (charges.value?.addedToFinance ?? 0)) * 100) / 100
+  return Math.round((price - (Number(form.downPaymentAmount) || 0)) * 100) / 100
 })
 
 // a product the new supplier does not sell is cleared
@@ -393,13 +350,6 @@ onMounted(async () => {
 
 <style scoped>
 @import '@/modules/crm/components/crm360.css';
-.nf-charges { margin-top: 14px; }
-.nf-charges h3 { margin: 0 0 6px; font-size: 13px; color: var(--fin-muted); }
-.nf-charges-sum { margin: 8px 0 0; }
-.nf-seg { display: inline-flex; border: 1px solid var(--fin-line); border-radius: 8px; overflow: hidden; }
-.nf-seg button { padding: 5px 10px; border: 0; background: #fff; color: #34495a; font: 600 12px/1 inherit; cursor: pointer; }
-.nf-seg button.on { background: var(--fin-teal-600); color: #fff; }
-.c3-bad-text { margin: 10px 0 0; color: var(--fin-danger, #b42318); font-size: 13px; }
 .nf-terms { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .nf-term { padding: 4px 10px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 12px; }
 .nf-term b { color: var(--fin-ink); }
