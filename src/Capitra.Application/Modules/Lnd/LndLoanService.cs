@@ -374,7 +374,7 @@ public sealed class LndLoanService(
         else if (!await db.Set<CrmClient>().AnyAsync(x => x.ClientId == dto.ClientId, cancellationToken)) e["clientId"] = ["The customer was not found."];
         if (scenario is null && dto.ScenarioId is null)
         {
-            if (dto.ProductId is null) e["productId"] = ["Choose the product."];
+            if (dto.ProductId is null && dto.SupplierApplicationId is null) e["productId"] = ["Choose the product."]; // a consumer finance: the CF product in force
             if (dto.PrincipalAmount is not > 0) e["principalAmount"] = ["Enter the amount."];
             if (dto.TermMonths is not > 0) e["termMonths"] = ["Enter the term in months."];
         }

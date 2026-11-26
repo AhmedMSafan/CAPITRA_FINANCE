@@ -609,5 +609,8 @@ export const LND_AR: Record<string, string> = {
   'No schedule yet: it is built at the Schedule and contract step, after Credit decides the charges.': 'لا يوجد جدول بعد: يُبنى في خطوة الجدول والعقد بعد أن يحدد الائتمان الرسوم.',
   'Charges and claim': 'الرسوم والمطالبة',
   'Schedule and contract': 'الجدول والعقد',
-  'Payment method': 'طريقة الدفع'
+  'Payment method': 'طريقة الدفع',
+  'Term (months)': 'المدة (بالأشهر)',
+  'About': 'حوالي',
+  'at the product rate': 'بسعر المنتج'
 }
