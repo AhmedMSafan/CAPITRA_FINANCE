@@ -40,6 +40,13 @@
             <div><small>{{ tr('Delivers within') }}</small><b>{{ loan.goods.supplierDeliveryDays }} {{ tr('days') }}</b></div>
           </template>
         </div>
+        <div v-if="loan.charges?.length" class="ln-charges">
+          <h4>{{ tr('Charges') }}</h4>
+          <div v-for="c in loan.charges" :key="c.chargeCode" class="ln-charge">
+            <span>{{ tr(c.chargeName) }}</span><b>{{ money(c.amount + c.taxAmount) }}</b>
+            <span class="fx-chip" :class="c.timingCode === 'PAID_UPFRONT' ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(c.timingCode === 'PAID_UPFRONT' ? 'Pay upfront' : 'Added to the finance') }}</span>
+          </div>
+        </div>
       </section>
 
       <section v-if="payouts && !loan.goods?.supplierApplicationId" class="fx-card">
@@ -605,4 +612,7 @@ h1 .fx-chip { vertical-align: middle; font-size: 12px; }
 .lp-preview { margin-top: 12px; }
 .c3-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 900px) { .ln-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ln-charges { margin-top: 12px; }
+.ln-charges h4 { margin: 0 0 6px; font-size: 13px; color: var(--fin-muted); }
+.ln-charge { display: flex; align-items: center; gap: 12px; padding: 4px 0; font-size: 13.5px; }
 </style>

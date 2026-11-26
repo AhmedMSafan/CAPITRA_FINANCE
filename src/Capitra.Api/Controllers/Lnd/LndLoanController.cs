@@ -27,6 +27,11 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
     [HasPermission(Permissions.Lnd.LoanEdit)]
     public Task<IReadOnlyList<LndCfSupplierOptionDto>> CfSuppliers(CancellationToken cancellationToken) => loans.CfSuppliersAsync(cancellationToken);
 
+    /// <summary>The customer's charges of a consumer finance for a price and down payment, each paid upfront or added to the finance.</summary>
+    [HttpPost("cf-charges")]
+    [HasPermission(Permissions.Lnd.LoanEdit)]
+    public Task<LndCfChargesDto> CfCharges(LndCfChargesRequest request, CancellationToken cancellationToken) => loans.CfChargesAsync(request, cancellationToken);
+
     [HttpGet("goods-categories")]
     [HasPermission(Permissions.Lnd.LoanEdit)]
     public Task<IReadOnlyList<LndOptionDto>> GoodsCategories(CancellationToken cancellationToken) => loans.GoodsCategoriesAsync(cancellationToken);
