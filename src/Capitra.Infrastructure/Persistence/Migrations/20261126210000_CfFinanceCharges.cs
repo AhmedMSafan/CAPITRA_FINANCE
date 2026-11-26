@@ -8,7 +8,8 @@ namespace Capitra.Infrastructure.Persistence.Migrations
 {
     /// <summary>
     /// Consumer finance charges (Ahmed, 26 Nov 2026): LND_LOAN_CHARGES keeps each finance's charges, paid upfront or added to the
-    /// finance, and a sample set-up of the rules CF_DELIVERY and CF_SUPPLIER_PAYMENT is seeded on the consumer finance products.
+    /// finance, and a sample set-up is seeded: the rules CF_DELIVERY and CF_SUPPLIER_PAYMENT on the consumer finance products, the product
+    /// action CF_NEW_FINANCE (New Finance) linked to CF_DELIVERY, and the workflow steps Delivery and Supplier payment linked to their rules.
     /// </summary>
     public partial class CfFinanceCharges : Migration
     {
@@ -123,6 +124,15 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                       VALUES (v_rule, v_comm, 10, 'PERCENTAGE', 0, 'FINANCED_AMOUNT', 'IMMEDIATE', 0, 365, 2, 'DEDUCT_FROM_DISBURSEMENT', 0, 0, DATE '2026-01-01', true, v_by, now(), 1);
                     END IF;
                   END LOOP;
+
+                  -- New Finance (a screen) reaches its rule through the product action CF_NEW_FINANCE: linked to CF_DELIVERY
+                  INSERT INTO "ADM_PRODUCT_ACTIONS" ("PRODUCT_ID", "ACTION_CODE", "PRODUCT_EVENT_RULE_ID", "IS_ACTIVE", "CREATED_BY", "CREATED_AT", "ROW_VERSION")
+                  SELECT r."PRODUCT_ID", 'CF_NEW_FINANCE', r."PRODUCT_EVENT_RULE_ID", true, v_by, now(), 1
+                    FROM "ADM_PRODUCT_EVENT_RULES" r JOIN "ADM_PRODUCTS" p ON p."PRODUCT_ID" = r."PRODUCT_ID"
+                   WHERE r."RULE_CODE" = 'CF_DELIVERY' AND p."BUSINESS_LINE_CODE" = 'CONSUMER_FINANCE'
+                   ORDER BY (p."PRODUCT_CODE" = 'CONSUMER_GOODS_FINANCE') DESC, p."PRODUCT_ID"
+                   LIMIT 1
+                  ON CONFLICT ("ACTION_CODE") DO NOTHING;
                 END $$;
                 """);
 

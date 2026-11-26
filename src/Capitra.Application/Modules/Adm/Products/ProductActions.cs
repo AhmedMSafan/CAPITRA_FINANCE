@@ -19,6 +19,10 @@ public static class ProductActions
     public const string ReverseTransferConfirm = "TRS_RF_TRANSFER_CONFIRM";
     public const string ScreeningInvoiceIssue = "SCR_INVOICE_ISSUE";
     public const string ScreeningInvoicePayment = "SCR_INVOICE_PAYMENT";
+    public const string CfNewFinance = "CF_NEW_FINANCE";
+
+    /// <summary>The consumer finance product (goods bought from a supplier on finance).</summary>
+    public const string ConsumerFinanceProduct = "CONSUMER_GOODS_FINANCE";
 
     /// <summary>The screening service product (Federation member companies' screening fees).</summary>
     public const string ScreeningProduct = "SCR_SERVICES";
@@ -54,6 +58,12 @@ public static class ProductActions
             "Screening › Billing: Record payment. PAYMENT_AMOUNT is the money received into the bank account chosen (the rule's bank-account line) "
             + "against the invoice's receivable.",
             "SCR", ["PAYMENT_AMOUNT"], "3100", "SCREENING"),
+        // consumer finance (Ahmed, 26 Nov 2026): New Finance is a screen, not a workflow step, so it reaches its rule through an action; it
+        // posts no GL, it only takes the rule's charges (the finance keeps them, and the workflow's delivery step posts them)
+        new(CfNewFinance, ConsumerFinanceProduct, "New Finance: customer charges", "تمويل جديد: رسوم العميل",
+            "Retail Lending, New Finance: the customer's charges are worked out from the linked rule's charges, each paid upfront or added to "
+            + "the finance, before the schedule. Posts no GL: the finance keeps the charges and the Delivery step of its workflow posts them.",
+            "LND", [], "3100", "CONSUMER_FINANCE"),
     ];
 
     public static ProductActionDefinition? Find(string? actionCode) => All.FirstOrDefault(x => x.ActionCode == actionCode);
