@@ -612,5 +612,15 @@ export const LND_AR: Record<string, string> = {
   'Payment method': 'طريقة الدفع',
   'Term (months)': 'المدة (بالأشهر)',
   'About': 'حوالي',
-  'at the product rate': 'بسعر المنتج'
+  'at the product rate': 'بسعر المنتج',
+  'Item': 'السلعة',
+  'Price': 'السعر',
+  'us': 'نحن',
+  'supplier': 'المورد',
+  'Product rate': 'سعر المنتج',
+  'Margin ±%': 'الهامش ±%',
+  'Finance rate': 'سعر التمويل',
+  'The product rate stays fixed; Credit adds or takes off a margin for this finance.': 'سعر المنتج ثابت؛ يضيف الائتمان هامشاً أو يخصمه لهذا التمويل.',
+  'rule': 'القاعدة',
+  'Comment (required to reject)': 'تعليق (مطلوب للرفض)'
 }

@@ -5,12 +5,30 @@
   <section v-if="step" class="fx-card cfs">
     <header class="cfs-head">
       <span class="cfs-ic" aria-hidden="true"><span class="fa fa-random"></span></span>
-      <div>
-        <h3>{{ tr('Workflow step') }}: {{ tr(step.stepName) }}</h3>
-        <p v-if="step.isMine">{{ tr(HINT[step.stepCode] ?? 'Check the finance, then accept or reject the step.') }}</p>
-        <p v-else>{{ tr('Waiting for') }} {{ tr(ROLE[step.stepCode] ?? 'the step holder') }}. {{ tr('Open it from the inbox to work on it.') }}</p>
-      </div>
+      <h3>{{ tr(step.stepName) }}</h3>
+      <p v-if="step.isMine">— {{ tr(HINT[step.stepCode] ?? 'Check the finance, then accept or reject the step.') }}</p>
+      <p v-else>— {{ tr('Waiting for') }} {{ tr(ROLE[step.stepCode] ?? 'the step holder') }}. {{ tr('Open it from the inbox to work on it.') }}</p>
     </header>
+
+    <!-- the deal at a glance, for the step holder -->
+    <div v-if="step.isMine && loan.goods" class="cfs-deal">
+      <span>{{ tr('Customer') }} <b>{{ loan.clientName }}</b></span>
+      <span>{{ tr('Supplier') }} <b>{{ loan.goods.merchantName }}</b></span>
+      <span>{{ tr('Item') }} <b>{{ loan.goods.description }}<template v-if="loan.goods.brandModel"> · {{ loan.goods.brandModel }}</template></b></span>
+      <span>{{ tr('Price') }} <b>{{ money(loan.goods.priceAmount) }}</b></span>
+      <span>{{ tr('Down payment') }} <b>{{ money(loan.goods.downPaymentAmount) }}</b> ({{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</span>
+      <span>{{ tr('Financed') }} <b>{{ money(loan.goods.priceAmount - loan.goods.downPaymentAmount) }}</b></span>
+      <span>{{ tr('Term') }} <b>{{ loan.termMonths }} {{ tr('months') }}</b></span>
+      <span>{{ tr('Commission') }} <b>{{ loan.goods.supplierCommissionPct ?? 0 }}%</b></span>
+    </div>
+
+    <!-- the rate: the product rate stays fixed, Credit adds or takes off a margin -->
+    <div v-if="deciding && step.productRatePct !== null" class="cfs-rate">
+      <span class="c3-muted">{{ tr('Product rate') }} <b>{{ step.productRatePct }}%</b></span>
+      <label>{{ tr('Margin ±%') }}<input v-model.number="margin" type="number" step="0.25" class="fx-search" :class="{ chg: Number(margin) !== 0 }"></label>
+      <span class="cfs-eff">{{ tr('Finance rate') }} <b>{{ financeRate }}%</b></span>
+      <small class="c3-muted">{{ tr('The product rate stays fixed; Credit adds or takes off a margin for this finance.') }}</small>
+    </div>
 
     <!-- the charges: Credit decides (the rule's default is marked), later steps show the decision -->
     <div v-if="charges && (step.isMine || charges.decided)" class="cfs-box">
@@ -21,14 +39,18 @@
         <tbody>
           <tr v-for="c in charges.charges" :key="c.chargeCode">
             <td>{{ tr(c.chargeName) }}</td><td>{{ tr(c.basisText) || '—' }}</td>
-            <td class="fx-r">{{ money(c.amount + c.taxAmount) }}<small v-if="c.taxAmount" class="c3-muted"> ({{ tr('incl. tax') }} {{ money(c.taxAmount) }})</small></td>
+            <td v-if="deciding" class="fx-r">
+              <input v-model.number="amounts[c.chargeCode]" type="number" min="0" step="any" class="fx-search cfs-amt" :class="{ chg: amountOf(c) !== c.ruleAmount }">
+              <small class="c3-muted cfs-rule">{{ tr('rule') }}: {{ money(c.ruleAmount) }}</small>
+            </td>
+            <td v-else class="fx-r">{{ money(c.amount + c.taxAmount) }}<small v-if="c.taxAmount" class="c3-muted"> ({{ tr('incl. tax') }} {{ money(c.taxAmount) }})</small></td>
             <td>
               <span v-if="deciding" class="cfs-seg" role="group" :aria-label="tr('How paid')">
                 <button type="button" :class="{ on: timing(c) === UPFRONT }" @click="setTiming(c, UPFRONT)">{{ tr('Upfront') }}</button>
                 <button type="button" :class="{ on: timing(c) === FINANCED }" @click="setTiming(c, FINANCED)">{{ tr('Add to schedule') }}</button>
               </span>
               <span v-else class="fx-chip" :class="c.timingCode === UPFRONT ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(c.timingCode === UPFRONT ? 'Upfront' : 'Added to schedule') }}</span>
-              <small v-if="deciding ? timing(c) !== c.defaultTimingCode : c.isOverridden" class="c3-muted cfs-ovr">{{ tr('changed from the rule') }}</small>
+              <small v-if="deciding ? timing(c) !== c.defaultTimingCode || amountOf(c) !== c.ruleAmount : c.isOverridden" class="c3-muted cfs-ovr">{{ tr('changed from the rule') }}</small>
             </td>
           </tr>
         </tbody>
@@ -82,15 +104,12 @@
       {{ tr('Accept builds the schedule on the finance amount') }} {{ money(loan.principalAmount) }} {{ tr('over') }} {{ loan.termMonths }} {{ tr('months, from today.') }}
     </p>
 
-    <div v-if="step.isMine" class="cfs-body">
-      <label class="fc-field"><span>{{ tr('Comment') }} <small class="c3-muted">({{ tr('required to reject') }})</small></span>
-        <textarea v-model="comment" class="fx-search cfs-comment" rows="2" maxlength="2000"></textarea></label>
-      <div class="cfs-actions">
+    <div v-if="step.isMine" class="cfs-actions">
+      <input v-model="comment" class="fx-search cfs-comment" maxlength="2000" :placeholder="tr('Comment (required to reject)')" :aria-label="tr('Comment')">
         <button type="button" class="fx-btn fc-btn-reject" :disabled="busy" @click="complete('REJECT')"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Reject') }}</button>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="complete('ACCEPT')">
           <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-check'" aria-hidden="true"></span>{{ tr(ACCEPT[step.stepCode] ?? 'Accept') }}
         </button>
-      </div>
     </div>
   </section>
 </template>
@@ -126,6 +145,8 @@ const step = ref<CfStep | null>(null)
 const comment = ref('')
 const busy = ref(false)
 const timings = ref<Record<string, string>>({})
+const amounts = ref<Record<string, number | string>>({})
+const margin = ref<number | string>(0)
 const pay = reactive({ bankAccountId: null as number | null, paymentMethodCode: 'CASH', paymentReference: '' })
 const inboxId = () => (route.query.inboxId ? Number(route.query.inboxId) : null)
 const money = (n: number) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
@@ -134,12 +155,20 @@ const charges = computed(() => step.value?.charges ?? null)
 /** Credit decides on its own task; later steps only show the decision. */
 const deciding = computed(() => step.value?.stepCode === 'CF_CREDIT' && step.value.isMine)
 const timing = (c: CfCharge) => timings.value[c.chargeCode] ?? c.timingCode
+/** The amount Credit typed (an empty box counts as the rule's amount); the tax follows it. */
+const amountOf = (c: CfCharge) => {
+  const v = amounts.value[c.chargeCode]
+  return v === undefined || v === '' || Number.isNaN(Number(v)) ? c.amount : Math.round(Number(v) * 100) / 100
+}
+const taxOf = (c: CfCharge) => (c.amount ? Math.round((amountOf(c) * c.taxAmount) / c.amount * 100) / 100 : 0)
+const financeRate = computed(() => Math.round(((step.value?.productRatePct ?? 0) + (Number(margin.value) || 0)) * 10000) / 10000)
 function setTiming(c: CfCharge, t: string) {
   timings.value = { ...timings.value, [c.chargeCode]: t }
 }
 const totals = computed(() => {
   const list = charges.value?.charges ?? []
-  const of = (t: string) => list.filter((c) => (deciding.value ? timing(c) : c.timingCode) === t).reduce((s, c) => s + c.amount + c.taxAmount, 0)
+  const of = (t: string) => list.filter((c) => (deciding.value ? timing(c) : c.timingCode) === t)
+    .reduce((s, c) => s + (deciding.value ? amountOf(c) + taxOf(c) : c.amount + c.taxAmount), 0)
   return { financed: charges.value?.financedAmount ?? 0, added: of(FINANCED), upfront: of(UPFRONT) }
 })
 const claimCharges = computed(() => (charges.value?.charges ?? []).filter((c) => c.timingCode === UPFRONT).reduce((s, c) => s + c.amount + c.taxAmount, 0))
@@ -151,6 +180,8 @@ async function load() {
   try {
     step.value = await loansApi.cfStep(props.loan.loanId, inboxId())
     timings.value = {}
+    amounts.value = Object.fromEntries((step.value?.charges?.charges ?? []).map((c) => [c.chargeCode, c.amount]))
+    margin.value = step.value?.rateMarginPct ?? 0
   } catch (err) {
     showError(message(err))
   }
@@ -194,8 +225,12 @@ async function complete(action: 'ACCEPT' | 'REJECT') {
   }
   busy.value = true
   try {
-    const decision = deciding.value && action === 'ACCEPT'
-      ? Object.fromEntries((charges.value?.charges ?? []).map((c) => [c.chargeCode, timing(c)])) : undefined
+    const list = charges.value?.charges ?? []
+    const decision = deciding.value && action === 'ACCEPT' ? {
+      chargeTimings: Object.fromEntries(list.map((c) => [c.chargeCode, timing(c)])),
+      chargeAmounts: Object.fromEntries(list.map((c) => [c.chargeCode, amountOf(c)])),
+      rateMarginPct: Number(margin.value) || 0
+    } : undefined
     await loansApi.completeCfStep(props.loan.loanId, step.value.inboxId, action, comment.value.trim() || null, decision)
     showSuccess(tr(action === 'ACCEPT' ? 'Step accepted.' : 'Finance rejected.'))
     comment.value = ''
@@ -216,9 +251,20 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 
 <style scoped>
 .cfs { border-inline-start: 3px solid var(--fin-teal-600); }
-.cfs-head { display: flex; gap: 12px; align-items: flex-start; }
+.cfs { padding: 14px 18px; }
+.cfs-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .cfs-head h3 { margin: 0; font-size: 15px; }
-.cfs-head p { margin: 3px 0 0; color: var(--fin-muted); font-size: 13px; }
+.cfs-head p { margin: 0; color: var(--fin-muted); font-size: 13px; }
+.cfs-deal { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.cfs-deal > span { padding: 3px 10px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 12.5px; }
+.cfs-deal b { color: var(--fin-ink); }
+.cfs-rate { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 10px; font-size: 13px; }
+.cfs-rate label { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: #5b6b78; font-size: 12.5px; }
+.cfs-rate input { width: 90px; height: 30px; text-align: end; }
+.cfs-eff { padding: 3px 12px; border-radius: 999px; background: var(--fin-teal-50); color: var(--fin-teal-700); }
+.cfs-amt { width: 110px; height: 30px; text-align: end; }
+.cfs-rule { display: block; margin-top: 2px; }
+.chg { border-color: #d39b2a !important; background: #fffaf0 !important; }
 .cfs-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--fin-teal-50); color: var(--fin-teal-700); flex: none; }
 .cfs-box { margin-top: 12px; padding-top: 10px; border-top: 1px solid #f0f2f4; }
 .cfs-box h4 { margin: 0 0 6px; font-size: 13px; color: var(--fin-muted); }
@@ -233,7 +279,6 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-pay .fc-field { min-width: 180px; }
 .cfs-note { margin: 12px 0 0; font-size: 13px; color: #34495a; }
 .cfs-note .fa { color: var(--fin-teal-700); margin-inline-end: 6px; }
-.cfs-body { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
-.cfs-comment { min-height: 56px; resize: vertical; }
-.cfs-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.cfs-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+.cfs-comment { flex: 1; min-width: 0; height: 36px; }
 </style>

@@ -63,7 +63,7 @@ public sealed record LndLoanDto(
     bool IsPrepaymentAllowed, string PrepaymentRecalcCode, decimal PrepaymentFeePct, decimal EarlySettlementFeePct,
     string? Notes, string CreatedBy, DateTime CreatedAt, int RowVersion,
     IReadOnlyList<LndInstallmentDto> Installments, IReadOnlyList<LndLoanStatusDto> History, IReadOnlyList<LndLoanEventDto> Events,
-    LndGoodsDto? Goods = null, IReadOnlyList<LndCfChargeDto>? Charges = null, LndCfClaimDto? Claim = null);
+    LndGoodsDto? Goods = null, IReadOnlyList<LndCfChargeDto>? Charges = null, LndCfClaimDto? Claim = null, decimal RateMarginPct = 0);
 
 /// <summary>
 /// The upfront claim of a consumer finance (Charges and claim step): the upfront charges and the down payment we take, OPEN until the
@@ -316,11 +316,12 @@ public sealed class LndLoanService(
                 l.DownPaymentCollectorCode, l.SupplierMinDownPaymentPct, l.SupplierCommissionPct, l.SupplierPaymentDays, l.SupplierDeliveryDays),
             await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loanId).OrderBy(x => x.LoanChargeId)
                 .Select(x => new LndCfChargeDto(x.ChargeCode, x.ChargeName, "", x.ChargeAmount, x.TaxAmount, x.TimingCode,
-                    x.IsOverridden ? (x.TimingCode == LndCfCharges.Upfront ? LndCfCharges.Financed : LndCfCharges.Upfront) : x.TimingCode, x.IsOverridden))
+                    x.TimingCode, x.IsOverridden, x.ChargeAmount))
                 .ToListAsync(cancellationToken),
             l.ClaimStatusCode is null ? null : new LndCfClaimDto(l.ClaimStatusCode, l.ClaimChargesAmount ?? 0, l.ClaimDownPaymentAmount ?? 0,
                 (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0), l.ClaimGlTranSetId, l.ClaimPaidAt, l.ClaimPaidBy, l.ClaimPaymentMethodCode,
-                l.ClaimPaymentReference, l.ClaimPaymentGlTranSetId));
+                l.ClaimPaymentReference, l.ClaimPaymentGlTranSetId),
+            l.RateMarginPct);
     }
 
     /// <summary>Cancels a loan that has not been paid out. The schedule is kept as it was, for the record.</summary>

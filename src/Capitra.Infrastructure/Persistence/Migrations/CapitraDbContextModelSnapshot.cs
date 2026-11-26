@@ -28800,6 +28800,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("PRODUCT_VERSION_ID");
 
+                    b.Property<decimal>("RateMarginPct")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("RATE_MARGIN_PCT");
+
                     b.Property<string>("RepaymentFrequencyCode")
                         .IsRequired()
                         .HasMaxLength(20)

@@ -6,7 +6,7 @@ export type LoanOption = { id: number; code: string; name: string; licenceCode?:
 /** A consumer finance charge: timingCode is Credit's decision (PAID_UPFRONT or FINANCE_WITH_PRINCIPAL), defaultTimingCode the rule's. */
 export type CfCharge = {
   chargeCode: string; chargeName: string; basisText: string; amount: number; taxAmount: number; timingCode: string; defaultTimingCode: string
-  isOverridden: boolean
+  isOverridden: boolean; ruleAmount: number
 }
 export type CfCharges = {
   charges: CfCharge[]; financedAmount: number; addedToFinance: number; paidUpfront: number; loanAmount: number; problem: string | null; decided: boolean
@@ -19,7 +19,10 @@ export type CfClaim = {
 
 export type CfStep = {
   stepCode: string; stepName: string; inboxId: number | null; isMine: boolean; charges: CfCharges | null; accounts: PayingAccount[] | null
+  productRatePct: number | null; rateMarginPct: number
 }
+/** Credit approval's decision: per charge code its timing and amount (0 waives it), and the margin on the product rate. */
+export type CfCreditDecision = { chargeTimings: Record<string, string>; chargeAmounts: Record<string, number>; rateMarginPct: number }
 
 export type CfSupplierOption = {
   applicationId: number; applicationRef: string; clientId: number; clientNumber: string; supplierName: string; goodsCategoryCodes: string[]
@@ -90,6 +93,7 @@ export type Loan = {
   } | null
   charges?: CfCharge[] | null
   claim?: CfClaim | null
+  rateMarginPct?: number
 }
 
 export type PayingAccount = { accountId: number; bankName: string; accountRef: string; accountNo: string; accountTypeCode: string; glAccountCode: string | null }
@@ -133,9 +137,9 @@ export const loansApi = {
   cancel: (id: number, reason: string, rowVersion: number) => http.post<Loan>(`${API}/${id}/cancel`, { reason, rowVersion }),
   /** The CF_FINANCE step waiting now (null when the finance is not in its workflow); with inboxId, whether it is the user's task. */
   cfStep: (id: number, inboxId: number | null) => http.get<CfStep | null>(`${API}/${id}/cf-step${inboxId ? `?inboxId=${inboxId}` : ''}`),
-  /** chargeTimings: at Credit approval, Credit's decision per charge code. */
-  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, chargeTimings?: Record<string, string>) =>
-    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, chargeTimings: chargeTimings ?? null }),
+  /** decision: at Credit approval, Credit's decision on the charges and the rate margin. */
+  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, decision?: CfCreditDecision) =>
+    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, ...decision }),
   /** Charges and claim: create the upfront claim (posts the rule's charge GL lines). */
   createCfClaim: (id: number, inboxId: number) => http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/claim`, {}),
   payCfClaim: (id: number, inboxId: number, body: { bankAccountId: number | null; paymentMethodCode: string; paymentReference: string | null }) =>

@@ -94,4 +94,27 @@ public sealed class LndCfFinanceTests
         Assert.NotNull(LndCfFinanceRules.CheckClaim(null, 160m));
         Assert.NotNull(LndCfFinanceRules.CheckClaim(LndCfFinanceRules.Claim.Open, 160m));
     }
+
+    [Fact]
+    public void Credit_can_change_a_fee_amount_or_waive_it()
+    {
+        // the fee 160 cut to 100 and added to the schedule: loan 16,100; the stamp waived (0, so no tax either)
+        var r = LndCfCharges.Work([AdminFee, Stamp], 20000m, 4000m, new Dictionary<string, string> { ["CF_ADMIN_FEE"] = LndCfCharges.Financed },
+            new Dictionary<string, decimal> { ["CF_ADMIN_FEE"] = 100m, ["STAMP"] = 0m });
+        Assert.Equal(16100m, r.LoanAmount);
+        Assert.Equal(0m, r.PaidUpfront);
+        var fee = r.Charges.Single(x => x.ChargeCode == "CF_ADMIN_FEE");
+        Assert.Equal((100m, 160m, true), (fee.Amount, fee.RuleAmount, fee.IsOverridden));
+        var stamp = r.Charges.Single(x => x.ChargeCode == "STAMP");
+        Assert.Equal((0m, 0m, true), (stamp.Amount, stamp.TaxAmount, stamp.IsOverridden));
+        Assert.NotNull(LndCfCharges.Work([AdminFee], 20000m, 4000m, null, new Dictionary<string, decimal> { ["CF_ADMIN_FEE"] = -1m }).Problem);
+    }
+
+    [Fact]
+    public void The_finance_rate_is_the_product_rate_plus_the_margin()
+    {
+        Assert.Equal(23.5m, LndCfFinanceRules.FinanceRate(22m, 1.5m));
+        Assert.Equal(20m, LndCfFinanceRules.FinanceRate(22m, -2m));
+        Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.FinanceRate(22m, -23m));
+    }
 }
