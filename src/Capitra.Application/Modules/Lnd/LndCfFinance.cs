@@ -340,7 +340,7 @@ public sealed class LndCfFinanceService(
             changes = await planner.DecideAsync(loan, r.ChargeTimings, ct, r.ChargeAmounts);
             // the product rate stays fixed; Credit adds or takes off a margin for this finance
             var productRate = await db.Set<LndProductVersion>().Where(x => x.ProductVersionId == loan.ProductVersionId).Select(x => x.AnnualRatePct).SingleAsync(ct);
-            var margin = Math.Round(r.RateMarginPct ?? 0, 6);
+            var margin = Money.Round(r.RateMarginPct ?? 0, 6);
             var rate = LndCfFinanceRules.FinanceRate(productRate, margin);
             loan.RateMarginPct = margin;
             loan.AnnualRatePct = rate;
