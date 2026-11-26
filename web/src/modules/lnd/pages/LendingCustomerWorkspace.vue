@@ -132,8 +132,8 @@ import { lendingWsApi, type LwCustomerWorkspace } from '../api/workspace.api'
 
 const props = defineProps<{ clientId: number }>()
 
-const STATUS: Record<string, string> = { APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', WRITTEN_OFF: 'Written off' }
-const CHIP: Record<string, string> = { APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', WRITTEN_OFF: 'fx-chip--bad' }
+const STATUS: Record<string, string> = { IN_APPROVAL: 'In approval', REJECTED: 'Rejected', APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', WRITTEN_OFF: 'Written off' }
+const CHIP: Record<string, string> = { IN_APPROVAL: 'fx-chip--warn', REJECTED: 'fx-chip--bad', APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', WRITTEN_OFF: 'fx-chip--bad' }
 const KIND: Record<string, string> = { RECEIPT: 'Payment', RECOVERY: 'Recovery', PREPAYMENT: 'Part prepayment', SETTLEMENT: 'Early settlement' }
 const METHOD: Record<string, string> = { BANK_DEPOSIT: 'Bank deposit', CHEQUE: 'Cheque', CREDIT_BALANCE: 'Credit balance', MIXED: 'Mixed' }
 const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })

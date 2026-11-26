@@ -11,13 +11,14 @@
         <h1>{{ loan?.loanNumber ?? tr('Finance') }} <span v-if="loan" class="fx-chip" :class="CHIP[loan.statusCode] ?? 'fx-chip--teal'">{{ tr(STATUS[loan.statusCode] ?? loan.statusCode) }}</span></h1>
       </div>
       <div class="fx-actions">
-        <button v-if="loan && canEdit && loan.statusCode === 'APPROVED'" type="button" class="fx-btn" @click="cancelling = true"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel finance') }}</button>
+        <button v-if="loan && canEdit && loan.statusCode === 'APPROVED' && !loan.goods?.supplierApplicationId" type="button" class="fx-btn" @click="cancelling = true"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel finance') }}</button>
         <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Finances') }}</RouterLink>
       </div>
     </div>
 
     <div v-if="!loan" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading finance...') }}</div>
     <template v-else>
+      <CfFinanceStep :loan-id="loan.loanId" :version="stepVersion" @changed="stepChanged" />
       <section class="fx-card ln-facts">
         <div v-for="f in facts" :key="f[0]"><small>{{ tr(f[0]) }}</small><b>{{ f[1] }}</b></div>
       </section>
@@ -41,7 +42,7 @@
         </div>
       </section>
 
-      <section v-if="payouts" class="fx-card">
+      <section v-if="payouts && !loan.goods?.supplierApplicationId" class="fx-card">
         <header class="c3-panel-head lp-head">
           <h3><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Payout') }}</h3>
           <button v-if="payouts.canRequest && loan.statusCode === 'APPROVED' && !waiting" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openRequest">
@@ -321,14 +322,15 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
+import CfFinanceStep from '../components/CfFinanceStep.vue'
 import LndWriteOffPanel from '../components/LndWriteOffPanel.vue'
 import { getUser } from '@/shared/auth/session'
 import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage, type ReversalPreview, type PrepaymentQuote } from '../api/loans.api'
 
 const props = defineProps<{ loanId: number }>()
 
-const STATUS: Record<string, string> = { APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', CANCELLED: 'Cancelled', WRITTEN_OFF: 'Written off' }
-const CHIP: Record<string, string> = { APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', CANCELLED: 'fx-chip--bad', WRITTEN_OFF: 'fx-chip--bad' }
+const STATUS: Record<string, string> = { IN_APPROVAL: 'In approval', REJECTED: 'Rejected', APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', CANCELLED: 'Cancelled', WRITTEN_OFF: 'Written off' }
+const CHIP: Record<string, string> = { IN_APPROVAL: 'fx-chip--warn', REJECTED: 'fx-chip--bad', APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', CANCELLED: 'fx-chip--bad', WRITTEN_OFF: 'fx-chip--bad' }
 const INST: Record<string, string> = { DUE: 'Due', PART_PAID: 'Part paid', PAID: 'Paid', WRITTEN_OFF: 'Written off' }
 const FREQ: Record<string, string> = { WEEKLY: 'Weekly', FORTNIGHTLY: 'Every two weeks', MONTHLY: 'Monthly' }
 const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -336,6 +338,12 @@ const money = (n: number) => egp.format(n)
 
 const canEdit = hasPermission('LND.LOAN.EDIT')
 const loan = ref<Loan | null>(null)
+// the workflow step box reads again after the loan changed
+const stepVersion = ref(0)
+async function stepChanged() {
+  await reloadLoan()
+  stepVersion.value++
+}
 const writeOffPanel = ref<{ load: () => Promise<void> } | null>(null)
 
 async function reloadLoan() {
