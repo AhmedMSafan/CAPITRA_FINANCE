@@ -16,7 +16,7 @@ namespace Capitra.Application.Modules.Lnd;
 public sealed record LndLoanRequestDto(long? ClientId, long? ProductId, decimal? PrincipalAmount, int? TermMonths, DateOnly? DisbursementDate, DateOnly? FirstDueDate, string? Notes,
     string? GoodsCategoryCode = null, string? GoodsDescription = null, string? GoodsBrandModel = null, string? MerchantName = null,
     decimal? GoodsPriceAmount = null, decimal? DownPaymentAmount = null, long? ScenarioId = null, decimal? RatePct = null,
-    TlsScenarioRequest? Calculation = null, long? SupplierApplicationId = null, IReadOnlyDictionary<string, string>? ChargeTimings = null);
+    TlsScenarioRequest? Calculation = null, long? SupplierApplicationId = null);
 
 /// <summary>
 /// An active Consumer Finance supplier agreement, offered on New Finance with its terms (Ahmed, 26 Nov 2026): active application and
@@ -63,7 +63,14 @@ public sealed record LndLoanDto(
     bool IsPrepaymentAllowed, string PrepaymentRecalcCode, decimal PrepaymentFeePct, decimal EarlySettlementFeePct,
     string? Notes, string CreatedBy, DateTime CreatedAt, int RowVersion,
     IReadOnlyList<LndInstallmentDto> Installments, IReadOnlyList<LndLoanStatusDto> History, IReadOnlyList<LndLoanEventDto> Events,
-    LndGoodsDto? Goods = null, IReadOnlyList<LndCfChargeDto>? Charges = null);
+    LndGoodsDto? Goods = null, IReadOnlyList<LndCfChargeDto>? Charges = null, LndCfClaimDto? Claim = null);
+
+/// <summary>
+/// The upfront claim of a consumer finance (Charges and claim step): the upfront charges and the down payment we take, OPEN until the
+/// customer pays it (PAID), or NONE when nothing is paid upfront.
+/// </summary>
+public sealed record LndCfClaimDto(string StatusCode, decimal ChargesAmount, decimal DownPaymentAmount, decimal TotalAmount, string? GlTranSetId,
+    DateTime? PaidAt, string? PaidBy, string? PaymentMethodCode, string? PaymentReference, string? PaymentGlTranSetId);
 
 public sealed record LndOptionDto(long Id, string Code, string Name, string? LicenceCode = null);
 
@@ -75,7 +82,7 @@ public sealed record LndLoanStatusChangeDto(string? Reason, int? RowVersion);
 /// change writes LND_LOAN_STATUS_HIST. Disbursement, GL, receipts and end of day come in the next steps.
 /// </summary>
 public sealed class LndLoanService(
-    ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IScrUserProfiles profiles, Adm.Products.AdmProductEventRuleService rules)
+    ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IScrUserProfiles profiles)
 {
     public static class Statuses
     {
@@ -181,24 +188,6 @@ public sealed class LndLoanService(
         return e;
     }
 
-    /// <summary>The customer's charges of a consumer finance for a price and down payment (New Finance, before the schedule).</summary>
-    public async Task<LndCfChargesDto> CfChargesAsync(LndCfChargesRequest r, CancellationToken cancellationToken)
-    {
-        var product = await ConsumerProductAsync(Today, cancellationToken)
-            ?? throw new BusinessRuleException("No consumer finance product has approved terms in force.");
-        return await ChargesAsync(product.ProductCode, r.GoodsPriceAmount ?? 0, r.DownPaymentAmount ?? 0, r.ChargeTimings, cancellationToken);
-    }
-
-    private async Task<LndCfChargesDto> ChargesAsync(string productCode, decimal price, decimal down, IReadOnlyDictionary<string, string>? timings,
-        CancellationToken cancellationToken)
-    {
-        // New Finance is a screen, so its rule is the one linked to the product action CF_NEW_FINANCE (Administration > Product Actions)
-        var ruleId = await db.Set<AdmProductAction>().AsNoTracking()
-            .Where(x => x.ActionCode == Adm.Products.ProductActions.CfNewFinance && x.IsActive).Select(x => x.ProductEventRuleId).FirstOrDefaultAsync(cancellationToken);
-        var plan = ruleId is { } id ? await rules.PlanOfRuleAsync(id, Today, cancellationToken) : null;
-        return LndCfCharges.Work(plan?.Charges ?? [], Money.Round(price, 2), Money.Round(down, 2), timings);
-    }
-
     /// <summary>The active goods categories, for the financed item of a consumer finance loan.</summary>
     public async Task<IReadOnlyList<LndOptionDto>> GoodsCategoriesAsync(CancellationToken cancellationToken)
     {
@@ -234,8 +223,9 @@ public sealed class LndLoanService(
         var t = await CheckAsync(dto, cancellationToken);
         var (product, version, amount, term, disbursement, first, lines) = (t.Product, t.Version, t.Amount, t.Term, t.Disbursement, t.First, t.Lines);
         // a consumer finance from a supplier goes through CF_FINANCE: creating it submits it for credit approval
+        // its charges are decided at Credit approval and its schedule is built at Schedule and contract: the instalment, interest and
+        // maturity saved now are indicative only
         var workflow = t.Supplier is not null;
-        IReadOnlyList<LndCfChargeDto> charged = [];
         await using var tx = await db.BeginTransactionAsync(cancellationToken);
         var loan = new LndLoan
         {
@@ -267,7 +257,6 @@ public sealed class LndLoanService(
             loan.SupplierCommissionPct = sup.CommissionPct;
             loan.SupplierPaymentDays = sup.PaymentDays;
             loan.SupplierDeliveryDays = sup.DeliveryDays;
-            charged = t.Charges?.Charges ?? [];
             var profile = await profiles.ByUserNameAsync(User, cancellationToken);
             loan.EnteredByPerson = ScrDuties.PersonKey(profile?.EmployeeNo, User);
             loan.StatusCode = Statuses.InApproval;
@@ -276,16 +265,9 @@ public sealed class LndLoanService(
         await db.SaveChangesAsync(cancellationToken);
 
         loan.LoanNumber = $"LN-{Today.Year}-{loan.LoanId:D7}";
-        db.Set<LndInstallment>().AddRange(lines.Select(x => new LndInstallment
-        {
-            LoanId = loan.LoanId, InstallmentNo = x.InstallmentNo, DueDate = x.DueDate, OpeningPrincipalAmount = x.OpeningPrincipal,
-            PrincipalDueAmount = x.Principal, InterestDueAmount = x.Interest, ClosingPrincipalAmount = x.ClosingPrincipal,
-        }));
+        if (!workflow)
+            db.Set<LndInstallment>().AddRange(Installments(loan.LoanId, lines));
         db.Set<LndLoanStatusHist>().Add(new LndLoanStatusHist { LoanId = loan.LoanId, ToStatusCode = loan.StatusCode, Reason = History(t) });
-        db.Set<LndLoanCharge>().AddRange(charged.Select(c => new LndLoanCharge
-        {
-            LoanId = loan.LoanId, ChargeCode = c.ChargeCode, ChargeName = c.ChargeName, ChargeAmount = c.Amount, TaxAmount = c.TaxAmount, TimingCode = c.TimingCode,
-        }));
         await db.SaveChangesAsync(cancellationToken);
         if (workflow)
         {
@@ -296,6 +278,13 @@ public sealed class LndLoanService(
         await tx.CommitAsync(cancellationToken);
         return loan.LoanId;
     }
+
+    /// <summary>The instalments of a schedule, as saved for a loan.</summary>
+    public static IEnumerable<LndInstallment> Installments(long loanId, IReadOnlyList<LndScheduleLine> lines) => lines.Select(x => new LndInstallment
+    {
+        LoanId = loanId, InstallmentNo = x.InstallmentNo, DueDate = x.DueDate, OpeningPrincipalAmount = x.OpeningPrincipal,
+        PrincipalDueAmount = x.Principal, InterestDueAmount = x.Interest, ClosingPrincipalAmount = x.ClosingPrincipal,
+    });
 
     public async Task<LndLoanDto> GetAsync(long loanId, CancellationToken cancellationToken)
     {
@@ -326,7 +315,12 @@ public sealed class LndLoanService(
                 l.GoodsDescription ?? "", l.GoodsBrandModel, l.MerchantName, l.GoodsPriceAmount ?? 0, l.DownPaymentAmount ?? 0, l.SupplierApplicationId,
                 l.DownPaymentCollectorCode, l.SupplierMinDownPaymentPct, l.SupplierCommissionPct, l.SupplierPaymentDays, l.SupplierDeliveryDays),
             await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loanId).OrderBy(x => x.LoanChargeId)
-                .Select(x => new LndCfChargeDto(x.ChargeCode, x.ChargeName, "", x.ChargeAmount, x.TaxAmount, x.TimingCode)).ToListAsync(cancellationToken));
+                .Select(x => new LndCfChargeDto(x.ChargeCode, x.ChargeName, "", x.ChargeAmount, x.TaxAmount, x.TimingCode,
+                    x.IsOverridden ? (x.TimingCode == LndCfCharges.Upfront ? LndCfCharges.Financed : LndCfCharges.Upfront) : x.TimingCode, x.IsOverridden))
+                .ToListAsync(cancellationToken),
+            l.ClaimStatusCode is null ? null : new LndCfClaimDto(l.ClaimStatusCode, l.ClaimChargesAmount ?? 0, l.ClaimDownPaymentAmount ?? 0,
+                (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0), l.ClaimGlTranSetId, l.ClaimPaidAt, l.ClaimPaidBy, l.ClaimPaymentMethodCode,
+                l.ClaimPaymentReference, l.ClaimPaymentGlTranSetId));
     }
 
     /// <summary>Cancels a loan that has not been paid out. The schedule is kept as it was, for the record.</summary>
@@ -357,7 +351,7 @@ public sealed class LndLoanService(
     private sealed record Terms(
         AdmProduct Product, LndProductVersion Version, decimal Amount, int Term, DateOnly Disbursement, DateOnly First,
         IReadOnlyList<LndScheduleLine> Lines, decimal RatePct, string? DayCountCode, string? ScenarioName, decimal? ScenarioRatePct = null,
-        LndCfSupplierOptionDto? Supplier = null, LndCfChargesDto? Charges = null);
+        LndCfSupplierOptionDto? Supplier = null);
 
     /// <summary>
     /// The terms a request can be made on, checked against the product version in force on the disbursement date. With a saved
@@ -368,7 +362,6 @@ public sealed class LndLoanService(
     {
         var e = new Dictionary<string, string[]>();
         LndCfSupplierOptionDto? supplier = null;
-        LndCfChargesDto? charges = null;
         TlsScenario? scenario = null;
         if (dto.ScenarioId is { } scenarioId)
         {
@@ -441,10 +434,8 @@ public sealed class LndLoanService(
         if (LndProductTerms.Licences[product.BusinessLineCode] == "CF")
         {
             var categories = await db.Set<LndLkpGoodsCategory>().AsNoTracking().Where(x => x.IsActive).Select(x => x.Code).ToListAsync(cancellationToken);
-            // the customer's charges, before the schedule: those added to the finance make the loan amount
-            charges = await ChargesAsync(product.ProductCode, dto.GoodsPriceAmount ?? 0, dto.DownPaymentAmount ?? 0, dto.ChargeTimings, cancellationToken);
-            if (charges.Problem is not null) throw BusinessValidationException.For("charges", charges.Problem);
-            e = CheckGoods(dto, amount, categories, charges.AddedToFinance);
+            // main data only: the amount is the price less the down payment (Credit decides the charges later)
+            e = CheckGoods(dto, amount, categories);
             if (e.Count > 0) throw new BusinessValidationException(e);
             supplier = (await CfSuppliersAsync(cancellationToken)).FirstOrDefault(x => x.ApplicationId == dto.SupplierApplicationId);
             e = CheckSupplier(dto, supplier);
@@ -456,7 +447,7 @@ public sealed class LndLoanService(
         if (e.Count > 0) throw new BusinessValidationException(e);
         if (scenario is null) lines = LndSchedule.Build(amount, term, version.RepaymentFrequencyCode, version.InterestMethodCode, version.AnnualRatePct, first);
         return new Terms(product, version, amount, term, disbursement, first, lines, rate, dayCount, scenario?.Scenario.ScenarioName,
-            scenario?.Rates[0].InterestRatePct, supplier, charges);
+            scenario?.Rates[0].InterestRatePct, supplier);
     }
 
     private sealed record TlsScenario(TlsLoanScenario Scenario, List<TlsLoanScenarioRate> Rates, List<TlsLoanScenarioLine> Lines);

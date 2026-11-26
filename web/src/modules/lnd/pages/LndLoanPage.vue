@@ -18,7 +18,7 @@
 
     <div v-if="!loan" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading finance...') }}</div>
     <template v-else>
-      <CfFinanceStep :loan-id="loan.loanId" :version="stepVersion" @changed="stepChanged" />
+      <CfFinanceStep :loan="loan" :version="stepVersion" @changed="stepChanged" />
       <section class="fx-card ln-facts">
         <div v-for="f in facts" :key="f[0]"><small>{{ tr(f[0]) }}</small><b>{{ f[1] }}</b></div>
       </section>
@@ -32,7 +32,7 @@
           <div><small>{{ tr('Supplier') }}</small><b>{{ loan.goods.merchantName || '—' }}</b></div>
           <div><small>{{ tr('Item price') }}</small><b>{{ money(loan.goods.priceAmount) }}</b></div>
           <div><small>{{ tr('Down payment') }}</small><b>{{ money(loan.goods.downPaymentAmount) }}</b></div>
-          <div><small>{{ tr('Financed') }}</small><b>{{ money(loan.principalAmount) }}</b></div>
+          <div><small>{{ tr('Finance amount') }}</small><b>{{ money(loan.principalAmount) }}</b></div>
           <template v-if="loan.goods.supplierApplicationId">
             <div><small>{{ tr('Down payment collected by') }}</small><b>{{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'Us' : 'Supplier') }}</b></div>
             <div><small>{{ tr('Commission') }}</small><b>{{ loan.goods.supplierCommissionPct ?? 0 }}%</b></div>
@@ -44,7 +44,21 @@
           <h4>{{ tr('Charges') }}</h4>
           <div v-for="c in loan.charges" :key="c.chargeCode" class="ln-charge">
             <span>{{ tr(c.chargeName) }}</span><b>{{ money(c.amount + c.taxAmount) }}</b>
-            <span class="fx-chip" :class="c.timingCode === 'PAID_UPFRONT' ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(c.timingCode === 'PAID_UPFRONT' ? 'Pay upfront' : 'Added to the finance') }}</span>
+            <span class="fx-chip" :class="c.timingCode === 'PAID_UPFRONT' ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(c.timingCode === 'PAID_UPFRONT' ? 'Pay upfront' : 'Added to schedule') }}</span>
+            <small v-if="c.isOverridden" class="c3-muted">{{ tr('changed by Credit') }}</small>
+          </div>
+        </div>
+        <div v-if="loan.claim" class="ln-charges">
+          <h4>{{ tr('Upfront claim') }}</h4>
+          <div class="ln-charge">
+            <template v-if="loan.claim.statusCode === 'NONE'"><span>{{ tr('Nothing is paid upfront.') }}</span></template>
+            <template v-else>
+              <span>{{ tr('Charges') }} {{ money(loan.claim.chargesAmount) }} · {{ tr('Down payment') }} {{ money(loan.claim.downPaymentAmount) }}</span>
+              <b>{{ money(loan.claim.totalAmount) }}</b>
+              <span class="fx-chip" :class="loan.claim.statusCode === 'PAID' ? 'fx-chip--ok' : 'fx-chip--warn'">{{ tr(loan.claim.statusCode === 'PAID' ? 'Paid' : 'Waiting for payment') }}</span>
+              <small v-if="loan.claim.glTranSetId" class="c3-muted">GL {{ loan.claim.glTranSetId }}</small>
+              <small v-if="loan.claim.paymentGlTranSetId" class="c3-muted">· {{ tr('Payment') }} GL {{ loan.claim.paymentGlTranSetId }}</small>
+            </template>
           </div>
         </div>
       </section>
@@ -137,6 +151,9 @@
                 <td class="ln-num">{{ money(i.insuranceDue) }}</td><td class="ln-num">{{ money(i.lateFeeDue) }}</td><td class="ln-num"><b>{{ money(i.totalDue) }}</b></td>
                 <td class="ln-num">{{ money(i.totalPaid) }}</td><td class="ln-num">{{ money(i.closingPrincipal) }}</td>
                 <td><span class="fx-chip" :class="i.statusCode === 'PAID' ? 'fx-chip--ok' : i.statusCode === 'PART_PAID' ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(INST[i.statusCode] ?? i.statusCode) }}</span></td>
+              </tr>
+              <tr v-if="!loan.installments.length">
+                <td colspan="11" class="c3-muted">{{ tr('No schedule yet: it is built at the Schedule and contract step, after Credit decides the charges.') }}</td>
               </tr>
             </tbody>
             <tfoot>

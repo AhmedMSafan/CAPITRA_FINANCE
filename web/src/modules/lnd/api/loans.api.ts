@@ -3,10 +3,23 @@ import { http } from '@/shared/api/http'
 
 export type LoanOption = { id: number; code: string; name: string; licenceCode?: string | null }
 
-export type CfCharge = { chargeCode: string; chargeName: string; basisText: string; amount: number; taxAmount: number; timingCode: string }
-export type CfCharges = { charges: CfCharge[]; financedAmount: number; addedToFinance: number; paidUpfront: number; loanAmount: number; problem: string | null }
+/** A consumer finance charge: timingCode is Credit's decision (PAID_UPFRONT or FINANCE_WITH_PRINCIPAL), defaultTimingCode the rule's. */
+export type CfCharge = {
+  chargeCode: string; chargeName: string; basisText: string; amount: number; taxAmount: number; timingCode: string; defaultTimingCode: string
+  isOverridden: boolean
+}
+export type CfCharges = {
+  charges: CfCharge[]; financedAmount: number; addedToFinance: number; paidUpfront: number; loanAmount: number; problem: string | null; decided: boolean
+}
+/** The upfront claim of the Charges and claim step: OPEN until paid, PAID, or NONE when nothing is paid upfront. */
+export type CfClaim = {
+  statusCode: 'OPEN' | 'PAID' | 'NONE'; chargesAmount: number; downPaymentAmount: number; totalAmount: number; glTranSetId: string | null
+  paidAt: string | null; paidBy: string | null; paymentMethodCode: string | null; paymentReference: string | null; paymentGlTranSetId: string | null
+}
 
-export type CfStep = { stepCode: string; stepName: string; inboxId: number | null; isMine: boolean }
+export type CfStep = {
+  stepCode: string; stepName: string; inboxId: number | null; isMine: boolean; charges: CfCharges | null; accounts: PayingAccount[] | null
+}
 
 export type CfSupplierOption = {
   applicationId: number; applicationRef: string; clientId: number; clientNumber: string; supplierName: string; goodsCategoryCodes: string[]
@@ -31,8 +44,6 @@ export type LoanRequest = {
   downPaymentAmount: number | null
   /** Consumer finance: the active supplier agreement the goods are bought under. */
   supplierApplicationId?: number | null
-  /** Consumer finance: per charge code, PAID_UPFRONT (default) or FINANCE_WITH_PRINCIPAL. */
-  chargeTimings?: Record<string, string> | null
   // New Finance: a saved scenario of the Finance Calculator gives the amount, dates, rate and schedule
   scenarioId?: number | null
   // the rate for this finance only; when it differs from the scenario's, the schedule is worked out again (the scenario is unchanged)
@@ -78,6 +89,7 @@ export type Loan = {
     supplierPaymentDays: number | null; supplierDeliveryDays: number | null
   } | null
   charges?: CfCharge[] | null
+  claim?: CfClaim | null
 }
 
 export type PayingAccount = { accountId: number; bankName: string; accountRef: string; accountNo: string; accountTypeCode: string; glAccountCode: string | null }
@@ -114,9 +126,6 @@ export const loansApi = {
   goodsCategories: () => http.get<LoanOption[]>(`${API}/goods-categories`),
   /** Active Consumer Finance suppliers a finance can be bought from today, with their agreed terms. */
   cfSuppliers: () => http.get<CfSupplierOption[]>(`${API}/cf-suppliers`),
-  /** The customer's charges for a price and down payment, each paid upfront or added to the finance. */
-  cfCharges: (goodsPriceAmount: number, downPaymentAmount: number, chargeTimings: Record<string, string>) =>
-    http.post<CfCharges>(`${API}/cf-charges`, { goodsPriceAmount, downPaymentAmount, chargeTimings }),
   scenarios: () => http.get<ScenarioOption[]>(`${API}/scenarios`),
   clients: (q: string) => http.get<LoanOption[]>(`${API}/clients?q=${encodeURIComponent(q)}`),
   preview: (body: LoanRequest) => http.post<LoanPreview>(`${API}/preview`, body),
@@ -124,8 +133,13 @@ export const loansApi = {
   cancel: (id: number, reason: string, rowVersion: number) => http.post<Loan>(`${API}/${id}/cancel`, { reason, rowVersion }),
   /** The CF_FINANCE step waiting now (null when the finance is not in its workflow); with inboxId, whether it is the user's task. */
   cfStep: (id: number, inboxId: number | null) => http.get<CfStep | null>(`${API}/${id}/cf-step${inboxId ? `?inboxId=${inboxId}` : ''}`),
-  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null) =>
-    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment }),
+  /** chargeTimings: at Credit approval, Credit's decision per charge code. */
+  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, chargeTimings?: Record<string, string>) =>
+    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, chargeTimings: chargeTimings ?? null }),
+  /** Charges and claim: create the upfront claim (posts the rule's charge GL lines). */
+  createCfClaim: (id: number, inboxId: number) => http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/claim`, {}),
+  payCfClaim: (id: number, inboxId: number, body: { bankAccountId: number | null; paymentMethodCode: string; paymentReference: string | null }) =>
+    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/claim/payment`, body),
   payouts: (id: number) => http.get<DisbursementPage>(`${API}/${id}/disbursements`),
   requestPayout: (id: number, body: PayoutRequest) => http.post<DisbursementPage>(`${API}/${id}/disbursements`, body),
   pay: (id: number, d: number, notes: string | null) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/pay`, { notes }),
