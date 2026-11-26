@@ -67,3 +67,20 @@ public sealed class CrmCfSupplierStepNoteConfiguration : IEntityTypeConfiguratio
         builder.ConfigureAudit();
     }
 }
+
+public sealed class CrmCfSupplierTermChangeConfiguration : IEntityTypeConfiguration<CrmCfSupplierTermChange>
+{
+    public void Configure(EntityTypeBuilder<CrmCfSupplierTermChange> builder)
+    {
+        builder.ToTable("CRM_CF_SUPPLIER_TERM_CHANGES");
+        builder.HasKey(x => x.TermChangeId);
+        builder.HasIndex(x => x.ApplicationId);
+        builder.Property(x => x.TermChangeId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.FieldName).HasMaxLength(50);
+        builder.Property(x => x.OldValue).HasMaxLength(500);
+        builder.Property(x => x.NewValue).HasMaxLength(500);
+        builder.Property(x => x.Reason).HasMaxLength(1000);
+        builder.HasOne<CrmCfSupplierApplication>().WithMany().HasForeignKey(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+        builder.ConfigureAudit();
+    }
+}

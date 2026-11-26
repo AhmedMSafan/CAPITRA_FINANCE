@@ -38,50 +38,74 @@
     <section class="fx-card fc-step-card">
       <header class="fc-sec-head">
         <span class="fc-sec-ic" aria-hidden="true"><span class="fa fa-file-text"></span></span>
-        <div><h2>{{ tr('Agreement terms') }}</h2><p>{{ editable ? tr('Fields marked * are required.') : tr('Read only: the application is in its workflow or closed.') }}</p></div>
+        <div><h2>{{ tr('Agreement terms') }}</h2><p>{{ termsOpen ? tr('Fields marked * are required.') : tr('Read only: the application is in its workflow or closed.') }}</p></div>
+        <!-- an active supplier's terms can be changed without a new approval, with a reason (Ahmed, 26 Nov 2026; ADMIN) -->
+        <button v-if="canAmend && !amending" type="button" class="fx-btn cf-amend-btn" @click="amending = true"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change terms') }}</button>
       </header>
       <div class="fc-grid fc-grid--3">
         <div class="fc-field fc-full"><span>{{ tr('Goods the supplier sells on finance') }} <b>*</b></span>
           <div class="cf-cats">
             <label v-for="g in options?.goodsCategories ?? []" :key="g.code" class="cf-cat" :class="{ 'is-on': form.goodsCategoryCodes.includes(g.code) }">
-              <input v-model="form.goodsCategoryCodes" type="checkbox" :value="g.code" :disabled="!editable">{{ tr(g.name) }}
+              <input v-model="form.goodsCategoryCodes" type="checkbox" :value="g.code" :disabled="!termsOpen">{{ tr(g.name) }}
             </label>
           </div>
           <small v-if="errors.goodsCategoryCodes" class="scr-err">{{ errors.goodsCategoryCodes }}</small>
         </div>
         <label class="fc-field"><span>{{ tr('Minimum down payment %') }} <b>*</b></span>
-          <input v-model.number="form.minDownPaymentPct" class="fx-search" type="number" min="0" max="99.99" step="0.01" :disabled="!editable">
+          <input v-model.number="form.minDownPaymentPct" class="fx-search" type="number" min="0" max="99.99" step="0.01" :disabled="!termsOpen">
           <small v-if="errors.minDownPaymentPct" class="scr-err">{{ errors.minDownPaymentPct }}</small></label>
         <label class="fc-field"><span>{{ tr('Down payment taken by') }} <b>*</b></span>
-          <select v-model="form.downPaymentCollectorCode" class="fx-select" :disabled="!editable">
+          <select v-model="form.downPaymentCollectorCode" class="fx-select" :disabled="!termsOpen">
             <option v-for="o in options?.collectors ?? []" :key="o.code" :value="o.code">{{ tr(o.name) }}</option>
           </select></label>
         <label class="fc-field"><span>{{ tr('Commission %') }} <b>*</b></span>
-          <input v-model.number="form.commissionPct" class="fx-search" type="number" min="0" max="99.99" step="0.01" :disabled="!editable">
+          <input v-model.number="form.commissionPct" class="fx-search" type="number" min="0" max="99.99" step="0.01" :disabled="!termsOpen">
           <small v-if="errors.commissionPct" class="scr-err">{{ errors.commissionPct }}</small></label>
         <label class="fc-field"><span>{{ tr('Payment days after delivery') }} <b>*</b></span>
-          <input v-model.number="form.paymentDays" class="fx-search" type="number" min="0" max="365" :disabled="!editable">
+          <input v-model.number="form.paymentDays" class="fx-search" type="number" min="0" max="365" :disabled="!termsOpen">
           <small v-if="errors.paymentDays" class="scr-err">{{ errors.paymentDays }}</small></label>
         <label class="fc-field"><span>{{ tr('Quotation validity days') }} <b>*</b></span>
-          <input v-model.number="form.quotationValidityDays" class="fx-search" type="number" min="1" max="90" :disabled="!editable">
+          <input v-model.number="form.quotationValidityDays" class="fx-search" type="number" min="1" max="90" :disabled="!termsOpen">
           <small v-if="errors.quotationValidityDays" class="scr-err">{{ errors.quotationValidityDays }}</small></label>
         <label class="fc-field"><span>{{ tr('Delivery days') }} <b>*</b></span>
-          <input v-model.number="form.deliveryDays" class="fx-search" type="number" min="1" max="90" :disabled="!editable">
+          <input v-model.number="form.deliveryDays" class="fx-search" type="number" min="1" max="90" :disabled="!termsOpen">
           <small v-if="errors.deliveryDays" class="scr-err">{{ errors.deliveryDays }}</small></label>
         <label class="fc-field"><span>{{ tr('Valid from') }} <b>*</b></span>
-          <input v-model="form.validFromDate" class="fx-search" type="date" :disabled="!editable"></label>
+          <input v-model="form.validFromDate" class="fx-search" type="date" :disabled="!termsOpen"></label>
         <label class="fc-field"><span>{{ tr('Valid to') }}</span>
-          <input v-model="form.validToDate" class="fx-search" type="date" :disabled="!editable">
+          <input v-model="form.validToDate" class="fx-search" type="date" :disabled="!termsOpen">
           <small v-if="errors.validToDate" class="scr-err">{{ errors.validToDate }}</small></label>
         <label class="fc-field"><span>{{ tr('Bank account to pay') }} <b v-if="atStep('CFS_CONTRACT')">*</b></span>
-          <select v-model="form.clientBankAccountId" class="fx-select" :disabled="!editable && !atStep('CFS_CONTRACT')" @change="bankChanged">
+          <select v-model="form.clientBankAccountId" class="fx-select" :disabled="!termsOpen && !atStep('CFS_CONTRACT')" @change="bankChanged">
             <option :value="null">—</option>
             <option v-for="b in app?.bankAccounts ?? []" :key="b.bankAccountId" :value="b.bankAccountId">
               {{ b.bankName }} · {{ b.iban || b.accountNumber }} · {{ tr(BANK_STATUS[b.statusCode] ?? b.statusCode) }}
             </option>
           </select>
           <small class="scr-hint">{{ tr('It must be verified in Customer 360 before the contract step is accepted.') }}</small></label>
-        <label class="fc-field fc-full"><span>{{ tr('Notes') }}</span><textarea v-model="form.notes" class="fx-search fc-textarea" maxlength="2000" :disabled="!editable"></textarea></label>
+        <label class="fc-field fc-full"><span>{{ tr('Notes') }}</span><textarea v-model="form.notes" class="fx-search fc-textarea" maxlength="2000" :disabled="!termsOpen"></textarea></label>
+      </div>
+      <div v-if="amending" class="cf-amend">
+        <p class="c3-muted"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('The new terms apply to new finances only; finances already created keep their terms.') }}</p>
+        <label class="fc-field"><span>{{ tr('Reason for the change') }} <b>*</b></span><input v-model="amendReason" class="fx-search" maxlength="1000"></label>
+        <div class="cf-amend-actions">
+          <button type="button" class="fx-btn" :disabled="busy" @click="cancelAmend"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Cancel') }}</button>
+          <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveAmend"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save changes') }}</button>
+        </div>
+      </div>
+      <div v-if="app?.termChanges.length" class="cf-changes">
+        <h3>{{ tr('Change history') }}</h3>
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('When') }}</th><th>{{ tr('By') }}</th><th>{{ tr('Term') }}</th><th>{{ tr('Old') }}</th><th>{{ tr('New') }}</th><th>{{ tr('Reason') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="(c, i) in app.termChanges" :key="i">
+                <td>{{ formatDateTime(c.at) }}</td><td>{{ c.by }}</td><td>{{ tr(c.fieldName) }}</td>
+                <td>{{ c.oldValue ?? '—' }}</td><td><b>{{ c.newValue ?? '—' }}</b></td><td>{{ c.reason }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -207,7 +231,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { hasPermission } from '@/shared/auth/session'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
-import { formatDate } from '@/shared/format/datetime'
+import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import { workflowService } from '@/modules/wfe/services/workflowService'
 import type { WorkflowInboxTask } from '@/modules/wfe/models/workflow'
@@ -220,6 +244,11 @@ const props = defineProps<{ clientId: number; inboxId: number | null }>()
 const emit = defineEmits<{ changed: []; 'open-tab': [tab: string] }>()
 const router = useRouter()
 const canEdit = hasPermission('CRM.CF_SUPPLIER.EDIT')
+const amending = ref(false)
+const amendReason = ref('')
+const canAmend = computed(() => hasPermission('CRM.CF_SUPPLIER.AMEND') && app.value?.statusCode === 'ACTIVE')
+// the terms can be typed in: data entry, or an active supplier's terms being changed
+const termsOpen = computed(() => editable.value || amending.value)
 
 const PARTY: Record<string, string> = { OWNER: 'Owner', MANAGER: 'Manager', SIGNATORY: 'Authorised signatory' }
 const riskName = (code: string) => options.value?.riskRatings.find((o) => o.code === code)?.name ?? code
@@ -299,6 +328,23 @@ async function run(work: () => Promise<void>) {
     busy.value = false
   }
 }
+
+const cancelAmend = () => {
+  amending.value = false
+  amendReason.value = ''
+  if (app.value) fill(app.value)
+}
+
+const saveAmend = () => run(async () => {
+  if (!amendReason.value.trim()) {
+    showError(tr('Write why the terms are changed.'))
+    return
+  }
+  fill(await cfSuppliersApi.amend(app.value!.applicationId, { ...form }, amendReason.value.trim()))
+  amending.value = false
+  amendReason.value = ''
+  showSuccess(tr('Terms changed.'))
+})
 
 const save = () => run(async () => {
   if (app.value) {
@@ -385,4 +431,9 @@ watch(() => [props.clientId, props.inboxId], load, { immediate: true })
 .cf-step-row .fc-field { width: 260px; }
 .cf-hint { margin: 0 16px 14px; font-size: 12px; }
 .num { text-align: end; }
+.cf-amend-btn { margin-inline-start: auto; }
+.cf-amend { display: flex; flex-direction: column; gap: 8px; margin: 4px 16px 16px; padding: 12px; border: 1px dashed var(--fin-line); border-radius: 10px; }
+.cf-amend-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.cf-changes { margin: 0 16px 16px; }
+.cf-changes h3 { margin: 6px 0; font-size: 13px; color: var(--fin-muted); }
 </style>

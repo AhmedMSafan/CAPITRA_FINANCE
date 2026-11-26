@@ -42,6 +42,11 @@ public sealed class CrmCfSupplierController(CrmCfSupplierService service) : Cont
     [HasPermission(Permissions.Crm.CfSupplierEdit)]
     public Task<CrmCfSupplierDto> Update(long applicationId, CrmCfSupplierRequest request, CancellationToken ct) => service.UpdateAsync(applicationId, request, ct);
 
+    /// <summary>Changes an active supplier's terms without a new approval, with a reason (CRM.CF_SUPPLIER.AMEND).</summary>
+    [HttpPost("{applicationId:long}/amend")]
+    [HasPermission(Permissions.Crm.CfSupplierAmend)]
+    public Task<CrmCfSupplierDto> Amend(long applicationId, CrmCfAmendRequest request, CancellationToken ct) => service.AmendAsync(applicationId, request, ct);
+
     [HttpPost("{applicationId:long}/submit")]
     [HasPermission(Permissions.Crm.CfSupplierEdit)]
     public Task<CrmCfSupplierDto> Submit(long applicationId, CancellationToken ct) => service.SubmitAsync(applicationId, ct);
