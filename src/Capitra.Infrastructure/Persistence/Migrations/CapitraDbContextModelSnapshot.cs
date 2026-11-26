@@ -4909,6 +4909,74 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("CRM_CF_SUPPLIER_STEP_NOTES", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierTermChange", b =>
+                {
+                    b.Property<long>("TermChangeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("TERM_CHANGE_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("TermChangeId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("FIELD_NAME");
+
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("NEW_VALUE");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("OLD_VALUE");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REASON");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("TermChangeId")
+                        .HasName("PK_CRM_CF_SUPPLIER_TERM_CHANGES");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_CRM_CF_SUPPLIER_TERM_CHANGES_APPLICATION_ID");
+
+                    b.ToTable("CRM_CF_SUPPLIER_TERM_CHANGES", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmClient", b =>
                 {
                     b.Property<long>("ClientId")
@@ -45260,6 +45328,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_CRM_CF_SUPPLIER_STEP_NOTES_CRM_CF_SUPPLIER_APPLICATIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierTermChange", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CF_SUPPLIER_TERM_CHANGES_CRM_CF_SUPPLIER_APPLICATIONS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmClient", b =>

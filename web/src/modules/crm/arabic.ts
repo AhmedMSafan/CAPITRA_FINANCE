@@ -186,5 +186,19 @@ export const CRM_AR: Record<string, string> = {
   'Enhanced due diligence': 'العناية الواجبة المعززة',
   'Owners and signatories screened, no sanctions match': 'الملاك والمفوضون المفحوصون دون تطابق مع العقوبات',
   'At least one owner and one authorised signatory. Screen each person against sanctions, blacklist and PEP lists.': 'مالك واحد ومفوض بالتوقيع واحد على الأقل. افحص كل شخص مقابل قوائم العقوبات والقوائم السوداء والأشخاص المعرضين سياسياً.',
-  'Every customer has the Client role from its creation; it is not added by hand.': 'لكل عميل دور عميل منذ إنشائه؛ لا يُضاف يدوياً.'
+  'Every customer has the Client role from its creation; it is not added by hand.': 'لكل عميل دور عميل منذ إنشائه؛ لا يُضاف يدوياً.',
+  'Change terms': 'تعديل الشروط',
+  'The new terms apply to new finances only; finances already created keep their terms.': 'تُطبق الشروط الجديدة على التمويلات الجديدة فقط؛ تحتفظ التمويلات القائمة بشروطها.',
+  'Reason for the change': 'سبب التعديل',
+  'Save changes': 'حفظ التعديلات',
+  'Change history': 'سجل التعديلات',
+  'Term': 'البند',
+  'Old': 'القديم',
+  'New': 'الجديد',
+  'Write why the terms are changed.': 'اكتب سبب تعديل الشروط.',
+  'Terms changed.': 'تم تعديل الشروط.',
+  'Goods': 'السلع',
+  'Payment days': 'أيام السداد',
+  'Bank account': 'الحساب البنكي',
+  'Nothing was changed.': 'لم يتم تغيير شيء.'
 }

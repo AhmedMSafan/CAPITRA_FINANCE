@@ -38,7 +38,14 @@ public sealed record CrmCfSupplierDto(
     int QuotationValidityDays, int DeliveryDays, DateOnly ValidFromDate, DateOnly? ValidToDate, long? ClientBankAccountId,
     string? RiskRatingCode, DateOnly? SiteVisitDate, DateTime? ActivatedAt, string? Notes,
     IReadOnlyList<CrmCfPartyDto> Parties, IReadOnlyList<CrmCfBankAccountOptionDto> BankAccounts,
-    string? OpenStepCode, string? OpenStepName, bool CanEdit, CrmBadgeDto Compliance, string? CustomerRiskGrade);
+    string? OpenStepCode, string? OpenStepName, bool CanEdit, CrmBadgeDto Compliance, string? CustomerRiskGrade,
+    IReadOnlyList<CrmCfTermChangeDto> TermChanges);
+
+/// <summary>One field changed on an active supplier's terms, by whom, when and why.</summary>
+public sealed record CrmCfTermChangeDto(string FieldName, string? OldValue, string? NewValue, string Reason, string By, DateTime At);
+
+/// <summary>New terms for an active supplier, with the reason for the change.</summary>
+public sealed record CrmCfAmendRequest(CrmCfSupplierRequest Terms, string? Reason);
 
 public sealed record CrmCfSupplierOptionsDto(
     IReadOnlyList<CrmCfOptionDto> GoodsCategories, IReadOnlyList<CrmCfOptionDto> Collectors, IReadOnlyList<CrmCfOptionDto> PartyTypes,
@@ -165,8 +172,55 @@ public sealed class CrmCfSupplierService(
             a.MinDownPaymentPct, a.DownPaymentCollectorCode, a.CommissionPct, a.PaymentDays, a.QuotationValidityDays, a.DeliveryDays, a.ValidFromDate,
             a.ValidToDate, a.ClientBankAccountId, a.RiskRatingCode, a.SiteVisitDate, a.ActivatedAt, a.Notes, parties, banks,
             step, step is null ? null : CrmCfSupplierWorkflowHandler.StepName(step), EntryOpen(a),
-            await customers.ComplianceBadgeAsync(a.ClientId, ct), c.RiskGrade);
+            await customers.ComplianceBadgeAsync(a.ClientId, ct), c.RiskGrade,
+            await db.Set<CrmCfSupplierTermChange>().AsNoTracking().Where(x => x.ApplicationId == applicationId).OrderByDescending(x => x.TermChangeId)
+                .Select(x => new CrmCfTermChangeDto(x.FieldName, x.OldValue, x.NewValue, x.Reason, x.CreatedBy, x.CreatedAt)).ToListAsync(ct));
     }
+
+    /// <summary>
+    /// Changes an active supplier's terms without a new approval (Ahmed, 26 Nov 2026; CRM.CF_SUPPLIER.AMEND): the same checks as data
+    /// entry, the bank account verified, a reason, and one history row per field changed. Finances already created keep their terms.
+    /// </summary>
+    public async Task<CrmCfSupplierDto> AmendAsync(long applicationId, CrmCfAmendRequest r, CancellationToken ct)
+    {
+        var reason = ScrValidation.Clean(r.Reason);
+        if (reason is null) throw BusinessValidationException.For("reason", "Write why the terms are changed.");
+        if (reason.Length > 1000) throw BusinessValidationException.For("reason", "The reason is longer than 1000 characters.");
+        var a = await ApplicationAsync(applicationId, ct);
+        if (a.StatusCode != CrmCfSupplierStatus.Active)
+            throw new BusinessRuleException($"Only an active supplier's terms are changed this way; {a.ApplicationRef} is {a.StatusCode.ToLowerInvariant().Replace('_', ' ')}.");
+
+        var before = Terms(a);
+        Apply(a, r.Terms);
+        await CheckTermsAsync(a, ct);
+        if (a.ClientBankAccountId is { } bankId
+            && !await db.Set<CrmClientBankAccount>().AnyAsync(x => x.BankAccountId == bankId && x.StatusCode == "VERIFIED", ct))
+            throw BusinessValidationException.For("clientBankAccountId", "Choose a verified bank account.");
+        if (a.ClientBankAccountId is null) throw BusinessValidationException.For("clientBankAccountId", "An active supplier needs the bank account it is paid to.");
+        var after = Terms(a);
+        var changed = before.Where(x => after[x.Key] != x.Value).Select(x => x.Key).ToList();
+        if (changed.Count == 0) throw new BusinessRuleException("Nothing was changed.");
+        foreach (var field in changed)
+            db.Add(new CrmCfSupplierTermChange { ApplicationId = a.ApplicationId, FieldName = field, OldValue = before[field], NewValue = after[field], Reason = reason });
+        await db.SaveChangesAsync(ct);
+        return await GetAsync(applicationId, ct);
+    }
+
+    /// <summary>The terms as text, by the name the page shows them under, to compare and keep in the change history.</summary>
+    private static Dictionary<string, string?> Terms(CrmCfSupplierApplication a) => new()
+    {
+        ["Goods"] = a.GoodsCategoryCodes,
+        ["Minimum down payment %"] = a.MinDownPaymentPct.ToString("0.######", CultureInfo.InvariantCulture),
+        ["Down payment taken by"] = a.DownPaymentCollectorCode,
+        ["Commission %"] = a.CommissionPct.ToString("0.######", CultureInfo.InvariantCulture),
+        ["Payment days"] = a.PaymentDays.ToString(CultureInfo.InvariantCulture),
+        ["Quotation validity days"] = a.QuotationValidityDays.ToString(CultureInfo.InvariantCulture),
+        ["Delivery days"] = a.DeliveryDays.ToString(CultureInfo.InvariantCulture),
+        ["Valid from"] = a.ValidFromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        ["Valid to"] = a.ValidToDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        ["Bank account"] = a.ClientBankAccountId?.ToString(CultureInfo.InvariantCulture),
+        ["Notes"] = a.Notes,
+    };
 
     /// <summary>
     /// Starts a supplier application for a customer: its SUPPLIER role for CONSUMER_FINANCE is added (Onboarding) when it has none.

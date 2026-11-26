@@ -156,3 +156,22 @@ public class CrmCfSupplierStepNote : AuditableEntity
 
     public DateTime DoneAt { get; set; }
 }
+
+/// <summary>
+/// CRM_CF_SUPPLIER_TERM_CHANGES: a change to an active supplier's agreement terms made without a new approval (Ahmed, 26 Nov 2026),
+/// one row per field, with the reason. Finances already created keep the terms they were created with.
+/// </summary>
+public class CrmCfSupplierTermChange : AuditableEntity
+{
+    public long TermChangeId { get; set; }
+
+    public long ApplicationId { get; set; }
+
+    public string FieldName { get; set; } = string.Empty;
+
+    public string? OldValue { get; set; }
+
+    public string? NewValue { get; set; }
+
+    public string Reason { get; set; } = string.Empty;
+}

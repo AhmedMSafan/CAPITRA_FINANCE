@@ -105,6 +105,9 @@ public static class Permissions
 
         /// <summary>Enter, submit and withdraw Consumer Finance supplier applications (Sales).</summary>
         public const string CfSupplierEdit = "CRM.CF_SUPPLIER.EDIT";
+
+        /// <summary>Change an active supplier's agreement terms without a new approval, with a reason kept in its change history (ADMIN).</summary>
+        public const string CfSupplierAmend = "CRM.CF_SUPPLIER.AMEND";
     }
 
     public static class Trs
