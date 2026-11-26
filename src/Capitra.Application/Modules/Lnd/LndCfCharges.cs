@@ -13,12 +13,12 @@ public sealed record LndCfChargesDto(IReadOnlyList<LndCfChargeDto> Charges, deci
 public sealed record LndCfChargesRequest(decimal? GoodsPriceAmount, decimal? DownPaymentAmount, IReadOnlyDictionary<string, string>? ChargeTimings);
 
 /// <summary>
-/// The customer's charges of a consumer finance (Ahmed, 26 Nov 2026) come from the product's rule CF_DELIVERY and are decided on New
+/// The customer's charges of a consumer finance (Ahmed, 26 Nov 2026) come from the product event rule linked to the CF_FINANCE delivery
+/// step (finova:ruleCode, CF_DELIVERY by default) and are decided on New
 /// Finance, before the schedule: each one is paid upfront (the default) or added to the finance, so Credit approves the real amount.
 /// </summary>
 public static class LndCfCharges
 {
-    public const string RuleCode = "CF_DELIVERY";
     public const string Upfront = "PAID_UPFRONT";
     public const string Financed = "FINANCE_WITH_PRINCIPAL";
 

@@ -278,7 +278,7 @@ function loadCharges() {
   }, 300)
 }
 function setTiming(code: string, timing: string) {
-  form.chargeTimings = { ...(form.chargeTimings ?? {}), [code]: timing }
+  form.chargeTimings = { ...form.chargeTimings, [code]: timing }
 }
 watch(() => [form.goodsPriceAmount, form.downPaymentAmount, form.chargeTimings], loadCharges, { deep: true })
 

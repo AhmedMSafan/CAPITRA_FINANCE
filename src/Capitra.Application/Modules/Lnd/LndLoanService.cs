@@ -8,6 +8,7 @@ using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Lnd;
 using Capitra.Domain.Modules.Tls;
+using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 using PS = Capitra.Application.Modules.Lnd.LndProductTerms.Statuses;
 
@@ -192,7 +193,11 @@ public sealed class LndLoanService(
     private async Task<LndCfChargesDto> ChargesAsync(string productCode, decimal price, decimal down, IReadOnlyDictionary<string, string>? timings,
         CancellationToken cancellationToken)
     {
-        var plan = await rules.PlanByCodeAsync(productCode, LndCfCharges.RuleCode, Today, cancellationToken);
+        // the rule is the one the workflow's delivery step posts (its finova:ruleCode), as a workflow step links its product event rule
+        var xml = await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.WorkflowCode == LndCfFinanceRules.WorkflowCode)
+            .Select(x => x.BpmnXml).FirstOrDefaultAsync(cancellationToken);
+        var ruleCode = xml is null ? null : BpmnModel.StepByCode(xml, LndCfFinanceRules.Delivery)?.RuleCode?.Trim();
+        var plan = string.IsNullOrEmpty(ruleCode) ? null : await rules.PlanByCodeAsync(productCode, ruleCode, Today, cancellationToken);
         return LndCfCharges.Work(plan?.Charges ?? [], Money.Round(price, 2), Money.Round(down, 2), timings);
     }
 

@@ -125,6 +125,20 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                   END LOOP;
                 END $$;
                 """);
+
+            // the workflow's delivery and supplier payment steps post these rules (a workflow step links its rule by finova:ruleCode)
+            foreach (var table in new[] { "WFE_WORKFLOW_DEFINITIONS", "WFE_DEFINITION_VERSIONS" })
+            {
+                var filter = table == "WFE_WORKFLOW_DEFINITIONS"
+                    ? "\"WORKFLOW_CODE\" = 'CF_FINANCE'"
+                    : "\"WORKFLOW_DEFINITION_ID\" IN (SELECT \"WORKFLOW_DEFINITION_ID\" FROM \"WFE_WORKFLOW_DEFINITIONS\" WHERE \"WORKFLOW_CODE\" = 'CF_FINANCE')";
+                migrationBuilder.Sql($"""
+                    UPDATE "{table}" SET "BPMN_XML" = replace(replace("BPMN_XML",
+                        'finova:stepCode="CF_DELIVERY" ', 'finova:stepCode="CF_DELIVERY" finova:ruleCode="CF_DELIVERY" '),
+                        'finova:stepCode="CF_SUPPLIER_PAYMENT" ', 'finova:stepCode="CF_SUPPLIER_PAYMENT" finova:ruleCode="CF_SUPPLIER_PAYMENT" ')
+                    WHERE {filter} AND "BPMN_XML" NOT LIKE '%finova:ruleCode="CF_DELIVERY"%';
+                    """);
+            }
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
