@@ -529,7 +529,7 @@ export const LND_AR: Record<string, string> = {
   'Unsaved schedule from the calculator': 'جدول غير محفوظ من الحاسبة',
   'Changed from the scenario rate': 'تم التغيير من سعر السيناريو',
   'The schedule is worked out again for this finance; the saved scenario is not changed.': 'يُعاد حساب الجدول لهذا التمويل فقط؛ لا يتغير السيناريو المحفوظ.',
-  'From the scenario. Change it for this finance if needed.': 'من السيناريو. يمكن تغييره لهذا التمويل عند الحاجة.',,
+  'From the scenario. Change it for this finance if needed.': 'من السيناريو. يمكن تغييره لهذا التمويل عند الحاجة.',
   'Supplier': 'المورد',
   'Choose the supplier': 'اختر المورد',
   'No active supplier': 'لا يوجد مورد نشط',
