@@ -105,7 +105,17 @@ export type Loan = {
   charges?: CfCharge[] | null
   claim?: CfClaim | null
   rateMarginPct?: number
+  /** Consumer finance: its delivery (step 5), once recorded. */
+  delivery?: { deliveryDate: string; deliveryNoteNo: string | null; serialNo: string | null; glTranSetId: string | null; supplierPaymentDueDate: string | null } | null
 }
+
+/** A finance's document (e.g. the signed delivery note). */
+export type LoanDocument = {
+  documentId: number; documentTypeCode: string | null; documentTitle: string; fileName: string; mimeType: string; fileSizeBytes: number
+  stepName: string; createdBy: string; createdAt: string; canRemove: boolean
+}
+/** Delivery and customer receipt (step 5). */
+export type CfDelivery = { deliveryDate: string | null; deliveryNoteNo: string | null; serialNo: string | null; customerConfirmed: boolean }
 
 export type PayingAccount = { accountId: number; bankName: string; accountRef: string; accountNo: string; accountTypeCode: string; glAccountCode: string | null }
 export type Charge = { chargeCode: string; chargeName: string; amount: number; incomeRecognitionCode: string }
@@ -156,8 +166,18 @@ export const loansApi = {
     return http.get<CfStep | null>(`${API}/${id}/cf-step${qs ? `?${qs}` : ''}`)
   },
   /** decision: at Credit approval, Credit's decision on the charges and the rate margin. */
-  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, decision?: CfCreditDecision) =>
-    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, ...decision }),
+  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, decision?: CfCreditDecision, delivery?: CfDelivery) =>
+    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, ...decision, delivery: delivery ?? null }),
+  documents: (id: number) => http.get<LoanDocument[]>(`${API}/${id}/documents`),
+  addDocument: (id: number, file: File, title: string, documentTypeCode: string | null) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('title', title)
+    if (documentTypeCode) form.append('documentTypeCode', documentTypeCode)
+    return http.upload<LoanDocument>(`${API}/${id}/documents`, form)
+  },
+  removeDocument: (documentId: number) => http.post<void>(`${API}/documents/${documentId}/remove`),
+  documentFile: (documentId: number) => http.blob(`${API}/documents/${documentId}`),
   /** Charges and claim: create the upfront claim (posts the rule's charge GL lines). */
   createCfClaim: (id: number, inboxId: number) => http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/claim`, {}),
   payCfClaim: (id: number, inboxId: number, body: { bankAccountId: number | null; paymentMethodCode: string; paymentReference: string | null }) =>

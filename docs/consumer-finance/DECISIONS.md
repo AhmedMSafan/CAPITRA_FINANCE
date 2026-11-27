@@ -19,7 +19,7 @@ line by line, before it is shown. A change of decision is made here first.
 | 2 | Credit approval | CREDIT_OFFICER | Approves amount and term. Shows the charges of rule CF_CHARGES; Credit can change each one's **timing** (upfront / add to schedule) and **amount** (0 waives it; tax follows). Rate: the product rate stays fixed, Credit adds a **margin ±**. Changes are written to the status history. Finance amount = financed + charges added to schedule. | — | Built (#130, #132) |
 | 3 | Charges and claim | OPERATIONS_OFFICER | Executes Credit's decision, no override. **Create claim**: upfront charges + down payment when we take it; posts CF_CHARGES component GL lines (Dr 120802 / Cr 120803). **Record payment**: product action CF_CLAIM_PAYMENT (Dr Bank / Cr 120802, Cr 230802 down payment; Dr 120803 / Cr 410801). Accept needs PAID, or nothing upfront. Charges added to the schedule post nothing here; they are principal. | CF_CHARGES, CF_CLAIM_PAYMENT | Built (#130) |
 | 4 | Schedule and contract | OPERATIONS_OFFICER | Accept builds the schedule on the finance amount at the finance rate, from today. | — | Built (#130) |
-| 5 | Delivery and customer receipt | OPERATIONS_OFFICER | Books the loan (CF_DELIVERY: Dr Loan incl. added charges / Cr Payable 230801 / Cr Unearned 120803 for added charges; down payment held 230802 → 230801). Schedule dates move to the delivery day. | CF_DELIVERY | **Not built** |
+| 5 | Delivery and customer receipt | OPERATIONS_OFFICER | Books the loan (CF_DELIVERY: Dr Loan incl. added charges / Cr Payable 230801 / Cr Unearned 120803 for added charges; down payment held 230802 → 230801). Schedule dates move to the delivery day. Delivery date, delivery note no., serial/IMEI, customer's confirmation; the signed delivery note goes to the finance's Documents. | CF_DELIVERY | Built (#140) |
 | 6 | Supplier payment | TREASURY_OFFICER | CF_SUPPLIER_PAYMENT: Dr 230801 / Cr 410802 commission / Cr Bank. Commission is the supplier's agreed %, overridable with a reason. | CF_SUPPLIER_PAYMENT | **Not built** |
 
 - The person who entered the finance does none of its steps.
@@ -57,5 +57,4 @@ line by line, before it is shown. A change of decision is made here first.
 
 ## Open items
 
-- Step 5 Delivery and customer receipt.
 - Step 6 Supplier payment.

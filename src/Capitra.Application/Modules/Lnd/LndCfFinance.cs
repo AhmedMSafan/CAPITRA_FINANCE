@@ -41,7 +41,7 @@ public static class LndCfFinanceRules
     public static readonly string[] Steps = [Credit, Charges, Schedule, Delivery, SupplierPayment, Agreement];
 
     /// <summary>The steps built so far; the others are refused with a clear message until they come.</summary>
-    public static readonly string[] Ready = [Credit, Charges, Schedule];
+    public static readonly string[] Ready = [Credit, Charges, Schedule, Delivery];
 
     public static class Claim
     {
@@ -173,6 +173,37 @@ public static class LndCfFinanceRules
         return changes;
     }
 
+    /// <summary>
+    /// The amounts of the booking at delivery (rule CF_DELIVERY): the finance amount (LOAN_AMOUNT), the price less the down payment, owed
+    /// to the supplier (FINANCED_AMOUNT), the charges added to the schedule (CAPITALISED_CHARGES_AMOUNT) and the down payment we took and
+    /// held, now owed to the supplier (DOWN_PAYMENT_HELD_AMOUNT).
+    /// </summary>
+    public static Dictionary<string, decimal?> BookingAmounts(LndLoan l)
+    {
+        var financed = Money.Round((l.GoodsPriceAmount ?? 0) - (l.DownPaymentAmount ?? 0), 2);
+        return new()
+        {
+            ["LOAN_AMOUNT"] = l.PrincipalAmount,
+            ["FINANCED_AMOUNT"] = financed,
+            ["CAPITALISED_CHARGES_AMOUNT"] = Money.Round(l.PrincipalAmount - financed, 2),
+            ["DOWN_PAYMENT_HELD_AMOUNT"] = l.ClaimStatusCode == Claim.Paid ? l.ClaimDownPaymentAmount ?? 0 : 0,
+        };
+    }
+
+    /// <summary>The delivery: a date from the Schedule step's day to today, the delivery note number, and the customer's confirmation.</summary>
+    public static Dictionary<string, string[]> CheckDelivery(LndCfDeliveryRequest d, DateOnly scheduledOn, DateOnly today)
+    {
+        var e = new Dictionary<string, string[]>();
+        if (d.DeliveryDate is not { } date) e["deliveryDate"] = ["Enter the delivery date."];
+        else if (date > today) e["deliveryDate"] = ["The delivery date cannot be in the future."];
+        else if (date < scheduledOn) e["deliveryDate"] = [$"The delivery date cannot be before the schedule was built ({scheduledOn:dd MMM yyyy})."];
+        if (string.IsNullOrWhiteSpace(d.DeliveryNoteNo)) e["deliveryNoteNo"] = ["Enter the delivery note number."];
+        else if (d.DeliveryNoteNo.Trim().Length > 50) e["deliveryNoteNo"] = ["The delivery note number is longer than 50 characters."];
+        if (d.SerialNo is { Length: > 100 }) e["serialNo"] = ["The serial number is longer than 100 characters."];
+        if (d.CustomerConfirmed != true) e["customerConfirmed"] = ["Confirm the customer received the goods and they match the contract."];
+        return e;
+    }
+
     /// <summary>The finance rate: the product rate plus Credit's margin, from 0 to 100%.</summary>
     public static decimal FinanceRate(decimal productRatePct, decimal marginPct)
     {
@@ -218,7 +249,11 @@ public sealed record LndCfTermsRequest(
 /// FINANCE_WITH_PRINCIPAL; the amount, 0 to waive), and RateMarginPct the margin on the product rate (+ or -).
 /// </summary>
 public sealed record LndCfCompleteRequest(string? Action, string? Comment, IReadOnlyDictionary<string, string>? ChargeTimings = null,
-    IReadOnlyDictionary<string, decimal>? ChargeAmounts = null, decimal? RateMarginPct = null, LndCfTermsRequest? Terms = null);
+    IReadOnlyDictionary<string, decimal>? ChargeAmounts = null, decimal? RateMarginPct = null, LndCfTermsRequest? Terms = null,
+    LndCfDeliveryRequest? Delivery = null);
+
+/// <summary>Delivery and customer receipt: the day, the delivery note, the serial or IMEI, and the customer's confirmation.</summary>
+public sealed record LndCfDeliveryRequest(DateOnly? DeliveryDate, string? DeliveryNoteNo, string? SerialNo, bool? CustomerConfirmed);
 
 public sealed record LndCfClaimPaymentRequest(long? BankAccountId, string? PaymentMethodCode, string? PaymentReference);
 
@@ -229,17 +264,19 @@ public sealed record LndCfClaimPaymentRequest(long? BankAccountId, string? Payme
 public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRuleService rules, IClock clock)
 {
     /// <summary>The rule the finance's Charges and claim step names in the BPMN its run is on.</summary>
-    public async Task<string> RuleCodeAsync(LndLoan loan, CancellationToken ct)
+    public async Task<string> RuleCodeAsync(LndLoan loan, CancellationToken ct, string step = LndCfFinanceRules.Charges)
     {
         var xml = loan.WorkflowInstanceId is { } run ? await WfeVersions.XmlOfInstanceAsync(db, run, ct) : null;
-        var code = xml is null ? null : BpmnModel.StepByCode(xml, LndCfFinanceRules.Charges)?.RuleCode?.Trim();
-        return string.IsNullOrWhiteSpace(code) ? LndCfCharges.RuleCode : code;
+        var code = xml is null ? null : BpmnModel.StepByCode(xml, step)?.RuleCode?.Trim();
+        // the step names its rule (finova:ruleCode); else the rule of the step's own code (CF_CHARGES, CF_DELIVERY, ...)
+        return string.IsNullOrWhiteSpace(code) ? (step == LndCfFinanceRules.Charges ? LndCfCharges.RuleCode : step) : code;
     }
 
-    public async Task<(string ProductCode, string BusinessLine, string Module, ProductEventPlan? Plan, string RuleCode)> PlanAsync(LndLoan loan, CancellationToken ct)
+    public async Task<(string ProductCode, string BusinessLine, string Module, ProductEventPlan? Plan, string RuleCode)> PlanAsync(LndLoan loan, CancellationToken ct,
+        string step = LndCfFinanceRules.Charges)
     {
         var product = await db.Set<AdmProduct>().AsNoTracking().SingleAsync(x => x.ProductId == loan.ProductId, ct);
-        var ruleCode = await RuleCodeAsync(loan, ct);
+        var ruleCode = await RuleCodeAsync(loan, ct, step);
         var plan = await rules.PlanByCodeAsync(product.ProductCode, ruleCode, LndLoanService.CairoToday(clock), ct);
         var module = string.IsNullOrWhiteSpace(product.GlTranSetCode) ? "LND" : product.GlTranSetCode.Trim().ToUpperInvariant();
         return (product.ProductCode, product.BusinessLineCode, module, plan, ruleCode);
@@ -297,7 +334,8 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
 /// REJECT rejects the finance; ACCEPT checks segregation of duties and the step's rules, then moves the finance on.
 /// </summary>
 public sealed class LndCfFinanceWorkflowHandler(
-    ICapitraDbContext db, IClock clock, IScrUserProfiles profiles, CrmCustomer360Service customers, LndCfChargesPlanner planner)
+    ICapitraDbContext db, IClock clock, IScrUserProfiles profiles, CrmCustomer360Service customers, LndCfChargesPlanner planner,
+    ProductActionPosting posting)
     : IWfeTaskCompletionHandler
 {
     public bool CanHandle(WfeTaskContext context) =>
@@ -357,17 +395,7 @@ public sealed class LndCfFinanceWorkflowHandler(
             {
                 // the schedule on the loan amount Credit approved (the financed amount plus the charges added to it), from today; the
                 // Delivery step moves its dates to the delivery day
-                var today = LndLoanService.CairoToday(clock);
-                var first = LndSchedule.DefaultFirstDueDate(today, loan.RepaymentFrequencyCode);
-                var lines = LndSchedule.Build(loan.PrincipalAmount, loan.TermMonths, loan.RepaymentFrequencyCode, loan.InterestMethodCode, loan.AnnualRatePct, first);
-                db.Set<LndInstallment>().RemoveRange(await db.Set<LndInstallment>().Where(x => x.LoanId == loan.LoanId).ToListAsync(cancellationToken));
-                db.Set<LndInstallment>().AddRange(LndLoanService.Installments(loan.LoanId, lines));
-                loan.DisbursementDate = today;
-                loan.FirstDueDate = first;
-                loan.InstallmentCount = lines.Count;
-                loan.InstallmentAmount = lines[0].Total;
-                loan.TotalInterestAmount = lines.Sum(x => x.Interest);
-                loan.MaturityDate = lines[^1].DueDate;
+                var lines = await ScheduleAsync(loan, LndLoanService.CairoToday(clock), cancellationToken);
                 db.Set<LndLoanStatusHist>().Add(new LndLoanStatusHist
                 {
                     LoanId = loan.LoanId, FromStatusCode = loan.StatusCode, ToStatusCode = loan.StatusCode,
@@ -375,8 +403,56 @@ public sealed class LndCfFinanceWorkflowHandler(
                 });
                 break;
             }
+            case LndCfFinanceRules.Delivery:
+            {
+                // Delivery and customer receipt (27 Nov 2026): the finance is booked (the step's rule, CF_DELIVERY), it becomes active,
+                // its schedule runs from the delivery day and the supplier is paid by the delivery day plus its payment days
+                if (loan.DeliveryDate is not { } delivered)
+                    throw new BusinessRuleException("Enter the delivery on the finance page first: the date, the delivery note and the customer's confirmation.");
+                var (_, businessLine, module, plan, ruleCode) = await planner.PlanAsync(loan, cancellationToken, LndCfFinanceRules.Delivery);
+                if (plan is null) throw new BusinessRuleException($"The finance's product has no active rule {ruleCode} today. Add it in Admin Setup.");
+                var amounts = LndCfFinanceRules.BookingAmounts(loan);
+                var lines = ProductEventPosting.Build(plan, l => amounts.GetValueOrDefault(l.AmountCode ?? ""), null);
+                var doc = new ProductActionDocument("LND_CF_DELIVERY", loan.LoanId.ToString(CultureInfo.InvariantCulture), loan.LoanNumber, delivered,
+                    loan.CurrencyCode, $"Finance {loan.LoanNumber} booked at delivery, {loan.PrincipalAmount:#,0.00}");
+                try
+                {
+                    loan.DeliveryGlTranSetId = await posting.PostLinesAsync(plan, lines, module, "Consumer finance booked at delivery", "3100", businessLine, doc, cancellationToken);
+                }
+                catch (ApexProcessException ex)
+                {
+                    throw new BusinessRuleException($"GL posting failed, the finance was not booked: {GlPostingApi.CleanMessage(ex.Message)}");
+                }
+                var schedule = await ScheduleAsync(loan, delivered, cancellationToken);
+                loan.SupplierPaymentDueDate = delivered.AddDays(loan.SupplierPaymentDays ?? 0);
+                db.Set<LndLoanEvent>().Add(new LndLoanEvent
+                {
+                    LoanId = loan.LoanId, EventCode = "CF_DELIVERY", EventDate = delivered, EventAmount = loan.PrincipalAmount, GlTranSetId = loan.DeliveryGlTranSetId,
+                    SourceDocumentType = "LND_CF_DELIVERY", SourceDocumentId = loan.LoanId,
+                    Notes = $"Delivered on {delivered:dd MMM yyyy}, delivery note {loan.DeliveryNoteNo}; supplier to be paid by {loan.SupplierPaymentDueDate:dd MMM yyyy}.",
+                });
+                Move(loan, LndLoanService.Statuses.Active,
+                    $"Booked at {name} by {context.User}: delivered {delivered:dd MMM yyyy}, {schedule.Count} instalments of {schedule[0].Total:#,0.00} from {schedule[0].DueDate:dd MMM yyyy}.");
+                break;
+            }
         }
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>The schedule on the finance amount from a start day (the Schedule step's day, then the delivery day); the header follows it.</summary>
+    private async Task<IReadOnlyList<LndScheduleLine>> ScheduleAsync(LndLoan loan, DateOnly start, CancellationToken ct)
+    {
+        var first = LndSchedule.DefaultFirstDueDate(start, loan.RepaymentFrequencyCode);
+        var lines = LndSchedule.Build(loan.PrincipalAmount, loan.TermMonths, loan.RepaymentFrequencyCode, loan.InterestMethodCode, loan.AnnualRatePct, first);
+        db.Set<LndInstallment>().RemoveRange(await db.Set<LndInstallment>().Where(x => x.LoanId == loan.LoanId).ToListAsync(ct));
+        db.Set<LndInstallment>().AddRange(LndLoanService.Installments(loan.LoanId, lines));
+        loan.DisbursementDate = start;
+        loan.FirstDueDate = first;
+        loan.InstallmentCount = lines.Count;
+        loan.InstallmentAmount = lines[0].Total;
+        loan.TotalInterestAmount = lines.Sum(x => x.Interest);
+        loan.MaturityDate = lines[^1].DueDate;
+        return lines;
     }
 
     private void Move(LndLoan loan, string to, string reason)
@@ -448,6 +524,16 @@ public sealed class LndCfFinanceService(
             var productRate = await db.Set<LndProductVersion>().Where(x => x.ProductVersionId == loan.ProductVersionId).Select(x => x.AnnualRatePct).SingleAsync(ct);
             changes = LndCfFinanceRules.ApplyTerms(loan, r.Terms ?? new LndCfTermsRequest(), productRate, r.RateMarginPct);
             changes.AddRange(await planner.DecideAsync(loan, r.ChargeTimings, ct, r.ChargeAmounts));
+            await db.SaveChangesAsync(ct);
+        }
+        if (action == "ACCEPT" && string.Equals(item.StepCode, LndCfFinanceRules.Delivery, StringComparison.OrdinalIgnoreCase))
+        {
+            var d = r.Delivery ?? new LndCfDeliveryRequest(null, null, null, null);
+            var e = LndCfFinanceRules.CheckDelivery(d, loan.DisbursementDate, LndLoanService.CairoToday(clock));
+            if (e.Count > 0) throw new BusinessValidationException(e);
+            loan.DeliveryDate = d.DeliveryDate;
+            loan.DeliveryNoteNo = d.DeliveryNoteNo!.Trim();
+            loan.DeliverySerialNo = string.IsNullOrWhiteSpace(d.SerialNo) ? null : d.SerialNo.Trim();
             await db.SaveChangesAsync(ct);
         }
         await inbox.CompleteAsync(inboxId, new CompleteInboxItemRequest(action, comment), ct);

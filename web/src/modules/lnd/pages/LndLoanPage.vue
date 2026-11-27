@@ -48,6 +48,16 @@
               · {{ tr(c.timingCode === 'PAID_UPFRONT' ? 'Upfront' : 'Added to schedule') }}<template v-if="c.isOverridden"> · {{ tr('changed by Credit') }}</template></span>
           </div>
         </template>
+        <template v-if="loan.delivery">
+          <h4 class="ln-sub">{{ tr('Delivery') }}</h4>
+          <div class="ln-chips">
+            <span>{{ tr('Delivered on') }} <b>{{ formatDate(loan.delivery.deliveryDate) }}</b></span>
+            <span>{{ tr('Delivery note') }} <b>{{ loan.delivery.deliveryNoteNo }}</b></span>
+            <span v-if="loan.delivery.serialNo">{{ tr('Serial / IMEI') }} <b>{{ loan.delivery.serialNo }}</b></span>
+            <span v-if="loan.delivery.supplierPaymentDueDate">{{ tr('Supplier paid by') }} <b>{{ formatDate(loan.delivery.supplierPaymentDueDate) }}</b></span>
+            <span v-if="loan.delivery.glTranSetId">GL <b>{{ loan.delivery.glTranSetId }}</b></span>
+          </div>
+        </template>
         <template v-if="loan.claim">
           <h4 class="ln-sub">{{ tr('Upfront claim') }}</h4>
           <div class="ln-chips">
@@ -61,6 +71,8 @@
           </div>
         </template>
       </section>
+      <!-- the finance's documents (e.g. the delivery note the customer signed) -->
+      <LndLoanDocuments v-if="loan.goods?.supplierApplicationId" :loan-id="loan.loanId" :version="stepVersion" />
 
       <section v-if="payouts && !loan.goods?.supplierApplicationId" class="fx-card">
         <header class="c3-panel-head lp-head">
@@ -344,6 +356,7 @@ import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
 import CfFinanceStep from '../components/CfFinanceStep.vue'
+import LndLoanDocuments from '../components/LndLoanDocuments.vue'
 import LndWriteOffPanel from '../components/LndWriteOffPanel.vue'
 import { getUser } from '@/shared/auth/session'
 import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage, type ReversalPreview, type PrepaymentQuote } from '../api/loans.api'

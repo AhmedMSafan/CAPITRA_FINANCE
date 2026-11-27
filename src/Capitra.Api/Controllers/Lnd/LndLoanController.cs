@@ -8,7 +8,7 @@ namespace Capitra.Api.Controllers.Lnd;
 /// <summary>Retail Lending > Loans. Reading needs LND.LOAN.VIEW; previewing, creating and cancelling a loan LND.LOAN.EDIT.</summary>
 [ApiController]
 [Route("api/lnd/loans")]
-public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService workflow) : ControllerBase
+public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService workflow, LndLoanDocumentService documents) : ControllerBase
 {
     [HttpGet]
     [HasPermission(Permissions.Lnd.LoanView)]
@@ -82,6 +82,35 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
     {
         await workflow.PayClaimAsync(loanId, inboxId, request, cancellationToken);
         return await loans.GetAsync(loanId, cancellationToken);
+    }
+
+    /// <summary>The finance's documents (e.g. the signed delivery note).</summary>
+    [HttpGet("{loanId:long}/documents")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public Task<IReadOnlyList<LndLoanDocumentDto>> Documents(long loanId, CancellationToken cancellationToken) => documents.ListAsync(loanId, cancellationToken);
+
+    [HttpPost("{loanId:long}/documents")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    [RequestSizeLimit(LndLoanDocumentService.MaxFileBytes + 1024 * 1024)]
+    public async Task<LndLoanDocumentDto> AddDocument(long loanId, IFormFile file, [FromForm] string? title, [FromForm] string? documentTypeCode, CancellationToken cancellationToken)
+    {
+        using var buffer = new MemoryStream();
+        await file.CopyToAsync(buffer, cancellationToken);
+        return await documents.AddAsync(loanId, documentTypeCode, title, file.FileName, file.ContentType, buffer.ToArray(), cancellationToken);
+    }
+
+    [HttpPost("documents/{documentId:long}/remove")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public Task RemoveDocument(long documentId, CancellationToken cancellationToken) => documents.RemoveAsync(documentId, cancellationToken);
+
+    [HttpGet("documents/{documentId:long}")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public async Task<IActionResult> Document(long documentId, CancellationToken cancellationToken)
+    {
+        var f = await documents.FileAsync(documentId, cancellationToken);
+        Response.Headers.ContentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("inline") { FileNameStar = f.FileName }.ToString();
+        Response.Headers["X-Content-SHA256"] = f.Sha256Hash;
+        return File(f.Content, f.MimeType);
     }
 
     [HttpPost("{loanId:long}/cancel")]

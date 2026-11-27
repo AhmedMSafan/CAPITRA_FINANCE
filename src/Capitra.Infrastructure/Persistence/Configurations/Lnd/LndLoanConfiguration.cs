@@ -40,6 +40,9 @@ public sealed class LndLoanConfiguration : IEntityTypeConfiguration<LndLoan>
         builder.Property(x => x.ClaimPaymentMethodCode).HasMaxLength(30);
         builder.Property(x => x.ClaimPaymentReference).HasMaxLength(100);
         builder.Property(x => x.ClaimPaymentGlTranSetId).HasMaxLength(50);
+        builder.Property(x => x.DeliveryNoteNo).HasMaxLength(50);
+        builder.Property(x => x.DeliverySerialNo).HasMaxLength(100);
+        builder.Property(x => x.DeliveryGlTranSetId).HasMaxLength(50);
         builder.HasIndex(x => x.WorkflowInstanceId);
         builder.HasIndex(x => x.SupplierApplicationId);
         builder.HasOne<CrmCfSupplierApplication>().WithMany().HasForeignKey(x => x.SupplierApplicationId).OnDelete(DeleteBehavior.Restrict);
@@ -97,6 +100,26 @@ public sealed class LndLoanChargeConfiguration : IEntityTypeConfiguration<LndLoa
         builder.Property(x => x.ChargeName).HasMaxLength(200);
         builder.Property(x => x.TimingCode).HasMaxLength(30);
         builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Cascade);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class LndLoanDocumentConfiguration : IEntityTypeConfiguration<LndLoanDocument>
+{
+    public void Configure(EntityTypeBuilder<LndLoanDocument> builder)
+    {
+        builder.ToTable("LND_LOAN_DOCUMENTS");
+        builder.HasKey(x => x.DocumentId);
+        builder.HasIndex(x => x.LoanId);
+        builder.Property(x => x.DocumentId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.StepCode).HasMaxLength(50);
+        builder.Property(x => x.StepName).HasMaxLength(200);
+        builder.Property(x => x.DocumentTitle).HasMaxLength(300);
+        builder.Property(x => x.DocumentTypeCode).HasMaxLength(30);
+        builder.Property(x => x.FileName).HasMaxLength(260);
+        builder.Property(x => x.MimeType).HasMaxLength(100);
+        builder.Property(x => x.Sha256Hash).HasMaxLength(64);
+        builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }
 }
