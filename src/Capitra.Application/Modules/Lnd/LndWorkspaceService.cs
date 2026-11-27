@@ -22,8 +22,8 @@ public sealed record LndWsLoanDto(
     DateOnly DisbursementDate, DateOnly MaturityDate, string? StepName = null);
 
 /// <summary>
-/// A consumer finance's upfront claim (Charges and claim step), like a factoring claim: TO_CREATE once Credit decided something is paid
-/// upfront and Operations has not created it yet, OPEN until the customer pays it, PAID.
+/// A consumer finance's upfront claim, like a factoring claim (created when Credit approves): OPEN (unpaid), PARTIALLY_PAID, PAID or
+/// CANCELLED. A claim not created yet is not listed.
 /// </summary>
 public sealed record LndWsClaimDto(
     long LoanId, string LoanNumber, DateOnly? ClaimDate, string CurrencyCode, decimal ChargesAmount, decimal DownPaymentAmount, decimal TotalAmount,
@@ -100,27 +100,18 @@ public sealed class LndWorkspaceService(ICapitraDbContext db, IClock clock, LndR
                 x.l.WorkflowInstanceId is { } run ? openSteps.GetValueOrDefault(run) : null);
         }).ToList();
 
-        // the upfront claims of the consumer finances, and those Operations still has to create
-        var charges = (await db.Set<LndLoanCharge>().AsNoTracking().Where(x => ids.Contains(x.LoanId)).ToListAsync(cancellationToken)).ToLookup(x => x.LoanId);
+        // the upfront claims of the consumer finances, once created (Ahmed, 27 Nov 2026: a claim not created yet is not listed)
         var claimDates = (await db.Set<LndLoanEvent>().AsNoTracking().Where(x => ids.Contains(x.LoanId) && x.EventCode == "CF_CLAIM")
             .Select(x => new { x.LoanId, x.EventDate }).ToListAsync(cancellationToken)).GroupBy(x => x.LoanId).ToDictionary(g => g.Key, g => g.Max(x => x.EventDate));
         var claims = new List<LndWsClaimDto>();
-        foreach (var x in loans.Where(x => x.l.SupplierApplicationId != null && x.l.StatusCode is not (St.Rejected or St.Cancelled)))
+        foreach (var x in loans.Where(x => x.l.SupplierApplicationId != null && x.l.ClaimStatusCode is LndCfFinanceRules.Claim.Open
+                     or LndCfFinanceRules.Claim.PartiallyPaid or LndCfFinanceRules.Claim.Paid or LndCfFinanceRules.Claim.Cancelled))
         {
             var l = x.l;
-            if (l.ClaimStatusCode is LndCfFinanceRules.Claim.Open or LndCfFinanceRules.Claim.Paid)
-            {
-                var total = (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0);
-                var paid = l.ClaimStatusCode == LndCfFinanceRules.Claim.Paid ? total : 0;
-                claims.Add(new LndWsClaimDto(l.LoanId, l.LoanNumber, claimDates.TryGetValue(l.LoanId, out var d) ? d : null, l.CurrencyCode, l.ClaimChargesAmount ?? 0,
-                    l.ClaimDownPaymentAmount ?? 0, total, paid, total - paid, l.ClaimStatusCode, l.ClaimGlTranSetId));
-            }
-            else if (l.ClaimStatusCode is null && charges[l.LoanId].Any())
-            {
-                var (up, dp) = LndCfFinanceRules.ClaimAmounts(charges[l.LoanId], l.DownPaymentCollectorCode, l.DownPaymentAmount);
-                if (up + dp > 0)
-                    claims.Add(new LndWsClaimDto(l.LoanId, l.LoanNumber, null, l.CurrencyCode, up, dp, up + dp, 0, up + dp, "TO_CREATE", null));
-            }
+            var total = (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0);
+            var paid = LndCfClaimService.Paid(l);
+            claims.Add(new LndWsClaimDto(l.LoanId, l.LoanNumber, claimDates.TryGetValue(l.LoanId, out var d) ? d : null, l.CurrencyCode, l.ClaimChargesAmount ?? 0,
+                l.ClaimDownPaymentAmount ?? 0, total, paid, l.ClaimStatusCode == LndCfFinanceRules.Claim.Cancelled ? 0 : total - paid, l.ClaimStatusCode!, l.ClaimGlTranSetId));
         }
 
         var events = await db.Set<LndLoanEvent>().AsNoTracking()

@@ -11,15 +11,32 @@ export type CfCharge = {
 export type CfCharges = {
   charges: CfCharge[]; financedAmount: number; addedToFinance: number; paidUpfront: number; loanAmount: number; problem: string | null; decided: boolean
 }
-/** The upfront claim of the Charges and claim step: OPEN until paid, PAID, or NONE when nothing is paid upfront. */
+/** The upfront claim, created when Credit approves: OPEN (unpaid), PARTIALLY_PAID, PAID, CANCELLED, or NONE when nothing is paid upfront. */
+export type CfClaimStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED' | 'NONE'
 export type CfClaim = {
-  statusCode: 'OPEN' | 'PAID' | 'NONE'; chargesAmount: number; downPaymentAmount: number; totalAmount: number; glTranSetId: string | null
+  statusCode: CfClaimStatus; chargesAmount: number; downPaymentAmount: number; totalAmount: number; glTranSetId: string | null
+  paidAmount: number; outstandingAmount: number
   paidAt: string | null; paidBy: string | null; paymentMethodCode: string | null; paymentReference: string | null; paymentGlTranSetId: string | null
 }
+
+/** The claim as its popup shows it: lines, payments and their GL; accounts a payment can come into. */
+export type CfClaimDetail = {
+  loanId: number; loanNumber: string; clientName: string; currencyCode: string; statusCode: CfClaimStatus; claimDate: string | null; createdBy: string | null
+  lines: { code: string; name: string; amount: number; taxAmount: number; totalAmount: number }[]
+  chargesAmount: number; downPaymentAmount: number; totalAmount: number; paidAmount: number; outstandingAmount: number; glTranSetId: string | null
+  payments: { claimPaymentId: number; paymentDate: string; paymentAmount: number; chargesAmount: number; downPaymentAmount: number; bankAccount: string | null
+    paymentMethodCode: string; paymentReference: string | null; glTranSetId: string | null; recordedBy: string; recordedAt: string }[]
+  accounts: PayingAccount[]
+}
+/** The factoring claim's labels (one standard). */
+export const CLAIM_LABELS: Record<string, string> = { OPEN: 'Unpaid', PARTIALLY_PAID: 'Partially Paid', PAID: 'Paid', CANCELLED: 'Cancelled', NONE: 'Nothing upfront' }
+export const claimTone = (s: string) => (s === 'PAID' ? 'fx-chip--ok' : s === 'CANCELLED' ? 'fx-chip--bad' : 'fx-chip--warn')
 
 export type CfStep = {
   stepCode: string; stepName: string; inboxId: number | null; isMine: boolean; charges: CfCharges | null; accounts: PayingAccount[] | null
   productRatePct: number | null; rateMarginPct: number; terms: CfTerms | null; supplierDue: CfSupplierDue | null
+  /** Approving Credit creates the claim (finances started from 27 Nov 2026). */
+  claimAtCredit: boolean
 }
 type Opt = { value: string; label: string }
 /** A finance's own financial values, which Credit approval can change (the price is the supplier's). */
@@ -204,6 +221,11 @@ export const loansApi = {
   removeDocument: (documentId: number) => http.post<void>(`${API}/documents/${documentId}/remove`),
   documentFile: (documentId: number) => http.blob(`${API}/documents/${documentId}`),
   /** Charges and claim: create the upfront claim (posts the rule's charge GL lines). */
+  /** The finance's upfront claim (null when it has none). */
+  cfClaim: (id: number) => http.get<CfClaimDetail | null>(`${API}/${id}/claim`),
+  /** A payment of the claim, all or part (COLLECTION.EDIT). */
+  payCfClaimPart: (id: number, body: { amount: number | null; bankAccountId: number | null; paymentMethodCode: string; paymentReference: string | null }) =>
+    http.post<CfClaimDetail | null>(`${API}/${id}/claim/payments`, body),
   createCfClaim: (id: number, inboxId: number) => http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/claim`, {}),
   payCfClaim: (id: number, inboxId: number, body: { bankAccountId: number | null; paymentMethodCode: string; paymentReference: string | null }) =>
     http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/claim/payment`, body),
