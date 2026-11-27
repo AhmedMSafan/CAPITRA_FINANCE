@@ -768,5 +768,7 @@ export const LND_AR: Record<string, string> = {
   'Rule not applied on this finance': 'القاعدة لا تنطبق على هذا التمويل',
   'All charges are added to the schedule: they post at Delivery as part of the finance.': 'كل الرسوم مضافة للجدول: تُقيد عند التسليم ضمن التمويل.',
   'The charges are waived (0): nothing posts.': 'الرسوم معفاة (0): لا يوجد قيد.',
-  'Nothing to post on this finance yet.': 'لا يوجد ما يُقيد على هذا التمويل بعد.'
+  'Nothing to post on this finance yet.': 'لا يوجد ما يُقيد على هذا التمويل بعد.',
+  'No rule on this step': 'لا توجد قاعدة لهذه الخطوة',
+  'It posts nothing.': 'لا يوجد قيد.'
 }

@@ -7,7 +7,8 @@
     <template v-else-if="data">
       <section v-for="pg in data.pages" :key="pg.stepCode" class="cfr-page">
         <h4>{{ tr(pg.stepName) }}</h4>
-        <p v-if="!pg.rules.length" class="cfr-p">{{ tr('Posts nothing.') }}</p>
+        <div v-if="!pg.rules.length" class="cfr-warn" role="note"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+          <div><b>{{ tr('No rule on this step') }}</b><br>{{ tr('It posts nothing.') }}</div></div>
         <div v-for="r in pg.rules" :key="r.button + r.ruleCode" class="cfr-rule">
           <div class="cfr-rhead">
             <span class="cfr-tag">{{ r.ruleCode }}</span><b>{{ r.ruleName ?? '' }}</b>
