@@ -24,6 +24,21 @@ line by line, before it is shown. A change of decision is made here first.
 - A workflow step links its rule by `finova:ruleCode`; a button outside the workflow links through a Product Action (Admin Setup › Product Actions, which lists both, with "Used on").
 - No rule CF_CLAIM, no product action CF_NEW_FINANCE.
 
+## Product terms and each finance's copy (Ahmed, 27 Nov 2026)
+
+- A product has **one set of lending terms**: no versions, no amount limits, no term limits.
+- The terms are changed by an admin; **another user with the admin role approves** the change. Every change is kept in an audit trail
+  on the product page: field, old → new, asked by, approved by, when. An approved change applies to new finances only.
+- A finance **copies all the terms when it is created** (step 1). From then on, at any stage of the workflow, product changes do not touch it.
+- **Credit approval (step 2) can change every financial value of that finance**: down payment (so the amount), term, rate (directly or as
+  a margin on the product rate), repayment frequency, interest method, day count, late fee (type, rate or amount, grace days),
+  payment order, insurance required, prepayment allowed, and each charge (timing and amount). Each changed value shows the product's
+  value beside it and goes to the history (old → new). Sales cannot change them; after Credit approval they are locked.
+- The item price is the supplier's price and is not changed by Credit.
+- Charges and GL stay in Product Event Rules and Product Actions.
+- Grace days are hidden and saved as 0 when there is no late fee.
+- Applies to Microfinance products too (the same lending terms page).
+
 ## Screens
 
 - Words on screens: "Finance" / تمويل, never "Loan".
@@ -32,5 +47,7 @@ line by line, before it is shown. A change of decision is made here first.
 
 ## Open items
 
+- Product terms: one set, admin change + admin approval, audit trail, no limits (preview first).
+- Credit approval: change every financial value of the finance (preview first).
 - Step 5 Delivery and customer receipt.
 - Step 6 Supplier payment.
