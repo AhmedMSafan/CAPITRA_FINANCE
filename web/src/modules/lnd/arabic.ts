@@ -622,5 +622,7 @@ export const LND_AR: Record<string, string> = {
   'Finance rate': 'سعر التمويل',
   'The product rate stays fixed; Credit adds or takes off a margin for this finance.': 'سعر المنتج ثابت؛ يضيف الائتمان هامشاً أو يخصمه لهذا التمويل.',
   'rule': 'القاعدة',
-  'Comment (required to reject)': 'تعليق (مطلوب للرفض)'
+  'Comment (required to reject)': 'تعليق (مطلوب للرفض)',
+  'No schedule yet: it is built at the Schedule and contract step.': 'لا يوجد جدول بعد: يُبنى في خطوة الجدول والعقد.',
+  'down payment': 'المقدم'
 }
