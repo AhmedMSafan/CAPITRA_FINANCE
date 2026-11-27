@@ -679,5 +679,17 @@ export const LND_AR: Record<string, string> = {
   'Contract': 'العقد',
   'Other': 'أخرى',
   'Document added': 'تمت إضافة المستند',
-  'Remove this document?': 'حذف هذا المستند؟'
+  'Remove this document?': 'حذف هذا المستند؟',
+  'Owed to the supplier': 'المستحق للمورد',
+  'agreed': 'المتفق عليه',
+  'pay by': 'السداد بحلول',
+  'Transfer reference': 'مرجع التحويل',
+  'Why the commission changed': 'سبب تغيير العمولة',
+  'Rule CF_SUPPLIER_PAYMENT': 'القاعدة CF_SUPPLIER_PAYMENT',
+  'Dr Payable to the supplier': 'مدين المستحق للمورد',
+  'Cr Commission income': 'دائن إيراد العمولة',
+  'Cr Bank': 'دائن البنك',
+  'The workflow ends; the finance stays active and is collected by its schedule.': 'ينتهي سير العمل؛ يبقى التمويل نشطاً ويُحصَّل حسب جدوله.',
+  'Pay the supplier': 'سداد المورد',
+  'Check what the supplier is owed and its commission, choose the bank account, then pay.': 'راجع المستحق للمورد وعمولته، واختر الحساب البنكي، ثم ادفع.'
 }

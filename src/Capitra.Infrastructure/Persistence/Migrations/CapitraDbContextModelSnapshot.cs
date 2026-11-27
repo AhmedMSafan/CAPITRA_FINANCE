@@ -28952,10 +28952,20 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("SUPPLIER_APPLICATION_ID");
 
+                    b.Property<decimal?>("SupplierCommissionAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SUPPLIER_COMMISSION_AMOUNT");
+
                     b.Property<decimal?>("SupplierCommissionPct")
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("SUPPLIER_COMMISSION_PCT");
+
+                    b.Property<string>("SupplierCommissionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("SUPPLIER_COMMISSION_REASON");
 
                     b.Property<int?>("SupplierDeliveryDays")
                         .HasColumnType("integer")
@@ -28966,6 +28976,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(9,6)")
                         .HasColumnName("SUPPLIER_MIN_DOWN_PAYMENT_PCT");
 
+                    b.Property<DateTime?>("SupplierPaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SUPPLIER_PAID_AT");
+
+                    b.Property<string>("SupplierPaidBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("SUPPLIER_PAID_BY");
+
+                    b.Property<long?>("SupplierPaymentBankAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SUPPLIER_PAYMENT_BANK_ACCOUNT_ID");
+
                     b.Property<int?>("SupplierPaymentDays")
                         .HasColumnType("integer")
                         .HasColumnName("SUPPLIER_PAYMENT_DAYS");
@@ -28973,6 +28996,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<DateOnly?>("SupplierPaymentDueDate")
                         .HasColumnType("date")
                         .HasColumnName("SUPPLIER_PAYMENT_DUE_DATE");
+
+                    b.Property<string>("SupplierPaymentGlTranSetId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("SUPPLIER_PAYMENT_GL_TRAN_SET_ID");
+
+                    b.Property<string>("SupplierPaymentReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("SUPPLIER_PAYMENT_REFERENCE");
 
                     b.Property<int>("TermMonths")
                         .HasColumnType("integer")

@@ -180,6 +180,23 @@ public class LndLoan : AuditableEntity
     /// <summary>The day the supplier is paid by: the delivery day plus the supplier's payment days.</summary>
     public DateOnly? SupplierPaymentDueDate { get; set; }
 
+    /// <summary>CF_FINANCE step 6 (27 Nov 2026): the supplier's commission taken from its payment (its agreed % unless Treasury changed it, with a reason).</summary>
+    public decimal? SupplierCommissionAmount { get; set; }
+
+    public string? SupplierCommissionReason { get; set; }
+
+    /// <summary>Our bank account (TRS_BANK_ACCOUNTS) the supplier was paid from.</summary>
+    public long? SupplierPaymentBankAccountId { get; set; }
+
+    public string? SupplierPaymentReference { get; set; }
+
+    public DateTime? SupplierPaidAt { get; set; }
+
+    public string? SupplierPaidBy { get; set; }
+
+    /// <summary>The GL of the supplier payment (rule CF_SUPPLIER_PAYMENT).</summary>
+    public string? SupplierPaymentGlTranSetId { get; set; }
+
     /// <summary>Consumer finance: the item's price; the loan amount is the price less the down payment.</summary>
     public decimal? GoodsPriceAmount { get; set; }
 

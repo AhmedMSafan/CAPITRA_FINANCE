@@ -168,6 +168,30 @@ public sealed class LndCfFinanceTests
         Assert.Equal(["customerConfirmed", "deliveryDate", "deliveryNoteNo"],
             LndCfFinanceRules.CheckDelivery(new LndCfDeliveryRequest(today.AddDays(1), " ", null, false), scheduled, today).Keys.Order(StringComparer.Ordinal));
         Assert.Contains("deliveryDate", LndCfFinanceRules.CheckDelivery(new LndCfDeliveryRequest(scheduled.AddDays(-1), "DN-1", null, true), scheduled, today).Keys);
-        Assert.Equal([LndCfFinanceRules.Credit, LndCfFinanceRules.Charges, LndCfFinanceRules.Schedule, LndCfFinanceRules.Delivery], LndCfFinanceRules.Ready);
+        Assert.Equal([LndCfFinanceRules.Credit, LndCfFinanceRules.Charges, LndCfFinanceRules.Schedule, LndCfFinanceRules.Delivery, LndCfFinanceRules.SupplierPayment],
+            LndCfFinanceRules.Ready);
+    }
+
+    [Fact]
+    public void The_supplier_is_owed_the_price_less_the_down_payment_it_took_less_its_commission()
+    {
+        var l = Finance(); // price 40,000, down 10,000 taken by the supplier
+        l.SupplierCommissionPct = 3m;
+        var due = LndCfFinanceRules.SupplierDue(l);
+        Assert.Equal((30_000m, 900m, 29_100m), (due.PayableAmount, due.CommissionAmount, due.NetAmount));
+        l.ClaimStatusCode = LndCfFinanceRules.Claim.Paid; // we took the down payment: the whole price is owed
+        l.ClaimDownPaymentAmount = 10_000m;
+        Assert.Equal(40_000m, LndCfFinanceRules.SupplierDue(l).PayableAmount);
+    }
+
+    [Fact]
+    public void A_commission_other_than_the_agreed_one_needs_a_reason()
+    {
+        var due = new LndCfSupplierDueDto(30_000m, 3m, 900m, 29_100m, null);
+        Assert.Empty(LndCfFinanceRules.CheckSupplierPayment(new LndCfSupplierPaymentRequest(1, "TRX-1", null, null), due));
+        Assert.Contains("commissionReason", LndCfFinanceRules.CheckSupplierPayment(new LndCfSupplierPaymentRequest(1, "TRX-1", 600m, null), due).Keys);
+        Assert.Empty(LndCfFinanceRules.CheckSupplierPayment(new LndCfSupplierPaymentRequest(1, "TRX-1", 600m, "promotion agreed"), due));
+        Assert.Equal(["bankAccountId", "commissionAmount", "reference"],
+            LndCfFinanceRules.CheckSupplierPayment(new LndCfSupplierPaymentRequest(null, " ", 31_000m, "x"), due).Keys.Order(StringComparer.Ordinal));
     }
 }

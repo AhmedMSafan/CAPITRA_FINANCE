@@ -64,7 +64,10 @@ public sealed record LndLoanDto(
     string? Notes, string CreatedBy, DateTime CreatedAt, int RowVersion,
     IReadOnlyList<LndInstallmentDto> Installments, IReadOnlyList<LndLoanStatusDto> History, IReadOnlyList<LndLoanEventDto> Events,
     LndGoodsDto? Goods = null, IReadOnlyList<LndCfChargeDto>? Charges = null, LndCfClaimDto? Claim = null, decimal RateMarginPct = 0,
-    LndCfDeliveryDto? Delivery = null);
+    LndCfDeliveryDto? Delivery = null, LndCfSupplierPaidDto? SupplierPayment = null);
+
+/// <summary>A consumer finance's supplier payment (step 6): commission (and why it changed), net paid, reference, who and when, GL.</summary>
+public sealed record LndCfSupplierPaidDto(decimal CommissionAmount, string? CommissionReason, decimal NetAmount, string? Reference, DateTime PaidAt, string? PaidBy, string? GlTranSetId);
 
 /// <summary>A consumer finance's delivery (step 5): the day, the delivery note, the serial, the GL of the booking, when the supplier is paid by.</summary>
 public sealed record LndCfDeliveryDto(DateOnly DeliveryDate, string? DeliveryNoteNo, string? SerialNo, string? GlTranSetId, DateOnly? SupplierPaymentDueDate);
@@ -326,7 +329,10 @@ public sealed class LndLoanService(
                 (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0), l.ClaimGlTranSetId, l.ClaimPaidAt, l.ClaimPaidBy, l.ClaimPaymentMethodCode,
                 l.ClaimPaymentReference, l.ClaimPaymentGlTranSetId),
             l.RateMarginPct,
-            l.DeliveryDate is { } delivered ? new LndCfDeliveryDto(delivered, l.DeliveryNoteNo, l.DeliverySerialNo, l.DeliveryGlTranSetId, l.SupplierPaymentDueDate) : null);
+            l.DeliveryDate is { } delivered ? new LndCfDeliveryDto(delivered, l.DeliveryNoteNo, l.DeliverySerialNo, l.DeliveryGlTranSetId, l.SupplierPaymentDueDate) : null,
+            l.SupplierPaidAt is { } paidAt ? new LndCfSupplierPaidDto(l.SupplierCommissionAmount ?? 0, l.SupplierCommissionReason,
+                LndCfFinanceRules.SupplierDue(l).PayableAmount - (l.SupplierCommissionAmount ?? 0), l.SupplierPaymentReference, paidAt, l.SupplierPaidBy,
+                l.SupplierPaymentGlTranSetId) : null);
     }
 
     /// <summary>Cancels a loan that has not been paid out. The schedule is kept as it was, for the record.</summary>

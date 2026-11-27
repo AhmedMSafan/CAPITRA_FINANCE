@@ -182,6 +182,36 @@
       </ul>
     </div>
 
+    <!-- Supplier payment (27 Nov 2026): what the supplier is owed less its commission, paid from our bank account; accepting posts it -->
+    <div v-if="step.stepCode === 'CF_SUPPLIER_PAYMENT' && step.isMine && step.supplierDue" class="cfs-box">
+      <h4 class="cfs-sub">{{ tr('Supplier payment') }}</h4>
+      <p class="cfs-sum">
+        {{ tr('Owed to the supplier') }} <b>{{ money(step.supplierDue.payableAmount) }}</b>
+        · {{ tr('Commission') }} <b>{{ money(commissionNow) }}</b> ({{ tr('agreed') }} {{ step.supplierDue.commissionPct }}% = {{ money(step.supplierDue.commissionAmount) }})
+        · {{ tr('Net paid') }} <b>{{ money(step.supplierDue.payableAmount - commissionNow) }}</b>
+        <template v-if="step.supplierDue.dueDate"> · {{ tr('pay by') }} <b>{{ step.supplierDue.dueDate }}</b></template>
+      </p>
+      <div class="cfs-grid">
+        <label class="fc-field"><span>{{ tr('Paid from') }}<b> *</b></span>
+          <select v-model="sp.bankAccountId" class="fx-select">
+            <option :value="null" disabled>{{ tr('Choose the bank account') }}</option>
+            <option v-for="a in step.accounts ?? []" :key="a.accountId" :value="a.accountId">{{ a.bankName }} · {{ a.accountRef }}</option>
+          </select></label>
+        <label class="fc-field"><span>{{ tr('Transfer reference') }}<b> *</b></span><input v-model="sp.reference" class="fx-search" maxlength="100"></label>
+        <label class="fc-field"><span>{{ tr('Commission') }}</span>
+          <input v-model.number="sp.commissionAmount" type="number" min="0" step="any" class="fx-search" :class="{ chg: commissionNow !== step.supplierDue.commissionAmount }">
+          <small>{{ tr('agreed') }} {{ money(step.supplierDue.commissionAmount) }}</small></label>
+        <label v-if="commissionNow !== step.supplierDue.commissionAmount" class="fc-field"><span>{{ tr('Why the commission changed') }}<b> *</b></span>
+          <input v-model="sp.commissionReason" class="fx-search" maxlength="500"></label>
+      </div>
+      <h4 class="cfs-sub">{{ tr('On accept') }}</h4>
+      <ul class="cfs-list">
+        <li>{{ tr('Rule CF_SUPPLIER_PAYMENT') }}: {{ tr('Dr Payable to the supplier') }} <b>{{ money(step.supplierDue.payableAmount) }}</b> · {{ tr('Cr Commission income') }}
+          <b>{{ money(commissionNow) }}</b> · {{ tr('Cr Bank') }} <b>{{ money(step.supplierDue.payableAmount - commissionNow) }}</b></li>
+        <li>{{ tr('The workflow ends; the finance stays active and is collected by its schedule.') }}</li>
+      </ul>
+    </div>
+
     <p v-if="step.stepCode === 'CF_SCHEDULE' && step.isMine" class="cfs-note">
       <span class="fa fa-info-circle" aria-hidden="true"></span>
       {{ tr('Accept builds the schedule on the finance amount') }} {{ money(loan.principalAmount) }} {{ tr('over') }} {{ loan.termMonths }} {{ tr('months, from today.') }}
@@ -217,8 +247,9 @@ const HINT: Record<string, string> = {
   CF_CHARGES: 'Create the claim of the upfront charges, record its payment, then accept. Charges added to the schedule are part of the principal.',
   CF_SCHEDULE: 'Check the finance amount and term, then accept to build the schedule.',
   CF_DELIVERY: "Record the delivery and the customer's receipt; accepting books the finance.",
+  CF_SUPPLIER_PAYMENT: 'Check what the supplier is owed and its commission, choose the bank account, then pay.',
 }
-const ACCEPT: Record<string, string> = { CF_CREDIT: 'Approve', CF_SCHEDULE: 'Build schedule and accept', CF_DELIVERY: 'Accept and book' }
+const ACCEPT: Record<string, string> = { CF_CREDIT: 'Approve', CF_SCHEDULE: 'Build schedule and accept', CF_DELIVERY: 'Accept and book', CF_SUPPLIER_PAYMENT: 'Pay the supplier' }
 const ROLE: Record<string, string> = {
   CF_CREDIT: 'Credit (CREDIT_OFFICER)', CF_CHARGES: 'Operations (OPERATIONS_OFFICER)', CF_SCHEDULE: 'Operations (OPERATIONS_OFFICER)',
   CF_DELIVERY: 'Operations (OPERATIONS_OFFICER)', CF_SUPPLIER_PAYMENT: 'Treasury (TREASURY_OFFICER)',
@@ -243,6 +274,11 @@ const supplierDue = computed(() => {
   const d = new Date(`${delivery.deliveryDate}T00:00:00Z`)
   d.setUTCDate(d.getUTCDate() + (props.loan.goods?.supplierPaymentDays ?? 0))
   return d.toISOString().slice(0, 10)
+})
+const sp = reactive({ bankAccountId: null as number | null, reference: '', commissionAmount: null as number | string | null, commissionReason: '' })
+const commissionNow = computed(() => {
+  const v = sp.commissionAmount
+  return v === null || v === '' || Number.isNaN(Number(v)) ? step.value?.supplierDue?.commissionAmount ?? 0 : Math.round(Number(v) * 100) / 100
 })
 const pay = reactive({ bankAccountId: null as number | null, paymentMethodCode: 'CASH', paymentReference: '' })
 const inboxId = () => (route.query.inboxId ? Number(route.query.inboxId) : null)
@@ -365,7 +401,10 @@ async function complete(action: 'ACCEPT' | 'REJECT') {
     const deliveryBody = step.value.stepCode === 'CF_DELIVERY' && action === 'ACCEPT'
       ? { deliveryDate: delivery.deliveryDate, deliveryNoteNo: delivery.deliveryNoteNo.trim() || null, serialNo: delivery.serialNo.trim() || null, customerConfirmed: delivery.customerConfirmed }
       : undefined
-    await loansApi.completeCfStep(props.loan.loanId, step.value.inboxId, action, comment.value.trim() || null, decision, deliveryBody)
+    const paymentBody = step.value.stepCode === 'CF_SUPPLIER_PAYMENT' && action === 'ACCEPT'
+      ? { bankAccountId: sp.bankAccountId, reference: sp.reference.trim() || null, commissionAmount: commissionNow.value, commissionReason: sp.commissionReason.trim() || null }
+      : undefined
+    await loansApi.completeCfStep(props.loan.loanId, step.value.inboxId, action, comment.value.trim() || null, decision, deliveryBody, paymentBody)
     showSuccess(tr(action === 'ACCEPT' ? 'Step accepted.' : 'Finance rejected.'))
     comment.value = ''
     // the task is done: drop it from the address so the page shows the next step as someone else's
