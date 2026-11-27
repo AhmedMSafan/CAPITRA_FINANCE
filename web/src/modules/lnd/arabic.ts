@@ -763,5 +763,6 @@ export const LND_AR: Record<string, string> = {
   'fees': 'الرسوم',
   'financed + charges added': 'الممول + الرسوم المضافة',
   'rule CF_CHARGES posts the upfront charges': 'القاعدة CF_CHARGES تقيد الرسوم المقدمة',
-  'today': 'اليوم'
+  'today': 'اليوم',
+  'Posts nothing.': 'لا يوجد قيد.'
 }

@@ -5,14 +5,12 @@
   <Crm360Dialog v-model:visible="shown" :title="tr('Rules and GL')" :subtitle="subtitle" icon="fa-cogs" :width="1150">
     <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
     <template v-else-if="data">
-      <p class="c3-muted cfr-p">{{ tr('Product') }} <b>{{ data.productName ?? '—' }}</b> · {{ tr('Read the same way the posting reads them.') }}</p>
       <section v-for="pg in data.pages" :key="pg.stepCode" class="cfr-page">
-        <h4>{{ tr(pg.stepName) }} <span class="c3-muted">· {{ tr('Role') }} <b>{{ pg.role ?? '—' }}</b></span></h4>
-        <p class="c3-muted cfr-p">{{ tr(pg.note) }}</p>
+        <h4>{{ tr(pg.stepName) }}</h4>
+        <p v-if="!pg.rules.length" class="cfr-p">{{ tr('Posts nothing.') }}</p>
         <div v-for="r in pg.rules" :key="r.button + r.ruleCode" class="cfr-rule">
           <div class="cfr-rhead">
             <span class="cfr-tag">{{ r.ruleCode }}</span><b>{{ r.ruleName ?? '' }}</b>
-            <span class="c3-muted">· {{ tr('Button') }}: {{ tr(r.button) }} · {{ tr(r.linkedBy) }}<template v-if="r.categoryCode"> · {{ tr('Journal category') }} {{ r.categoryCode }}</template></span>
           </div>
           <p v-if="r.problem" class="cfr-bad">{{ r.problem }}</p>
           <table v-if="r.charges.length" class="fx-table">
@@ -31,7 +29,7 @@
           </table>
         </div>
       </section>
-      <p class="c3-muted cfr-p">{{ tr('Read only. Change the rules in Admin Setup › Product Catalog › the product › Product Event Rules.') }}</p>
+      <p class="cfr-p">{{ tr('Read only. Change the rules in Admin Setup › Product Catalog › the product › Product Event Rules.') }}</p>
     </template>
     <template #footer>
       <button type="button" class="fx-btn" @click="shown = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>

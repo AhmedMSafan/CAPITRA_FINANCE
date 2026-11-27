@@ -121,14 +121,17 @@
           <p v-if="charges.problem" class="cfl-note bad cfl-pad">{{ charges.problem }}</p>
           <table v-else-if="charges.charges.length" class="cfl-rows"><tbody>
             <tr v-for="c in charges.charges" :key="c.chargeCode">
-              <td><b>{{ tr(c.chargeName) }}</b><br><small class="cfs-basis">{{ tr(c.basisText) || '—' }} · {{ tr('rule') }} {{ money(c.ruleAmount) }}</small></td>
-              <td><input v-model.number="amounts[c.chargeCode]" type="number" min="0" step="any" class="fx-search cfs-amt" :class="{ chg: amountOf(c) !== c.ruleAmount }" @input="touched.add(c.chargeCode)"></td>
-              <td class="cfl-h">
-                <span class="cfs-seg" role="group" :aria-label="tr('How paid')">
-                  <button type="button" :class="{ on: timing(c) === UPFRONT }" @click="setTiming(c, UPFRONT)">{{ tr('Upfront') }}</button>
-                  <button type="button" :class="{ on: timing(c) === FINANCED }" @click="setTiming(c, FINANCED)">{{ tr('Add to schedule') }}</button>
-                </span>
-                <small v-if="timing(c) !== c.defaultTimingCode || amountOf(c) !== c.ruleAmount" class="cfs-ovr">{{ tr('changed from the rule') }}</small>
+              <td>
+                <div><b>{{ tr(c.chargeName) }}</b> <small class="cfs-basis">· {{ tr(c.basisText) || '—' }} · {{ tr('rule') }} {{ money(c.ruleAmount) }}</small></div>
+                <div class="cfs-ch-row">
+                  <input v-model.number="amounts[c.chargeCode]" type="number" min="0" step="any" class="fx-search cfs-amt" :class="{ chg: amountOf(c) !== c.ruleAmount }"
+                         :aria-label="tr('Amount')" @input="touched.add(c.chargeCode)">
+                  <span class="cfs-seg" role="group" :aria-label="tr('How paid')">
+                    <button type="button" :class="{ on: timing(c) === UPFRONT }" @click="setTiming(c, UPFRONT)">{{ tr('Upfront') }}</button>
+                    <button type="button" :class="{ on: timing(c) === FINANCED }" @click="setTiming(c, FINANCED)">{{ tr('Add to schedule') }}</button>
+                  </span>
+                  <small v-if="timing(c) !== c.defaultTimingCode || amountOf(c) !== c.ruleAmount" class="cfs-ovr">{{ tr('changed from the rule') }}</small>
+                </div>
               </td>
             </tr>
           </tbody></table>
@@ -505,7 +508,9 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-rate label { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: #5b6b78; font-size: 12.5px; }
 .cfs-rate input { width: 90px; height: 30px; text-align: end; }
 .cfs-eff { padding: 3px 12px; border-radius: 999px; background: var(--fin-teal-50); color: var(--fin-teal-700); }
-.cfs-amt { width: 110px; height: 30px; text-align: end; }
+.cfs .cfs-amt { flex: none; width: 120px; max-width: 120px; height: 32px; text-align: end; }
+.cfs-ch-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 6px; }
+.cfs-seg button { white-space: nowrap; }
 .cfs-rule { margin-inline-start: 6px; white-space: nowrap; }
 /* every row on one centred line; amount and timing centred in their columns */
 .cfs :deep(.fx-table) th, .cfs :deep(.fx-table) td { vertical-align: middle; }
@@ -519,7 +524,7 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-box p { margin: 6px 0; font-size: 13px; }
 .cfs-sum { color: #34495a; }
 .cfs-bad { color: var(--fin-danger, #b42318); }
-.cfs-ovr { margin-inline-start: 6px; color: #b06a00; font-weight: 600; }
+.cfs-ovr { color: #b06a00; font-weight: 600; white-space: nowrap; }
 .cfs-basis { color: #34495a; font-size: 12.5px; }
 .cfs-seg { display: inline-flex; border: 1px solid var(--fin-line); border-radius: 8px; overflow: hidden; }
 .cfs-seg button { padding: 5px 10px; border: 0; background: #fff; color: #34495a; font: 600 12px/1 inherit; cursor: pointer; }
