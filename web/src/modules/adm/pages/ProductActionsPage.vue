@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // Actions of a product (ADM_PRODUCT_ACTIONS): the product's fixed actions outside the workflow (e.g. Cheque batch submission)
 // and the product event rule each one posts. The list of actions comes from the code; only the rule and on/off are set here.
+// Below them (Ahmed, 27 Nov 2026): the workflow steps that post a rule of the product, linked in the Workflow Designer, so every
+// screen and button that posts the product's GL shows on one page.
 import { computed, onMounted, reactive, ref } from 'vue'
 import { hasPermission } from '@/shared/auth/session'
 import { showSuccess } from '@/shared/feedback/feedback'
@@ -8,13 +10,14 @@ import { useFeedback } from '@/shared/feedback/useFeedback'
 import { formatCell } from '@/shared/crud/format'
 import { tr } from '@/shared/layout/language'
 import '@/shared/styles/apex-fx-inbox.css'
-import { labelOf, productsApi, RULE_AMOUNTS, type Product, type ProductAction, type ProductActionRuleOption } from '../api/products.api'
+import { labelOf, productsApi, RULE_AMOUNTS, type Product, type ProductAction, type ProductActionRuleOption, type ProductWorkflowStep } from '../api/products.api'
 
 const props = defineProps<{ productId: number }>()
 
 const product = ref<Product | null>(null)
 const actions = ref<ProductAction[]>([])
 const rules = ref<ProductActionRuleOption[]>([])
+const steps = ref<ProductWorkflowStep[]>([])
 const loading = ref(true)
 const savingCode = ref('')
 const pageError = ref('')
@@ -48,6 +51,7 @@ async function load() {
     const [all, acts] = await Promise.all([productsApi.list(), productsApi.actions(props.productId)])
     product.value = all.find(p => p.productId === props.productId) ?? null
     fill(acts.actions, acts.rules)
+    steps.value = acts.steps
   } catch (error) {
     pageError.value = error instanceof Error ? error.message : 'Unable to load the product actions.'
   } finally {
@@ -114,6 +118,7 @@ useFeedback({ errors: [pageError] })
           <div class="pa-what">
             <b>{{ a.actionNameEn }}</b>
             <span class="pa-code">{{ a.actionCode }}</span>
+            <div class="pa-used"><i class="pi pi-map-marker"></i><span>{{ tr('Used on') }}:</span> <b>{{ a.usedOn || '—' }}</b></div>
             <p>{{ a.description }}</p>
             <small>{{ tr('GL tran set ID') }}: CAP-{{ a.moduleCode }}-YYYY-00000001 · {{ tr('Amounts') }}: {{ amounts(a) }}</small>
           </div>
@@ -137,6 +142,29 @@ useFeedback({ errors: [pageError] })
           </fieldset>
         </div>
       </section>
+
+      <section class="fx-card fx-card-pad">
+        <h2>{{ tr('Workflow steps') }}</h2>
+        <p class="pa-intro">
+          {{ tr('Workflow steps that post a rule of this product. A step names its rule in the Workflow Designer (step settings › Rule code), so it is linked there, not on this page.') }}
+        </p>
+        <div v-if="steps.length === 0" class="fx-empty">{{ tr('No workflow step posts a rule of this product.') }}</div>
+        <table v-else class="pa-steps">
+          <thead><tr><th>{{ tr('Workflow') }}</th><th>{{ tr('Step') }}</th><th>{{ tr('Role') }}</th><th>{{ tr('Used on') }}</th><th>{{ tr('Rule') }}</th><th></th></tr></thead>
+          <tbody>
+            <tr v-for="s in steps" :key="`${s.workflowDefinitionId}-${s.stepCode}`">
+              <td><b>{{ s.workflowName }}</b><span class="pa-code">{{ s.workflowCode }}</span><small v-if="!s.workflowActive" class="pa-off"> · {{ tr('inactive') }}</small></td>
+              <td>{{ s.stepNo }}. {{ s.stepName }}<span class="pa-code">{{ s.stepCode }}</span></td>
+              <td>{{ s.role || '—' }}</td>
+              <td>{{ s.usedOn }}</td>
+              <td><b>{{ s.ruleCode }}</b> <span>{{ s.ruleNameEn }}</span>
+                <span class="fx-chip" :class="{ 'fx-chip--ok': s.ruleActive }">{{ tr(s.ruleActive ? 'Linked' : 'Rule inactive') }}</span></td>
+              <td><RouterLink :to="{ name: 'workflow-engine-designer', params: { id: s.workflowDefinitionId } }" class="fx-btn fx-btn--sm">
+                <i class="pi pi-sitemap"></i>{{ tr('Open workflow') }}</RouterLink></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
     </template>
   </div>
 </template>
@@ -153,6 +181,14 @@ useFeedback({ errors: [pageError] })
 .pa-code { margin-left: 8px; padding: 2px 6px; border-radius: 4px; background: var(--cap-bg); color: var(--cap-ink-soft); font-family: monospace; font-size: 11px; }
 .pa-what p { margin: 6px 0 4px; color: var(--cap-ink-soft); font-size: 12px; }
 .pa-what small { color: var(--cap-muted); font-size: 11px; }
+.pa-used { display: flex; align-items: center; gap: 6px; margin-top: 6px; padding: 5px 8px; border-radius: 6px; background: var(--cap-bg); font-size: 12px; color: var(--cap-ink-soft); }
+.pa-used b { color: var(--cap-heading); font-weight: 600; }
+.pa-steps { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.pa-steps th { padding: 8px 10px; text-align: start; color: var(--cap-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid var(--cap-border); }
+.pa-steps td { padding: 10px; vertical-align: middle; border-bottom: 1px solid var(--cap-border); color: var(--cap-ink-soft); }
+.pa-steps td b { color: var(--cap-heading); }
+.pa-steps .fx-chip { margin-inline-start: 6px; }
+.pa-off { color: #b45309; }
 .pa-link { display: flex; align-items: flex-end; gap: 14px; margin: 0; padding: 0; border: 0; }
 .pa-field { flex: 1; min-width: 0; }
 .pa-field label { display: block; margin-bottom: 6px; color: var(--cap-ink-soft); font-size: 11px; font-weight: 500; }
