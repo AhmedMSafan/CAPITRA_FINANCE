@@ -32,7 +32,8 @@ line by line, before it is shown. A change of decision is made here first.
 - The Claims tab lists only created claims; a finance still before Credit approval shows on the Finances tab with its step.
 - Finances started before 27 Nov 2026 keep the old step **Charges and claim** (OPERATIONS_OFFICER) between Credit and Schedule, where
   their claim is created and paid.
-- The person who entered the finance does none of its steps.
+- **Anyone holding a step's role does the step, as the Inbox offers it**, including the person who entered the finance (Ahmed, 28 Nov 2026;
+  replaces "the person who entered the finance does none of its steps").
 - Each finance keeps a copy of the supplier's terms (down payment collector, commission, payment and delivery days).
 - Upfront charge = claim, income when the claim is paid. Added to schedule = part of the principal, no separate charge.
 
