@@ -41,7 +41,7 @@ public static class LndCfFinanceRules
     public static readonly string[] Steps = [Credit, Charges, Schedule, Delivery, SupplierPayment, Agreement];
 
     /// <summary>The steps built so far; the others are refused with a clear message until they come.</summary>
-    public static readonly string[] Ready = [Credit, Charges, Schedule, Delivery];
+    public static readonly string[] Ready = [Credit, Charges, Schedule, Delivery, SupplierPayment];
 
     public static class Claim
     {
@@ -204,6 +204,34 @@ public static class LndCfFinanceRules
         return e;
     }
 
+    /// <summary>
+    /// What the supplier is owed (Supplier payment): the price less the down payment it took, or the whole price when we took the down
+    /// payment (held, then owed at delivery); its agreed commission is that % of the amount owed, taken from the payment.
+    /// </summary>
+    public static LndCfSupplierDueDto SupplierDue(LndLoan l)
+    {
+        var a = BookingAmounts(l);
+        var payable = (a["FINANCED_AMOUNT"] ?? 0) + (a["DOWN_PAYMENT_HELD_AMOUNT"] ?? 0);
+        var pct = l.SupplierCommissionPct ?? 0;
+        var commission = Money.Round(payable * pct / 100m, 2);
+        return new LndCfSupplierDueDto(payable, pct, commission, payable - commission, l.SupplierPaymentDueDate);
+    }
+
+    /// <summary>The payment: a bank account, a reference, a commission from 0 to the amount owed, a reason when it is not the agreed one.</summary>
+    public static Dictionary<string, string[]> CheckSupplierPayment(LndCfSupplierPaymentRequest r, LndCfSupplierDueDto due)
+    {
+        var e = new Dictionary<string, string[]>();
+        if (r.BankAccountId is null) e["bankAccountId"] = ["Choose the bank account the supplier is paid from."];
+        if (string.IsNullOrWhiteSpace(r.Reference)) e["reference"] = ["Enter the transfer reference."];
+        else if (r.Reference.Trim().Length > 100) e["reference"] = ["The reference is longer than 100 characters."];
+        var commission = Money.Round(r.CommissionAmount ?? due.CommissionAmount, 2);
+        if (commission < 0 || commission > due.PayableAmount) e["commissionAmount"] = ["The commission must be from 0 to the amount owed."];
+        else if (commission != due.CommissionAmount && string.IsNullOrWhiteSpace(r.CommissionReason))
+            e["commissionReason"] = [$"Write why the commission is not the agreed {due.CommissionPct:0.##}% ({due.CommissionAmount:#,0.00})."];
+        if (r.CommissionReason is { Length: > 500 }) e["commissionReason"] = ["The reason is longer than 500 characters."];
+        return e;
+    }
+
     /// <summary>The finance rate: the product rate plus Credit's margin, from 0 to 100%.</summary>
     public static decimal FinanceRate(decimal productRatePct, decimal marginPct)
     {
@@ -224,7 +252,8 @@ public static class LndCfFinanceRules
 
 /// <summary>The open step of a finance, whether the signed-in user holds its task, and what the step shows.</summary>
 public sealed record LndCfStepDto(string StepCode, string StepName, long? InboxId, bool IsMine, LndCfChargesDto? Charges = null,
-    IReadOnlyList<LndPayingAccountDto>? Accounts = null, decimal? ProductRatePct = null, decimal RateMarginPct = 0, LndCfTermsDto? Terms = null);
+    IReadOnlyList<LndPayingAccountDto>? Accounts = null, decimal? ProductRatePct = null, decimal RateMarginPct = 0, LndCfTermsDto? Terms = null,
+    LndCfSupplierDueDto? SupplierDue = null);
 
 /// <summary>
 /// The financial values of a finance, its own copy (Ahmed, 27 Nov 2026): Credit approval can change every one of them for this finance.
@@ -250,7 +279,16 @@ public sealed record LndCfTermsRequest(
 /// </summary>
 public sealed record LndCfCompleteRequest(string? Action, string? Comment, IReadOnlyDictionary<string, string>? ChargeTimings = null,
     IReadOnlyDictionary<string, decimal>? ChargeAmounts = null, decimal? RateMarginPct = null, LndCfTermsRequest? Terms = null,
-    LndCfDeliveryRequest? Delivery = null);
+    LndCfDeliveryRequest? Delivery = null, LndCfSupplierPaymentRequest? SupplierPayment = null);
+
+/// <summary>
+/// Supplier payment: our bank account it is paid from, the transfer reference, and the commission (the supplier's agreed %; another
+/// amount needs a reason).
+/// </summary>
+public sealed record LndCfSupplierPaymentRequest(long? BankAccountId, string? Reference, decimal? CommissionAmount, string? CommissionReason);
+
+/// <summary>What the supplier is owed for a finance, its agreed commission, and the net paid.</summary>
+public sealed record LndCfSupplierDueDto(decimal PayableAmount, decimal CommissionPct, decimal CommissionAmount, decimal NetAmount, DateOnly? DueDate);
 
 /// <summary>Delivery and customer receipt: the day, the delivery note, the serial or IMEI, and the customer's confirmation.</summary>
 public sealed record LndCfDeliveryRequest(DateOnly? DeliveryDate, string? DeliveryNoteNo, string? SerialNo, bool? CustomerConfirmed);
@@ -435,6 +473,47 @@ public sealed class LndCfFinanceWorkflowHandler(
                     $"Booked at {name} by {context.User}: delivered {delivered:dd MMM yyyy}, {schedule.Count} instalments of {schedule[0].Total:#,0.00} from {schedule[0].DueDate:dd MMM yyyy}.");
                 break;
             }
+            case LndCfFinanceRules.SupplierPayment:
+            {
+                // Supplier payment (27 Nov 2026): the step's rule CF_SUPPLIER_PAYMENT: the amount owed settled, the commission earned,
+                // the net paid from our bank account
+                if (loan.SupplierPaymentBankAccountId is not { } accountId || loan.SupplierCommissionAmount is not { } commission)
+                    throw new BusinessRuleException("Enter the payment on the finance page first: the bank account, the reference and the commission.");
+                var bankGl = await db.Set<TrsBankAccount>().AsNoTracking().Where(x => x.AccountId == accountId).Select(x => x.ErpAccountCode).FirstOrDefaultAsync(cancellationToken);
+                if (string.IsNullOrWhiteSpace(bankGl)) throw new BusinessRuleException("The bank account has no GL account code. Set it in Treasury.");
+                var (_, businessLine, module, plan, ruleCode) = await planner.PlanAsync(loan, cancellationToken, LndCfFinanceRules.SupplierPayment);
+                if (plan is null) throw new BusinessRuleException($"The finance's product has no active rule {ruleCode} today. Add it in Admin Setup.");
+                var due = LndCfFinanceRules.SupplierDue(loan);
+                var net = due.PayableAmount - commission;
+                var amounts = new Dictionary<string, decimal> { ["PAYABLE_AMOUNT"] = due.PayableAmount, ["COMMISSION_AMOUNT"] = commission, ["NET_PAYMENT_AMOUNT"] = net };
+                var lines = ProductEventPosting.Build(plan, l => amounts.GetValueOrDefault(l.AmountCode ?? ""), bankGl.Trim());
+                var today = LndLoanService.CairoToday(clock);
+                var doc = new ProductActionDocument("LND_CF_SUPPLIER_PAYMENT", loan.LoanId.ToString(CultureInfo.InvariantCulture), loan.LoanNumber, today,
+                    loan.CurrencyCode, $"Finance {loan.LoanNumber}: supplier paid {net:#,0.00} (commission {commission:#,0.00}), {loan.SupplierPaymentReference}");
+                try
+                {
+                    loan.SupplierPaymentGlTranSetId = await posting.PostLinesAsync(plan, lines, module, "Consumer finance supplier payment", "3100", businessLine, doc, cancellationToken);
+                }
+                catch (ApexProcessException ex)
+                {
+                    throw new BusinessRuleException($"GL posting failed, the supplier was not paid: {GlPostingApi.CleanMessage(ex.Message)}");
+                }
+                loan.SupplierPaidAt = clock.UtcNow;
+                loan.SupplierPaidBy = context.User;
+                db.Set<LndLoanEvent>().Add(new LndLoanEvent
+                {
+                    LoanId = loan.LoanId, EventCode = "CF_SUPPLIER_PAYMENT", EventDate = today, EventAmount = net, GlTranSetId = loan.SupplierPaymentGlTranSetId,
+                    SourceDocumentType = "LND_CF_SUPPLIER_PAYMENT", SourceDocumentId = loan.LoanId,
+                    Notes = $"Supplier paid {net:#,0.00}: owed {due.PayableAmount:#,0.00} less commission {commission:#,0.00}"
+                        + (loan.SupplierCommissionReason is { } why ? $" (changed from the agreed {due.CommissionAmount:#,0.00}: {why})" : "") + $"; reference {loan.SupplierPaymentReference}.",
+                });
+                db.Set<LndLoanStatusHist>().Add(new LndLoanStatusHist
+                {
+                    LoanId = loan.LoanId, FromStatusCode = loan.StatusCode, ToStatusCode = loan.StatusCode,
+                    Reason = $"Supplier paid at {name} by {context.User}: {net:#,0.00}, commission {commission:#,0.00}.",
+                });
+                break;
+            }
         }
         await db.SaveChangesAsync(cancellationToken);
     }
@@ -496,11 +575,13 @@ public sealed class LndCfFinanceService(
         var step = open.ToUpperInvariant();
         LndCfChargesDto? charges = step is LndCfFinanceRules.Credit or LndCfFinanceRules.Charges
             ? await planner.WorkAsync(loan, null, ct, step == LndCfFinanceRules.Credit ? downPayment : null) : null;
-        IReadOnlyList<LndPayingAccountDto>? accounts = step == LndCfFinanceRules.Charges && mine ? await AccountsAsync(loan.CurrencyCode, ct) : null;
+        IReadOnlyList<LndPayingAccountDto>? accounts = step is LndCfFinanceRules.Charges or LndCfFinanceRules.SupplierPayment && mine
+            ? await AccountsAsync(loan.CurrencyCode, ct) : null;
         var productRate = await db.Set<LndProductVersion>().AsNoTracking().Where(x => x.ProductVersionId == loan.ProductVersionId)
             .Select(x => (decimal?)x.AnnualRatePct).FirstOrDefaultAsync(ct);
         return new LndCfStepDto(open, LndCfFinanceRules.StepName(open), mine ? inboxId : null, mine, charges, accounts, productRate, loan.RateMarginPct,
-            step == LndCfFinanceRules.Credit && mine ? LndCfFinanceRules.Terms(loan) : null);
+            step == LndCfFinanceRules.Credit && mine ? LndCfFinanceRules.Terms(loan) : null,
+            step == LndCfFinanceRules.SupplierPayment ? LndCfFinanceRules.SupplierDue(loan) : null);
     }
 
     /// <summary>
@@ -534,6 +615,24 @@ public sealed class LndCfFinanceService(
             loan.DeliveryDate = d.DeliveryDate;
             loan.DeliveryNoteNo = d.DeliveryNoteNo!.Trim();
             loan.DeliverySerialNo = string.IsNullOrWhiteSpace(d.SerialNo) ? null : d.SerialNo.Trim();
+            await db.SaveChangesAsync(ct);
+        }
+        if (action == "ACCEPT" && string.Equals(item.StepCode, LndCfFinanceRules.SupplierPayment, StringComparison.OrdinalIgnoreCase))
+        {
+            var p = r.SupplierPayment ?? new LndCfSupplierPaymentRequest(null, null, null, null);
+            var due = LndCfFinanceRules.SupplierDue(loan);
+            var e = LndCfFinanceRules.CheckSupplierPayment(p, due);
+            var account = p.BankAccountId is { } accountId ? await db.Set<TrsBankAccount>().AsNoTracking().FirstOrDefaultAsync(x => x.AccountId == accountId, ct) : null;
+            if (p.BankAccountId is not null && (account is null || !account.IsActive || account.CurrencyCode != loan.CurrencyCode))
+                e["bankAccountId"] = ["Choose one of our active accounts in the finance's currency."];
+            else if (account is not null && string.IsNullOrWhiteSpace(account.ErpAccountCode))
+                e["bankAccountId"] = [$"Bank account {account.AccountRef} has no GL account code. Set it in Treasury."];
+            if (e.Count > 0) throw new BusinessValidationException(e);
+            var commission = Money.Round(p.CommissionAmount ?? due.CommissionAmount, 2);
+            loan.SupplierCommissionAmount = commission;
+            loan.SupplierCommissionReason = commission == due.CommissionAmount ? null : p.CommissionReason!.Trim();
+            loan.SupplierPaymentBankAccountId = p.BankAccountId;
+            loan.SupplierPaymentReference = p.Reference!.Trim();
             await db.SaveChangesAsync(ct);
         }
         await inbox.CompleteAsync(inboxId, new CompleteInboxItemRequest(action, comment), ct);

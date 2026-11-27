@@ -19,7 +19,7 @@ export type CfClaim = {
 
 export type CfStep = {
   stepCode: string; stepName: string; inboxId: number | null; isMine: boolean; charges: CfCharges | null; accounts: PayingAccount[] | null
-  productRatePct: number | null; rateMarginPct: number; terms: CfTerms | null
+  productRatePct: number | null; rateMarginPct: number; terms: CfTerms | null; supplierDue: CfSupplierDue | null
 }
 type Opt = { value: string; label: string }
 /** A finance's own financial values, which Credit approval can change (the price is the supplier's). */
@@ -107,7 +107,15 @@ export type Loan = {
   rateMarginPct?: number
   /** Consumer finance: its delivery (step 5), once recorded. */
   delivery?: { deliveryDate: string; deliveryNoteNo: string | null; serialNo: string | null; glTranSetId: string | null; supplierPaymentDueDate: string | null } | null
+  /** Consumer finance: the payment to the supplier (step 6), once made. */
+  supplierPayment?: {
+    commissionAmount: number; commissionReason: string | null; netAmount: number; reference: string | null; paidAt: string; paidBy: string | null; glTranSetId: string | null
+  } | null
 }
+
+/** Supplier payment (step 6): what the supplier is owed, its agreed commission and the net. */
+export type CfSupplierDue = { payableAmount: number; commissionPct: number; commissionAmount: number; netAmount: number; dueDate: string | null }
+export type CfSupplierPayment = { bankAccountId: number | null; reference: string | null; commissionAmount: number | null; commissionReason: string | null }
 
 /** A finance's document (e.g. the signed delivery note). */
 export type LoanDocument = {
@@ -166,8 +174,9 @@ export const loansApi = {
     return http.get<CfStep | null>(`${API}/${id}/cf-step${qs ? `?${qs}` : ''}`)
   },
   /** decision: at Credit approval, Credit's decision on the charges and the rate margin. */
-  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, decision?: CfCreditDecision, delivery?: CfDelivery) =>
-    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, ...decision, delivery: delivery ?? null }),
+  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, decision?: CfCreditDecision, delivery?: CfDelivery,
+    supplierPayment?: CfSupplierPayment) =>
+    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, ...decision, delivery: delivery ?? null, supplierPayment: supplierPayment ?? null }),
   documents: (id: number) => http.get<LoanDocument[]>(`${API}/${id}/documents`),
   addDocument: (id: number, file: File, title: string, documentTypeCode: string | null) => {
     const form = new FormData()

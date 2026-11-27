@@ -58,6 +58,16 @@
             <span v-if="loan.delivery.glTranSetId">GL <b>{{ loan.delivery.glTranSetId }}</b></span>
           </div>
         </template>
+        <template v-if="loan.supplierPayment">
+          <h4 class="ln-sub">{{ tr('Supplier payment') }}</h4>
+          <div class="ln-chips">
+            <span>{{ tr('Net paid') }} <b>{{ money(loan.supplierPayment.netAmount) }}</b></span>
+            <span>{{ tr('Commission') }} <b>{{ money(loan.supplierPayment.commissionAmount) }}</b><template v-if="loan.supplierPayment.commissionReason"> · {{ loan.supplierPayment.commissionReason }}</template></span>
+            <span>{{ tr('Reference') }} <b>{{ loan.supplierPayment.reference }}</b></span>
+            <span>{{ formatDateTime(loan.supplierPayment.paidAt) }} · {{ loan.supplierPayment.paidBy }}</span>
+            <span v-if="loan.supplierPayment.glTranSetId">GL <b>{{ loan.supplierPayment.glTranSetId }}</b></span>
+          </div>
+        </template>
         <template v-if="loan.claim">
           <h4 class="ln-sub">{{ tr('Upfront claim') }}</h4>
           <div class="ln-chips">

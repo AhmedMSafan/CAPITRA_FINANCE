@@ -43,6 +43,10 @@ public sealed class LndLoanConfiguration : IEntityTypeConfiguration<LndLoan>
         builder.Property(x => x.DeliveryNoteNo).HasMaxLength(50);
         builder.Property(x => x.DeliverySerialNo).HasMaxLength(100);
         builder.Property(x => x.DeliveryGlTranSetId).HasMaxLength(50);
+        builder.Property(x => x.SupplierCommissionReason).HasMaxLength(500);
+        builder.Property(x => x.SupplierPaymentReference).HasMaxLength(100);
+        builder.Property(x => x.SupplierPaidBy).HasMaxLength(100);
+        builder.Property(x => x.SupplierPaymentGlTranSetId).HasMaxLength(50);
         builder.HasIndex(x => x.WorkflowInstanceId);
         builder.HasIndex(x => x.SupplierApplicationId);
         builder.HasOne<CrmCfSupplierApplication>().WithMany().HasForeignKey(x => x.SupplierApplicationId).OnDelete(DeleteBehavior.Restrict);
