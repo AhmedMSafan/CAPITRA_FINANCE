@@ -11,7 +11,7 @@ import { hasPermission } from '@/shared/auth/session'
 import { tr } from '@/shared/layout/language'
 import { todayInCairo } from '@/shared/format/datetime'
 import {
-  ACCOUNT_SOURCES, AMOUNT_BASES, CALCULATION_METHODS, INCOME_RECOGNITIONS, CHARGE_AMOUNTS, CHARGE_TIMINGS, RULE_AMOUNTS, chargesApi, labelOf, productEventRulesApi, productsApi,
+  ACCOUNT_SOURCES, AMOUNT_BASES, amountBasesFor, CALCULATION_METHODS, INCOME_RECOGNITIONS, CHARGE_AMOUNTS, CHARGE_TIMINGS, RULE_AMOUNTS, chargesApi, labelOf, productEventRulesApi, productsApi,
   type ProductEventRule, type RuleCharge, type RuleGlLine
 } from '../api/products.api'
 
@@ -23,6 +23,7 @@ const journalSources = ref<FieldOption[]>([])
 const journalCategories = ref<FieldOption[]>([])
 const charges = ref<FieldOption[]>([])
 const glAccounts = ref<FieldOption[]>([])
+const productLines = ref(new Map<number, string>())
 
 // ---- rule list
 type RuleRow = ProductEventRule
@@ -139,7 +140,9 @@ const componentFields = computed<CrudField[]>(() => [
   { name: 'incomeRecognitionCode', label: 'Income Recognition', type: 'select', required: true, options: INCOME_RECOGNITIONS },
   { name: 'fixedAmount', label: 'Fixed Amount', type: 'amount', required: true, min: 0, showIf: method('FIXED') },
   { name: 'chargeRate', label: 'Rate Percent', type: 'pct', required: true, min: 0, max: 100, showIf: method('PERCENTAGE', 'DAILY_INTEREST') },
-  { name: 'amountBaseCode', label: 'Rate Applied To', type: 'select', required: true, options: AMOUNT_BASES, showIf: method('PERCENTAGE') },
+  { name: 'amountBaseCode', label: 'Rate Applied To', type: 'select', required: true,
+    options: amountBasesFor(selectedRule.value ? productLines.value.get(selectedRule.value.productId) : null, ruleCharges.value.map(c => c.amountBaseCode)),
+    showIf: method('PERCENTAGE') },
   { name: 'perUnitAmount', label: 'Per Unit Amount', type: 'amount', required: true, min: 0, showIf: method('PER_UNIT') },
   { name: 'spreadRate', label: 'Spread Percent', type: 'pct', required: true, min: 0, max: 100, showIf: method('INDEX_PLUS_SPREAD') },
   { name: 'dayCountBasis', label: 'Day Count Basis', type: 'select', options: DAY_COUNTS, showIf: method('INDEX_PLUS_SPREAD', 'DAILY_INTEREST') },
@@ -252,6 +255,7 @@ void (async () => {
   const [p, so, ca, c, a] = await Promise.all([
     productsApi.list(), productEventRulesApi.journalSources(), productEventRulesApi.journalCategories(), chargesApi.list(), productEventRulesApi.glAccounts()
   ])
+  productLines.value = new Map(p.map(x => [x.productId, x.businessLineCode]))
   products.value = p.filter(x => x.isActive).map(x => ({ value: x.productId, label: `${x.productCode} - ${x.productNameEn}` }))
   journalSources.value = so.map(x => ({ value: x.sourceId, label: `${x.sourceCode} - ${x.sourceNameEn}` }))
   journalCategories.value = ca.map(x => ({ value: x.categoryId, label: `${x.categoryCode} - ${x.categoryNameEn}` }))

@@ -242,6 +242,21 @@ export const AMOUNT_BASES = [
   { value: 'FINANCED_AMOUNT', label: 'CF Financed Amount' }
 ]
 
+// the bases each business line works with (Ahmed, 27 Nov 2026): a rule's Rate Applied To lists only its product's line
+export const AMOUNT_BASES_BY_LINE: Record<string, string[]> = {
+  CONSUMER_FINANCE: ['GOODS_PRICE', 'FINANCED_AMOUNT'],
+  MICROFINANCE: ['LOAN_AMOUNT'],
+  FACTORING: ['DISBURSEMENT_GROSS_INVOICE_AMOUNT', 'DISBURSEMENT_NET_AMOUNT', 'ELIGIBLE_INVOICE_AMOUNT', 'ADVANCE_AMOUNT', 'INVOICE_COUNT',
+    'CHEQUE_COUNT', 'TENOR_DAYS', 'APPROVED_LIMIT'],
+  MORTGAGE: ['FACE_VALUE', 'PRESENT_VALUE', 'PV_LESS_MARGIN']
+}
+
+/** The bases of a business line, plus any already saved on the rule (kept, by name); every base when the line is not known. */
+export function amountBasesFor(line: string | null | undefined, saved: (string | null)[]) {
+  const own = line ? AMOUNT_BASES_BY_LINE[line] : undefined
+  return own ? AMOUNT_BASES.filter(b => own.includes(b.value) || saved.includes(b.value)) : AMOUNT_BASES
+}
+
 export const INCOME_RECOGNITIONS = [
   { value: 'PRORATE', label: 'Pro-rate' },
   { value: 'IMMEDIATE', label: 'Immediate' }
