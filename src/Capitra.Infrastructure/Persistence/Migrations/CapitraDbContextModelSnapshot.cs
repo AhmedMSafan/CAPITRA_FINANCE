@@ -28732,6 +28732,25 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("DAYS_LATE");
 
+                    b.Property<DateOnly?>("DeliveryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DELIVERY_DATE");
+
+                    b.Property<string>("DeliveryGlTranSetId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("DELIVERY_GL_TRAN_SET_ID");
+
+                    b.Property<string>("DeliveryNoteNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("DELIVERY_NOTE_NO");
+
+                    b.Property<string>("DeliverySerialNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DELIVERY_SERIAL_NO");
+
                     b.Property<DateOnly>("DisbursementDate")
                         .HasColumnType("date")
                         .HasColumnName("DISBURSEMENT_DATE");
@@ -28951,6 +28970,10 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("SUPPLIER_PAYMENT_DAYS");
 
+                    b.Property<DateOnly?>("SupplierPaymentDueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("SUPPLIER_PAYMENT_DUE_DATE");
+
                     b.Property<int>("TermMonths")
                         .HasColumnType("integer")
                         .HasColumnName("TERM_MONTHS");
@@ -29080,6 +29103,106 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_LND_LOAN_CHARGES_LOAN_ID");
 
                     b.ToTable("LND_LOAN_CHARGES", (string)null);
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanDocument", b =>
+                {
+                    b.Property<long>("DocumentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("DOCUMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("DocumentId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<string>("DocumentTitle")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("DOCUMENT_TITLE");
+
+                    b.Property<string>("DocumentTypeCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("DOCUMENT_TYPE_CODE");
+
+                    b.Property<byte[]>("FileBlob")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("FILE_BLOB");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)")
+                        .HasColumnName("FILE_NAME");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FILE_SIZE_BYTES");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_ACTIVE");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("MIME_TYPE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("Sha256Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("SHA256_HASH");
+
+                    b.Property<string>("StepCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("STEP_CODE");
+
+                    b.Property<string>("StepName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("STEP_NAME");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("DocumentId")
+                        .HasName("PK_LND_LOAN_DOCUMENTS");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_LND_LOAN_DOCUMENTS_LOAN_ID");
+
+                    b.ToTable("LND_LOAN_DOCUMENTS", (string)null);
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanEvent", b =>
@@ -49076,6 +49199,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_LND_LOAN_CHARGES_LND_LOANS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanDocument", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Lnd.LndLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_LND_LOAN_DOCUMENTS_LND_LOANS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanEvent", b =>

@@ -70,6 +70,7 @@ public static class DependencyInjection
         services.AddScoped<Modules.Wfe.IWfeTaskCompletionHandler, Modules.Lnd.LndCfFinanceWorkflowHandler>();
         services.AddScoped<Modules.Lnd.LndCfFinanceService>();
         services.AddScoped<Modules.Lnd.LndCfChargesPlanner>();
+        services.AddScoped<Modules.Lnd.LndLoanDocumentService>();
 
 
 

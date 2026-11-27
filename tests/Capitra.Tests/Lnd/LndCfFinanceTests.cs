@@ -27,13 +27,12 @@ public sealed class LndCfFinanceTests
     }
 
     [Fact]
-    public void Steps_have_names_and_the_first_three_are_ready_now()
+    public void Steps_have_names()
     {
         Assert.Equal("Credit approval", LndCfFinanceRules.StepName("cf_credit"));
         Assert.Equal("Charges and claim", LndCfFinanceRules.StepName(LndCfFinanceRules.Charges));
         Assert.Equal("Schedule and contract", LndCfFinanceRules.StepName(LndCfFinanceRules.Schedule));
         Assert.Equal("Supplier payment", LndCfFinanceRules.StepName(LndCfFinanceRules.SupplierPayment));
-        Assert.Equal([LndCfFinanceRules.Credit, LndCfFinanceRules.Charges, LndCfFinanceRules.Schedule], LndCfFinanceRules.Ready);
     }
 
     // an administration fee of 1% of the financed amount (upfront by default) and a fixed 50 stamp fee with 10% tax
@@ -146,5 +145,29 @@ public sealed class LndCfFinanceTests
         Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.ApplyTerms(Finance(), new LndCfTermsRequest(LateFeeTypeCode: "FLAT"), 22m)); // no amount
         var l = Finance();
         Assert.Empty(LndCfFinanceRules.ApplyTerms(l, new LndCfTermsRequest(), 22m)); // nothing sent: nothing changes
+    }
+
+    [Fact]
+    public void The_booking_at_delivery_owes_the_supplier_the_price_and_puts_added_charges_in_the_finance()
+    {
+        var l = Finance(); // price 40,000, down 10,000 (the supplier takes it)
+        l.PrincipalAmount = 30_300m; // 300 of charges added to the schedule
+        var a = LndCfFinanceRules.BookingAmounts(l);
+        Assert.Equal((30_300m, 30_000m, 300m, 0m), (a["LOAN_AMOUNT"]!.Value, a["FINANCED_AMOUNT"]!.Value, a["CAPITALISED_CHARGES_AMOUNT"]!.Value, a["DOWN_PAYMENT_HELD_AMOUNT"]!.Value));
+        l.ClaimStatusCode = LndCfFinanceRules.Claim.Paid; // we took the down payment with the claim
+        l.ClaimDownPaymentAmount = 10_000m;
+        Assert.Equal(10_000m, LndCfFinanceRules.BookingAmounts(l)["DOWN_PAYMENT_HELD_AMOUNT"]);
+    }
+
+    [Fact]
+    public void A_delivery_needs_a_date_from_the_schedule_day_to_today_a_note_and_the_customer_confirmation()
+    {
+        var scheduled = new DateOnly(2026, 11, 26);
+        var today = new DateOnly(2026, 11, 28);
+        Assert.Empty(LndCfFinanceRules.CheckDelivery(new LndCfDeliveryRequest(today, "DN-1", null, true), scheduled, today));
+        Assert.Equal(["customerConfirmed", "deliveryDate", "deliveryNoteNo"],
+            LndCfFinanceRules.CheckDelivery(new LndCfDeliveryRequest(today.AddDays(1), " ", null, false), scheduled, today).Keys.Order(StringComparer.Ordinal));
+        Assert.Contains("deliveryDate", LndCfFinanceRules.CheckDelivery(new LndCfDeliveryRequest(scheduled.AddDays(-1), "DN-1", null, true), scheduled, today).Keys);
+        Assert.Equal([LndCfFinanceRules.Credit, LndCfFinanceRules.Charges, LndCfFinanceRules.Schedule, LndCfFinanceRules.Delivery], LndCfFinanceRules.Ready);
     }
 }

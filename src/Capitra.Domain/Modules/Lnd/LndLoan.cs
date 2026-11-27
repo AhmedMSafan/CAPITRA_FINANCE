@@ -166,6 +166,20 @@ public class LndLoan : AuditableEntity
 
     public string? ClaimPaymentGlTranSetId { get; set; }
 
+    /// <summary>CF_FINANCE step 5 (27 Nov 2026): the day the goods were delivered; the finance is booked and its schedule runs from it.</summary>
+    public DateOnly? DeliveryDate { get; set; }
+
+    public string? DeliveryNoteNo { get; set; }
+
+    /// <summary>The goods' serial number or IMEI, when they have one.</summary>
+    public string? DeliverySerialNo { get; set; }
+
+    /// <summary>The GL of the booking at delivery (rule CF_DELIVERY).</summary>
+    public string? DeliveryGlTranSetId { get; set; }
+
+    /// <summary>The day the supplier is paid by: the delivery day plus the supplier's payment days.</summary>
+    public DateOnly? SupplierPaymentDueDate { get; set; }
+
     /// <summary>Consumer finance: the item's price; the loan amount is the price less the down payment.</summary>
     public decimal? GoodsPriceAmount { get; set; }
 
@@ -257,4 +271,35 @@ public class LndLoanCharge : AuditableEntity
 
     /// <summary>Credit changed the rule's default treatment (upfront or added to the schedule) for this finance.</summary>
     public bool IsOverridden { get; set; }
+}
+
+/// <summary>
+/// LND_LOAN_DOCUMENTS (27 Nov 2026): a finance's documents, e.g. the delivery note the customer signed, kept like the supplier documents:
+/// where it was added (the step), the file and its SHA-256; removed only by marking it inactive.
+/// </summary>
+public class LndLoanDocument : AuditableEntity
+{
+    public long DocumentId { get; set; }
+
+    public long LoanId { get; set; }
+
+    public string StepCode { get; set; } = string.Empty;
+
+    public string StepName { get; set; } = string.Empty;
+
+    public string DocumentTitle { get; set; } = string.Empty;
+
+    public string? DocumentTypeCode { get; set; }
+
+    public string FileName { get; set; } = string.Empty;
+
+    public string MimeType { get; set; } = string.Empty;
+
+    public long FileSizeBytes { get; set; }
+
+    public string Sha256Hash { get; set; } = string.Empty;
+
+    public byte[] FileBlob { get; set; } = [];
+
+    public bool IsActive { get; set; } = true;
 }

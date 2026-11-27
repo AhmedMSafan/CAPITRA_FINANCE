@@ -63,7 +63,11 @@ public sealed record LndLoanDto(
     bool IsPrepaymentAllowed, string PrepaymentRecalcCode, decimal PrepaymentFeePct, decimal EarlySettlementFeePct,
     string? Notes, string CreatedBy, DateTime CreatedAt, int RowVersion,
     IReadOnlyList<LndInstallmentDto> Installments, IReadOnlyList<LndLoanStatusDto> History, IReadOnlyList<LndLoanEventDto> Events,
-    LndGoodsDto? Goods = null, IReadOnlyList<LndCfChargeDto>? Charges = null, LndCfClaimDto? Claim = null, decimal RateMarginPct = 0);
+    LndGoodsDto? Goods = null, IReadOnlyList<LndCfChargeDto>? Charges = null, LndCfClaimDto? Claim = null, decimal RateMarginPct = 0,
+    LndCfDeliveryDto? Delivery = null);
+
+/// <summary>A consumer finance's delivery (step 5): the day, the delivery note, the serial, the GL of the booking, when the supplier is paid by.</summary>
+public sealed record LndCfDeliveryDto(DateOnly DeliveryDate, string? DeliveryNoteNo, string? SerialNo, string? GlTranSetId, DateOnly? SupplierPaymentDueDate);
 
 /// <summary>
 /// The upfront claim of a consumer finance (Charges and claim step): the upfront charges and the down payment we take, OPEN until the
@@ -321,7 +325,8 @@ public sealed class LndLoanService(
             l.ClaimStatusCode is null ? null : new LndCfClaimDto(l.ClaimStatusCode, l.ClaimChargesAmount ?? 0, l.ClaimDownPaymentAmount ?? 0,
                 (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0), l.ClaimGlTranSetId, l.ClaimPaidAt, l.ClaimPaidBy, l.ClaimPaymentMethodCode,
                 l.ClaimPaymentReference, l.ClaimPaymentGlTranSetId),
-            l.RateMarginPct);
+            l.RateMarginPct,
+            l.DeliveryDate is { } delivered ? new LndCfDeliveryDto(delivered, l.DeliveryNoteNo, l.DeliverySerialNo, l.DeliveryGlTranSetId, l.SupplierPaymentDueDate) : null);
     }
 
     /// <summary>Cancels a loan that has not been paid out. The schedule is kept as it was, for the record.</summary>

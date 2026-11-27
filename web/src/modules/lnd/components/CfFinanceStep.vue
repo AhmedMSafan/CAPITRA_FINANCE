@@ -161,6 +161,27 @@
       </template>
     </div>
 
+    <!-- Delivery and customer receipt (27 Nov 2026): the delivery and the customer's confirmation; accepting books the finance -->
+    <div v-if="step.stepCode === 'CF_DELIVERY' && step.isMine" class="cfs-box">
+      <h4 class="cfs-sub">{{ tr('Delivery') }}</h4>
+      <div class="cfs-grid">
+        <label class="fc-field"><span>{{ tr('Delivered on') }}<b> *</b></span><input v-model="delivery.deliveryDate" type="date" class="fx-search" :max="todayIso">
+          <small>{{ tr('not before the schedule step, not in the future') }}</small></label>
+        <label class="fc-field"><span>{{ tr('Delivery note no.') }}<b> *</b></span><input v-model="delivery.deliveryNoteNo" class="fx-search" maxlength="50"></label>
+        <label class="fc-field"><span>{{ tr('Serial / IMEI') }}</span><input v-model="delivery.serialNo" class="fx-search" maxlength="100"></label>
+        <label class="fc-field"><span>{{ tr('Delivery note (file)') }}</span><small class="cfs-doc">{{ tr('Add the signed delivery note under Documents below.') }}</small></label>
+      </div>
+      <label class="cfs-confirm"><input v-model="delivery.customerConfirmed" type="checkbox">{{ tr('The customer received the goods and confirms they match the contract') }}</label>
+      <h4 class="cfs-sub">{{ tr('On accept') }}</h4>
+      <ul class="cfs-list">
+        <li>{{ tr('The finance is booked (rule CF_DELIVERY)') }}: {{ tr('Dr Finance') }} <b>{{ money(loan.principalAmount) }}</b> · {{ tr('Cr Payable to the supplier') }}
+          <b>{{ money(financedNow) }}</b><template v-if="loan.principalAmount - financedNow > 0"> · {{ tr('Cr Charges not earned yet') }} <b>{{ money(loan.principalAmount - financedNow) }}</b></template>
+          <template v-if="heldDown"> · {{ tr('Down payment held, now due to the supplier') }} <b>{{ money(heldDown) }}</b></template></li>
+        <li>{{ tr('Status') }} {{ tr('Approved') }} → <b>{{ tr('Active') }}</b>; {{ tr('the schedule dates move to the delivery day (amounts unchanged)') }}</li>
+        <li>{{ tr('The supplier is paid by') }} <b>{{ supplierDue }}</b> ({{ tr('delivery') }} + {{ loan.goods?.supplierPaymentDays ?? 0 }} {{ tr('days') }}) → {{ tr('Supplier payment step (Treasury)') }}</li>
+      </ul>
+    </div>
+
     <p v-if="step.stepCode === 'CF_SCHEDULE' && step.isMine" class="cfs-note">
       <span class="fa fa-info-circle" aria-hidden="true"></span>
       {{ tr('Accept builds the schedule on the finance amount') }} {{ money(loan.principalAmount) }} {{ tr('over') }} {{ loan.termMonths }} {{ tr('months, from today.') }}
@@ -195,8 +216,9 @@ const HINT: Record<string, string> = {
   CF_CREDIT: "Check the deal; every value below is this finance's own copy, change any of them. Approving needs the customer's compliance to be clear.",
   CF_CHARGES: 'Create the claim of the upfront charges, record its payment, then accept. Charges added to the schedule are part of the principal.',
   CF_SCHEDULE: 'Check the finance amount and term, then accept to build the schedule.',
+  CF_DELIVERY: "Record the delivery and the customer's receipt; accepting books the finance.",
 }
-const ACCEPT: Record<string, string> = { CF_CREDIT: 'Approve', CF_SCHEDULE: 'Build schedule and accept' }
+const ACCEPT: Record<string, string> = { CF_CREDIT: 'Approve', CF_SCHEDULE: 'Build schedule and accept', CF_DELIVERY: 'Accept and book' }
 const ROLE: Record<string, string> = {
   CF_CREDIT: 'Credit (CREDIT_OFFICER)', CF_CHARGES: 'Operations (OPERATIONS_OFFICER)', CF_SCHEDULE: 'Operations (OPERATIONS_OFFICER)',
   CF_DELIVERY: 'Operations (OPERATIONS_OFFICER)', CF_SUPPLIER_PAYMENT: 'Treasury (TREASURY_OFFICER)',
@@ -212,6 +234,16 @@ const amounts = ref<Record<string, number | string>>({})
 const t = ref<CfTerms | null>(null)
 const o = computed(() => step.value?.terms ?? null)
 const touched = new Set<string>()
+const todayIso = new Date().toISOString().slice(0, 10)
+const delivery = reactive({ deliveryDate: todayIso as string | null, deliveryNoteNo: '', serialNo: '', customerConfirmed: false })
+const financedNow = computed(() => (props.loan.goods ? props.loan.goods.priceAmount - props.loan.goods.downPaymentAmount : props.loan.principalAmount))
+const heldDown = computed(() => (props.loan.claim?.statusCode === 'PAID' ? props.loan.claim.downPaymentAmount : 0))
+const supplierDue = computed(() => {
+  if (!delivery.deliveryDate) return '—'
+  const d = new Date(`${delivery.deliveryDate}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + (props.loan.goods?.supplierPaymentDays ?? 0))
+  return d.toISOString().slice(0, 10)
+})
 const pay = reactive({ bankAccountId: null as number | null, paymentMethodCode: 'CASH', paymentReference: '' })
 const inboxId = () => (route.query.inboxId ? Number(route.query.inboxId) : null)
 const money = (n: number) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
@@ -330,7 +362,10 @@ async function complete(action: 'ACCEPT' | 'REJECT') {
       rateMarginPct: null,
       terms: t.value ? Object.fromEntries(TERM_KEYS.filter((k) => ch(k)).map((k) => [k, t.value![k]])) as CfCreditDecision['terms'] : null
     } : undefined
-    await loansApi.completeCfStep(props.loan.loanId, step.value.inboxId, action, comment.value.trim() || null, decision)
+    const deliveryBody = step.value.stepCode === 'CF_DELIVERY' && action === 'ACCEPT'
+      ? { deliveryDate: delivery.deliveryDate, deliveryNoteNo: delivery.deliveryNoteNo.trim() || null, serialNo: delivery.serialNo.trim() || null, customerConfirmed: delivery.customerConfirmed }
+      : undefined
+    await loansApi.completeCfStep(props.loan.loanId, step.value.inboxId, action, comment.value.trim() || null, decision, deliveryBody)
     showSuccess(tr(action === 'ACCEPT' ? 'Step accepted.' : 'Finance rejected.'))
     comment.value = ''
     // the task is done: drop it from the address so the page shows the next step as someone else's
@@ -358,6 +393,10 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-deal > span { padding: 3px 10px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 12.5px; }
 .cfs-deal b { color: var(--fin-ink); }
 .cfs-terms { margin-top: 10px; }
+.cfs-confirm { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13.5px; }
+.cfs-confirm input { width: 16px; height: 16px; }
+.cfs-list { margin: 0; padding-inline-start: 18px; font-size: 13px; line-height: 1.7; }
+.cfs-doc { display: block; padding-top: 8px; color: var(--fin-muted); }
 .cfs-sub { margin: 10px 0 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--fin-muted); }
 .cfs-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 14px; }
 .cfs-grid .fc-field small { color: var(--fin-muted); font-size: 11.5px; }
