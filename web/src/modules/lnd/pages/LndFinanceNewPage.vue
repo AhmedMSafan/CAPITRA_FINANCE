@@ -16,6 +16,8 @@
         <h1>{{ tr('New Finance') }}</h1>
       </div>
       <div class="fx-actions">
+        <!-- New Finance posts nothing: its Rules and GL list every step of the product's workflow -->
+        <CfRulesButton :loan-id="null" :step="null" :title="tr('New Finance and the steps after it')" />
         <RouterLink :to="back" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back') }}</RouterLink>
       </div>
     </div>
@@ -89,6 +91,7 @@
 </template>
 
 <script setup lang="ts">
+import CfRulesButton from '../components/CfRulesButton.vue'
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'

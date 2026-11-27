@@ -691,5 +691,21 @@ export const LND_AR: Record<string, string> = {
   'Cr Bank': 'دائن البنك',
   'The workflow ends; the finance stays active and is collected by its schedule.': 'ينتهي سير العمل؛ يبقى التمويل نشطاً ويُحصَّل حسب جدوله.',
   'Pay the supplier': 'سداد المورد',
-  'Check what the supplier is owed and its commission, choose the bank account, then pay.': 'راجع المستحق للمورد وعمولته، واختر الحساب البنكي، ثم ادفع.'
+  'Check what the supplier is owed and its commission, choose the bank account, then pay.': 'راجع المستحق للمورد وعمولته، واختر الحساب البنكي، ثم ادفع.',
+  'Rules and GL': 'القواعد والقيود',
+  'Read the same way the posting reads them.': 'تُقرأ بنفس طريقة القيد.',
+  'Role': 'الدور',
+  'Button': 'الزر',
+  'Journal category': 'فئة القيد',
+  'Calculation': 'طريقة الحساب',
+  'Default timing': 'التوقيت الافتراضي',
+  'Income': 'الإيراد',
+  'On this finance': 'على هذا التمويل',
+  'Dr/Cr': 'مدين/دائن',
+  'Account': 'الحساب',
+  'Amount code': 'رمز المبلغ',
+  'Dr': 'مدين',
+  'Cr': 'دائن',
+  'New Finance and the steps after it': 'تمويل جديد والخطوات التالية',
+  'Read only. Change the rules in Admin Setup › Product Catalog › the product › Product Event Rules.': 'للقراءة فقط. تُعدّل القواعد من الإعدادات › كتالوج المنتجات › المنتج › قواعد أحداث المنتج.'
 }

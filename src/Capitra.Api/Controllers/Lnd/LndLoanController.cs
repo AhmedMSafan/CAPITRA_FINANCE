@@ -8,7 +8,7 @@ namespace Capitra.Api.Controllers.Lnd;
 /// <summary>Retail Lending > Loans. Reading needs LND.LOAN.VIEW; previewing, creating and cancelling a loan LND.LOAN.EDIT.</summary>
 [ApiController]
 [Route("api/lnd/loans")]
-public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService workflow, LndLoanDocumentService documents) : ControllerBase
+public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService workflow, LndLoanDocumentService documents, LndCfRulesService cfRules) : ControllerBase
 {
     [HttpGet]
     [HasPermission(Permissions.Lnd.LoanView)]
@@ -26,6 +26,12 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
     [HttpGet("cf-suppliers")]
     [HasPermission(Permissions.Lnd.LoanEdit)]
     public Task<IReadOnlyList<LndCfSupplierOptionDto>> CfSuppliers(CancellationToken cancellationToken) => loans.CfSuppliersAsync(cancellationToken);
+
+    /// <summary>Rules and GL of New Finance and the CF_FINANCE steps (read only): a step's page, or all with step empty; for New Finance without loanId.</summary>
+    [HttpGet("cf-rules")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public Task<LndCfRulesDto> CfRules([FromQuery] long? loanId, [FromQuery] string? step, CancellationToken cancellationToken) =>
+        cfRules.GetAsync(loanId, step, cancellationToken);
 
     [HttpGet("goods-categories")]
     [HasPermission(Permissions.Lnd.LoanEdit)]

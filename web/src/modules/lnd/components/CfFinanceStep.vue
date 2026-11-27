@@ -8,6 +8,8 @@
       <h3>{{ tr(step.stepName) }}</h3>
       <p v-if="step.isMine">— {{ tr(HINT[step.stepCode] ?? 'Check the finance, then accept or reject the step.') }}</p>
       <p v-else>— {{ tr('Waiting for') }} {{ tr(ROLE[step.stepCode] ?? 'the step holder') }}. {{ tr('Open it from the inbox to work on it.') }}</p>
+      <span class="cfs-grow"></span>
+      <CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" />
     </header>
 
     <!-- the deal at a glance, for the step holder -->
@@ -233,6 +235,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
+import CfRulesButton from './CfRulesButton.vue'
 import { loansApi, type CfCharge, type CfCreditDecision, type CfStep, type CfTerms, type Loan } from '../api/loans.api'
 
 const props = defineProps<{ loan: Loan; version: number }>()
@@ -432,6 +435,7 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-deal > span { padding: 3px 10px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 12.5px; }
 .cfs-deal b { color: var(--fin-ink); }
 .cfs-terms { margin-top: 10px; }
+.cfs-grow { flex: 1; }
 .cfs-confirm { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13.5px; }
 .cfs-confirm input { width: 16px; height: 16px; }
 .cfs-list { margin: 0; padding-inline-start: 18px; font-size: 13px; line-height: 1.7; }
