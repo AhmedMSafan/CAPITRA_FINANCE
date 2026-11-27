@@ -72,6 +72,7 @@ public static class DependencyInjection
         services.AddScoped<Modules.Lnd.LndCfChargesPlanner>();
         services.AddScoped<Modules.Lnd.LndLoanDocumentService>();
         services.AddScoped<Modules.Lnd.LndCfRulesService>();
+        services.AddScoped<Modules.Lnd.LndCfClaimService>();
 
 
 

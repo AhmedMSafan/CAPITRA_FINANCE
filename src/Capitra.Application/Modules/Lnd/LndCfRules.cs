@@ -40,11 +40,11 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
     private static readonly (string Step, string Note, Use[] Uses)[] Pages =
     [
         (NewFinance, "Posts nothing: the main data only. The finance's rules post at the steps below.", []),
-        (LndCfFinanceRules.Credit, "Posts nothing: Credit decides each charge of the rule below (upfront or added to the schedule) and its amount; it posts at Charges and claim, or as part of the finance at Delivery.",
-            [new("— (decided here)", LndCfFinanceRules.Charges, null)]),
+        (LndCfFinanceRules.Credit, "Credit decides each charge of the rule below (upfront or added to the schedule) and its amount. Approving creates the claim once: the upfront charges post here; those added to the schedule post as part of the finance at Delivery. The claim is paid from the claim (Record payment, COLLECTION.EDIT), in one or several payments.",
+            [new("Approve (creates the claim)", LndCfFinanceRules.Credit, null), new("Record payment (on the claim)", null, ProductActions.CfClaimPayment)]),
         (LndCfFinanceRules.Charges, "Executes Credit's decision: only the upfront charges post here.",
             [new("Create claim", LndCfFinanceRules.Charges, null), new("Record payment", null, ProductActions.CfClaimPayment)]),
-        (LndCfFinanceRules.Schedule, "Posts nothing: builds the schedule.", []),
+        (LndCfFinanceRules.Schedule, "Posts nothing: builds the schedule. Accept waits until the claim is paid.", []),
         (LndCfFinanceRules.Delivery, "Books the finance.", [new("Accept and book", LndCfFinanceRules.Delivery, null)]),
         (LndCfFinanceRules.SupplierPayment, "Pays the supplier; the workflow ends.", [new("Pay the supplier", LndCfFinanceRules.SupplierPayment, null)]),
     ];
@@ -67,8 +67,15 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
         List<LndLoanCharge> saved = loan is null ? [] : await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loan.LoanId).ToListAsync(ct);
         var amounts = loan is null ? null : Amounts(loan, saved);
         var pages = new List<LndCfRulePageDto>();
-        foreach (var (code, note, uses) in Pages.Where(p => step is null || string.Equals(p.Step, step, StringComparison.OrdinalIgnoreCase)))
+        // finances that started before 27 Nov 2026 create the claim at Charges and claim; new ones when Credit approves
+        var hasCharges = xml is not null && BpmnModel.StepByCode(xml, LndCfFinanceRules.Charges) is not null;
+        foreach (var (code, baseNote, baseUses) in Pages.Where(p => step is null || string.Equals(p.Step, step, StringComparison.OrdinalIgnoreCase)))
         {
+            if (code == LndCfFinanceRules.Charges && !hasCharges) continue;
+            var (note, uses) = code == LndCfFinanceRules.Credit && hasCharges
+                ? ("Posts nothing: Credit decides each charge of the rule below (upfront or added to the schedule) and its amount; it posts at Charges and claim, or as part of the finance at Delivery.",
+                   new[] { new Use("— (decided here)", LndCfFinanceRules.Charges, null) })
+                : (baseNote, baseUses);
             var element = xml is null || code == NewFinance ? null : BpmnModel.StepByCode(xml, code);
             var role = code == NewFinance ? "SALES_OFFICER" : element?.Assignee;
             var list = new List<LndCfRuleUseDto>();
@@ -95,7 +102,7 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
         else
         {
             var named = xml is null ? null : BpmnModel.StepByCode(xml, u.StepRule!)?.RuleCode?.Trim();
-            ruleCode = string.IsNullOrWhiteSpace(named) ? (u.StepRule == LndCfFinanceRules.Charges ? LndCfCharges.RuleCode : u.StepRule!) : named;
+            ruleCode = string.IsNullOrWhiteSpace(named) ? (u.StepRule is LndCfFinanceRules.Charges or LndCfFinanceRules.Credit ? LndCfCharges.RuleCode : u.StepRule!) : named;
             linkedBy = string.IsNullOrWhiteSpace(named) ? "Workflow step (default rule of the step's code)" : "Workflow step (finova:ruleCode)";
             if (product is null) problem = "No consumer finance product is active.";
             else

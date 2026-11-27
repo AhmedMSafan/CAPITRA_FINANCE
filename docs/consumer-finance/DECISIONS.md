@@ -16,12 +16,19 @@ line by line, before it is shown. A change of decision is made here first.
 | # | Step | Role | What happens | Posts (rule) | Status |
 |---|------|------|--------------|--------------|--------|
 | 1 | Application (New Finance) | SALES_OFFICER | Main data only: customer, supplier, product, item, price, down payment, term. Amount = price − down payment. One indicative instalment line at the product rate. No charges, no scenario, no schedule saved. | — | Built (#131) |
-| 2 | Credit approval | CREDIT_OFFICER | Approves amount and term. Shows the charges of rule CF_CHARGES; Credit can change each one's **timing** (upfront / add to schedule) and **amount** (0 waives it; tax follows). Rate: the product rate stays fixed, Credit adds a **margin ±**. Changes are written to the status history. Finance amount = financed + charges added to schedule. | — | Built (#130, #132) |
-| 3 | Charges and claim | OPERATIONS_OFFICER | Executes Credit's decision, no override. **Create claim**: upfront charges + down payment when we take it; posts CF_CHARGES component GL lines (Dr 120802 / Cr 120803). **Record payment**: product action CF_CLAIM_PAYMENT (Dr Bank / Cr 120802, Cr 230802 down payment; Dr 120803 / Cr 410801). Accept needs PAID, or nothing upfront. Charges added to the schedule post nothing here; they are principal. | CF_CHARGES, CF_CLAIM_PAYMENT | Built (#130) |
-| 4 | Schedule and contract | OPERATIONS_OFFICER | Accept builds the schedule on the finance amount at the finance rate, from today. | — | Built (#130) |
-| 5 | Delivery and customer receipt | OPERATIONS_OFFICER | Books the loan (CF_DELIVERY: Dr Loan incl. added charges / Cr Payable 230801 / Cr Unearned 120803 for added charges; down payment held 230802 → 230801). Schedule dates move to the delivery day. Delivery date, delivery note no., serial/IMEI, customer's confirmation; the signed delivery note goes to the finance's Documents. | CF_DELIVERY | Built (#140) |
-| 6 | Supplier payment | TREASURY_OFFICER | CF_SUPPLIER_PAYMENT: Dr 230801 / Cr 410802 commission / Cr Bank. Commission is the supplier's agreed % of the amount owed (price less the down payment it took, or the whole price when we took it), overridable with a reason; paid from our bank account with a transfer reference. | CF_SUPPLIER_PAYMENT | Built (#141) |
+| 2 | Credit approval | CREDIT_OFFICER | Approves every value and each charge's **timing** (upfront / add to schedule) and **amount** (0 waives it; tax follows); rate = product rate + **margin ±**. Changes go to the status history. Finance amount = financed + charges added to schedule. **Approve creates the claim once** (Ahmed, 27 Nov 2026): upfront charges + down payment when we take it; the step's rule CF_CHARGES posts the charge GL lines (Dr 120802 / Cr 120803). Nothing upfront: no claim. | CF_CHARGES | Built (#130, #132, #144) |
+| 3 | Schedule and contract | OPERATIONS_OFFICER | **Accept waits until the claim is Paid** (or there is none). Builds the schedule on the finance amount at the finance rate, from today. | — | Built (#130, #144) |
+| 4 | Delivery and customer receipt | OPERATIONS_OFFICER | Books the loan (CF_DELIVERY: Dr Loan incl. added charges / Cr Payable 230801 / Cr Unearned 120803 for added charges; down payment held 230802 → 230801). Schedule dates move to the delivery day. Delivery date, delivery note no., serial/IMEI, customer's confirmation; the signed delivery note goes to the finance's Documents. | CF_DELIVERY | Built (#140) |
+| 5 | Supplier payment | TREASURY_OFFICER | CF_SUPPLIER_PAYMENT: Dr 230801 / Cr 410802 commission / Cr Bank. Commission is the supplier's agreed % of the amount owed (price less the down payment it took, or the whole price when we took it), overridable with a reason; paid from our bank account with a transfer reference. | CF_SUPPLIER_PAYMENT | Built (#141) |
 
+- **Claim, the factoring standard** (27 Nov 2026): statuses Unpaid (OPEN), Partially Paid, Paid, Cancelled. Paid from the claim popup
+  (workspace Claims tab › Open, or the finance page › Open claim) by COLLECTION.EDIT, in one or several payments (amount, our bank
+  account, method, reference); each posts product action CF_CLAIM_PAYMENT (Dr Bank / Cr 120802 charges, Cr 230802 down payment;
+  Dr 120803 / Cr 410801), charges first, then the down payment. Kept in LND_CF_CLAIM_PAYMENTS.
+- Rejecting a finance cancels an unpaid claim and reverses its GL; a claim with payments stays, and the history says to refund it.
+- The Claims tab lists only created claims; a finance still before Credit approval shows on the Finances tab with its step.
+- Finances started before 27 Nov 2026 keep the old step **Charges and claim** (OPERATIONS_OFFICER) between Credit and Schedule, where
+  their claim is created and paid.
 - The person who entered the finance does none of its steps.
 - Each finance keeps a copy of the supplier's terms (down payment collector, commission, payment and delivery days).
 - Upfront charge = claim, income when the claim is paid. Added to schedule = part of the principal, no separate charge.
@@ -29,6 +36,7 @@ line by line, before it is shown. A change of decision is made here first.
 ## Setup
 
 - Rule CF_CHARGES: admin fee 1% of the financed amount, income recognition IMMEDIATE, default PAID_UPFRONT, its own component GL lines.
+  Named by the Credit approval step (`finova:ruleCode`). A charge's base is chosen on the rule: CF Total Goods Value or CF Financed Amount.
 - A workflow step links its rule by `finova:ruleCode`; a button outside the workflow links through a Product Action (Admin Setup › Product Actions, which lists both, with "Used on").
 - No rule CF_CLAIM, no product action CF_NEW_FINANCE.
 
@@ -60,3 +68,5 @@ line by line, before it is shown. A change of decision is made here first.
 
 ## Open items
 
+
+- Refund of a claim already paid when the finance is rejected: not built yet (the history says what to refund).

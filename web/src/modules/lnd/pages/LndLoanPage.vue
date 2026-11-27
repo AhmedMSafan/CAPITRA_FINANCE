@@ -74,15 +74,17 @@
             <span v-if="loan.claim.statusCode === 'NONE'">{{ tr('Nothing is paid upfront.') }}</span>
             <template v-else>
               <span>{{ tr('Claim') }} <b>{{ money(loan.claim.totalAmount) }}</b> ({{ tr('charges') }} {{ money(loan.claim.chargesAmount) }} · {{ tr('down payment') }} {{ money(loan.claim.downPaymentAmount) }})</span>
-              <span>{{ tr(loan.claim.statusCode === 'PAID' ? 'Paid' : 'Waiting for payment') }}</span>
+              <span class="fx-chip" :class="claimTone(loan.claim.statusCode)">{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</span>
+              <span>{{ tr('Paid') }} <b>{{ money(loan.claim.paidAmount) }}</b> · {{ tr('Outstanding') }} <b>{{ money(loan.claim.outstandingAmount) }}</b></span>
               <span v-if="loan.claim.glTranSetId">GL <b>{{ loan.claim.glTranSetId }}</b></span>
-              <span v-if="loan.claim.paymentGlTranSetId">{{ tr('Payment') }} GL <b>{{ loan.claim.paymentGlTranSetId }}</b></span>
+              <button type="button" class="fx-btn fx-btn--sm" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button>
             </template>
           </div>
         </template>
       </section>
       <!-- the finance's documents (e.g. the delivery note the customer signed) -->
       <LndLoanDocuments v-if="loan.goods?.supplierApplicationId" :loan-id="loan.loanId" :version="stepVersion" />
+      <CfClaimDialog v-model:visible="claimShown" :loan-id="loan.loanId" :show-finance="false" @changed="stepChanged" />
 
       <section v-if="payouts && !loan.goods?.supplierApplicationId" class="fx-card">
         <header class="c3-panel-head lp-head">
@@ -365,11 +367,12 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
+import CfClaimDialog from '../components/CfClaimDialog.vue'
 import CfFinanceStep from '../components/CfFinanceStep.vue'
 import LndLoanDocuments from '../components/LndLoanDocuments.vue'
 import LndWriteOffPanel from '../components/LndWriteOffPanel.vue'
 import { getUser } from '@/shared/auth/session'
-import { loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage, type ReversalPreview, type PrepaymentQuote } from '../api/loans.api'
+import { CLAIM_LABELS, claimTone, loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage, type ReversalPreview, type PrepaymentQuote } from '../api/loans.api'
 
 const props = defineProps<{ loanId: number }>()
 
@@ -384,6 +387,7 @@ const canEdit = hasPermission('LND.LOAN.EDIT')
 const loan = ref<Loan | null>(null)
 // the workflow step box reads again after the loan changed
 const stepVersion = ref(0)
+const claimShown = ref(false)
 async function stepChanged() {
   await reloadLoan()
   stepVersion.value++

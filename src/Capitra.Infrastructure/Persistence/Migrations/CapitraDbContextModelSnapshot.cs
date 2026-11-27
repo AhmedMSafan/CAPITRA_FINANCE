@@ -28142,6 +28142,91 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("LND_ALLOCATIONS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndCfClaimPayment", b =>
+                {
+                    b.Property<long>("ClaimPaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CLAIM_PAYMENT_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ClaimPaymentId"));
+
+                    b.Property<long?>("BankAccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("BANK_ACCOUNT_ID");
+
+                    b.Property<decimal>("ChargesAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CHARGES_AMOUNT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<decimal>("DownPaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("DOWN_PAYMENT_AMOUNT");
+
+                    b.Property<string>("GlTranSetId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("GL_TRAN_SET_ID");
+
+                    b.Property<long>("LoanId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("LOAN_ID");
+
+                    b.Property<decimal>("PaymentAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("PAYMENT_AMOUNT");
+
+                    b.Property<DateOnly>("PaymentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PAYMENT_DATE");
+
+                    b.Property<string>("PaymentMethodCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("PAYMENT_METHOD_CODE");
+
+                    b.Property<string>("PaymentReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("PAYMENT_REFERENCE");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ClaimPaymentId")
+                        .HasName("PK_LND_CF_CLAIM_PAYMENTS");
+
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_LND_CF_CLAIM_PAYMENTS_LOAN_ID");
+
+                    b.ToTable("LND_CF_CLAIM_PAYMENTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndDisbursement", b =>
                 {
                     b.Property<long>("DisbursementId")
@@ -28672,6 +28757,11 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("CLAIM_GL_TRAN_SET_ID");
+
+                    b.Property<decimal?>("ClaimPaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CLAIM_PAID_AMOUNT");
 
                     b.Property<DateTime?>("ClaimPaidAt")
                         .HasColumnType("timestamp with time zone")
@@ -49149,6 +49239,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_LND_ALLOCATIONS_COL_REPAYMENT_TRANSACTIONS");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndCfClaimPayment", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Lnd.LndLoan", null)
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_LND_CF_CLAIM_PAYMENTS_LND_LOANS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndDisbursement", b =>

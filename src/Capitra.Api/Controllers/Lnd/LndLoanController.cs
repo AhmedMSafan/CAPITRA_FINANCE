@@ -8,7 +8,8 @@ namespace Capitra.Api.Controllers.Lnd;
 /// <summary>Retail Lending > Loans. Reading needs LND.LOAN.VIEW; previewing, creating and cancelling a loan LND.LOAN.EDIT.</summary>
 [ApiController]
 [Route("api/lnd/loans")]
-public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService workflow, LndLoanDocumentService documents, LndCfRulesService cfRules) : ControllerBase
+public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService workflow, LndLoanDocumentService documents, LndCfRulesService cfRules,
+    LndCfClaimService claims) : ControllerBase
 {
     [HttpGet]
     [HasPermission(Permissions.Lnd.LoanView)]
@@ -88,6 +89,20 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
     {
         await workflow.PayClaimAsync(loanId, inboxId, request, cancellationToken);
         return await loans.GetAsync(loanId, cancellationToken);
+    }
+
+    /// <summary>A consumer finance's upfront claim (lines, payments, GL); 204 when it has none.</summary>
+    [HttpGet("{loanId:long}/claim")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public Task<LndCfClaimDetailDto?> CfClaim(long loanId, CancellationToken cancellationToken) => claims.GetAsync(loanId, cancellationToken);
+
+    /// <summary>Records a payment of the claim, all or part (product action CF_CLAIM_PAYMENT); like a factoring claim, needs COLLECTION.EDIT.</summary>
+    [HttpPost("{loanId:long}/claim/payments")]
+    [HasPermission(Permissions.Collection.Edit)]
+    public async Task<LndCfClaimDetailDto?> PayCfClaimPart(long loanId, LndCfClaimPayRequest request, CancellationToken cancellationToken)
+    {
+        await claims.PayAsync(loanId, request, cancellationToken);
+        return await claims.GetAsync(loanId, cancellationToken);
     }
 
     /// <summary>The finance's documents (e.g. the signed delivery note).</summary>

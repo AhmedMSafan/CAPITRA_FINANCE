@@ -40,6 +40,7 @@ public sealed class LndLoanConfiguration : IEntityTypeConfiguration<LndLoan>
         builder.Property(x => x.ClaimPaymentMethodCode).HasMaxLength(30);
         builder.Property(x => x.ClaimPaymentReference).HasMaxLength(100);
         builder.Property(x => x.ClaimPaymentGlTranSetId).HasMaxLength(50);
+        builder.Property(x => x.ClaimPaidAmount).HasPrecision(18, 2);
         builder.Property(x => x.DeliveryNoteNo).HasMaxLength(50);
         builder.Property(x => x.DeliverySerialNo).HasMaxLength(100);
         builder.Property(x => x.DeliveryGlTranSetId).HasMaxLength(50);
@@ -123,6 +124,25 @@ public sealed class LndLoanDocumentConfiguration : IEntityTypeConfiguration<LndL
         builder.Property(x => x.FileName).HasMaxLength(260);
         builder.Property(x => x.MimeType).HasMaxLength(100);
         builder.Property(x => x.Sha256Hash).HasMaxLength(64);
+        builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class LndCfClaimPaymentConfiguration : IEntityTypeConfiguration<LndCfClaimPayment>
+{
+    public void Configure(EntityTypeBuilder<LndCfClaimPayment> builder)
+    {
+        builder.ToTable("LND_CF_CLAIM_PAYMENTS");
+        builder.HasKey(x => x.ClaimPaymentId);
+        builder.HasIndex(x => x.LoanId);
+        builder.Property(x => x.ClaimPaymentId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.PaymentAmount).HasPrecision(18, 2);
+        builder.Property(x => x.ChargesAmount).HasPrecision(18, 2);
+        builder.Property(x => x.DownPaymentAmount).HasPrecision(18, 2);
+        builder.Property(x => x.PaymentMethodCode).HasMaxLength(30);
+        builder.Property(x => x.PaymentReference).HasMaxLength(100);
+        builder.Property(x => x.GlTranSetId).HasMaxLength(50);
         builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Restrict);
         builder.ConfigureAudit();
     }

@@ -14,10 +14,10 @@ export type LwLoan = {
   stepName: string | null
 }
 
-/** A consumer finance's upfront claim: TO_CREATE (Operations has not created it yet), OPEN, PAID. */
+/** A consumer finance's upfront claim, once created: OPEN (unpaid), PARTIALLY_PAID, PAID, CANCELLED. */
 export type LwClaim = {
   loanId: number; loanNumber: string; claimDate: string | null; currencyCode: string; chargesAmount: number; downPaymentAmount: number
-  totalAmount: number; paidAmount: number; outstandingAmount: number; statusCode: 'TO_CREATE' | 'OPEN' | 'PAID'; glTranSetId: string | null
+  totalAmount: number; paidAmount: number; outstandingAmount: number; statusCode: 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED'; glTranSetId: string | null
 }
 
 export type LwPayment = {

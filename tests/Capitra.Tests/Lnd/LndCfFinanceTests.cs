@@ -92,6 +92,16 @@ public sealed class LndCfFinanceTests
         Assert.Null(LndCfFinanceRules.CheckClaim(null, 0m)); // nothing upfront: no claim needed
         Assert.NotNull(LndCfFinanceRules.CheckClaim(null, 160m));
         Assert.NotNull(LndCfFinanceRules.CheckClaim(LndCfFinanceRules.Claim.Open, 160m));
+        // partly paid (27 Nov 2026): the schedule waits and says what is outstanding
+        Assert.Contains("100.00", LndCfFinanceRules.CheckClaim(LndCfFinanceRules.Claim.PartiallyPaid, 160m, 60m));
+    }
+
+    [Fact]
+    public void What_was_paid_of_a_claim_counts_claims_paid_before_partial_payments_in_full()
+    {
+        Assert.Equal(4160m, LndCfClaimService.Paid(new LndLoan { ClaimStatusCode = LndCfFinanceRules.Claim.Paid, ClaimChargesAmount = 160m, ClaimDownPaymentAmount = 4000m }));
+        Assert.Equal(60m, LndCfClaimService.Paid(new LndLoan { ClaimStatusCode = LndCfFinanceRules.Claim.PartiallyPaid, ClaimChargesAmount = 160m, ClaimPaidAmount = 60m }));
+        Assert.Equal(0m, LndCfClaimService.Paid(new LndLoan { ClaimStatusCode = LndCfFinanceRules.Claim.Open, ClaimChargesAmount = 160m }));
     }
 
     [Fact]

@@ -89,7 +89,7 @@
         <div v-else class="fx-empty"><span class="fa fa-folder-open-o" aria-hidden="true"></span>{{ tr('No finances for this customer yet.') }}</div>
       </div>
 
-      <!-- the upfront claims of consumer finances (Charges and claim step), shown like the factoring claims; paid on the finance's step -->
+      <!-- the upfront claims of consumer finances (created when Credit approves), shown like the factoring claims; Open shows the claim -->
       <div v-else-if="tab === 'claims'" class="fx-table-wrap">
         <table v-if="ws?.claims.length" class="fx-table">
           <thead>
@@ -109,11 +109,11 @@
               <td class="fx-r">{{ money(c.totalAmount) }}</td>
               <td class="fx-r">{{ money(c.paidAmount) }}</td>
               <td class="fx-r"><b>{{ money(c.outstandingAmount) }}</b></td>
-              <td><span class="fx-chip" :class="CLAIM_CHIP[c.statusCode]">{{ tr(CLAIM[c.statusCode]) }}</span></td>
+              <td><span class="fx-chip" :class="claimTone(c.statusCode)">{{ tr(CLAIM_LABELS[c.statusCode] ?? c.statusCode) }}</span></td>
               <td class="fx-r">
-                <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="{ name: 'lnd-loan', params: { loanId: c.loanId } }">
-                  <span class="fa fa-play-circle-o" aria-hidden="true"></span>{{ tr('Open') }}
-                </RouterLink>
+                <button type="button" class="fx-btn fx-btn--sm" @click="openClaim(c.loanId)">
+                  <span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open') }}
+                </button>
               </td>
             </tr>
           </tbody>
@@ -145,6 +145,7 @@
         <div v-else class="fx-empty"><span class="fa fa-money" aria-hidden="true"></span>{{ tr('No payments yet.') }}</div>
       </div>
     </section>
+    <CfClaimDialog v-model:visible="claimShown" :loan-id="claimLoanId" @changed="reload" />
   </div>
 </template>
 
@@ -157,6 +158,8 @@ import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
 import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
+import CfClaimDialog from '../components/CfClaimDialog.vue'
+import { CLAIM_LABELS, claimTone } from '../api/loans.api'
 import { lendingWsApi, type LwCustomerWorkspace } from '../api/workspace.api'
 
 const props = defineProps<{ clientId: number }>()
@@ -171,8 +174,12 @@ const money = (n: number) => egp.format(n)
 const canEdit = hasPermission('LND.LOAN.EDIT')
 const ws = ref<LwCustomerWorkspace | null>(null)
 const loading = ref(false)
-const CLAIM: Record<string, string> = { TO_CREATE: 'To be created', OPEN: 'Waiting for payment', PAID: 'Paid' }
-const CLAIM_CHIP: Record<string, string> = { TO_CREATE: 'fx-chip--teal', OPEN: 'fx-chip--warn', PAID: 'fx-chip--ok' }
+const claimShown = ref(false)
+const claimLoanId = ref<number | null>(null)
+function openClaim(loanId: number) {
+  claimLoanId.value = loanId
+  claimShown.value = true
+}
 const booked = (status: string) => ['ACTIVE', 'CLOSED', 'WRITTEN_OFF'].includes(status)
 const tab = ref<'loans' | 'claims' | 'payments'>('loans')
 const tabs = computed(() => [
@@ -181,7 +188,7 @@ const tabs = computed(() => [
   { key: 'payments' as const, label: 'Payments', count: ws.value?.payments.length ?? 0, icon: 'fa-money' }
 ])
 
-onMounted(async () => {
+async function reload() {
   loading.value = true
   try {
     ws.value = await lendingWsApi.customer(props.clientId)
@@ -190,7 +197,8 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+onMounted(reload)
 </script>
 
 <style scoped>

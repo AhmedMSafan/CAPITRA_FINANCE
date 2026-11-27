@@ -18,12 +18,13 @@ using Microsoft.EntityFrameworkCore;
 namespace Capitra.Application.Modules.Lnd;
 
 /// <summary>
-/// CF_FINANCE (Ahmed, 26 Nov 2026): a consumer finance bought from a supplier goes through six steps. 1 Application: Sales enters the
-/// main data on New Finance (creating it submits it). 2 Credit approval (CREDIT_OFFICER): approves the amount and term and decides each
-/// charge, upfront (the rule's default) or added to the schedule. 3 Charges and claim (OPERATIONS_OFFICER): executes Credit's decision,
-/// the rule CF_CHARGES for the upfront charges (claim and GL), then the claim payment. 4 Schedule and contract (OPERATIONS_OFFICER): the
-/// schedule on the financed amount plus the charges added to it. 5 Delivery and customer receipt (OPERATIONS_OFFICER). 6 Supplier payment
-/// (TREASURY_OFFICER). The person who entered the finance does none of the steps.
+/// CF_FINANCE (Ahmed, 26-27 Nov 2026): a consumer finance bought from a supplier. 1 Application: Sales enters the main data on New
+/// Finance (creating it submits it). 2 Credit approval (CREDIT_OFFICER): approves every value and decides each charge, upfront (the
+/// rule's default) or added to the schedule; approving creates the upfront claim once (the rule the step names, CF_CHARGES: claim and
+/// GL), paid like a factoring claim. 3 Schedule and contract (OPERATIONS_OFFICER): once the claim is paid, the schedule on the financed
+/// amount plus the charges added to it. 4 Delivery and customer receipt (OPERATIONS_OFFICER). 5 Supplier payment (TREASURY_OFFICER).
+/// Finances that started before 27 Nov 2026 keep the step Charges and claim (OPERATIONS_OFFICER) between 2 and 3, where their claim is
+/// created. The person who entered the finance does none of the steps.
 /// </summary>
 public static class LndCfFinanceRules
 {
@@ -45,8 +46,12 @@ public static class LndCfFinanceRules
 
     public static class Claim
     {
+        /// <summary>Unpaid (the factoring claim's code).</summary>
         public const string Open = "OPEN";
+        public const string PartiallyPaid = "PARTIALLY_PAID";
         public const string Paid = "PAID";
+        /// <summary>The finance was rejected before anything was paid; the claim's GL is reversed.</summary>
+        public const string Cancelled = "CANCELLED";
         /// <summary>Nothing is paid upfront: no claim.</summary>
         public const string None = "NONE";
     }
@@ -241,11 +246,11 @@ public static class LndCfFinanceRules
         return rate;
     }
 
-    /// <summary>Step 3 can be accepted when the claim is paid, or when nothing is paid upfront.</summary>
-    public static string? CheckClaim(string? claimStatus, decimal claimTotal) => claimStatus switch
+    /// <summary>The schedule (and, on older finances, Charges and claim) waits until the claim is paid, or there is nothing upfront.</summary>
+    public static string? CheckClaim(string? claimStatus, decimal claimTotal, decimal paid = 0) => claimStatus switch
     {
         Claim.Paid or Claim.None => null,
-        Claim.Open => "The customer has not paid the claim yet. Record the payment first.",
+        Claim.Open or Claim.PartiallyPaid => $"Waiting for the claim to be paid (outstanding {claimTotal - paid:#,0.00}). Record the payment on the claim first.",
         _ => claimTotal == 0 ? null : "Create the claim first.",
     };
 }
@@ -253,7 +258,7 @@ public static class LndCfFinanceRules
 /// <summary>The open step of a finance, whether the signed-in user holds its task, and what the step shows.</summary>
 public sealed record LndCfStepDto(string StepCode, string StepName, long? InboxId, bool IsMine, LndCfChargesDto? Charges = null,
     IReadOnlyList<LndPayingAccountDto>? Accounts = null, decimal? ProductRatePct = null, decimal RateMarginPct = 0, LndCfTermsDto? Terms = null,
-    LndCfSupplierDueDto? SupplierDue = null);
+    LndCfSupplierDueDto? SupplierDue = null, bool ClaimAtCredit = false);
 
 /// <summary>
 /// The financial values of a finance, its own copy (Ahmed, 27 Nov 2026): Credit approval can change every one of them for this finance.
@@ -301,17 +306,28 @@ public sealed record LndCfClaimPaymentRequest(long? BankAccountId, string? Payme
 /// </summary>
 public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRuleService rules, IClock clock)
 {
-    /// <summary>The rule the finance's Charges and claim step names in the BPMN its run is on.</summary>
-    public async Task<string> RuleCodeAsync(LndLoan loan, CancellationToken ct, string step = LndCfFinanceRules.Charges)
+    /// <summary>
+    /// The step that creates the finance's claim and names its charges' rule: Charges and claim on runs that have it (started before
+    /// 27 Nov 2026), else Credit approval.
+    /// </summary>
+    public async Task<string> ClaimStepAsync(LndLoan loan, CancellationToken ct)
     {
         var xml = loan.WorkflowInstanceId is { } run ? await WfeVersions.XmlOfInstanceAsync(db, run, ct) : null;
+        return xml is not null && BpmnModel.StepByCode(xml, LndCfFinanceRules.Charges) is not null ? LndCfFinanceRules.Charges : LndCfFinanceRules.Credit;
+    }
+
+    /// <summary>The rule a step names in the BPMN the finance's run is on (the claim's step when none is given).</summary>
+    public async Task<string> RuleCodeAsync(LndLoan loan, CancellationToken ct, string? step = null)
+    {
+        step ??= await ClaimStepAsync(loan, ct);
+        var xml = loan.WorkflowInstanceId is { } run ? await WfeVersions.XmlOfInstanceAsync(db, run, ct) : null;
         var code = xml is null ? null : BpmnModel.StepByCode(xml, step)?.RuleCode?.Trim();
-        // the step names its rule (finova:ruleCode); else the rule of the step's own code (CF_CHARGES, CF_DELIVERY, ...)
-        return string.IsNullOrWhiteSpace(code) ? (step == LndCfFinanceRules.Charges ? LndCfCharges.RuleCode : step) : code;
+        // the step names its rule (finova:ruleCode); else the rule of the step's own code (CF_DELIVERY, ...), CF_CHARGES for the charges
+        return string.IsNullOrWhiteSpace(code) ? (step is LndCfFinanceRules.Charges or LndCfFinanceRules.Credit ? LndCfCharges.RuleCode : step) : code;
     }
 
     public async Task<(string ProductCode, string BusinessLine, string Module, ProductEventPlan? Plan, string RuleCode)> PlanAsync(LndLoan loan, CancellationToken ct,
-        string step = LndCfFinanceRules.Charges)
+        string? step = null)
     {
         var product = await db.Set<AdmProduct>().AsNoTracking().SingleAsync(x => x.ProductId == loan.ProductId, ct);
         var ruleCode = await RuleCodeAsync(loan, ct, step);
@@ -373,7 +389,7 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
 /// </summary>
 public sealed class LndCfFinanceWorkflowHandler(
     ICapitraDbContext db, IClock clock, IScrUserProfiles profiles, CrmCustomer360Service customers, LndCfChargesPlanner planner,
-    ProductActionPosting posting)
+    ProductActionPosting posting, LndCfClaimService claims)
     : IWfeTaskCompletionHandler
 {
     public bool CanHandle(WfeTaskContext context) =>
@@ -389,7 +405,9 @@ public sealed class LndCfFinanceWorkflowHandler(
 
         if (!string.Equals(context.Action, "ACCEPT", StringComparison.OrdinalIgnoreCase))
         {
-            Move(loan, LndLoanService.Statuses.Rejected, $"Rejected at {name} by {context.User}.");
+            // an unpaid claim is cancelled (its GL reversed); a paid one is to be refunded
+            var claimNote = await claims.CancelAsync(loan, cancellationToken);
+            Move(loan, LndLoanService.Statuses.Rejected, $"Rejected at {name} by {context.User}.{(claimNote is null ? "" : " " + claimNote)}");
             await db.SaveChangesAsync(cancellationToken);
             return;
         }
@@ -412,15 +430,26 @@ public sealed class LndCfFinanceWorkflowHandler(
                 if (problems.Count > 0) throw new BusinessRuleException($"{name} cannot be accepted: {string.Join(" ", problems)}");
                 // accepted from the inbox, without the finance page: the rule's defaults are Credit's decision
                 if (!await db.Set<LndLoanCharge>().AnyAsync(x => x.LoanId == loan.LoanId, cancellationToken))
+                {
                     await planner.DecideAsync(loan, null, cancellationToken);
-                Move(loan, LndLoanService.Statuses.Approved, $"Approved at {name} by {context.User}: amount {loan.PrincipalAmount:#,0.00} over {loan.TermMonths} months.");
+                    await db.SaveChangesAsync(cancellationToken); // the claim reads the charges saved
+                }
+                // the claim is created once, here (Ahmed, 27 Nov 2026), unless the run still has the Charges and claim step
+                string claimNote = "";
+                if (await planner.ClaimStepAsync(loan, cancellationToken) == LndCfFinanceRules.Credit)
+                {
+                    await claims.CreateAsync(loan, LndCfFinanceRules.Credit, cancellationToken);
+                    claimNote = loan.ClaimStatusCode == LndCfFinanceRules.Claim.None ? " Nothing upfront: no claim."
+                        : $" Claim {(loan.ClaimChargesAmount ?? 0) + (loan.ClaimDownPaymentAmount ?? 0):#,0.00} created.";
+                }
+                Move(loan, LndLoanService.Statuses.Approved, $"Approved at {name} by {context.User}: amount {loan.PrincipalAmount:#,0.00} over {loan.TermMonths} months.{claimNote}");
                 break;
             }
             case LndCfFinanceRules.Charges:
             {
                 var charges = await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loan.LoanId).ToListAsync(cancellationToken);
                 var (c, d) = LndCfFinanceRules.ClaimAmounts(charges, loan.DownPaymentCollectorCode, loan.DownPaymentAmount);
-                if (LndCfFinanceRules.CheckClaim(loan.ClaimStatusCode, c + d) is { } problem) throw new BusinessRuleException(problem);
+                if (LndCfFinanceRules.CheckClaim(loan.ClaimStatusCode, c + d, LndCfClaimService.Paid(loan)) is { } problem) throw new BusinessRuleException(problem);
                 if (loan.ClaimStatusCode is null)
                 {
                     loan.ClaimStatusCode = LndCfFinanceRules.Claim.None;
@@ -431,6 +460,9 @@ public sealed class LndCfFinanceWorkflowHandler(
             }
             case LndCfFinanceRules.Schedule:
             {
+                // the claim must be paid first (or nothing is paid upfront)
+                if (LndCfFinanceRules.CheckClaim(loan.ClaimStatusCode, (loan.ClaimChargesAmount ?? 0) + (loan.ClaimDownPaymentAmount ?? 0), LndCfClaimService.Paid(loan)) is { } unpaid)
+                    throw new BusinessRuleException($"{name} cannot be accepted. {unpaid}");
                 // the schedule on the loan amount Credit approved (the financed amount plus the charges added to it), from today; the
                 // Delivery step moves its dates to the delivery day
                 var lines = await ScheduleAsync(loan, LndLoanService.CairoToday(clock), cancellationToken);
@@ -546,8 +578,8 @@ public sealed class LndCfFinanceWorkflowHandler(
 /// Charges and claim step (create it, record its payment).
 /// </summary>
 public sealed class LndCfFinanceService(
-    ICapitraDbContext db, WfeInbox inbox, LndCfChargesPlanner planner, ProductActionPosting posting, IClock clock, ICurrentUser currentUser,
-    IScrUserProfiles profiles)
+    ICapitraDbContext db, WfeInbox inbox, LndCfChargesPlanner planner, IClock clock, ICurrentUser currentUser, IScrUserProfiles profiles,
+    LndCfClaimService claims)
 {
     private string User => currentUser.UserName ?? currentUser.UserId ?? "SYSTEM";
 
@@ -581,7 +613,8 @@ public sealed class LndCfFinanceService(
             .Select(x => (decimal?)x.AnnualRatePct).FirstOrDefaultAsync(ct);
         return new LndCfStepDto(open, LndCfFinanceRules.StepName(open), mine ? inboxId : null, mine, charges, accounts, productRate, loan.RateMarginPct,
             step == LndCfFinanceRules.Credit && mine ? LndCfFinanceRules.Terms(loan) : null,
-            step == LndCfFinanceRules.SupplierPayment ? LndCfFinanceRules.SupplierDue(loan) : null);
+            step == LndCfFinanceRules.SupplierPayment ? LndCfFinanceRules.SupplierDue(loan) : null,
+            step == LndCfFinanceRules.Credit && await planner.ClaimStepAsync(loan, ct) == LndCfFinanceRules.Credit);
     }
 
     /// <summary>
@@ -652,113 +685,23 @@ public sealed class LndCfFinanceService(
     }
 
     /// <summary>
-    /// Charges and claim: executes Credit's decision. The upfront charges post the rule's charge GL lines (claimed, not earned yet); the
-    /// claim is those charges plus the down payment when we take it. Nothing upfront: no claim (NONE). Charges added to the schedule post
-    /// nothing here; they are part of the principal.
+    /// Charges and claim, on finances that started with that step: creates the claim from Credit's decision (see LndCfClaimService).
     /// </summary>
     public async Task CreateClaimAsync(long loanId, long inboxId, CancellationToken ct)
     {
         await using var tx = await db.BeginTransactionAsync(ct);
         var (loan, _) = await TaskAsync(loanId, inboxId, LndCfFinanceRules.Charges, ct);
-        if (loan.ClaimStatusCode is not null) throw new BusinessRuleException("The claim is already created.");
-        var saved = await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loanId).ToListAsync(ct);
-        var (charges, down) = LndCfFinanceRules.ClaimAmounts(saved, loan.DownPaymentCollectorCode, loan.DownPaymentAmount);
-        var today = GlTime.Today(clock);
-        loan.ClaimChargesAmount = charges;
-        loan.ClaimDownPaymentAmount = down;
-        if (charges + down == 0)
-        {
-            loan.ClaimStatusCode = LndCfFinanceRules.Claim.None;
-        }
-        else
-        {
-            if (charges > 0)
-            {
-                var (_, businessLine, module, plan, ruleCode) = await planner.PlanAsync(loan, ct);
-                if (plan is null) throw new BusinessRuleException($"The finance's product has no active rule {ruleCode} today. Add it in Admin Setup.");
-                var upfront = saved.Where(x => x.TimingCode == LndCfCharges.Upfront && x.ChargeAmount + x.TaxAmount != 0)
-                    .GroupBy(x => x.ChargeCode).ToDictionary(x => x.Key, x => x.Sum(c => c.ChargeAmount + c.TaxAmount));
-                var missing = upfront.Keys.Where(code => !plan.Lines.Any(l => l.ChargeCode == code && l.AmountCode is "CHARGE_AMOUNT" or "CHARGE_IMMEDIATE")).ToList();
-                if (missing.Count > 0)
-                    throw new BusinessRuleException($"Rule {plan.RuleCode} has no GL lines for {string.Join(", ", missing)}. Add them in Admin Setup > the rule > Component GL Entries.");
-                var lines = ProductEventPosting.Build(plan,
-                    l => l.ChargeCode is { } code && l.AmountCode is "CHARGE_AMOUNT" or "CHARGE_IMMEDIATE" && upfront.TryGetValue(code, out var a) ? a : 0, null);
-                var doc = new ProductActionDocument("LND_CF_CLAIM", loan.LoanId.ToString(CultureInfo.InvariantCulture), loan.LoanNumber, today, loan.CurrencyCode,
-                    $"Finance {loan.LoanNumber}: upfront charges claimed, {charges:#,0.00}");
-                try
-                {
-                    loan.ClaimGlTranSetId = await posting.PostLinesAsync(plan, lines, module, "Consumer finance claim", "3100", businessLine, doc, ct);
-                }
-                catch (ApexProcessException ex)
-                {
-                    throw new BusinessRuleException($"GL posting failed, the claim was not created: {GlPostingApi.CleanMessage(ex.Message)}");
-                }
-            }
-            loan.ClaimStatusCode = LndCfFinanceRules.Claim.Open;
-            db.Set<LndLoanEvent>().Add(new LndLoanEvent
-            {
-                LoanId = loan.LoanId, EventCode = "CF_CLAIM", EventDate = today, EventAmount = charges + down, GlTranSetId = loan.ClaimGlTranSetId,
-                SourceDocumentType = "LND_CF_CLAIM", SourceDocumentId = loan.LoanId,
-                Notes = $"Claim {charges + down:#,0.00}: upfront charges {charges:#,0.00}, down payment {down:#,0.00}.",
-            });
-        }
+        await claims.CreateAsync(loan, LndCfFinanceRules.Charges, ct);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
     }
 
-    /// <summary>
-    /// Record payment of the claim: posts the product action CF_CLAIM_PAYMENT (money into the bank account chosen; the charges paid and
-    /// earned; the down payment held for the supplier). The claim becomes PAID.
-    /// </summary>
+    /// <summary>Charges and claim, on finances that started with that step: records the payment of what is outstanding.</summary>
     public async Task PayClaimAsync(long loanId, long inboxId, LndCfClaimPaymentRequest r, CancellationToken ct)
     {
         await using var tx = await db.BeginTransactionAsync(ct);
         var (loan, _) = await TaskAsync(loanId, inboxId, LndCfFinanceRules.Charges, ct);
-        if (loan.ClaimStatusCode != LndCfFinanceRules.Claim.Open)
-            throw new BusinessRuleException(loan.ClaimStatusCode is null ? "Create the claim first." : "The claim is not waiting for payment.");
-        var e = new Dictionary<string, string[]>();
-        var method = (r.PaymentMethodCode ?? "").Trim().ToUpperInvariant();
-        var reference = string.IsNullOrWhiteSpace(r.PaymentReference) ? null : r.PaymentReference.Trim();
-        var account = r.BankAccountId is { } accountId
-            ? await db.Set<TrsBankAccount>().AsNoTracking().FirstOrDefaultAsync(x => x.AccountId == accountId, ct) : null;
-        if (account is null || !account.IsActive || account.CurrencyCode != loan.CurrencyCode) e["bankAccountId"] = ["Choose one of our active accounts in the finance's currency."];
-        else if (string.IsNullOrWhiteSpace(account.ErpAccountCode)) e["bankAccountId"] = [$"Bank account {account.AccountRef} has no GL account code. Set it in Treasury."];
-        if (!LndCfFinanceRules.PaymentMethods.Contains(method)) e["paymentMethodCode"] = ["Choose how the customer paid."];
-        else if (method != "CASH" && reference is null) e["paymentReference"] = ["Enter the payment reference."];
-        if (reference is { Length: > 100 }) e["paymentReference"] = ["The reference is longer than 100 characters."];
-        if (e.Count > 0) throw new BusinessValidationException(e);
-
-        var charges = loan.ClaimChargesAmount ?? 0;
-        var down = loan.ClaimDownPaymentAmount ?? 0;
-        var today = GlTime.Today(clock);
-        var doc = new ProductActionDocument("LND_CF_CLAIM", loan.LoanId.ToString(CultureInfo.InvariantCulture), loan.LoanNumber, today, loan.CurrencyCode,
-            $"Finance {loan.LoanNumber}: claim paid, {charges + down:#,0.00} ({method.ToLowerInvariant().Replace('_', ' ')}{(reference is null ? "" : " " + reference)})");
-        Func<string, decimal?> amountOf = code => code switch
-        {
-            "PAYMENT_AMOUNT" => charges + down,
-            "CHARGES_PAID_AMOUNT" => charges,
-            "DOWN_PAYMENT_AMOUNT" => down,
-            _ => null,
-        };
-        try
-        {
-            loan.ClaimPaymentGlTranSetId = await posting.PostAsync(ProductActions.CfClaimPayment, doc, [(account!.ErpAccountCode!.Trim(), amountOf)], ct);
-        }
-        catch (ApexProcessException ex)
-        {
-            throw new BusinessRuleException($"GL posting failed, the payment was not recorded: {GlPostingApi.CleanMessage(ex.Message)}");
-        }
-        loan.ClaimStatusCode = LndCfFinanceRules.Claim.Paid;
-        loan.ClaimPaidAt = clock.UtcNow;
-        loan.ClaimPaidBy = User;
-        loan.ClaimPaymentMethodCode = method;
-        loan.ClaimPaymentReference = reference;
-        db.Set<LndLoanEvent>().Add(new LndLoanEvent
-        {
-            LoanId = loan.LoanId, EventCode = "CF_CLAIM_PAID", EventDate = today, EventAmount = charges + down, GlTranSetId = loan.ClaimPaymentGlTranSetId,
-            SourceDocumentType = "LND_CF_CLAIM", SourceDocumentId = loan.LoanId,
-            Notes = $"Claim paid into {account.AccountRef} by {method.ToLowerInvariant().Replace('_', ' ')}{(reference is null ? "" : ", " + reference)}.",
-        });
+        await claims.PayLoanAsync(loan, new LndCfClaimPayRequest(null, r.BankAccountId, r.PaymentMethodCode, r.PaymentReference), ct);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
     }
@@ -782,7 +725,10 @@ public sealed class LndCfFinanceService(
         return (loan, item);
     }
 
-    private async Task<List<LndPayingAccountDto>> AccountsAsync(string currencyCode, CancellationToken ct) =>
+    private Task<List<LndPayingAccountDto>> AccountsAsync(string currencyCode, CancellationToken ct) => AccountsAsync(db, currencyCode, ct);
+
+    /// <summary>Our active accounts in a currency (not escrow) money can come into or go out of.</summary>
+    public static async Task<List<LndPayingAccountDto>> AccountsAsync(ICapitraDbContext db, string currencyCode, CancellationToken ct) =>
         await (from a in db.Set<TrsBankAccount>().AsNoTracking()
                join b in db.Set<TrsBank>().AsNoTracking() on a.BankId equals b.BankId
                where a.IsActive && a.CurrencyCode == currencyCode && a.AccountTypeCode != "ESCROW"

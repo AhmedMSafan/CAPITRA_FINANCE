@@ -1,7 +1,7 @@
 <template>
   <!-- CF_FINANCE (Ahmed, 26 Nov 2026): the step a consumer finance from a supplier is waiting at; the task holder works on it here.
-       Credit approval decides each charge (upfront or added to the schedule); Charges and claim executes that decision (claim, payment);
-       Schedule and contract builds the schedule. -->
+       Credit approval decides each charge (upfront or added to the schedule) and approving creates the claim (27 Nov 2026; older finances
+       create it at Charges and claim); Schedule and contract waits until the claim is paid, then builds the schedule. -->
   <section v-if="step" class="fx-card cfs">
     <header class="cfs-head">
       <span class="cfs-ic" aria-hidden="true"><span class="fa fa-random"></span></span>
@@ -126,7 +126,27 @@
       </p>
     </div>
 
-    <!-- Charges and claim: the claim of the upfront charges (and the down payment we take), then its payment -->
+    <!-- Credit approval: what approving creates -->
+    <p v-if="deciding && step.claimAtCredit && !charges?.problem" class="cfs-note">
+      <span class="fa fa-info-circle" aria-hidden="true"></span>
+      <template v-if="totals.upfront + claimDown > 0">{{ tr('Approve creates the claim') }}: {{ tr('upfront charges') }} <b>{{ money(totals.upfront) }}</b>
+        <template v-if="claimDown"> + {{ tr('down payment we take') }} <b>{{ money(claimDown) }}</b></template> = <b>{{ money(totals.upfront + claimDown) }}</b>
+        ({{ tr('rule CF_CHARGES posts the charges') }}). {{ tr('The schedule step waits until it is paid.') }}</template>
+      <template v-else>{{ tr('Nothing is paid upfront: no claim.') }}</template>
+    </p>
+
+    <!-- Schedule and contract: the claim must be paid first -->
+    <div v-if="step.stepCode === 'CF_SCHEDULE' && loan.claim && loan.claim.statusCode !== 'NONE'" class="cfs-box">
+      <h4>{{ tr('Upfront claim') }}</h4>
+      <p>{{ tr('Claim') }} <b>{{ money(loan.claim.totalAmount) }}</b>
+        <span class="fx-chip" :class="claimTone(loan.claim.statusCode)">{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</span>
+        · {{ tr('Paid') }} <b>{{ money(loan.claim.paidAmount) }}</b> · {{ tr('Outstanding') }} <b>{{ money(loan.claim.outstandingAmount) }}</b>
+        <button type="button" class="fx-btn fx-btn--sm cfs-claim-btn" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></p>
+      <p v-if="loan.claim.outstandingAmount > 0" class="cfs-bad">{{ tr('Accept waits until the claim is paid. Record the payments on the claim.') }}</p>
+    </div>
+    <CfClaimDialog v-model:visible="claimShown" :loan-id="loan.loanId" :show-finance="false" @changed="emit('changed')" />
+
+    <!-- Charges and claim (finances started before 27 Nov 2026): the claim of the upfront charges (and the down payment we take), then its payment -->
     <div v-if="step.stepCode === 'CF_CHARGES' && step.isMine" class="cfs-box">
       <h4>{{ tr('Upfront claim') }}</h4>
       <template v-if="!loan.claim">
@@ -235,8 +255,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
+import CfClaimDialog from './CfClaimDialog.vue'
 import CfRulesButton from './CfRulesButton.vue'
-import { loansApi, type CfCharge, type CfCreditDecision, type CfStep, type CfTerms, type Loan } from '../api/loans.api'
+import { CLAIM_LABELS, claimTone, loansApi, type CfCharge, type CfCreditDecision, type CfStep, type CfTerms, type Loan } from '../api/loans.api'
 
 const props = defineProps<{ loan: Loan; version: number }>()
 const emit = defineEmits<{ changed: [] }>()
@@ -246,9 +267,9 @@ const router = useRouter()
 const UPFRONT = 'PAID_UPFRONT'
 const FINANCED = 'FINANCE_WITH_PRINCIPAL'
 const HINT: Record<string, string> = {
-  CF_CREDIT: "Check the deal; every value below is this finance's own copy, change any of them. Approving needs the customer's compliance to be clear.",
+  CF_CREDIT: "Check the deal; every value below is this finance's own copy, change any of them. Approving needs the customer's compliance to be clear and creates the upfront claim.",
   CF_CHARGES: 'Create the claim of the upfront charges, record its payment, then accept. Charges added to the schedule are part of the principal.',
-  CF_SCHEDULE: 'Check the finance amount and term, then accept to build the schedule.',
+  CF_SCHEDULE: 'Once the claim is paid, check the finance amount and term, then accept to build the schedule.',
   CF_DELIVERY: "Record the delivery and the customer's receipt; accepting books the finance.",
   CF_SUPPLIER_PAYMENT: 'Check what the supplier is owed and its commission, choose the bank account, then pay.',
 }
@@ -260,6 +281,7 @@ const ROLE: Record<string, string> = {
 const METHODS: [string, string][] = [['CASH', 'Cash'], ['BANK_TRANSFER', 'Bank transfer'], ['PAYMENT_NETWORK', 'Payment network'], ['WALLET', 'Wallet']]
 
 const step = ref<CfStep | null>(null)
+const claimShown = ref(false)
 const comment = ref('')
 const busy = ref(false)
 const timings = ref<Record<string, string>>({})
@@ -472,6 +494,7 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-seg button.on { background: var(--fin-teal-600); color: #fff; }
 .cfs-pay { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
 .cfs-pay .fc-field { min-width: 180px; }
+.cfs-claim-btn { margin-inline-start: 8px; }
 .cfs-note { margin: 12px 0 0; font-size: 13px; color: #34495a; }
 .cfs-note .fa { color: var(--fin-teal-700); margin-inline-end: 6px; }
 .cfs-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; }

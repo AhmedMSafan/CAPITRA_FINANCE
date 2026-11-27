@@ -166,6 +166,9 @@ public class LndLoan : AuditableEntity
 
     public string? ClaimPaymentGlTranSetId { get; set; }
 
+    /// <summary>What the customer has paid of the claim so far (27 Nov 2026: partial payments, LND_CF_CLAIM_PAYMENTS); null before any.</summary>
+    public decimal? ClaimPaidAmount { get; set; }
+
     /// <summary>CF_FINANCE step 5 (27 Nov 2026): the day the goods were delivered; the finance is booked and its schedule runs from it.</summary>
     public DateOnly? DeliveryDate { get; set; }
 
@@ -319,4 +322,35 @@ public class LndLoanDocument : AuditableEntity
     public byte[] FileBlob { get; set; } = [];
 
     public bool IsActive { get; set; } = true;
+}
+
+/// <summary>
+/// LND_CF_CLAIM_PAYMENTS (Ahmed, 27 Nov 2026): a payment of a consumer finance's upfront claim, like a factoring claim payment. Several
+/// partial payments are allowed; each covers the charges first, then the down payment we take, and posts the product action CF_CLAIM_PAYMENT.
+/// </summary>
+public class LndCfClaimPayment : AuditableEntity
+{
+    public long ClaimPaymentId { get; set; }
+
+    public long LoanId { get; set; }
+
+    public DateOnly PaymentDate { get; set; }
+
+    public decimal PaymentAmount { get; set; }
+
+    /// <summary>The part of the payment that paid the charges (earned on payment).</summary>
+    public decimal ChargesAmount { get; set; }
+
+    /// <summary>The part of the payment that paid the down payment we take (held for the supplier).</summary>
+    public decimal DownPaymentAmount { get; set; }
+
+    /// <summary>Our bank account the money came into; null for payments recorded before 27 Nov 2026 (one per paid claim).</summary>
+    public long? BankAccountId { get; set; }
+
+    /// <summary>CASH, BANK_TRANSFER, PAYMENT_NETWORK or WALLET.</summary>
+    public string PaymentMethodCode { get; set; } = string.Empty;
+
+    public string? PaymentReference { get; set; }
+
+    public string? GlTranSetId { get; set; }
 }

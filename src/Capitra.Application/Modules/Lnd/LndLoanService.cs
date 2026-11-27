@@ -73,11 +73,12 @@ public sealed record LndCfSupplierPaidDto(decimal CommissionAmount, string? Comm
 public sealed record LndCfDeliveryDto(DateOnly DeliveryDate, string? DeliveryNoteNo, string? SerialNo, string? GlTranSetId, DateOnly? SupplierPaymentDueDate);
 
 /// <summary>
-/// The upfront claim of a consumer finance (Charges and claim step): the upfront charges and the down payment we take, OPEN until the
-/// customer pays it (PAID), or NONE when nothing is paid upfront.
+/// The upfront claim of a consumer finance (created when Credit approves; on older finances at Charges and claim): the upfront charges
+/// and the down payment we take; OPEN (unpaid), PARTIALLY_PAID, PAID, CANCELLED, or NONE when nothing is paid upfront.
 /// </summary>
 public sealed record LndCfClaimDto(string StatusCode, decimal ChargesAmount, decimal DownPaymentAmount, decimal TotalAmount, string? GlTranSetId,
-    DateTime? PaidAt, string? PaidBy, string? PaymentMethodCode, string? PaymentReference, string? PaymentGlTranSetId);
+    DateTime? PaidAt, string? PaidBy, string? PaymentMethodCode, string? PaymentReference, string? PaymentGlTranSetId, decimal PaidAmount = 0,
+    decimal OutstandingAmount = 0);
 
 public sealed record LndOptionDto(long Id, string Code, string Name, string? LicenceCode = null);
 
@@ -327,7 +328,8 @@ public sealed class LndLoanService(
                 .ToListAsync(cancellationToken),
             l.ClaimStatusCode is null ? null : new LndCfClaimDto(l.ClaimStatusCode, l.ClaimChargesAmount ?? 0, l.ClaimDownPaymentAmount ?? 0,
                 (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0), l.ClaimGlTranSetId, l.ClaimPaidAt, l.ClaimPaidBy, l.ClaimPaymentMethodCode,
-                l.ClaimPaymentReference, l.ClaimPaymentGlTranSetId),
+                l.ClaimPaymentReference, l.ClaimPaymentGlTranSetId, LndCfClaimService.Paid(l),
+                (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0) - LndCfClaimService.Paid(l)),
             l.RateMarginPct,
             l.DeliveryDate is { } delivered ? new LndCfDeliveryDto(delivered, l.DeliveryNoteNo, l.DeliverySerialNo, l.DeliveryGlTranSetId, l.SupplierPaymentDueDate) : null,
             l.SupplierPaidAt is { } paidAt ? new LndCfSupplierPaidDto(l.SupplierCommissionAmount ?? 0, l.SupplierCommissionReason,
