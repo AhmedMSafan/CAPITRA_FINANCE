@@ -24,7 +24,7 @@ namespace Capitra.Application.Modules.Lnd;
 /// GL), paid like a factoring claim. 3 Schedule and contract (OPERATIONS_OFFICER): once the claim is paid, the schedule on the financed
 /// amount plus the charges added to it. 4 Delivery and customer receipt (OPERATIONS_OFFICER). 5 Supplier payment (TREASURY_OFFICER).
 /// Finances that started before 27 Nov 2026 keep the step Charges and claim (OPERATIONS_OFFICER) between 2 and 3, where their claim is
-/// created. The person who entered the finance does none of the steps.
+/// created. Anyone holding a step's role does it (Ahmed, 28 Nov 2026).
 /// </summary>
 public static class LndCfFinanceRules
 {
@@ -69,7 +69,10 @@ public static class LndCfFinanceRules
         _ => stepCode ?? "the step",
     };
 
-    /// <summary>Segregation of duties: the person who entered the finance does none of its steps.</summary>
+    /// <summary>
+    /// Segregation of duties (the first rule, 26 Nov 2026). Not applied since 28 Nov 2026 (Ahmed): anyone holding a step's role does it,
+    /// as the inbox offers it, the person who entered the finance too. Kept for a later product setting.
+    /// </summary>
     public static void CheckPerson(string? enteredByPerson, string actorPerson)
     {
         if (enteredByPerson is not null && string.Equals(enteredByPerson, actorPerson, StringComparison.Ordinal))
@@ -387,7 +390,7 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
 /// REJECT rejects the finance; ACCEPT checks segregation of duties and the step's rules, then moves the finance on.
 /// </summary>
 public sealed class LndCfFinanceWorkflowHandler(
-    ICapitraDbContext db, IClock clock, IScrUserProfiles profiles, CrmCustomer360Service customers, LndCfChargesPlanner planner,
+    ICapitraDbContext db, IClock clock, CrmCustomer360Service customers, LndCfChargesPlanner planner,
     ProductActionPosting posting, LndCfClaimService claims)
     : IWfeTaskCompletionHandler
 {
@@ -411,8 +414,7 @@ public sealed class LndCfFinanceWorkflowHandler(
             return;
         }
 
-        var profile = await profiles.ByUserNameAsync(context.User, cancellationToken);
-        LndCfFinanceRules.CheckPerson(loan.EnteredByPerson, ScrDuties.PersonKey(profile?.EmployeeNo, context.User));
+        // anyone holding the step's role does it, the person who entered the finance too (Ahmed, 28 Nov 2026)
         if (step == LndCfFinanceRules.Agreement)
             throw new BusinessRuleException("This finance started on the first version of the workflow. Reject it and enter it again.");
         if (!LndCfFinanceRules.Ready.Contains(step))
@@ -577,7 +579,7 @@ public sealed class LndCfFinanceWorkflowHandler(
 /// Charges and claim step (create it, record its payment).
 /// </summary>
 public sealed class LndCfFinanceService(
-    ICapitraDbContext db, WfeInbox inbox, LndCfChargesPlanner planner, IClock clock, ICurrentUser currentUser, IScrUserProfiles profiles,
+    ICapitraDbContext db, WfeInbox inbox, LndCfChargesPlanner planner, IClock clock, ICurrentUser currentUser,
     LndCfClaimService claims)
 {
     private string User => currentUser.UserName ?? currentUser.UserId ?? "SYSTEM";
@@ -708,8 +710,6 @@ public sealed class LndCfFinanceService(
         {
             if (!string.Equals(item.StepCode, step, StringComparison.OrdinalIgnoreCase))
                 throw new BusinessRuleException($"This is done at {LndCfFinanceRules.StepName(step)}; the finance is at {LndCfFinanceRules.StepName(item.StepCode)}.");
-            var profile = await profiles.ByUserNameAsync(User, ct);
-            LndCfFinanceRules.CheckPerson(loan.EnteredByPerson, ScrDuties.PersonKey(profile?.EmployeeNo, User));
         }
         return (loan, item);
     }
