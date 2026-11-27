@@ -82,7 +82,7 @@ public sealed record LndLoanStatusChangeDto(string? Reason, int? RowVersion);
 /// change writes LND_LOAN_STATUS_HIST. Disbursement, GL, receipts and end of day come in the next steps.
 /// </summary>
 public sealed class LndLoanService(
-    ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IScrUserProfiles profiles)
+    ICapitraDbContext db, ICurrentUser currentUser, IClock clock, WfeRuntime runtime, IScrUserProfiles profiles, ILndParameters parameters)
 {
     public static class Statuses
     {
@@ -443,6 +443,13 @@ public sealed class LndLoanService(
             if (e.Count > 0) throw new BusinessValidationException(e);
         }
         e = CheckTerms(version, amount, term, disbursement, first);
+        // the products have no limits (Ahmed, 27 Nov 2026); the licence's legal limits per customer still apply to each finance
+        var licence = LndProductTerms.Licences[product.BusinessLineCode];
+        if (licence == LndParameterCatalog.Microfinance || product.ProductTypeCode == "CASH_ADVANCE")
+        {
+            var code = licence == LndParameterCatalog.Microfinance ? LndParameterCatalog.Codes.MaxFinancingAmount : LndParameterCatalog.Codes.CashMaxAmount;
+            if (LegalLimit(amount, await parameters.NumberAsync(code, licence, disbursement, cancellationToken)) is { } limitProblem) e["principalAmount"] = [limitProblem];
+        }
         if (scenario is not null && e.Count > 0)
             e = new Dictionary<string, string[]> { ["scenarioId"] = [.. e.Values.SelectMany(x => x).Select(x => "Scenario: " + x)] };
         if (e.Count > 0) throw new BusinessValidationException(e);
@@ -598,16 +605,24 @@ public sealed class LndLoanService(
 
     private static string? Blank(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
-    /// <summary>The amount and term must be within the version's ranges; the first instalment falls after the disbursement, within 3 months.</summary>
+    /// <summary>
+    /// A finance's amount and term (the products have no limits): an amount above zero and a term of 1 to 120 months; the first
+    /// instalment falls after the disbursement, within 3 months.
+    /// </summary>
     public static Dictionary<string, string[]> CheckTerms(LndProductVersion v, decimal amount, int term, DateOnly disbursement, DateOnly first)
     {
         var e = new Dictionary<string, string[]>();
-        if (amount < v.MinAmount || amount > v.MaxAmount) e["principalAmount"] = [$"The amount must be from {v.MinAmount:#,0.##} to {v.MaxAmount:#,0.##}."];
-        if (term < v.MinTermMonths || term > v.MaxTermMonths) e["termMonths"] = [$"The term must be from {v.MinTermMonths} to {v.MaxTermMonths} months."];
+        if (amount <= 0) e["principalAmount"] = ["The amount must be more than zero."];
+        if (term is < 1 or > 120) e["termMonths"] = ["The term must be from 1 to 120 months."];
         if (first <= disbursement) e["firstDueDate"] = ["The first instalment must fall after the disbursement date."];
         else if (first > disbursement.AddMonths(3)) e["firstDueDate"] = ["The first instalment must fall within 3 months of the disbursement."];
         return e;
     }
+
+    /// <summary>The licence's legal limit per customer (microfinance, or cash financing): none approved stops the finance.</summary>
+    public static string? LegalLimit(decimal amount, decimal? limit) =>
+        limit is null ? "The licence's maximum financing per customer has no approved value. Approve it in Lending Parameters first."
+        : amount > limit ? $"The amount is above the licence's maximum financing per customer of EGP {limit:#,0.##}." : null;
 
     public static LndLoanPreviewDto Preview(LndProductVersion v, decimal amount, IReadOnlyList<LndScheduleLine> lines, decimal ratePct)
     {
