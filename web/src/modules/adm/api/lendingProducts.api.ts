@@ -2,17 +2,19 @@ import { http } from '@/shared/api/http'
 
 export type Option = { value: string; label: string }
 
-/** One version of a lending product's terms (LND_PRODUCT_VERSIONS). */
+/** One changed field of the lending terms. */
+export type TermChange = { field: string; oldValue: string; newValue: string }
+
+/**
+ * A set of a lending product's terms (LND_PRODUCT_VERSIONS), shown as the terms in force or a change to them (Ahmed, 27 Nov 2026:
+ * one set of terms, no versions, no limits). changes: what it changes from the terms before it.
+ */
 export type LendingVersion = {
   productVersionId: number
   versionNo: number
   effectiveFromDate: string
   statusCode: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED'
   isInForce: boolean
-  minAmount: number
-  maxAmount: number
-  minTermMonths: number
-  maxTermMonths: number
   repaymentFrequencyCode: string
   interestMethodCode: string
   annualRatePct: number
@@ -38,6 +40,7 @@ export type LendingVersion = {
   canApprove: boolean
   approveBlockedReason: string | null
   rowVersion: number
+  changes: TermChange[]
 }
 
 export type LendingProduct = {
@@ -64,11 +67,6 @@ export type LendingProductsPage = {
 }
 
 export type LendingVersionSave = {
-  effectiveFromDate: string | null
-  minAmount: number | null
-  maxAmount: number | null
-  minTermMonths: number | null
-  maxTermMonths: number | null
   repaymentFrequencyCode: string
   interestMethodCode: string
   annualRatePct: number | null

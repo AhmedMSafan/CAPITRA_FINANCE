@@ -4,19 +4,18 @@ using Capitra.Application.Modules.Crm;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Lnd;
 using Microsoft.EntityFrameworkCore;
-using C = Capitra.Application.Modules.Lnd.LndParameterCatalog.Codes;
 using S = Capitra.Application.Modules.Lnd.LndProductTerms.Statuses;
 
 namespace Capitra.Application.Modules.Lnd;
 
 public sealed record LndProductVersionDto(
     long ProductVersionId, int VersionNo, DateOnly EffectiveFromDate, string StatusCode, bool IsInForce,
-    decimal MinAmount, decimal MaxAmount, int MinTermMonths, int MaxTermMonths, string RepaymentFrequencyCode, string InterestMethodCode,
+    string RepaymentFrequencyCode, string InterestMethodCode,
     decimal AnnualRatePct, string DayCountCode, int LateFeeGraceDays, string LateFeeTypeCode, decimal? LateFeeRatePct, decimal? LateFeeFlatAmount,
     string LateFeeBaseCode, IReadOnlyList<string> PaymentOrder, bool IsInsuranceRequired, bool IsPrepaymentAllowed, string PrepaymentRecalcCode,
     decimal PrepaymentFeePct, decimal EarlySettlementFeePct, string? ChangeReason,
     string CreatedBy, string? RequestedBy, DateTime? RequestedAt, string? DecidedBy, DateTime? DecidedAt, string? DecisionNotes,
-    bool CanApprove, string? ApproveBlockedReason, int RowVersion);
+    bool CanApprove, string? ApproveBlockedReason, int RowVersion, IReadOnlyList<LndTermChangeDto> Changes);
 
 public sealed record LndLendingProductDto(
     long ProductId, string ProductCode, string ProductNameEn, string? ProductNameAr, string BusinessLineCode, string LicenceCode,
@@ -31,7 +30,7 @@ public sealed record LndProductTermsPageDto(
     DateOnly Today, bool CanEdit, bool CanApprove, IReadOnlyList<LndLendingProductDto> Products, LndProductOptionsDto Options);
 
 public sealed record LndProductVersionSaveDto(
-    DateOnly? EffectiveFromDate, decimal? MinAmount, decimal? MaxAmount, int? MinTermMonths, int? MaxTermMonths, string? RepaymentFrequencyCode,
+    string? RepaymentFrequencyCode,
     string? InterestMethodCode, decimal? AnnualRatePct, string? DayCountCode, int? LateFeeGraceDays, string? LateFeeTypeCode, decimal? LateFeeRatePct,
     decimal? LateFeeFlatAmount, string? LateFeeBaseCode, IReadOnlyList<string>? PaymentOrder, bool IsInsuranceRequired, string? ChangeReason, int? RowVersion,
     bool IsPrepaymentAllowed = true, string? PrepaymentRecalcCode = null, decimal? PrepaymentFeePct = null, decimal? EarlySettlementFeePct = null);
@@ -39,11 +38,12 @@ public sealed record LndProductVersionSaveDto(
 public sealed record LndProductDecisionDto(string? Notes);
 
 /// <summary>
-/// Administration > Product Setup > Lending Product Terms. The lending products are the catalog products of business line MICROFINANCE
-/// or CONSUMER_FINANCE. Their terms are versions: a draft is prepared (copied from the version in force), sent for approval, and
-/// approved by another user (four eyes, always). An approved version is used from its start date and is never changed.
+/// Administration > Product Catalog > a product's Lending Terms (Ahmed, 27 Nov 2026): a product has one set of terms, with no amount or
+/// term limits. An admin changes them (a change is copied from the terms in force), sends the change, and another user approves it; it
+/// applies to new finances from then on (each finance keeps its own copy). Every approved change is the audit trail: field, old and
+/// new value, who asked, who approved, when. Kept as rows of LND_PRODUCT_VERSIONS, not shown as versions.
 /// </summary>
-public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock, ILndParameters parameters)
+public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser currentUser, IClock clock)
 {
     private static readonly TimeZoneInfo Cairo = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
 
@@ -69,7 +69,7 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
                 return new LndLendingProductDto(p.ProductId, p.ProductCode, p.ProductNameEn, p.ProductNameAr, p.BusinessLineCode,
                     LndProductTerms.Licences[p.BusinessLineCode], p.ProductTypeCode, p.IsActive, inForce?.VersionNo,
                     [.. versions.Where(v => v.ProductId == p.ProductId).OrderByDescending(v => v.VersionNo)
-                        .Select(v => ToDto(v, v.ProductVersionId == inForce?.ProductVersionId, canApprove))]);
+                        .Select(v => ToDto(v, v.ProductVersionId == inForce?.ProductVersionId, canApprove, Before(versions, v)))]);
             })],
             new LndProductOptionsDto(LndProductTerms.Frequencies, LndProductTerms.InterestMethods, LndProductTerms.DayCounts,
                 LndProductTerms.LateFeeTypes, LndProductTerms.LateFeeBases, LndProductTerms.PaymentParts, LndProductTerms.PrepaymentRecalcs));
@@ -102,17 +102,13 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
             if (value is null) missing[field] = [$"Enter the {label}."];
             return value ?? default;
         }
-        v.EffectiveFromDate = Req(dto.EffectiveFromDate, "effectiveFromDate", "start date");
-        v.MinAmount = Req(dto.MinAmount, "minAmount", "minimum amount");
-        v.MaxAmount = Req(dto.MaxAmount, "maxAmount", "maximum amount");
-        v.MinTermMonths = Req(dto.MinTermMonths, "minTermMonths", "shortest term");
-        v.MaxTermMonths = Req(dto.MaxTermMonths, "maxTermMonths", "longest term");
         v.AnnualRatePct = Req(dto.AnnualRatePct, "annualRatePct", "yearly rate");
-        v.LateFeeGraceDays = Req(dto.LateFeeGraceDays, "lateFeeGraceDays", "grace days");
         v.RepaymentFrequencyCode = Code(dto.RepaymentFrequencyCode);
         v.InterestMethodCode = Code(dto.InterestMethodCode);
         v.DayCountCode = Code(dto.DayCountCode);
         v.LateFeeTypeCode = Code(dto.LateFeeTypeCode);
+        // grace days only mean something with a late fee
+        v.LateFeeGraceDays = v.LateFeeTypeCode == "NONE" ? 0 : Req(dto.LateFeeGraceDays, "lateFeeGraceDays", "grace days");
         v.LateFeeRatePct = v.LateFeeTypeCode is "PCT_ONCE" or "PCT_DAILY" ? dto.LateFeeRatePct : null;
         v.LateFeeFlatAmount = v.LateFeeTypeCode == "FLAT" ? dto.LateFeeFlatAmount : null;
         v.LateFeeBaseCode = string.IsNullOrWhiteSpace(dto.LateFeeBaseCode) ? "OVERDUE_INSTALMENT" : Code(dto.LateFeeBaseCode);
@@ -123,20 +119,18 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
         v.PrepaymentFeePct = dto.PrepaymentFeePct ?? 0;
         v.EarlySettlementFeePct = dto.EarlySettlementFeePct ?? 0;
         v.ChangeReason = Blank(dto.ChangeReason);
-        if (v.EffectiveFromDate < Today && !missing.ContainsKey("effectiveFromDate"))
-            missing["effectiveFromDate"] = ["A version cannot start before today."];
         foreach (var (k, e) in LndProductTerms.Check(v)) missing.TryAdd(k, e);
         if (missing.Count > 0) throw new BusinessValidationException(missing);
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>Sends a draft for approval. Its terms must pass the checks and the licence's parameters on its start date.</summary>
+    /// <summary>Sends a change for approval. Its terms must pass the checks and say what changes and why.</summary>
     public async Task SubmitAsync(long versionId, CancellationToken cancellationToken)
     {
         var v = await VersionAsync(versionId, cancellationToken);
         if (v.StatusCode != S.Draft) throw new BusinessRuleException("Only a draft can be sent for approval.");
-        await CheckAllAsync(v, cancellationToken);
-        if (Blank(v.ChangeReason) is null) throw BusinessValidationException.For("changeReason", "Say what this version changes and why.");
+        CheckAll(v);
+        if (Blank(v.ChangeReason) is null) throw BusinessValidationException.For("changeReason", "Say what this change is and why.");
         v.StatusCode = S.Pending;
         v.RequestedBy = User;
         v.RequestedAt = clock.UtcNow;
@@ -146,9 +140,10 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
     public async Task ApproveAsync(long versionId, LndProductDecisionDto dto, CancellationToken cancellationToken)
     {
         var v = await PendingAsync(versionId, cancellationToken);
-        if (SameUser(v.RequestedBy)) throw new BusinessRuleException("You sent this version for approval. Another user must approve it.");
-        if (v.EffectiveFromDate < Today) throw new BusinessRuleException("The version's start date has passed. Reject it and prepare it again with a new date.");
-        await CheckAllAsync(v, cancellationToken);
+        if (SameUser(v.RequestedBy)) throw new BusinessRuleException("You sent this change for approval. Another user must approve it.");
+        CheckAll(v);
+        // in force from its approval: new finances take it from now on
+        v.EffectiveFromDate = Today;
         Decide(v, S.Approved, Blank(dto.Notes));
         await db.SaveChangesAsync(cancellationToken);
     }
@@ -181,19 +176,15 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task CheckAllAsync(LndProductVersion v, CancellationToken cancellationToken)
+    private static void CheckAll(LndProductVersion v)
     {
         var errors = LndProductTerms.Check(v);
         if (errors.Count > 0) throw new BusinessValidationException(errors);
-        var p = await ProductAsync(v.ProductId, cancellationToken);
-        var licence = LndProductTerms.Licences[p.BusinessLineCode];
-        var isCash = p.ProductTypeCode == "CASH_ADVANCE";
-        var problems = LndProductTerms.CheckAgainstParameters(v, licence,
-            licence == LndParameterCatalog.Microfinance ? await parameters.NumberAsync(C.MaxFinancingAmount, licence, v.EffectiveFromDate, cancellationToken) : null,
-            isCash ? await parameters.NumberAsync(C.CashMaxAmount, licence, v.EffectiveFromDate, cancellationToken) : null,
-            isCash);
-        if (problems.Count > 0) throw new BusinessRuleException(string.Join(" ", problems));
     }
+
+    /// <summary>The terms a version changed: the approved terms just before it (by number), or none for the first.</summary>
+    private static LndProductVersion? Before(IEnumerable<LndProductVersion> versions, LndProductVersion v) =>
+        versions.Where(x => x.ProductId == v.ProductId && x.StatusCode == S.Approved && x.VersionNo < v.VersionNo).MaxBy(x => x.VersionNo);
 
     private async Task<AdmProduct> ProductAsync(long productId, CancellationToken cancellationToken)
     {
@@ -221,18 +212,19 @@ public sealed class LndProductVersionService(ICapitraDbContext db, ICurrentUser 
         v.DecisionNotes = notes;
     }
 
-    private LndProductVersionDto ToDto(LndProductVersion v, bool inForce, bool canApprove) =>
-        new(v.ProductVersionId, v.VersionNo, v.EffectiveFromDate, v.StatusCode, inForce, v.MinAmount, v.MaxAmount, v.MinTermMonths, v.MaxTermMonths,
+    private LndProductVersionDto ToDto(LndProductVersion v, bool inForce, bool canApprove, LndProductVersion? before) =>
+        new(v.ProductVersionId, v.VersionNo, v.EffectiveFromDate, v.StatusCode, inForce,
             v.RepaymentFrequencyCode, v.InterestMethodCode, v.AnnualRatePct, v.DayCountCode, v.LateFeeGraceDays, v.LateFeeTypeCode, v.LateFeeRatePct,
             v.LateFeeFlatAmount, v.LateFeeBaseCode, LndProductTerms.Parts(v.PaymentOrder), v.IsInsuranceRequired, v.IsPrepaymentAllowed, v.PrepaymentRecalcCode,
             v.PrepaymentFeePct, v.EarlySettlementFeePct, v.ChangeReason,
             v.CreatedBy, v.RequestedBy, v.RequestedAt, v.DecidedBy, v.DecidedAt, v.DecisionNotes,
             v.StatusCode == S.Pending && canApprove && !SameUser(v.RequestedBy),
-            v.StatusCode == S.Pending && SameUser(v.RequestedBy) ? "You sent this version; another user must approve it." : null, v.RowVersion);
+            v.StatusCode == S.Pending && SameUser(v.RequestedBy) ? "You sent this change; another user must approve it." : null, v.RowVersion,
+            LndProductTerms.Diff(before, v));
 
     private static LndProductVersion Copy(LndProductVersion f) => new()
     {
-        ProductId = f.ProductId, MinAmount = f.MinAmount, MaxAmount = f.MaxAmount, MinTermMonths = f.MinTermMonths, MaxTermMonths = f.MaxTermMonths,
+        ProductId = f.ProductId,
         RepaymentFrequencyCode = f.RepaymentFrequencyCode, InterestMethodCode = f.InterestMethodCode, AnnualRatePct = f.AnnualRatePct,
         DayCountCode = f.DayCountCode, LateFeeGraceDays = f.LateFeeGraceDays, LateFeeTypeCode = f.LateFeeTypeCode, LateFeeRatePct = f.LateFeeRatePct,
         LateFeeFlatAmount = f.LateFeeFlatAmount, LateFeeBaseCode = f.LateFeeBaseCode, PaymentOrder = f.PaymentOrder,

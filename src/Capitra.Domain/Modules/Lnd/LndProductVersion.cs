@@ -22,13 +22,9 @@ public class LndProductVersion : AuditableEntity
     /// <summary>One of: DRAFT, PENDING, APPROVED, REJECTED.</summary>
     public string StatusCode { get; set; } = "DRAFT";
 
-    public decimal MinAmount { get; set; }
 
-    public decimal MaxAmount { get; set; }
 
-    public int MinTermMonths { get; set; }
 
-    public int MaxTermMonths { get; set; }
 
     /// <summary>One of: WEEKLY, FORTNIGHTLY, MONTHLY.</summary>
     public string RepaymentFrequencyCode { get; set; } = "MONTHLY";

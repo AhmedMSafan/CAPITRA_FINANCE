@@ -29323,24 +29323,6 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("LATE_FEE_TYPE_CODE");
 
-                    b.Property<decimal>("MaxAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("MAX_AMOUNT");
-
-                    b.Property<int>("MaxTermMonths")
-                        .HasColumnType("integer")
-                        .HasColumnName("MAX_TERM_MONTHS");
-
-                    b.Property<decimal>("MinAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("MIN_AMOUNT");
-
-                    b.Property<int>("MinTermMonths")
-                        .HasColumnType("integer")
-                        .HasColumnName("MIN_TERM_MONTHS");
-
                     b.Property<string>("PaymentOrder")
                         .IsRequired()
                         .HasMaxLength(200)

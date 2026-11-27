@@ -47,7 +47,6 @@ line by line, before it is shown. A change of decision is made here first.
 
 ## Open items
 
-- Product terms: one set, admin change + admin approval, audit trail, no limits (preview first).
 - Credit approval: change every financial value of the finance (preview first).
 - Step 5 Delivery and customer receipt.
 - Step 6 Supplier payment.

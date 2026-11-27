@@ -21,14 +21,11 @@ public sealed class LndProductTermsTests
     public void Wrong_terms_are_reported_by_field()
     {
         var v = Valid();
-        v.MinAmount = 5_000;
-        v.MaxAmount = 1_000;
-        v.MaxTermMonths = 2;
         v.LateFeeTypeCode = "PCT_DAILY";
         v.LateFeeRatePct = null;
         v.PaymentOrder = "INTEREST,PRINCIPAL,INTEREST,CHARGES,LATE_FEE";
         var e = LndProductTerms.Check(v);
-        Assert.Equal(["lateFeeRatePct", "maxAmount", "maxTermMonths", "paymentOrder"], e.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(["lateFeeRatePct", "paymentOrder"], e.Keys.Order(StringComparer.Ordinal));
     }
 
     [Fact]
@@ -42,18 +39,28 @@ public sealed class LndProductTermsTests
     }
 
     [Fact]
-    public void A_product_can_be_stricter_than_the_parameters_never_looser()
+    public void Each_finance_is_held_to_the_licence_limit_per_customer()
     {
-        var v = Valid();
-        v.MaxAmount = 300_000;
-        Assert.Single(LndProductTerms.CheckAgainstParameters(v, LndParameterCatalog.Microfinance, 292_000, null, false));
-        v.MaxAmount = 250_000;
-        Assert.Empty(LndProductTerms.CheckAgainstParameters(v, LndParameterCatalog.Microfinance, 292_000, null, false));
-        // no approved microfinance limit: the version cannot be approved
-        Assert.Single(LndProductTerms.CheckAgainstParameters(v, LndParameterCatalog.Microfinance, null, null, false));
-        // a consumer cash product is held to the cash limit; other consumer products are not
-        Assert.Single(LndProductTerms.CheckAgainstParameters(v, LndParameterCatalog.ConsumerFinance, null, 50_000, true));
-        Assert.Empty(LndProductTerms.CheckAgainstParameters(v, LndParameterCatalog.ConsumerFinance, null, null, false));
+        Assert.NotNull(LndLoanService.LegalLimit(300_000, 292_000));
+        Assert.Null(LndLoanService.LegalLimit(250_000, 292_000));
+        Assert.NotNull(LndLoanService.LegalLimit(1_000, null)); // no approved limit: no finance
+    }
+
+    [Fact]
+    public void A_change_lists_only_what_changed_and_the_first_terms_list_everything()
+    {
+        var before = Valid();
+        before.AnnualRatePct = 22;
+        var after = Valid();
+        after.AnnualRatePct = 24;
+        after.LateFeeTypeCode = "FLAT";
+        after.LateFeeFlatAmount = 50;
+        after.LateFeeGraceDays = 5;
+        var changes = LndProductTerms.Diff(before, after);
+        Assert.Equal(["Yearly rate", "Late fee", "Grace days"], changes.Select(x => x.Field));
+        Assert.Equal(("22%", "24%"), (changes[0].OldValue, changes[0].NewValue));
+        Assert.Equal(("—", "5"), (changes[2].OldValue, changes[2].NewValue)); // no late fee before: no grace days
+        Assert.Equal(11, LndProductTerms.Diff(null, after).Count);
     }
 
     [Fact]

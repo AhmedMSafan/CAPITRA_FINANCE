@@ -8,6 +8,9 @@ namespace Capitra.Application.Modules.Lnd;
 /// the checks before a version can be approved, and the version in force on a day. Late fees (Ahmed, 4 Nov 2026): no fee while the
 /// instalment is paid in full within the grace days; once they pass, the fee is charged from day 1; no cap.
 /// </summary>
+/// <summary>One changed field of the lending terms: as it was and as it is.</summary>
+public sealed record LndTermChangeDto(string Field, string OldValue, string NewValue);
+
 public static class LndProductTerms
 {
     public static class BusinessLines
@@ -59,9 +62,9 @@ public static class LndProductTerms
     /// <summary>A new version's terms before anything is entered: the agreed payment order and no late fee.</summary>
     public static LndProductVersion Defaults(long productId) => new()
     {
-        ProductId = productId, StatusCode = Statuses.Draft, MinAmount = 1_000, MaxAmount = 50_000, MinTermMonths = 3, MaxTermMonths = 36,
+        ProductId = productId, StatusCode = Statuses.Draft,
         RepaymentFrequencyCode = "MONTHLY", InterestMethodCode = "DECLINING", AnnualRatePct = 0, DayCountCode = "ACT_365",
-        LateFeeGraceDays = 5, LateFeeTypeCode = "NONE", LateFeeBaseCode = "OVERDUE_INSTALMENT", PaymentOrder = DefaultPaymentOrder,
+        LateFeeGraceDays = 0, LateFeeTypeCode = "NONE", LateFeeBaseCode = "OVERDUE_INSTALMENT", PaymentOrder = DefaultPaymentOrder,
     };
 
     /// <summary>The checks of the terms themselves, by field. An empty result means the terms can be sent for approval.</summary>
@@ -71,11 +74,6 @@ public static class LndProductTerms
         void Add(string field, string error) => e[field] = [.. (e.GetValueOrDefault(field) ?? []), error];
         static bool In(IReadOnlyList<CrmOptionDto> list, string? code) => list.Any(x => x.Value == code);
 
-        if (v.MinAmount <= 0) Add("minAmount", "The minimum amount must be more than zero.");
-        if (v.MaxAmount < v.MinAmount) Add("maxAmount", "The maximum amount cannot be less than the minimum.");
-        if (v.MinTermMonths < 1) Add("minTermMonths", "The shortest term is at least 1 month.");
-        if (v.MaxTermMonths < v.MinTermMonths) Add("maxTermMonths", "The longest term cannot be shorter than the shortest.");
-        if (v.MaxTermMonths > 120) Add("maxTermMonths", "The longest term is at most 120 months.");
         if (!In(Frequencies, v.RepaymentFrequencyCode)) Add("repaymentFrequencyCode", "Choose how often the customer pays.");
         if (!In(InterestMethods, v.InterestMethodCode)) Add("interestMethodCode", "Choose the interest method.");
         if (v.AnnualRatePct is < 0 or > 100) Add("annualRatePct", "Enter a yearly rate from 0 to 100%.");
@@ -98,23 +96,37 @@ public static class LndProductTerms
     }
 
     /// <summary>
-    /// The checks against the licence's parameters in force on the version's start date: a product can be stricter than the law,
-    /// never looser. A parameter the product depends on that has no approved value stops the approval.
+    /// What a change of terms changes (Ahmed, 27 Nov 2026: one set of terms, every change in the audit trail): each field that differs
+    /// between the terms before and after, as the screen words them. Nothing before: every field is new.
     /// </summary>
-    public static IReadOnlyList<string> CheckAgainstParameters(LndProductVersion v, string licence, decimal? maxFinancing, decimal? maxCash, bool isCash)
+    public static List<LndTermChangeDto> Diff(LndProductVersion? before, LndProductVersion after)
     {
-        var problems = new List<string>();
-        if (licence == LndParameterCatalog.Microfinance)
+        static string Label(IReadOnlyList<CrmOptionDto> list, string? code) => list.FirstOrDefault(x => x.Value == code)?.Label ?? code ?? "—";
+        static string LateFee(LndProductVersion v) => v.LateFeeTypeCode switch
         {
-            if (maxFinancing is null) problems.Add("Maximum financing per customer has no approved value for microfinance. Approve it in Lending Parameters first.");
-            else if (v.MaxAmount > maxFinancing) problems.Add($"The maximum amount is above the microfinance limit of EGP {maxFinancing:#,0.##}.");
-        }
-        if (licence == LndParameterCatalog.ConsumerFinance && isCash)
+            "NONE" => "No late fee",
+            "FLAT" => $"EGP {v.LateFeeFlatAmount:#,0.##} per late instalment",
+            "PCT_DAILY" => $"{v.LateFeeRatePct:0.####}% a day on {Label(LateFeeBases, v.LateFeeBaseCode).ToLowerInvariant()}",
+            _ => $"{v.LateFeeRatePct:0.####}% once on {Label(LateFeeBases, v.LateFeeBaseCode).ToLowerInvariant()}",
+        };
+        static string Order(string? o) => string.Join(" › ", Parts(o).Select(p => Label(PaymentParts, p)));
+        static string YesNo(bool b) => b ? "Yes" : "No";
+        var fields = new (string Field, Func<LndProductVersion, string> Of)[]
         {
-            if (maxCash is null) problems.Add("Maximum cash financing per customer has no approved value. Approve it in Lending Parameters first.");
-            else if (v.MaxAmount > maxCash) problems.Add($"The maximum amount is above the cash financing limit of EGP {maxCash:#,0.##}.");
-        }
-        return problems;
+            ("Repayment", v => Label(Frequencies, v.RepaymentFrequencyCode)),
+            ("Interest method", v => Label(InterestMethods, v.InterestMethodCode)),
+            ("Yearly rate", v => $"{v.AnnualRatePct:0.####}%"),
+            ("Day count", v => Label(DayCounts, v.DayCountCode)),
+            ("Late fee", LateFee),
+            ("Grace days", v => v.LateFeeTypeCode == "NONE" ? "—" : v.LateFeeGraceDays.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+            ("Payment order", v => Order(v.PaymentOrder)),
+            ("Insurance required", v => YesNo(v.IsInsuranceRequired)),
+            ("Paying early", v => v.IsPrepaymentAllowed ? $"Allowed · {Label(PrepaymentRecalcs, v.PrepaymentRecalcCode).ToLowerInvariant()}" : "Not allowed"),
+            ("Part prepayment fee", v => $"{v.PrepaymentFeePct:0.####}%"),
+            ("Early settlement fee", v => $"{v.EarlySettlementFeePct:0.####}%"),
+        };
+        return [.. fields.Select(f => (f.Field, Old: before is null ? "—" : f.Of(before), New: f.Of(after)))
+            .Where(x => before is null || x.Old != x.New).Select(x => new LndTermChangeDto(x.Field, x.Old, x.New))];
     }
 
     /// <summary>The version in force on a day: the approved version with the latest start date on or before it (the highest number on a tie).</summary>

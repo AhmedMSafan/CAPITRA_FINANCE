@@ -16,8 +16,6 @@ public sealed class LndProductVersionConfiguration : IEntityTypeConfiguration<Ln
 
         builder.Property(x => x.ProductVersionId).UseIdentityByDefaultColumn();
         builder.Property(x => x.StatusCode).HasMaxLength(20);
-        builder.Property(x => x.MinAmount).HasPrecision(18, 2);
-        builder.Property(x => x.MaxAmount).HasPrecision(18, 2);
         builder.Property(x => x.RepaymentFrequencyCode).HasMaxLength(20);
         builder.Property(x => x.InterestMethodCode).HasMaxLength(20);
         builder.Property(x => x.AnnualRatePct).HasPrecision(9, 6);
