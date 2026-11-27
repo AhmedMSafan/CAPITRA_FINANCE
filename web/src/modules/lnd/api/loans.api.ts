@@ -134,6 +134,8 @@ export type CfSupplierDue = { payableAmount: number; commissionPct: number; comm
 /** Rules and GL (read only): a page's role, the rules its buttons post, their charges and GL lines with this finance's amounts. */
 export type CfRuleUse = {
   button: string; ruleCode: string; ruleName: string | null; linkedBy: string; categoryCode: string | null; problem: string | null
+  /** Why the rule posts nothing on this finance (null when it does). */
+  notApplied: string | null
   charges: { chargeCode: string; chargeName: string; calculation: string; defaultTiming: string; income: string; onThisFinance: string | null }[]
   lines: { journalNo: number; debitCredit: string; account: string; amountCode: string; chargeCode: string | null; amount: number | null }[]
 }

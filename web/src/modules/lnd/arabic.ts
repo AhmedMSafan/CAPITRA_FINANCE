@@ -764,5 +764,9 @@ export const LND_AR: Record<string, string> = {
   'financed + charges added': 'الممول + الرسوم المضافة',
   'rule CF_CHARGES posts the upfront charges': 'القاعدة CF_CHARGES تقيد الرسوم المقدمة',
   'today': 'اليوم',
-  'Posts nothing.': 'لا يوجد قيد.'
+  'Posts nothing.': 'لا يوجد قيد.',
+  'Rule not applied on this finance': 'القاعدة لا تنطبق على هذا التمويل',
+  'All charges are added to the schedule: they post at Delivery as part of the finance.': 'كل الرسوم مضافة للجدول: تُقيد عند التسليم ضمن التمويل.',
+  'The charges are waived (0): nothing posts.': 'الرسوم معفاة (0): لا يوجد قيد.',
+  'Nothing to post on this finance yet.': 'لا يوجد ما يُقيد على هذا التمويل بعد.'
 }
