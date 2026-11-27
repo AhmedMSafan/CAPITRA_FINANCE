@@ -31,7 +31,8 @@ public sealed record LndCfRulesDto(string? ProductCode, string? ProductName, IRe
 /// buttons post (the step's rule named in the workflow, or a product action's linked rule), the rule's charges and GL lines, and the
 /// amounts they give on this finance. Read the same way the posting reads them, so it shows what will post.
 /// </summary>
-public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleService rules, ProductActionPosting actions, IClock clock)
+public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleService rules, ProductActionPosting actions, IClock clock,
+    LndCfChargesPlanner planner)
 {
     public const string NewFinance = "CF_NEW";
 
@@ -40,8 +41,8 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
     private static readonly (string Step, string Note, Use[] Uses)[] Pages =
     [
         (NewFinance, "Posts nothing: the main data only. The finance's rules post at the steps below.", []),
-        (LndCfFinanceRules.Credit, "Credit decides each charge of the rule below (upfront or added to the schedule) and its amount. Approving creates the claim once: the upfront charges post here; those added to the schedule post as part of the finance at Delivery. The claim is paid from the claim (Record payment, COLLECTION.EDIT), in one or several payments.",
-            [new("Approve (creates the claim)", LndCfFinanceRules.Credit, null), new("Record payment (on the claim)", null, ProductActions.CfClaimPayment)]),
+        (LndCfFinanceRules.Credit, "Credit decides each charge of the rule below (upfront or added to the schedule) and its amount. Approving books the claim once: the upfront charges post here; those added to the schedule post as part of the finance at Delivery.",
+            [new("Approve (creates the claim)", LndCfFinanceRules.Credit, null)]),
         (LndCfFinanceRules.Charges, "Executes Credit's decision: only the upfront charges post here.",
             [new("Create claim", LndCfFinanceRules.Charges, null), new("Record payment", null, ProductActions.CfClaimPayment)]),
         (LndCfFinanceRules.Schedule, "Posts nothing: builds the schedule. Accept waits until the claim is paid.", []),
@@ -65,6 +66,16 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
         xml ??= await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.WorkflowCode == LndCfFinanceRules.WorkflowCode).Select(x => x.BpmnXml).FirstOrDefaultAsync(ct);
 
         List<LndLoanCharge> saved = loan is null ? [] : await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loan.LoanId).ToListAsync(ct);
+        // before Credit approves, nothing is saved: the charges as the rule works them out now (its default timing and amount)
+        if (loan is not null && saved.Count == 0)
+        {
+            var work = await planner.WorkAsync(loan, null, ct);
+            if (work.Problem is null)
+                saved = [.. work.Charges.Select(c => new LndLoanCharge
+                {
+                    LoanId = loan.LoanId, ChargeCode = c.ChargeCode, ChargeName = c.ChargeName, ChargeAmount = c.Amount, TaxAmount = c.TaxAmount, TimingCode = c.TimingCode,
+                })];
+        }
         var amounts = loan is null ? null : Amounts(loan, saved);
         var pages = new List<LndCfRulePageDto>();
         // finances that started before 27 Nov 2026 create the claim at Charges and claim; new ones when Credit approves
