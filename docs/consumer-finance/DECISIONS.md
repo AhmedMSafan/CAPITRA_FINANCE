@@ -8,6 +8,7 @@ line by line, before it is shown. A change of decision is made here first.
 - **One style everywhere:** before designing anything, look for a screen that already does the same thing and use its style.
   Changing set-up data (lending terms, supplier terms, ...) is always: an admin asks for the change → another admin approves →
   it applies to new work only → an audit trail (field, old → new, why, asked by, approved by, when).
+- **Merging (Ahmed, 27 Nov 2026):** once a change is built and CI is green, merge it without asking; then report what changed and how to test.
 - **Backward compatibility, every time:** say what happens to existing data, history, running finances and old workflow runs
   before building; never rewrite history; new columns are nullable or have defaults.
 
