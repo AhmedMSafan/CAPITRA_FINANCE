@@ -412,7 +412,7 @@ public sealed class LndCfFinanceWorkflowHandler(
                 var (_, businessLine, module, plan, ruleCode) = await planner.PlanAsync(loan, cancellationToken, LndCfFinanceRules.Delivery);
                 if (plan is null) throw new BusinessRuleException($"The finance's product has no active rule {ruleCode} today. Add it in Admin Setup.");
                 var amounts = LndCfFinanceRules.BookingAmounts(loan);
-                var lines = ProductEventPosting.Build(plan, l => amounts.GetValueOrDefault(l.AmountCode ?? ""), null);
+                var lines = ProductEventPosting.Build(plan, l => amounts.GetValueOrDefault(l.AmountCode ?? "") ?? 0, null);
                 var doc = new ProductActionDocument("LND_CF_DELIVERY", loan.LoanId.ToString(CultureInfo.InvariantCulture), loan.LoanNumber, delivered,
                     loan.CurrencyCode, $"Finance {loan.LoanNumber} booked at delivery, {loan.PrincipalAmount:#,0.00}");
                 try
