@@ -115,6 +115,14 @@ export type Loan = {
 
 /** Supplier payment (step 6): what the supplier is owed, its agreed commission and the net. */
 export type CfSupplierDue = { payableAmount: number; commissionPct: number; commissionAmount: number; netAmount: number; dueDate: string | null }
+/** Rules and GL (read only): a page's role, the rules its buttons post, their charges and GL lines with this finance's amounts. */
+export type CfRuleUse = {
+  button: string; ruleCode: string; ruleName: string | null; linkedBy: string; categoryCode: string | null; problem: string | null
+  charges: { chargeCode: string; chargeName: string; calculation: string; defaultTiming: string; income: string; onThisFinance: string | null }[]
+  lines: { journalNo: number; debitCredit: string; account: string; amountCode: string; chargeCode: string | null; amount: number | null }[]
+}
+export type CfRulePage = { stepCode: string; stepName: string; role: string | null; note: string; rules: CfRuleUse[] }
+export type CfRules = { productCode: string | null; productName: string | null; pages: CfRulePage[] }
 export type CfSupplierPayment = { bankAccountId: number | null; reference: string | null; commissionAmount: number | null; commissionReason: string | null }
 
 /** A finance's document (e.g. the signed delivery note). */
@@ -177,6 +185,14 @@ export const loansApi = {
   completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, decision?: CfCreditDecision, delivery?: CfDelivery,
     supplierPayment?: CfSupplierPayment) =>
     http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, ...decision, delivery: delivery ?? null, supplierPayment: supplierPayment ?? null }),
+  /** Rules and GL of New Finance (no loanId: all pages) or of a step of a finance. */
+  cfRules: (loanId: number | null, step: string | null) => {
+    const q = new URLSearchParams()
+    if (loanId) q.set('loanId', String(loanId))
+    if (step) q.set('step', step)
+    const qs = q.toString()
+    return http.get<CfRules>(`${API}/cf-rules${qs ? `?${qs}` : ''}`)
+  },
   documents: (id: number) => http.get<LoanDocument[]>(`${API}/${id}/documents`),
   addDocument: (id: number, file: File, title: string, documentTypeCode: string | null) => {
     const form = new FormData()

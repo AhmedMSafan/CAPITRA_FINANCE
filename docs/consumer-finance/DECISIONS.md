@@ -55,5 +55,8 @@ line by line, before it is shown. A change of decision is made here first.
 - Finance page: the step card on top (deal chips, the step's work, one-line comment beside Reject / Accept); below, one compact Finance card of chips (terms, financed item, charges, claim). Nothing is shown before it exists: no instalment, interest or dates before step 4, no schedule table before step 4, no Payments before the finance is booked.
 - Lending Customer Workspace: tabs Finances, Claims, Payments, the same tab style as the Factoring Customer Workspace. Finances shows the open step; Paid out and Maturity show "—" until booked. Claims shows each finance's upfront claim (To be created, Waiting for payment, Paid).
 
+- Every workflow step and New Finance have a dark orange **Rules and GL** button (read only): the page's role, the rules its buttons
+  post (step rule or product action), their charges and GL lines with this finance's amounts.
+
 ## Open items
 
