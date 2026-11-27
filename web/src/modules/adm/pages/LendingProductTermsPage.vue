@@ -165,7 +165,6 @@
           <div v-if="!audit.length" class="fx-empty"><span class="fa fa-history" aria-hidden="true"></span>{{ tr('No changes yet.') }}</div>
         </div>
       </section>
-    </div>      </section>
     </div>
 
     <Crm360Dialog v-model:visible="deciding" :title="tr(decision === 'approve' ? 'Approve change' : 'Reject change')" :subtitle="product?.productNameEn ?? ''"

@@ -57,13 +57,14 @@ public sealed class LndLoanTests
     }
 
     [Fact]
-    public void A_loan_must_stay_within_its_product_version()
+    public void A_finance_has_no_product_limits_only_a_sane_amount_term_and_first_date()
     {
-        var v = LndProductTerms.Defaults(1); // 1,000 to 50,000; 3 to 36 months
+        var v = LndProductTerms.Defaults(1); // no amount or term limits
         var d = new DateOnly(2026, 11, 15);
         Assert.Empty(LndLoanService.CheckTerms(v, 20_000, 12, d, d.AddMonths(1)));
+        Assert.Empty(LndLoanService.CheckTerms(v, 900_000, 48, d, d.AddMonths(1)));
         Assert.Equal(["firstDueDate", "principalAmount", "termMonths"],
-            LndLoanService.CheckTerms(v, 60_000, 48, d, d).Keys.Order(StringComparer.Ordinal));
+            LndLoanService.CheckTerms(v, 0, 121, d, d).Keys.Order(StringComparer.Ordinal));
         Assert.Contains("firstDueDate", LndLoanService.CheckTerms(v, 20_000, 12, d, d.AddMonths(4)).Keys);
     }
 
