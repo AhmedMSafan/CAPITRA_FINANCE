@@ -139,11 +139,19 @@ export type ProductAction = {
   ruleNameEn: string | null
   isActive: boolean
   rowVersion: number | null
+  /** The screen and button the action runs from. */
+  usedOn: string
+}
+
+/** A workflow step that posts a rule of the product (linked in the Workflow Designer by finova:ruleCode). */
+export type ProductWorkflowStep = {
+  workflowDefinitionId: number; workflowCode: string; workflowName: string; workflowActive: boolean; stepNo: number; stepCode: string
+  stepName: string; role: string | null; ruleCode: string; ruleNameEn: string | null; ruleActive: boolean; usedOn: string
 }
 
 export type ProductActionRuleOption = { productEventRuleId: number; ruleCode: string; ruleNameEn: string; isActive: boolean }
 
-export type ProductActions = { actions: ProductAction[]; rules: ProductActionRuleOption[] }
+export type ProductActions = { actions: ProductAction[]; rules: ProductActionRuleOption[]; steps: ProductWorkflowStep[] }
 
 export type GlAccountOption = { accountId: number; accountCode: string; accountNameEn: string }
 
