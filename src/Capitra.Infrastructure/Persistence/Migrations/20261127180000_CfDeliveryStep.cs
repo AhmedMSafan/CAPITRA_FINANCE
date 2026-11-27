@@ -42,7 +42,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                 {
                     table.PrimaryKey("PK_LND_LOAN_DOCUMENTS", x => x.DOCUMENT_ID);
                     table.ForeignKey(
-                        name: "FK_LND_LOAN_DOCUMENTS_LND_LOANS_LOAN_ID",
+                        name: "FK_LND_LOAN_DOCUMENTS_LND_LOANS",
                         column: x => x.LOAN_ID,
                         principalTable: "LND_LOANS",
                         principalColumn: "LOAN_ID",

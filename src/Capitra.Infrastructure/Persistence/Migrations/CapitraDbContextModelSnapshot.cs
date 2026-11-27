@@ -49208,7 +49208,7 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasForeignKey("LoanId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("FK_LND_LOAN_DOCUMENTS_LND_LOANS_LOAN_ID");
+                        .HasConstraintName("FK_LND_LOAN_DOCUMENTS_LND_LOANS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Lnd.LndLoanEvent", b =>
