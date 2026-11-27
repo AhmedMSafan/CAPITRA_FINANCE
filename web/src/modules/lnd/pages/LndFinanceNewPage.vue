@@ -22,64 +22,77 @@
       </div>
     </div>
 
+    <!-- the same boxed layout as the steps (Ahmed, 27 Nov 2026): the data in groups on the left, the money on the right -->
     <section class="fx-card nf-card">
-      <h2 class="nf-title"><span class="fa fa-user" aria-hidden="true"></span>{{ tr('Customer and product') }}</h2>
-      <div class="nf-grid">
-        <label class="fc-field" :class="bad('clientId')"><span>{{ tr('Customer') }}<b> *</b></span>
-          <input v-if="fixedClientId" :value="clientLabel" class="fx-search" readonly>
-          <template v-else>
-            <input v-model="clientSearch" class="fx-search" :placeholder="tr('Type a name, number or national ID')" @input="findClients">
-            <select v-model="form.clientId" class="fx-select" :size="clients.length > 1 ? Math.min(clients.length, 5) : undefined">
-              <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.name }} · {{ c.code }}</option>
-            </select>
-          </template>
-        </label>
-        <!-- the supplier the goods are bought from (Ahmed, 26 Nov 2026): active suppliers only; its agreement decides the goods and the down payment -->
-        <label class="fc-field" :class="bad('supplierApplicationId')"><span>{{ tr('Supplier') }}<b> *</b></span>
-          <select v-model="form.supplierApplicationId" class="fx-select">
-            <option :value="null" disabled>{{ suppliers.length ? tr('Choose the supplier') : tr('No active supplier') }}</option>
-            <option v-for="s in suppliers" :key="s.applicationId" :value="s.applicationId">{{ s.supplierName }} · {{ s.clientNumber }}</option>
-          </select>
-        </label>
-        <label class="fc-field" :class="bad('goodsCategoryCode')"><span>{{ tr('Product') }}<b> *</b></span>
-          <select v-model="form.goodsCategoryCode" class="fx-select" :disabled="!supplier">
-            <option :value="null" disabled>{{ supplier ? tr('Choose the product') : tr('Choose the supplier first') }}</option>
-            <option v-for="g in supplierGoods" :key="g.code" :value="g.code">{{ tr(g.name) }}</option>
-          </select>
-        </label>
-        <label class="fc-field"><span>{{ tr('Notes') }}</span><input v-model="form.notes" class="fx-search" maxlength="2000"></label>
+      <div class="cfl-cols nf-cols">
+        <div class="cfl-stack">
+          <div class="cfl-box">
+            <h3>{{ tr('Customer and product') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Customer') }} *</td><td class="cfl-v" :class="bad('clientId')">
+                <input v-if="fixedClientId" :value="clientLabel" class="fx-search" readonly>
+                <template v-else>
+                  <input v-model="clientSearch" class="fx-search" :placeholder="tr('Type a name, number or national ID')" @input="findClients">
+                  <select v-if="clients.length" v-model="form.clientId" class="fx-select nf-pick" :size="clients.length > 1 ? Math.min(clients.length, 5) : undefined">
+                    <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.name }} · {{ c.code }}</option>
+                  </select>
+                </template></td></tr>
+              <!-- the supplier the goods are bought from (Ahmed, 26 Nov 2026): active suppliers only; its agreement decides the goods and the down payment -->
+              <tr><td class="cfl-l">{{ tr('Supplier') }} *</td><td class="cfl-v" :class="bad('supplierApplicationId')">
+                <select v-model="form.supplierApplicationId" class="fx-select">
+                  <option :value="null" disabled>{{ suppliers.length ? tr('Choose the supplier') : tr('No active supplier') }}</option>
+                  <option v-for="sup in suppliers" :key="sup.applicationId" :value="sup.applicationId">{{ sup.supplierName }} · {{ sup.clientNumber }}</option>
+                </select></td></tr>
+              <tr><td class="cfl-l">{{ tr('Product') }} *</td><td class="cfl-v" :class="bad('goodsCategoryCode')">
+                <select v-model="form.goodsCategoryCode" class="fx-select" :disabled="!supplier">
+                  <option :value="null" disabled>{{ supplier ? tr('Choose the product') : tr('Choose the supplier first') }}</option>
+                  <option v-for="g in supplierGoods" :key="g.code" :value="g.code">{{ tr(g.name) }}</option>
+                </select></td></tr>
+              <tr><td class="cfl-l">{{ tr('Notes') }}</td><td class="cfl-v"><input v-model="form.notes" class="fx-search" maxlength="2000"></td></tr>
+            </tbody></table>
+          </div>
+          <div class="cfl-box">
+            <h3>{{ tr('Financed item') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Item description') }} *</td><td class="cfl-v" :class="bad('goodsDescription')">
+                <input v-model="form.goodsDescription" class="fx-search" maxlength="300" :placeholder="tr('e.g. Samsung 55 inch TV')"></td></tr>
+              <tr><td class="cfl-l">{{ tr('Brand / model') }}</td><td class="cfl-v" :class="bad('goodsBrandModel')"><input v-model="form.goodsBrandModel" class="fx-search" maxlength="200"></td></tr>
+              <tr><td class="cfl-l">{{ tr('Item price') }} ({{ tr('EGP') }}) *</td><td class="cfl-v" :class="bad('goodsPriceAmount')">
+                <input v-model.number="form.goodsPriceAmount" type="number" min="0" step="any" class="fx-search"></td></tr>
+              <tr><td class="cfl-l">{{ tr('Down payment') }} ({{ tr('EGP') }})<template v-if="minDown"> *</template></td><td class="cfl-v" :class="bad('downPaymentAmount')">
+                <input v-model.number="form.downPaymentAmount" type="number" min="0" step="any" class="fx-search">
+                <small v-if="minDown !== null" class="c3-muted nf-hint">{{ tr('At least') }} {{ supplier!.minDownPaymentPct }}% = {{ money(minDown) }}</small></td></tr>
+              <tr><td class="cfl-l">{{ tr('Term (months)') }} *</td><td class="cfl-v" :class="bad('termMonths')">
+                <input v-model.number="form.termMonths" type="number" min="1" step="1" class="fx-search"></td></tr>
+            </tbody></table>
+          </div>
+        </div>
+        <div class="cfl-stack">
+          <div class="cfl-key">
+            <h3>{{ tr('Finance') }}</h3>
+            <div class="cfl-tiles">
+              <div class="cfl-tile"><small>{{ tr('Item price') }}</small><b>{{ form.goodsPriceAmount ? money(Number(form.goodsPriceAmount)) : '—' }}</b></div>
+              <div class="cfl-tile"><small>{{ tr('Down payment') }}</small><b>{{ form.downPaymentAmount ? money(Number(form.downPaymentAmount)) : '—' }}</b></div>
+              <div class="cfl-tile hl" :class="bad('principalAmount')"><small>{{ tr('Finance amount') }}</small><b>{{ financeAmount === null ? '—' : money(financeAmount) }}</b></div>
+              <div class="cfl-tile hl"><small>{{ tr('About, per instalment') }}</small><b>{{ indicative ? money(indicative.installmentAmount) : '—' }}</b></div>
+            </div>
+            <p class="cfl-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+              <template v-if="indicative">{{ indicative.installmentCount }} × {{ money(indicative.installmentAmount) }} {{ tr('at the product rate') }} {{ indicative.annualRatePct }}%. </template>
+              {{ tr('Indicative only: Credit decides the charges, and the schedule is built at the Schedule and contract step.') }}</p>
+          </div>
+          <div v-if="supplier" class="cfl-box">
+            <h3>{{ tr('Supplier agreement') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Agreement') }}</td><td class="cfl-v" dir="ltr">{{ supplier.applicationRef }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Min down payment') }}</td><td class="cfl-v">{{ supplier.minDownPaymentPct }}%</td></tr>
+              <tr><td class="cfl-l">{{ tr('Down payment collected by') }}</td><td class="cfl-v">{{ tr(supplier.downPaymentCollectorCode === 'COMPANY' ? 'Us' : 'Supplier') }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Commission') }}</td><td class="cfl-v">{{ supplier.commissionPct }}%</td></tr>
+              <tr><td class="cfl-l">{{ tr('We pay after') }}</td><td class="cfl-v">{{ supplier.paymentDays }} {{ tr('days') }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Delivers within') }}</td><td class="cfl-v">{{ supplier.deliveryDays }} {{ tr('days') }}</td></tr>
+            </tbody></table>
+          </div>
+        </div>
       </div>
-      <div v-if="supplier" class="nf-terms">
-        <span class="nf-term">{{ tr('Agreement') }} <b dir="ltr">{{ supplier.applicationRef }}</b></span>
-        <span class="nf-term">{{ tr('Min down payment') }} <b>{{ supplier.minDownPaymentPct }}%</b></span>
-        <span class="nf-term">{{ tr('Down payment collected by') }} <b>{{ tr(supplier.downPaymentCollectorCode === 'COMPANY' ? 'Us' : 'Supplier') }}</b></span>
-        <span class="nf-term">{{ tr('Commission') }} <b>{{ supplier.commissionPct }}%</b></span>
-        <span class="nf-term">{{ tr('We pay after') }} <b>{{ supplier.paymentDays }} {{ tr('days') }}</b></span>
-        <span class="nf-term">{{ tr('Delivers within') }} <b>{{ supplier.deliveryDays }} {{ tr('days') }}</b></span>
-      </div>
-    </section>
-
-    <section class="fx-card nf-card">
-      <h2 class="nf-title"><span class="fa fa-shopping-cart" aria-hidden="true"></span>{{ tr('Financed item') }}</h2>
-      <div class="nf-grid">
-        <label class="fc-field" :class="bad('goodsDescription')"><span>{{ tr('Item description') }}<b> *</b></span><input v-model="form.goodsDescription" class="fx-search" maxlength="300" :placeholder="tr('e.g. Samsung 55 inch TV')"></label>
-        <label class="fc-field" :class="bad('goodsBrandModel')"><span>{{ tr('Brand / model') }}</span><input v-model="form.goodsBrandModel" class="fx-search" maxlength="200"></label>
-        <label class="fc-field" :class="bad('goodsPriceAmount')"><span>{{ tr('Item price') }} ({{ tr('EGP') }})<b> *</b></span><input v-model.number="form.goodsPriceAmount" type="number" min="0" step="any" class="fx-search"></label>
-        <label class="fc-field" :class="bad('downPaymentAmount')"><span>{{ tr('Down payment') }} ({{ tr('EGP') }})<b v-if="minDown"> *</b></span>
-          <input v-model.number="form.downPaymentAmount" type="number" min="0" step="any" class="fx-search">
-          <small v-if="minDown !== null" class="c3-muted">{{ tr('At least') }} {{ supplier!.minDownPaymentPct }}% = {{ money(minDown) }}</small>
-        </label>
-        <label class="fc-field" :class="bad('principalAmount')"><span>{{ tr('Finance amount') }} ({{ tr('EGP') }})</span>
-          <input :value="financeAmount === null ? '' : money(financeAmount)" class="fx-search" readonly>
-          <small class="c3-muted">{{ tr('Price less down payment.') }}</small>
-        </label>
-        <label class="fc-field" :class="bad('termMonths')"><span>{{ tr('Term (months)') }}<b> *</b></span>
-          <input v-model.number="form.termMonths" type="number" min="1" step="1" class="fx-search">
-        </label>
-      </div>
-      <p v-if="indicative" class="nf-ind"><span class="fa fa-info-circle" aria-hidden="true"></span>
-        {{ tr('About') }} <b>{{ money(indicative.installmentAmount) }}</b> × {{ indicative.installmentCount }} {{ tr('at the product rate') }} {{ indicative.annualRatePct }}%.
-        {{ tr('Indicative only: Credit decides the charges, and the schedule is built at the Schedule and contract step.') }}</p>
       <div class="nf-actions">
         <RouterLink :to="back" class="fx-btn"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Cancel') }}</RouterLink>
         <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="create">
@@ -92,6 +105,7 @@
 
 <script setup lang="ts">
 import CfRulesButton from '../components/CfRulesButton.vue'
+import '../components/cf-layout.css'
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
@@ -230,7 +244,10 @@ onMounted(async () => {
 .nf-title .fa { color: var(--fin-teal, #00636d); }
 .nf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 18px; }
 .nf-ind { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 12px 0 0; padding: 8px 10px; border-radius: var(--fin-radius-sm, 8px); background: var(--fin-teal-50, #eef9f8); font-size: 13px; color: #34495a; }
-.nf-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.nf-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #eef1f3; }
+.nf-cols { margin-top: 0; }
+.nf-pick { margin-top: 6px; }
+.nf-hint { display: block; margin-top: 3px; font-weight: 400; }
 @media (max-width: 900px) {
   .nf-grid { grid-template-columns: 1fr; }
 }

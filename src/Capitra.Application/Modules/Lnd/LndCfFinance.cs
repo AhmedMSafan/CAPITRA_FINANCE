@@ -335,13 +335,14 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
     }
 
     /// <summary>The charges Credit saved; else the rule's charges with the timings given (or the rule's defaults).</summary>
-    public async Task<LndCfChargesDto> WorkAsync(LndLoan loan, IReadOnlyDictionary<string, string>? timings, CancellationToken ct, decimal? down = null)
+    public async Task<LndCfChargesDto> WorkAsync(LndLoan loan, IReadOnlyDictionary<string, string>? timings, CancellationToken ct, decimal? down = null,
+        IReadOnlyDictionary<string, decimal>? amounts = null)
     {
         var downPayment = Money.Round(down ?? loan.DownPaymentAmount ?? 0, 2);
         var financed = Money.Round((loan.GoodsPriceAmount ?? 0) - downPayment, 2);
         var saved = await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loan.LoanId).OrderBy(x => x.LoanChargeId).ToListAsync(ct);
         var (productCode, _, _, plan, ruleCode) = await PlanAsync(loan, ct);
-        if (saved.Count > 0 && timings is null && down is null)
+        if (saved.Count > 0 && timings is null && down is null && amounts is null)
         {
             // Credit's decision, each with how its rule works it out
             string BasisOf(string code) => plan?.Charges.FirstOrDefault(c => c.ChargeCode == code) is { } c ? LndCfCharges.Basis(c) : "";
@@ -351,7 +352,7 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
         if (plan is null)
             return new LndCfChargesDto([], financed, 0, 0, financed,
                 $"Product {productCode} has no active rule {ruleCode} today. Add it in Admin Setup > Product Catalog > {productCode} > Rules.");
-        return LndCfCharges.Work(plan.Charges, Money.Round(loan.GoodsPriceAmount ?? 0, 2), downPayment, timings);
+        return LndCfCharges.Work(plan.Charges, Money.Round(loan.GoodsPriceAmount ?? 0, 2), downPayment, timings, amounts);
     }
 
     /// <summary>

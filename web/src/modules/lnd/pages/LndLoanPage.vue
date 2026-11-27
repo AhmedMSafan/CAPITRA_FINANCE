@@ -19,68 +19,72 @@
     <div v-if="!loan" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading finance...') }}</div>
     <template v-else>
       <CfFinanceStep :loan="loan" :version="stepVersion" @changed="stepChanged" />
-      <!-- the finance in one compact card (Ahmed, 27 Nov 2026): its terms, the financed item and the charges as chips -->
+      <!-- the finance (Ahmed, 27 Nov 2026): the same boxed layout as the steps; a box shows only once its part exists -->
       <section class="fx-card ln-card">
         <h3 class="ln-h"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Finance') }}</h3>
-        <div class="ln-chips">
-          <span v-for="f in facts" :key="f[0]">{{ tr(f[0]) }} <b>{{ f[1] }}</b></span>
+        <div class="cfl-grid">
+          <div class="cfl-box">
+            <h3>{{ tr('Terms') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr v-for="f in facts" :key="f[0]"><td class="cfl-l">{{ tr(f[0]) }}</td><td class="cfl-v">{{ f[1] }}</td></tr>
+            </tbody></table>
+          </div>
+          <div v-if="loan.goods" class="cfl-box">
+            <h3>{{ tr('Financed item') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Category') }}</td><td class="cfl-v">{{ tr(loan.goods.categoryName) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Item') }}</td><td class="cfl-v">{{ loan.goods.description }}<template v-if="loan.goods.brandModel"> · {{ loan.goods.brandModel }}</template></td></tr>
+              <tr><td class="cfl-l">{{ tr('Supplier') }}</td><td class="cfl-v">{{ loan.goods.merchantName || '—' }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Price') }}</td><td class="cfl-v">{{ money(loan.goods.priceAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Down payment') }}</td><td class="cfl-v">{{ money(loan.goods.downPaymentAmount) }}<template v-if="loan.goods.supplierApplicationId">
+                ({{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</template></td></tr>
+              <template v-if="loan.goods.supplierApplicationId">
+                <tr><td class="cfl-l">{{ tr('Commission') }}</td><td class="cfl-v">{{ loan.goods.supplierCommissionPct ?? 0 }}%</td></tr>
+                <tr><td class="cfl-l">{{ tr('We pay after') }}</td><td class="cfl-v">{{ loan.goods.supplierPaymentDays }} {{ tr('days') }}</td></tr>
+                <tr><td class="cfl-l">{{ tr('Delivers within') }}</td><td class="cfl-v">{{ loan.goods.supplierDeliveryDays }} {{ tr('days') }}</td></tr>
+              </template>
+            </tbody></table>
+          </div>
+          <div v-if="loan.charges?.length" class="cfl-box">
+            <h3>{{ tr('Charges') }}<small>{{ tr('decided by Credit') }}</small></h3>
+            <table class="cfl-rows"><tbody>
+              <tr v-for="c in loan.charges" :key="c.chargeCode"><td class="cfl-l">{{ tr(c.chargeName) }}</td><td class="cfl-v">{{ money(c.amount + c.taxAmount) }}</td>
+                <td class="cfl-h">{{ tr(c.timingCode === 'PAID_UPFRONT' ? 'Upfront' : 'Added to schedule') }}<template v-if="c.isOverridden"> · {{ tr('changed by Credit') }}</template></td></tr>
+            </tbody></table>
+          </div>
+          <div v-if="loan.claim" class="cfl-box">
+            <h3>{{ tr('Upfront claim') }}<button v-if="loan.claim.statusCode !== 'NONE'" type="button" class="fx-btn fx-btn--sm" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></h3>
+            <p v-if="loan.claim.statusCode === 'NONE'" class="cfl-note cfl-pad">{{ tr('Nothing is paid upfront.') }}</p>
+            <table v-else class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Status') }}</td><td class="cfl-v"><span class="fx-chip" :class="claimTone(loan.claim.statusCode)">{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</span></td></tr>
+              <tr><td class="cfl-l">{{ tr('Claim') }}</td><td class="cfl-v">{{ money(loan.claim.totalAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Charges') }} · {{ tr('Down payment') }}</td><td class="cfl-v">{{ money(loan.claim.chargesAmount) }} · {{ money(loan.claim.downPaymentAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Paid') }}</td><td class="cfl-v">{{ money(loan.claim.paidAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Outstanding') }}</td><td class="cfl-v">{{ money(loan.claim.outstandingAmount) }}</td></tr>
+              <tr v-if="loan.claim.glTranSetId"><td class="cfl-l">GL</td><td class="cfl-v">{{ loan.claim.glTranSetId }}</td></tr>
+            </tbody></table>
+          </div>
+          <div v-if="loan.delivery" class="cfl-box">
+            <h3>{{ tr('Delivery') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Delivered on') }}</td><td class="cfl-v">{{ formatDate(loan.delivery.deliveryDate) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Delivery note') }}</td><td class="cfl-v">{{ loan.delivery.deliveryNoteNo }}</td></tr>
+              <tr v-if="loan.delivery.serialNo"><td class="cfl-l">{{ tr('Serial / IMEI') }}</td><td class="cfl-v">{{ loan.delivery.serialNo }}</td></tr>
+              <tr v-if="loan.delivery.supplierPaymentDueDate"><td class="cfl-l">{{ tr('Supplier paid by') }}</td><td class="cfl-v">{{ formatDate(loan.delivery.supplierPaymentDueDate) }}</td></tr>
+              <tr v-if="loan.delivery.glTranSetId"><td class="cfl-l">GL</td><td class="cfl-v">{{ loan.delivery.glTranSetId }}</td></tr>
+            </tbody></table>
+          </div>
+          <div v-if="loan.supplierPayment" class="cfl-box">
+            <h3>{{ tr('Supplier payment') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Net paid') }}</td><td class="cfl-v">{{ money(loan.supplierPayment.netAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Commission') }}</td><td class="cfl-v">{{ money(loan.supplierPayment.commissionAmount) }}<template v-if="loan.supplierPayment.commissionReason"> · {{ loan.supplierPayment.commissionReason }}</template></td></tr>
+              <tr><td class="cfl-l">{{ tr('Reference') }}</td><td class="cfl-v">{{ loan.supplierPayment.reference }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Paid') }}</td><td class="cfl-v">{{ formatDateTime(loan.supplierPayment.paidAt) }} · {{ loan.supplierPayment.paidBy }}</td></tr>
+              <tr v-if="loan.supplierPayment.glTranSetId"><td class="cfl-l">GL</td><td class="cfl-v">{{ loan.supplierPayment.glTranSetId }}</td></tr>
+            </tbody></table>
+          </div>
         </div>
-        <template v-if="loan.goods">
-          <h4 class="ln-sub">{{ tr('Financed item') }}</h4>
-          <div class="ln-chips">
-            <span>{{ tr('Category') }} <b>{{ tr(loan.goods.categoryName) }}</b></span>
-            <span>{{ tr('Item') }} <b>{{ loan.goods.description }}<template v-if="loan.goods.brandModel"> · {{ loan.goods.brandModel }}</template></b></span>
-            <span>{{ tr('Supplier') }} <b>{{ loan.goods.merchantName || '—' }}</b></span>
-            <span>{{ tr('Price') }} <b>{{ money(loan.goods.priceAmount) }}</b></span>
-            <span>{{ tr('Down payment') }} <b>{{ money(loan.goods.downPaymentAmount) }}</b><template v-if="loan.goods.supplierApplicationId">
-              ({{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</template></span>
-            <template v-if="loan.goods.supplierApplicationId">
-              <span>{{ tr('Commission') }} <b>{{ loan.goods.supplierCommissionPct ?? 0 }}%</b></span>
-              <span>{{ tr('We pay after') }} <b>{{ loan.goods.supplierPaymentDays }} {{ tr('days') }}</b></span>
-              <span>{{ tr('Delivers within') }} <b>{{ loan.goods.supplierDeliveryDays }} {{ tr('days') }}</b></span>
-            </template>
-          </div>
-        </template>
-        <template v-if="loan.charges?.length">
-          <h4 class="ln-sub">{{ tr('Charges') }}</h4>
-          <div class="ln-chips">
-            <span v-for="c in loan.charges" :key="c.chargeCode">{{ tr(c.chargeName) }} <b>{{ money(c.amount + c.taxAmount) }}</b>
-              · {{ tr(c.timingCode === 'PAID_UPFRONT' ? 'Upfront' : 'Added to schedule') }}<template v-if="c.isOverridden"> · {{ tr('changed by Credit') }}</template></span>
-          </div>
-        </template>
-        <template v-if="loan.delivery">
-          <h4 class="ln-sub">{{ tr('Delivery') }}</h4>
-          <div class="ln-chips">
-            <span>{{ tr('Delivered on') }} <b>{{ formatDate(loan.delivery.deliveryDate) }}</b></span>
-            <span>{{ tr('Delivery note') }} <b>{{ loan.delivery.deliveryNoteNo }}</b></span>
-            <span v-if="loan.delivery.serialNo">{{ tr('Serial / IMEI') }} <b>{{ loan.delivery.serialNo }}</b></span>
-            <span v-if="loan.delivery.supplierPaymentDueDate">{{ tr('Supplier paid by') }} <b>{{ formatDate(loan.delivery.supplierPaymentDueDate) }}</b></span>
-            <span v-if="loan.delivery.glTranSetId">GL <b>{{ loan.delivery.glTranSetId }}</b></span>
-          </div>
-        </template>
-        <template v-if="loan.supplierPayment">
-          <h4 class="ln-sub">{{ tr('Supplier payment') }}</h4>
-          <div class="ln-chips">
-            <span>{{ tr('Net paid') }} <b>{{ money(loan.supplierPayment.netAmount) }}</b></span>
-            <span>{{ tr('Commission') }} <b>{{ money(loan.supplierPayment.commissionAmount) }}</b><template v-if="loan.supplierPayment.commissionReason"> · {{ loan.supplierPayment.commissionReason }}</template></span>
-            <span>{{ tr('Reference') }} <b>{{ loan.supplierPayment.reference }}</b></span>
-            <span>{{ formatDateTime(loan.supplierPayment.paidAt) }} · {{ loan.supplierPayment.paidBy }}</span>
-            <span v-if="loan.supplierPayment.glTranSetId">GL <b>{{ loan.supplierPayment.glTranSetId }}</b></span>
-          </div>
-        </template>
-        <template v-if="loan.claim">
-          <h4 class="ln-sub">{{ tr('Upfront claim') }}</h4>
-          <div class="ln-chips">
-            <span v-if="loan.claim.statusCode === 'NONE'">{{ tr('Nothing is paid upfront.') }}</span>
-            <template v-else>
-              <span>{{ tr('Claim') }} <b>{{ money(loan.claim.totalAmount) }}</b> ({{ tr('charges') }} {{ money(loan.claim.chargesAmount) }} · {{ tr('down payment') }} {{ money(loan.claim.downPaymentAmount) }})</span>
-              <span class="fx-chip" :class="claimTone(loan.claim.statusCode)">{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</span>
-              <span>{{ tr('Paid') }} <b>{{ money(loan.claim.paidAmount) }}</b> · {{ tr('Outstanding') }} <b>{{ money(loan.claim.outstandingAmount) }}</b></span>
-              <span v-if="loan.claim.glTranSetId">GL <b>{{ loan.claim.glTranSetId }}</b></span>
-              <button type="button" class="fx-btn fx-btn--sm" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button>
-            </template>
-          </div>
-        </template>
       </section>
       <!-- the finance's documents (e.g. the delivery note the customer signed) -->
       <LndLoanDocuments v-if="loan.goods?.supplierApplicationId" :loan-id="loan.loanId" :version="stepVersion" />
@@ -156,10 +160,10 @@
 
       <LndWriteOffPanel v-if="loan.statusCode === 'ACTIVE' || loan.statusCode === 'WRITTEN_OFF'" ref="writeOffPanel" :loan-id="loanId" @changed="reloadLoan" />
 
-      <section class="fx-card">
+      <!-- shown once the schedule is built (a consumer finance builds it at Schedule and contract) -->
+      <section v-if="loan.installments.length" class="fx-card">
         <header class="c3-panel-head"><h3><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Schedule') }}</h3></header>
-        <p v-if="!loan.installments.length" class="ln-none">{{ tr('No schedule yet: it is built at the Schedule and contract step.') }}</p>
-        <div v-else class="fx-table-wrap">
+        <div class="fx-table-wrap">
           <table class="fx-table">
             <thead>
               <tr>
@@ -367,6 +371,7 @@ import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDate, formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
+import '../components/cf-layout.css'
 import CfClaimDialog from '../components/CfClaimDialog.vue'
 import CfFinanceStep from '../components/CfFinanceStep.vue'
 import LndLoanDocuments from '../components/LndLoanDocuments.vue'

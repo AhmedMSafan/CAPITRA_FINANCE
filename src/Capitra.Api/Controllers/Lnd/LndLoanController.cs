@@ -31,8 +31,22 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
     /// <summary>Rules and GL of New Finance and the CF_FINANCE steps (read only): a step's page, or all with step empty; for New Finance without loanId.</summary>
     [HttpGet("cf-rules")]
     [HasPermission(Permissions.Lnd.LoanView)]
-    public Task<LndCfRulesDto> CfRules([FromQuery] long? loanId, [FromQuery] string? step, CancellationToken cancellationToken) =>
-        cfRules.GetAsync(loanId, step, cancellationToken);
+    public Task<LndCfRulesDto> CfRules([FromQuery] long? loanId, [FromQuery] string? step, [FromQuery] string? charges, [FromQuery] decimal? down,
+        CancellationToken cancellationToken)
+    {
+        // Credit's choices still on the screen: CODE:TIMING:AMOUNT, comma separated
+        Dictionary<string, string>? timings = null;
+        Dictionary<string, decimal>? amounts = null;
+        foreach (var part in (charges ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var p = part.Split(':');
+            if (p.Length < 2) continue;
+            (timings ??= [])[p[0]] = p[1];
+            if (p.Length > 2 && decimal.TryParse(p[2], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var a))
+                (amounts ??= [])[p[0]] = a;
+        }
+        return cfRules.GetAsync(loanId, step, cancellationToken, timings, amounts, down);
+    }
 
     [HttpGet("goods-categories")]
     [HasPermission(Permissions.Lnd.LoanEdit)]
