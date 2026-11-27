@@ -69,8 +69,8 @@ async function open() {
 </script>
 
 <style scoped>
-.cfr-btn { background: #b4530b; border-color: #b4530b; color: #fff; }
-.cfr-btn:hover { background: #9a4609; border-color: #9a4609; color: #fff; }
+.cfr-btn { background: #E87722; border-color: #E87722; color: #fff; }
+.cfr-btn:hover { background: #d4691b; border-color: #d4691b; color: #fff; }
 .cfr-p { margin: 0 0 8px; font-size: 12.5px; }
 .cfr-page { padding: 10px 0; border-top: 1px solid #eef1f3; }
 .cfr-page h4 { margin: 0 0 4px; font-size: 14px; color: var(--fin-teal-700); }

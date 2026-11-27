@@ -121,7 +121,7 @@
           <p v-if="charges.problem" class="cfl-note bad cfl-pad">{{ charges.problem }}</p>
           <table v-else-if="charges.charges.length" class="cfl-rows"><tbody>
             <tr v-for="c in charges.charges" :key="c.chargeCode">
-              <td><b>{{ tr(c.chargeName) }}</b><br><small class="c3-muted">{{ tr(c.basisText) || '—' }} · {{ tr('rule') }} {{ money(c.ruleAmount) }}</small></td>
+              <td><b>{{ tr(c.chargeName) }}</b><br><small class="cfs-basis">{{ tr(c.basisText) || '—' }} · {{ tr('rule') }} {{ money(c.ruleAmount) }}</small></td>
               <td><input v-model.number="amounts[c.chargeCode]" type="number" min="0" step="any" class="fx-search cfs-amt" :class="{ chg: amountOf(c) !== c.ruleAmount }" @input="touched.add(c.chargeCode)"></td>
               <td class="cfl-h">
                 <span class="cfs-seg" role="group" :aria-label="tr('How paid')">
@@ -483,7 +483,7 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs { padding: 14px 18px; }
 .cfs-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .cfs-head h3 { margin: 0; font-size: 15px; }
-.cfs-head p { margin: 0; color: var(--fin-muted); font-size: 13px; }
+.cfs-head p { margin: 0; color: #34495a; font-size: 13.5px; }
 .cfs-deal { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .cfs-deal > span { padding: 3px 10px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 12.5px; }
 .cfs-deal b { color: var(--fin-ink); }
@@ -519,7 +519,8 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-box p { margin: 6px 0; font-size: 13px; }
 .cfs-sum { color: #34495a; }
 .cfs-bad { color: var(--fin-danger, #b42318); }
-.cfs-ovr { margin-inline-start: 6px; }
+.cfs-ovr { margin-inline-start: 6px; color: #b06a00; font-weight: 600; }
+.cfs-basis { color: #34495a; font-size: 12.5px; }
 .cfs-seg { display: inline-flex; border: 1px solid var(--fin-line); border-radius: 8px; overflow: hidden; }
 .cfs-seg button { padding: 5px 10px; border: 0; background: #fff; color: #34495a; font: 600 12px/1 inherit; cursor: pointer; }
 .cfs-seg button.on { background: var(--fin-teal-600); color: #fff; }
