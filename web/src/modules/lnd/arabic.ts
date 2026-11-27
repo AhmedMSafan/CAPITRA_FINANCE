@@ -735,5 +735,13 @@ export const LND_AR: Record<string, string> = {
   'Record payment (on the claim)': 'تسجيل سداد (على المطالبة)',
   'Posts nothing: builds the schedule. Accept waits until the claim is paid.': 'لا قيد: يُنشئ الجدول. القبول ينتظر سداد المطالبة.',
   'Credit decides each charge of the rule below (upfront or added to the schedule) and its amount. Approving creates the claim once: the upfront charges post here; those added to the schedule post as part of the finance at Delivery. The claim is paid from the claim (Record payment, COLLECTION.EDIT), in one or several payments.': 'يقرر الائتمان كل رسم في القاعدة أدناه (مقدماً أو مضافاً للجدول) ومبلغه. الموافقة تُنشئ المطالبة مرة واحدة: تُقيد الرسوم المقدمة هنا، والمضافة للجدول تُقيد ضمن التمويل عند التسليم. تُسدد المطالبة من شاشة المطالبة (تسجيل سداد، COLLECTION.EDIT) على دفعة أو عدة دفعات.',
-  'Credit decides each charge of the rule below (upfront or added to the schedule) and its amount. Approving books the claim once: the upfront charges post here; those added to the schedule post as part of the finance at Delivery.': 'يقرر الائتمان كل رسم في القاعدة أدناه (مقدماً أو مضافاً للجدول) ومبلغه. الموافقة تقيد المطالبة مرة واحدة: تُقيد الرسوم المقدمة هنا، والمضافة للجدول تُقيد ضمن التمويل عند التسليم.'
+  'Credit decides each charge of the rule below (upfront or added to the schedule) and its amount. Approving books the claim once: the upfront charges post here; those added to the schedule post as part of the finance at Delivery.': 'يقرر الائتمان كل رسم في القاعدة أدناه (مقدماً أو مضافاً للجدول) ومبلغه. الموافقة تقيد المطالبة مرة واحدة: تُقيد الرسوم المقدمة هنا، والمضافة للجدول تُقيد ضمن التمويل عند التسليم.',
+  'Back to the finance': 'العودة إلى التمويل',
+  'Finance No': 'رقم التمويل',
+  'The claim is paid in Collection › Customer Payments, from the customer\'s payment sources. The schedule step waits until it is paid.': 'تُسدد المطالبة من التحصيل › مدفوعات العملاء من مصادر سداد العميل. تنتظر خطوة الجدول حتى تُسدد.',
+  'The claim is paid in Collection › Customer Payments; accept once it is paid.': 'تُسدد المطالبة من التحصيل › مدفوعات العملاء؛ اقبل بعد سدادها.',
+  'Create the claim of the upfront charges; once Collection has it paid, accept. Charges added to the schedule are part of the principal.': 'أنشئ مطالبة الرسوم المقدمة؛ وبعد سدادها في التحصيل اقبل. الرسوم المضافة للجدول جزء من الأصل.',
+  'Accept waits until the claim is paid in Collection › Customer Payments.': 'القبول ينتظر سداد المطالبة في التحصيل › مدفوعات العملاء.',
+  'Pay Claim (Collection › Customer Payments)': 'سداد المطالبة (التحصيل › مدفوعات العملاء)',
+  'Executes Credit\'s decision: only the upfront charges post here. The claim is paid in Collection.': 'ينفذ قرار الائتمان: تُقيد الرسوم المقدمة فقط هنا. تُسدد المطالبة في التحصيل.'
 }

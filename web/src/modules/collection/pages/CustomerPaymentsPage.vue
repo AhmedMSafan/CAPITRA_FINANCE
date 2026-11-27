@@ -1,7 +1,8 @@
 <template>
   <!-- Customer Payments (Ahmed, 2 Nov 2026): pay a customer's open claim of disbursement charges from one of the customer's payment
        sources, fully or in part. Each payment posts its own GL Tran Set (DR customer liability / CR each charge's income). Pay on the
-       Claims tab of the Factoring Workspace opens this page with the customer and the claim already chosen. -->
+       Claims tab of the Factoring Workspace opens this page with the customer and the claim already chosen. Consumer finance claims
+       (27 Nov 2026) are listed and paid here the same way; Pay on the claim popup of Retail Lending opens them. -->
   <div class="fx fc">
     <div class="fx-head">
       <div class="fc-title">
@@ -12,7 +13,9 @@
         </div>
       </div>
       <div class="col-actions">
-        <RouterLink v-if="fromWorkspace" class="fx-btn" :to="{ name: 'FactoringCustomerWorkspace', params: { clientId: clientId }, query: { tab: 'claims', from: 'customer' } }">
+        <RouterLink v-if="fromLending" class="fx-btn" :to="{ name: 'lnd-loan', params: { loanId: Number(route.query.cfLoanId) } }">
+          <span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to the finance') }}</RouterLink>
+        <RouterLink v-else-if="fromWorkspace" class="fx-btn" :to="{ name: 'FactoringCustomerWorkspace', params: { clientId: clientId }, query: { tab: 'claims', from: 'customer' } }">
           <span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Claims') }}</RouterLink>
         <RouterLink v-else class="fx-btn" to="/collection-repayments"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Collection and Repayments') }}</RouterLink>
       </div>
@@ -30,10 +33,11 @@
         </label>
         <label class="fc-field">
           <span>{{ tr('Open Claim') }} <b>*</b></span>
-          <select v-model="claimId" class="fx-select" :disabled="busy || clientId == null" @change="claimChanged">
+          <select v-model="claimKey" class="fx-select" :disabled="busy || clientId == null" @change="claimChanged">
             <option :value="null">{{ tr('- Select -') }}</option>
-            <option v-for="c in claims" :key="c.claimId" :value="c.claimId">
-              {{ c.claimNumber }} · {{ c.disbursementNumber }} · {{ formatAmount(c.outstandingAmount) }}</option>
+            <option v-for="c in claims" :key="keyOf(c)" :value="keyOf(c)">
+              <template v-if="c.kind === 'CF'">{{ tr('Finance') }} {{ c.claimNumber }} · {{ formatAmount(c.outstandingAmount) }}</template>
+              <template v-else>{{ c.claimNumber }} · {{ c.disbursementNumber }} · {{ formatAmount(c.outstandingAmount) }}</template></option>
           </select>
         </label>
       </div>
@@ -47,7 +51,7 @@
         <span class="fx-chip" :class="claimTone(claim.claim.statusCode)">{{ tr(claimLabel(claim.claim.statusCode)) }}</span>
       </h2>
       <div class="cp-totals">
-        <div><small>{{ tr('Disbursement No') }}</small><b>{{ claim.claim.disbursementNumber }}</b></div>
+        <div><small>{{ tr(kind === 'CF' ? 'Finance No' : 'Disbursement No') }}</small><b>{{ claim.claim.disbursementNumber }}</b></div>
         <div><small>{{ tr('Claim Total') }}</small><b>{{ formatAmount(claim.claim.totalAmount) }}</b></div>
         <div><small>{{ tr('Paid') }}</small><b class="cp-ok">{{ formatAmount(claim.claim.paidAmount) }}</b></div>
         <div><small>{{ tr('Outstanding') }}</small><b :class="{ 'cp-due': claim.claim.outstandingAmount > 0 }">{{ formatAmount(claim.claim.outstandingAmount) }}</b></div>
@@ -160,11 +164,22 @@ const route = useRoute()
 const canEdit = hasPermission('COLLECTION.EDIT')
 // Pay on the Factoring Workspace's Claims tab passes the customer and the claim
 const fromWorkspace = route.query.clientId != null
+// Pay on a consumer finance claim (Retail Lending) passes the customer and the finance
+const fromLending = route.query.cfLoanId != null
 
 const customers = ref<Option[]>([])
 const clientId = ref<number | null>(route.query.clientId ? Number(route.query.clientId) : null)
-const claims = ref<ClaimRow[]>([])
-const claimId = ref<number | null>(route.query.claimId ? Number(route.query.claimId) : null)
+/** Factoring claims (FCT) and consumer finance claims (CF, id = the finance) in one list. */
+type Row = ClaimRow & { kind: 'FCT' | 'CF' }
+const claims = ref<Row[]>([])
+const keyOf = (c: { kind: string; claimId: number }) => `${c.kind}:${c.claimId}`
+const claimKey = ref<string | null>(route.query.cfLoanId ? `CF:${route.query.cfLoanId}` : route.query.claimId ? `FCT:${route.query.claimId}` : null)
+const kind = computed(() => (claimKey.value?.startsWith('CF:') ? 'CF' : 'FCT'))
+const idOf = (key: string) => Number(key.split(':')[1])
+async function listClaims(id: number): Promise<Row[]> {
+  const [fct, cf] = await Promise.all([claimPaymentApi.claims(id), claimPaymentApi.cfClaims(id)])
+  return [...fct.map((c) => ({ ...c, kind: 'FCT' as const })), ...cf.map((c) => ({ ...c, kind: 'CF' as const }))]
+}
 const claim = ref<Claim | null>(null)
 const sources = ref<ClaimSource[]>([])
 const sourceId = ref<number | null>(null)
@@ -199,20 +214,22 @@ async function guard(work: () => Promise<void>) {
 async function loadClaim() {
   sourceId.value = null
   amount.value = null
-  if (claimId.value == null || clientId.value == null) {
+  if (claimKey.value == null || clientId.value == null) {
     claim.value = null
     return
   }
-  ;[claim.value, sources.value] = await Promise.all([claimPaymentApi.claim(claimId.value), claimPaymentApi.sources(clientId.value)])
+  const id = idOf(claimKey.value)
+  ;[claim.value, sources.value] = await Promise.all([
+    kind.value === 'CF' ? claimPaymentApi.cfClaim(id) : claimPaymentApi.claim(id), claimPaymentApi.sources(clientId.value)])
 }
 
 const customerChanged = () => guard(async () => {
-  claimId.value = null
+  claimKey.value = null
   claim.value = null
-  claims.value = clientId.value == null ? [] : await claimPaymentApi.claims(clientId.value)
+  claims.value = clientId.value == null ? [] : await listClaims(clientId.value)
   // a customer with one open claim has it chosen
   if (claims.value.length === 1) {
-    claimId.value = claims.value[0]!.claimId
+    claimKey.value = keyOf(claims.value[0]!)
     await loadClaim()
   }
 })
@@ -220,12 +237,15 @@ const customerChanged = () => guard(async () => {
 const claimChanged = () => guard(loadClaim)
 
 async function pay() {
-  if (claimId.value == null || sourceId.value == null) return
+  if (claimKey.value == null || sourceId.value == null) return
   busy.value = true
   try {
-    const r = await claimPaymentApi.pay(claimId.value, sourceId.value, Number(amount.value) || null)
+    const id = idOf(claimKey.value)
+    const r = kind.value === 'CF'
+      ? await claimPaymentApi.cfPay(id, sourceId.value, Number(amount.value) || null)
+      : await claimPaymentApi.pay(id, sourceId.value, Number(amount.value) || null)
     showSuccess(tr(r.message))
-    claims.value = clientId.value == null ? [] : await claimPaymentApi.claims(clientId.value)
+    claims.value = clientId.value == null ? [] : await listClaims(clientId.value)
     claim.value = r.claim
     sources.value = await claimPaymentApi.sources(r.claim.claim.clientId)
     sourceId.value = null
@@ -243,7 +263,7 @@ onMounted(() => guard(async () => {
   // the customer passed in is listed even when its claims are all paid
   if (!customers.value.some((c) => Number(c.value) === clientId.value))
     customers.value = [...customers.value, { value: String(clientId.value), label: String(clientId.value) }]
-  claims.value = await claimPaymentApi.claims(clientId.value)
+  claims.value = await listClaims(clientId.value)
   await loadClaim()
 }))
 </script>

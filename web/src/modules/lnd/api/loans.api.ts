@@ -19,14 +19,13 @@ export type CfClaim = {
   paidAt: string | null; paidBy: string | null; paymentMethodCode: string | null; paymentReference: string | null; paymentGlTranSetId: string | null
 }
 
-/** The claim as its popup shows it: lines, payments and their GL; accounts a payment can come into. */
+/** The claim as its popup shows it (read only; paid in Collection › Customer Payments): lines, payments and their GL. */
 export type CfClaimDetail = {
-  loanId: number; loanNumber: string; clientName: string; currencyCode: string; statusCode: CfClaimStatus; claimDate: string | null; createdBy: string | null
+  loanId: number; loanNumber: string; clientId: number; clientName: string; currencyCode: string; statusCode: CfClaimStatus; claimDate: string | null; createdBy: string | null
   lines: { code: string; name: string; amount: number; taxAmount: number; totalAmount: number }[]
   chargesAmount: number; downPaymentAmount: number; totalAmount: number; paidAmount: number; outstandingAmount: number; glTranSetId: string | null
-  payments: { claimPaymentId: number; paymentDate: string; paymentAmount: number; chargesAmount: number; downPaymentAmount: number; bankAccount: string | null
+  payments: { claimPaymentId: number; paymentDate: string; paymentAmount: number; chargesAmount: number; downPaymentAmount: number; repaymentNumber: string | null
     paymentMethodCode: string; paymentReference: string | null; glTranSetId: string | null; recordedBy: string; recordedAt: string }[]
-  accounts: PayingAccount[]
 }
 /** The factoring claim's labels (one standard). */
 export const CLAIM_LABELS: Record<string, string> = { OPEN: 'Unpaid', PARTIALLY_PAID: 'Partially Paid', PAID: 'Paid', CANCELLED: 'Cancelled', NONE: 'Nothing upfront' }
@@ -223,12 +222,7 @@ export const loansApi = {
   /** Charges and claim: create the upfront claim (posts the rule's charge GL lines). */
   /** The finance's upfront claim (null when it has none). */
   cfClaim: (id: number) => http.get<CfClaimDetail | null>(`${API}/${id}/claim`),
-  /** A payment of the claim, all or part (COLLECTION.EDIT). */
-  payCfClaimPart: (id: number, body: { amount: number | null; bankAccountId: number | null; paymentMethodCode: string; paymentReference: string | null }) =>
-    http.post<CfClaimDetail | null>(`${API}/${id}/claim/payments`, body),
   createCfClaim: (id: number, inboxId: number) => http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/claim`, {}),
-  payCfClaim: (id: number, inboxId: number, body: { bankAccountId: number | null; paymentMethodCode: string; paymentReference: string | null }) =>
-    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/claim/payment`, body),
   payouts: (id: number) => http.get<DisbursementPage>(`${API}/${id}/disbursements`),
   requestPayout: (id: number, body: PayoutRequest) => http.post<DisbursementPage>(`${API}/${id}/disbursements`, body),
   pay: (id: number, d: number, notes: string | null) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/pay`, { notes }),

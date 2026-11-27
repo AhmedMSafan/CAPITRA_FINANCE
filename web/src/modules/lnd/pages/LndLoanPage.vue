@@ -84,7 +84,7 @@
       </section>
       <!-- the finance's documents (e.g. the delivery note the customer signed) -->
       <LndLoanDocuments v-if="loan.goods?.supplierApplicationId" :loan-id="loan.loanId" :version="stepVersion" />
-      <CfClaimDialog v-model:visible="claimShown" :loan-id="loan.loanId" :show-finance="false" @changed="stepChanged" />
+      <CfClaimDialog v-model:visible="claimShown" :loan-id="loan.loanId" :show-finance="false" />
 
       <section v-if="payouts && !loan.goods?.supplierApplicationId" class="fx-card">
         <header class="c3-panel-head lp-head">

@@ -185,5 +185,10 @@ export const claimPaymentApi = {
   claim: (claimId: number) => http.get<Claim>(`${base}/claims/${claimId}`),
   sources: (clientId: number) => http.get<ClaimSource[]>(`${base}/claims/sources/${clientId}`),
   pay: (claimId: number, repaymentSourceId: number, amount: number | null) =>
-    http.post<{ claim: Claim; message: string }>(`${base}/claims/${claimId}/pay`, { repaymentSourceId, amount })
+    http.post<{ claim: Claim; message: string }>(`${base}/claims/${claimId}/pay`, { repaymentSourceId, amount }),
+  // consumer finance claims (Ahmed, 27 Nov 2026), in the same shape; claim id and number are the finance's
+  cfClaims: (clientId: number) => http.get<ClaimRow[]>(`${base}/claims/cf?clientId=${clientId}`),
+  cfClaim: (loanId: number) => http.get<Claim>(`${base}/claims/cf/${loanId}`),
+  cfPay: (loanId: number, repaymentSourceId: number, amount: number | null) =>
+    http.post<{ claim: Claim; message: string }>(`${base}/claims/cf/${loanId}/pay`, { repaymentSourceId, amount })
 }

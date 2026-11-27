@@ -142,9 +142,9 @@
         <span class="fx-chip" :class="claimTone(loan.claim.statusCode)">{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</span>
         · {{ tr('Paid') }} <b>{{ money(loan.claim.paidAmount) }}</b> · {{ tr('Outstanding') }} <b>{{ money(loan.claim.outstandingAmount) }}</b>
         <button type="button" class="fx-btn fx-btn--sm cfs-claim-btn" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></p>
-      <p v-if="loan.claim.outstandingAmount > 0" class="cfs-bad">{{ tr('Accept waits until the claim is paid. Record the payments on the claim.') }}</p>
+      <p v-if="loan.claim.outstandingAmount > 0" class="cfs-bad">{{ tr('Accept waits until the claim is paid in Collection › Customer Payments.') }}</p>
     </div>
-    <CfClaimDialog v-model:visible="claimShown" :loan-id="loan.loanId" :show-finance="false" @changed="emit('changed')" />
+    <CfClaimDialog v-model:visible="claimShown" :loan-id="loan.loanId" :show-finance="false" />
 
     <!-- Charges and claim (finances started before 27 Nov 2026): the claim of the upfront charges (and the down payment we take), then its payment -->
     <div v-if="step.stepCode === 'CF_CHARGES' && step.isMine" class="cfs-box">
@@ -160,26 +160,11 @@
       <p v-else-if="loan.claim.statusCode === 'NONE'" class="c3-muted">{{ tr('Nothing is paid upfront. Accept to go on to the schedule.') }}</p>
       <template v-else>
         <p>{{ tr('Claim') }} <b>{{ money(loan.claim.totalAmount) }}</b>
-          <span class="fx-chip" :class="loan.claim.statusCode === 'PAID' ? 'fx-chip--ok' : 'fx-chip--warn'">{{ tr(loan.claim.statusCode === 'PAID' ? 'Paid' : 'Waiting for payment') }}</span>
-          <small v-if="loan.claim.glTranSetId" class="c3-muted"> GL {{ loan.claim.glTranSetId }}</small></p>
-        <div v-if="loan.claim.statusCode === 'OPEN'" class="cfs-pay">
-          <label class="fc-field"><span>{{ tr('Received into') }}<b> *</b></span>
-            <select v-model="pay.bankAccountId" class="fx-select">
-              <option :value="null" disabled>{{ tr('Choose the bank account') }}</option>
-              <option v-for="a in step.accounts ?? []" :key="a.accountId" :value="a.accountId">{{ a.bankName }} · {{ a.accountRef }}</option>
-            </select></label>
-          <label class="fc-field"><span>{{ tr('Payment method') }}<b> *</b></span>
-            <select v-model="pay.paymentMethodCode" class="fx-select">
-              <option v-for="m in METHODS" :key="m[0]" :value="m[0]">{{ tr(m[1]) }}</option>
-            </select></label>
-          <label class="fc-field"><span>{{ tr('Reference') }}<b v-if="pay.paymentMethodCode !== 'CASH'"> *</b></span>
-            <input v-model="pay.paymentReference" class="fx-search" maxlength="100"></label>
-          <button type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="payClaim">
-            <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-money'" aria-hidden="true"></span>{{ tr('Record payment') }}
-          </button>
-        </div>
-        <p v-else class="c3-muted">{{ tr('Paid') }} {{ loan.claim.paidAt ? formatDateTime(loan.claim.paidAt) : '' }} · {{ loan.claim.paidBy }}
-          <template v-if="loan.claim.paymentGlTranSetId"> · GL {{ loan.claim.paymentGlTranSetId }}</template></p>
+          <span class="fx-chip" :class="claimTone(loan.claim.statusCode)">{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</span>
+          · {{ tr('Paid') }} <b>{{ money(loan.claim.paidAmount) }}</b> · {{ tr('Outstanding') }} <b>{{ money(loan.claim.outstandingAmount) }}</b>
+          <small v-if="loan.claim.glTranSetId" class="c3-muted"> GL {{ loan.claim.glTranSetId }}</small>
+          <button type="button" class="fx-btn fx-btn--sm cfs-claim-btn" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></p>
+        <p v-if="loan.claim.outstandingAmount > 0" class="c3-muted">{{ tr('The claim is paid in Collection › Customer Payments; accept once it is paid.') }}</p>
       </template>
     </div>
 
@@ -253,7 +238,6 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
-import { formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
 import CfClaimDialog from './CfClaimDialog.vue'
 import CfRulesButton from './CfRulesButton.vue'
@@ -268,7 +252,7 @@ const UPFRONT = 'PAID_UPFRONT'
 const FINANCED = 'FINANCE_WITH_PRINCIPAL'
 const HINT: Record<string, string> = {
   CF_CREDIT: "Check the deal; every value below is this finance's own copy, change any of them. Approving needs the customer's compliance to be clear and creates the upfront claim.",
-  CF_CHARGES: 'Create the claim of the upfront charges, record its payment, then accept. Charges added to the schedule are part of the principal.',
+  CF_CHARGES: 'Create the claim of the upfront charges; once Collection has it paid, accept. Charges added to the schedule are part of the principal.',
   CF_SCHEDULE: 'Once the claim is paid, check the finance amount and term, then accept to build the schedule.',
   CF_DELIVERY: "Record the delivery and the customer's receipt; accepting books the finance.",
   CF_SUPPLIER_PAYMENT: 'Check what the supplier is owed and its commission, choose the bank account, then pay.',
@@ -278,7 +262,6 @@ const ROLE: Record<string, string> = {
   CF_CREDIT: 'Credit (CREDIT_OFFICER)', CF_CHARGES: 'Operations (OPERATIONS_OFFICER)', CF_SCHEDULE: 'Operations (OPERATIONS_OFFICER)',
   CF_DELIVERY: 'Operations (OPERATIONS_OFFICER)', CF_SUPPLIER_PAYMENT: 'Treasury (TREASURY_OFFICER)',
 }
-const METHODS: [string, string][] = [['CASH', 'Cash'], ['BANK_TRANSFER', 'Bank transfer'], ['PAYMENT_NETWORK', 'Payment network'], ['WALLET', 'Wallet']]
 
 const step = ref<CfStep | null>(null)
 const claimShown = ref(false)
@@ -305,7 +288,6 @@ const commissionNow = computed(() => {
   const v = sp.commissionAmount
   return v === null || v === '' || Number.isNaN(Number(v)) ? step.value?.supplierDue?.commissionAmount ?? 0 : Math.round(Number(v) * 100) / 100
 })
-const pay = reactive({ bankAccountId: null as number | null, paymentMethodCode: 'CASH', paymentReference: '' })
 const inboxId = () => (route.query.inboxId ? Number(route.query.inboxId) : null)
 const money = (n: number) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
 
@@ -384,22 +366,6 @@ async function createClaim() {
   try {
     await loansApi.createCfClaim(props.loan.loanId, step.value.inboxId)
     showSuccess(tr(claimCharges.value + claimDown.value ? 'Claim created.' : 'Nothing is paid upfront.'))
-    emit('changed')
-  } catch (err) {
-    showError(message(err))
-  } finally {
-    busy.value = false
-  }
-}
-
-async function payClaim() {
-  if (!step.value?.inboxId) return
-  busy.value = true
-  try {
-    await loansApi.payCfClaim(props.loan.loanId, step.value.inboxId, {
-      bankAccountId: pay.bankAccountId, paymentMethodCode: pay.paymentMethodCode, paymentReference: pay.paymentReference.trim() || null,
-    })
-    showSuccess(tr('Payment recorded.'))
     emit('changed')
   } catch (err) {
     showError(message(err))

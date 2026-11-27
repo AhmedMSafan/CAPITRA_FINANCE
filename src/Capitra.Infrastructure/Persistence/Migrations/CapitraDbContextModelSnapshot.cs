@@ -28204,6 +28204,14 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("PAYMENT_REFERENCE");
 
+                    b.Property<long?>("RepaymentSourceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_SOURCE_ID");
+
+                    b.Property<long?>("RepaymentTxnId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("REPAYMENT_TXN_ID");
+
                     b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("integer")

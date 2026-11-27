@@ -145,7 +145,7 @@
         <div v-else class="fx-empty"><span class="fa fa-money" aria-hidden="true"></span>{{ tr('No payments yet.') }}</div>
       </div>
     </section>
-    <CfClaimDialog v-model:visible="claimShown" :loan-id="claimLoanId" @changed="reload" />
+    <CfClaimDialog v-model:visible="claimShown" :loan-id="claimLoanId" />
   </div>
 </template>
 

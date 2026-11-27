@@ -5,9 +5,11 @@ using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Adm.Products;
 using Capitra.Application.Modules.Apex;
 using Capitra.Application.Modules.Gl;
+using Capitra.Application.Modules.Fct;
 using Capitra.Application.Modules.Gl.Journals;
+using Capitra.Domain.Modules.Col;
+using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Lnd;
-using Capitra.Domain.Modules.Trs;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capitra.Application.Modules.Lnd;
@@ -17,20 +19,18 @@ public sealed record LndCfClaimLineDto(string Code, string Name, decimal Amount,
 
 /// <summary>A payment of the claim: how much went to the charges and to the down payment, into which account, and its GL.</summary>
 public sealed record LndCfClaimPaymentDto(long ClaimPaymentId, DateOnly PaymentDate, decimal PaymentAmount, decimal ChargesAmount, decimal DownPaymentAmount,
-    string? BankAccount, string PaymentMethodCode, string? PaymentReference, string? GlTranSetId, string RecordedBy, DateTime RecordedAt);
+    string? RepaymentNumber, string PaymentMethodCode, string? PaymentReference, string? GlTranSetId, string RecordedBy, DateTime RecordedAt);
 
-/// <summary>A consumer finance's upfront claim as its popup shows it; Accounts are the accounts a payment can come into.</summary>
-public sealed record LndCfClaimDetailDto(long LoanId, string LoanNumber, string ClientName, string CurrencyCode, string StatusCode, DateOnly? ClaimDate,
+/// <summary>A consumer finance's upfront claim as its popup shows it (read only; it is paid in Collection › Customer Payments).</summary>
+public sealed record LndCfClaimDetailDto(long LoanId, string LoanNumber, long ClientId, string ClientName, string CurrencyCode, string StatusCode, DateOnly? ClaimDate,
     string? CreatedBy, IReadOnlyList<LndCfClaimLineDto> Lines, decimal ChargesAmount, decimal DownPaymentAmount, decimal TotalAmount, decimal PaidAmount,
-    decimal OutstandingAmount, string? GlTranSetId, IReadOnlyList<LndCfClaimPaymentDto> Payments, IReadOnlyList<LndPayingAccountDto> Accounts);
-
-/// <summary>A payment of the claim: the amount (the outstanding when left out), our account, how the customer paid, the reference.</summary>
-public sealed record LndCfClaimPayRequest(decimal? Amount, long? BankAccountId, string? PaymentMethodCode, string? PaymentReference);
+    decimal OutstandingAmount, string? GlTranSetId, IReadOnlyList<LndCfClaimPaymentDto> Payments);
 
 /// <summary>
 /// The upfront claim of a consumer finance (Ahmed, 27 Nov 2026), the same standard as a factoring claim: created once, when Credit approves
-/// (on finances that started with the Charges and claim step, at that step), posting the rule's charge GL lines; Unpaid (OPEN), Partially
-/// Paid, Paid, or Cancelled when the finance is rejected before anything is paid. Schedule and contract waits until it is paid.
+/// (on finances that started with the Charges and claim step, at that step), posting the rule's charge GL lines; paid in Collection ›
+/// Customer Payments from the customer's payment sources; Unpaid (OPEN), Partially Paid, Paid, or Cancelled when the finance is rejected
+/// before anything is paid. Schedule and contract waits until it is paid.
 /// </summary>
 public sealed class LndCfClaimService(ICapitraDbContext db, LndCfChargesPlanner planner, ProductActionPosting posting, IClock clock, ICurrentUser currentUser)
 {
@@ -91,51 +91,112 @@ public sealed class LndCfClaimService(ICapitraDbContext db, LndCfChargesPlanner 
             l => l.ChargeCode is { } code && l.AmountCode is "CHARGE_AMOUNT" or "CHARGE_IMMEDIATE" && upfront.TryGetValue(code, out var a) ? a : 0, null);
     }
 
+    // ---------------------------------------------------------------- Collection › Customer Payments (the factoring standard)
+
+    private static bool IsOpen(string? status) => status is LndCfFinanceRules.Claim.Open or LndCfFinanceRules.Claim.PartiallyPaid;
+
+    /// <summary>The customers with consumer finance claims to pay.</summary>
+    public async Task<IReadOnlyList<FctOptionDto>> CustomersWithOpenClaimsAsync(CancellationToken ct) =>
+        (await (from l in db.Set<LndLoan>().AsNoTracking()
+                join c in db.Set<CrmClient>() on l.ClientId equals c.ClientId
+                where l.ClaimStatusCode == LndCfFinanceRules.Claim.Open || l.ClaimStatusCode == LndCfFinanceRules.Claim.PartiallyPaid
+                select new { c.ClientId, c.ClientName }).Distinct().ToListAsync(ct))
+        .OrderBy(x => x.ClientName)
+        .Select(x => new FctOptionDto(x.ClientId.ToString(CultureInfo.InvariantCulture), $"{x.ClientName} -{x.ClientId}")).ToList();
+
+    /// <summary>A customer's open consumer finance claims, in the factoring claim's shape (claim id and number: the finance's).</summary>
+    public async Task<IReadOnlyList<FctClaimRowDto>> OpenClaimsAsync(long clientId, CancellationToken ct)
+    {
+        var loans = await db.Set<LndLoan>().AsNoTracking()
+            .Where(x => x.ClientId == clientId && (x.ClaimStatusCode == LndCfFinanceRules.Claim.Open || x.ClaimStatusCode == LndCfFinanceRules.Claim.PartiallyPaid))
+            .OrderByDescending(x => x.LoanId).ToListAsync(ct);
+        var rows = new List<FctClaimRowDto>();
+        foreach (var l in loans) rows.Add(await RowAsync(l, ct));
+        return rows;
+    }
+
+    private async Task<FctClaimRowDto> RowAsync(LndLoan l, CancellationToken ct)
+    {
+        var client = await db.Set<CrmClient>().AsNoTracking().Where(x => x.ClientId == l.ClientId).Select(x => x.ClientName).FirstOrDefaultAsync(ct);
+        var date = await db.Set<LndLoanEvent>().AsNoTracking().Where(x => x.LoanId == l.LoanId && x.EventCode == "CF_CLAIM")
+            .OrderBy(x => x.LoanEventId).Select(x => (DateOnly?)x.EventDate).FirstOrDefaultAsync(ct);
+        var total = (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0);
+        var paid = Paid(l);
+        return new FctClaimRowDto(l.LoanId, l.LoanNumber, l.ClientId, client, l.LoanId, l.LoanNumber, date ?? DateOnly.FromDateTime(l.CreatedAt),
+            l.CurrencyCode, total, paid, total - paid, l.ClaimStatusCode ?? "");
+    }
+
+    /// <summary>A consumer finance claim for Customer Payments: its lines (charges, then the down payment, paid in that order) and payments.</summary>
+    public async Task<FctClaimDto> CollectionClaimAsync(long loanId, CancellationToken ct)
+    {
+        var l = await db.Set<LndLoan>().AsNoTracking().FirstOrDefaultAsync(x => x.LoanId == loanId, ct) ?? throw new NotFoundException($"Finance {loanId} was not found.");
+        if (l.ClaimStatusCode is null or LndCfFinanceRules.Claim.None) throw new BusinessRuleException($"Finance {l.LoanNumber} has no claim.");
+        var row = await RowAsync(l, ct);
+        var charges = await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loanId && x.TimingCode == LndCfCharges.Upfront && x.ChargeAmount + x.TaxAmount != 0)
+            .OrderBy(x => x.LoanChargeId).ToListAsync(ct);
+        var left = row.PaidAmount;
+        var lines = new List<FctClaimLineDto>();
+        var no = 0;
+        foreach (var c in charges)
+        {
+            var total = c.ChargeAmount + c.TaxAmount;
+            var paid = Math.Min(left, total);
+            left -= paid;
+            lines.Add(new FctClaimLineDto(++no, no, c.ChargeCode, c.ChargeName, c.ChargeAmount, c.TaxAmount, total, paid, total - paid));
+        }
+        if ((l.ClaimDownPaymentAmount ?? 0) is > 0 and var down)
+        {
+            var paid = Math.Min(left, down);
+            lines.Add(new FctClaimLineDto(++no, no, "DOWN_PAYMENT", "Down payment", down, 0, down, paid, down - paid));
+        }
+        var payments = await (from p in db.Set<LndCfClaimPayment>().AsNoTracking()
+                              join s in db.Set<ColRepaymentSource>() on p.RepaymentSourceId equals s.RepaymentSourceId into ss
+                              from s in ss.DefaultIfEmpty()
+                              join t in db.Set<ColRepaymentTransaction>() on p.RepaymentTxnId equals t.RepaymentTxnId into ts
+                              from t in ts.DefaultIfEmpty()
+                              where p.LoanId == loanId
+                              orderby p.ClaimPaymentId
+                              select new FctClaimPaymentDto(p.ClaimPaymentId, t == null ? "-" : t.RepaymentNumber, s == null ? p.PaymentMethodCode : s.SourceType,
+                                  p.PaymentReference, p.PaymentDate, p.PaymentAmount, p.GlTranSetId)).ToListAsync(ct);
+        return new FctClaimDto(row, lines, payments);
+    }
+
     /// <summary>
-    /// Records a payment of the claim (all or part of what is outstanding): it pays the charges first (earned), then the down payment
-    /// (held for the supplier), posting the product action CF_CLAIM_PAYMENT for those amounts. The claim becomes Partially Paid or Paid.
+    /// Pays a consumer finance claim from one of the customer's payment sources (Collection › Customer Payments), like a factoring claim:
+    /// the requested amount (else all it can), at most the source's balance and the claim's outstanding; the charges first, then the down
+    /// payment. Posts the product action CF_CLAIM_PAYMENT (DR 230104 Customer Unallocated Receipts / CR 120802 charges, CR 230802 down
+    /// payment; DR 120803 / CR 410801 the charges earned). The claim becomes Partially Paid or Paid.
     /// </summary>
-    public async Task PayAsync(long loanId, LndCfClaimPayRequest r, CancellationToken ct)
+    public async Task<FctClaimPaidDto> PayFromSourceAsync(long loanId, FctClaimPayDto dto, CancellationToken ct)
     {
         await using var tx = await db.BeginTransactionAsync(ct);
         var loan = await db.Set<LndLoan>().FirstOrDefaultAsync(x => x.LoanId == loanId, ct) ?? throw new NotFoundException($"Finance {loanId} was not found.");
-        await PayLoanAsync(loan, r, ct);
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-    }
-
-    /// <summary>The same on a tracked finance, inside the caller's transaction; not saved here.</summary>
-    public async Task PayLoanAsync(LndLoan loan, LndCfClaimPayRequest r, CancellationToken ct)
-    {
-        if (loan.ClaimStatusCode is not (LndCfFinanceRules.Claim.Open or LndCfFinanceRules.Claim.PartiallyPaid))
-            throw new BusinessRuleException(loan.ClaimStatusCode is null ? "The claim is not created yet." : "The claim is not waiting for payment.");
+        if (!IsOpen(loan.ClaimStatusCode)) throw new BusinessRuleException($"The claim of finance {loan.LoanNumber} is not waiting for payment.");
+        var source = await db.Set<ColRepaymentSource>().FirstOrDefaultAsync(x => x.RepaymentSourceId == dto.RepaymentSourceId, ct)
+            ?? throw new NotFoundException($"Payment source {dto.RepaymentSourceId} was not found.");
+        var txn = await db.Set<ColRepaymentTransaction>().FirstAsync(x => x.RepaymentTxnId == source.RepaymentTxnId, ct);
+        if (txn.ClientId != loan.ClientId) throw new BusinessRuleException("The payment source belongs to another customer.");
+        if (source.StatusCode != "ACTIVE" || txn.StatusCode is "REVERSED" or "CANCELLED") throw new BusinessRuleException("The payment source is not active.");
+        var available = source.SourceAmount - source.AllocatedAmount;
+        if (available <= 0) throw new BusinessRuleException("The payment source has no balance left.");
+        if (dto.Amount is <= 0) throw new BusinessRuleException("The amount to pay must be more than zero.");
         var charges = loan.ClaimChargesAmount ?? 0;
         var down = loan.ClaimDownPaymentAmount ?? 0;
-        var paid = loan.ClaimPaidAmount ?? 0;
-        var outstanding = charges + down - paid;
-
-        var e = new Dictionary<string, string[]>();
-        var amount = Money.Round(r.Amount ?? outstanding, 2);
-        if (amount <= 0 || amount > outstanding) e["amount"] = [$"The amount must be more than 0 and at most the outstanding {outstanding:#,0.00}."];
-        var method = (r.PaymentMethodCode ?? "").Trim().ToUpperInvariant();
-        var reference = string.IsNullOrWhiteSpace(r.PaymentReference) ? null : r.PaymentReference.Trim();
-        var account = r.BankAccountId is { } accountId ? await db.Set<TrsBankAccount>().AsNoTracking().FirstOrDefaultAsync(x => x.AccountId == accountId, ct) : null;
-        if (account is null || !account.IsActive || account.CurrencyCode != loan.CurrencyCode) e["bankAccountId"] = ["Choose one of our active accounts in the finance's currency."];
-        else if (string.IsNullOrWhiteSpace(account.ErpAccountCode)) e["bankAccountId"] = [$"Bank account {account.AccountRef} has no GL account code. Set it in Treasury."];
-        if (!LndCfFinanceRules.PaymentMethods.Contains(method)) e["paymentMethodCode"] = ["Choose how the customer paid."];
-        else if (method != "CASH" && reference is null) e["paymentReference"] = ["Enter the payment reference."];
-        if (reference is { Length: > 100 }) e["paymentReference"] = ["The reference is longer than 100 characters."];
-        if (e.Count > 0) throw new BusinessValidationException(e);
+        var paidBefore = Paid(loan);
+        var outstanding = charges + down - paidBefore;
+        var pay = Math.Min(Math.Min(available, outstanding), dto.Amount ?? decimal.MaxValue);
+        if (pay <= 0) throw new BusinessRuleException($"The claim of finance {loan.LoanNumber} has nothing left to pay.");
 
         // the charges first, then the down payment
-        var chargesPart = Math.Min(amount, Math.Max(0, charges - paid));
-        var downPart = amount - chargesPart;
+        var chargesPart = Math.Min(pay, Math.Max(0m, charges - paidBefore));
+        var downPart = pay - chargesPart;
         var today = GlTime.Today(clock);
+        var reference = source.SourceReference ?? txn.BankStatementReference ?? txn.ExternalReference;
         var doc = new ProductActionDocument("LND_CF_CLAIM", loan.LoanId.ToString(CultureInfo.InvariantCulture), loan.LoanNumber, today, loan.CurrencyCode,
-            $"Finance {loan.LoanNumber}: claim payment {amount:#,0.00} ({method.ToLowerInvariant().Replace('_', ' ')}{(reference is null ? "" : " " + reference)})");
+            $"Finance {loan.LoanNumber}: claim payment {pay:#,0.00} from {txn.RepaymentNumber}");
         Func<string, decimal?> amountOf = code => code switch
         {
-            "PAYMENT_AMOUNT" => amount,
+            "PAYMENT_AMOUNT" => pay,
             "CHARGES_PAID_AMOUNT" => chargesPart,
             "DOWN_PAYMENT_AMOUNT" => downPart,
             _ => null,
@@ -143,22 +204,26 @@ public sealed class LndCfClaimService(ICapitraDbContext db, LndCfChargesPlanner 
         string gl;
         try
         {
-            gl = await posting.PostAsync(ProductActions.CfClaimPayment, doc, [(account!.ErpAccountCode!.Trim(), amountOf)], ct);
+            gl = await posting.PostAsync(ProductActions.CfClaimPayment, doc, amountOf, ct);
         }
         catch (ApexProcessException ex)
         {
-            throw new BusinessRuleException($"GL posting failed, the payment was not recorded: {GlPostingApi.CleanMessage(ex.Message)}");
+            throw new BusinessRuleException($"GL posting failed, nothing was paid: {GlPostingApi.CleanMessage(ex.Message)}");
         }
+
         db.Set<LndCfClaimPayment>().Add(new LndCfClaimPayment
         {
-            LoanId = loan.LoanId, PaymentDate = today, PaymentAmount = amount, ChargesAmount = chargesPart, DownPaymentAmount = downPart,
-            BankAccountId = account!.AccountId, PaymentMethodCode = method, PaymentReference = reference, GlTranSetId = gl,
+            LoanId = loan.LoanId, PaymentDate = today, PaymentAmount = pay, ChargesAmount = chargesPart, DownPaymentAmount = downPart,
+            PaymentMethodCode = source.SourceType, PaymentReference = reference, GlTranSetId = gl,
+            RepaymentTxnId = txn.RepaymentTxnId, RepaymentSourceId = source.RepaymentSourceId,
         });
-        loan.ClaimPaidAmount = paid + amount;
-        loan.ClaimPaymentMethodCode = method;
+        source.AllocatedAmount += pay;
+        txn.AllocatedAmount += pay;
+        loan.ClaimPaidAmount = paidBefore + pay;
+        loan.ClaimPaymentMethodCode = source.SourceType;
         loan.ClaimPaymentReference = reference;
         loan.ClaimPaymentGlTranSetId = gl;
-        var full = loan.ClaimPaidAmount == charges + down;
+        var full = loan.ClaimPaidAmount >= charges + down;
         loan.ClaimStatusCode = full ? LndCfFinanceRules.Claim.Paid : LndCfFinanceRules.Claim.PartiallyPaid;
         if (full)
         {
@@ -167,11 +232,22 @@ public sealed class LndCfClaimService(ICapitraDbContext db, LndCfChargesPlanner 
         }
         db.Set<LndLoanEvent>().Add(new LndLoanEvent
         {
-            LoanId = loan.LoanId, EventCode = "CF_CLAIM_PAID", EventDate = today, EventAmount = amount, GlTranSetId = gl,
+            LoanId = loan.LoanId, EventCode = "CF_CLAIM_PAID", EventDate = today, EventAmount = pay, GlTranSetId = gl,
             SourceDocumentType = "LND_CF_CLAIM", SourceDocumentId = loan.LoanId,
-            Notes = $"Claim payment {amount:#,0.00} into {account!.AccountRef} by {method.ToLowerInvariant().Replace('_', ' ')}{(reference is null ? "" : ", " + reference)}"
-                + $" (charges {chargesPart:#,0.00}, down payment {downPart:#,0.00}); {(full ? "claim paid" : $"outstanding {charges + down - loan.ClaimPaidAmount:#,0.00}")}.",
+            Notes = $"Claim payment {pay:#,0.00} from {txn.RepaymentNumber} (charges {chargesPart:#,0.00}, down payment {downPart:#,0.00}); "
+                + (full ? "claim paid." : $"outstanding {charges + down - loan.ClaimPaidAmount:#,0.00}."),
         });
+        await db.SaveChangesAsync(ct);
+        var held = await db.Set<ColRepaymentSource>().Where(x => x.RepaymentTxnId == txn.RepaymentTxnId && x.StatusCode == "ACTIVE")
+            .SumAsync(x => (decimal?)x.SourceAmount, ct) ?? 0;
+        txn.StatusCode = txn.AllocatedAmount <= 0 ? "DRAFT" : txn.AllocatedAmount >= held ? "ALLOCATED" : "PARTIALLY_ALLOCATED";
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        var message = full
+            ? $"The claim of finance {loan.LoanNumber} is fully paid ({gl}). Its Schedule and contract step can now be accepted."
+            : $"{pay:#,0.00} paid on the claim of finance {loan.LoanNumber} ({gl}); {charges + down - loan.ClaimPaidAmount:#,0.00} is still to be paid.";
+        return new FctClaimPaidDto(await CollectionClaimAsync(loanId, ct), message);
     }
 
     /// <summary>
@@ -216,7 +292,7 @@ public sealed class LndCfClaimService(ICapitraDbContext db, LndCfChargesPlanner 
     {
         var loan = await db.Set<LndLoan>().AsNoTracking().FirstOrDefaultAsync(x => x.LoanId == loanId, ct) ?? throw new NotFoundException($"Finance {loanId} was not found.");
         if (loan.ClaimStatusCode is null or LndCfFinanceRules.Claim.None) return null;
-        var client = await db.Set<Capitra.Domain.Modules.Crm.CrmClient>().AsNoTracking().Where(x => x.ClientId == loan.ClientId)
+        var client = await db.Set<CrmClient>().AsNoTracking().Where(x => x.ClientId == loan.ClientId)
             .Select(x => x.ClientName).FirstOrDefaultAsync(ct);
         var created = await db.Set<LndLoanEvent>().AsNoTracking().Where(x => x.LoanId == loanId && x.EventCode == "CF_CLAIM")
             .OrderBy(x => x.LoanEventId).Select(x => new { x.EventDate, x.CreatedBy }).FirstOrDefaultAsync(ct);
@@ -226,18 +302,16 @@ public sealed class LndCfClaimService(ICapitraDbContext db, LndCfChargesPlanner 
         if ((loan.ClaimDownPaymentAmount ?? 0) > 0)
             lines.Add(new LndCfClaimLineDto("DOWN_PAYMENT", "Down payment", loan.ClaimDownPaymentAmount!.Value, 0, loan.ClaimDownPaymentAmount.Value));
         var payments = await (from p in db.Set<LndCfClaimPayment>().AsNoTracking()
-                              join a in db.Set<TrsBankAccount>().AsNoTracking() on p.BankAccountId equals a.AccountId into acc
-                              from a in acc.DefaultIfEmpty()
+                              join t in db.Set<ColRepaymentTransaction>().AsNoTracking() on p.RepaymentTxnId equals t.RepaymentTxnId into ts
+                              from t in ts.DefaultIfEmpty()
                               where p.LoanId == loanId
                               orderby p.ClaimPaymentId
                               select new LndCfClaimPaymentDto(p.ClaimPaymentId, p.PaymentDate, p.PaymentAmount, p.ChargesAmount, p.DownPaymentAmount,
-                                  a == null ? null : a.AccountRef, p.PaymentMethodCode, p.PaymentReference, p.GlTranSetId, p.CreatedBy, p.CreatedAt)).ToListAsync(ct);
+                                  t == null ? null : t.RepaymentNumber, p.PaymentMethodCode, p.PaymentReference, p.GlTranSetId, p.CreatedBy, p.CreatedAt)).ToListAsync(ct);
         var total = (loan.ClaimChargesAmount ?? 0) + (loan.ClaimDownPaymentAmount ?? 0);
         var paid = Paid(loan);
-        var open = loan.ClaimStatusCode is LndCfFinanceRules.Claim.Open or LndCfFinanceRules.Claim.PartiallyPaid;
-        IReadOnlyList<LndPayingAccountDto> accounts = open ? await LndCfFinanceService.AccountsAsync(db, loan.CurrencyCode, ct) : [];
-        return new LndCfClaimDetailDto(loan.LoanId, loan.LoanNumber, client ?? "", loan.CurrencyCode, loan.ClaimStatusCode!, created?.EventDate, created?.CreatedBy,
-            lines, loan.ClaimChargesAmount ?? 0, loan.ClaimDownPaymentAmount ?? 0, total, paid, total - paid, loan.ClaimGlTranSetId, payments, accounts);
+        return new LndCfClaimDetailDto(loan.LoanId, loan.LoanNumber, loan.ClientId, client ?? "", loan.CurrencyCode, loan.ClaimStatusCode!, created?.EventDate,
+            created?.CreatedBy, lines, loan.ClaimChargesAmount ?? 0, loan.ClaimDownPaymentAmount ?? 0, total, paid, total - paid, loan.ClaimGlTranSetId, payments);
     }
 
     /// <summary>What the customer has paid of the claim (claims paid before partial payments: the whole claim).</summary>
