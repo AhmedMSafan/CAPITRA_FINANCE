@@ -1,6 +1,6 @@
 <template>
   <!-- Retail Lending > Lending Workspace > a customer: one compact card (the customer and its figures), New Finance on the title
-       line, and the Loans and Payments tabs. A loan opens its own page (schedule, payout, payments). -->
+       line, and the Finances, Claims and Payments tabs (the same tabs as the Factoring Customer Workspace). A finance opens its own page. -->
   <div class="fx fc">
     <div class="fx-head">
       <div>
@@ -67,6 +67,7 @@
               <td>{{ l.productName }}<br><small class="fc-muted">{{ l.productCode }} · {{ l.licenceCode }}</small></td>
               <td>
                 <span class="fx-chip" :class="CHIP[l.statusCode] ?? 'fx-chip--plain'">{{ tr(STATUS[l.statusCode] ?? l.statusCode) }}</span>
+                <small v-if="l.stepName" class="fc-muted"> · {{ tr(l.stepName) }}</small>
                 <span v-if="l.isNonAccrual" class="fx-chip fx-chip--bad">{{ tr('Non-accrual') }}</span>
               </td>
               <td class="fx-r">{{ money(l.principalAmount) }}</td>
@@ -74,8 +75,9 @@
               <td class="fx-r" :class="{ 'lw-bad': l.overdueAmount > 0 }">{{ money(l.overdueAmount) }}</td>
               <td class="fx-r" :class="{ 'lw-bad': l.daysLate > 0 }">{{ l.daysLate }}</td>
               <td>{{ l.nextDueDate ? `${formatDate(l.nextDueDate)} · ${money(l.nextDueAmount)}` : '—' }}</td>
-              <td>{{ formatDate(l.disbursementDate) }}</td>
-              <td>{{ formatDate(l.maturityDate) }}</td>
+              <!-- not paid out yet before the finance is booked -->
+              <td>{{ booked(l.statusCode) ? formatDate(l.disbursementDate) : '—' }}</td>
+              <td>{{ booked(l.statusCode) ? formatDate(l.maturityDate) : '—' }}</td>
               <td class="fx-r">
                 <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="{ name: 'lnd-loan', params: { loanId: l.loanId } }">
                   <span class="fa fa-play-circle-o" aria-hidden="true"></span>{{ tr('Open') }}
@@ -85,6 +87,38 @@
           </tbody>
         </table>
         <div v-else class="fx-empty"><span class="fa fa-folder-open-o" aria-hidden="true"></span>{{ tr('No finances for this customer yet.') }}</div>
+      </div>
+
+      <!-- the upfront claims of consumer finances (Charges and claim step), shown like the factoring claims; paid on the finance's step -->
+      <div v-else-if="tab === 'claims'" class="fx-table-wrap">
+        <table v-if="ws?.claims.length" class="fx-table">
+          <thead>
+            <tr>
+              <th>{{ tr('Finance') }}</th><th>{{ tr('Date') }}</th><th>{{ tr('Currency') }}</th><th class="fx-r">{{ tr('Upfront charges') }}</th>
+              <th class="fx-r">{{ tr('Down payment') }}</th><th class="fx-r">{{ tr('Claim Total') }}</th><th class="fx-r">{{ tr('Paid') }}</th>
+              <th class="fx-r">{{ tr('Outstanding') }}</th><th>{{ tr('Status') }}</th><th class="fx-r">{{ tr('Actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="c in ws.claims" :key="c.loanId">
+              <td><RouterLink :to="{ name: 'lnd-loan', params: { loanId: c.loanId } }"><b>{{ c.loanNumber }}</b></RouterLink></td>
+              <td>{{ c.claimDate ? formatDate(c.claimDate) : '—' }}</td>
+              <td>{{ c.currencyCode }}</td>
+              <td class="fx-r">{{ money(c.chargesAmount) }}</td>
+              <td class="fx-r">{{ money(c.downPaymentAmount) }}</td>
+              <td class="fx-r">{{ money(c.totalAmount) }}</td>
+              <td class="fx-r">{{ money(c.paidAmount) }}</td>
+              <td class="fx-r"><b>{{ money(c.outstandingAmount) }}</b></td>
+              <td><span class="fx-chip" :class="CLAIM_CHIP[c.statusCode]">{{ tr(CLAIM[c.statusCode]) }}</span></td>
+              <td class="fx-r">
+                <RouterLink class="fx-btn fx-btn--teal fx-btn--sm" :to="{ name: 'lnd-loan', params: { loanId: c.loanId } }">
+                  <span class="fa fa-play-circle-o" aria-hidden="true"></span>{{ tr('Open') }}
+                </RouterLink>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="fx-empty"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Claims data will be available here.') }}</div>
       </div>
 
       <div v-else class="fx-table-wrap">
@@ -137,9 +171,13 @@ const money = (n: number) => egp.format(n)
 const canEdit = hasPermission('LND.LOAN.EDIT')
 const ws = ref<LwCustomerWorkspace | null>(null)
 const loading = ref(false)
-const tab = ref<'loans' | 'payments'>('loans')
+const CLAIM: Record<string, string> = { TO_CREATE: 'To be created', OPEN: 'Waiting for payment', PAID: 'Paid' }
+const CLAIM_CHIP: Record<string, string> = { TO_CREATE: 'fx-chip--teal', OPEN: 'fx-chip--warn', PAID: 'fx-chip--ok' }
+const booked = (status: string) => ['ACTIVE', 'CLOSED', 'WRITTEN_OFF'].includes(status)
+const tab = ref<'loans' | 'claims' | 'payments'>('loans')
 const tabs = computed(() => [
   { key: 'loans' as const, label: 'Finances', count: ws.value?.loans.length ?? 0, icon: 'fa-list' },
+  { key: 'claims' as const, label: 'Claims', count: ws.value?.claims.length ?? 0, icon: 'fa-flag-o' },
   { key: 'payments' as const, label: 'Payments', count: ws.value?.payments.length ?? 0, icon: 'fa-money' }
 ])
 
