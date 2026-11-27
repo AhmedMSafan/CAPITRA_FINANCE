@@ -76,7 +76,7 @@ public static class LndCfCharges
     /// <summary>How a charge is worked out, as the finance shows it (e.g. "1% of the financed amount").</summary>
     public static string Basis(ProductEventCharge c) => c.CalculationMethodCode switch
     {
-        "PERCENTAGE" => $"{c.ChargeRate:0.##}% of {(c.AmountBaseCode == "GOODS_PRICE" ? "the price" : "the financed amount")}",
+        "PERCENTAGE" => $"{c.ChargeRate:0.##}% of {(c.AmountBaseCode == "GOODS_PRICE" ? "CF Total Goods Value" : "CF Financed Amount")}",
         "FIXED" => "Fixed",
         _ => c.CalculationMethodCode.ToLowerInvariant(),
     };
