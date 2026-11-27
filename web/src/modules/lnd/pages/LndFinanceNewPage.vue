@@ -16,8 +16,6 @@
         <h1>{{ tr('New Finance') }}</h1>
       </div>
       <div class="fx-actions">
-        <!-- New Finance posts nothing: its Rules and GL list every step of the product's workflow -->
-        <CfRulesButton :loan-id="null" :step="null" :title="tr('New Finance and the steps after it')" />
         <RouterLink :to="back" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back') }}</RouterLink>
       </div>
     </div>
@@ -69,7 +67,8 @@
         </div>
         <div class="cfl-stack">
           <div class="cfl-key">
-            <h3>{{ tr('Finance') }}</h3>
+            <!-- New Finance posts nothing: its Rules and GL list every step of the product's workflow -->
+            <h3>{{ tr('Finance') }}<CfRulesButton :loan-id="null" :step="null" :title="tr('New Finance and the steps after it')" /></h3>
             <div class="cfl-tiles">
               <div class="cfl-tile"><small>{{ tr('Item price') }}</small><b>{{ form.goodsPriceAmount ? money(Number(form.goodsPriceAmount)) : '—' }}</b></div>
               <div class="cfl-tile"><small>{{ tr('Down payment') }}</small><b>{{ form.downPaymentAmount ? money(Number(form.downPaymentAmount)) : '—' }}</b></div>

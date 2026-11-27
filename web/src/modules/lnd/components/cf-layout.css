@@ -12,7 +12,7 @@
   font-size: 12.5px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; color: #1d2b36;
 }
 .cfl-box > h3 small, .cfl-key > h3 small { margin-inline-start: auto; text-transform: none; letter-spacing: 0; font-weight: 400; color: #34495a; }
-.cfl-box > h3 button, .cfl-key > h3 button { margin-inline-start: auto; }
+.cfl-box > h3 > button:first-of-type, .cfl-key > h3 > button:first-of-type { margin-inline-start: auto; }
 
 .cfl-rows { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .cfl-rows td { padding: 7px 14px; border-bottom: 1px solid #f0f2f4; vertical-align: middle; }
