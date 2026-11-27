@@ -9,7 +9,7 @@
       <p v-if="step.isMine">— {{ tr(HINT[step.stepCode] ?? 'Check the finance, then accept or reject the step.') }}</p>
       <p v-else>— {{ tr('Waiting for') }} {{ tr(ROLE[step.stepCode] ?? 'the step holder') }}. {{ tr('Open it from the inbox to work on it.') }}</p>
       <span class="cfs-grow"></span>
-      <CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" />
+      <CfRulesButton v-if="!rulesInBox" :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" />
     </header>
 
     <!-- the deal at a glance, for the step holder -->
@@ -117,7 +117,7 @@
       </div>
       <div class="cfl-stack">
         <div v-if="charges" class="cfl-key">
-          <h3>{{ tr('Charges — your decision') }}<small>{{ tr('rule') }} CF_CHARGES</small></h3>
+          <h3>{{ tr('Charges — your decision') }}<CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" /></h3>
           <p v-if="charges.problem" class="cfl-note bad cfl-pad">{{ charges.problem }}</p>
           <table v-else-if="charges.charges.length" class="cfl-rows"><tbody>
             <tr v-for="c in charges.charges" :key="c.chargeCode">
@@ -165,7 +165,7 @@
         </tbody></table>
       </div>
       <div class="cfl-key">
-        <h3>{{ tr('Upfront claim') }}<button v-if="loan.claim && loan.claim.statusCode !== 'NONE'" type="button" class="fx-btn fx-btn--sm" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></h3>
+        <h3>{{ tr('Upfront claim') }}<CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" /><button v-if="loan.claim && loan.claim.statusCode !== 'NONE'" type="button" class="fx-btn fx-btn--sm" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></h3>
         <template v-if="!loan.claim">
           <div class="cfl-tiles">
             <div class="cfl-tile"><small>{{ tr('Upfront charges') }}</small><b>{{ money(claimCharges) }}</b></div>
@@ -191,7 +191,7 @@
     <!-- Schedule and contract: the finance to schedule on the left, the claim (paid first) on the right -->
     <div v-if="step.stepCode === 'CF_SCHEDULE'" class="cfl-cols">
       <div class="cfl-box">
-        <h3>{{ tr('Schedule to build') }}</h3>
+        <h3>{{ tr('Schedule to build') }}<CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" /></h3>
         <table class="cfl-rows"><tbody>
           <tr><td class="cfl-l">{{ tr('Finance amount') }}</td><td class="cfl-v">{{ money(loan.principalAmount) }}</td><td class="cfl-h">{{ tr('financed + charges added') }}</td></tr>
           <tr><td class="cfl-l">{{ tr('Term') }}</td><td class="cfl-v">{{ loan.termMonths }} {{ tr('months') }}</td><td class="cfl-h"></td></tr>
@@ -230,7 +230,7 @@
         </tbody></table>
       </div>
       <div class="cfl-key">
-        <h3>{{ tr('On accept') }}<small>{{ tr('rule') }} CF_DELIVERY</small></h3>
+        <h3>{{ tr('On accept') }}<CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" /></h3>
         <div class="cfl-tiles">
           <div class="cfl-tile hl"><small>{{ tr('Dr Finance') }}</small><b>{{ money(loan.principalAmount) }}</b></div>
           <div class="cfl-tile"><small>{{ tr('Cr Payable to the supplier') }}</small><b>{{ money(financedNow) }}</b></div>
@@ -261,7 +261,7 @@
         </tbody></table>
       </div>
       <div class="cfl-key">
-        <h3>{{ tr('On accept') }}<small>{{ tr('rule') }} CF_SUPPLIER_PAYMENT</small></h3>
+        <h3>{{ tr('On accept') }}<CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" /></h3>
         <div class="cfl-tiles">
           <div class="cfl-tile"><small>{{ tr('Owed to the supplier') }} ({{ tr('Dr') }})</small><b>{{ money(step.supplierDue.payableAmount) }}</b></div>
           <div class="cfl-tile"><small>{{ tr('Commission income') }} ({{ tr('Cr') }})</small><b>{{ money(commissionNow) }}</b></div>
@@ -313,6 +313,9 @@ const ROLE: Record<string, string> = {
 }
 
 const step = ref<CfStep | null>(null)
+/** Rules and GL sits in the box it explains (Ahmed, 27 Nov 2026); someone viewing a step that is not theirs sees it in the title line. */
+const rulesInBox = computed(() => !!step.value && (step.value.isMine || step.value.stepCode === 'CF_SCHEDULE')
+  && ['CF_CREDIT', 'CF_CHARGES', 'CF_SCHEDULE', 'CF_DELIVERY', 'CF_SUPPLIER_PAYMENT'].includes(step.value.stepCode))
 /** What Credit has on the screen, for Rules and GL (not saved until Approve). */
 const rulesChoices = computed(() => (deciding.value && charges.value ? {
   charges: charges.value.charges.map((c) => ({ code: c.chargeCode, timing: timing(c), amount: amountOf(c) })),

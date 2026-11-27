@@ -1,7 +1,7 @@
 <template>
   <!-- Rules and GL (Ahmed, 27 Nov 2026): a dark orange button on New Finance and every CF_FINANCE step; its popup shows, read only, the role
        of the page, the product rules its buttons post, their charges and the GL lines with this finance's amounts. -->
-  <button type="button" class="fx-btn cfr-btn" @click="open"><span class="fa fa-cogs" aria-hidden="true"></span>{{ tr('Rules and GL') }}</button>
+  <button type="button" class="cfr-btn" @click="open"><span class="fa fa-cogs" aria-hidden="true"></span>{{ tr('Rules and GL') }} ›</button>
   <Crm360Dialog v-model:visible="shown" :title="tr('Rules and GL')" :subtitle="subtitle" icon="fa-cogs" :width="1150">
     <div v-if="loading" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
     <template v-else-if="data">
@@ -69,8 +69,9 @@ async function open() {
 </script>
 
 <style scoped>
-.cfr-btn { background: #E87722; border-color: #E87722; color: #fff; }
-.cfr-btn:hover { background: #d4691b; border-color: #d4691b; color: #fff; }
+.cfr-btn { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid #E87722; border-radius: 7px; background: #fff; color: #c45f12;
+  font: 600 12.5px/1.2 inherit; text-transform: none; letter-spacing: 0; cursor: pointer; white-space: nowrap; }
+.cfr-btn:hover { background: #fff4ea; }
 .cfr-warn { display: flex; gap: 10px; align-items: flex-start; margin: 6px 0 10px; padding: 10px 14px; border: 1px solid #f0c36d; border-radius: 8px; background: #fff8e6; color: #7a4b00; font-size: 13px; }
 .cfr-warn .fa { margin-top: 2px; color: #d08a00; }
 .cfr-p { margin: 0 0 8px; font-size: 12.5px; }
