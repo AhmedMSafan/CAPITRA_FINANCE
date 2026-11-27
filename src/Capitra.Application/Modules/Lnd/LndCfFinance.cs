@@ -250,7 +250,7 @@ public static class LndCfFinanceRules
     public static string? CheckClaim(string? claimStatus, decimal claimTotal, decimal paid = 0) => claimStatus switch
     {
         Claim.Paid or Claim.None => null,
-        Claim.Open or Claim.PartiallyPaid => $"Waiting for the claim to be paid (outstanding {claimTotal - paid:#,0.00}). Record the payment on the claim first.",
+        Claim.Open or Claim.PartiallyPaid => $"Waiting for the claim to be paid (outstanding {claimTotal - paid:#,0.00}). It is paid in Collection › Customer Payments.",
         _ => claimTotal == 0 ? null : "Create the claim first.",
     };
 }
@@ -297,8 +297,6 @@ public sealed record LndCfSupplierDueDto(decimal PayableAmount, decimal Commissi
 
 /// <summary>Delivery and customer receipt: the day, the delivery note, the serial or IMEI, and the customer's confirmation.</summary>
 public sealed record LndCfDeliveryRequest(DateOnly? DeliveryDate, string? DeliveryNoteNo, string? SerialNo, bool? CustomerConfirmed);
-
-public sealed record LndCfClaimPaymentRequest(long? BankAccountId, string? PaymentMethodCode, string? PaymentReference);
 
 /// <summary>
 /// The charges of a consumer finance from the rule its Charges and claim step names (finova:ruleCode, CF_CHARGES by default): worked out
@@ -692,16 +690,6 @@ public sealed class LndCfFinanceService(
         await using var tx = await db.BeginTransactionAsync(ct);
         var (loan, _) = await TaskAsync(loanId, inboxId, LndCfFinanceRules.Charges, ct);
         await claims.CreateAsync(loan, LndCfFinanceRules.Charges, ct);
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-    }
-
-    /// <summary>Charges and claim, on finances that started with that step: records the payment of what is outstanding.</summary>
-    public async Task PayClaimAsync(long loanId, long inboxId, LndCfClaimPaymentRequest r, CancellationToken ct)
-    {
-        await using var tx = await db.BeginTransactionAsync(ct);
-        var (loan, _) = await TaskAsync(loanId, inboxId, LndCfFinanceRules.Charges, ct);
-        await claims.PayLoanAsync(loan, new LndCfClaimPayRequest(null, r.BankAccountId, r.PaymentMethodCode, r.PaymentReference), ct);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
     }

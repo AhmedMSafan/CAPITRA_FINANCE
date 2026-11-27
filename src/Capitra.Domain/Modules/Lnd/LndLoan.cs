@@ -325,8 +325,9 @@ public class LndLoanDocument : AuditableEntity
 }
 
 /// <summary>
-/// LND_CF_CLAIM_PAYMENTS (Ahmed, 27 Nov 2026): a payment of a consumer finance's upfront claim, like a factoring claim payment. Several
-/// partial payments are allowed; each covers the charges first, then the down payment we take, and posts the product action CF_CLAIM_PAYMENT.
+/// LND_CF_CLAIM_PAYMENTS (Ahmed, 27 Nov 2026): a payment of a consumer finance's upfront claim, like a factoring claim payment, made in
+/// Collection › Customer Payments from one of the customer's payment sources. Several partial payments are allowed; each covers the
+/// charges first, then the down payment we take, and posts the product action CF_CLAIM_PAYMENT.
 /// </summary>
 public class LndCfClaimPayment : AuditableEntity
 {
@@ -344,10 +345,15 @@ public class LndCfClaimPayment : AuditableEntity
     /// <summary>The part of the payment that paid the down payment we take (held for the supplier).</summary>
     public decimal DownPaymentAmount { get; set; }
 
-    /// <summary>Our bank account the money came into; null for payments recorded before 27 Nov 2026 (one per paid claim).</summary>
+    /// <summary>Our bank account the money came into; only on payments recorded on the claim before payments moved to Collection.</summary>
     public long? BankAccountId { get; set; }
 
-    /// <summary>CASH, BANK_TRANSFER, PAYMENT_NETWORK or WALLET.</summary>
+    /// <summary>The Collection repayment and its payment source the claim was paid from (Collection › Customer Payments).</summary>
+    public long? RepaymentTxnId { get; set; }
+
+    public long? RepaymentSourceId { get; set; }
+
+    /// <summary>The payment source's type (BANK_TRANSFER, CHEQUE, CREDIT_BALANCE); on older payments CASH, BANK_TRANSFER, PAYMENT_NETWORK or WALLET.</summary>
     public string PaymentMethodCode { get; set; } = string.Empty;
 
     public string? PaymentReference { get; set; }

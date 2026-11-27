@@ -66,14 +66,14 @@ public static class ProductActions
             + "against the invoice's receivable.",
             "SCR", ["PAYMENT_AMOUNT"], "3100", "SCREENING",
             "Screening › Billing page › Record payment button"),
-        // consumer finance (Ahmed, 26 Nov 2026): Record payment of the upfront claim is a button, not a workflow step, so it reaches its rule
-        // through an action
+        // consumer finance (Ahmed, 26-27 Nov 2026): paying the upfront claim in Collection is a button, not a workflow step, so it reaches its
+        // rule through an action
         new(CfClaimPayment, ConsumerFinanceProduct, "Consumer finance claim payment", "سداد مطالبة التمويل الاستهلاكي",
-            "Retail Lending, a consumer finance at its Charges and claim step: Record payment of the upfront claim. PAYMENT_AMOUNT is the money received "
-            + "into the bank account chosen; CHARGES_PAID_AMOUNT the upfront charges in it (receivable paid, and earned); DOWN_PAYMENT_AMOUNT the "
-            + "down payment we take, held for the supplier.",
+            "Collection › Customer Payments: Pay Claim on a consumer finance's upfront claim, from the customer's payment source (27 Nov 2026). "
+            + "PAYMENT_AMOUNT is the amount paid from the customer's unallocated receipts (230104); CHARGES_PAID_AMOUNT the upfront charges in it "
+            + "(receivable paid, and earned); DOWN_PAYMENT_AMOUNT the down payment we take, held for the supplier.",
             "LND", ["PAYMENT_AMOUNT", "CHARGES_PAID_AMOUNT", "DOWN_PAYMENT_AMOUNT"], "3100", "CONSUMER_FINANCE",
-            "Retail Lending › Finance page › Charges and claim step › Record payment button"),
+            "Collection › Customer Payments › Pay Claim (a consumer finance claim)"),
     ];
 
     public static ProductActionDefinition? Find(string? actionCode) => All.FirstOrDefault(x => x.ActionCode == actionCode);

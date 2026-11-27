@@ -82,28 +82,10 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
         return await loans.GetAsync(loanId, cancellationToken);
     }
 
-    /// <summary>Charges and claim: records the customer's payment of the claim (product action CF_CLAIM_PAYMENT).</summary>
-    [HttpPost("{loanId:long}/cf-step/{inboxId:long}/claim/payment")]
-    [HasPermission(Permissions.Lnd.LoanView)]
-    public async Task<LndLoanDto> PayCfClaim(long loanId, long inboxId, LndCfClaimPaymentRequest request, CancellationToken cancellationToken)
-    {
-        await workflow.PayClaimAsync(loanId, inboxId, request, cancellationToken);
-        return await loans.GetAsync(loanId, cancellationToken);
-    }
-
-    /// <summary>A consumer finance's upfront claim (lines, payments, GL); 204 when it has none.</summary>
+    /// <summary>A consumer finance's upfront claim (lines, payments, GL), read only; 204 when it has none. It is paid in Collection.</summary>
     [HttpGet("{loanId:long}/claim")]
     [HasPermission(Permissions.Lnd.LoanView)]
     public Task<LndCfClaimDetailDto?> CfClaim(long loanId, CancellationToken cancellationToken) => claims.GetAsync(loanId, cancellationToken);
-
-    /// <summary>Records a payment of the claim, all or part (product action CF_CLAIM_PAYMENT); like a factoring claim, needs COLLECTION.EDIT.</summary>
-    [HttpPost("{loanId:long}/claim/payments")]
-    [HasPermission(Permissions.Collection.Edit)]
-    public async Task<LndCfClaimDetailDto?> PayCfClaimPart(long loanId, LndCfClaimPayRequest request, CancellationToken cancellationToken)
-    {
-        await claims.PayAsync(loanId, request, cancellationToken);
-        return await claims.GetAsync(loanId, cancellationToken);
-    }
 
     /// <summary>The finance's documents (e.g. the signed delivery note).</summary>
     [HttpGet("{loanId:long}/documents")]
