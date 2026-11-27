@@ -82,7 +82,7 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
                     LoanId = loan.LoanId, ChargeCode = c.ChargeCode, ChargeName = c.ChargeName, ChargeAmount = c.Amount, TaxAmount = c.TaxAmount, TimingCode = c.TimingCode,
                 })];
         }
-        var amounts = loan is null ? null : Amounts(loan, saved);
+        var lineAmounts = loan is null ? null : Amounts(loan, saved);
         var pages = new List<LndCfRulePageDto>();
         // finances that started before 27 Nov 2026 create the claim at Charges and claim; new ones when Credit approves
         var hasCharges = xml is not null && BpmnModel.StepByCode(xml, LndCfFinanceRules.Charges) is not null;
@@ -97,7 +97,7 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
             var role = code == NewFinance ? "SALES_OFFICER" : element?.Assignee;
             var list = new List<LndCfRuleUseDto>();
             foreach (var u in uses)
-                list.Add(await UseAsync(u, product, xml, today, saved, amounts, ct));
+                list.Add(await UseAsync(u, product, xml, today, saved, lineAmounts, ct));
             pages.Add(new LndCfRulePageDto(code, code == NewFinance ? "New Finance" : LndCfFinanceRules.StepName(code), role, note, list));
         }
         return new LndCfRulesDto(product?.ProductCode, product?.ProductNameEn, pages);

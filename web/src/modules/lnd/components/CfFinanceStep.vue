@@ -287,7 +287,7 @@ import { tr } from '@/shared/layout/language'
 import './cf-layout.css'
 import CfClaimDialog from './CfClaimDialog.vue'
 import CfRulesButton from './CfRulesButton.vue'
-import { CLAIM_LABELS, claimTone, loansApi, type CfCharge, type CfCreditDecision, type CfStep, type CfTerms, type Loan } from '../api/loans.api'
+import { CLAIM_LABELS, loansApi, type CfCharge, type CfCreditDecision, type CfStep, type CfTerms, type Loan } from '../api/loans.api'
 
 const props = defineProps<{ loan: Loan; version: number }>()
 const emit = defineEmits<{ changed: [] }>()
@@ -480,7 +480,6 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 </script>
 
 <style scoped>
-.cfs { border-inline-start: 3px solid var(--fin-teal-600); }
 .cfs { padding: 14px 18px; }
 .cfs-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .cfs-head h3 { margin: 0; font-size: 15px; }
