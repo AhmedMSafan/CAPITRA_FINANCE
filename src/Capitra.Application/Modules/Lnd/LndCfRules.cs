@@ -19,7 +19,7 @@ public sealed record LndCfRuleLineDto(int JournalNo, string DebitCredit, string 
 
 /// <summary>A rule a button of the page posts: how it is linked, its journal category, charges and GL lines; Problem when it cannot be read.</summary>
 public sealed record LndCfRuleUseDto(string Button, string RuleCode, string? RuleName, string LinkedBy, string? CategoryCode,
-    IReadOnlyList<LndCfRuleChargeDto> Charges, IReadOnlyList<LndCfRuleLineDto> Lines, string? Problem);
+    IReadOnlyList<LndCfRuleChargeDto> Charges, IReadOnlyList<LndCfRuleLineDto> Lines, string? Problem, string? NotApplied = null);
 
 /// <summary>A page of the consumer finance (New Finance or a workflow step): its role and the rules its buttons post.</summary>
 public sealed record LndCfRulePageDto(string StepCode, string StepName, string? Role, string Note, IReadOnlyList<LndCfRuleUseDto> Rules);
@@ -144,7 +144,15 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
         var lines = plan.Lines.OrderBy(l => l.JournalNo).ThenBy(l => l.LineNo).Select(l => new LndCfRuleLineDto(l.JournalNo, l.DebitCreditCode,
             l.FromBankAccount ? "Bank account chosen" : l.AccountCode is { } a ? $"{a} {names.GetValueOrDefault(a)}".Trim() : "—",
             l.AmountCode, l.ChargeCode, amounts?.Invoke(l.AmountCode, l.ChargeCode))).ToList();
-        return new LndCfRuleUseDto(u.Button, plan.RuleCode, ruleName, linkedBy, plan.CategoryCode, charges, lines, null);
+        // on a finance, a rule whose lines all give 0 posts nothing here: say why (Ahmed, 27 Nov 2026)
+        string? notApplied = null;
+        if (amounts is not null && lines.Count > 0 && lines.All(l => (l.Amount ?? 0) == 0))
+            notApplied = plan.Charges.Count > 0 && saved.Count > 0 && saved.All(x => x.TimingCode == LndCfCharges.Financed)
+                ? "All charges are added to the schedule: they post at Delivery as part of the finance."
+                : plan.Charges.Count > 0 && saved.Count > 0 && saved.All(x => x.ChargeAmount + x.TaxAmount == 0)
+                    ? "The charges are waived (0): nothing posts."
+                    : "Nothing to post on this finance yet.";
+        return new LndCfRuleUseDto(u.Button, plan.RuleCode, ruleName, linkedBy, plan.CategoryCode, charges, lines, null, notApplied);
     }
 
     /// <summary>The amount each amount code gives on this finance, as the steps post them (a charge line: that charge, when it is upfront).</summary>

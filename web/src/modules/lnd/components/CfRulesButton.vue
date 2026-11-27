@@ -13,6 +13,8 @@
             <span class="cfr-tag">{{ r.ruleCode }}</span><b>{{ r.ruleName ?? '' }}</b>
           </div>
           <p v-if="r.problem" class="cfr-bad">{{ r.problem }}</p>
+          <div v-if="r.notApplied" class="cfr-warn" role="note"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
+            <div><b>{{ tr('Rule not applied on this finance') }}</b><br>{{ tr(r.notApplied) }}</div></div>
           <table v-if="r.charges.length" class="fx-table">
             <thead><tr><th>{{ tr('Charge') }}</th><th>{{ tr('Calculation') }}</th><th>{{ tr('Default timing') }}</th><th>{{ tr('Income') }}</th><th class="fx-r">{{ tr('On this finance') }}</th></tr></thead>
             <tbody><tr v-for="c in r.charges" :key="c.chargeCode"><td>{{ tr(c.chargeName) }}</td><td>{{ tr(c.calculation) }}</td><td>{{ tr(c.defaultTiming) }}</td><td>{{ tr(c.income) }}</td><td class="fx-r">{{ c.onThisFinance ?? '—' }}</td></tr></tbody>
@@ -69,6 +71,8 @@ async function open() {
 <style scoped>
 .cfr-btn { background: #E87722; border-color: #E87722; color: #fff; }
 .cfr-btn:hover { background: #d4691b; border-color: #d4691b; color: #fff; }
+.cfr-warn { display: flex; gap: 10px; align-items: flex-start; margin: 6px 0 10px; padding: 10px 14px; border: 1px solid #f0c36d; border-radius: 8px; background: #fff8e6; color: #7a4b00; font-size: 13px; }
+.cfr-warn .fa { margin-top: 2px; color: #d08a00; }
 .cfr-p { margin: 0 0 8px; font-size: 12.5px; }
 .cfr-page { padding: 10px 0; border-top: 1px solid #eef1f3; }
 .cfr-page h4 { margin: 0 0 4px; font-size: 14px; color: var(--fin-teal-700); }
