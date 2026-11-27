@@ -117,4 +117,34 @@ public sealed class LndCfFinanceTests
         Assert.Equal(20m, LndCfFinanceRules.FinanceRate(22m, -2m));
         Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.FinanceRate(22m, -23m));
     }
+
+    private static LndLoan Finance() => new()
+    {
+        LoanNumber = "LN-1", GoodsPriceAmount = 40_000m, DownPaymentAmount = 10_000m, SupplierMinDownPaymentPct = 20m, TermMonths = 12,
+        RepaymentFrequencyCode = "MONTHLY", InterestMethodCode = "DECLINING", AnnualRatePct = 22m, DayCountCode = "ACT_365", LateFeeTypeCode = "NONE",
+        LateFeeBaseCode = "OVERDUE_INSTALMENT", PaymentOrder = "LATE_FEE,CHARGES,INSURANCE,INTEREST,PRINCIPAL", PrepaymentRecalcCode = "REDUCE_INSTALMENT",
+    };
+
+    [Fact]
+    public void Credit_changes_the_finance_own_values_and_each_change_is_listed()
+    {
+        var l = Finance();
+        var changes = LndCfFinanceRules.ApplyTerms(l, new LndCfTermsRequest(DownPaymentAmount: 12_000m, TermMonths: 18, AnnualRatePct: 23.5m,
+            LateFeeTypeCode: "PCT_ONCE", LateFeeRatePct: 2m, LateFeeGraceDays: 5), 22m);
+        Assert.Equal((12_000m, 18, 23.5m, 1.5m, "PCT_ONCE", 2m, 5), (l.DownPaymentAmount!.Value, l.TermMonths, l.AnnualRatePct, l.RateMarginPct, l.LateFeeTypeCode, l.LateFeeRatePct!.Value, l.LateFeeGraceDays));
+        Assert.Contains("down payment 10,000.00 → 12,000.00", changes);
+        Assert.Contains("term 12 → 18 months", changes);
+        Assert.Contains("yearly rate 22% → 23.5%", changes);
+        Assert.Contains(changes, c => c.StartsWith("grace days", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Credit_values_are_checked()
+    {
+        Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.ApplyTerms(Finance(), new LndCfTermsRequest(DownPaymentAmount: 5_000m), 22m)); // below 20%
+        Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.ApplyTerms(Finance(), new LndCfTermsRequest(TermMonths: 0), 22m));
+        Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.ApplyTerms(Finance(), new LndCfTermsRequest(LateFeeTypeCode: "FLAT"), 22m)); // no amount
+        var l = Finance();
+        Assert.Empty(LndCfFinanceRules.ApplyTerms(l, new LndCfTermsRequest(), 22m)); // nothing sent: nothing changes
+    }
 }
