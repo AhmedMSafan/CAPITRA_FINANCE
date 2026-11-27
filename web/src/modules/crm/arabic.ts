@@ -218,5 +218,9 @@ export const CRM_AR: Record<string, string> = {
   'Change approved: the new terms apply to new finances.': 'تمت الموافقة: تُطبَّق الشروط الجديدة على التمويلات الجديدة.',
   'Why is the change rejected?': 'لماذا رُفض التغيير؟',
   'Change rejected.': 'تم رفض التغيير.',
-  'Change taken back.': 'تم استرجاع التغيير.'
+  'Change taken back.': 'تم استرجاع التغيير.',
+  'At': 'عند',
+  'Workflow steps': 'خطوات سير العمل',
+  'Close': 'إغلاق',
+  'No changes yet.': 'لا توجد تغييرات بعد.'
 }

@@ -35,9 +35,15 @@
             <h2>{{ product.productNameEn }}</h2>
             <small class="c3-muted">{{ product.productCode }} · {{ tr(LINES[product.businessLineCode] ?? '') }} · {{ tr('Type') }} {{ product.productTypeCode }}<template v-if="!product.isActive"> · {{ tr('Inactive') }}</template></small>
           </div>
-          <button v-if="data.canEdit && !openVersion" type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="createDraft">
-            <span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change terms') }}
-          </button>
+          <div class="lt-head-btns">
+            <!-- the audit trail opens as a popup (Ahmed, 27 Nov 2026); plain buttons, green is kept for a step's main action -->
+            <button type="button" class="fx-btn" @click="showAudit = true">
+              <span class="fa fa-history" aria-hidden="true"></span>{{ tr('Audit trail') }} <span class="lt-cnt">{{ audit.length }}</span>
+            </button>
+            <button v-if="data.canEdit && !openVersion" type="button" class="fx-btn" :disabled="busy" @click="createDraft">
+              <span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change terms') }}
+            </button>
+          </div>
         </header>
 
         <!-- a change in preparation or waiting for approval: what it changes, and its actions -->
@@ -149,9 +155,10 @@
         </article>
       </section>
 
-      <!-- every approved change: field, old and new value, who asked and who approved -->
-      <section v-if="product" class="fx-card lt-main">
-        <h3 class="lt-h3">{{ tr('Audit trail') }}</h3>
+    </div>
+
+    <!-- every approved change: field, old and new value, who asked and who approved -->
+    <Crm360Dialog v-model:visible="showAudit" :title="tr('Audit trail')" :subtitle="product?.productNameEn ?? ''" icon="fa-history" :width="1000">
         <div class="fx-table-wrap">
           <table class="fx-table">
             <thead><tr><th>{{ tr('When') }}</th><th>{{ tr('Field') }}</th><th>{{ tr('Old') }} → {{ tr('New') }}</th><th>{{ tr('Why') }}</th><th>{{ tr('Asked by') }}</th><th>{{ tr('Approved by') }}</th></tr></thead>
@@ -164,8 +171,10 @@
           </table>
           <div v-if="!audit.length" class="fx-empty"><span class="fa fa-history" aria-hidden="true"></span>{{ tr('No changes yet.') }}</div>
         </div>
-      </section>
-    </div>
+      <template #footer>
+        <button type="button" class="fx-btn" @click="showAudit = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+      </template>
+    </Crm360Dialog>
 
     <Crm360Dialog v-model:visible="deciding" :title="tr(decision === 'approve' ? 'Approve change' : 'Reject change')" :subtitle="product?.productNameEn ?? ''"
                   :icon="decision === 'approve' ? 'fa-check-circle' : 'fa-times-circle'" :busy="busy" :width="520">
@@ -284,6 +293,7 @@ const discard = () => run(() => lendingProductsApi.discard(version.value!.produc
 const takeBack = () => run(() => lendingProductsApi.takeBack(openVersion.value!.productVersionId), 'Change taken back.', reopen)
 
 const deciding = ref(false)
+const showAudit = ref(false)
 const decision = ref<'approve' | 'reject'>('approve')
 const notes = ref('')
 function openDecision(d: 'approve' | 'reject') {
@@ -329,6 +339,8 @@ onMounted(load)
 .lt-ban-txt { flex: 1; min-width: 0; font-size: 13px; }
 .lt-gap0 { margin: 0; }
 .lt-note { margin: 6px 0 0; }
+.lt-head-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lt-cnt { padding: 0 7px; border-radius: 999px; background: #eef1f3; font-size: 11.5px; }
 .lt-h3 { margin: 0; font-size: 15px; color: var(--fin-teal-700); }
 .lt-version { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--fin-line); padding-top: 14px; }
 .lt-version-head h3 { margin: 0 0 2px; font-size: 16px; display: flex; gap: 8px; align-items: center; }

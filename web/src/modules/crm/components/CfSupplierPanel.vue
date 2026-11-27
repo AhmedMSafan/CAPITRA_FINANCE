@@ -12,20 +12,20 @@
         <span v-if="task" class="fc-eyebrow">{{ tr('WORKFLOW TASK') }} · </span>
         <span dir="ltr">{{ app ? app.applicationRef : tr('New supplier application') }}</span>
         <span v-if="app" class="fx-chip" :class="CF_CHIP[app.statusCode]">{{ tr(CF_STATUS[app.statusCode] ?? app.statusCode) }}</span>
+        <span v-if="app?.openStepName" class="fx-chip fx-chip--plain">{{ tr('At') }}: {{ tr(app.openStepName) }}</span>
       </h3>
-      <button v-if="task" type="button" class="fx-btn" @click="router.push({ name: 'workflow-inbox' })"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Task') }}</button>
+      <!-- the workflow steps and the audit trail open as popups (Ahmed, 27 Nov 2026); plain buttons, green is kept for a step's main action -->
+      <div class="cf-head-btns">
+        <button v-if="app" type="button" class="fx-btn" @click="showSteps = true"><span class="fa fa-sitemap" aria-hidden="true"></span>{{ tr('Workflow steps') }}</button>
+        <button v-if="app" type="button" class="fx-btn" @click="showAudit = true">
+          <span class="fa fa-history" aria-hidden="true"></span>{{ tr('Audit trail') }} <span class="cf-cnt">{{ app.termChanges.length }}</span>
+        </button>
+        <button v-if="canAmend && !amending && !app?.pendingChange" type="button" class="fx-btn" @click="amending = true"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change terms') }}</button>
+        <button v-if="task" type="button" class="fx-btn" @click="router.push({ name: 'workflow-inbox' })"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Task') }}</button>
+      </div>
     </header>
     <p v-if="!app" class="c3-muted cf-intro">{{ tr('Enter the agreement terms and save; then add the owners, signatories and documents, and submit for approval.') }}</p>
 
-    <!-- where the application is -->
-    <section v-if="app" class="fx-card">
-      <ol class="fc-process">
-        <li v-for="(s, i) in process" :key="s.code" :class="{ 'is-done': processIndex > i, 'is-current': processIndex === i }">
-          <span class="fc-process-no">{{ processIndex > i ? '✓' : i + 1 }}</span>
-          <div><b>{{ tr(s.title) }}</b><small>{{ tr(s.who) }}</small></div>
-        </li>
-      </ol>
-    </section>
 
     <div v-if="app?.statusCode === 'RETURNED' && app.returnReason" class="fc-note fc-note--warn fc-step-card">
       <span class="fa fa-undo" aria-hidden="true"></span><span><b>{{ tr('Returned') }}:</b> {{ app.returnReason }}</span>
@@ -39,8 +39,6 @@
       <header class="fc-sec-head">
         <span class="fc-sec-ic" aria-hidden="true"><span class="fa fa-file-text"></span></span>
         <div><h2>{{ tr('Agreement terms') }}</h2><p>{{ termsOpen ? tr('Fields marked * are required.') : tr('Read only: the application is in its workflow or closed.') }}</p></div>
-        <!-- an active supplier's terms can be changed without a new approval, with a reason (Ahmed, 26 Nov 2026; ADMIN) -->
-        <button v-if="canAmend && !amending && !app?.pendingChange" type="button" class="fx-btn cf-amend-btn" @click="amending = true"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change terms') }}</button>
       </header>
       <!-- a change of the terms waiting for another admin (Ahmed, 27 Nov 2026: the same standard as the lending terms) -->
       <div v-if="app?.pendingChange" class="cf-ban">
@@ -106,21 +104,6 @@
         <div class="cf-amend-actions">
           <button type="button" class="fx-btn" :disabled="busy" @click="cancelAmend"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Cancel') }}</button>
           <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveAmend"><span class="fa fa-paper-plane" aria-hidden="true"></span>{{ tr('Send for approval') }}</button>
-        </div>
-      </div>
-      <div v-if="app?.termChanges.length" class="cf-changes">
-        <h3>{{ tr('Audit trail') }}</h3>
-        <div class="fx-table-wrap">
-          <table class="fx-table">
-            <thead><tr><th>{{ tr('When') }}</th><th>{{ tr('Field') }}</th><th>{{ tr('Old') }} → {{ tr('New') }}</th><th>{{ tr('Why') }}</th><th>{{ tr('Asked by') }}</th><th>{{ tr('Approved by') }}</th></tr></thead>
-            <tbody>
-              <tr v-for="(c, i) in app.termChanges" :key="i">
-                <td>{{ formatDateTime(c.at) }}</td><td>{{ tr(c.fieldName) }}</td>
-                <td>{{ c.oldValue ?? '—' }} → <b>{{ c.newValue ?? '—' }}</b></td><td>{{ c.reason }}</td><td>{{ c.by }}</td>
-                <td>{{ c.approvedBy ?? tr('— (applied before approval was required)') }}</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
     </section>
@@ -214,8 +197,37 @@
     <CfSupplierDocuments v-if="app" :application-id="app.applicationId" :status-code="app.statusCode" :types="options?.documentTypes ?? []"
                          :read-only="false" :version="version" />
 
-    <!-- every step with its decision -->
-    <CfSupplierSteps v-if="app" :application-id="app.applicationId" :focus-step="null" :version="version" />
+    <!-- popups: where the application is and every step with its decision; the audit trail of the terms -->
+    <Crm360Dialog v-if="app" v-model:visible="showSteps" :title="tr('Workflow steps')" :subtitle="app.applicationRef" icon="fa-sitemap" :width="1100">
+      <ol class="fc-process">
+        <li v-for="(s, i) in process" :key="s.code" :class="{ 'is-done': processIndex > i, 'is-current': processIndex === i }">
+          <span class="fc-process-no">{{ processIndex > i ? '✓' : i + 1 }}</span>
+          <div><b>{{ tr(s.title) }}</b><small>{{ tr(s.who) }}</small></div>
+        </li>
+      </ol>
+      <CfSupplierSteps :application-id="app.applicationId" :focus-step="null" :version="version" />
+      <template #footer>
+        <button type="button" class="fx-btn" @click="showSteps = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+      </template>
+    </Crm360Dialog>
+    <Crm360Dialog v-if="app" v-model:visible="showAudit" :title="tr('Audit trail')" :subtitle="app.applicationRef" icon="fa-history" :width="1000">
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('When') }}</th><th>{{ tr('Field') }}</th><th>{{ tr('Old') }} → {{ tr('New') }}</th><th>{{ tr('Why') }}</th><th>{{ tr('Asked by') }}</th><th>{{ tr('Approved by') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="(c, i) in app.termChanges" :key="i">
+                <td>{{ formatDateTime(c.at) }}</td><td>{{ tr(c.fieldName) }}</td>
+                <td>{{ c.oldValue ?? '—' }} → <b>{{ c.newValue ?? '—' }}</b></td><td>{{ c.reason }}</td><td>{{ c.by }}</td>
+                <td>{{ c.approvedBy ?? tr('— (applied before approval was required)') }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      <div v-if="!app.termChanges.length" class="fx-empty"><span class="fa fa-history" aria-hidden="true"></span>{{ tr('No changes yet.') }}</div>
+      <template #footer>
+        <button type="button" class="fx-btn" @click="showAudit = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+      </template>
+    </Crm360Dialog>
 
     <!-- data entry actions -->
     <section v-if="editable" class="fx-card fc-step-card">
@@ -254,6 +266,7 @@ import type { WorkflowInboxTask } from '@/modules/wfe/models/workflow'
 import { errorText, fieldErrors } from '@/modules/scr/api/scr.api'
 import CfSupplierDocuments from './CfSupplierDocuments.vue'
 import CfSupplierSteps from './CfSupplierSteps.vue'
+import Crm360Dialog from './Crm360Dialog.vue'
 import { CF_CHIP, CF_STATUS, cfSuppliersApi, type CfOptions, type CfSupplier, type CfSupplierRequest } from '../api/cfSuppliers.api'
 
 const props = defineProps<{ clientId: number; inboxId: number | null }>()
@@ -261,6 +274,8 @@ const emit = defineEmits<{ changed: []; 'open-tab': [tab: string] }>()
 const router = useRouter()
 const canEdit = hasPermission('CRM.CF_SUPPLIER.EDIT')
 const amending = ref(false)
+const showSteps = ref(false)
+const showAudit = ref(false)
 const amendReason = ref('')
 const canAmend = computed(() => hasPermission('CRM.CF_SUPPLIER.AMEND') && app.value?.statusCode === 'ACTIVE')
 // the terms can be typed in: data entry, or an active supplier's terms being changed
@@ -469,6 +484,8 @@ watch(() => [props.clientId, props.inboxId], load, { immediate: true })
 .cf-amend-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .cf-changes { margin: 0 16px 16px; }
 .cf-changes h3 { margin: 6px 0; font-size: 13px; color: var(--fin-muted); }
+.cf-head-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cf-cnt { padding: 0 7px; border-radius: 999px; background: #eef1f3; font-size: 11.5px; }
 .cf-ban { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 16px 12px; padding: 10px 14px; border: 1px solid #f1d58a;
   border-radius: 10px; background: #fff8e6; }
 .cf-ban-txt { flex: 1; min-width: 0; font-size: 13px; }
