@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
-using Capitra.Application.Modules.Crm;
+using Capitra.Application.Modules.Crm.CfSuppliers;
 using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Lnd;
 using Capitra.Domain.Modules.Wfe;
