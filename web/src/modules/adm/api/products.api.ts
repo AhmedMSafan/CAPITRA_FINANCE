@@ -236,7 +236,10 @@ export const AMOUNT_BASES = [
   { value: 'CHEQUE_COUNT', label: 'Cheque Count' },
   { value: 'TENOR_DAYS', label: 'Tenor Days' },
   { value: 'APPROVED_LIMIT', label: 'Approved Facility Limit' },
-  { value: 'LOAN_AMOUNT', label: 'Loan amount (retail loan payout)' }
+  { value: 'LOAN_AMOUNT', label: 'Loan amount (retail loan payout)' },
+  // consumer finance (Ahmed, 26 Nov 2026): the goods' price, or the price less the down payment
+  { value: 'GOODS_PRICE', label: 'CF Total Goods Value' },
+  { value: 'FINANCED_AMOUNT', label: 'CF Financed Amount' }
 ]
 
 export const INCOME_RECOGNITIONS = [
