@@ -117,9 +117,9 @@ public sealed class LndWorkspaceService(ICapitraDbContext db, IClock clock, LndR
             }
             else if (l.ClaimStatusCode is null && charges[l.LoanId].Any())
             {
-                var (c, dp) = LndCfFinanceRules.ClaimAmounts(charges[l.LoanId], l.DownPaymentCollectorCode, l.DownPaymentAmount);
-                if (c + dp > 0)
-                    claims.Add(new LndWsClaimDto(l.LoanId, l.LoanNumber, null, l.CurrencyCode, c, dp, c + dp, 0, c + dp, "TO_CREATE", null));
+                var (up, dp) = LndCfFinanceRules.ClaimAmounts(charges[l.LoanId], l.DownPaymentCollectorCode, l.DownPaymentAmount);
+                if (up + dp > 0)
+                    claims.Add(new LndWsClaimDto(l.LoanId, l.LoanNumber, null, l.CurrencyCode, up, dp, up + dp, 0, up + dp, "TO_CREATE", null));
             }
         }
 
