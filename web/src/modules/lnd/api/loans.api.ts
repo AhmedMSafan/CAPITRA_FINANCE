@@ -202,10 +202,15 @@ export const loansApi = {
     supplierPayment?: CfSupplierPayment) =>
     http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, ...decision, delivery: delivery ?? null, supplierPayment: supplierPayment ?? null }),
   /** Rules and GL of New Finance (no loanId: all pages) or of a step of a finance. */
-  cfRules: (loanId: number | null, step: string | null) => {
+  /** choices: Credit's charges still on the screen (code, timing, amount) and down payment, so the popup shows what Approve would post. */
+  cfRules: (loanId: number | null, step: string | null, choices?: { charges: { code: string; timing: string; amount: number }[]; down: number | null } | null) => {
     const q = new URLSearchParams()
     if (loanId) q.set('loanId', String(loanId))
     if (step) q.set('step', step)
+    if (choices) {
+      q.set('charges', choices.charges.map((c) => `${c.code}:${c.timing}:${c.amount}`).join(','))
+      if (choices.down !== null) q.set('down', String(choices.down))
+    }
     const qs = q.toString()
     return http.get<CfRules>(`${API}/cf-rules${qs ? `?${qs}` : ''}`)
   },

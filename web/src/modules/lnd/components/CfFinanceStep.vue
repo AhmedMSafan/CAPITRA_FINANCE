@@ -9,7 +9,7 @@
       <p v-if="step.isMine">— {{ tr(HINT[step.stepCode] ?? 'Check the finance, then accept or reject the step.') }}</p>
       <p v-else>— {{ tr('Waiting for') }} {{ tr(ROLE[step.stepCode] ?? 'the step holder') }}. {{ tr('Open it from the inbox to work on it.') }}</p>
       <span class="cfs-grow"></span>
-      <CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" />
+      <CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" />
     </header>
 
     <!-- the deal at a glance, for the step holder -->
@@ -26,203 +26,248 @@
       <span>{{ tr('Commission') }} <b>{{ loan.goods.supplierCommissionPct ?? 0 }}%</b></span>
     </div>
 
-    <!-- Credit approval (Ahmed, 27 Nov 2026): every financial value is this finance's own copy and Credit can change any of them;
-         what was entered shows under each, a changed one is highlighted -->
-    <div v-if="deciding && t && o" class="cfs-terms">
-      <h4 class="cfs-sub">{{ tr('Amount and term') }}</h4>
-      <div class="cfs-grid">
-        <label class="fc-field"><span>{{ tr('Down payment') }} ({{ tr(loan.goods?.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</span>
-          <input v-model.number="t.downPaymentAmount" type="number" min="0" step="any" class="fx-search" :class="{ chg: ch('downPaymentAmount') }" @input="downChanged">
-          <small>{{ tr('entered') }} {{ money(o.downPaymentAmount) }}<template v-if="o.minDownPaymentAmount"> · {{ tr('at least') }} {{ money(o.minDownPaymentAmount) }}</template></small></label>
-        <label class="fc-field"><span>{{ tr('Financed') }}</span><input :value="money(o.priceAmount - (Number(t.downPaymentAmount) || 0))" class="fx-search" disabled>
-          <small>{{ tr('price − down payment') }}</small></label>
-        <label class="fc-field"><span>{{ tr('Term (months)') }}</span><input v-model.number="t.termMonths" type="number" min="1" max="120" class="fx-search" :class="{ chg: ch('termMonths') }">
-          <small>{{ tr('entered') }} {{ o.termMonths }}</small></label>
-        <label class="fc-field"><span>{{ tr('Repayment') }}</span>
-          <select v-model="t.repaymentFrequencyCode" class="fx-select" :class="{ chg: ch('repaymentFrequencyCode') }"><option v-for="x in o.options.frequencies" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
-          <small>{{ tr('entered') }} {{ tr(lbl(o.options.frequencies, o.repaymentFrequencyCode)) }}</small></label>
+    <!-- one layout for every step (Ahmed, 27 Nov 2026): the values in boxed groups on the left, the step's decision or money in one
+         framed box on the right, the actions at the bottom -->
+
+    <!-- Credit approval: every financial value is this finance's own copy and Credit can change any of them; what was entered shows on
+         the right of each row, a changed one is highlighted -->
+    <div v-if="deciding && t && o" class="cfl-cols">
+      <div class="cfl-stack">
+        <div class="cfl-box">
+          <h3>{{ tr('Amount and term') }}<small>{{ tr('entered value on the right') }}</small></h3>
+          <table class="cfl-rows"><tbody>
+            <tr :class="{ chg: ch('downPaymentAmount') }"><td class="cfl-l">{{ tr('Down payment') }} ({{ tr(loan.goods?.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</td>
+              <td class="cfl-v"><input v-model.number="t.downPaymentAmount" type="number" min="0" step="any" class="fx-search" :class="{ chg: ch('downPaymentAmount') }" @input="downChanged"></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ money(o.downPaymentAmount) }}<template v-if="o.minDownPaymentAmount"> · {{ tr('at least') }} {{ money(o.minDownPaymentAmount) }}</template></td></tr>
+            <tr><td class="cfl-l">{{ tr('Financed') }}</td><td class="cfl-v">{{ money(o.priceAmount - (Number(t.downPaymentAmount) || 0)) }}</td><td class="cfl-h">{{ tr('price − down payment') }}</td></tr>
+            <tr :class="{ chg: ch('termMonths') }"><td class="cfl-l">{{ tr('Term (months)') }}</td>
+              <td class="cfl-v"><input v-model.number="t.termMonths" type="number" min="1" max="120" class="fx-search" :class="{ chg: ch('termMonths') }"></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ o.termMonths }}</td></tr>
+            <tr :class="{ chg: ch('repaymentFrequencyCode') }"><td class="cfl-l">{{ tr('Repayment') }}</td>
+              <td class="cfl-v"><select v-model="t.repaymentFrequencyCode" class="fx-select" :class="{ chg: ch('repaymentFrequencyCode') }"><option v-for="x in o.options.frequencies" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ tr(lbl(o.options.frequencies, o.repaymentFrequencyCode)) }}</td></tr>
+          </tbody></table>
+        </div>
+        <div class="cfl-box">
+          <h3>{{ tr('Interest') }}</h3>
+          <table class="cfl-rows"><tbody>
+            <tr :class="{ chg: ch('annualRatePct') }"><td class="cfl-l">{{ tr('Yearly rate') }} (%)</td>
+              <td class="cfl-v"><input v-model.number="t.annualRatePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('annualRatePct') }"></td>
+              <td class="cfl-h">{{ tr('product') }} {{ step.productRatePct }}%<template v-if="marginNow"> · {{ tr('margin') }} {{ marginNow > 0 ? '+' : '' }}{{ marginNow }}</template></td></tr>
+            <tr :class="{ chg: ch('interestMethodCode') }"><td class="cfl-l">{{ tr('Interest method') }}</td>
+              <td class="cfl-v"><select v-model="t.interestMethodCode" class="fx-select" :class="{ chg: ch('interestMethodCode') }"><option v-for="x in o.options.interestMethods" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ tr(lbl(o.options.interestMethods, o.interestMethodCode)) }}</td></tr>
+            <tr :class="{ chg: ch('dayCountCode') }"><td class="cfl-l">{{ tr('Day count') }}</td>
+              <td class="cfl-v"><select v-model="t.dayCountCode" class="fx-select" :class="{ chg: ch('dayCountCode') }"><option v-for="x in o.options.dayCounts" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ tr(lbl(o.options.dayCounts, o.dayCountCode)) }}</td></tr>
+          </tbody></table>
+        </div>
+        <div class="cfl-box">
+          <h3>{{ tr('Late fee and other') }}<button type="button" class="cfl-link" @click="moreOpen = !moreOpen">{{ tr(moreOpen ? 'Close' : 'Change') }}</button></h3>
+          <table v-if="!moreOpen" class="cfl-rows"><tbody>
+            <tr :class="{ chg: ch('lateFeeTypeCode') || ch('lateFeeRatePct') || ch('lateFeeFlatAmount') || ch('lateFeeBaseCode') || ch('lateFeeGraceDays') }">
+              <td class="cfl-l">{{ tr('Late fee') }}</td><td class="cfl-v" colspan="2">{{ lateFeeText }}</td></tr>
+            <tr :class="{ chg: ch('isInsuranceRequired') || ch('isPrepaymentAllowed') || ch('prepaymentRecalcCode') || ch('prepaymentFeePct') || ch('earlySettlementFeePct') }">
+              <td class="cfl-l">{{ tr('Insurance') }} · {{ tr('Paying early') }}</td><td class="cfl-v" colspan="2">{{ otherText }}</td></tr>
+            <tr :class="{ chg: ch('paymentOrder') }"><td class="cfl-l">{{ tr('Payment order') }}</td>
+              <td class="cfl-v" colspan="2">{{ t.paymentOrder.map((x) => tr(lbl(o!.options.paymentParts, x))).join(' › ') }}</td></tr>
+          </tbody></table>
+          <table v-else class="cfl-rows"><tbody>
+            <tr :class="{ chg: ch('lateFeeTypeCode') }"><td class="cfl-l">{{ tr('Late fee type') }}</td>
+              <td class="cfl-v"><select v-model="t.lateFeeTypeCode" class="fx-select" :class="{ chg: ch('lateFeeTypeCode') }"><option v-for="x in o.options.lateFeeTypes" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ tr(lbl(o.options.lateFeeTypes, o.lateFeeTypeCode)) }}</td></tr>
+            <tr v-if="t.lateFeeTypeCode === 'FLAT'" :class="{ chg: ch('lateFeeFlatAmount') }"><td class="cfl-l">{{ tr('Fee per late instalment') }}</td>
+              <td class="cfl-v"><input v-model.number="t.lateFeeFlatAmount" type="number" min="0" step="any" class="fx-search" :class="{ chg: ch('lateFeeFlatAmount') }"></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ o.lateFeeFlatAmount ?? '—' }}</td></tr>
+            <template v-if="t.lateFeeTypeCode === 'PCT_ONCE' || t.lateFeeTypeCode === 'PCT_DAILY'">
+              <tr :class="{ chg: ch('lateFeeRatePct') }"><td class="cfl-l">{{ tr('Late fee rate') }} (%)</td>
+                <td class="cfl-v"><input v-model.number="t.lateFeeRatePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('lateFeeRatePct') }"></td>
+                <td class="cfl-h">{{ tr('entered') }} {{ o.lateFeeRatePct ?? '—' }}</td></tr>
+              <tr :class="{ chg: ch('lateFeeBaseCode') }"><td class="cfl-l">{{ tr('Calculated on') }}</td>
+                <td class="cfl-v"><select v-model="t.lateFeeBaseCode" class="fx-select" :class="{ chg: ch('lateFeeBaseCode') }"><option v-for="x in o.options.lateFeeBases" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select></td>
+                <td class="cfl-h">{{ tr('entered') }} {{ tr(lbl(o.options.lateFeeBases, o.lateFeeBaseCode)) }}</td></tr>
+            </template>
+            <tr v-if="t.lateFeeTypeCode !== 'NONE'" :class="{ chg: ch('lateFeeGraceDays') }"><td class="cfl-l">{{ tr('Grace days') }}</td>
+              <td class="cfl-v"><input v-model.number="t.lateFeeGraceDays" type="number" min="0" max="90" class="fx-search" :class="{ chg: ch('lateFeeGraceDays') }"></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ o.lateFeeTypeCode === 'NONE' ? '—' : o.lateFeeGraceDays }}</td></tr>
+            <tr :class="{ chg: ch('isInsuranceRequired') }"><td class="cfl-l">{{ tr('Insurance required') }}</td>
+              <td class="cfl-v"><select v-model="t.isInsuranceRequired" class="fx-select" :class="{ chg: ch('isInsuranceRequired') }"><option :value="false">{{ tr('No') }}</option><option :value="true">{{ tr('Yes') }}</option></select></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ tr(o.isInsuranceRequired ? 'Yes' : 'No') }}</td></tr>
+            <tr :class="{ chg: ch('isPrepaymentAllowed') }"><td class="cfl-l">{{ tr('Paying early') }}</td>
+              <td class="cfl-v"><select v-model="t.isPrepaymentAllowed" class="fx-select" :class="{ chg: ch('isPrepaymentAllowed') }"><option :value="true">{{ tr('Allowed') }}</option><option :value="false">{{ tr('Not allowed') }}</option></select></td>
+              <td class="cfl-h">{{ tr('entered') }} {{ tr(o.isPrepaymentAllowed ? 'Allowed' : 'Not allowed') }}</td></tr>
+            <template v-if="t.isPrepaymentAllowed">
+              <tr :class="{ chg: ch('prepaymentRecalcCode') }"><td class="cfl-l">{{ tr('After a part prepayment') }}</td>
+                <td class="cfl-v"><select v-model="t.prepaymentRecalcCode" class="fx-select" :class="{ chg: ch('prepaymentRecalcCode') }"><option v-for="x in o.options.prepaymentRecalcs" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select></td>
+                <td class="cfl-h">{{ tr('entered') }} {{ tr(lbl(o.options.prepaymentRecalcs, o.prepaymentRecalcCode)) }}</td></tr>
+              <tr :class="{ chg: ch('prepaymentFeePct') }"><td class="cfl-l">{{ tr('Part prepayment fee') }} (%)</td>
+                <td class="cfl-v"><input v-model.number="t.prepaymentFeePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('prepaymentFeePct') }"></td>
+                <td class="cfl-h">{{ tr('entered') }} {{ o.prepaymentFeePct }}%</td></tr>
+              <tr :class="{ chg: ch('earlySettlementFeePct') }"><td class="cfl-l">{{ tr('Early settlement fee') }} (%)</td>
+                <td class="cfl-v"><input v-model.number="t.earlySettlementFeePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('earlySettlementFeePct') }"></td>
+                <td class="cfl-h">{{ tr('entered') }} {{ o.earlySettlementFeePct }}%</td></tr>
+            </template>
+            <tr :class="{ chg: ch('paymentOrder') }"><td class="cfl-l">{{ tr('Payment order') }}</td>
+              <td class="cfl-v" colspan="2"><span class="cfs-order">
+                <span v-for="(part, i) in t.paymentOrder" :key="part" class="cfs-part">
+                  <button type="button" :disabled="i === 0" :aria-label="tr('Move up')" @click="moveOrder(i)"><span class="fa fa-angle-left" aria-hidden="true"></span></button>{{ tr(lbl(o.options.paymentParts, part)) }}
+                </span></span></td></tr>
+          </tbody></table>
+        </div>
       </div>
-      <h4 class="cfs-sub">{{ tr('Interest') }}</h4>
-      <div class="cfs-grid">
-        <label class="fc-field"><span>{{ tr('Yearly rate') }} (%)</span><input v-model.number="t.annualRatePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('annualRatePct') }">
-          <small>{{ tr('product') }} {{ step.productRatePct }}%<template v-if="marginNow"> · {{ tr('margin') }} {{ marginNow > 0 ? '+' : '' }}{{ marginNow }}</template></small></label>
-        <label class="fc-field"><span>{{ tr('Interest method') }}</span>
-          <select v-model="t.interestMethodCode" class="fx-select" :class="{ chg: ch('interestMethodCode') }"><option v-for="x in o.options.interestMethods" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
-          <small>{{ tr('entered') }} {{ tr(lbl(o.options.interestMethods, o.interestMethodCode)) }}</small></label>
-        <label class="fc-field"><span>{{ tr('Day count') }}</span>
-          <select v-model="t.dayCountCode" class="fx-select" :class="{ chg: ch('dayCountCode') }"><option v-for="x in o.options.dayCounts" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
-          <small>{{ tr('entered') }} {{ tr(lbl(o.options.dayCounts, o.dayCountCode)) }}</small></label>
-      </div>
-      <h4 class="cfs-sub">{{ tr('Late fee and other') }}</h4>
-      <div class="cfs-grid">
-        <label class="fc-field"><span>{{ tr('Late fee type') }}</span>
-          <select v-model="t.lateFeeTypeCode" class="fx-select" :class="{ chg: ch('lateFeeTypeCode') }"><option v-for="x in o.options.lateFeeTypes" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
-          <small>{{ tr('entered') }} {{ tr(lbl(o.options.lateFeeTypes, o.lateFeeTypeCode)) }}</small></label>
-        <label v-if="t.lateFeeTypeCode === 'FLAT'" class="fc-field"><span>{{ tr('Fee per late instalment') }}</span>
-          <input v-model.number="t.lateFeeFlatAmount" type="number" min="0" step="any" class="fx-search" :class="{ chg: ch('lateFeeFlatAmount') }"><small>{{ tr('entered') }} {{ o.lateFeeFlatAmount ?? '—' }}</small></label>
-        <template v-if="t.lateFeeTypeCode === 'PCT_ONCE' || t.lateFeeTypeCode === 'PCT_DAILY'">
-          <label class="fc-field"><span>{{ tr('Late fee rate') }} (%)</span>
-            <input v-model.number="t.lateFeeRatePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('lateFeeRatePct') }"><small>{{ tr('entered') }} {{ o.lateFeeRatePct ?? '—' }}</small></label>
-          <label class="fc-field"><span>{{ tr('Calculated on') }}</span>
-            <select v-model="t.lateFeeBaseCode" class="fx-select" :class="{ chg: ch('lateFeeBaseCode') }"><option v-for="x in o.options.lateFeeBases" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
-            <small>{{ tr('entered') }} {{ tr(lbl(o.options.lateFeeBases, o.lateFeeBaseCode)) }}</small></label>
-        </template>
-        <label v-if="t.lateFeeTypeCode !== 'NONE'" class="fc-field"><span>{{ tr('Grace days') }}</span>
-          <input v-model.number="t.lateFeeGraceDays" type="number" min="0" max="90" class="fx-search" :class="{ chg: ch('lateFeeGraceDays') }"><small>{{ tr('entered') }} {{ o.lateFeeTypeCode === 'NONE' ? '—' : o.lateFeeGraceDays }}</small></label>
-        <label class="fc-field"><span>{{ tr('Insurance required') }}</span>
-          <select v-model="t.isInsuranceRequired" class="fx-select" :class="{ chg: ch('isInsuranceRequired') }"><option :value="false">{{ tr('No') }}</option><option :value="true">{{ tr('Yes') }}</option></select>
-          <small>{{ tr('entered') }} {{ tr(o.isInsuranceRequired ? 'Yes' : 'No') }}</small></label>
-        <label class="fc-field"><span>{{ tr('Paying early') }}</span>
-          <select v-model="t.isPrepaymentAllowed" class="fx-select" :class="{ chg: ch('isPrepaymentAllowed') }"><option :value="true">{{ tr('Allowed') }}</option><option :value="false">{{ tr('Not allowed') }}</option></select>
-          <small>{{ tr('entered') }} {{ tr(o.isPrepaymentAllowed ? 'Allowed' : 'Not allowed') }}</small></label>
-        <template v-if="t.isPrepaymentAllowed">
-          <label class="fc-field"><span>{{ tr('After a part prepayment') }}</span>
-            <select v-model="t.prepaymentRecalcCode" class="fx-select" :class="{ chg: ch('prepaymentRecalcCode') }"><option v-for="x in o.options.prepaymentRecalcs" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
-            <small>{{ tr('entered') }} {{ tr(lbl(o.options.prepaymentRecalcs, o.prepaymentRecalcCode)) }}</small></label>
-          <label class="fc-field"><span>{{ tr('Part prepayment fee') }} (%)</span>
-            <input v-model.number="t.prepaymentFeePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('prepaymentFeePct') }"><small>{{ tr('entered') }} {{ o.prepaymentFeePct }}%</small></label>
-          <label class="fc-field"><span>{{ tr('Early settlement fee') }} (%)</span>
-            <input v-model.number="t.earlySettlementFeePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('earlySettlementFeePct') }"><small>{{ tr('entered') }} {{ o.earlySettlementFeePct }}%</small></label>
-        </template>
-      </div>
-      <div class="cfs-order">
-        <span class="c3-muted">{{ tr('Payment order') }}:</span>
-        <span v-for="(part, i) in t.paymentOrder" :key="part" class="cfs-part" :class="{ chg: ch('paymentOrder') }">
-          <button type="button" :disabled="i === 0" :aria-label="tr('Move up')" @click="moveOrder(i)"><span class="fa fa-angle-left" aria-hidden="true"></span></button>{{ tr(lbl(o.options.paymentParts, part)) }}
-        </span>
+      <div class="cfl-stack">
+        <div v-if="charges" class="cfl-key">
+          <h3>{{ tr('Charges — your decision') }}<small>{{ tr('rule') }} CF_CHARGES</small></h3>
+          <p v-if="charges.problem" class="cfl-note bad cfl-pad">{{ charges.problem }}</p>
+          <table v-else-if="charges.charges.length" class="cfl-rows"><tbody>
+            <tr v-for="c in charges.charges" :key="c.chargeCode">
+              <td><b>{{ tr(c.chargeName) }}</b><br><small class="c3-muted">{{ tr(c.basisText) || '—' }} · {{ tr('rule') }} {{ money(c.ruleAmount) }}</small></td>
+              <td><input v-model.number="amounts[c.chargeCode]" type="number" min="0" step="any" class="fx-search cfs-amt" :class="{ chg: amountOf(c) !== c.ruleAmount }" @input="touched.add(c.chargeCode)"></td>
+              <td class="cfl-h">
+                <span class="cfs-seg" role="group" :aria-label="tr('How paid')">
+                  <button type="button" :class="{ on: timing(c) === UPFRONT }" @click="setTiming(c, UPFRONT)">{{ tr('Upfront') }}</button>
+                  <button type="button" :class="{ on: timing(c) === FINANCED }" @click="setTiming(c, FINANCED)">{{ tr('Add to schedule') }}</button>
+                </span>
+                <small v-if="timing(c) !== c.defaultTimingCode || amountOf(c) !== c.ruleAmount" class="cfs-ovr">{{ tr('changed from the rule') }}</small>
+              </td>
+            </tr>
+          </tbody></table>
+          <p v-else class="cfl-note cfl-pad">{{ tr('The rule has no charges.') }}</p>
+          <div v-if="!charges.problem" class="cfl-tiles">
+            <div class="cfl-tile"><small>{{ tr('Financed') }}</small><b>{{ money(totals.financed) }}</b></div>
+            <div class="cfl-tile"><small>{{ tr('Added to schedule') }}</small><b>{{ money(totals.added) }}</b></div>
+            <div class="cfl-tile hl"><small>{{ tr('Finance amount') }}</small><b>{{ money(totals.financed + totals.added) }}</b></div>
+            <div class="cfl-tile hl"><small>{{ tr('Upfront claim') }}</small><b>{{ money(totals.upfront + claimDown) }}</b></div>
+          </div>
+          <p v-if="step.claimAtCredit && !charges.problem" class="cfl-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+            <template v-if="totals.upfront + claimDown > 0">{{ tr('Approve books the claim') }} {{ money(totals.upfront + claimDown) }}<template v-if="totals.upfront"> ({{ tr('rule CF_CHARGES posts the upfront charges') }} {{ money(totals.upfront) }})</template>.
+              {{ tr('It is paid in Collection; the schedule step waits until it is paid.') }}</template>
+            <template v-else>{{ tr('Nothing upfront: no claim, nothing posts on Approve.') }}</template>
+            <template v-if="totals.added"> {{ tr('Charges added to the schedule post at Delivery as part of the finance.') }}</template>
+          </p>
+          <p v-if="changedCount" class="cfl-note">{{ changedCount }} {{ tr('values changed from what was entered') }}</p>
+        </div>
       </div>
     </div>
 
-    <!-- the charges: Credit decides (the rule's default is marked), later steps show the decision -->
-    <div v-if="charges && (step.isMine || charges.decided)" class="cfs-box">
-      <h4>{{ tr('Charges') }} <small v-if="charges.decided" class="c3-muted">· {{ tr('decided by Credit') }}</small></h4>
-      <p v-if="charges.problem" class="cfs-bad">{{ charges.problem }}</p>
-      <table v-else-if="charges.charges.length" class="fx-table">
-        <thead><tr><th>{{ tr('Charge') }}</th><th>{{ tr('Basis') }}</th><th class="cfs-c">{{ tr('Amount') }}</th><th class="cfs-c">{{ tr('How paid') }}</th></tr></thead>
-        <tbody>
-          <tr v-for="c in charges.charges" :key="c.chargeCode">
-            <td>{{ tr(c.chargeName) }}</td><td>{{ tr(c.basisText) || '—' }}</td>
-            <td v-if="deciding" class="cfs-c">
-              <input v-model.number="amounts[c.chargeCode]" type="number" min="0" step="any" class="fx-search cfs-amt" :class="{ chg: amountOf(c) !== c.ruleAmount }" @input="touched.add(c.chargeCode)">
-              <small class="c3-muted cfs-rule">{{ tr('rule') }}: {{ money(c.ruleAmount) }}</small>
-            </td>
-            <td v-else class="cfs-c">{{ money(c.amount + c.taxAmount) }}<small v-if="c.taxAmount" class="c3-muted"> ({{ tr('incl. tax') }} {{ money(c.taxAmount) }})</small></td>
-            <td class="cfs-c">
-              <span v-if="deciding" class="cfs-seg" role="group" :aria-label="tr('How paid')">
-                <button type="button" :class="{ on: timing(c) === UPFRONT }" @click="setTiming(c, UPFRONT)">{{ tr('Upfront') }}</button>
-                <button type="button" :class="{ on: timing(c) === FINANCED }" @click="setTiming(c, FINANCED)">{{ tr('Add to schedule') }}</button>
-              </span>
-              <span v-else class="fx-chip" :class="c.timingCode === UPFRONT ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(c.timingCode === UPFRONT ? 'Upfront' : 'Added to schedule') }}</span>
-              <small v-if="deciding ? timing(c) !== c.defaultTimingCode || amountOf(c) !== c.ruleAmount : c.isOverridden" class="c3-muted cfs-ovr">{{ tr('changed from the rule') }}</small>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <p v-else class="c3-muted">{{ tr('The rule has no charges.') }}</p>
-      <p v-if="!charges.problem" class="cfs-sum">
-        {{ tr('Financed') }} <b>{{ money(totals.financed) }}</b> · {{ tr('Added to schedule') }} <b>{{ money(totals.added) }}</b>
-        · {{ tr('Finance amount') }} <b>{{ money(totals.financed + totals.added) }}</b> · {{ tr('Upfront') }} <b>{{ money(totals.upfront) }}</b>
-        <template v-if="deciding && changedCount"> · <span class="c3-muted">{{ changedCount }} {{ tr('values changed from what was entered') }}</span></template>
-      </p>
+    <!-- Charges and claim (finances started before 27 Nov 2026): Credit's decision on the left, the claim on the right -->
+    <div v-if="step.stepCode === 'CF_CHARGES' && step.isMine" class="cfl-cols">
+      <div class="cfl-box">
+        <h3>{{ tr('Charges') }}<small>{{ tr('decided by Credit') }}</small></h3>
+        <p v-if="charges?.problem" class="cfl-note bad cfl-pad">{{ charges.problem }}</p>
+        <table v-else class="cfl-rows"><tbody>
+          <tr v-for="c in charges?.charges ?? []" :key="c.chargeCode"><td class="cfl-l">{{ tr(c.chargeName) }}</td>
+            <td class="cfl-v">{{ money(c.amount + c.taxAmount) }}</td>
+            <td class="cfl-h"><span class="fx-chip" :class="c.timingCode === UPFRONT ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(c.timingCode === UPFRONT ? 'Upfront' : 'Added to schedule') }}</span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="cfl-key">
+        <h3>{{ tr('Upfront claim') }}<button v-if="loan.claim && loan.claim.statusCode !== 'NONE'" type="button" class="fx-btn fx-btn--sm" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></h3>
+        <template v-if="!loan.claim">
+          <div class="cfl-tiles">
+            <div class="cfl-tile"><small>{{ tr('Upfront charges') }}</small><b>{{ money(claimCharges) }}</b></div>
+            <div class="cfl-tile"><small>{{ tr('Down payment we take') }}</small><b>{{ money(claimDown) }}</b></div>
+            <div class="cfl-tile hl"><small>{{ tr('Claim') }}</small><b>{{ money(claimCharges + claimDown) }}</b></div>
+          </div>
+          <p class="cfl-note"><button type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="createClaim">
+            <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-file-text-o'" aria-hidden="true"></span>{{ tr(claimCharges + claimDown ? 'Create claim' : 'Confirm nothing upfront') }}</button></p>
+        </template>
+        <p v-else-if="loan.claim.statusCode === 'NONE'" class="cfl-note cfl-pad">{{ tr('Nothing is paid upfront. Accept to go on to the schedule.') }}</p>
+        <template v-else>
+          <div class="cfl-tiles">
+            <div class="cfl-tile"><small>{{ tr('Claim') }}</small><b>{{ money(loan.claim.totalAmount) }}</b></div>
+            <div class="cfl-tile"><small>{{ tr('Status') }}</small><b>{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</b></div>
+            <div class="cfl-tile"><small>{{ tr('Paid') }}</small><b>{{ money(loan.claim.paidAmount) }}</b></div>
+            <div class="cfl-tile" :class="{ warn: loan.claim.outstandingAmount > 0 }"><small>{{ tr('Outstanding') }}</small><b>{{ money(loan.claim.outstandingAmount) }}</b></div>
+          </div>
+          <p v-if="loan.claim.outstandingAmount > 0" class="cfl-note">{{ tr('The claim is paid in Collection › Customer Payments; accept once it is paid.') }}</p>
+        </template>
+      </div>
     </div>
 
-    <!-- Credit approval: what approving creates -->
-    <p v-if="deciding && step.claimAtCredit && !charges?.problem" class="cfs-note">
-      <span class="fa fa-info-circle" aria-hidden="true"></span>
-      <template v-if="totals.upfront + claimDown > 0">{{ tr('Approve creates the claim') }}: {{ tr('upfront charges') }} <b>{{ money(totals.upfront) }}</b>
-        <template v-if="claimDown"> + {{ tr('down payment we take') }} <b>{{ money(claimDown) }}</b></template> = <b>{{ money(totals.upfront + claimDown) }}</b>
-        ({{ tr('rule CF_CHARGES posts the charges') }}). {{ tr('The schedule step waits until it is paid.') }}</template>
-      <template v-else>{{ tr('Nothing is paid upfront: no claim.') }}</template>
-    </p>
-
-    <!-- Schedule and contract: the claim must be paid first -->
-    <div v-if="step.stepCode === 'CF_SCHEDULE' && loan.claim && loan.claim.statusCode !== 'NONE'" class="cfs-box">
-      <h4>{{ tr('Upfront claim') }}</h4>
-      <p>{{ tr('Claim') }} <b>{{ money(loan.claim.totalAmount) }}</b>
-        <span class="fx-chip" :class="claimTone(loan.claim.statusCode)">{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</span>
-        · {{ tr('Paid') }} <b>{{ money(loan.claim.paidAmount) }}</b> · {{ tr('Outstanding') }} <b>{{ money(loan.claim.outstandingAmount) }}</b>
-        <button type="button" class="fx-btn fx-btn--sm cfs-claim-btn" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></p>
-      <p v-if="loan.claim.outstandingAmount > 0" class="cfs-bad">{{ tr('Accept waits until the claim is paid in Collection › Customer Payments.') }}</p>
+    <!-- Schedule and contract: the finance to schedule on the left, the claim (paid first) on the right -->
+    <div v-if="step.stepCode === 'CF_SCHEDULE'" class="cfl-cols">
+      <div class="cfl-box">
+        <h3>{{ tr('Schedule to build') }}</h3>
+        <table class="cfl-rows"><tbody>
+          <tr><td class="cfl-l">{{ tr('Finance amount') }}</td><td class="cfl-v">{{ money(loan.principalAmount) }}</td><td class="cfl-h">{{ tr('financed + charges added') }}</td></tr>
+          <tr><td class="cfl-l">{{ tr('Term') }}</td><td class="cfl-v">{{ loan.termMonths }} {{ tr('months') }}</td><td class="cfl-h"></td></tr>
+          <tr><td class="cfl-l">{{ tr('Yearly rate') }}</td><td class="cfl-v">{{ loan.annualRatePct }}%</td><td class="cfl-h"></td></tr>
+          <tr><td class="cfl-l">{{ tr('Starts') }}</td><td class="cfl-v">{{ tr('today') }}</td><td class="cfl-h">{{ tr('dates move to the delivery day') }}</td></tr>
+        </tbody></table>
+      </div>
+      <div v-if="loan.claim && loan.claim.statusCode !== 'NONE'" class="cfl-key">
+        <h3>{{ tr('Upfront claim') }}<button type="button" class="fx-btn fx-btn--sm" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></h3>
+        <div class="cfl-tiles">
+          <div class="cfl-tile"><small>{{ tr('Claim') }}</small><b>{{ money(loan.claim.totalAmount) }}</b></div>
+          <div class="cfl-tile"><small>{{ tr('Status') }}</small><b>{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</b></div>
+          <div class="cfl-tile"><small>{{ tr('Paid') }}</small><b>{{ money(loan.claim.paidAmount) }}</b></div>
+          <div class="cfl-tile" :class="{ warn: loan.claim.outstandingAmount > 0 }"><small>{{ tr('Outstanding') }}</small><b>{{ money(loan.claim.outstandingAmount) }}</b></div>
+        </div>
+        <p v-if="loan.claim.outstandingAmount > 0" class="cfl-note bad">{{ tr('Accept waits until the claim is paid in Collection › Customer Payments.') }}</p>
+      </div>
+      <div v-else class="cfl-key">
+        <h3>{{ tr('Upfront claim') }}</h3>
+        <p class="cfl-note cfl-pad">{{ tr('Nothing upfront: no claim.') }}</p>
+      </div>
     </div>
     <CfClaimDialog v-model:visible="claimShown" :loan-id="loan.loanId" :show-finance="false" />
 
-    <!-- Charges and claim (finances started before 27 Nov 2026): the claim of the upfront charges (and the down payment we take), then its payment -->
-    <div v-if="step.stepCode === 'CF_CHARGES' && step.isMine" class="cfs-box">
-      <h4>{{ tr('Upfront claim') }}</h4>
-      <template v-if="!loan.claim">
-        <p class="c3-muted">
-          {{ tr('Upfront charges') }} {{ money(claimCharges) }} · {{ tr('Down payment we take') }} {{ money(claimDown) }} = <b>{{ money(claimCharges + claimDown) }}</b>
-        </p>
-        <button type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="createClaim">
-          <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-file-text-o'" aria-hidden="true"></span>{{ tr(claimCharges + claimDown ? 'Create claim' : 'Confirm nothing upfront') }}
-        </button>
-      </template>
-      <p v-else-if="loan.claim.statusCode === 'NONE'" class="c3-muted">{{ tr('Nothing is paid upfront. Accept to go on to the schedule.') }}</p>
-      <template v-else>
-        <p>{{ tr('Claim') }} <b>{{ money(loan.claim.totalAmount) }}</b>
-          <span class="fx-chip" :class="claimTone(loan.claim.statusCode)">{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</span>
-          · {{ tr('Paid') }} <b>{{ money(loan.claim.paidAmount) }}</b> · {{ tr('Outstanding') }} <b>{{ money(loan.claim.outstandingAmount) }}</b>
-          <small v-if="loan.claim.glTranSetId" class="c3-muted"> GL {{ loan.claim.glTranSetId }}</small>
-          <button type="button" class="fx-btn fx-btn--sm cfs-claim-btn" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></p>
-        <p v-if="loan.claim.outstandingAmount > 0" class="c3-muted">{{ tr('The claim is paid in Collection › Customer Payments; accept once it is paid.') }}</p>
-      </template>
-    </div>
-
-    <!-- Delivery and customer receipt (27 Nov 2026): the delivery and the customer's confirmation; accepting books the finance -->
-    <div v-if="step.stepCode === 'CF_DELIVERY' && step.isMine" class="cfs-box">
-      <h4 class="cfs-sub">{{ tr('Delivery') }}</h4>
-      <div class="cfs-grid">
-        <label class="fc-field"><span>{{ tr('Delivered on') }}<b> *</b></span><input v-model="delivery.deliveryDate" type="date" class="fx-search" :max="todayIso">
-          <small>{{ tr('not before the schedule step, not in the future') }}</small></label>
-        <label class="fc-field"><span>{{ tr('Delivery note no.') }}<b> *</b></span><input v-model="delivery.deliveryNoteNo" class="fx-search" maxlength="50"></label>
-        <label class="fc-field"><span>{{ tr('Serial / IMEI') }}</span><input v-model="delivery.serialNo" class="fx-search" maxlength="100"></label>
-        <label class="fc-field"><span>{{ tr('Delivery note (file)') }}</span><small class="cfs-doc">{{ tr('Add the signed delivery note under Documents below.') }}</small></label>
+    <!-- Delivery and customer receipt: the delivery on the left, what Accept books on the right -->
+    <div v-if="step.stepCode === 'CF_DELIVERY' && step.isMine" class="cfl-cols">
+      <div class="cfl-box">
+        <h3>{{ tr('Delivery') }}</h3>
+        <table class="cfl-rows"><tbody>
+          <tr><td class="cfl-l">{{ tr('Delivered on') }} *</td><td class="cfl-v"><input v-model="delivery.deliveryDate" type="date" class="fx-search" :max="todayIso"></td>
+            <td class="cfl-h">{{ tr('not before the schedule step, not in the future') }}</td></tr>
+          <tr><td class="cfl-l">{{ tr('Delivery note no.') }} *</td><td class="cfl-v"><input v-model="delivery.deliveryNoteNo" class="fx-search" maxlength="50"></td><td class="cfl-h"></td></tr>
+          <tr><td class="cfl-l">{{ tr('Serial / IMEI') }}</td><td class="cfl-v"><input v-model="delivery.serialNo" class="fx-search" maxlength="100"></td><td class="cfl-h"></td></tr>
+          <tr><td class="cfl-l">{{ tr('Delivery note (file)') }}</td><td class="cfl-v" colspan="2"><span class="c3-muted">{{ tr('Add the signed delivery note under Documents below.') }}</span></td></tr>
+          <tr><td colspan="3"><label class="cfs-confirm"><input v-model="delivery.customerConfirmed" type="checkbox">{{ tr('The customer received the goods and confirms they match the contract') }}</label></td></tr>
+        </tbody></table>
       </div>
-      <label class="cfs-confirm"><input v-model="delivery.customerConfirmed" type="checkbox">{{ tr('The customer received the goods and confirms they match the contract') }}</label>
-      <h4 class="cfs-sub">{{ tr('On accept') }}</h4>
-      <ul class="cfs-list">
-        <li>{{ tr('The finance is booked (rule CF_DELIVERY)') }}: {{ tr('Dr Finance') }} <b>{{ money(loan.principalAmount) }}</b> · {{ tr('Cr Payable to the supplier') }}
-          <b>{{ money(financedNow) }}</b><template v-if="loan.principalAmount - financedNow > 0"> · {{ tr('Cr Charges not earned yet') }} <b>{{ money(loan.principalAmount - financedNow) }}</b></template>
-          <template v-if="heldDown"> · {{ tr('Down payment held, now due to the supplier') }} <b>{{ money(heldDown) }}</b></template></li>
-        <li>{{ tr('Status') }} {{ tr('Approved') }} → <b>{{ tr('Active') }}</b>; {{ tr('the schedule dates move to the delivery day (amounts unchanged)') }}</li>
-        <li>{{ tr('The supplier is paid by') }} <b>{{ supplierDue }}</b> ({{ tr('delivery') }} + {{ loan.goods?.supplierPaymentDays ?? 0 }} {{ tr('days') }}) → {{ tr('Supplier payment step (Treasury)') }}</li>
-      </ul>
-    </div>
-
-    <!-- Supplier payment (27 Nov 2026): what the supplier is owed less its commission, paid from our bank account; accepting posts it -->
-    <div v-if="step.stepCode === 'CF_SUPPLIER_PAYMENT' && step.isMine && step.supplierDue" class="cfs-box">
-      <h4 class="cfs-sub">{{ tr('Supplier payment') }}</h4>
-      <p class="cfs-sum">
-        {{ tr('Owed to the supplier') }} <b>{{ money(step.supplierDue.payableAmount) }}</b>
-        · {{ tr('Commission') }} <b>{{ money(commissionNow) }}</b> ({{ tr('agreed') }} {{ step.supplierDue.commissionPct }}% = {{ money(step.supplierDue.commissionAmount) }})
-        · {{ tr('Net paid') }} <b>{{ money(step.supplierDue.payableAmount - commissionNow) }}</b>
-        <template v-if="step.supplierDue.dueDate"> · {{ tr('pay by') }} <b>{{ step.supplierDue.dueDate }}</b></template>
-      </p>
-      <div class="cfs-grid">
-        <label class="fc-field"><span>{{ tr('Paid from') }}<b> *</b></span>
-          <select v-model="sp.bankAccountId" class="fx-select">
-            <option :value="null" disabled>{{ tr('Choose the bank account') }}</option>
-            <option v-for="a in step.accounts ?? []" :key="a.accountId" :value="a.accountId">{{ a.bankName }} · {{ a.accountRef }}</option>
-          </select></label>
-        <label class="fc-field"><span>{{ tr('Transfer reference') }}<b> *</b></span><input v-model="sp.reference" class="fx-search" maxlength="100"></label>
-        <label class="fc-field"><span>{{ tr('Commission') }}</span>
-          <input v-model.number="sp.commissionAmount" type="number" min="0" step="any" class="fx-search" :class="{ chg: commissionNow !== step.supplierDue.commissionAmount }">
-          <small>{{ tr('agreed') }} {{ money(step.supplierDue.commissionAmount) }}</small></label>
-        <label v-if="commissionNow !== step.supplierDue.commissionAmount" class="fc-field"><span>{{ tr('Why the commission changed') }}<b> *</b></span>
-          <input v-model="sp.commissionReason" class="fx-search" maxlength="500"></label>
+      <div class="cfl-key">
+        <h3>{{ tr('On accept') }}<small>{{ tr('rule') }} CF_DELIVERY</small></h3>
+        <div class="cfl-tiles">
+          <div class="cfl-tile hl"><small>{{ tr('Dr Finance') }}</small><b>{{ money(loan.principalAmount) }}</b></div>
+          <div class="cfl-tile"><small>{{ tr('Cr Payable to the supplier') }}</small><b>{{ money(financedNow) }}</b></div>
+          <div v-if="loan.principalAmount - financedNow > 0" class="cfl-tile"><small>{{ tr('Cr Charges not earned yet') }}</small><b>{{ money(loan.principalAmount - financedNow) }}</b></div>
+          <div v-if="heldDown" class="cfl-tile"><small>{{ tr('Down payment held, now due to the supplier') }}</small><b>{{ money(heldDown) }}</b></div>
+          <div class="cfl-tile"><small>{{ tr('Supplier paid by') }}</small><b>{{ supplierDue }}</b></div>
+        </div>
+        <p class="cfl-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Status') }} {{ tr('Approved') }} → {{ tr('Active') }}; {{ tr('the schedule dates move to the delivery day (amounts unchanged)') }}.</p>
       </div>
-      <h4 class="cfs-sub">{{ tr('On accept') }}</h4>
-      <ul class="cfs-list">
-        <li>{{ tr('Rule CF_SUPPLIER_PAYMENT') }}: {{ tr('Dr Payable to the supplier') }} <b>{{ money(step.supplierDue.payableAmount) }}</b> · {{ tr('Cr Commission income') }}
-          <b>{{ money(commissionNow) }}</b> · {{ tr('Cr Bank') }} <b>{{ money(step.supplierDue.payableAmount - commissionNow) }}</b></li>
-        <li>{{ tr('The workflow ends; the finance stays active and is collected by its schedule.') }}</li>
-      </ul>
     </div>
 
-    <p v-if="step.stepCode === 'CF_SCHEDULE' && step.isMine" class="cfs-note">
-      <span class="fa fa-info-circle" aria-hidden="true"></span>
-      {{ tr('Accept builds the schedule on the finance amount') }} {{ money(loan.principalAmount) }} {{ tr('over') }} {{ loan.termMonths }} {{ tr('months, from today.') }}
-    </p>
+    <!-- Supplier payment: the payment on the left, what the supplier gets on the right -->
+    <div v-if="step.stepCode === 'CF_SUPPLIER_PAYMENT' && step.isMine && step.supplierDue" class="cfl-cols">
+      <div class="cfl-box">
+        <h3>{{ tr('Supplier payment') }}</h3>
+        <table class="cfl-rows"><tbody>
+          <tr><td class="cfl-l">{{ tr('Paid from') }} *</td><td class="cfl-v">
+            <select v-model="sp.bankAccountId" class="fx-select">
+              <option :value="null" disabled>{{ tr('Choose the bank account') }}</option>
+              <option v-for="a in step.accounts ?? []" :key="a.accountId" :value="a.accountId">{{ a.bankName }} · {{ a.accountRef }}</option>
+            </select></td><td class="cfl-h"></td></tr>
+          <tr><td class="cfl-l">{{ tr('Transfer reference') }} *</td><td class="cfl-v"><input v-model="sp.reference" class="fx-search" maxlength="100"></td><td class="cfl-h"></td></tr>
+          <tr :class="{ chg: commissionNow !== step.supplierDue.commissionAmount }"><td class="cfl-l">{{ tr('Commission') }}</td>
+            <td class="cfl-v"><input v-model.number="sp.commissionAmount" type="number" min="0" step="any" class="fx-search" :class="{ chg: commissionNow !== step.supplierDue.commissionAmount }"></td>
+            <td class="cfl-h">{{ tr('agreed') }} {{ step.supplierDue.commissionPct }}% = {{ money(step.supplierDue.commissionAmount) }}</td></tr>
+          <tr v-if="commissionNow !== step.supplierDue.commissionAmount"><td class="cfl-l">{{ tr('Why the commission changed') }} *</td>
+            <td class="cfl-v" colspan="2"><input v-model="sp.commissionReason" class="fx-search" maxlength="500"></td></tr>
+        </tbody></table>
+      </div>
+      <div class="cfl-key">
+        <h3>{{ tr('On accept') }}<small>{{ tr('rule') }} CF_SUPPLIER_PAYMENT</small></h3>
+        <div class="cfl-tiles">
+          <div class="cfl-tile"><small>{{ tr('Owed to the supplier') }} ({{ tr('Dr') }})</small><b>{{ money(step.supplierDue.payableAmount) }}</b></div>
+          <div class="cfl-tile"><small>{{ tr('Commission income') }} ({{ tr('Cr') }})</small><b>{{ money(commissionNow) }}</b></div>
+          <div class="cfl-tile hl"><small>{{ tr('Net paid from the bank') }} ({{ tr('Cr') }})</small><b>{{ money(step.supplierDue.payableAmount - commissionNow) }}</b></div>
+          <div class="cfl-tile"><small>{{ tr('Pay by') }}</small><b>{{ step.supplierDue.dueDate ?? '—' }}</b></div>
+        </div>
+        <p class="cfl-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('The workflow ends; the finance stays active and is collected by its schedule.') }}</p>
+      </div>
+    </div>
 
     <div v-if="step.isMine" class="cfs-actions">
       <input v-model="comment" class="fx-search cfs-comment" maxlength="2000" :placeholder="tr('Comment (required to reject)')" :aria-label="tr('Comment')">
@@ -239,9 +284,10 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { tr } from '@/shared/layout/language'
+import './cf-layout.css'
 import CfClaimDialog from './CfClaimDialog.vue'
 import CfRulesButton from './CfRulesButton.vue'
-import { CLAIM_LABELS, claimTone, loansApi, type CfCharge, type CfCreditDecision, type CfStep, type CfTerms, type Loan } from '../api/loans.api'
+import { CLAIM_LABELS, loansApi, type CfCharge, type CfCreditDecision, type CfStep, type CfTerms, type Loan } from '../api/loans.api'
 
 const props = defineProps<{ loan: Loan; version: number }>()
 const emit = defineEmits<{ changed: [] }>()
@@ -264,6 +310,26 @@ const ROLE: Record<string, string> = {
 }
 
 const step = ref<CfStep | null>(null)
+/** What Credit has on the screen, for Rules and GL (not saved until Approve). */
+const rulesChoices = computed(() => (deciding.value && charges.value ? {
+  charges: charges.value.charges.map((c) => ({ code: c.chargeCode, timing: timing(c), amount: amountOf(c) })),
+  down: t.value ? Number(t.value.downPaymentAmount) || 0 : null
+} : null))
+/** Late fee and other: one summary line each until Change opens the fields. */
+const moreOpen = ref(false)
+const lateFeeText = computed(() => {
+  const x = t.value
+  if (!x) return ''
+  if (x.lateFeeTypeCode === 'NONE') return tr('None')
+  const what = x.lateFeeTypeCode === 'FLAT' ? money(Number(x.lateFeeFlatAmount) || 0) : `${x.lateFeeRatePct ?? 0}%`
+  return `${tr(lbl(o.value?.options.lateFeeTypes ?? [], x.lateFeeTypeCode))} · ${what} · ${x.lateFeeGraceDays} ${tr('grace days')}`
+})
+const otherText = computed(() => {
+  const x = t.value
+  if (!x) return ''
+  return `${tr(x.isInsuranceRequired ? 'Yes' : 'No')} · ${tr(x.isPrepaymentAllowed ? 'Allowed' : 'Not allowed')}`
+    + (x.isPrepaymentAllowed ? ` (${tr('fees')} ${x.prepaymentFeePct}% / ${x.earlySettlementFeePct}%)` : '')
+})
 const claimShown = ref(false)
 const comment = ref('')
 const busy = ref(false)
@@ -414,7 +480,6 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 </script>
 
 <style scoped>
-.cfs { border-inline-start: 3px solid var(--fin-teal-600); }
 .cfs { padding: 14px 18px; }
 .cfs-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .cfs-head h3 { margin: 0; font-size: 15px; }
@@ -431,7 +496,7 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-sub { margin: 10px 0 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--fin-muted); }
 .cfs-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 14px; }
 .cfs-grid .fc-field small { color: var(--fin-muted); font-size: 11.5px; }
-.cfs-order { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; }
+.cfs-order { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; }
 .cfs-part { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px 3px 4px; border: 1px solid var(--fin-line); border-radius: 999px; }
 .cfs-part button { border: 0; background: none; padding: 0 4px; cursor: pointer; color: var(--fin-teal-700); }
 .cfs-part button:disabled { color: #c5ccd3; cursor: default; }
@@ -460,7 +525,6 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-seg button.on { background: var(--fin-teal-600); color: #fff; }
 .cfs-pay { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
 .cfs-pay .fc-field { min-width: 180px; }
-.cfs-claim-btn { margin-inline-start: 8px; }
 .cfs-note { margin: 12px 0 0; font-size: 13px; color: #34495a; }
 .cfs-note .fa { color: var(--fin-teal-700); margin-inline-end: 6px; }
 .cfs-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; }

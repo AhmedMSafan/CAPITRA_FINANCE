@@ -46,7 +46,9 @@ import { tr } from '@/shared/layout/language'
 import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
 import { loansApi, type CfRules } from '../api/loans.api'
 
-const props = defineProps<{ loanId: number | null; step: string | null; title?: string }>()
+const props = defineProps<{ loanId: number | null; step: string | null; title?: string
+  /** Credit's choices still on the screen (not saved until Approve). */
+  choices?: { charges: { code: string; timing: string; amount: number }[]; down: number | null } | null }>()
 const shown = ref(false)
 const loading = ref(false)
 const data = ref<CfRules | null>(null)
@@ -57,7 +59,7 @@ async function open() {
   shown.value = true
   loading.value = true
   try {
-    data.value = await loansApi.cfRules(props.loanId, props.step)
+    data.value = await loansApi.cfRules(props.loanId, props.step, props.choices ?? null)
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err))
   } finally {

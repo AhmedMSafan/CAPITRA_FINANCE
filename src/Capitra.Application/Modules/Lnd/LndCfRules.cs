@@ -51,7 +51,12 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
     ];
 
     /// <summary>The page of a step (or of New Finance), or all of them with step null; for a finance (its rules and amounts) or for New Finance.</summary>
-    public async Task<LndCfRulesDto> GetAsync(long? loanId, string? step, CancellationToken ct)
+    /// <remarks>
+    /// Credit's choices still on the screen (not saved until Approve) can be given: each charge's timing and amount, and the down
+    /// payment; the page then shows what Approve would post (a charge added to the schedule posts nothing here, at Delivery instead).
+    /// </remarks>
+    public async Task<LndCfRulesDto> GetAsync(long? loanId, string? step, CancellationToken ct, IReadOnlyDictionary<string, string>? timings = null,
+        IReadOnlyDictionary<string, decimal>? amounts = null, decimal? down = null)
     {
         var today = LndLoanService.CairoToday(clock);
         LndLoan? loan = null;
@@ -66,17 +71,18 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
         xml ??= await db.Set<WfeWorkflowDefinition>().AsNoTracking().Where(x => x.WorkflowCode == LndCfFinanceRules.WorkflowCode).Select(x => x.BpmnXml).FirstOrDefaultAsync(ct);
 
         List<LndLoanCharge> saved = loan is null ? [] : await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loan.LoanId).ToListAsync(ct);
-        // before Credit approves, nothing is saved: the charges as the rule works them out now (its default timing and amount)
-        if (loan is not null && saved.Count == 0)
+        // before Credit approves, nothing is saved: the charges as Credit has them on the screen, else as the rule works them out now
+        var onScreen = timings is not null || amounts is not null || down is not null;
+        if (loan is not null && (saved.Count == 0 || onScreen))
         {
-            var work = await planner.WorkAsync(loan, null, ct);
+            var work = await planner.WorkAsync(loan, timings, ct, down, amounts);
             if (work.Problem is null)
                 saved = [.. work.Charges.Select(c => new LndLoanCharge
                 {
                     LoanId = loan.LoanId, ChargeCode = c.ChargeCode, ChargeName = c.ChargeName, ChargeAmount = c.Amount, TaxAmount = c.TaxAmount, TimingCode = c.TimingCode,
                 })];
         }
-        var amounts = loan is null ? null : Amounts(loan, saved);
+        var lineAmounts = loan is null ? null : Amounts(loan, saved);
         var pages = new List<LndCfRulePageDto>();
         // finances that started before 27 Nov 2026 create the claim at Charges and claim; new ones when Credit approves
         var hasCharges = xml is not null && BpmnModel.StepByCode(xml, LndCfFinanceRules.Charges) is not null;
@@ -91,7 +97,7 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
             var role = code == NewFinance ? "SALES_OFFICER" : element?.Assignee;
             var list = new List<LndCfRuleUseDto>();
             foreach (var u in uses)
-                list.Add(await UseAsync(u, product, xml, today, saved, amounts, ct));
+                list.Add(await UseAsync(u, product, xml, today, saved, lineAmounts, ct));
             pages.Add(new LndCfRulePageDto(code, code == NewFinance ? "New Finance" : LndCfFinanceRules.StepName(code), role, note, list));
         }
         return new LndCfRulesDto(product?.ProductCode, product?.ProductNameEn, pages);
@@ -132,7 +138,8 @@ public sealed class LndCfRulesService(ICapitraDbContext db, AdmProductEventRuleS
         {
             var s = saved.FirstOrDefault(x => x.ChargeCode == c.ChargeCode);
             return new LndCfRuleChargeDto(c.ChargeCode, c.ChargeNameEn, LndCfCharges.Basis(c), Timing(LndCfCharges.DefaultTiming(c)), Income(c.IncomeRecognitionCode),
-                s is null ? null : $"{s.ChargeAmount + s.TaxAmount:#,0.00} · {Timing(s.TimingCode)}{(s.IsOverridden ? " (changed by Credit)" : "")}");
+                s is null ? null : $"{s.ChargeAmount + s.TaxAmount:#,0.00} · {Timing(s.TimingCode)}{(s.IsOverridden ? " (changed by Credit)" : "")}"
+                    + (s.TimingCode == LndCfCharges.Financed ? " · posts at Delivery as part of the finance" : ""));
         }).ToList();
         var lines = plan.Lines.OrderBy(l => l.JournalNo).ThenBy(l => l.LineNo).Select(l => new LndCfRuleLineDto(l.JournalNo, l.DebitCreditCode,
             l.FromBankAccount ? "Bank account chosen" : l.AccountCode is { } a ? $"{a} {names.GetValueOrDefault(a)}".Trim() : "—",
