@@ -47,6 +47,21 @@ public sealed class CrmCfSupplierController(CrmCfSupplierService service) : Cont
     [HasPermission(Permissions.Crm.CfSupplierAmend)]
     public Task<CrmCfSupplierDto> Amend(long applicationId, CrmCfAmendRequest request, CancellationToken ct) => service.AmendAsync(applicationId, request, ct);
 
+    /// <summary>Another admin approves a change of an active supplier's terms; it applies now.</summary>
+    [HttpPost("changes/{changeRequestId:long}/approve")]
+    [HasPermission(Permissions.Crm.CfSupplierAmend)]
+    public Task<CrmCfSupplierDto> ApproveChange(long changeRequestId, CrmCfDecisionRequest request, CancellationToken ct) =>
+        service.ApproveChangeAsync(changeRequestId, request, ct);
+
+    [HttpPost("changes/{changeRequestId:long}/reject")]
+    [HasPermission(Permissions.Crm.CfSupplierAmend)]
+    public Task<CrmCfSupplierDto> RejectChange(long changeRequestId, CrmCfDecisionRequest request, CancellationToken ct) =>
+        service.RejectChangeAsync(changeRequestId, request, ct);
+
+    [HttpPost("changes/{changeRequestId:long}/take-back")]
+    [HasPermission(Permissions.Crm.CfSupplierAmend)]
+    public Task<CrmCfSupplierDto> TakeBackChange(long changeRequestId, CancellationToken ct) => service.TakeBackChangeAsync(changeRequestId, ct);
+
     [HttpPost("{applicationId:long}/submit")]
     [HasPermission(Permissions.Crm.CfSupplierEdit)]
     public Task<CrmCfSupplierDto> Submit(long applicationId, CancellationToken ct) => service.SubmitAsync(applicationId, ct);

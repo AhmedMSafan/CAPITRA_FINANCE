@@ -158,8 +158,10 @@ public class CrmCfSupplierStepNote : AuditableEntity
 }
 
 /// <summary>
-/// CRM_CF_SUPPLIER_TERM_CHANGES: a change to an active supplier's agreement terms made without a new approval (Ahmed, 26 Nov 2026),
-/// one row per field, with the reason. Finances already created keep the terms they were created with.
+/// CRM_CF_SUPPLIER_TERM_CHANGES: the audit trail of an active supplier's agreement terms, one row per field changed, with the reason.
+/// Since 27 Nov 2026 a change is asked for (CRM_CF_SUPPLIER_CHANGE_REQUESTS) and approved by another admin: ChangeRequestId, ApprovedBy
+/// and ApprovedAt say which and by whom. Rows from before (applied directly, 26 Nov 2026) keep them empty. Finances already created keep
+/// the terms they were created with.
 /// </summary>
 public class CrmCfSupplierTermChange : AuditableEntity
 {
@@ -174,4 +176,42 @@ public class CrmCfSupplierTermChange : AuditableEntity
     public string? NewValue { get; set; }
 
     public string Reason { get; set; } = string.Empty;
+
+    public long? ChangeRequestId { get; set; }
+
+    public string? ApprovedBy { get; set; }
+
+    public DateTime? ApprovedAt { get; set; }
+}
+
+/// <summary>
+/// CRM_CF_SUPPLIER_CHANGE_REQUESTS (Ahmed, 27 Nov 2026): a change to an active supplier's terms asked for by an admin (the new terms
+/// and what they change), PENDING until another admin approves (APPROVED: applied, one audit row per field) or rejects it (REJECTED),
+/// or the one who asked takes it back (TAKEN_BACK). One PENDING change per supplier at a time.
+/// </summary>
+public class CrmCfSupplierChangeRequest : AuditableEntity
+{
+    public long ChangeRequestId { get; set; }
+
+    public long ApplicationId { get; set; }
+
+    /// <summary>The new terms as asked for (the request's JSON).</summary>
+    public string TermsJson { get; set; } = string.Empty;
+
+    /// <summary>What they change: field, old and new value (JSON), as shown while it waits.</summary>
+    public string ChangesJson { get; set; } = string.Empty;
+
+    public string Reason { get; set; } = string.Empty;
+
+    public string StatusCode { get; set; } = string.Empty;
+
+    public string RequestedBy { get; set; } = string.Empty;
+
+    public DateTime RequestedAt { get; set; }
+
+    public string? DecidedBy { get; set; }
+
+    public DateTime? DecidedAt { get; set; }
+
+    public string? DecisionNotes { get; set; }
 }

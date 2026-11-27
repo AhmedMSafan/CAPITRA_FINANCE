@@ -25,8 +25,15 @@ export type CfSupplier = {
   parties: CfParty[]; bankAccounts: CfBankAccount[]; openStepCode: string | null; openStepName: string | null; canEdit: boolean
   /** From the customer (Customer 360 > Compliance): its compliance answer and risk grade. */
   compliance: { code: string; label: string; reasons: string[] }; customerRiskGrade: string | null
-  /** Changes made to an active supplier's terms without a new approval. */
-  termChanges: { fieldName: string; oldValue: string | null; newValue: string | null; reason: string; by: string; at: string }[]
+  /** The audit trail of an active supplier's terms: by asked for it, approvedBy approved it (null for changes applied before approvals). */
+  termChanges: { fieldName: string; oldValue: string | null; newValue: string | null; reason: string; by: string; at: string; approvedBy: string | null }[]
+  /** A change of the terms waiting for another admin's approval (the same standard as the lending terms). */
+  pendingChange: CfChangeRequest | null
+}
+
+export type CfChangeRequest = {
+  changeRequestId: number; changes: { fieldName: string; oldValue: string | null; newValue: string | null }[]; reason: string; requestedBy: string
+  requestedAt: string; isMine: boolean; canDecide: boolean
 }
 
 export type CfOptions = { goodsCategories: CfOption[]; collectors: CfOption[]; partyTypes: CfOption[]; riskRatings: CfOption[]; documentTypes: CfOption[] }
@@ -59,7 +66,11 @@ export const cfSuppliersApi = {
   create: (r: CfSupplierRequest) => http.post<CfSupplier>(API, r),
   update: (id: number, r: CfSupplierRequest) => http.put<CfSupplier>(`${API}/${id}`, r),
   /** Changes an active supplier's terms without a new approval, with a reason (CRM.CF_SUPPLIER.AMEND). */
+  /** Asks for a change of an active supplier's terms; another admin approves it. */
   amend: (id: number, terms: CfSupplierRequest, reason: string) => http.post<CfSupplier>(`${API}/${id}/amend`, { terms, reason }),
+  approveChange: (changeId: number, notes: string | null) => http.post<CfSupplier>(`${API}/changes/${changeId}/approve`, { notes }),
+  rejectChange: (changeId: number, notes: string) => http.post<CfSupplier>(`${API}/changes/${changeId}/reject`, { notes }),
+  takeBackChange: (changeId: number) => http.post<CfSupplier>(`${API}/changes/${changeId}/take-back`, {}),
   submit: (id: number) => http.post<CfSupplier>(`${API}/${id}/submit`),
   steps: (id: number) => http.get<CfStepView[]>(`${API}/${id}/steps`),
   saveSiteVisit: (id: number, inboxId: number, siteVisitDate: string | null) =>

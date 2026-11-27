@@ -4714,6 +4714,100 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.ToTable("CRM_CF_SUPPLIER_APPLICATIONS", (string)null);
                 });
 
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierChangeRequest", b =>
+                {
+                    b.Property<long>("ChangeRequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("CHANGE_REQUEST_ID");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ChangeRequestId"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("APPLICATION_ID");
+
+                    b.Property<string>("ChangesJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("CHANGES_JSON");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATED_AT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("CREATED_BY");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DECIDED_AT");
+
+                    b.Property<string>("DecidedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("DECIDED_BY");
+
+                    b.Property<string>("DecisionNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("DECISION_NOTES");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("REASON");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("REQUESTED_AT");
+
+                    b.Property<string>("RequestedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("REQUESTED_BY");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("ROW_VERSION");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("STATUS_CODE");
+
+                    b.Property<string>("TermsJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("TERMS_JSON");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UPDATED_AT");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("UPDATED_BY");
+
+                    b.HasKey("ChangeRequestId")
+                        .HasName("PK_CRM_CF_SUPPLIER_CHANGE_REQUESTS");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_CRM_CF_SUPPLIER_CHANGE_REQUESTS_APPLICATION_ID");
+
+                    b.ToTable("CRM_CF_SUPPLIER_CHANGE_REQUESTS", (string)null);
+                });
+
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierDocument", b =>
                 {
                     b.Property<long>("DocumentId")
@@ -4921,6 +5015,19 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                     b.Property<long>("ApplicationId")
                         .HasColumnType("bigint")
                         .HasColumnName("APPLICATION_ID");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("APPROVED_AT");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("APPROVED_BY");
+
+                    b.Property<long?>("ChangeRequestId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CHANGE_REQUEST_ID");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -45417,6 +45524,16 @@ namespace Capitra.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_CRM_CF_SUPPLIER_APPLICATIONS_CRM_CLIENT_ROLES");
+                });
+
+            modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierChangeRequest", b =>
+                {
+                    b.HasOne("Capitra.Domain.Modules.Crm.CrmCfSupplierApplication", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CRM_CF_SUPPLIER_CHANGE_REQUESTS_CRM_CF_SUPPLIER_APPLICATIONS");
                 });
 
             modelBuilder.Entity("Capitra.Domain.Modules.Crm.CrmCfSupplierDocument", b =>

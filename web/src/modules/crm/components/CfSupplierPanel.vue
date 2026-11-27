@@ -40,8 +40,23 @@
         <span class="fc-sec-ic" aria-hidden="true"><span class="fa fa-file-text"></span></span>
         <div><h2>{{ tr('Agreement terms') }}</h2><p>{{ termsOpen ? tr('Fields marked * are required.') : tr('Read only: the application is in its workflow or closed.') }}</p></div>
         <!-- an active supplier's terms can be changed without a new approval, with a reason (Ahmed, 26 Nov 2026; ADMIN) -->
-        <button v-if="canAmend && !amending" type="button" class="fx-btn cf-amend-btn" @click="amending = true"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change terms') }}</button>
+        <button v-if="canAmend && !amending && !app?.pendingChange" type="button" class="fx-btn cf-amend-btn" @click="amending = true"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Change terms') }}</button>
       </header>
+      <!-- a change of the terms waiting for another admin (Ahmed, 27 Nov 2026: the same standard as the lending terms) -->
+      <div v-if="app?.pendingChange" class="cf-ban">
+        <span class="fx-chip fx-chip--warn">{{ tr('Change waiting for approval') }}</span>
+        <span class="cf-ban-txt">
+          <template v-for="(c, i) in app.pendingChange.changes" :key="c.fieldName"><template v-if="i"> · </template>{{ tr(c.fieldName) }} <b>{{ c.oldValue ?? '—' }} → {{ c.newValue ?? '—' }}</b></template>
+          · {{ tr('asked by') }} {{ app.pendingChange.requestedBy }} {{ formatDateTime(app.pendingChange.requestedAt) }} · <i>{{ app.pendingChange.reason }}</i>
+        </span>
+        <template v-if="hasPermission('CRM.CF_SUPPLIER.AMEND')">
+          <button v-if="app.pendingChange.isMine" type="button" class="fx-btn fx-btn--sm" :disabled="busy" @click="takeBack"><span class="fa fa-undo" aria-hidden="true"></span>{{ tr('Take back') }}</button>
+          <template v-if="app.pendingChange.canDecide">
+            <button type="button" class="fx-btn fx-btn--sm fc-btn-reject" :disabled="busy" @click="rejectChange"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Reject') }}</button>
+            <button type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="approveChange"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Approve') }}</button>
+          </template>
+        </template>
+      </div>
       <div class="fc-grid fc-grid--3">
         <div class="fc-field fc-full"><span>{{ tr('Goods the supplier sells on finance') }} <b>*</b></span>
           <div class="cf-cats">
@@ -86,22 +101,23 @@
         <label class="fc-field fc-full"><span>{{ tr('Notes') }}</span><textarea v-model="form.notes" class="fx-search fc-textarea" maxlength="2000" :disabled="!termsOpen"></textarea></label>
       </div>
       <div v-if="amending" class="cf-amend">
-        <p class="c3-muted"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('The new terms apply to new finances only; finances already created keep their terms.') }}</p>
+        <p class="c3-muted"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('The change applies after another admin approves it, to new finances only; finances already created keep their terms.') }}</p>
         <label class="fc-field"><span>{{ tr('Reason for the change') }} <b>*</b></span><input v-model="amendReason" class="fx-search" maxlength="1000"></label>
         <div class="cf-amend-actions">
           <button type="button" class="fx-btn" :disabled="busy" @click="cancelAmend"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Cancel') }}</button>
-          <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveAmend"><span class="fa fa-floppy-o" aria-hidden="true"></span>{{ tr('Save changes') }}</button>
+          <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="saveAmend"><span class="fa fa-paper-plane" aria-hidden="true"></span>{{ tr('Send for approval') }}</button>
         </div>
       </div>
       <div v-if="app?.termChanges.length" class="cf-changes">
-        <h3>{{ tr('Change history') }}</h3>
+        <h3>{{ tr('Audit trail') }}</h3>
         <div class="fx-table-wrap">
           <table class="fx-table">
-            <thead><tr><th>{{ tr('When') }}</th><th>{{ tr('By') }}</th><th>{{ tr('Term') }}</th><th>{{ tr('Old') }}</th><th>{{ tr('New') }}</th><th>{{ tr('Reason') }}</th></tr></thead>
+            <thead><tr><th>{{ tr('When') }}</th><th>{{ tr('Field') }}</th><th>{{ tr('Old') }} → {{ tr('New') }}</th><th>{{ tr('Why') }}</th><th>{{ tr('Asked by') }}</th><th>{{ tr('Approved by') }}</th></tr></thead>
             <tbody>
               <tr v-for="(c, i) in app.termChanges" :key="i">
-                <td>{{ formatDateTime(c.at) }}</td><td>{{ c.by }}</td><td>{{ tr(c.fieldName) }}</td>
-                <td>{{ c.oldValue ?? '—' }}</td><td><b>{{ c.newValue ?? '—' }}</b></td><td>{{ c.reason }}</td>
+                <td>{{ formatDateTime(c.at) }}</td><td>{{ tr(c.fieldName) }}</td>
+                <td>{{ c.oldValue ?? '—' }} → <b>{{ c.newValue ?? '—' }}</b></td><td>{{ c.reason }}</td><td>{{ c.by }}</td>
+                <td>{{ c.approvedBy ?? tr('— (applied before approval was required)') }}</td>
               </tr>
             </tbody>
           </table>
@@ -343,7 +359,24 @@ const saveAmend = () => run(async () => {
   fill(await cfSuppliersApi.amend(app.value!.applicationId, { ...form }, amendReason.value.trim()))
   amending.value = false
   amendReason.value = ''
-  showSuccess(tr('Terms changed.'))
+  showSuccess(tr('Change sent for approval. Another admin must approve it.'))
+})
+
+const approveChange = () => run(async () => {
+  fill(await cfSuppliersApi.approveChange(app.value!.pendingChange!.changeRequestId, null))
+  showSuccess(tr('Change approved: the new terms apply to new finances.'))
+})
+
+const rejectChange = () => run(async () => {
+  const notes = window.prompt(tr('Why is the change rejected?'))?.trim()
+  if (!notes) return
+  fill(await cfSuppliersApi.rejectChange(app.value!.pendingChange!.changeRequestId, notes))
+  showSuccess(tr('Change rejected.'))
+})
+
+const takeBack = () => run(async () => {
+  fill(await cfSuppliersApi.takeBackChange(app.value!.pendingChange!.changeRequestId))
+  showSuccess(tr('Change taken back.'))
 })
 
 const save = () => run(async () => {
@@ -436,4 +469,7 @@ watch(() => [props.clientId, props.inboxId], load, { immediate: true })
 .cf-amend-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .cf-changes { margin: 0 16px 16px; }
 .cf-changes h3 { margin: 6px 0; font-size: 13px; color: var(--fin-muted); }
+.cf-ban { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 16px 12px; padding: 10px 14px; border: 1px solid #f1d58a;
+  border-radius: 10px; background: #fff8e6; }
+.cf-ban-txt { flex: 1; min-width: 0; font-size: 13px; }
 </style>

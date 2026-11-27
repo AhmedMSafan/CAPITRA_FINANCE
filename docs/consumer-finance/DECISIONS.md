@@ -3,6 +3,14 @@
 The single list of what was agreed with Ahmed for consumer finance (CF_FINANCE). Every preview and every PR is checked against it,
 line by line, before it is shown. A change of decision is made here first.
 
+## Standing rules (Ahmed, 27 Nov 2026)
+
+- **One style everywhere:** before designing anything, look for a screen that already does the same thing and use its style.
+  Changing set-up data (lending terms, supplier terms, ...) is always: an admin asks for the change → another admin approves →
+  it applies to new work only → an audit trail (field, old → new, why, asked by, approved by, when).
+- **Backward compatibility, every time:** say what happens to existing data, history, running finances and old workflow runs
+  before building; never rewrite history; new columns are nullable or have defaults.
+
 ## Steps (workflow CF_FINANCE)
 
 | # | Step | Role | What happens | Posts (rule) | Status |
@@ -37,6 +45,8 @@ line by line, before it is shown. A change of decision is made here first.
 - The item price is the supplier's price and is not changed by Credit.
 - Charges and GL stay in Product Event Rules and Product Actions.
 - Grace days are hidden and saved as 0 when there is no late fee.
+- Supplier terms of an active supplier: the same standard (admin asks, another admin approves, audit trail); changes made before
+  27 Nov 2026 stay in the trail as "applied before approval was required"; finances keep the supplier terms they copied.
 - Applies to Microfinance products too (the same lending terms page).
 
 ## Screens

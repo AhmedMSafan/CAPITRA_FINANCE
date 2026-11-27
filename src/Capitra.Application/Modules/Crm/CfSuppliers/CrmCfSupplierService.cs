@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Text.Json;
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Gl;
@@ -39,10 +40,25 @@ public sealed record CrmCfSupplierDto(
     string? RiskRatingCode, DateOnly? SiteVisitDate, DateTime? ActivatedAt, string? Notes,
     IReadOnlyList<CrmCfPartyDto> Parties, IReadOnlyList<CrmCfBankAccountOptionDto> BankAccounts,
     string? OpenStepCode, string? OpenStepName, bool CanEdit, CrmBadgeDto Compliance, string? CustomerRiskGrade,
-    IReadOnlyList<CrmCfTermChangeDto> TermChanges);
+    IReadOnlyList<CrmCfTermChangeDto> TermChanges, CrmCfChangeRequestDto? PendingChange = null);
 
-/// <summary>One field changed on an active supplier's terms, by whom, when and why.</summary>
-public sealed record CrmCfTermChangeDto(string FieldName, string? OldValue, string? NewValue, string Reason, string By, DateTime At);
+/// <summary>
+/// One field changed on an active supplier's terms (the audit trail): By asked for it, ApprovedBy approved it (null for the changes
+/// applied directly before 27 Nov 2026), At is when it applied.
+/// </summary>
+public sealed record CrmCfTermChangeDto(string FieldName, string? OldValue, string? NewValue, string Reason, string By, DateTime At, string? ApprovedBy = null);
+
+/// <summary>One field a change asks for: as it is and as it would be.</summary>
+public sealed record CrmCfFieldChangeDto(string FieldName, string? OldValue, string? NewValue);
+
+/// <summary>
+/// A change to an active supplier's terms waiting for approval (Ahmed, 27 Nov 2026): what it changes, why, who asked; IsMine: the
+/// signed-in user asked (may take it back, may not approve); CanDecide: another user who may approve or reject it.
+/// </summary>
+public sealed record CrmCfChangeRequestDto(long ChangeRequestId, IReadOnlyList<CrmCfFieldChangeDto> Changes, string Reason, string RequestedBy,
+    DateTime RequestedAt, bool IsMine, bool CanDecide);
+
+public sealed record CrmCfDecisionRequest(string? Notes);
 
 /// <summary>New terms for an active supplier, with the reason for the change.</summary>
 public sealed record CrmCfAmendRequest(CrmCfSupplierRequest Terms, string? Reason);
@@ -173,37 +189,137 @@ public sealed class CrmCfSupplierService(
             a.ValidToDate, a.ClientBankAccountId, a.RiskRatingCode, a.SiteVisitDate, a.ActivatedAt, a.Notes, parties, banks,
             step, step is null ? null : CrmCfSupplierWorkflowHandler.StepName(step), EntryOpen(a),
             await customers.ComplianceBadgeAsync(a.ClientId, ct), c.RiskGrade,
-            await db.Set<CrmCfSupplierTermChange>().AsNoTracking().Where(x => x.ApplicationId == applicationId).OrderByDescending(x => x.TermChangeId)
-                .Select(x => new CrmCfTermChangeDto(x.FieldName, x.OldValue, x.NewValue, x.Reason, x.CreatedBy, x.CreatedAt)).ToListAsync(ct));
+            await (from x in db.Set<CrmCfSupplierTermChange>().AsNoTracking()
+                   join q in db.Set<CrmCfSupplierChangeRequest>().AsNoTracking() on x.ChangeRequestId equals (long?)q.ChangeRequestId into qs
+                   from q in qs.DefaultIfEmpty()
+                   where x.ApplicationId == applicationId
+                   orderby x.TermChangeId descending
+                   select new CrmCfTermChangeDto(x.FieldName, x.OldValue, x.NewValue, x.Reason, q != null ? q.RequestedBy : x.CreatedBy,
+                       x.ApprovedAt ?? x.CreatedAt, x.ApprovedBy)).ToListAsync(ct),
+            await PendingAsync(applicationId, ct));
+    }
+
+    private async Task<CrmCfChangeRequestDto?> PendingAsync(long applicationId, CancellationToken ct)
+    {
+        var q = await db.Set<CrmCfSupplierChangeRequest>().AsNoTracking()
+            .FirstOrDefaultAsync(x => x.ApplicationId == applicationId && x.StatusCode == ChangeStatus.Pending, ct);
+        if (q is null) return null;
+        var mine = string.Equals(q.RequestedBy, currentUser.UserName, StringComparison.OrdinalIgnoreCase);
+        return new CrmCfChangeRequestDto(q.ChangeRequestId, JsonSerializer.Deserialize<List<CrmCfFieldChangeDto>>(q.ChangesJson) ?? [], q.Reason,
+            q.RequestedBy, q.RequestedAt, mine, !mine);
+    }
+
+    public static class ChangeStatus
+    {
+        public const string Pending = "PENDING";
+        public const string Approved = "APPROVED";
+        public const string Rejected = "REJECTED";
+        public const string TakenBack = "TAKEN_BACK";
     }
 
     /// <summary>
-    /// Changes an active supplier's terms without a new approval (Ahmed, 26 Nov 2026; CRM.CF_SUPPLIER.AMEND): the same checks as data
-    /// entry, the bank account verified, a reason, and one history row per field changed. Finances already created keep their terms.
+    /// Asks for a change to an active supplier's terms (Ahmed, 27 Nov 2026, the same standard as the lending terms; CRM.CF_SUPPLIER.AMEND):
+    /// the same checks as data entry, the bank account verified, a reason. Nothing changes until another admin approves it; one change
+    /// waits at a time. Finances already created keep their terms.
     /// </summary>
     public async Task<CrmCfSupplierDto> AmendAsync(long applicationId, CrmCfAmendRequest r, CancellationToken ct)
     {
         var reason = ScrValidation.Clean(r.Reason);
         if (reason is null) throw BusinessValidationException.For("reason", "Write why the terms are changed.");
         if (reason.Length > 1000) throw BusinessValidationException.For("reason", "The reason is longer than 1000 characters.");
-        var a = await ApplicationAsync(applicationId, ct);
+        if (await db.Set<CrmCfSupplierChangeRequest>().AnyAsync(x => x.ApplicationId == applicationId && x.StatusCode == ChangeStatus.Pending, ct))
+            throw new BusinessRuleException("A change of this supplier's terms is already waiting for approval. Approve, reject or take it back first.");
+        // worked out on a copy: nothing changes until the change is approved
+        var a = await ApplicationAsync(applicationId, ct, tracking: false);
+        var changes = await WorkChangeAsync(a, r.Terms, ct);
+        db.Add(new CrmCfSupplierChangeRequest
+        {
+            ApplicationId = a.ApplicationId, TermsJson = JsonSerializer.Serialize(r.Terms), ChangesJson = JsonSerializer.Serialize(changes), Reason = reason,
+            StatusCode = ChangeStatus.Pending, RequestedBy = Me, RequestedAt = clock.UtcNow,
+        });
+        await db.SaveChangesAsync(ct);
+        return await GetAsync(applicationId, ct);
+    }
+
+    /// <summary>Approves a change asked for by another user: the terms apply now, one audit row per field changed.</summary>
+    public async Task<CrmCfSupplierDto> ApproveChangeAsync(long changeRequestId, CrmCfDecisionRequest r, CancellationToken ct)
+    {
+        var q = await PendingRequestAsync(changeRequestId, ct);
+        if (string.Equals(q.RequestedBy, Me, StringComparison.OrdinalIgnoreCase))
+            throw new BusinessRuleException("You asked for this change. Another admin must approve it.");
+        var a = await ApplicationAsync(q.ApplicationId, ct);
+        var terms = JsonSerializer.Deserialize<CrmCfSupplierRequest>(q.TermsJson) ?? throw new BusinessRuleException("The change cannot be read.");
+        var changes = await WorkChangeAsync(a, terms, ct); // applied to the supplier; checked again on today's data
+        var now = clock.UtcNow;
+        foreach (var c in changes)
+            db.Add(new CrmCfSupplierTermChange
+            {
+                ApplicationId = a.ApplicationId, FieldName = c.FieldName, OldValue = c.OldValue, NewValue = c.NewValue, Reason = q.Reason,
+                ChangeRequestId = q.ChangeRequestId, ApprovedBy = Me, ApprovedAt = now,
+            });
+        Decide(q, ChangeStatus.Approved, ScrValidation.Clean(r.Notes));
+        await db.SaveChangesAsync(ct);
+        return await GetAsync(a.ApplicationId, ct);
+    }
+
+    /// <summary>Rejects a change asked for by another user, with the reason; the terms stay as they are.</summary>
+    public async Task<CrmCfSupplierDto> RejectChangeAsync(long changeRequestId, CrmCfDecisionRequest r, CancellationToken ct)
+    {
+        var q = await PendingRequestAsync(changeRequestId, ct);
+        if (string.Equals(q.RequestedBy, Me, StringComparison.OrdinalIgnoreCase))
+            throw new BusinessRuleException("You asked for this change. Take it back instead, or another admin rejects it.");
+        var notes = ScrValidation.Clean(r.Notes) ?? throw BusinessValidationException.For("notes", "Write why the change is rejected.");
+        Decide(q, ChangeStatus.Rejected, notes);
+        await db.SaveChangesAsync(ct);
+        return await GetAsync(q.ApplicationId, ct);
+    }
+
+    /// <summary>The one who asked for a change takes it back before it is decided.</summary>
+    public async Task<CrmCfSupplierDto> TakeBackChangeAsync(long changeRequestId, CancellationToken ct)
+    {
+        var q = await PendingRequestAsync(changeRequestId, ct);
+        if (!string.Equals(q.RequestedBy, Me, StringComparison.OrdinalIgnoreCase))
+            throw new BusinessRuleException("Only the admin who asked for the change can take it back.");
+        Decide(q, ChangeStatus.TakenBack, null);
+        await db.SaveChangesAsync(ct);
+        return await GetAsync(q.ApplicationId, ct);
+    }
+
+    private async Task<CrmCfSupplierChangeRequest> PendingRequestAsync(long id, CancellationToken ct)
+    {
+        var q = await db.Set<CrmCfSupplierChangeRequest>().FirstOrDefaultAsync(x => x.ChangeRequestId == id, ct)
+            ?? throw new NotFoundException($"Change {id} was not found.");
+        if (q.StatusCode != ChangeStatus.Pending) throw new BusinessRuleException("This change is no longer waiting for approval.");
+        return q;
+    }
+
+    private void Decide(CrmCfSupplierChangeRequest q, string status, string? notes)
+    {
+        q.StatusCode = status;
+        q.DecidedBy = Me;
+        q.DecidedAt = clock.UtcNow;
+        q.DecisionNotes = notes is { Length: > 1000 } ? notes[..1000] : notes;
+    }
+
+    /// <summary>
+    /// Applies new terms to a supplier (a tracked one is changed; an untracked copy only shows what would change), with the data entry
+    /// checks and a verified bank account. The supplier must be active and something must change.
+    /// </summary>
+    private async Task<List<CrmCfFieldChangeDto>> WorkChangeAsync(CrmCfSupplierApplication a, CrmCfSupplierRequest terms, CancellationToken ct)
+    {
         if (a.StatusCode != CrmCfSupplierStatus.Active)
             throw new BusinessRuleException($"Only an active supplier's terms are changed this way; {a.ApplicationRef} is {a.StatusCode.ToLowerInvariant().Replace('_', ' ')}.");
-
         var before = Terms(a);
-        Apply(a, r.Terms);
+        Apply(a, terms);
         await CheckTermsAsync(a, ct);
         if (a.ClientBankAccountId is { } bankId
             && !await db.Set<CrmClientBankAccount>().AnyAsync(x => x.BankAccountId == bankId && x.StatusCode == "VERIFIED", ct))
             throw BusinessValidationException.For("clientBankAccountId", "Choose a verified bank account.");
         if (a.ClientBankAccountId is null) throw BusinessValidationException.For("clientBankAccountId", "An active supplier needs the bank account it is paid to.");
         var after = Terms(a);
-        var changed = before.Where(x => after[x.Key] != x.Value).Select(x => x.Key).ToList();
-        if (changed.Count == 0) throw new BusinessRuleException("Nothing was changed.");
-        foreach (var field in changed)
-            db.Add(new CrmCfSupplierTermChange { ApplicationId = a.ApplicationId, FieldName = field, OldValue = before[field], NewValue = after[field], Reason = reason });
-        await db.SaveChangesAsync(ct);
-        return await GetAsync(applicationId, ct);
+        var changes = before.Where(x => after[x.Key] != x.Value).Select(x => new CrmCfFieldChangeDto(x.Key, x.Value, after[x.Key])).ToList();
+        if (changes.Count == 0) throw new BusinessRuleException("Nothing was changed.");
+        return changes;
     }
 
     /// <summary>The terms as text, by the name the page shows them under, to compare and keep in the change history.</summary>
