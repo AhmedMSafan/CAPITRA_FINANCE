@@ -1,10 +1,12 @@
 using Capitra.Application.Abstractions;
 using Capitra.Application.Common.Exceptions;
 using Capitra.Application.Modules.Gl;
+using Capitra.Application.Modules.Wfe;
 using Capitra.Domain.Modules.Adm;
 using Capitra.Domain.Modules.Col;
 using Capitra.Domain.Modules.Crm;
 using Capitra.Domain.Modules.Lnd;
+using Capitra.Domain.Modules.Wfe;
 using Microsoft.EntityFrameworkCore;
 using St = Capitra.Application.Modules.Lnd.LndLoanService.Statuses;
 
@@ -17,7 +19,15 @@ public sealed record LndWsCustomerDto(
 public sealed record LndWsLoanDto(
     long LoanId, string LoanNumber, string ProductCode, string ProductName, string LicenceCode, string StatusCode, decimal PrincipalAmount,
     decimal PrincipalOutstanding, decimal OverdueAmount, int DaysLate, bool IsNonAccrual, DateOnly? NextDueDate, decimal NextDueAmount,
-    DateOnly DisbursementDate, DateOnly MaturityDate);
+    DateOnly DisbursementDate, DateOnly MaturityDate, string? StepName = null);
+
+/// <summary>
+/// A consumer finance's upfront claim (Charges and claim step), like a factoring claim: TO_CREATE once Credit decided something is paid
+/// upfront and Operations has not created it yet, OPEN until the customer pays it, PAID.
+/// </summary>
+public sealed record LndWsClaimDto(
+    long LoanId, string LoanNumber, DateOnly? ClaimDate, string CurrencyCode, decimal ChargesAmount, decimal DownPaymentAmount, decimal TotalAmount,
+    decimal PaidAmount, decimal OutstandingAmount, string StatusCode, string? GlTranSetId);
 
 public sealed record LndWsPaymentDto(
     long RepaymentTxnId, string RepaymentNumber, string LoanNumber, string KindCode, DateOnly ValueDate, string Method, decimal ReceiptAmount,
@@ -28,7 +38,7 @@ public sealed record LndWsSummaryDto(int ActiveLoans, decimal OutstandingPrincip
 public sealed record LndWorkspaceDto(
     long ClientId, string ClientNumber, string ClientName, string ClientNameAr, string ClientType, string? NationalId, string? PhoneNumber,
     string? MobileNumber, string? Email, string? RelationshipManager, DateOnly Today, LndWsSummaryDto Summary,
-    IReadOnlyList<LndWsLoanDto> Loans, IReadOnlyList<LndWsPaymentDto> Payments);
+    IReadOnlyList<LndWsLoanDto> Loans, IReadOnlyList<LndWsPaymentDto> Payments, IReadOnlyList<LndWsClaimDto> Claims);
 
 /// <summary>
 /// The Lending Workspace (Ahmed, 15 Nov 2026: "start lending the same way" as the Factoring Workspace): the customers, and for one
@@ -69,6 +79,14 @@ public sealed class LndWorkspaceService(ICapitraDbContext db, IClock clock, LndR
         var ids = loans.Select(x => x.l.LoanId).ToList();
         var schedules = (await db.Set<LndInstallment>().AsNoTracking().Where(x => ids.Contains(x.LoanId)).ToListAsync(cancellationToken)).ToLookup(x => x.LoanId);
 
+        // the step each finance in its workflow is waiting at
+        var runs = loans.Where(x => x.l.WorkflowInstanceId != null).Select(x => x.l.WorkflowInstanceId!.Value).ToList();
+        var openSteps = (await db.Set<WfeStepInstance>().AsNoTracking()
+                .Where(st => runs.Contains(st.WorkflowInstanceId) && st.StepStatus != WfeRuntime.Completed && st.StepStatus != WfeRuntime.Cancelled
+                    && st.StepCode != null && st.StepCode != "")
+                .Select(st => new { st.WorkflowInstanceId, st.StepInstanceId, st.StepCode }).ToListAsync(cancellationToken))
+            .GroupBy(st => st.WorkflowInstanceId).ToDictionary(g => g.Key, g => LndCfFinanceRules.StepName(g.OrderByDescending(st => st.StepInstanceId).First().StepCode));
+
         var rows = loans.Select(x =>
         {
             var s = schedules[x.l.LoanId].OrderBy(i => i.InstallmentNo).ToList();
@@ -78,8 +96,32 @@ public sealed class LndWorkspaceService(ICapitraDbContext db, IClock clock, LndR
                 open ? s.Sum(i => i.PrincipalDueAmount - i.PrincipalPaidAmount) : 0,
                 open ? LndPrepayment.Dues(s, today) : 0,
                 open ? LndEod.DaysLate(s, today) : 0, x.l.IsNonAccrual, next?.DueDate,
-                next is null ? 0 : LndReceiptService.Owed(next).Values.Sum(), x.l.DisbursementDate, x.l.MaturityDate);
+                next is null ? 0 : LndReceiptService.Owed(next).Values.Sum(), x.l.DisbursementDate, x.l.MaturityDate,
+                x.l.WorkflowInstanceId is { } run ? openSteps.GetValueOrDefault(run) : null);
         }).ToList();
+
+        // the upfront claims of the consumer finances, and those Operations still has to create
+        var charges = (await db.Set<LndLoanCharge>().AsNoTracking().Where(x => ids.Contains(x.LoanId)).ToListAsync(cancellationToken)).ToLookup(x => x.LoanId);
+        var claimDates = (await db.Set<LndLoanEvent>().AsNoTracking().Where(x => ids.Contains(x.LoanId) && x.EventCode == "CF_CLAIM")
+            .Select(x => new { x.LoanId, x.EventDate }).ToListAsync(cancellationToken)).GroupBy(x => x.LoanId).ToDictionary(g => g.Key, g => g.Max(x => x.EventDate));
+        var claims = new List<LndWsClaimDto>();
+        foreach (var x in loans.Where(x => x.l.SupplierApplicationId != null && x.l.StatusCode is not (St.Rejected or St.Cancelled)))
+        {
+            var l = x.l;
+            if (l.ClaimStatusCode is LndCfFinanceRules.Claim.Open or LndCfFinanceRules.Claim.Paid)
+            {
+                var total = (l.ClaimChargesAmount ?? 0) + (l.ClaimDownPaymentAmount ?? 0);
+                var paid = l.ClaimStatusCode == LndCfFinanceRules.Claim.Paid ? total : 0;
+                claims.Add(new LndWsClaimDto(l.LoanId, l.LoanNumber, claimDates.TryGetValue(l.LoanId, out var d) ? d : null, l.CurrencyCode, l.ClaimChargesAmount ?? 0,
+                    l.ClaimDownPaymentAmount ?? 0, total, paid, total - paid, l.ClaimStatusCode, l.ClaimGlTranSetId));
+            }
+            else if (l.ClaimStatusCode is null && charges[l.LoanId].Any())
+            {
+                var (c, dp) = LndCfFinanceRules.ClaimAmounts(charges[l.LoanId], l.DownPaymentCollectorCode, l.DownPaymentAmount);
+                if (c + dp > 0)
+                    claims.Add(new LndWsClaimDto(l.LoanId, l.LoanNumber, null, l.CurrencyCode, c, dp, c + dp, 0, c + dp, "TO_CREATE", null));
+            }
+        }
 
         var events = await db.Set<LndLoanEvent>().AsNoTracking()
             .Where(x => ids.Contains(x.LoanId) && x.SourceDocumentId != null
@@ -100,6 +142,6 @@ public sealed class LndWorkspaceService(ICapitraDbContext db, IClock clock, LndR
         var summary = new LndWsSummaryDto(active.Count, active.Sum(x => x.PrincipalOutstanding), active.Sum(x => x.OverdueAmount),
             active.Count == 0 ? 0 : active.Max(x => x.DaysLate), await receipts.CreditAsync(clientId, cancellationToken));
         return new LndWorkspaceDto(c.ClientId, c.ClientNumber, c.ClientName, c.ClientNameAr, c.ClientType, c.NationalId, c.PhoneNumber, c.MobileNumber,
-            c.Email, c.RelationshipManager, today, summary, rows, payments);
+            c.Email, c.RelationshipManager, today, summary, rows, payments, claims);
     }
 }

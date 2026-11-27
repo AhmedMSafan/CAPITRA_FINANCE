@@ -624,5 +624,12 @@ export const LND_AR: Record<string, string> = {
   'rule': 'القاعدة',
   'Comment (required to reject)': 'تعليق (مطلوب للرفض)',
   'No schedule yet: it is built at the Schedule and contract step.': 'لا يوجد جدول بعد: يُبنى في خطوة الجدول والعقد.',
-  'down payment': 'المقدم'
+  'down payment': 'المقدم',
+  'Claims': 'المطالبات',
+  'To be created': 'لم تُنشأ بعد',
+  'Claim Total': 'إجمالي المطالبة',
+  'Claims data will be available here.': 'ستظهر بيانات المطالبات هنا.',
+  'Currency': 'العملة',
+  'Date': 'التاريخ',
+  'Actions': 'الإجراءات'
 }
