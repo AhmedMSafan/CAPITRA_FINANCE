@@ -80,6 +80,27 @@ public sealed class CrmCfSupplierTermChangeConfiguration : IEntityTypeConfigurat
         builder.Property(x => x.OldValue).HasMaxLength(500);
         builder.Property(x => x.NewValue).HasMaxLength(500);
         builder.Property(x => x.Reason).HasMaxLength(1000);
+        builder.Property(x => x.ApprovedBy).HasMaxLength(100);
+        builder.HasOne<CrmCfSupplierApplication>().WithMany().HasForeignKey(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class CrmCfSupplierChangeRequestConfiguration : IEntityTypeConfiguration<CrmCfSupplierChangeRequest>
+{
+    public void Configure(EntityTypeBuilder<CrmCfSupplierChangeRequest> builder)
+    {
+        builder.ToTable("CRM_CF_SUPPLIER_CHANGE_REQUESTS");
+        builder.HasKey(x => x.ChangeRequestId);
+        builder.HasIndex(x => x.ApplicationId);
+        builder.Property(x => x.ChangeRequestId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.TermsJson).HasMaxLength(4000);
+        builder.Property(x => x.ChangesJson).HasMaxLength(4000);
+        builder.Property(x => x.Reason).HasMaxLength(1000);
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.Property(x => x.RequestedBy).HasMaxLength(100);
+        builder.Property(x => x.DecidedBy).HasMaxLength(100);
+        builder.Property(x => x.DecisionNotes).HasMaxLength(1000);
         builder.HasOne<CrmCfSupplierApplication>().WithMany().HasForeignKey(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
         builder.ConfigureAudit();
     }
