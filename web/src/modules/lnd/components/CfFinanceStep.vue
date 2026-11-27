@@ -16,18 +16,79 @@
       <span>{{ tr('Supplier') }} <b>{{ loan.goods.merchantName }}</b></span>
       <span>{{ tr('Item') }} <b>{{ loan.goods.description }}<template v-if="loan.goods.brandModel"> · {{ loan.goods.brandModel }}</template></b></span>
       <span>{{ tr('Price') }} <b>{{ money(loan.goods.priceAmount) }}</b></span>
-      <span>{{ tr('Down payment') }} <b>{{ money(loan.goods.downPaymentAmount) }}</b> ({{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</span>
-      <span>{{ tr('Financed') }} <b>{{ money(loan.goods.priceAmount - loan.goods.downPaymentAmount) }}</b></span>
-      <span>{{ tr('Term') }} <b>{{ loan.termMonths }} {{ tr('months') }}</b></span>
+      <template v-if="!deciding">
+        <span>{{ tr('Down payment') }} <b>{{ money(loan.goods.downPaymentAmount) }}</b> ({{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</span>
+        <span>{{ tr('Financed') }} <b>{{ money(loan.goods.priceAmount - loan.goods.downPaymentAmount) }}</b></span>
+        <span>{{ tr('Term') }} <b>{{ loan.termMonths }} {{ tr('months') }}</b></span>
+      </template>
       <span>{{ tr('Commission') }} <b>{{ loan.goods.supplierCommissionPct ?? 0 }}%</b></span>
     </div>
 
-    <!-- the rate: the product rate stays fixed, Credit adds or takes off a margin -->
-    <div v-if="deciding && step.productRatePct !== null" class="cfs-rate">
-      <span class="c3-muted">{{ tr('Product rate') }} <b>{{ step.productRatePct }}%</b></span>
-      <label>{{ tr('Margin ±%') }}<input v-model.number="margin" type="number" step="0.25" class="fx-search" :class="{ chg: Number(margin) !== 0 }"></label>
-      <span class="cfs-eff">{{ tr('Finance rate') }} <b>{{ financeRate }}%</b></span>
-      <small class="c3-muted">{{ tr('The product rate stays fixed; Credit adds or takes off a margin for this finance.') }}</small>
+    <!-- Credit approval (Ahmed, 27 Nov 2026): every financial value is this finance's own copy and Credit can change any of them;
+         what was entered shows under each, a changed one is highlighted -->
+    <div v-if="deciding && t && o" class="cfs-terms">
+      <h4 class="cfs-sub">{{ tr('Amount and term') }}</h4>
+      <div class="cfs-grid">
+        <label class="fc-field"><span>{{ tr('Down payment') }} ({{ tr(loan.goods?.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</span>
+          <input v-model.number="t.downPaymentAmount" type="number" min="0" step="any" class="fx-search" :class="{ chg: ch('downPaymentAmount') }" @input="downChanged">
+          <small>{{ tr('entered') }} {{ money(o.downPaymentAmount) }}<template v-if="o.minDownPaymentAmount"> · {{ tr('at least') }} {{ money(o.minDownPaymentAmount) }}</template></small></label>
+        <label class="fc-field"><span>{{ tr('Financed') }}</span><input :value="money(o.priceAmount - (Number(t.downPaymentAmount) || 0))" class="fx-search" disabled>
+          <small>{{ tr('price − down payment') }}</small></label>
+        <label class="fc-field"><span>{{ tr('Term (months)') }}</span><input v-model.number="t.termMonths" type="number" min="1" max="120" class="fx-search" :class="{ chg: ch('termMonths') }">
+          <small>{{ tr('entered') }} {{ o.termMonths }}</small></label>
+        <label class="fc-field"><span>{{ tr('Repayment') }}</span>
+          <select v-model="t.repaymentFrequencyCode" class="fx-select" :class="{ chg: ch('repaymentFrequencyCode') }"><option v-for="x in o.options.frequencies" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
+          <small>{{ tr('entered') }} {{ tr(lbl(o.options.frequencies, o.repaymentFrequencyCode)) }}</small></label>
+      </div>
+      <h4 class="cfs-sub">{{ tr('Interest') }}</h4>
+      <div class="cfs-grid">
+        <label class="fc-field"><span>{{ tr('Yearly rate') }} (%)</span><input v-model.number="t.annualRatePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('annualRatePct') }">
+          <small>{{ tr('product') }} {{ step.productRatePct }}%<template v-if="marginNow"> · {{ tr('margin') }} {{ marginNow > 0 ? '+' : '' }}{{ marginNow }}</template></small></label>
+        <label class="fc-field"><span>{{ tr('Interest method') }}</span>
+          <select v-model="t.interestMethodCode" class="fx-select" :class="{ chg: ch('interestMethodCode') }"><option v-for="x in o.options.interestMethods" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
+          <small>{{ tr('entered') }} {{ tr(lbl(o.options.interestMethods, o.interestMethodCode)) }}</small></label>
+        <label class="fc-field"><span>{{ tr('Day count') }}</span>
+          <select v-model="t.dayCountCode" class="fx-select" :class="{ chg: ch('dayCountCode') }"><option v-for="x in o.options.dayCounts" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
+          <small>{{ tr('entered') }} {{ tr(lbl(o.options.dayCounts, o.dayCountCode)) }}</small></label>
+      </div>
+      <h4 class="cfs-sub">{{ tr('Late fee and other') }}</h4>
+      <div class="cfs-grid">
+        <label class="fc-field"><span>{{ tr('Late fee type') }}</span>
+          <select v-model="t.lateFeeTypeCode" class="fx-select" :class="{ chg: ch('lateFeeTypeCode') }"><option v-for="x in o.options.lateFeeTypes" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
+          <small>{{ tr('entered') }} {{ tr(lbl(o.options.lateFeeTypes, o.lateFeeTypeCode)) }}</small></label>
+        <label v-if="t.lateFeeTypeCode === 'FLAT'" class="fc-field"><span>{{ tr('Fee per late instalment') }}</span>
+          <input v-model.number="t.lateFeeFlatAmount" type="number" min="0" step="any" class="fx-search" :class="{ chg: ch('lateFeeFlatAmount') }"><small>{{ tr('entered') }} {{ o.lateFeeFlatAmount ?? '—' }}</small></label>
+        <template v-if="t.lateFeeTypeCode === 'PCT_ONCE' || t.lateFeeTypeCode === 'PCT_DAILY'">
+          <label class="fc-field"><span>{{ tr('Late fee rate') }} (%)</span>
+            <input v-model.number="t.lateFeeRatePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('lateFeeRatePct') }"><small>{{ tr('entered') }} {{ o.lateFeeRatePct ?? '—' }}</small></label>
+          <label class="fc-field"><span>{{ tr('Calculated on') }}</span>
+            <select v-model="t.lateFeeBaseCode" class="fx-select" :class="{ chg: ch('lateFeeBaseCode') }"><option v-for="x in o.options.lateFeeBases" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
+            <small>{{ tr('entered') }} {{ tr(lbl(o.options.lateFeeBases, o.lateFeeBaseCode)) }}</small></label>
+        </template>
+        <label v-if="t.lateFeeTypeCode !== 'NONE'" class="fc-field"><span>{{ tr('Grace days') }}</span>
+          <input v-model.number="t.lateFeeGraceDays" type="number" min="0" max="90" class="fx-search" :class="{ chg: ch('lateFeeGraceDays') }"><small>{{ tr('entered') }} {{ o.lateFeeTypeCode === 'NONE' ? '—' : o.lateFeeGraceDays }}</small></label>
+        <label class="fc-field"><span>{{ tr('Insurance required') }}</span>
+          <select v-model="t.isInsuranceRequired" class="fx-select" :class="{ chg: ch('isInsuranceRequired') }"><option :value="false">{{ tr('No') }}</option><option :value="true">{{ tr('Yes') }}</option></select>
+          <small>{{ tr('entered') }} {{ tr(o.isInsuranceRequired ? 'Yes' : 'No') }}</small></label>
+        <label class="fc-field"><span>{{ tr('Paying early') }}</span>
+          <select v-model="t.isPrepaymentAllowed" class="fx-select" :class="{ chg: ch('isPrepaymentAllowed') }"><option :value="true">{{ tr('Allowed') }}</option><option :value="false">{{ tr('Not allowed') }}</option></select>
+          <small>{{ tr('entered') }} {{ tr(o.isPrepaymentAllowed ? 'Allowed' : 'Not allowed') }}</small></label>
+        <template v-if="t.isPrepaymentAllowed">
+          <label class="fc-field"><span>{{ tr('After a part prepayment') }}</span>
+            <select v-model="t.prepaymentRecalcCode" class="fx-select" :class="{ chg: ch('prepaymentRecalcCode') }"><option v-for="x in o.options.prepaymentRecalcs" :key="x.value" :value="x.value">{{ tr(x.label) }}</option></select>
+            <small>{{ tr('entered') }} {{ tr(lbl(o.options.prepaymentRecalcs, o.prepaymentRecalcCode)) }}</small></label>
+          <label class="fc-field"><span>{{ tr('Part prepayment fee') }} (%)</span>
+            <input v-model.number="t.prepaymentFeePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('prepaymentFeePct') }"><small>{{ tr('entered') }} {{ o.prepaymentFeePct }}%</small></label>
+          <label class="fc-field"><span>{{ tr('Early settlement fee') }} (%)</span>
+            <input v-model.number="t.earlySettlementFeePct" type="number" min="0" max="100" step="any" class="fx-search" :class="{ chg: ch('earlySettlementFeePct') }"><small>{{ tr('entered') }} {{ o.earlySettlementFeePct }}%</small></label>
+        </template>
+      </div>
+      <div class="cfs-order">
+        <span class="c3-muted">{{ tr('Payment order') }}:</span>
+        <span v-for="(part, i) in t.paymentOrder" :key="part" class="cfs-part" :class="{ chg: ch('paymentOrder') }">
+          <button type="button" :disabled="i === 0" :aria-label="tr('Move up')" @click="moveOrder(i)"><span class="fa fa-angle-left" aria-hidden="true"></span></button>{{ tr(lbl(o.options.paymentParts, part)) }}
+        </span>
+      </div>
     </div>
 
     <!-- the charges: Credit decides (the rule's default is marked), later steps show the decision -->
@@ -40,7 +101,7 @@
           <tr v-for="c in charges.charges" :key="c.chargeCode">
             <td>{{ tr(c.chargeName) }}</td><td>{{ tr(c.basisText) || '—' }}</td>
             <td v-if="deciding" class="cfs-c">
-              <input v-model.number="amounts[c.chargeCode]" type="number" min="0" step="any" class="fx-search cfs-amt" :class="{ chg: amountOf(c) !== c.ruleAmount }">
+              <input v-model.number="amounts[c.chargeCode]" type="number" min="0" step="any" class="fx-search cfs-amt" :class="{ chg: amountOf(c) !== c.ruleAmount }" @input="touched.add(c.chargeCode)">
               <small class="c3-muted cfs-rule">{{ tr('rule') }}: {{ money(c.ruleAmount) }}</small>
             </td>
             <td v-else class="cfs-c">{{ money(c.amount + c.taxAmount) }}<small v-if="c.taxAmount" class="c3-muted"> ({{ tr('incl. tax') }} {{ money(c.taxAmount) }})</small></td>
@@ -59,6 +120,7 @@
       <p v-if="!charges.problem" class="cfs-sum">
         {{ tr('Financed') }} <b>{{ money(totals.financed) }}</b> · {{ tr('Added to schedule') }} <b>{{ money(totals.added) }}</b>
         · {{ tr('Finance amount') }} <b>{{ money(totals.financed + totals.added) }}</b> · {{ tr('Upfront') }} <b>{{ money(totals.upfront) }}</b>
+        <template v-if="deciding && changedCount"> · <span class="c3-muted">{{ changedCount }} {{ tr('values changed from what was entered') }}</span></template>
       </p>
     </div>
 
@@ -120,7 +182,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { showError, showSuccess } from '@/shared/feedback/feedback'
 import { formatDateTime } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
-import { loansApi, type CfCharge, type CfStep, type Loan } from '../api/loans.api'
+import { loansApi, type CfCharge, type CfCreditDecision, type CfStep, type CfTerms, type Loan } from '../api/loans.api'
 
 const props = defineProps<{ loan: Loan; version: number }>()
 const emit = defineEmits<{ changed: [] }>()
@@ -130,7 +192,7 @@ const router = useRouter()
 const UPFRONT = 'PAID_UPFRONT'
 const FINANCED = 'FINANCE_WITH_PRINCIPAL'
 const HINT: Record<string, string> = {
-  CF_CREDIT: "Check the customer, the supplier, the amount and term, and decide each charge. Approving needs the customer's compliance to be clear.",
+  CF_CREDIT: "Check the deal; every value below is this finance's own copy, change any of them. Approving needs the customer's compliance to be clear.",
   CF_CHARGES: 'Create the claim of the upfront charges, record its payment, then accept. Charges added to the schedule are part of the principal.',
   CF_SCHEDULE: 'Check the finance amount and term, then accept to build the schedule.',
 }
@@ -146,7 +208,10 @@ const comment = ref('')
 const busy = ref(false)
 const timings = ref<Record<string, string>>({})
 const amounts = ref<Record<string, number | string>>({})
-const margin = ref<number | string>(0)
+/** Credit's values (t) and what was entered (o). */
+const t = ref<CfTerms | null>(null)
+const o = computed(() => step.value?.terms ?? null)
+const touched = new Set<string>()
 const pay = reactive({ bankAccountId: null as number | null, paymentMethodCode: 'CASH', paymentReference: '' })
 const inboxId = () => (route.query.inboxId ? Number(route.query.inboxId) : null)
 const money = (n: number) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
@@ -161,7 +226,39 @@ const amountOf = (c: CfCharge) => {
   return v === undefined || v === '' || Number.isNaN(Number(v)) ? c.amount : Math.round(Number(v) * 100) / 100
 }
 const taxOf = (c: CfCharge) => (c.amount ? Math.round((amountOf(c) * c.taxAmount) / c.amount * 100) / 100 : 0)
-const financeRate = computed(() => Math.round(((step.value?.productRatePct ?? 0) + (Number(margin.value) || 0)) * 10000) / 10000)
+const lbl = (list: { value: string; label: string }[], v: string) => list.find((x) => x.value === v)?.label ?? v
+const TERM_KEYS = ['downPaymentAmount', 'termMonths', 'repaymentFrequencyCode', 'interestMethodCode', 'annualRatePct', 'dayCountCode', 'lateFeeTypeCode',
+  'lateFeeRatePct', 'lateFeeFlatAmount', 'lateFeeBaseCode', 'lateFeeGraceDays', 'paymentOrder', 'isInsuranceRequired', 'isPrepaymentAllowed',
+  'prepaymentRecalcCode', 'prepaymentFeePct', 'earlySettlementFeePct'] as const
+type TermKey = typeof TERM_KEYS[number]
+/** A value Credit changed from what was entered. */
+const ch = (k: TermKey) => !!t.value && !!o.value && JSON.stringify(t.value[k] ?? null) !== JSON.stringify(o.value[k] ?? null)
+const changedCount = computed(() => TERM_KEYS.filter((k) => ch(k)).length
+  + (charges.value?.charges ?? []).filter((c) => timing(c) !== c.defaultTimingCode || amountOf(c) !== c.ruleAmount).length)
+const marginNow = computed(() => (t.value && step.value?.productRatePct != null ? Math.round(((Number(t.value.annualRatePct) || 0) - step.value.productRatePct) * 10000) / 10000 : 0))
+function moveOrder(i: number) {
+  if (!t.value || i < 1) return
+  const list = [...t.value.paymentOrder]
+  const up = list[i]!
+  list[i] = list[i - 1]!
+  list[i - 1] = up
+  t.value.paymentOrder = list
+}
+// a new down payment changes the financed amount, so the charges are worked out again (amounts Credit typed stay)
+let downTimer: ReturnType<typeof setTimeout> | undefined
+function downChanged() {
+  clearTimeout(downTimer)
+  downTimer = setTimeout(async () => {
+    if (!t.value) return
+    try {
+      const fresh = await loansApi.cfStep(props.loan.loanId, inboxId(), Number(t.value.downPaymentAmount) || 0)
+      if (step.value && fresh) step.value = { ...step.value, charges: fresh.charges }
+      for (const c of fresh?.charges?.charges ?? []) if (!touched.has(c.chargeCode)) amounts.value[c.chargeCode] = c.amount
+    } catch {
+      // the check on Approve says what is wrong
+    }
+  }, 400)
+}
 function setTiming(c: CfCharge, t: string) {
   timings.value = { ...timings.value, [c.chargeCode]: t }
 }
@@ -180,8 +277,9 @@ async function load() {
   try {
     step.value = await loansApi.cfStep(props.loan.loanId, inboxId())
     timings.value = {}
+    touched.clear()
     amounts.value = Object.fromEntries((step.value?.charges?.charges ?? []).map((c) => [c.chargeCode, c.amount]))
-    margin.value = step.value?.rateMarginPct ?? 0
+    t.value = step.value?.terms ? { ...step.value.terms, paymentOrder: [...step.value.terms.paymentOrder] } : null
   } catch (err) {
     showError(message(err))
   }
@@ -229,7 +327,8 @@ async function complete(action: 'ACCEPT' | 'REJECT') {
     const decision = deciding.value && action === 'ACCEPT' ? {
       chargeTimings: Object.fromEntries(list.map((c) => [c.chargeCode, timing(c)])),
       chargeAmounts: Object.fromEntries(list.map((c) => [c.chargeCode, amountOf(c)])),
-      rateMarginPct: Number(margin.value) || 0
+      rateMarginPct: null,
+      terms: t.value ? Object.fromEntries(TERM_KEYS.filter((k) => ch(k)).map((k) => [k, t.value![k]])) as CfCreditDecision['terms'] : null
     } : undefined
     await loansApi.completeCfStep(props.loan.loanId, step.value.inboxId, action, comment.value.trim() || null, decision)
     showSuccess(tr(action === 'ACCEPT' ? 'Step accepted.' : 'Finance rejected.'))
@@ -258,6 +357,15 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-deal { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .cfs-deal > span { padding: 3px 10px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 12.5px; }
 .cfs-deal b { color: var(--fin-ink); }
+.cfs-terms { margin-top: 10px; }
+.cfs-sub { margin: 10px 0 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--fin-muted); }
+.cfs-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 14px; }
+.cfs-grid .fc-field small { color: var(--fin-muted); font-size: 11.5px; }
+.cfs-order { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; }
+.cfs-part { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px 3px 4px; border: 1px solid var(--fin-line); border-radius: 999px; }
+.cfs-part button { border: 0; background: none; padding: 0 4px; cursor: pointer; color: var(--fin-teal-700); }
+.cfs-part button:disabled { color: #c5ccd3; cursor: default; }
+@media (max-width: 900px) { .cfs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .cfs-rate { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 10px; font-size: 13px; }
 .cfs-rate label { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: #5b6b78; font-size: 12.5px; }
 .cfs-rate input { width: 90px; height: 30px; text-align: end; }

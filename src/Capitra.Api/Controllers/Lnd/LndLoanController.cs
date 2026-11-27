@@ -51,8 +51,8 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
     /// <summary>The CF_FINANCE step waiting now; with inboxId, whether it is the signed-in user's task.</summary>
     [HttpGet("{loanId:long}/cf-step")]
     [HasPermission(Permissions.Lnd.LoanView)]
-    public Task<LndCfStepDto?> CfStep(long loanId, [FromQuery] long? inboxId, CancellationToken cancellationToken) =>
-        workflow.StepAsync(loanId, inboxId, cancellationToken);
+    public Task<LndCfStepDto?> CfStep(long loanId, [FromQuery] long? inboxId, [FromQuery] decimal? downPayment, CancellationToken cancellationToken) =>
+        workflow.StepAsync(loanId, inboxId, cancellationToken, downPayment);
 
     /// <summary>
     /// Completes the signed-in user's CF_FINANCE task on the finance: ACCEPT, or REJECT with the reason. At Credit approval it carries

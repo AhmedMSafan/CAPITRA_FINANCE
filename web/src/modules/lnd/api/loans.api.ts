@@ -19,10 +19,21 @@ export type CfClaim = {
 
 export type CfStep = {
   stepCode: string; stepName: string; inboxId: number | null; isMine: boolean; charges: CfCharges | null; accounts: PayingAccount[] | null
-  productRatePct: number | null; rateMarginPct: number
+  productRatePct: number | null; rateMarginPct: number; terms: CfTerms | null
+}
+type Opt = { value: string; label: string }
+/** A finance's own financial values, which Credit approval can change (the price is the supplier's). */
+export type CfTerms = {
+  priceAmount: number; downPaymentAmount: number; minDownPaymentAmount: number; termMonths: number; repaymentFrequencyCode: string
+  interestMethodCode: string; annualRatePct: number; dayCountCode: string; lateFeeTypeCode: string; lateFeeRatePct: number | null
+  lateFeeFlatAmount: number | null; lateFeeBaseCode: string; lateFeeGraceDays: number; paymentOrder: string[]; isInsuranceRequired: boolean
+  isPrepaymentAllowed: boolean; prepaymentRecalcCode: string; prepaymentFeePct: number; earlySettlementFeePct: number
+  options: { frequencies: Opt[]; interestMethods: Opt[]; dayCounts: Opt[]; lateFeeTypes: Opt[]; lateFeeBases: Opt[]; paymentParts: Opt[]; prepaymentRecalcs: Opt[] }
 }
 /** Credit approval's decision: per charge code its timing and amount (0 waives it), and the margin on the product rate. */
-export type CfCreditDecision = { chargeTimings: Record<string, string>; chargeAmounts: Record<string, number>; rateMarginPct: number }
+export type CfCreditDecision = {
+  chargeTimings: Record<string, string>; chargeAmounts: Record<string, number>; rateMarginPct: number | null; terms: Partial<Omit<CfTerms, 'options'>> | null
+}
 
 export type CfSupplierOption = {
   applicationId: number; applicationRef: string; clientId: number; clientNumber: string; supplierName: string; goodsCategoryCodes: string[]
@@ -136,7 +147,14 @@ export const loansApi = {
   create: (body: LoanRequest) => http.post<Loan>(API, body),
   cancel: (id: number, reason: string, rowVersion: number) => http.post<Loan>(`${API}/${id}/cancel`, { reason, rowVersion }),
   /** The CF_FINANCE step waiting now (null when the finance is not in its workflow); with inboxId, whether it is the user's task. */
-  cfStep: (id: number, inboxId: number | null) => http.get<CfStep | null>(`${API}/${id}/cf-step${inboxId ? `?inboxId=${inboxId}` : ''}`),
+  /** downPayment: at Credit approval, the charges worked out on a new down payment. */
+  cfStep: (id: number, inboxId: number | null, downPayment?: number) => {
+    const q = new URLSearchParams()
+    if (inboxId) q.set('inboxId', String(inboxId))
+    if (downPayment !== undefined) q.set('downPayment', String(downPayment))
+    const qs = q.toString()
+    return http.get<CfStep | null>(`${API}/${id}/cf-step${qs ? `?${qs}` : ''}`)
+  },
   /** decision: at Credit approval, Credit's decision on the charges and the rate margin. */
   completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, decision?: CfCreditDecision) =>
     http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, ...decision }),

@@ -91,6 +91,88 @@ public static class LndCfFinanceRules
         (charges.Where(x => x.TimingCode == LndCfCharges.Upfront).Sum(x => x.ChargeAmount + x.TaxAmount),
          downPaymentCollectorCode == "COMPANY" ? Money.Round(downPayment ?? 0, 2) : 0);
 
+    /// <summary>The finance's own values, as Credit approval shows them.</summary>
+    public static LndCfTermsDto Terms(LndLoan l) => new(
+        l.GoodsPriceAmount ?? 0, l.DownPaymentAmount ?? 0, Money.Round((l.GoodsPriceAmount ?? 0) * (l.SupplierMinDownPaymentPct ?? 0) / 100m, 2),
+        l.TermMonths, l.RepaymentFrequencyCode, l.InterestMethodCode, l.AnnualRatePct, l.DayCountCode, l.LateFeeTypeCode, l.LateFeeRatePct,
+        l.LateFeeFlatAmount, l.LateFeeBaseCode, l.LateFeeGraceDays, LndProductTerms.Parts(l.PaymentOrder), l.IsInsuranceRequired, l.IsPrepaymentAllowed,
+        l.PrepaymentRecalcCode, l.PrepaymentFeePct, l.EarlySettlementFeePct,
+        new LndProductOptionsDto(LndProductTerms.Frequencies, LndProductTerms.InterestMethods, LndProductTerms.DayCounts, LndProductTerms.LateFeeTypes,
+            LndProductTerms.LateFeeBases, LndProductTerms.PaymentParts, LndProductTerms.PrepaymentRecalcs));
+
+    /// <summary>
+    /// Applies Credit's values to the finance (a value left out stays): checked like the product's terms, the down payment against the
+    /// price and the supplier's minimum, the term from 1 to 120 months, the rate from 0 to 100% (kept as a margin on the product rate).
+    /// Returns what changed, old → new, for the history. The amount follows the down payment (and the charges, set after).
+    /// </summary>
+    public static List<string> ApplyTerms(LndLoan l, LndCfTermsRequest t, decimal productRatePct, decimal? marginPct = null)
+    {
+        static string C(string? s) => (s ?? "").Trim().ToUpperInvariant();
+        var price = l.GoodsPriceAmount ?? 0;
+        var v = new LndProductVersion
+        {
+            RepaymentFrequencyCode = t.RepaymentFrequencyCode is null ? l.RepaymentFrequencyCode : C(t.RepaymentFrequencyCode),
+            InterestMethodCode = t.InterestMethodCode is null ? l.InterestMethodCode : C(t.InterestMethodCode),
+            AnnualRatePct = t.AnnualRatePct ?? (marginPct is { } m ? productRatePct + m : l.AnnualRatePct),
+            DayCountCode = t.DayCountCode is null ? l.DayCountCode : C(t.DayCountCode),
+            LateFeeTypeCode = t.LateFeeTypeCode is null ? l.LateFeeTypeCode : C(t.LateFeeTypeCode),
+            LateFeeBaseCode = t.LateFeeBaseCode is null ? l.LateFeeBaseCode : C(t.LateFeeBaseCode),
+            PaymentOrder = t.PaymentOrder is null ? l.PaymentOrder : string.Join(",", t.PaymentOrder.Select(C)),
+            IsInsuranceRequired = t.IsInsuranceRequired ?? l.IsInsuranceRequired,
+            IsPrepaymentAllowed = t.IsPrepaymentAllowed ?? l.IsPrepaymentAllowed,
+            PrepaymentRecalcCode = t.PrepaymentRecalcCode is null ? l.PrepaymentRecalcCode : C(t.PrepaymentRecalcCode),
+            PrepaymentFeePct = t.PrepaymentFeePct ?? l.PrepaymentFeePct,
+            EarlySettlementFeePct = t.EarlySettlementFeePct ?? l.EarlySettlementFeePct,
+        };
+        var typeChanged = t.LateFeeTypeCode is not null;
+        v.LateFeeRatePct = v.LateFeeTypeCode is "PCT_ONCE" or "PCT_DAILY" ? (typeChanged ? t.LateFeeRatePct : t.LateFeeRatePct ?? l.LateFeeRatePct) : null;
+        v.LateFeeFlatAmount = v.LateFeeTypeCode == "FLAT" ? (typeChanged ? t.LateFeeFlatAmount : t.LateFeeFlatAmount ?? l.LateFeeFlatAmount) : null;
+        v.LateFeeGraceDays = v.LateFeeTypeCode == "NONE" ? 0 : t.LateFeeGraceDays ?? l.LateFeeGraceDays;
+        var down = Money.Round(t.DownPaymentAmount ?? l.DownPaymentAmount ?? 0, 2);
+        var term = t.TermMonths ?? l.TermMonths;
+
+        var e = LndProductTerms.Check(v);
+        var minDown = Money.Round(price * (l.SupplierMinDownPaymentPct ?? 0) / 100m, 2);
+        if (down < minDown) e["downPaymentAmount"] = [$"The down payment must be at least {l.SupplierMinDownPaymentPct:0.##}% of the price ({minDown:#,0.00})."];
+        else if (down >= price) e["downPaymentAmount"] = ["The down payment must be less than the price."];
+        if (term is < 1 or > 120) e["termMonths"] = ["The term must be from 1 to 120 months."];
+        if (e.Count > 0) throw new BusinessValidationException(e);
+
+        // what changed, for the history
+        var before = new LndProductVersion
+        {
+            RepaymentFrequencyCode = l.RepaymentFrequencyCode, InterestMethodCode = l.InterestMethodCode, AnnualRatePct = l.AnnualRatePct,
+            DayCountCode = l.DayCountCode, LateFeeTypeCode = l.LateFeeTypeCode, LateFeeRatePct = l.LateFeeRatePct, LateFeeFlatAmount = l.LateFeeFlatAmount,
+            LateFeeBaseCode = l.LateFeeBaseCode, LateFeeGraceDays = l.LateFeeGraceDays, PaymentOrder = l.PaymentOrder, IsInsuranceRequired = l.IsInsuranceRequired,
+            IsPrepaymentAllowed = l.IsPrepaymentAllowed, PrepaymentRecalcCode = l.PrepaymentRecalcCode, PrepaymentFeePct = l.PrepaymentFeePct,
+            EarlySettlementFeePct = l.EarlySettlementFeePct,
+        };
+        var changes = new List<string>();
+        if (down != Money.Round(l.DownPaymentAmount ?? 0, 2)) changes.Add($"down payment {l.DownPaymentAmount:#,0.00} → {down:#,0.00}");
+        if (term != l.TermMonths) changes.Add($"term {l.TermMonths} → {term} months");
+        changes.AddRange(LndProductTerms.Diff(before, v).Select(c => $"{c.Field.ToLowerInvariant()} {c.OldValue} → {c.NewValue}"));
+
+        l.DownPaymentAmount = down;
+        l.TermMonths = term;
+        l.RepaymentFrequencyCode = v.RepaymentFrequencyCode;
+        l.InterestMethodCode = v.InterestMethodCode;
+        l.AnnualRatePct = v.AnnualRatePct;
+        l.RateMarginPct = Money.Round(v.AnnualRatePct - productRatePct, 6);
+        l.DayCountCode = v.DayCountCode;
+        l.LateFeeTypeCode = v.LateFeeTypeCode;
+        l.LateFeeRatePct = v.LateFeeRatePct;
+        l.LateFeeFlatAmount = v.LateFeeFlatAmount;
+        l.LateFeeBaseCode = v.LateFeeBaseCode;
+        l.LateFeeGraceDays = v.LateFeeGraceDays;
+        l.PaymentOrder = v.PaymentOrder;
+        l.IsInsuranceRequired = v.IsInsuranceRequired;
+        l.IsPrepaymentAllowed = v.IsPrepaymentAllowed;
+        l.PrepaymentRecalcCode = v.PrepaymentRecalcCode;
+        l.PrepaymentFeePct = v.PrepaymentFeePct;
+        l.EarlySettlementFeePct = v.EarlySettlementFeePct;
+        return changes;
+    }
+
     /// <summary>The finance rate: the product rate plus Credit's margin, from 0 to 100%.</summary>
     public static decimal FinanceRate(decimal productRatePct, decimal marginPct)
     {
@@ -111,14 +193,32 @@ public static class LndCfFinanceRules
 
 /// <summary>The open step of a finance, whether the signed-in user holds its task, and what the step shows.</summary>
 public sealed record LndCfStepDto(string StepCode, string StepName, long? InboxId, bool IsMine, LndCfChargesDto? Charges = null,
-    IReadOnlyList<LndPayingAccountDto>? Accounts = null, decimal? ProductRatePct = null, decimal RateMarginPct = 0);
+    IReadOnlyList<LndPayingAccountDto>? Accounts = null, decimal? ProductRatePct = null, decimal RateMarginPct = 0, LndCfTermsDto? Terms = null);
+
+/// <summary>
+/// The financial values of a finance, its own copy (Ahmed, 27 Nov 2026): Credit approval can change every one of them for this finance.
+/// The price is the supplier's and is not changed.
+/// </summary>
+public sealed record LndCfTermsDto(
+    decimal PriceAmount, decimal DownPaymentAmount, decimal MinDownPaymentAmount, int TermMonths, string RepaymentFrequencyCode,
+    string InterestMethodCode, decimal AnnualRatePct, string DayCountCode, string LateFeeTypeCode, decimal? LateFeeRatePct, decimal? LateFeeFlatAmount,
+    string LateFeeBaseCode, int LateFeeGraceDays, IReadOnlyList<string> PaymentOrder, bool IsInsuranceRequired, bool IsPrepaymentAllowed,
+    string PrepaymentRecalcCode, decimal PrepaymentFeePct, decimal EarlySettlementFeePct, LndProductOptionsDto Options);
+
+/// <summary>Credit's values for the finance; a value left out stays as it is.</summary>
+public sealed record LndCfTermsRequest(
+    decimal? DownPaymentAmount = null, int? TermMonths = null, string? RepaymentFrequencyCode = null, string? InterestMethodCode = null,
+    decimal? AnnualRatePct = null, string? DayCountCode = null, string? LateFeeTypeCode = null, decimal? LateFeeRatePct = null,
+    decimal? LateFeeFlatAmount = null, string? LateFeeBaseCode = null, int? LateFeeGraceDays = null, IReadOnlyList<string>? PaymentOrder = null,
+    bool? IsInsuranceRequired = null, bool? IsPrepaymentAllowed = null, string? PrepaymentRecalcCode = null, decimal? PrepaymentFeePct = null,
+    decimal? EarlySettlementFeePct = null);
 
 /// <summary>
 /// ACCEPT or REJECT. At Credit approval: ChargeTimings and ChargeAmounts are Credit's decision per charge code (PAID_UPFRONT or
 /// FINANCE_WITH_PRINCIPAL; the amount, 0 to waive), and RateMarginPct the margin on the product rate (+ or -).
 /// </summary>
 public sealed record LndCfCompleteRequest(string? Action, string? Comment, IReadOnlyDictionary<string, string>? ChargeTimings = null,
-    IReadOnlyDictionary<string, decimal>? ChargeAmounts = null, decimal? RateMarginPct = null);
+    IReadOnlyDictionary<string, decimal>? ChargeAmounts = null, decimal? RateMarginPct = null, LndCfTermsRequest? Terms = null);
 
 public sealed record LndCfClaimPaymentRequest(long? BankAccountId, string? PaymentMethodCode, string? PaymentReference);
 
@@ -146,12 +246,13 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
     }
 
     /// <summary>The charges Credit saved; else the rule's charges with the timings given (or the rule's defaults).</summary>
-    public async Task<LndCfChargesDto> WorkAsync(LndLoan loan, IReadOnlyDictionary<string, string>? timings, CancellationToken ct)
+    public async Task<LndCfChargesDto> WorkAsync(LndLoan loan, IReadOnlyDictionary<string, string>? timings, CancellationToken ct, decimal? down = null)
     {
-        var financed = Money.Round((loan.GoodsPriceAmount ?? 0) - (loan.DownPaymentAmount ?? 0), 2);
+        var downPayment = Money.Round(down ?? loan.DownPaymentAmount ?? 0, 2);
+        var financed = Money.Round((loan.GoodsPriceAmount ?? 0) - downPayment, 2);
         var saved = await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loan.LoanId).OrderBy(x => x.LoanChargeId).ToListAsync(ct);
         var (productCode, _, _, plan, ruleCode) = await PlanAsync(loan, ct);
-        if (saved.Count > 0 && timings is null)
+        if (saved.Count > 0 && timings is null && down is null)
         {
             // Credit's decision, each with how its rule works it out
             string BasisOf(string code) => plan?.Charges.FirstOrDefault(c => c.ChargeCode == code) is { } c ? LndCfCharges.Basis(c) : "";
@@ -161,7 +262,7 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
         if (plan is null)
             return new LndCfChargesDto([], financed, 0, 0, financed,
                 $"Product {productCode} has no active rule {ruleCode} today. Add it in Admin Setup > Product Catalog > {productCode} > Rules.");
-        return LndCfCharges.Work(plan.Charges, Money.Round(loan.GoodsPriceAmount ?? 0, 2), Money.Round(loan.DownPaymentAmount ?? 0, 2), timings);
+        return LndCfCharges.Work(plan.Charges, Money.Round(loan.GoodsPriceAmount ?? 0, 2), downPayment, timings);
     }
 
     /// <summary>
@@ -296,7 +397,7 @@ public sealed class LndCfFinanceService(
     private string User => currentUser.UserName ?? currentUser.UserId ?? "SYSTEM";
 
     /// <summary>The step waiting now, or null when the finance is not in its workflow; IsMine when inboxId is the user's open task on it.</summary>
-    public async Task<LndCfStepDto?> StepAsync(long loanId, long? inboxId, CancellationToken ct)
+    public async Task<LndCfStepDto?> StepAsync(long loanId, long? inboxId, CancellationToken ct, decimal? downPayment = null)
     {
         var loan = await db.Set<LndLoan>().AsNoTracking().FirstOrDefaultAsync(x => x.LoanId == loanId, ct)
             ?? throw new NotFoundException($"Finance {loanId} was not found.");
@@ -317,11 +418,13 @@ public sealed class LndCfFinanceService(
             catch (Exception ex) when (ex is NotFoundException or BusinessRuleException) { mine = false; }
         }
         var step = open.ToUpperInvariant();
-        LndCfChargesDto? charges = step is LndCfFinanceRules.Credit or LndCfFinanceRules.Charges ? await planner.WorkAsync(loan, null, ct) : null;
+        LndCfChargesDto? charges = step is LndCfFinanceRules.Credit or LndCfFinanceRules.Charges
+            ? await planner.WorkAsync(loan, null, ct, step == LndCfFinanceRules.Credit ? downPayment : null) : null;
         IReadOnlyList<LndPayingAccountDto>? accounts = step == LndCfFinanceRules.Charges && mine ? await AccountsAsync(loan.CurrencyCode, ct) : null;
         var productRate = await db.Set<LndProductVersion>().AsNoTracking().Where(x => x.ProductVersionId == loan.ProductVersionId)
             .Select(x => (decimal?)x.AnnualRatePct).FirstOrDefaultAsync(ct);
-        return new LndCfStepDto(open, LndCfFinanceRules.StepName(open), mine ? inboxId : null, mine, charges, accounts, productRate, loan.RateMarginPct);
+        return new LndCfStepDto(open, LndCfFinanceRules.StepName(open), mine ? inboxId : null, mine, charges, accounts, productRate, loan.RateMarginPct,
+            step == LndCfFinanceRules.Credit && mine ? LndCfFinanceRules.Terms(loan) : null);
     }
 
     /// <summary>
@@ -341,14 +444,10 @@ public sealed class LndCfFinanceService(
         var changes = new List<string>();
         if (action == "ACCEPT" && string.Equals(item.StepCode, LndCfFinanceRules.Credit, StringComparison.OrdinalIgnoreCase))
         {
-            changes = await planner.DecideAsync(loan, r.ChargeTimings, ct, r.ChargeAmounts);
-            // the product rate stays fixed; Credit adds or takes off a margin for this finance
+            // Credit's values for this finance (its own copy): every financial value can change; the down payment first, as the charges follow it
             var productRate = await db.Set<LndProductVersion>().Where(x => x.ProductVersionId == loan.ProductVersionId).Select(x => x.AnnualRatePct).SingleAsync(ct);
-            var margin = Money.Round(r.RateMarginPct ?? 0, 6);
-            var rate = LndCfFinanceRules.FinanceRate(productRate, margin);
-            loan.RateMarginPct = margin;
-            loan.AnnualRatePct = rate;
-            if (margin != 0) changes.Add($"margin {margin:+0.####;-0.####}% → rate {rate:0.####}%");
+            changes = LndCfFinanceRules.ApplyTerms(loan, r.Terms ?? new LndCfTermsRequest(), productRate, r.RateMarginPct);
+            changes.AddRange(await planner.DecideAsync(loan, r.ChargeTimings, ct, r.ChargeAmounts));
             await db.SaveChangesAsync(ct);
         }
         await inbox.CompleteAsync(inboxId, new CompleteInboxItemRequest(action, comment), ct);

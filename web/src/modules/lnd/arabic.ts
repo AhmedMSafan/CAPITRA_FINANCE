@@ -631,5 +631,17 @@ export const LND_AR: Record<string, string> = {
   'Claims data will be available here.': 'ستظهر بيانات المطالبات هنا.',
   'Currency': 'العملة',
   'Date': 'التاريخ',
-  'Actions': 'الإجراءات'
+  'Actions': 'الإجراءات',
+  'entered': 'المُدخل',
+  'at least': 'على الأقل',
+  'price − down payment': 'السعر ناقص المقدم',
+  'product': 'المنتج',
+  'margin': 'الهامش',
+  'Late fee and other': 'غرامة التأخير وغيرها',
+  'Late fee rate': 'نسبة غرامة التأخير',
+  'Insurance required': 'التأمين مطلوب',
+  'Allowed': 'مسموح',
+  'Not allowed': 'غير مسموح',
+  'values changed from what was entered': 'قيم تم تغييرها عما أُدخل',
+  'Check the deal; every value below is this finance\'s own copy, change any of them. Approving needs the customer\'s compliance to be clear.': 'راجع الصفقة؛ كل قيمة أدناه نسخة خاصة بهذا التمويل ويمكن تغييرها. تتطلب الموافقة أن يكون امتثال العميل سليماً.'
 }
