@@ -267,6 +267,7 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 /* every row on one centred line; amount and timing centred in their columns */
 .cfs :deep(.fx-table) th, .cfs :deep(.fx-table) td { vertical-align: middle; }
 .cfs .cfs-c { text-align: center; white-space: nowrap; }
+.cfs .cfs-c > * { vertical-align: middle; }
 .cfs-deal { align-items: center; }
 .chg { border-color: #d39b2a !important; background: #fffaf0 !important; }
 .cfs-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--fin-teal-50); color: var(--fin-teal-700); flex: none; }

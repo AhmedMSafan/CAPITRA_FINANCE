@@ -19,48 +19,47 @@
     <div v-if="!loan" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading finance...') }}</div>
     <template v-else>
       <CfFinanceStep :loan="loan" :version="stepVersion" @changed="stepChanged" />
-      <section class="fx-card ln-facts">
-        <div v-for="f in facts" :key="f[0]"><small>{{ tr(f[0]) }}</small><b>{{ f[1] }}</b></div>
-      </section>
-
-      <section v-if="loan.goods" class="fx-card">
-        <header class="c3-panel-head"><h3><span class="fa fa-shopping-cart" aria-hidden="true"></span>{{ tr('Financed item') }}</h3></header>
-        <div class="ln-facts">
-          <div><small>{{ tr('Category') }}</small><b>{{ tr(loan.goods.categoryName) }}</b></div>
-          <div><small>{{ tr('Item description') }}</small><b>{{ loan.goods.description }}</b></div>
-          <div><small>{{ tr('Brand / model') }}</small><b>{{ loan.goods.brandModel || '—' }}</b></div>
-          <div><small>{{ tr('Supplier') }}</small><b>{{ loan.goods.merchantName || '—' }}</b></div>
-          <div><small>{{ tr('Item price') }}</small><b>{{ money(loan.goods.priceAmount) }}</b></div>
-          <div><small>{{ tr('Down payment') }}</small><b>{{ money(loan.goods.downPaymentAmount) }}</b></div>
-          <div><small>{{ tr('Finance amount') }}</small><b>{{ money(loan.principalAmount) }}</b></div>
-          <template v-if="loan.goods.supplierApplicationId">
-            <div><small>{{ tr('Down payment collected by') }}</small><b>{{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'Us' : 'Supplier') }}</b></div>
-            <div><small>{{ tr('Commission') }}</small><b>{{ loan.goods.supplierCommissionPct ?? 0 }}%</b></div>
-            <div><small>{{ tr('We pay after') }}</small><b>{{ loan.goods.supplierPaymentDays }} {{ tr('days') }}</b></div>
-            <div><small>{{ tr('Delivers within') }}</small><b>{{ loan.goods.supplierDeliveryDays }} {{ tr('days') }}</b></div>
-          </template>
+      <!-- the finance in one compact card (Ahmed, 27 Nov 2026): its terms, the financed item and the charges as chips -->
+      <section class="fx-card ln-card">
+        <h3 class="ln-h"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Finance') }}</h3>
+        <div class="ln-chips">
+          <span v-for="f in facts" :key="f[0]">{{ tr(f[0]) }} <b>{{ f[1] }}</b></span>
         </div>
-        <div v-if="loan.charges?.length" class="ln-charges">
-          <h4>{{ tr('Charges') }}</h4>
-          <div v-for="c in loan.charges" :key="c.chargeCode" class="ln-charge">
-            <span>{{ tr(c.chargeName) }}</span><b>{{ money(c.amount + c.taxAmount) }}</b>
-            <span class="fx-chip" :class="c.timingCode === 'PAID_UPFRONT' ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(c.timingCode === 'PAID_UPFRONT' ? 'Pay upfront' : 'Added to schedule') }}</span>
-            <small v-if="c.isOverridden" class="c3-muted">{{ tr('changed by Credit') }}</small>
-          </div>
-        </div>
-        <div v-if="loan.claim" class="ln-charges">
-          <h4>{{ tr('Upfront claim') }}</h4>
-          <div class="ln-charge">
-            <template v-if="loan.claim.statusCode === 'NONE'"><span>{{ tr('Nothing is paid upfront.') }}</span></template>
-            <template v-else>
-              <span>{{ tr('Charges') }} {{ money(loan.claim.chargesAmount) }} · {{ tr('Down payment') }} {{ money(loan.claim.downPaymentAmount) }}</span>
-              <b>{{ money(loan.claim.totalAmount) }}</b>
-              <span class="fx-chip" :class="loan.claim.statusCode === 'PAID' ? 'fx-chip--ok' : 'fx-chip--warn'">{{ tr(loan.claim.statusCode === 'PAID' ? 'Paid' : 'Waiting for payment') }}</span>
-              <small v-if="loan.claim.glTranSetId" class="c3-muted">GL {{ loan.claim.glTranSetId }}</small>
-              <small v-if="loan.claim.paymentGlTranSetId" class="c3-muted">· {{ tr('Payment') }} GL {{ loan.claim.paymentGlTranSetId }}</small>
+        <template v-if="loan.goods">
+          <h4 class="ln-sub">{{ tr('Financed item') }}</h4>
+          <div class="ln-chips">
+            <span>{{ tr('Category') }} <b>{{ tr(loan.goods.categoryName) }}</b></span>
+            <span>{{ tr('Item') }} <b>{{ loan.goods.description }}<template v-if="loan.goods.brandModel"> · {{ loan.goods.brandModel }}</template></b></span>
+            <span>{{ tr('Supplier') }} <b>{{ loan.goods.merchantName || '—' }}</b></span>
+            <span>{{ tr('Price') }} <b>{{ money(loan.goods.priceAmount) }}</b></span>
+            <span>{{ tr('Down payment') }} <b>{{ money(loan.goods.downPaymentAmount) }}</b><template v-if="loan.goods.supplierApplicationId">
+              ({{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</template></span>
+            <template v-if="loan.goods.supplierApplicationId">
+              <span>{{ tr('Commission') }} <b>{{ loan.goods.supplierCommissionPct ?? 0 }}%</b></span>
+              <span>{{ tr('We pay after') }} <b>{{ loan.goods.supplierPaymentDays }} {{ tr('days') }}</b></span>
+              <span>{{ tr('Delivers within') }} <b>{{ loan.goods.supplierDeliveryDays }} {{ tr('days') }}</b></span>
             </template>
           </div>
-        </div>
+        </template>
+        <template v-if="loan.charges?.length">
+          <h4 class="ln-sub">{{ tr('Charges') }}</h4>
+          <div class="ln-chips">
+            <span v-for="c in loan.charges" :key="c.chargeCode">{{ tr(c.chargeName) }} <b>{{ money(c.amount + c.taxAmount) }}</b>
+              · {{ tr(c.timingCode === 'PAID_UPFRONT' ? 'Upfront' : 'Added to schedule') }}<template v-if="c.isOverridden"> · {{ tr('changed by Credit') }}</template></span>
+          </div>
+        </template>
+        <template v-if="loan.claim">
+          <h4 class="ln-sub">{{ tr('Upfront claim') }}</h4>
+          <div class="ln-chips">
+            <span v-if="loan.claim.statusCode === 'NONE'">{{ tr('Nothing is paid upfront.') }}</span>
+            <template v-else>
+              <span>{{ tr('Claim') }} <b>{{ money(loan.claim.totalAmount) }}</b> ({{ tr('charges') }} {{ money(loan.claim.chargesAmount) }} · {{ tr('down payment') }} {{ money(loan.claim.downPaymentAmount) }})</span>
+              <span>{{ tr(loan.claim.statusCode === 'PAID' ? 'Paid' : 'Waiting for payment') }}</span>
+              <span v-if="loan.claim.glTranSetId">GL <b>{{ loan.claim.glTranSetId }}</b></span>
+              <span v-if="loan.claim.paymentGlTranSetId">{{ tr('Payment') }} GL <b>{{ loan.claim.paymentGlTranSetId }}</b></span>
+            </template>
+          </div>
+        </template>
       </section>
 
       <section v-if="payouts && !loan.goods?.supplierApplicationId" class="fx-card">
@@ -135,7 +134,8 @@
 
       <section class="fx-card">
         <header class="c3-panel-head"><h3><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Schedule') }}</h3></header>
-        <div class="fx-table-wrap">
+        <p v-if="!loan.installments.length" class="ln-none">{{ tr('No schedule yet: it is built at the Schedule and contract step.') }}</p>
+        <div v-else class="fx-table-wrap">
           <table class="fx-table">
             <thead>
               <tr>
@@ -151,9 +151,6 @@
                 <td class="ln-num">{{ money(i.insuranceDue) }}</td><td class="ln-num">{{ money(i.lateFeeDue) }}</td><td class="ln-num"><b>{{ money(i.totalDue) }}</b></td>
                 <td class="ln-num">{{ money(i.totalPaid) }}</td><td class="ln-num">{{ money(i.closingPrincipal) }}</td>
                 <td><span class="fx-chip" :class="i.statusCode === 'PAID' ? 'fx-chip--ok' : i.statusCode === 'PART_PAID' ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(INST[i.statusCode] ?? i.statusCode) }}</span></td>
-              </tr>
-              <tr v-if="!loan.installments.length">
-                <td colspan="11" class="c3-muted">{{ tr('No schedule yet: it is built at the Schedule and contract step, after Credit decides the charges.') }}</td>
               </tr>
             </tbody>
             <tfoot>
@@ -634,6 +631,13 @@ h1 .fx-chip { vertical-align: middle; font-size: 12px; }
 .lp-preview { margin-top: 12px; }
 .c3-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 900px) { .ln-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ln-card { padding: 14px 18px; }
+.ln-h { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 14px; color: var(--fin-teal-700); }
+.ln-sub { margin: 12px 0 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--fin-muted); }
+.ln-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ln-chips > span { padding: 4px 10px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 12.5px; }
+.ln-chips b { color: var(--fin-ink); }
+.ln-none { margin: 0; padding: 10px 16px 14px; color: var(--fin-muted); font-size: 13px; }
 .ln-charges { margin-top: 12px; }
 .ln-charges h4 { margin: 0 0 6px; font-size: 13px; color: var(--fin-muted); }
 .ln-charge { display: flex; align-items: center; gap: 12px; padding: 4px 0; font-size: 13.5px; }

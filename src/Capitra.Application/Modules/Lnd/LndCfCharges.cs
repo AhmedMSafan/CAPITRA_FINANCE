@@ -73,7 +73,8 @@ public static class LndCfCharges
         return new LndCfChargesDto(rows, financed, added, upfront, financed + added, null, decided);
     }
 
-    private static string Basis(ProductEventCharge c) => c.CalculationMethodCode switch
+    /// <summary>How a charge is worked out, as the finance shows it (e.g. "1% of the financed amount").</summary>
+    public static string Basis(ProductEventCharge c) => c.CalculationMethodCode switch
     {
         "PERCENTAGE" => $"{c.ChargeRate:0.##}% of {(c.AmountBaseCode == "GOODS_PRICE" ? "the price" : "the financed amount")}",
         "FIXED" => "Fixed",

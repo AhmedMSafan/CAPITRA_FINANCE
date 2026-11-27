@@ -150,10 +150,14 @@ public sealed class LndCfChargesPlanner(ICapitraDbContext db, AdmProductEventRul
     {
         var financed = Money.Round((loan.GoodsPriceAmount ?? 0) - (loan.DownPaymentAmount ?? 0), 2);
         var saved = await db.Set<LndLoanCharge>().AsNoTracking().Where(x => x.LoanId == loan.LoanId).OrderBy(x => x.LoanChargeId).ToListAsync(ct);
-        if (saved.Count > 0 && timings is null)
-            return LndCfCharges.Totals([.. saved.Select(x => new LndCfChargeDto(x.ChargeCode, x.ChargeName, "", x.ChargeAmount, x.TaxAmount, x.TimingCode,
-                x.TimingCode, x.IsOverridden, x.ChargeAmount))], financed, true);
         var (productCode, _, _, plan, ruleCode) = await PlanAsync(loan, ct);
+        if (saved.Count > 0 && timings is null)
+        {
+            // Credit's decision, each with how its rule works it out
+            string BasisOf(string code) => plan?.Charges.FirstOrDefault(c => c.ChargeCode == code) is { } c ? LndCfCharges.Basis(c) : "";
+            return LndCfCharges.Totals([.. saved.Select(x => new LndCfChargeDto(x.ChargeCode, x.ChargeName, BasisOf(x.ChargeCode), x.ChargeAmount, x.TaxAmount,
+                x.TimingCode, x.TimingCode, x.IsOverridden, x.ChargeAmount))], financed, true);
+        }
         if (plan is null)
             return new LndCfChargesDto([], financed, 0, 0, financed,
                 $"Product {productCode} has no active rule {ruleCode} today. Add it in Admin Setup > Product Catalog > {productCode} > Rules.");
