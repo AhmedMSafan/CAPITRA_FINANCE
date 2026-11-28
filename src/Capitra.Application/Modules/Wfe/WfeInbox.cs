@@ -338,6 +338,7 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
     /// </summary>
     private async Task<List<WfeInboxItemDto>> WithEntityAsync(List<WfeInboxItemDto> items, CancellationToken cancellationToken)
     {
+        items = await WithLoanAsync(items, cancellationToken);
         var ids = items.Where(i => i.EntityType == "PURCHASED_PORTFOLIO" && i.EntityId != null).Select(i => i.EntityId!.Value).Distinct().ToList();
         if (ids.Count == 0)
             return items;
@@ -354,6 +355,32 @@ public sealed class WfeInbox(ICapitraDbContext db, ICurrentUser currentUser, Wfe
                 ClientNumber = i.ClientNumber ?? p.DeveloperCode,
                 Amount = i.Amount ?? (p.FaceValue > 0 ? p.FaceValue : null),
                 CurrencyCode = i.CurrencyCode ?? p.CurrencyCode,
+            }
+            : i).ToList();
+    }
+
+    /// <summary>
+    /// A finance's task (LND_LOAN, 28 Nov 2026) shows its customer (name and number), its amount and currency, where the workflow
+    /// variables have none, so the Inbox and the task page are filled in.
+    /// </summary>
+    private async Task<List<WfeInboxItemDto>> WithLoanAsync(List<WfeInboxItemDto> items, CancellationToken cancellationToken)
+    {
+        var ids = items.Where(i => i.EntityType == "LND_LOAN" && i.EntityId != null).Select(i => i.EntityId!.Value).Distinct().ToList();
+        if (ids.Count == 0)
+            return items;
+        var loans = await db.Set<Capitra.Domain.Modules.Lnd.LndLoan>().AsNoTracking()
+            .Where(l => ids.Contains(l.LoanId))
+            .Join(db.Set<Capitra.Domain.Modules.Crm.CrmClient>(), l => l.ClientId, c => c.ClientId,
+                (l, c) => new { l.LoanId, l.PrincipalAmount, l.CurrencyCode, c.ClientId, c.ClientName, c.ClientNumber })
+            .ToDictionaryAsync(x => x.LoanId, cancellationToken);
+        return items.Select(i => i.EntityType == "LND_LOAN" && i.EntityId is { } id && loans.TryGetValue(id, out var l)
+            ? i with
+            {
+                ClientId = i.ClientId ?? l.ClientId,
+                ClientName = i.ClientName ?? l.ClientName,
+                ClientNumber = i.ClientNumber ?? l.ClientNumber,
+                Amount = i.Amount ?? l.PrincipalAmount,
+                CurrencyCode = i.CurrencyCode ?? l.CurrencyCode,
             }
             : i).ToList();
     }

@@ -26,147 +26,46 @@
 
     <template v-else-if="task">
 
-      <section class="wf-task-hero">
-        <div class="wf-task-hero-main">
-          <div class="wf-task-hero-copy">
-            <div class="wf-task-tags">
-              <span class="wf-task-tag">
-                {{ task.moduleCode || 'WORKFLOW' }}
-              </span>
-
-              <span class="wf-task-tag wf-task-tag-status">
-                {{ pretty(task.status) }}
-              </span>
-            </div>
-
+      <!-- the task at a glance (Ahmed, 28 Nov 2026): the step, its facts from the business record, where the finance stands and the
+           task details on one line; Start work still opens the working screen -->
+      <section class="wf-context-card wt-card">
+        <div class="wt-head">
+          <div class="wt-title">
             <h1>{{ task.stepName }}</h1>
-
-            <p class="wf-task-hero-ref">
-              {{ task.entityRef || `Task #${task.inboxId}` }}
-            </p>
+            <span class="wt-tag">{{ workflowNameText }}</span>
+            <span class="wt-tag wt-tag--state">{{ task.isClaimedByMe ? 'Claimed by you' : pretty(task.status) }}</span>
+          </div>
+          <div class="wf-task-hero-actions">
+            <button v-if="task.status === 'OPEN'" type="button" class="wf-action-button wf-action-claim" :disabled="actionLoading" @click="claimTask">
+              <i class="pi pi-user-plus"></i>
+              Claim
+            </button>
+            <!-- a step worked on its form needs Start work once; after that the form below is the working screen -->
+            <button v-if="task.status === 'CLAIMED' || (task.status === 'IN_PROGRESS' && task.route)" type="button" class="wf-action-button wf-action-start"
+                    :disabled="actionLoading || (!task.route && !taskForm)" @click="runTask">
+              <i class="pi pi-play"></i>
+              {{ task.status === 'IN_PROGRESS' ? 'Continue work' : 'Start work' }}
+            </button>
           </div>
         </div>
 
-        <div class="wf-task-hero-actions">
-          <button v-if="task.status === 'OPEN'"
-                  type="button"
-                  class="wf-action-button wf-action-claim"
-                  :disabled="actionLoading"
-                  @click="claimTask">
-            <i class="pi pi-user-plus"></i>
-            Claim
-          </button>
-
-          <!-- a step worked on its form needs Start work once; after that the form below is the working screen -->
-          <button v-if="task.status === 'CLAIMED' || (task.status === 'IN_PROGRESS' && task.route)"
-                  type="button"
-                  class="wf-action-button wf-action-start"
-                  :disabled="actionLoading || (!task.route && !taskForm)"
-                  @click="runTask">
-            <i class="pi pi-play"></i>
-            {{ task.status === 'IN_PROGRESS' ? 'Continue work' : 'Start work' }}
-          </button>
-
-        </div>
-      </section>
-
-      <section class="wf-context-card">
-        <!-- the task's business facts, in the same row style as the summary below -->
-        <div class="wf-context-summary wf-context-facts">
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-sitemap"></i></span>
-            <div>
-              <label>Workflow Name</label>
-              <strong>{{ workflowNameText }}</strong>
-            </div>
-          </div>
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-building"></i></span>
-            <div>
-              <label>Customer Name</label>
-              <strong>{{ task.clientName || '-' }}</strong>
-            </div>
-          </div>
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-id-card"></i></span>
-            <div>
-              <label>Customer Number</label>
-              <strong>{{ customerNumber }}</strong>
-            </div>
-          </div>
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-tag"></i></span>
-            <div>
-              <label>Amount</label>
-              <strong>{{ amountText }}</strong>
-            </div>
-          </div>
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-wallet"></i></span>
-            <div>
-              <label>Currency</label>
-              <strong>{{ task.currencyCode || '-' }}</strong>
-            </div>
-          </div>
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-file-edit"></i></span>
-            <div>
-              <label>Business Reference</label>
-              <strong>{{ businessReferenceText }}</strong>
-            </div>
-          </div>
+        <div class="wt-facts">
+          <span>Reference <b>{{ businessReferenceText }}</b></span>
+          <span v-if="task.clientName">Customer <b>{{ task.clientName }}<template v-if="customerNumber !== '-'"> · {{ customerNumber }}</template></b></span>
+          <span v-if="task.amount != null">Amount <b>{{ task.currencyCode ? task.currencyCode + ' ' : '' }}{{ amountText }}</b></span>
+          <span v-if="task.moduleCode">Module <b>{{ task.moduleCode }}</b></span>
         </div>
 
-        <div class="wf-context-summary">
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon wf-priority-icon"><i class="pi pi-flag"></i></span>
-            <div>
-              <label>Priority</label>
-              <span class="wf-context-priority">{{ task.priority || 'NORMAL' }}</span>
-            </div>
-          </div>
+        <CfStepsStrip v-if="task.workflowCode === 'CF_FINANCE' && task.entityId" class="wt-steps" :loan-id="task.entityId" :version="0" />
 
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-user"></i></span>
-            <div>
-              <label>Assigned To</label>
-              <strong>{{ assignmentText }}</strong>
-            </div>
-          </div>
-
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-verified"></i></span>
-            <div>
-              <label>Claimed By</label>
-              <strong>{{ task.claimedByName || task.claimedBy || '-' }}</strong>
-            </div>
-          </div>
-
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-calendar"></i></span>
-            <div>
-              <label>Creation Date</label>
-              <strong>{{ formatDateTime(task.createdOn) }}</strong>
-            </div>
-          </div>
-
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-share-alt"></i></span>
-            <div>
-              <label>Current Step</label>
-              <strong>{{ task.stepName || '-' }}</strong>
-            </div>
-          </div>
-
-          <div class="wf-context-summary-item">
-            <span class="wf-context-summary-icon"><i class="pi pi-clock"></i></span>
-            <div>
-              <label>Due Date</label>
-              <strong>{{ formatDateTime(task.dueDate) }}</strong>
-              <span v-if="dueState" class="wf-due-state" :class="'wf-due-state--' + dueState.kind">{{ dueState.text }}</span>
-              <small v-if="task.escalatedFrom" class="wf-due-esc">Escalated from {{ task.escalatedFrom }}</small>
-            </div>
-          </div>
+        <div class="wt-meta">
+          <span>Received <b>{{ formatDateTime(task.createdOn) }}</b></span>
+          <span>Priority <b>{{ task.priority || 'NORMAL' }}</b></span>
+          <span>Due <b>{{ task.dueDate ? formatDateTime(task.dueDate) : '—' }}</b>
+            <em v-if="dueState" class="wf-due-state" :class="'wf-due-state--' + dueState.kind">{{ dueState.text }}</em></span>
+          <span>Assigned to <b>{{ assignmentText }}</b></span>
+          <span>Claimed by <b>{{ task.claimedByName || task.claimedBy || '—' }}</b></span>
+          <span v-if="task.escalatedFrom">Escalated from <b>{{ task.escalatedFrom }}</b></span>
         </div>
 
         <!-- a parallel approval: who else the step went to, and their answers so far -->
@@ -190,7 +89,10 @@
         </div>
 
         <!-- the instance's data fields, as the workflow declares them in the designer -->
-        <div v-if="data && (data.fields.length || data.other.length)" class="wf-data">
+        <button v-if="data && (data.fields.length || data.other.length)" type="button" class="wt-more" @click="showData = !showData">
+          <i class="pi" :class="showData ? 'pi-chevron-up' : 'pi-chevron-down'"></i>{{ showData ? 'Hide' : 'Show' }} workflow data
+        </button>
+        <div v-if="showData && data && (data.fields.length || data.other.length)" class="wf-data">
           <div class="wf-data-head">
             <i class="pi pi-database"></i>
             <strong>Workflow data</strong>
@@ -217,7 +119,7 @@
       <section class="wf-business-screen-card">
         <div class="wf-business-screen-header wf-task-card-header-green">
           <i class="pi pi-desktop"></i>
-          Business Screen
+          Working screen
         </div>
 
         <div class="wf-business-screen-body">
@@ -304,6 +206,7 @@
   import { workflowService, type WorkflowDataValue, type WorkflowInstanceData } from '../services/workflowService'
   import { apiErrorText, apiFieldErrors, formApi, type FormView } from '../services/formService'
   import WorkflowFormView from '../components/WorkflowFormView.vue'
+  import CfStepsStrip from '@/modules/lnd/components/CfStepsStrip.vue'
 import { openWorkflowManual } from '../utils/manual'
   import '../styles/workflow.css'
 
@@ -313,6 +216,7 @@ import { openWorkflowManual } from '../utils/manual'
   const task = ref<WorkflowInboxTask | null>(null)
   const data = ref<WorkflowInstanceData | null>(null)
   const showOther = ref(false)
+  const showData = ref(false)
   const taskForm = ref<FormView | null>(null)
   const formValues = ref<Record<string, string | null>>({})
   const formErrors = ref<Record<string, string>>({})
@@ -671,6 +575,21 @@ function formatDateTime(value?: string | null) {
 
 
 <style scoped>
+.wt-card { padding: 18px 22px; }
+.wt-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.wt-title { display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap; min-width: 0; }
+.wt-title h1 { margin: 0; font-size: 24px; color: #0f2530; }
+.wt-tag { padding: 3px 10px; border-radius: 999px; background: #e6f3f4; color: #0b5c64; font-size: 12px; font-weight: 700; }
+.wt-tag--state { background: #fff4dc; color: #9a6200; }
+.wt-facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.wt-facts span { padding: 5px 12px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 13.5px; }
+.wt-facts b { color: #1d2b36; }
+.wt-steps { margin: 14px 0 0; padding: 0; border: 0; box-shadow: none; }
+.wt-meta { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #eef1f3; font-size: 13px; color: #34495a; }
+.wt-meta b { color: #1d2b36; }
+.wt-meta em { margin-inline-start: 6px; font-style: normal; }
+.wt-more { margin-top: 10px; border: 0; background: none; padding: 0; color: #0b5c64; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+
 .wf-due-state { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
 .wf-due-state--ok { background: #E6F2F2; color: #00636D; }
 .wf-due-state--warn { background: #FFF3E8; color: #B4570E; }
