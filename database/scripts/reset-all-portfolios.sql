@@ -16,6 +16,9 @@
 -- every such table is listed below too, so nothing is emptied that is not in this file.
 -- GL balances: every account is back to zero, because the balances are only kept in
 -- GL_ACCOUNT_BALANCES and GL_DAILY_BALANCES (emptied below); no balance is stored on GL_ACCOUNTS.
+-- Updated 28 Nov 2026: consumer finance (finances, claims and claim payments) and supplier applications not approved yet;
+-- approved suppliers are kept. Screening letters, decisions and the Final List are emptied: to have the demo list again,
+-- run demo-screening-list.sql afterwards (25 letters and published decisions, 400 people, 25 list versions).
 -- This cannot be undone.
 -- =====================================================================
 BEGIN;
@@ -246,6 +249,17 @@ TRUNCATE TABLE "GL_CLOSE_PERIOD_LOCKS" RESTART IDENTITY CASCADE;
 
 --GL tran set IDs: every module starts again at CAP-<module>-<year>-00000001 (the module rows are kept)
 UPDATE "GL_TRAN_SET_SEQUENCES" SET "LAST_NO" = 0, "ROW_VERSION" = "ROW_VERSION" + 1;
+
+--Consumer finance suppliers (Ahmed, 28 Nov 2026): approved (ACTIVE) suppliers are kept as they are, with their documents,
+--terms, term changes and change requests; their finished approval run is gone with the workflow instances. Applications not
+--approved yet (draft, in workflow, returned, rejected, withdrawn) are removed with their documents, notes and changes,
+--because their workflow runs are deleted above. (The finances that pointed at suppliers are already emptied.)
+UPDATE "CRM_CF_SUPPLIER_APPLICATIONS" SET "WORKFLOW_INSTANCE_ID" = NULL WHERE "STATUS_CODE" = 'ACTIVE';
+DELETE FROM "CRM_CF_SUPPLIER_STEP_NOTES" WHERE "APPLICATION_ID" IN (SELECT "APPLICATION_ID" FROM "CRM_CF_SUPPLIER_APPLICATIONS" WHERE "STATUS_CODE" <> 'ACTIVE');
+DELETE FROM "CRM_CF_SUPPLIER_DOCUMENTS" WHERE "APPLICATION_ID" IN (SELECT "APPLICATION_ID" FROM "CRM_CF_SUPPLIER_APPLICATIONS" WHERE "STATUS_CODE" <> 'ACTIVE');
+DELETE FROM "CRM_CF_SUPPLIER_TERM_CHANGES" WHERE "APPLICATION_ID" IN (SELECT "APPLICATION_ID" FROM "CRM_CF_SUPPLIER_APPLICATIONS" WHERE "STATUS_CODE" <> 'ACTIVE');
+DELETE FROM "CRM_CF_SUPPLIER_CHANGE_REQUESTS" WHERE "APPLICATION_ID" IN (SELECT "APPLICATION_ID" FROM "CRM_CF_SUPPLIER_APPLICATIONS" WHERE "STATUS_CODE" <> 'ACTIVE');
+DELETE FROM "CRM_CF_SUPPLIER_APPLICATIONS" WHERE "STATUS_CODE" <> 'ACTIVE';
 
 COMMIT;
 
