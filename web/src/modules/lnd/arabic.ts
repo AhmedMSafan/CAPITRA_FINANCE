@@ -778,5 +778,10 @@ export const LND_AR: Record<string, string> = {
   'Not reached yet': 'لم تصل بعد',
   'completed': 'مكتملة',
   'View only: this step is completed. Nothing can be changed here.': 'للعرض فقط: هذه الخطوة مكتملة ولا يمكن تغيير شيء هنا.',
-  'No GL entries posted by this step': 'لم تُقيد هذه الخطوة أي قيود'
+  'No GL entries posted by this step': 'لم تُقيد هذه الخطوة أي قيود',
+  'Tasks for your roles. Overdue tasks are listed first.': 'مهام أدوارك. المهام المتأخرة أولاً.',
+  'Search by reference, customer or step': 'ابحث بالمرجع أو العميل أو الخطوة',
+  'You': 'أنت',
+  'ago': 'مضت',
+  'Search tasks': 'بحث في المهام'
 }

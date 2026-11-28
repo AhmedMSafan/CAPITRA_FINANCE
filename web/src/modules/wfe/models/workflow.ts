@@ -51,6 +51,7 @@ export interface WorkflowInboxTask {
   // Compatibility aliases for the current Vue pages while the API is migrated.
   assignedUserId?: string | null;
   assignedUserName?: string | null;
+  clientNumber?: string | null;
   assignedEmployeeNo?: string | null;
   assignedGroup?: string | null;
   accessReason?: string | null;

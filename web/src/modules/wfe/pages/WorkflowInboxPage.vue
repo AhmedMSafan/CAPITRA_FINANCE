@@ -5,7 +5,7 @@
     <div class="fx-head">
       <div>
         <h1>{{ tr('My Inbox') }}</h1>
-        <p>{{ tr('Overdue tasks are listed first. Select unclaimed tasks to claim several at once.') }}</p>
+        <p>{{ tr('Tasks for your roles. Overdue tasks are listed first.') }}</p>
       </div>
       <div class="fx-actions">
         <button type="button" class="fx-btn" @click="openWorkflowManual(7)"><span class="fa fa-question-circle" aria-hidden="true"></span>{{ tr('Help') }}</button>
@@ -43,48 +43,50 @@
       </span>
     </section>
 
-    <div class="fx-toolbar">
-      <div class="fx-seg" role="group" aria-label="Filter tasks">
-        <button v-for="v in views" :key="v.key" type="button" :class="{ 'is-bad': v.key === 'overdue' }" :aria-pressed="view === v.key" @click="view = v.key">
-          {{ tr(v.label) }}<em>{{ v.count }}</em>
-        </button>
-      </div>
-      <input v-model="search" class="fx-search" type="search" :placeholder="tr('Search task, portfolio or developer')" aria-label="Search tasks">
-      <select v-model="workflow" class="fx-select" aria-label="Workflow">
-        <option value="">{{ tr('All workflows') }}</option>
-        <option v-for="w in workflows" :key="w.code" :value="w.code">{{ w.name }}</option>
-      </select>
+    <!-- the inbox at a glance (Ahmed, 28 Nov 2026): count tiles filter the list; one search; workflow chips -->
+    <div class="ib-tiles">
+      <button v-for="v in views" :key="v.key" type="button" class="ib-tile" :class="{ on: view === v.key, bad: v.key === 'overdue' }" :aria-pressed="view === v.key" @click="view = v.key">
+        <small>{{ tr(v.label) }}</small><b>{{ v.count }}</b>
+      </button>
     </div>
-
+    <div class="ib-bar">
+      <input v-model="search" class="fx-search" type="search" :placeholder="tr('Search by reference, customer or step')" :aria-label="tr('Search tasks')">
+      <div class="ib-wf" role="group" :aria-label="tr('Workflow')">
+        <button type="button" :class="{ on: !workflow }" @click="workflow = ''">{{ tr('All') }} {{ rows.length }}</button>
+        <button v-for="w in workflows" :key="w.code" type="button" :class="{ on: workflow === w.code }" @click="workflow = w.code">
+          {{ w.name }} {{ rows.filter((r) => r.t.workflowCode === w.code).length }}</button>
+      </div>
+    </div>
     <div class="fx-card">
       <div class="fx-table-wrap">
         <table class="fx-table">
           <thead>
             <tr>
               <th style="width:34px"><input type="checkbox" class="fx-check" aria-label="Select all unclaimed tasks" :checked="allChecked" @change="selectAll(($event.target as HTMLInputElement).checked)"></th>
-              <th>{{ tr('Task') }}</th><th>{{ ar ? 'المحفظة' : 'Portfolio' }}</th><th>{{ tr('Step') }}</th><th class="fx-r">{{ tr('Value') }}</th><th>{{ tr('SLA') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('Assignee') }}</th><th></th>
+              <th>{{ tr('Reference') }}</th><th>{{ tr('Customer') }}</th><th>{{ tr('Step') }}</th><th class="fx-r">{{ tr('Amount') }}</th>
+              <th>{{ tr('Received') }}</th><th>{{ tr('Due') }}</th><th>{{ tr('Claimed by') }}</th><th></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="r in shown" :key="r.t.inboxId" :class="{ 'is-overdue': r.rank === 0 }">
+            <tr v-for="r in shown" :key="r.t.inboxId" :class="{ 'ib-od': r.rank === 0 }">
               <td><input v-if="r.claimable" v-model="selected" type="checkbox" class="fx-check" :value="r.t.inboxId" :aria-label="`Select ${r.ref}`"></td>
               <td>
-                <RouterLink :to="taskLink(r.t)">{{ r.t.subject || r.t.stepName || '-' }}</RouterLink>
-                <span class="fx-cell-sub">{{ r.ref }}<template v-if="r.t.moduleCode"> &middot; {{ r.t.moduleCode }}</template></span>
+                <RouterLink :to="taskLink(r.t)"><b>{{ r.t.entityRef || r.t.subject || r.ref }}</b></RouterLink>
+                <span v-if="r.t.workflowName" class="ib-wtag">{{ r.t.workflowName }}</span>
                 <span v-if="r.t.onBehalfOf" class="ib-for">{{ tr('For') }} {{ r.t.onBehalfOf }}</span>
               </td>
-              <td>{{ r.t.entityRef || '-' }}<span class="fx-cell-sub">{{ r.t.clientName }}</span></td>
-              <td><span class="fx-chip fx-chip--teal">{{ r.t.stepName || r.t.stepCode || '-' }}</span></td>
-              <td class="fx-r">{{ money(r.t.amount) }}</td>
+              <td>{{ r.t.clientName || '—' }}<span v-if="r.t.clientNumber" class="fx-cell-sub">{{ r.t.clientNumber }}</span></td>
+              <td><span class="ib-step">{{ r.t.stepName || r.t.stepCode || '-' }}</span><span class="fx-cell-sub">{{ r.t.assignedRole || r.t.assignedUserName || r.t.assignedGroup }}</span></td>
+              <td class="fx-r">{{ full(r.t.amount, r.t.currencyCode) }}</td>
+              <td>{{ received(r.t.createdOn) }}<span class="fx-cell-sub">{{ age(r.t.createdOn) }}</span></td>
               <td>
                 <span class="fx-chip" :class="r.slaClass" :title="r.t.dueDate ? tr('Due') + ' ' + dueLabel(new Date(r.t.dueDate)) : ''">{{ r.sla }}</span>
                 <span v-if="r.t.escalatedFrom" class="fx-chip fx-chip--esc" :title="tr('Escalated from') + ' ' + r.t.escalatedFrom">{{ tr('Escalated') }}</span>
               </td>
-              <td><span class="ib-claim" :class="r.t.claimedBy ? 'is-claimed' : 'is-open'">{{ r.t.claimedBy ? tr('Task is claimed') : tr('Not claimed') }}</span></td>
-              <td>{{ r.t.claimedByName || r.t.claimedBy || r.t.assignedRole || r.t.assignedUserName || r.t.assignedGroup }}</td>
+              <td><b v-if="r.t.isClaimedByMe" class="ib-me">{{ tr('You') }}</b><template v-else>{{ r.t.claimedByName || r.t.claimedBy || '—' }}</template></td>
               <td class="fx-r">
                 <button v-if="r.claimable" type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="claim([r.t.inboxId])">{{ r.t.claimedBy ? tr('Take over') : tr('Claim') }}</button>
-                <RouterLink v-else class="fx-btn fx-btn--sm" :to="taskLink(r.t)">{{ tr('Open') }}</RouterLink>
+                <RouterLink v-else class="fx-btn fx-btn--teal fx-btn--sm" :to="taskLink(r.t)">{{ tr('Open') }} ›</RouterLink>
               </td>
             </tr>
           </tbody>
@@ -103,9 +105,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import type { WorkflowInboxTask } from '../models/workflow'
 import { workflowService } from '../services/workflowService'
 import { outOfOfficeApi, type CoverInfo } from '../services/outOfOfficeService'
-import { language, tr } from '@/shared/layout/language'
+import { tr } from '@/shared/layout/language'
 
-const ar = language.value === 'AR'
 
 type View = 'all' | 'mine' | 'unclaimed' | 'overdue'
 
@@ -124,16 +125,20 @@ const DAY = 86400000
 // the page's warning window: a task is "Due soon" within two days of its due date
 const WARNING_DAYS = 2
 
-// the APEX page's money() function
-function money(n?: number | null) {
-  if (n == null) return '-'
-  const f = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-  if (Math.abs(n) >= 1e9) return f(n / 1e9) + 'B'
-  if (Math.abs(n) >= 1e6) return f(n / 1e6) + 'M'
-  if (Math.abs(n) >= 1e3) return f(n / 1e3) + 'K'
-  return Math.round(n).toLocaleString('en-US')
+/** The amount in full with its currency (EGP 90,000.00). */
+function full(n?: number | null, ccy?: string | null) {
+  if (n == null) return '—'
+  return `${ccy ? ccy + ' ' : ''}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
-
+function received(v?: string | null) {
+  if (!v) return '—'
+  return new Date(v).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+function age(v?: string | null) {
+  if (!v) return ''
+  const ms = Date.now() - new Date(v).getTime()
+  return ms >= DAY ? `${Math.floor(ms / DAY)} d ${tr('ago')}` : `${Math.max(1, Math.floor(ms / 3600000))} h ${tr('ago')}`
+}
 function dueLabel(d: Date) {
   const mon = d.toLocaleString('en-US', { month: 'short' }).toUpperCase()
   const p = (v: number) => String(v).padStart(2, '0')
@@ -172,7 +177,7 @@ const rows = computed(() => {
 })
 
 const views = computed(() => [
-  { key: 'all' as View, label: 'All', count: rows.value.length },
+  { key: 'all' as View, label: 'All tasks', count: rows.value.length },
   { key: 'mine' as View, label: 'Claimed by me', count: rows.value.filter((r) => r.t.isClaimedByMe).length },
   { key: 'unclaimed' as View, label: 'Unclaimed', count: rows.value.filter((r) => r.unclaimed).length },
   { key: 'overdue' as View, label: 'Overdue', count: rows.value.filter((r) => r.rank === 0).length }
@@ -268,4 +273,20 @@ onMounted(load)
 .ib-note-x:hover { background: #F2F6F7; color: #0B2533; }
 @keyframes ib-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 .fx-chip--esc { margin-inline-start: 4px; background: #E6F2F2; color: #00636D; }
+.ib-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.ib-tile { text-align: start; padding: 12px 16px; border: 1px solid #e3e8ec; border-radius: 10px; background: #fff; cursor: pointer; }
+.ib-tile small { display: block; font-size: 12.5px; color: #34495a; }
+.ib-tile b { font-size: 24px; color: #1d2b36; }
+.ib-tile.on { border: 2px solid var(--fin-teal-600, #0f7c86); background: #f2fafa; }
+.ib-tile.bad b { color: #c0392b; }
+.ib-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+.ib-bar .fx-search { flex: 1; min-width: 260px; }
+.ib-wf { display: flex; flex-wrap: wrap; gap: 6px; }
+.ib-wf button { padding: 6px 12px; border: 1px solid #cfd8de; border-radius: 999px; background: #fff; color: #1d2b36; font-size: 13px; cursor: pointer; }
+.ib-wf button.on { background: var(--fin-teal-600, #0f7c86); border-color: var(--fin-teal-600, #0f7c86); color: #fff; }
+.ib-wtag { display: inline-block; margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; background: #e6f3f4; color: #0b5c64; font-size: 11px; font-weight: 700; }
+.ib-step { display: inline-block; padding: 2px 10px; border-radius: 999px; background: #eef6f7; color: #0b5c64; font-weight: 600; font-size: 13px; }
+.ib-me { color: #0b5c64; }
+tr.ib-od td:first-child { box-shadow: inset 3px 0 #c0392b; }
+@media (max-width: 900px) { .ib-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
