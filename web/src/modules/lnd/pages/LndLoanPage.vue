@@ -25,7 +25,8 @@
       <CfFinanceStep v-if="route.query.inboxId || viewStep" :loan="loan" :version="stepVersion" :view-step="viewStep" @changed="stepChanged" />
       <!-- the finance (Ahmed, 27 Nov 2026): the same boxed layout as the steps; a box shows only once its part exists -->
       <section class="fx-card ln-card">
-        <h3 class="ln-h"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Finance') }}</h3>
+        <h3 class="ln-h"><button type="button" class="ln-tg" :aria-expanded="isOpen('finance')" @click="toggle('finance')"><span class="fa" :class="isOpen('finance') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Finance') }}</button></h3>
+        <div v-show="isOpen('finance')">
         <div class="cfl-grid">
           <div class="cfl-box">
             <h3>{{ tr('Terms') }}</h3>
@@ -89,6 +90,7 @@
             </tbody></table>
           </div>
         </div>
+        </div>
       </section>
       <!-- the finance's documents (e.g. the delivery note the customer signed) -->
       <LndLoanDocuments v-if="loan.goods?.supplierApplicationId" :loan-id="loan.loanId" :version="stepVersion" />
@@ -96,11 +98,12 @@
 
       <section v-if="payouts && !loan.goods?.supplierApplicationId" class="fx-card">
         <header class="c3-panel-head lp-head">
-          <h3><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Payout') }}</h3>
+          <h3><button type="button" class="ln-tg" :aria-expanded="isOpen('payout')" @click="toggle('payout')"><span class="fa" :class="isOpen('payout') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Payout') }}</button></h3>
           <button v-if="payouts.canRequest && loan.statusCode === 'APPROVED' && !waiting" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openRequest">
             <span class="fa fa-paper-plane" aria-hidden="true"></span>{{ tr('Ask for payout') }}
           </button>
         </header>
+        <div v-show="isOpen('payout')">
         <p v-if="loan.statusCode === 'APPROVED' && payouts.preview.problem" class="c3-note lp-bad"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ payouts.preview.problem }}</p>
         <p v-else-if="loan.statusCode === 'APPROVED'" class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
           {{ tr('Paid out today:') }} {{ money(payouts.preview.principalAmount) }} − {{ tr('charges') }} {{ money(payouts.preview.chargesAmount) }} = <b>{{ money(payouts.preview.netPayoutAmount) }}</b>
@@ -129,14 +132,16 @@
             </tbody>
           </table>
         </div>
+        </div>
       </section>
 
       <section v-if="receipts && ['ACTIVE', 'CLOSED', 'WRITTEN_OFF'].includes(loan.statusCode)" class="fx-card">
         <header class="c3-panel-head lp-head">
-          <h3><span class="fa fa-download" aria-hidden="true"></span>{{ tr('Payments') }}</h3>
+          <h3><button type="button" class="ln-tg" :aria-expanded="isOpen('payments')" @click="toggle('payments')"><span class="fa" :class="isOpen('payments') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-download" aria-hidden="true"></span>{{ tr('Payments') }}</button></h3>
           <button v-if="receipts.canReceive" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openReceive('RECEIPT')"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr(receipts.writtenOffAmount !== null ? 'Receive recovery' : 'Receive payment') }}</button>
           <button v-if="receipts.canReceive && loan.statusCode === 'ACTIVE' && loan.isPrepaymentAllowed" type="button" class="fx-btn fx-btn--sm" @click="openReceive('PREPAY')"><span class="fa fa-forward" aria-hidden="true"></span>{{ tr('Pay early') }}</button>
         </header>
+        <div v-show="isOpen('payments')">
         <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
           <template v-if="receipts.writtenOffAmount !== null">
             {{ tr('Written off:') }} <b>{{ money(receipts.writtenOffAmount) }}</b> · {{ tr('Recovered:') }} <b>{{ money(receipts.recoveredAmount ?? 0) }}</b> ·
@@ -160,13 +165,15 @@
             </tbody>
           </table>
         </div>
+        </div>
       </section>
 
       <LndWriteOffPanel v-if="loan.statusCode === 'ACTIVE' || loan.statusCode === 'WRITTEN_OFF'" ref="writeOffPanel" :loan-id="loanId" @changed="reloadLoan" />
 
       <!-- shown once the schedule is built (a consumer finance builds it at Schedule and contract) -->
       <section v-if="loan.installments.length" class="fx-card">
-        <header class="c3-panel-head"><h3><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Schedule') }}</h3></header>
+        <header class="c3-panel-head"><h3><button type="button" class="ln-tg" :aria-expanded="isOpen('schedule')" @click="toggle('schedule')"><span class="fa" :class="isOpen('schedule') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Schedule') }}</button></h3></header>
+        <div v-show="isOpen('schedule')">
         <div class="fx-table-wrap">
           <table class="fx-table">
             <thead>
@@ -192,10 +199,12 @@
             </tfoot>
           </table>
         </div>
+        </div>
       </section>
 
       <section v-if="loan.events.length" class="fx-card">
-        <header class="c3-panel-head"><h3><span class="fa fa-book" aria-hidden="true"></span>{{ tr('Finance events') }}</h3></header>
+        <header class="c3-panel-head"><h3><button type="button" class="ln-tg" :aria-expanded="isOpen('events')" @click="toggle('events')"><span class="fa" :class="isOpen('events') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-book" aria-hidden="true"></span>{{ tr('Finance events') }}</button></h3></header>
+        <div v-show="isOpen('events')">
         <div class="fx-table-wrap">
           <table class="fx-table">
             <thead><tr><th>{{ tr('Date') }}</th><th>{{ tr('Event') }}</th><th class="ln-num">{{ tr('Amount') }}</th><th>{{ tr('GL') }}</th><th>{{ tr('Notes') }}</th></tr></thead>
@@ -207,10 +216,12 @@
             </tbody>
           </table>
         </div>
+        </div>
       </section>
 
       <section class="fx-card">
-        <header class="c3-panel-head"><h3><span class="fa fa-history" aria-hidden="true"></span>{{ tr('Status history') }}</h3></header>
+        <header class="c3-panel-head"><h3><button type="button" class="ln-tg" :aria-expanded="isOpen('history')" @click="toggle('history')"><span class="fa" :class="isOpen('history') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-history" aria-hidden="true"></span>{{ tr('Status history') }}</button></h3></header>
+        <div v-show="isOpen('history')">
         <div class="fx-table-wrap">
           <table class="fx-table">
             <thead><tr><th>{{ tr('When') }}</th><th>{{ tr('By') }}</th><th>{{ tr('From') }}</th><th>{{ tr('To') }}</th><th>{{ tr('Reason') }}</th></tr></thead>
@@ -221,6 +232,7 @@
               </tr>
             </tbody>
           </table>
+        </div>
         </div>
       </section>
     </template>
@@ -389,6 +401,16 @@ const props = defineProps<{ loanId: number }>()
 const route = useRoute()
 /** A completed step opened view only (?step=…&view=1). */
 const viewStep = computed(() => (route.query.view && typeof route.query.step === 'string' ? route.query.step : null))
+/**
+ * The data sections fold (Ahmed, 28 Nov 2026): while a step's screen is shown (from the Inbox or a completed step's View) they start
+ * folded so the step fills the page; otherwise they start open. Each opens or folds on its title.
+ */
+const folded = ref<Record<string, boolean>>({})
+const stepShown = computed(() => !!route.query.inboxId || !!viewStep.value)
+const isOpen = (key: string) => folded.value[key] ?? !stepShown.value
+function toggle(key: string) {
+  folded.value = { ...folded.value, [key]: !isOpen(key) }
+}
 
 const STATUS: Record<string, string> = { IN_APPROVAL: 'In approval', REJECTED: 'Rejected', APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', CANCELLED: 'Cancelled', WRITTEN_OFF: 'Written off' }
 const CHIP: Record<string, string> = { IN_APPROVAL: 'fx-chip--warn', REJECTED: 'fx-chip--bad', APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', CANCELLED: 'fx-chip--bad', WRITTEN_OFF: 'fx-chip--bad' }
@@ -682,4 +704,6 @@ h1 .fx-chip { vertical-align: middle; font-size: 12px; }
 .ln-charges { margin-top: 12px; }
 .ln-charges h4 { margin: 0 0 6px; font-size: 13px; color: var(--fin-muted); }
 .ln-charge { display: flex; align-items: center; gap: 12px; padding: 4px 0; font-size: 13.5px; }
+.ln-tg { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
+.ln-tg .fa-chevron-down, .ln-tg .fa-chevron-right { width: 12px; font-size: 12px; color: #34495a; }
 </style>
