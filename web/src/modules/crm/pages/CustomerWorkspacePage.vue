@@ -77,7 +77,7 @@
           </div>
 
           <Crm360Compliance v-else-if="tab === 'compliance'" :client-id="clientId" :state="data.compliance" :badge="data.complianceBadge"
-                            :history="data.complianceHistory" :parties="data.parties" :maker-checker="data.complianceMakerChecker" :can-edit="canEdit" :can-verify="canVerify" @changed="load" />
+                            :history="data.complianceHistory" :parties="data.parties" :maker-checker="data.complianceMakerChecker" :can-edit="canEdit" :can-verify="canVerify" :individual="individual" @changed="load" />
 
           <Crm360BankAccounts v-else-if="tab === 'bank'" :client-id="clientId" :accounts="data.bankAccounts" :history="data.bankAccountHistory"
                               :badge="data.bankBadge" :currencies="currencies" :default-currency-id="baseCurrencyId" :holder-name="data.profile.clientName"
@@ -99,7 +99,7 @@
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
@@ -125,6 +125,8 @@ const version = ref(0)
 const route = useRoute()
 // ?tab= opens a tab (cf-supplier from the supplier list or a workflow task); ?inboxId= is the user's task on the supplier application
 const tab = ref(typeof route.query.tab === 'string' ? route.query.tab : 'overview')
+// an individual (consumer finance, microfinance; Ahmed, 28 Nov 2026): Overview, Profile and Compliance only; no bank accounts or roles
+const individual = computed(() => data.value?.profile.clientType === 'INDIVIDUAL')
 const inboxId = computed(() => Number(route.query.inboxId) || null)
 const canEdit = hasPermission('CRM.EDIT')
 const canVerify = hasPermission('CRM.VERIFY')
@@ -137,9 +139,13 @@ const badges = computed(() => data.value ? [
   { key: 'c', title: 'Compliance', icon: 'fa-shield', badge: data.value.complianceBadge, tab: 'compliance' },
   { key: 'b', title: 'Bank Account', icon: 'fa-university', badge: data.value.bankBadge, tab: 'bank' },
   { key: 'r', title: 'Ready to Pay', icon: 'fa-money', badge: data.value.readyToPay, tab: 'overview' }
-] as { key: string; title: string; icon: string; badge: CrmBadge; tab: string }[] : [])
+].filter((b) => !individual.value || b.key === 'c') as { key: string; title: string; icon: string; badge: CrmBadge; tab: string }[] : [])
 
-const tabs = computed(() => [
+const tabs = computed(() => individual.value ? [
+  { key: 'overview', label: 'Overview', icon: 'fa-th-large', count: undefined },
+  { key: 'profile', label: 'Profile', icon: 'fa-id-card-o', count: undefined },
+  { key: 'compliance', label: 'Compliance', icon: 'fa-shield', count: undefined }
+] : [
   { key: 'overview', label: 'Overview', icon: 'fa-th-large' },
   { key: 'profile', label: 'Profile', icon: 'fa-id-card-o' },
   { key: 'compliance', label: 'Compliance', icon: 'fa-shield' },
@@ -149,6 +155,11 @@ const tabs = computed(() => [
   ...(data.value?.roles.some((r) => r.byWorkflow) || tab.value === 'cf-supplier'
     ? [{ key: 'cf-supplier', label: 'Consumer Finance Supplier', icon: 'fa-handshake-o', count: undefined }] : [])
 ])
+
+// a tab an individual does not have (an old link, the overview's shortcuts) opens the Overview
+watch([individual, tab], () => {
+  if (individual.value && !['overview', 'profile', 'compliance'].includes(tab.value)) tab.value = 'overview'
+})
 
 const profileFacts = computed(() => {
   const x = data.value?.profile

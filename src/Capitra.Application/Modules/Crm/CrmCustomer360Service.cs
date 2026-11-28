@@ -321,8 +321,12 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     private DateOnly Today => GlTime.Today(clock);
 
+    /// <summary>An individual customer (consumer finance, microfinance): the simplified compliance and a 360 without roles or bank accounts.</summary>
+    public static bool IsIndividual(CrmClient c) => string.Equals(c.ClientType, "INDIVIDUAL", StringComparison.OrdinalIgnoreCase);
+
     internal CrmBadgeDto ComplianceBadge(CrmClient c, IReadOnlyCollection<CrmClientParty> parties)
     {
+        if (IsIndividual(c)) return IndividualComplianceBadge(c);
         var today = Today;
         var blocked = new List<string>();
         if (c.IsBlacklisted) blocked.Add("Blacklisted" + (string.IsNullOrWhiteSpace(c.BlacklistReason) ? "." : $": {c.BlacklistReason}"));
@@ -351,6 +355,30 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         if (c.NextReviewDate is { } review && review <= today) due.Add($"Review was due on {review:dd-MMM-yyyy}.");
         if (c.KycExpiryDate is { } e && e <= today.AddDays(rules.ReviewWarningDays)) due.Add($"KYC expires on {e:dd-MMM-yyyy}.");
         return due.Count > 0 ? new("DUE", "Due for review", due) : new("CLEAR", "Clear", []);
+    }
+
+    /// <summary>
+    /// The simplified compliance of an individual (Ahmed, 28 Nov 2026): KYC approved (national ID checked) and AML and sanctions
+    /// screening clear, marked by one compliance officer; no risk grade, review dates, owners or second-person verification. Still
+    /// required at Credit approval. A KYC expiry date, when given, still expires it.
+    /// </summary>
+    private CrmBadgeDto IndividualComplianceBadge(CrmClient c)
+    {
+        var today = Today;
+        var blocked = new List<string>();
+        if (c.IsBlacklisted) blocked.Add("Blacklisted" + (string.IsNullOrWhiteSpace(c.BlacklistReason) ? "." : $": {c.BlacklistReason}"));
+        if (c.KycStatus == "REJECTED") blocked.Add("KYC rejected.");
+        if (c.AmlStatus == "BLOCKED") blocked.Add("AML blocked.");
+        if (c.SanctionsStatus is "MATCH" or "BLOCKED") blocked.Add($"Sanctions {c.SanctionsStatus!.ToLowerInvariant()}.");
+        if (blocked.Count > 0) return new("BLOCKED", "Blocked", blocked);
+        if (c.KycExpiryDate is { } exp && exp < today) return new("EXPIRED", "Expired", [$"KYC expired on {exp:dd-MMM-yyyy}."]);
+        var pending = new List<string>();
+        if (c.KycStatus != "APPROVED") pending.Add("KYC is not approved.");
+        if (c.AmlStatus != "CLEAR") pending.Add("AML is not clear.");
+        if (c.SanctionsStatus != "CLEAR") pending.Add("Sanctions screening is not clear.");
+        if (pending.Count > 0) return new("PENDING", "Pending", pending);
+        if (c.KycExpiryDate is { } e && e <= today.AddDays(rules.ReviewWarningDays)) return new("DUE", "Due for review", [$"KYC expires on {e:dd-MMM-yyyy}."]);
+        return new("CLEAR", "Clear", []);
     }
 
     private static bool ComplianceOk(CrmBadgeDto b) => b.Code is "CLEAR" or "DUE";
@@ -446,7 +474,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
         In("amlStatus", dto.AmlStatus, AmlStatuses, "AML status");
         In("sanctionsStatus", dto.SanctionsStatus, SanctionsStatuses, "sanctions status");
         if (dto.RiskGrade is not null && !RiskGrades.Contains(dto.RiskGrade)) errors["riskGrade"] = ["Choose the risk grade."];
-        if (dto.KycStatus == "APPROVED" && dto.KycExpiryDate is null) errors["kycExpiryDate"] = ["An approved KYC needs its expiry date."];
+        if (dto.KycStatus == "APPROVED" && dto.KycExpiryDate is null && !IsIndividual(c)) errors["kycExpiryDate"] = ["An approved KYC needs its expiry date."];
         if (dto.IsBlacklisted && string.IsNullOrWhiteSpace(dto.BlacklistReason)) errors["blacklistReason"] = ["Give the blacklist reason."];
         if (errors.Count > 0) throw new BusinessValidationException(errors);
 
@@ -514,7 +542,7 @@ public sealed class CrmCustomer360Service(ICapitraDbContext db, ICurrentUser cur
 
     public async Task AddRoleAsync(long clientId, CrmAddRoleDto dto, CancellationToken cancellationToken)
     {
-        await ClientAsync(clientId, cancellationToken);
+        if (IsIndividual(await ClientAsync(clientId, cancellationToken))) throw new BusinessRuleException("An individual customer has only the Client role.");
         var code = dto.RoleCode?.Trim().ToUpperInvariant() ?? "";
         // Factoring Supplier and Consumer Finance Supplier are the SUPPLIER role of their business line
         (code, var line) = Choice(code, dto.BusinessLineCode);

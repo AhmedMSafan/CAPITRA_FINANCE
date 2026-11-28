@@ -783,5 +783,8 @@ export const LND_AR: Record<string, string> = {
   'Search by reference, customer or step': 'ابحث بالمرجع أو العميل أو الخطوة',
   'You': 'أنت',
   'ago': 'مضت',
-  'Search tasks': 'بحث في المهام'
+  'Search tasks': 'بحث في المهام',
+  'An individual is Clear when KYC is approved and AML and sanctions screening are clear. It is needed at Credit approval.': 'يكون العميل الفرد سليماً عند اعتماد اعرف عميلك وسلامة فحص مكافحة غسل الأموال والعقوبات. وهذا مطلوب عند الموافقة الائتمانية.',
+  'Compliance profile saved.': 'تم حفظ ملف الامتثال.',
+  'An individual customer has only the Client role.': 'العميل الفرد له دور العميل فقط.'
 }
