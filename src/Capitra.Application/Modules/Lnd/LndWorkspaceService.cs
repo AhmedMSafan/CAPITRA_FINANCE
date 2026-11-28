@@ -56,7 +56,8 @@ public sealed class LndWorkspaceService(ICapitraDbContext db, IClock clock, LndR
                            select new { g.Key.ClientId, Outstanding = g.Sum(i => i.PrincipalDueAmount - i.PrincipalPaidAmount) })
             .ToListAsync(cancellationToken);
         var byClient = loans.GroupBy(x => x.ClientId).ToDictionary(g => g.Key, g => (Count: g.Count(), Outstanding: g.Sum(x => x.Outstanding)));
-        var clients = await db.Set<CrmClient>().AsNoTracking().OrderBy(x => x.ClientNumber)
+        // individuals only (Ahmed, 28 Nov 2026): consumer finance and microfinance lend to persons
+        var clients = await db.Set<CrmClient>().AsNoTracking().Where(x => x.ClientType == "INDIVIDUAL").OrderBy(x => x.ClientNumber)
             .Select(x => new { x.ClientId, x.ClientNumber, x.ClientName, x.ClientType, x.PhoneNumber, x.MobileNumber, x.Email, x.IsActive })
             .ToListAsync(cancellationToken);
         return [.. clients.Select(c =>
