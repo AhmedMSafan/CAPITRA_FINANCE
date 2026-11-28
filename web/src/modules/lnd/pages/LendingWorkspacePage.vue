@@ -30,12 +30,6 @@
         <span>{{ tr('Customer Number') }}</span>
         <input v-model="customerNumber" class="fx-search" type="text" :placeholder="tr('Enter customer number...')" @keyup.enter="search">
       </label>
-      <label class="fc-field">
-        <span>{{ tr('Client Type') }}</span>
-        <select v-model="clientType" class="fx-select">
-          <option v-for="t in clientTypes" :key="t" :value="t">{{ t === ALL ? tr(ALL) : t }}</option>
-        </select>
-      </label>
       <label class="lw-only"><input v-model="withLoans" type="checkbox" @change="page = 1"> {{ tr('Only customers with active finances') }}</label>
       <div class="fc-filter-actions">
         <button type="button" class="fx-btn fx-btn--teal" @click="search"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('Search') }}</button>
@@ -55,7 +49,6 @@
               <th class="fc-no">#</th>
               <th>{{ tr('Customer Number') }}</th>
               <th>{{ tr('Customer Name') }}</th>
-              <th>{{ tr('Client Type') }}</th>
               <th>{{ tr('Phone') }}</th>
               <th class="fx-r">{{ tr('Active finances') }}</th>
               <th class="fx-r">{{ tr('Principal outstanding') }}</th>
@@ -68,7 +61,6 @@
               <td class="fc-no">{{ from + i }}</td>
               <td><RouterLink :to="workspace(c.clientId)">{{ c.clientNumber }}</RouterLink></td>
               <td>{{ c.clientName }}</td>
-              <td><span class="fx-chip fx-chip--plain">{{ c.clientType || '-' }}</span></td>
               <td>{{ c.phoneNumber || '-' }}</td>
               <td class="fx-r">{{ c.activeLoans || '-' }}</td>
               <td class="fx-r">{{ c.outstandingPrincipal ? money(c.outstandingPrincipal) : '-' }}</td>
@@ -106,7 +98,6 @@ import { workflowService } from '@/modules/wfe/services/workflowService'
 import '@/modules/fct/pages/factoring.css'
 import { lendingWsApi, type LwCustomer } from '../api/workspace.api'
 
-const ALL = 'All Types'
 const PAGE_SIZE = 10
 
 const customers = ref<LwCustomer[]>([])
@@ -120,12 +111,10 @@ const inboxCount = ref(0)
 
 const customerName = ref('')
 const customerNumber = ref('')
-const clientType = ref(ALL)
 // the filters apply when Search is pressed (or Enter), as on the FINOVA page
-const applied = ref({ name: '', number: '', type: ALL })
+const applied = ref({ name: '', number: '' })
 const page = ref(1)
 
-const clientTypes = computed(() => [ALL, ...[...new Set(customers.value.map((c) => c.clientType).filter(Boolean))].sort()])
 
 const filtered = computed(() => {
   const name = applied.value.name.trim().toLowerCase()
@@ -133,7 +122,6 @@ const filtered = computed(() => {
   return customers.value.filter((c) =>
     (!name || c.clientName.toLowerCase().includes(name)) &&
     (!number || c.clientNumber.toLowerCase().includes(number)) &&
-    (applied.value.type === ALL || c.clientType === applied.value.type) &&
     (!withLoans.value || c.activeLoans > 0))
 })
 const pageCount = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
@@ -145,14 +133,13 @@ const to = computed(() => Math.min(page.value * PAGE_SIZE, filtered.value.length
 const workspace = (clientId: number) => ({ name: 'lnd-customer', params: { clientId } })
 
 function search() {
-  applied.value = { name: customerName.value, number: customerNumber.value, type: clientType.value }
+  applied.value = { name: customerName.value, number: customerNumber.value }
   page.value = 1
 }
 
 function clearFilters() {
   customerName.value = ''
   customerNumber.value = ''
-  clientType.value = ALL
   search()
 }
 

@@ -68,6 +68,7 @@ line by line, before it is shown. A change of decision is made here first.
   ID, View; the step waiting now: "open it from the Inbox"; later: not reached). A step's screen is worked on only when opened from the
   Inbox; a completed step opens view only (?step=…&view=1) with "View only" and its GL Tran Set IDs. The customer workspace's Finances
   tab links each completed step, view only, with its GL.
+- The Lending Workspace lists individual customers only (CLIENT_TYPE INDIVIDUAL, 28 Nov 2026); no client type filter.
 - Navigation (28 Nov 2026): creating a finance and Back on a finance go to the customer's Lending workspace; All finances opens only from
   the Lending Workspace (search: finance no., customer name/no., amount from/to, status); Lending end of day is in the End of Day menu
   and Lending Parameters under Administration.
