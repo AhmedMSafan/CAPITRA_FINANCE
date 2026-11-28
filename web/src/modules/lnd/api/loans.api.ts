@@ -31,11 +31,20 @@ export type CfClaimDetail = {
 export const CLAIM_LABELS: Record<string, string> = { OPEN: 'Unpaid', PARTIALLY_PAID: 'Partially Paid', PAID: 'Paid', CANCELLED: 'Cancelled', NONE: 'Nothing upfront' }
 export const claimTone = (s: string) => (s === 'PAID' ? 'fx-chip--ok' : s === 'CANCELLED' ? 'fx-chip--bad' : 'fx-chip--warn')
 
+/** One step of the finance for the steps strip: DONE (opens view only), OPEN (worked from the Inbox), LATER. */
+export type CfStepView = {
+  stepCode: string; stepName: string; role: string | null; status: 'DONE' | 'OPEN' | 'LATER'; outcome: string | null; doneBy: string | null
+  doneAt: string | null; glTranSetIds: string[]
+}
+
 export type CfStep = {
   stepCode: string; stepName: string; inboxId: number | null; isMine: boolean; charges: CfCharges | null; accounts: PayingAccount[] | null
   productRatePct: number | null; rateMarginPct: number; terms: CfTerms | null; supplierDue: CfSupplierDue | null
   /** Approving Credit creates the claim (finances started from 27 Nov 2026). */
   claimAtCredit: boolean
+  /** A completed step opened view only (28 Nov 2026), with the GL tran sets it posted. */
+  viewOnly: boolean
+  glTranSetIds: string[] | null
 }
 type Opt = { value: string; label: string }
 /** A finance's own financial values, which Credit approval can change (the price is the supplier's). */
@@ -193,10 +202,13 @@ export const loansApi = {
   cancel: (id: number, reason: string, rowVersion: number) => http.post<Loan>(`${API}/${id}/cancel`, { reason, rowVersion }),
   /** The CF_FINANCE step waiting now (null when the finance is not in its workflow); with inboxId, whether it is the user's task. */
   /** downPayment: at Credit approval, the charges worked out on a new down payment. */
-  cfStep: (id: number, inboxId: number | null, downPayment?: number) => {
+  /** The finance's steps in order (DONE / OPEN / LATER). */
+  cfSteps: (id: number) => http.get<CfStepView[]>(`${API}/${id}/cf-steps`),
+  cfStep: (id: number, inboxId: number | null, downPayment?: number, view?: string | null) => {
     const q = new URLSearchParams()
     if (inboxId) q.set('inboxId', String(inboxId))
     if (downPayment !== undefined) q.set('downPayment', String(downPayment))
+    if (view) q.set('view', view)
     const qs = q.toString()
     return http.get<CfStep | null>(`${API}/${id}/cf-step${qs ? `?${qs}` : ''}`)
   },

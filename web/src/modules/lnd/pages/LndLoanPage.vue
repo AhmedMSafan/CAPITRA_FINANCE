@@ -19,7 +19,10 @@
 
     <div v-if="!loan" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading finance...') }}</div>
     <template v-else>
-      <CfFinanceStep :loan="loan" :version="stepVersion" @changed="stepChanged" />
+      <!-- consumer finance (Ahmed, 28 Nov 2026, the factoring standard): the steps strip; the step's screen only from the Inbox (to work on it)
+           or from a completed step's View (view only) -->
+      <CfStepsStrip v-if="loan.goods?.supplierApplicationId" :loan-id="loan.loanId" :version="stepVersion" :current="viewStep" />
+      <CfFinanceStep v-if="route.query.inboxId || viewStep" :loan="loan" :version="stepVersion" :view-step="viewStep" @changed="stepChanged" />
       <!-- the finance (Ahmed, 27 Nov 2026): the same boxed layout as the steps; a box shows only once its part exists -->
       <section class="fx-card ln-card">
         <h3 class="ln-h"><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Finance') }}</h3>
@@ -375,12 +378,17 @@ import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
 import '../components/cf-layout.css'
 import CfClaimDialog from '../components/CfClaimDialog.vue'
 import CfFinanceStep from '../components/CfFinanceStep.vue'
+import CfStepsStrip from '../components/CfStepsStrip.vue'
+import { useRoute } from 'vue-router'
 import LndLoanDocuments from '../components/LndLoanDocuments.vue'
 import LndWriteOffPanel from '../components/LndWriteOffPanel.vue'
 import { getUser } from '@/shared/auth/session'
 import { CLAIM_LABELS, claimTone, loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage, type ReversalPreview, type PrepaymentQuote } from '../api/loans.api'
 
 const props = defineProps<{ loanId: number }>()
+const route = useRoute()
+/** A completed step opened view only (?step=…&view=1). */
+const viewStep = computed(() => (route.query.view && typeof route.query.step === 'string' ? route.query.step : null))
 
 const STATUS: Record<string, string> = { IN_APPROVAL: 'In approval', REJECTED: 'Rejected', APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', CANCELLED: 'Cancelled', WRITTEN_OFF: 'Written off' }
 const CHIP: Record<string, string> = { IN_APPROVAL: 'fx-chip--warn', REJECTED: 'fx-chip--bad', APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', CANCELLED: 'fx-chip--bad', WRITTEN_OFF: 'fx-chip--bad' }

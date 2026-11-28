@@ -261,7 +261,7 @@ public static class LndCfFinanceRules
 /// <summary>The open step of a finance, whether the signed-in user holds its task, and what the step shows.</summary>
 public sealed record LndCfStepDto(string StepCode, string StepName, long? InboxId, bool IsMine, LndCfChargesDto? Charges = null,
     IReadOnlyList<LndPayingAccountDto>? Accounts = null, decimal? ProductRatePct = null, decimal RateMarginPct = 0, LndCfTermsDto? Terms = null,
-    LndCfSupplierDueDto? SupplierDue = null, bool ClaimAtCredit = false);
+    LndCfSupplierDueDto? SupplierDue = null, bool ClaimAtCredit = false, bool ViewOnly = false, IReadOnlyList<string>? GlTranSetIds = null);
 
 /// <summary>
 /// The financial values of a finance, its own copy (Ahmed, 27 Nov 2026): Credit approval can change every one of them for this finance.
@@ -584,12 +584,30 @@ public sealed class LndCfFinanceService(
 {
     private string User => currentUser.UserName ?? currentUser.UserId ?? "SYSTEM";
 
-    /// <summary>The step waiting now, or null when the finance is not in its workflow; IsMine when inboxId is the user's open task on it.</summary>
-    public async Task<LndCfStepDto?> StepAsync(long loanId, long? inboxId, CancellationToken ct, decimal? downPayment = null)
+    /// <summary>
+    /// The step waiting now, or null when the finance is not in its workflow; IsMine when inboxId is the user's open task on it. With view,
+    /// a completed step instead, view only (28 Nov 2026, the factoring standard): what it decided and the GL tran sets it posted.
+    /// </summary>
+    public async Task<LndCfStepDto?> StepAsync(long loanId, long? inboxId, CancellationToken ct, decimal? downPayment = null, string? view = null)
     {
         var loan = await db.Set<LndLoan>().AsNoTracking().FirstOrDefaultAsync(x => x.LoanId == loanId, ct)
             ?? throw new NotFoundException($"Finance {loanId} was not found.");
         if (loan.WorkflowInstanceId is not { } run) return null;
+        if (!string.IsNullOrWhiteSpace(view))
+        {
+            var code = view.Trim().ToUpperInvariant();
+            var done = await db.Set<WfeStepInstance>().AsNoTracking()
+                .AnyAsync(s => s.WorkflowInstanceId == run && s.StepCode == code && s.StepStatus == WfeRuntime.Completed, ct);
+            if (!done) throw new BusinessRuleException($"{LndCfFinanceRules.StepName(code)} is not completed on finance {loan.LoanNumber}.");
+            var rate = await db.Set<LndProductVersion>().AsNoTracking().Where(x => x.ProductVersionId == loan.ProductVersionId)
+                .Select(x => (decimal?)x.AnnualRatePct).FirstOrDefaultAsync(ct);
+            var claimStep = await planner.ClaimStepAsync(loan, ct);
+            return new LndCfStepDto(code, LndCfFinanceRules.StepName(code), null, false,
+                code is LndCfFinanceRules.Credit or LndCfFinanceRules.Charges ? await planner.WorkAsync(loan, null, ct) : null, null, rate, loan.RateMarginPct,
+                code == LndCfFinanceRules.Credit ? LndCfFinanceRules.Terms(loan) : null,
+                code == LndCfFinanceRules.SupplierPayment ? LndCfFinanceRules.SupplierDue(loan) : null,
+                code == LndCfFinanceRules.Credit && claimStep == LndCfFinanceRules.Credit, true, LndCfStepsService.GlOf(loan, code, claimStep));
+        }
         var open = await db.Set<WfeStepInstance>().AsNoTracking()
             .Where(s => s.WorkflowInstanceId == run && s.StepStatus != WfeRuntime.Completed && s.StepStatus != WfeRuntime.Cancelled
                 && s.StepCode != null && s.StepCode != "")
