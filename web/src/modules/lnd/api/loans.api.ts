@@ -1,0 +1,275 @@
+import type { LoanScenarioWorkspaceRequest } from '@/modules/tls/api/loanScenarios.api'
+import { http } from '@/shared/api/http'
+
+export type LoanOption = { id: number; code: string; name: string; licenceCode?: string | null }
+
+/** A consumer finance charge: timingCode is Credit's decision (PAID_UPFRONT or FINANCE_WITH_PRINCIPAL), defaultTimingCode the rule's. */
+export type CfCharge = {
+  chargeCode: string; chargeName: string; basisText: string; amount: number; taxAmount: number; timingCode: string; defaultTimingCode: string
+  isOverridden: boolean; ruleAmount: number
+}
+export type CfCharges = {
+  charges: CfCharge[]; financedAmount: number; addedToFinance: number; paidUpfront: number; loanAmount: number; problem: string | null; decided: boolean
+}
+/** The upfront claim, created when Credit approves: OPEN (unpaid), PARTIALLY_PAID, PAID, CANCELLED, or NONE when nothing is paid upfront. */
+export type CfClaimStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED' | 'NONE'
+export type CfClaim = {
+  statusCode: CfClaimStatus; chargesAmount: number; downPaymentAmount: number; totalAmount: number; glTranSetId: string | null
+  paidAmount: number; outstandingAmount: number
+  paidAt: string | null; paidBy: string | null; paymentMethodCode: string | null; paymentReference: string | null; paymentGlTranSetId: string | null
+}
+
+/** The claim as its popup shows it (read only; paid in Collection › Customer Payments): lines, payments and their GL. */
+export type CfClaimDetail = {
+  loanId: number; loanNumber: string; clientId: number; clientName: string; currencyCode: string; statusCode: CfClaimStatus; claimDate: string | null; createdBy: string | null
+  lines: { code: string; name: string; amount: number; taxAmount: number; totalAmount: number }[]
+  chargesAmount: number; downPaymentAmount: number; totalAmount: number; paidAmount: number; outstandingAmount: number; glTranSetId: string | null
+  payments: { claimPaymentId: number; paymentDate: string; paymentAmount: number; chargesAmount: number; downPaymentAmount: number; repaymentNumber: string | null
+    paymentMethodCode: string; paymentReference: string | null; glTranSetId: string | null; recordedBy: string; recordedAt: string }[]
+}
+/** The factoring claim's labels (one standard). */
+export const CLAIM_LABELS: Record<string, string> = { OPEN: 'Unpaid', PARTIALLY_PAID: 'Partially Paid', PAID: 'Paid', CANCELLED: 'Cancelled', NONE: 'Nothing upfront' }
+export const claimTone = (s: string) => (s === 'PAID' ? 'fx-chip--ok' : s === 'CANCELLED' ? 'fx-chip--bad' : 'fx-chip--warn')
+
+/** One step of the finance for the steps strip: DONE (opens view only), OPEN (worked from the Inbox), LATER. */
+export type CfStepView = {
+  stepCode: string; stepName: string; role: string | null; status: 'DONE' | 'OPEN' | 'LATER'; outcome: string | null; doneBy: string | null
+  doneAt: string | null; glTranSetIds: string[]
+}
+
+export type CfStep = {
+  stepCode: string; stepName: string; inboxId: number | null; isMine: boolean; charges: CfCharges | null; accounts: PayingAccount[] | null
+  productRatePct: number | null; rateMarginPct: number; terms: CfTerms | null; supplierDue: CfSupplierDue | null
+  /** Approving Credit creates the claim (finances started from 27 Nov 2026). */
+  claimAtCredit: boolean
+  /** A completed step opened view only (28 Nov 2026), with the GL tran sets it posted. */
+  viewOnly: boolean
+  glTranSetIds: string[] | null
+}
+type Opt = { value: string; label: string }
+/** A finance's own financial values, which Credit approval can change (the price is the supplier's). */
+export type CfTerms = {
+  priceAmount: number; downPaymentAmount: number; minDownPaymentAmount: number; termMonths: number; repaymentFrequencyCode: string
+  interestMethodCode: string; annualRatePct: number; dayCountCode: string; lateFeeTypeCode: string; lateFeeRatePct: number | null
+  lateFeeFlatAmount: number | null; lateFeeBaseCode: string; lateFeeGraceDays: number; paymentOrder: string[]; isInsuranceRequired: boolean
+  isPrepaymentAllowed: boolean; prepaymentRecalcCode: string; prepaymentFeePct: number; earlySettlementFeePct: number
+  options: { frequencies: Opt[]; interestMethods: Opt[]; dayCounts: Opt[]; lateFeeTypes: Opt[]; lateFeeBases: Opt[]; paymentParts: Opt[]; prepaymentRecalcs: Opt[] }
+}
+/** Credit approval's decision: per charge code its timing and amount (0 waives it), and the margin on the product rate. */
+export type CfCreditDecision = {
+  chargeTimings: Record<string, string>; chargeAmounts: Record<string, number>; rateMarginPct: number | null; terms: Partial<Omit<CfTerms, 'options'>> | null
+}
+
+export type CfSupplierOption = {
+  applicationId: number; applicationRef: string; clientId: number; clientNumber: string; supplierName: string; goodsCategoryCodes: string[]
+  minDownPaymentPct: number; downPaymentCollectorCode: string; commissionPct: number; paymentDays: number; deliveryDays: number
+  validFromDate: string; validToDate: string | null
+}
+
+export type LoanRequest = {
+  clientId: number | null
+  productId: number | null
+  principalAmount: number | null
+  termMonths: number | null
+  disbursementDate: string | null
+  firstDueDate: string | null
+  notes: string | null
+  // consumer finance: the financed item
+  goodsCategoryCode: string | null
+  goodsDescription: string | null
+  goodsBrandModel: string | null
+  merchantName: string | null
+  goodsPriceAmount: number | null
+  downPaymentAmount: number | null
+  /** Consumer finance: the active supplier agreement the goods are bought under. */
+  supplierApplicationId?: number | null
+  // New Finance: a saved scenario of the Finance Calculator gives the amount, dates, rate and schedule
+  scenarioId?: number | null
+  // the rate for this finance only; when it differs from the scenario's, the schedule is worked out again (the scenario is unchanged)
+  ratePct?: number | null
+  // or a schedule the Finance Calculator handed back without saving it (its terms; the server works it out again)
+  calculation?: LoanScenarioWorkspaceRequest | null
+}
+
+export type ScenarioOption = { id: number; name: string; principalAmount: number; ratePct: number; scheduleMode: string; principalMethod: string }
+
+export type ScheduleLine = { installmentNo: number; dueDate: string; openingPrincipal: number; principal: number; interest: number; total: number; closingPrincipal: number }
+
+export type LoanPreview = {
+  versionNo: number; repaymentFrequencyCode: string; interestMethodCode: string; annualRatePct: number; installmentCount: number
+  installmentAmount: number; totalInterestAmount: number; totalRepayableAmount: number; firstDueDate: string; maturityDate: string; schedule: ScheduleLine[]
+}
+
+export type LoanListItem = {
+  loanId: number; loanNumber: string; clientId: number; clientName: string; productCode: string; productName: string; licenceCode: string
+  statusCode: string; principalAmount: number; termMonths: number; installmentAmount: number; disbursementDate: string; maturityDate: string; createdAt: string
+  clientNumber: string
+}
+
+export type Installment = {
+  installmentNo: number; dueDate: string; openingPrincipal: number; principalDue: number; interestDue: number; chargesDue: number; insuranceDue: number
+  lateFeeDue: number; totalDue: number; totalPaid: number; closingPrincipal: number; statusCode: string
+}
+
+export type Loan = {
+  loanId: number; loanNumber: string; clientId: number; clientName: string; productId: number; productCode: string; productName: string; versionNo: number
+  licenceCode: string; statusCode: string; isNonAccrual: boolean; daysLate: number; interestSuspenseAmount: number; lateFeeSuspenseAmount: number
+  isWriteOffProposed: boolean; lastEodDate: string | null; currencyCode: string; principalAmount: number; termMonths: number; installmentCount: number
+  installmentAmount: number; totalInterestAmount: number; disbursementDate: string; firstDueDate: string; maturityDate: string
+  repaymentFrequencyCode: string; interestMethodCode: string; annualRatePct: number; dayCountCode: string; lateFeeGraceDays: number; lateFeeTypeCode: string
+  lateFeeRatePct: number | null; lateFeeFlatAmount: number | null; lateFeeBaseCode: string; paymentOrder: string[]; isInsuranceRequired: boolean
+  isPrepaymentAllowed: boolean; prepaymentRecalcCode: string; prepaymentFeePct: number; earlySettlementFeePct: number
+  notes: string | null; createdBy: string; createdAt: string; rowVersion: number
+  installments: Installment[]
+  history: { fromStatusCode: string | null; toStatusCode: string; reason: string | null; by: string; at: string }[]
+  events: { eventCode: string; eventDate: string; eventAmount: number; glTranSetId: string | null; notes: string | null; by: string; at: string }[]
+  goods: {
+    categoryCode: string; categoryName: string; description: string; brandModel: string | null; merchantName: string | null; priceAmount: number; downPaymentAmount: number
+    supplierApplicationId: number | null; downPaymentCollectorCode: string | null; supplierMinDownPaymentPct: number | null; supplierCommissionPct: number | null
+    supplierPaymentDays: number | null; supplierDeliveryDays: number | null
+  } | null
+  charges?: CfCharge[] | null
+  claim?: CfClaim | null
+  rateMarginPct?: number
+  /** Consumer finance: its delivery (step 5), once recorded. */
+  delivery?: { deliveryDate: string; deliveryNoteNo: string | null; serialNo: string | null; glTranSetId: string | null; supplierPaymentDueDate: string | null } | null
+  /** Consumer finance: the payment to the supplier (step 6), once made. */
+  supplierPayment?: {
+    commissionAmount: number; commissionReason: string | null; netAmount: number; reference: string | null; paidAt: string; paidBy: string | null; glTranSetId: string | null
+  } | null
+}
+
+/** Supplier payment (step 6): what the supplier is owed, its agreed commission and the net. */
+export type CfSupplierDue = { payableAmount: number; commissionPct: number; commissionAmount: number; netAmount: number; dueDate: string | null }
+/** Rules and GL (read only): a page's role, the rules its buttons post, their charges and GL lines with this finance's amounts. */
+export type CfRuleUse = {
+  button: string; ruleCode: string; ruleName: string | null; linkedBy: string; categoryCode: string | null; problem: string | null
+  /** Why the rule posts nothing on this finance (null when it does). */
+  notApplied: string | null
+  charges: { chargeCode: string; chargeName: string; calculation: string; defaultTiming: string; income: string; onThisFinance: string | null }[]
+  lines: { journalNo: number; debitCredit: string; account: string; amountCode: string; chargeCode: string | null; amount: number | null }[]
+}
+export type CfRulePage = { stepCode: string; stepName: string; role: string | null; note: string; rules: CfRuleUse[] }
+export type CfRules = { productCode: string | null; productName: string | null; pages: CfRulePage[] }
+export type CfSupplierPayment = { bankAccountId: number | null; reference: string | null; commissionAmount: number | null; commissionReason: string | null }
+
+/** A finance's document (e.g. the signed delivery note). */
+export type LoanDocument = {
+  documentId: number; documentTypeCode: string | null; documentTitle: string; fileName: string; mimeType: string; fileSizeBytes: number
+  stepName: string; createdBy: string; createdAt: string; canRemove: boolean
+}
+/** Delivery and customer receipt (step 5). */
+export type CfDelivery = { deliveryDate: string | null; deliveryNoteNo: string | null; serialNo: string | null; customerConfirmed: boolean }
+
+export type PayingAccount = { accountId: number; bankName: string; accountRef: string; accountNo: string; accountTypeCode: string; glAccountCode: string | null }
+export type Charge = { chargeCode: string; chargeName: string; amount: number; incomeRecognitionCode: string }
+export type Disbursement = {
+  disbursementId: number; statusCode: 'REQUESTED' | 'PAID' | 'REJECTED' | 'WITHDRAWN'; paidFromAccountId: number; paidFromAccount: string | null
+  payoutMethodCode: string; payeeName: string; payeeAccount: string | null; principalAmount: number; chargesAmount: number; netPayoutAmount: number
+  paidDate: string | null; glTranSetId: string | null; charges: Charge[]; requestedBy: string; requestedAt: string; decidedBy: string | null
+  decidedAt: string | null; decisionNotes: string | null; canPay: boolean; payBlockedReason: string | null
+}
+export type DisbursementPage = {
+  loanId: number; loanStatusCode: string; canRequest: boolean; canPay: boolean; accounts: PayingAccount[]
+  preview: { ruleCode: string | null; principalAmount: number; charges: Charge[]; chargesAmount: number; netPayoutAmount: number; problem: string | null }
+  disbursements: Disbursement[]
+}
+export type ReceiptSource = { sourceType: 'BANK_DEPOSIT' | 'CHEQUE' | 'CREDIT_BALANCE'; depositAccountId: number | null; chequeId: number | null; amount: number | null; reference: string | null }
+export type ReceiptsPage = {
+  loanId: number; loanStatusCode: string; canReceive: boolean; today: string; overdueToday: number; creditBalance: number
+  depositAccounts: { accountId: number; label: string; hasGlAccount: boolean }[]
+  cheques: { chequeId: number; chequeRef: string; chequeNo: string; dueDate: string; chequeAmount: number; depositAccount: string | null }[]
+  receipts: { repaymentTxnId: number; repaymentNumber: string; valueDate: string; transactionDate: string; receiptAmount: number; allocatedAmount: number
+    statusCode: string; glTranSetId: string | null; sources: string; createdBy: string }[]
+  writtenOffAmount: number | null; recoveredAmount: number | null
+}
+export type ReceiptPreview = { receiptAmount: number; allocatedAmount: number; creditKeptAmount: number; overdueAmount: number; lines: { installmentNo: number; partCode: string; amount: number }[] }
+export type PayoutRequest = { paidFromAccountId: number | null; payoutMethodCode: string; payeeName: string; payeeAccount: string | null }
+
+const API = '/api/lnd/loans'
+
+export const loansApi = {
+  list: () => http.get<LoanListItem[]>(API),
+  get: (id: number) => http.get<Loan>(`${API}/${id}`),
+  products: () => http.get<LoanOption[]>(`${API}/products`),
+  goodsCategories: () => http.get<LoanOption[]>(`${API}/goods-categories`),
+  /** Active Consumer Finance suppliers a finance can be bought from today, with their agreed terms. */
+  cfSuppliers: () => http.get<CfSupplierOption[]>(`${API}/cf-suppliers`),
+  scenarios: () => http.get<ScenarioOption[]>(`${API}/scenarios`),
+  clients: (q: string) => http.get<LoanOption[]>(`${API}/clients?q=${encodeURIComponent(q)}`),
+  preview: (body: LoanRequest) => http.post<LoanPreview>(`${API}/preview`, body),
+  create: (body: LoanRequest) => http.post<Loan>(API, body),
+  cancel: (id: number, reason: string, rowVersion: number) => http.post<Loan>(`${API}/${id}/cancel`, { reason, rowVersion }),
+  /** The CF_FINANCE step waiting now (null when the finance is not in its workflow); with inboxId, whether it is the user's task. */
+  /** downPayment: at Credit approval, the charges worked out on a new down payment. */
+  /** The finance's steps in order (DONE / OPEN / LATER). */
+  cfSteps: (id: number) => http.get<CfStepView[]>(`${API}/${id}/cf-steps`),
+  cfStep: (id: number, inboxId: number | null, downPayment?: number, view?: string | null) => {
+    const q = new URLSearchParams()
+    if (inboxId) q.set('inboxId', String(inboxId))
+    if (downPayment !== undefined) q.set('downPayment', String(downPayment))
+    if (view) q.set('view', view)
+    const qs = q.toString()
+    return http.get<CfStep | null>(`${API}/${id}/cf-step${qs ? `?${qs}` : ''}`)
+  },
+  /** decision: at Credit approval, Credit's decision on the charges and the rate margin. */
+  completeCfStep: (id: number, inboxId: number, action: 'ACCEPT' | 'REJECT', comment: string | null, decision?: CfCreditDecision, delivery?: CfDelivery,
+    supplierPayment?: CfSupplierPayment) =>
+    http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/complete`, { action, comment, ...decision, delivery: delivery ?? null, supplierPayment: supplierPayment ?? null }),
+  /** Rules and GL of New Finance (no loanId: all pages) or of a step of a finance. */
+  /** choices: Credit's charges still on the screen (code, timing, amount) and down payment, so the popup shows what Approve would post. */
+  cfRules: (loanId: number | null, step: string | null, choices?: { charges: { code: string; timing: string; amount: number }[]; down: number | null } | null) => {
+    const q = new URLSearchParams()
+    if (loanId) q.set('loanId', String(loanId))
+    if (step) q.set('step', step)
+    if (choices) {
+      q.set('charges', choices.charges.map((c) => `${c.code}:${c.timing}:${c.amount}`).join(','))
+      if (choices.down !== null) q.set('down', String(choices.down))
+    }
+    const qs = q.toString()
+    return http.get<CfRules>(`${API}/cf-rules${qs ? `?${qs}` : ''}`)
+  },
+  documents: (id: number) => http.get<LoanDocument[]>(`${API}/${id}/documents`),
+  addDocument: (id: number, file: File, title: string, documentTypeCode: string | null) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('title', title)
+    if (documentTypeCode) form.append('documentTypeCode', documentTypeCode)
+    return http.upload<LoanDocument>(`${API}/${id}/documents`, form)
+  },
+  removeDocument: (documentId: number) => http.post<void>(`${API}/documents/${documentId}/remove`),
+  documentFile: (documentId: number) => http.blob(`${API}/documents/${documentId}`),
+  /** Charges and claim: create the upfront claim (posts the rule's charge GL lines). */
+  /** The finance's upfront claim (null when it has none). */
+  cfClaim: (id: number) => http.get<CfClaimDetail | null>(`${API}/${id}/claim`),
+  createCfClaim: (id: number, inboxId: number) => http.post<Loan>(`${API}/${id}/cf-step/${inboxId}/claim`, {}),
+  payouts: (id: number) => http.get<DisbursementPage>(`${API}/${id}/disbursements`),
+  requestPayout: (id: number, body: PayoutRequest) => http.post<DisbursementPage>(`${API}/${id}/disbursements`, body),
+  pay: (id: number, d: number, notes: string | null) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/pay`, { notes }),
+  rejectPayout: (id: number, d: number, notes: string) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/reject`, { notes }),
+  withdrawPayout: (id: number, d: number) => http.post<DisbursementPage>(`${API}/${id}/disbursements/${d}/withdraw`, {}),
+  receipts: (id: number) => http.get<ReceiptsPage>(`${API}/${id}/receipts`),
+  receiptPreview: (id: number, valueDate: string, amount: number) =>
+    http.get<ReceiptPreview>(`${API}/${id}/receipts/preview?valueDate=${encodeURIComponent(valueDate)}&amount=${amount}`),
+  receive: (id: number, body: { valueDate: string | null; sources: ReceiptSource[]; notes: string | null }) => http.post<ReceiptsPage>(`${API}/${id}/receipts`, body),
+  prepaymentQuote: (id: number, kind: 'PREPAY' | 'SETTLE', principal: number | null) =>
+    http.get<PrepaymentQuote>(`${API}/${id}/receipts/prepayment-quote?kind=${kind}${principal ? `&principal=${principal}` : ''}`),
+  prepay: (id: number, body: { kind: 'PREPAY' | 'SETTLE'; principalAmount: number | null; sources: ReceiptSource[]; notes: string | null }) =>
+    http.post<ReceiptsPage>(`${API}/${id}/receipts/prepayment`, body),
+  reversalPreview: (id: number, txnId: number) => http.get<ReversalPreview>(`${API}/${id}/receipts/${txnId}/reversal`),
+  reverse: (id: number, txnId: number, reason: string) => http.post<ReceiptsPage>(`${API}/${id}/receipts/${txnId}/reverse`, { reason })
+}
+
+export type ReversalPreview = {
+  repaymentTxnId: number; repaymentNumber: string; kind: 'RECEIPT' | 'RECOVERY'; receiptAmount: number; allocatedAmount: number
+  blocked: string | null; reopensLoan: boolean
+  replayed: { repaymentTxnId: number; repaymentNumber: string; valueDate: string; receiptAmount: number; allocatedBefore: number; allocatedAfter: number
+    creditKeptBefore: number; creditKeptAfter: number }[]
+}
+
+export type PrepaymentQuote = {
+  kind: 'PREPAY' | 'SETTLE'; date: string; duesAmount: number; interestToDate: number; principalAmount: number; feeAmount: number; totalAmount: number
+  principalNotDue: number; recalcCode: string; feePct: number
+  newSchedule: { installmentNo: number; dueDate: string; principal: number; interest: number; total: number; closingPrincipal: number }[]
+  problem: string | null
+}

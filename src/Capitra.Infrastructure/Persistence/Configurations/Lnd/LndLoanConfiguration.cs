@@ -1,0 +1,149 @@
+using Capitra.Domain.Modules.Adm;
+using Capitra.Domain.Modules.Crm;
+using Capitra.Domain.Modules.Lnd;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Capitra.Infrastructure.Persistence.Configurations.Lnd;
+
+public sealed class LndLoanConfiguration : IEntityTypeConfiguration<LndLoan>
+{
+    public void Configure(EntityTypeBuilder<LndLoan> builder)
+    {
+        builder.ToTable("LND_LOANS");
+        builder.HasKey(x => x.LoanId);
+        builder.HasIndex(x => x.LoanNumber).IsUnique();
+        builder.HasIndex(x => new { x.ClientId, x.StatusCode });
+        builder.HasIndex(x => new { x.StatusCode, x.LicenceCode });
+
+        builder.Property(x => x.LoanId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.LoanNumber).HasMaxLength(30);
+        builder.Property(x => x.LicenceCode).HasMaxLength(10);
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.Property(x => x.CurrencyCode).HasMaxLength(3);
+        builder.Property(x => x.RepaymentFrequencyCode).HasMaxLength(20);
+        builder.Property(x => x.InterestMethodCode).HasMaxLength(20);
+        builder.Property(x => x.DayCountCode).HasMaxLength(20);
+        builder.Property(x => x.LateFeeTypeCode).HasMaxLength(20);
+        builder.Property(x => x.LateFeeBaseCode).HasMaxLength(30);
+        builder.Property(x => x.PaymentOrder).HasMaxLength(200);
+        builder.Property(x => x.PrepaymentRecalcCode).HasMaxLength(20);
+        builder.Property(x => x.GoodsCategoryCode).HasMaxLength(30);
+        builder.Property(x => x.GoodsDescription).HasMaxLength(300);
+        builder.Property(x => x.GoodsBrandModel).HasMaxLength(200);
+        builder.Property(x => x.MerchantName).HasMaxLength(200);
+        builder.Property(x => x.DownPaymentCollectorCode).HasMaxLength(20);
+        builder.Property(x => x.EnteredByPerson).HasMaxLength(100);
+        builder.Property(x => x.ClaimStatusCode).HasMaxLength(20);
+        builder.Property(x => x.ClaimGlTranSetId).HasMaxLength(50);
+        builder.Property(x => x.ClaimPaidBy).HasMaxLength(100);
+        builder.Property(x => x.ClaimPaymentMethodCode).HasMaxLength(30);
+        builder.Property(x => x.ClaimPaymentReference).HasMaxLength(100);
+        builder.Property(x => x.ClaimPaymentGlTranSetId).HasMaxLength(50);
+        builder.Property(x => x.ClaimPaidAmount).HasPrecision(18, 2);
+        builder.Property(x => x.DeliveryNoteNo).HasMaxLength(50);
+        builder.Property(x => x.DeliverySerialNo).HasMaxLength(100);
+        builder.Property(x => x.DeliveryGlTranSetId).HasMaxLength(50);
+        builder.Property(x => x.SupplierCommissionReason).HasMaxLength(500);
+        builder.Property(x => x.SupplierPaymentReference).HasMaxLength(100);
+        builder.Property(x => x.SupplierPaidBy).HasMaxLength(100);
+        builder.Property(x => x.SupplierPaymentGlTranSetId).HasMaxLength(50);
+        builder.HasIndex(x => x.WorkflowInstanceId);
+        builder.HasIndex(x => x.SupplierApplicationId);
+        builder.HasOne<CrmCfSupplierApplication>().WithMany().HasForeignKey(x => x.SupplierApplicationId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<LndLkpGoodsCategory>().WithMany().HasForeignKey(x => x.GoodsCategoryCode).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.Notes).HasMaxLength(2000);
+        builder.HasOne<CrmClient>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<AdmProduct>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<LndProductVersion>().WithMany().HasForeignKey(x => x.ProductVersionId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class LndInstallmentConfiguration : IEntityTypeConfiguration<LndInstallment>
+{
+    public void Configure(EntityTypeBuilder<LndInstallment> builder)
+    {
+        builder.ToTable("LND_INSTALLMENTS");
+        builder.HasKey(x => x.InstallmentId);
+        builder.HasIndex(x => new { x.LoanId, x.InstallmentNo }).IsUnique();
+        builder.HasIndex(x => new { x.DueDate, x.StatusCode });
+
+        builder.Property(x => x.InstallmentId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class LndLoanStatusHistConfiguration : IEntityTypeConfiguration<LndLoanStatusHist>
+{
+    public void Configure(EntityTypeBuilder<LndLoanStatusHist> builder)
+    {
+        builder.ToTable("LND_LOAN_STATUS_HIST");
+        builder.HasKey(x => x.LoanStatusHistId);
+        builder.HasIndex(x => x.LoanId);
+
+        builder.Property(x => x.LoanStatusHistId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.FromStatusCode).HasMaxLength(20);
+        builder.Property(x => x.ToStatusCode).HasMaxLength(20);
+        builder.Property(x => x.Reason).HasMaxLength(1000);
+        builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class LndLoanChargeConfiguration : IEntityTypeConfiguration<LndLoanCharge>
+{
+    public void Configure(EntityTypeBuilder<LndLoanCharge> builder)
+    {
+        builder.ToTable("LND_LOAN_CHARGES");
+        builder.HasKey(x => x.LoanChargeId);
+        builder.HasIndex(x => x.LoanId);
+        builder.Property(x => x.LoanChargeId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.ChargeCode).HasMaxLength(50);
+        builder.Property(x => x.ChargeName).HasMaxLength(200);
+        builder.Property(x => x.TimingCode).HasMaxLength(30);
+        builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Cascade);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class LndLoanDocumentConfiguration : IEntityTypeConfiguration<LndLoanDocument>
+{
+    public void Configure(EntityTypeBuilder<LndLoanDocument> builder)
+    {
+        builder.ToTable("LND_LOAN_DOCUMENTS");
+        builder.HasKey(x => x.DocumentId);
+        builder.HasIndex(x => x.LoanId);
+        builder.Property(x => x.DocumentId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.StepCode).HasMaxLength(50);
+        builder.Property(x => x.StepName).HasMaxLength(200);
+        builder.Property(x => x.DocumentTitle).HasMaxLength(300);
+        builder.Property(x => x.DocumentTypeCode).HasMaxLength(30);
+        builder.Property(x => x.FileName).HasMaxLength(260);
+        builder.Property(x => x.MimeType).HasMaxLength(100);
+        builder.Property(x => x.Sha256Hash).HasMaxLength(64);
+        builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}
+
+public sealed class LndCfClaimPaymentConfiguration : IEntityTypeConfiguration<LndCfClaimPayment>
+{
+    public void Configure(EntityTypeBuilder<LndCfClaimPayment> builder)
+    {
+        builder.ToTable("LND_CF_CLAIM_PAYMENTS");
+        builder.HasKey(x => x.ClaimPaymentId);
+        builder.HasIndex(x => x.LoanId);
+        builder.Property(x => x.ClaimPaymentId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.PaymentAmount).HasPrecision(18, 2);
+        builder.Property(x => x.ChargesAmount).HasPrecision(18, 2);
+        builder.Property(x => x.DownPaymentAmount).HasPrecision(18, 2);
+        builder.Property(x => x.PaymentMethodCode).HasMaxLength(30);
+        builder.Property(x => x.PaymentReference).HasMaxLength(100);
+        builder.Property(x => x.GlTranSetId).HasMaxLength(50);
+        builder.HasOne<LndLoan>().WithMany().HasForeignKey(x => x.LoanId).OnDelete(DeleteBehavior.Restrict);
+        builder.ConfigureAudit();
+    }
+}

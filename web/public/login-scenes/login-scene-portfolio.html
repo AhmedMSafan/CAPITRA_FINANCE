@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+html,body.t-PageBody--login{background:#061A1C!important}
+body.t-PageBody--login{font-family:Inter,'Segoe UI',Arial,sans-serif!important;color:#0D2A2E;-webkit-font-smoothing:antialiased}
+html[dir=rtl] body.t-PageBody--login{font-family:Cairo,'Segoe UI',Arial,sans-serif!important}
+#t_Footer{display:none!important}
+.t-PageBody--login form#wwvFlowForm,.t-PageBody--login .t-Body{background:transparent!important;min-height:0!important;height:auto!important;overflow:visible!important}
+@media(min-width:901px){html:has(body.t-PageBody--login),body.t-PageBody--login{height:100%!important;overflow:hidden!important}}
+
+/* ---------- full-bleed scene ---------- */
+.fxl-scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:#061A1C}
+.fxl-photo{position:absolute;inset:-4%;background:url('capitra-realestate-login-bg.png') center 62%/cover no-repeat;filter:blur(1.5px) saturate(1.05);
+  transform:scale(1.04);animation:fxlKen 38s ease-in-out infinite alternate}
+@keyframes fxlKen{from{transform:scale(1.04) translate3d(0,0,0)}to{transform:scale(1.16) translate3d(-2%,-1.5%,0)}}
+.fxl-shade{position:absolute;inset:0;background:
+  linear-gradient(90deg,rgba(2,14,36,.96) 0%,rgba(2,17,46,.88) 38%,rgba(2,20,53,.62) 62%,rgba(2,14,36,.78) 100%),
+  linear-gradient(0deg,rgba(2,11,28,.85) 0%,rgba(2,11,28,0) 45%)}
+html[dir=rtl] .fxl-shade{background:
+  linear-gradient(270deg,rgba(2,14,36,.96) 0%,rgba(2,17,46,.88) 38%,rgba(2,20,53,.62) 62%,rgba(2,14,36,.78) 100%),
+  linear-gradient(0deg,rgba(2,11,28,.85) 0%,rgba(2,11,28,0) 45%)}
+.fxl-grid{position:absolute;inset:0;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);
+  background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 30% 45%,#000000,transparent 75%);mask-image:radial-gradient(ellipse 70% 60% at 30% 45%,#000000,transparent 75%)}
+.fxl-orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;mix-blend-mode:screen}
+.fxl-orb.o1{width:520px;height:520px;background:#E89B22;top:-180px;inset-inline-end:8%;opacity:.32;animation:fxlOrb1 18s ease-in-out infinite alternate}
+.fxl-orb.o2{width:460px;height:460px;background:#134CAE;bottom:-200px;inset-inline-start:18%;opacity:.30;animation:fxlOrb2 22s ease-in-out infinite alternate}
+@keyframes fxlOrb1{to{transform:translate3d(-80px,90px,0) scale(1.15)}}
+@keyframes fxlOrb2{to{transform:translate3d(120px,-60px,0) scale(.9)}}
+
+/* ---------- story (left) ---------- */
+.fxl-story{position:fixed;top:0;bottom:0;inset-inline-start:0;width:58vw;z-index:1;color:#FFFFFF;padding:44px clamp(32px,5vw,72px);box-sizing:border-box;display:flex;flex-direction:column}
+.fxl-logo{display:block;height:42px;width:126px;background:url('capitra-logo.svg') left center/contain no-repeat;flex:0 0 auto}
+html[dir=rtl] .fxl-logo{background-position:right center}
+.fxl-copy{margin:auto 0;max-width:640px}
+.fxl-eyebrow{display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 10px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+  backdrop-filter:blur(8px);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);animation:fxlUp .7s .05s both}
+html[dir=rtl] .fxl-eyebrow{letter-spacing:0;font-size:13.5px;padding:7px 10px 7px 14px}
+.fxl-eyebrow i{width:8px;height:8px;border-radius:50%;background:#E89B22;box-shadow:0 0 0 0 rgba(232,155,34,.7);animation:fxlPulse 2.2s infinite}
+@keyframes fxlPulse{0%{box-shadow:0 0 0 0 rgba(232,155,34,.65)}70%{box-shadow:0 0 0 10px rgba(232,155,34,0)}100%{box-shadow:0 0 0 0 rgba(232,155,34,0)}}
+.fxl-copy h2{font-size:clamp(36px,4vw,60px);line-height:1.04;letter-spacing:-.03em;margin:20px 0 18px;font-weight:800;color:#FFFFFF;animation:fxlUp .8s .12s both}
+html[dir=rtl] .fxl-copy h2{letter-spacing:0;line-height:1.3;font-size:clamp(34px,3.6vw,54px)}
+.fxl-copy h2 em{font-style:normal;background:linear-gradient(92deg,#FFD17A 0%,#F5B23C 45%,#E89B22 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fxl-copy p{font-size:17px;line-height:1.6;color:rgba(255,255,255,.78);margin:0 0 34px;max-width:540px;animation:fxlUp .8s .2s both}
+@keyframes fxlUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* animated acquisition pipeline */
+.fxl-flow{position:relative;max-width:600px;padding:20px 22px 18px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.13);
+  backdrop-filter:blur(10px);box-shadow:0 20px 50px rgba(0,0,0,.25);animation:fxlUp .8s .3s both}
+.fxl-flow-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6)}
+html[dir=rtl] .fxl-flow-h{letter-spacing:0;font-size:13px}
+.fxl-flow-h b{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:#7FCFC4;letter-spacing:.04em}
+.fxl-flow-h b::before{content:"";width:7px;height:7px;border-radius:50%;background:#14918A;box-shadow:0 0 10px #14918A}
+.fxl-steps{position:relative;display:grid;grid-template-columns:repeat(5,1fr)}
+.fxl-track{position:absolute;top:21px;inset-inline:10%;height:2px;background:rgba(255,255,255,.14);border-radius:2px;overflow:visible}
+.fxl-track::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:0;border-radius:2px;background:linear-gradient(90deg,#2E59A3,#E89B22);animation:fxlFill 7.5s ease-in-out infinite}
+html[dir=rtl] .fxl-track::before{background:linear-gradient(270deg,#2E59A3,#E89B22)}
+.fxl-track::after{content:"";position:absolute;top:50%;inset-inline-start:0;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#FFC55E;
+  box-shadow:0 0 0 4px rgba(232,155,34,.25),0 0 18px 4px rgba(255,197,94,.7);animation:fxlDot 7.5s ease-in-out infinite}
+html[dir=rtl] .fxl-track::after{margin:-6px -6px 0 0}
+@keyframes fxlFill{0%{width:0}80%{width:100%}100%{width:100%;opacity:0}}
+@keyframes fxlDot{0%{inset-inline-start:0;opacity:1}80%{inset-inline-start:100%;opacity:1}100%{inset-inline-start:100%;opacity:0}}
+.fxl-step{position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
+.fxl-step .c{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;position:relative;z-index:1;color:rgba(255,255,255,.75);
+  background:#0F2F33;border:1px solid rgba(255,255,255,.18);animation:fxlLit 7.5s ease-in-out infinite}
+.fxl-step span{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.72);line-height:1.25;animation:fxlTxt 7.5s ease-in-out infinite}
+.fxl-step:nth-child(2) .c,.fxl-step:nth-child(2) span{animation-delay:0s}
+.fxl-step:nth-child(3) .c,.fxl-step:nth-child(3) span{animation-delay:1.5s}
+.fxl-step:nth-child(4) .c,.fxl-step:nth-child(4) span{animation-delay:3s}
+.fxl-step:nth-child(5) .c,.fxl-step:nth-child(5) span{animation-delay:4.5s}
+.fxl-step:nth-child(6) .c,.fxl-step:nth-child(6) span{animation-delay:6s}
+@keyframes fxlLit{0%,100%{background:#0F2F33;color:rgba(255,255,255,.75);border-color:rgba(255,255,255,.18);box-shadow:none}
+  6%,22%{background:linear-gradient(135deg,#F0AA2B,#E89B22);color:#FFFFFF;border-color:transparent;box-shadow:0 0 0 6px rgba(232,155,34,.18),0 8px 20px rgba(232,155,34,.45)}
+  34%{background:#0F2957;color:#7FCFC4;border-color:rgba(127,172,224,.5);box-shadow:none}}
+@keyframes fxlTxt{0%,100%{color:rgba(255,255,255,.72)}6%,22%{color:#FFFFFF}}
+.fxl-trust{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:22px;font-size:13px;color:rgba(255,255,255,.66);animation:fxlUp .8s .4s both}
+.fxl-trust span{display:inline-flex;align-items:center;gap:7px}
+.fxl-trust svg{color:#FFC55E}
+.fxl-copyright{font-size:12.5px;color:rgba(255,255,255,.5);flex:0 0 auto}
+
+/* ---------- sign-in side ---------- */
+.t-Login-container{position:relative;z-index:2;height:100vh!important;min-height:0!important;width:auto!important;max-width:none!important;margin:0!important;margin-inline-start:58vw!important;
+  display:flex!important;flex-direction:column;align-items:center;justify-content:center;padding:72px clamp(20px,3vw,48px) 52px!important;box-sizing:border-box;background:transparent!important}
+.t-Login-containerHeader:empty,.t-Login-containerFooter:empty{display:none}
+.t-Login-containerBody{width:100%;max-width:420px;display:block!important;margin:0 auto}
+.t-Login-region{position:relative;width:100%!important;max-width:420px!important;margin:0!important;float:none!important;box-sizing:border-box;overflow:hidden;
+  background:rgba(255,255,255,.96)!important;border:1px solid rgba(255,255,255,.7)!important;border-radius:24px!important;padding:30px 34px 26px!important;
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 90px -20px rgba(0,0,0,.6),0 12px 30px -10px rgba(0,0,0,.35)!important;animation:fxlCard .7s .15s cubic-bezier(.2,.8,.2,1) both}
+@keyframes fxlCard{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
+.t-Login-header{padding:0!important;margin:0 0 22px!important;text-align:start!important}
+.t-Login-logo{display:none!important}
+.t-Login-title{margin:0!important;padding:0!important;font-size:inherit!important;font-weight:inherit!important;text-align:start!important;color:inherit!important}
+#fxlHead{display:none}
+.t-Login-title #fxlHead{display:block}
+.fxl-mob{display:none}
+.fxl-mark{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;margin-bottom:18px;position:relative;
+  background:linear-gradient(135deg,#002E7F,#0F3D3A);box-shadow:0 12px 24px -6px rgba(0,40,109,.55)}
+.fxl-mark::before{content:"";width:21px;height:21px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='11' width='16' height='10' rx='2'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 8 0v4'/%3E%3C/svg%3E") center/contain no-repeat}
+.fxl-mark::after{content:"";position:absolute;inset:-5px;border-radius:18px;border:1px solid rgba(0,40,109,.18)}
+.fxl-hello{display:block;font-size:27px;font-weight:800;letter-spacing:-.02em;color:#0D2A2E;line-height:1.2}
+html[dir=rtl] .fxl-hello{letter-spacing:0}
+.fxl-sub{display:block;margin-top:6px;font-size:14.5px;font-weight:400;color:#5E6F71;line-height:1.45}
+.t-Login-body{padding:0!important}
+.t-Login-region .t-Form-fieldContainer{margin:0 0 14px!important;padding:0!important;display:block!important}
+.t-Login-region .t-Form-labelContainer{padding:0 0 6px!important;text-align:start!important;width:auto!important;min-height:0!important}
+.t-Login-region .t-Form-label{font-size:13px!important;font-weight:600!important;color:#2C4A4C!important;line-height:1.2!important;padding:0!important}
+.t-Login-region .t-Form-inputContainer{padding:0!important;width:auto!important}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper{display:flex!important;align-items:center;position:relative;height:48px;box-sizing:border-box;
+  border:1px solid #D9DDE7;border-radius:13px;background:#F6F7FA;overflow:hidden;transition:border-color .15s,box-shadow .15s,background .15s}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper:hover,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper:hover{border-color:#B9C1D1}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper:focus-within,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper:focus-within{border-color:#134E4A;background:#FFFFFF;box-shadow:0 0 0 4px rgba(0,40,109,.13)}
+.t-Login-region .apex-item-icon{display:none!important}
+#P9999_USERNAME,#P9999_PASSWORD{flex:1 1 auto;min-width:0;width:100%!important;height:46px!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;outline:0!important;font-size:15px!important;color:#0D2A2E!important;padding:0 12px 0 11px!important;background:transparent!important;
+  opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+html[dir=rtl] #P9999_USERNAME,html[dir=rtl] #P9999_PASSWORD{padding:0 11px 0 12px!important}
+#P9999_USERNAME::placeholder,#P9999_PASSWORD::placeholder{color:#939BAF}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper button:not(.fxl-eye),
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper .t-Form-itemText--post,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper .t-Form-itemText:has(button),
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper [class*="passwordToggle"],
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper [class*="password-toggle"],
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper [class*="reveal"]{display:none!important}
+/* any extra wrapper APEX puts around the input simply stretches */
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper>*:has(#P9999_USERNAME),
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper>*:has(#P9999_PASSWORD){flex:1 1 auto!important;min-width:0!important;display:flex!important;align-items:center;
+  border:0!important;background:transparent!important;box-shadow:none!important;margin:0!important;padding:0!important;height:46px}
+/* field icons sit on the wrapper, so browser autofill cannot remove them */
+.t-Login-region .t-Form-fieldContainer:has(#P9999_USERNAME) .t-Form-itemWrapper::before,
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper::before{content:"";flex:0 0 18px;width:18px;height:18px;margin-inline-start:15px;order:-1;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235F6B8A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21a8 8 0 0 1 16 0'/%3E%3C/svg%3E") center/18px 18px no-repeat}
+.t-Login-region .t-Form-fieldContainer:has(#P9999_PASSWORD) .t-Form-itemWrapper::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235F6B8A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='11' width='16' height='10' rx='2'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 8 0v4'/%3E%3C/svg%3E")}
+#P9999_USERNAME:-webkit-autofill,#P9999_PASSWORD:-webkit-autofill,#P9999_USERNAME:-webkit-autofill:focus,#P9999_PASSWORD:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 100px #F6F7FA inset!important;box-shadow:0 0 0 100px #F6F7FA inset!important;-webkit-text-fill-color:#0D2A2E!important;caret-color:#0D2A2E}
+.fxl-eye{flex:0 0 auto;width:44px;height:46px;display:grid!important;place-items:center;margin:0;padding:0;border:0;background:transparent;color:#5E6F71;cursor:pointer;border-radius:0}
+.fxl-eye:hover{color:#134E4A}
+.fxl-eye:focus-visible{outline:2px solid rgba(0,40,109,.4);outline-offset:-4px;border-radius:10px}
+.fxl-eye svg{display:block}
+.fxl-caps{display:flex;align-items:center;gap:6px;margin:-6px 0 12px;font-size:12.5px;font-weight:600;color:#B4740E}
+.fxl-caps[hidden]{display:none}
+.t-Login-region .apex-item-single-checkbox,.t-Login-region .apex-item-checkbox{display:flex!important;align-items:center;gap:10px;margin:2px 0 4px!important;position:relative}
+#P9999_REMEMBER,#P9999_PERSISTENT_AUTH{order:-1}
+#P9999_REMEMBER,#P9999_PERSISTENT_AUTH{-webkit-appearance:none!important;appearance:none!important;position:relative!important;inset:auto!important;opacity:1!important;clip:auto!important;clip-path:none!important;
+  pointer-events:auto!important;width:38px!important;height:22px!important;min-width:38px;margin:0!important;padding:0!important;border:0!important;border-radius:99px!important;cursor:pointer;flex:0 0 38px;z-index:1;
+  background:radial-gradient(circle at 11px 50%,#FFFFFF 0 7.5px,transparent 8.5px),#C9CEDA!important;box-shadow:none!important}
+#P9999_REMEMBER:checked,#P9999_PERSISTENT_AUTH:checked{background:radial-gradient(circle at 27px 50%,#FFFFFF 0 7.5px,transparent 8.5px),#134E4A!important}
+html[dir=rtl] #P9999_REMEMBER,html[dir=rtl] #P9999_PERSISTENT_AUTH{background:radial-gradient(circle at 27px 50%,#FFFFFF 0 7.5px,transparent 8.5px),#C9CEDA!important}
+html[dir=rtl] #P9999_REMEMBER:checked,html[dir=rtl] #P9999_PERSISTENT_AUTH:checked{background:radial-gradient(circle at 11px 50%,#FFFFFF 0 7.5px,transparent 8.5px),#134E4A!important}
+#P9999_REMEMBER:focus-visible,#P9999_PERSISTENT_AUTH:focus-visible{outline:3px solid rgba(0,40,109,.25)!important;outline-offset:2px}
+#P9999_REMEMBER::before,#P9999_REMEMBER::after,#P9999_PERSISTENT_AUTH::before,#P9999_PERSISTENT_AUTH::after{display:none!important}
+label[for=P9999_REMEMBER],label[for=P9999_PERSISTENT_AUTH]{padding:0!important;margin:0!important;font-size:14px!important;font-weight:500!important;color:#2C4A4C!important;cursor:pointer;line-height:22px!important;min-height:0!important}
+label[for=P9999_REMEMBER]::before,label[for=P9999_REMEMBER]::after,label[for=P9999_PERSISTENT_AUTH]::before,label[for=P9999_PERSISTENT_AUTH]::after{display:none!important;content:none!important}
+.t-Login-buttons{padding:10px 0 0!important;margin:0!important;display:block!important;min-height:0!important}
+.t-Login-region .t-Button.login-button,.login-button.t-Button{box-sizing:border-box!important;min-height:0!important;max-height:46px;padding:0 20px!important;line-height:1!important;margin:10px 0 0!important;position:relative;overflow:hidden;height:46px!important;width:100%!important;display:flex!important;align-items:center;justify-content:center;gap:10px;border:0!important;
+  border-radius:13px!important;font-size:15.5px!important;font-weight:700!important;color:#FFFFFF!important;letter-spacing:.01em!important;
+  background:linear-gradient(135deg,#F5B23C 0%,#E89B22 55%,#D98C1A 100%)!important;box-shadow:0 14px 28px -8px rgba(232,155,34,.6),inset 0 1px 0 rgba(255,255,255,.25)!important;
+  transition:transform .15s,box-shadow .15s,filter .15s}
+.t-Login-region .t-Button.login-button::after{content:"";position:absolute;top:0;bottom:0;width:60%;left:-80%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-20deg);animation:fxlShine 5.5s 1.2s ease-in-out infinite}
+@keyframes fxlShine{0%,70%{left:-80%}100%{left:130%}}
+.t-Login-region .t-Button.login-button:hover{transform:translateY(-1px);filter:brightness(1.04);box-shadow:0 18px 34px -8px rgba(232,155,34,.7)!important}
+.t-Login-region .t-Button.login-button:active{transform:translateY(0)}
+.t-Login-region .t-Button.login-button:focus-visible{outline:3px solid rgba(232,155,34,.35);outline-offset:2px}
+.t-Login-region .t-Button.login-button .t-Icon{color:#FFFFFF!important;margin:0!important;transition:transform .2s}
+.t-Login-region .t-Button.login-button:hover .t-Icon{transform:translateX(3px)}
+html[dir=rtl] .t-Login-region .t-Button.login-button .t-Icon{transform:scaleX(-1)}
+html[dir=rtl] .t-Login-region .t-Button.login-button:hover .t-Icon{transform:scaleX(-1) translateX(3px)}
+.t-Login-links:empty{display:none}
+.fxl-note{display:flex;align-items:center;gap:10px;margin:20px -34px -26px;padding:13px 34px;border-top:1px solid #EDEFF4;background:#F7F8FB;color:#5E6F71;font-size:12.5px;line-height:1.4}
+.fxl-note svg{color:#134E4A;flex:0 0 auto}
+.t-Login-container .t-Alert{border-radius:14px!important;margin:0 0 14px!important;max-width:420px}
+/* language pill + footer */
+.fxl-lang{position:fixed;top:26px;inset-inline-end:32px;z-index:3;display:flex;padding:4px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.fxl-lang button{appearance:none;border:0!important;background:transparent;box-shadow:none;cursor:pointer;padding:7px 14px;border-radius:9px;font:600 13px/1.2 Inter,Arial,sans-serif;color:rgba(255,255,255,.82);transition:background .15s,color .15s}
+.fxl-lang button:hover{color:#FFFFFF;background:rgba(255,255,255,.08)}
+.fxl-lang button[lang=ar]{font-family:Cairo,'Segoe UI',Arial,sans-serif;font-size:14px}
+.fxl-lang button.on,.fxl-lang button[aria-pressed=true]{background:#FFFFFF!important;color:#0F3D3A!important;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.fxl-foot{position:fixed;bottom:20px;inset-inline-start:58vw;inset-inline-end:32px;z-index:2;display:flex;justify-content:center;gap:16px;font-size:12.5px;color:rgba(255,255,255,.6)}
+.fxl-foot span+span::before{content:"\00B7";margin-inline-end:16px}
+@media(prefers-reduced-motion:reduce){.fxl-photo,.fxl-orb,.fxl-track::before,.fxl-track::after,.fxl-step .c,.fxl-step span,.fxl-eyebrow i,.t-Login-region .t-Button.login-button::after{animation:none!important}
+  .fxl-track::before{width:100%}}
+@media(max-height:760px){.fxl-trust{display:none}.fxl-copy p{margin-bottom:24px}}
+@media(max-height:680px){.fxl-foot{display:none}.fxl-mark{display:none}.fxl-copy h2{margin:14px 0 12px}}
+@media(max-height:600px){.fxl-flow,.fxl-note{display:none}.t-Login-container{padding-top:60px!important}}
+@media(max-width:1180px){.fxl-flow{display:none}}
+@media(max-width:900px){
+  .fxl-story{display:none}
+  .fxl-shade{background:linear-gradient(180deg,rgba(2,14,36,.8),rgba(2,14,36,.94))!important}
+  .t-Login-container{height:auto!important;min-height:100vh!important;margin-inline-start:0!important;padding:76px 16px 40px!important;justify-content:flex-start}
+  .t-Login-region{padding:24px 22px 22px!important}
+  .fxl-note{margin:18px -22px -22px;padding:12px 22px}
+  .fxl-foot{display:none}
+  .fxl-lang{top:18px;inset-inline-end:16px}
+  .fxl-mark{display:none}
+  .fxl-mob{display:block;height:52px;border-radius:12px;margin-bottom:20px;
+    background:url('capitra-logo.svg') 14px center/auto 26px no-repeat,linear-gradient(135deg,#021435,#0F3D3A)}
+  html[dir=rtl] .fxl-mob{background-position:right 14px center,0 0}
+}
+/* v77: lighter while signing in */
+.fxl-photo{filter:none!important}
+body.fxl-calm .fxl-scene *,body.fxl-calm .fxl-scene *::before,body.fxl-calm .fxl-scene *::after,body.fxl-calm .fxl-story *,body.fxl-calm .t-Login-region *,body.fxl-calm .t-Login-region *::after{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.fxl-scene *,.fxl-story *{animation:none!important}}
+[id$="Note"],[id$="Head"],.fxl-lang,.fxl-note,.fxl-foot,.wfl-note,.wfl-foot{display:none!important}html,body{overflow:hidden!important}
+</style></head>
+<body class="t-PageBody--login fm-scene"><div class="t-Body"><div class="t-Body-wrap"><div class="t-Body-col t-Body-col--main"><div class="t-Body-content"><div class="t-Region">
+<div class="fxl-scene" aria-hidden="true"><div class="fxl-photo"></div><div class="fxl-shade"></div><div class="fxl-grid"></div><div class="fxl-orb o1"></div><div class="fxl-orb o2"></div></div>
+<div class="fxl-story">
+  <span class="fxl-logo" role="img" aria-label="Capitra"></span>
+  <div class="fxl-copy">
+    <div class="fxl-eyebrow"><i></i><span data-cap-en="Portfolio Acquisition Platform" data-cap-ar="منصة استحواذ المحافظ">Portfolio Acquisition Platform</span></div>
+    <h2><span data-cap-en="Unlocking value in " data-cap-ar="نُطلق القيمة الكامنة في ">Unlocking value in </span><em data-cap-en="real estate portfolios" data-cap-ar="محافظ التمويل العقاري">real estate portfolios</em></h2>
+    <p data-cap-en="Evaluate, screen and acquire real-estate financing portfolios through one controlled, fully audited workflow." data-cap-ar="قيّم محافظ التمويل العقاري وافحصها واستحوذ عليها من خلال مسار عمل واحد منضبط وخاضع للتدقيق بالكامل.">Evaluate, screen and acquire real-estate financing portfolios through one controlled, fully audited workflow.</p>
+    <div class="fxl-flow">
+      <div class="fxl-flow-h"><span data-cap-en="Acquisition journey" data-cap-ar="رحلة الاستحواذ">Acquisition journey</span><b data-cap-en="End-to-end" data-cap-ar="من البداية للنهاية">End-to-end</b></div>
+      <div class="fxl-steps"><div class="fxl-track"></div>
+        <div class="fxl-step"><span class="c"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><span data-cap-en="Inquiry" data-cap-ar="الاستعلام">Inquiry</span></div>
+        <div class="fxl-step"><span class="c"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg></span><span data-cap-en="Due diligence" data-cap-ar="العناية الواجبة">Due diligence</span></div>
+        <div class="fxl-step"><span class="c"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></span><span data-cap-en="AML screening" data-cap-ar="فحص غسل الأموال">AML screening</span></div>
+        <div class="fxl-step"><span class="c"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span data-cap-en="Committee" data-cap-ar="اللجنة">Committee</span></div>
+        <div class="fxl-step"><span class="c"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="m9 15 2 2 4-4"/></svg></span><span data-cap-en="Acquired" data-cap-ar="الاستحواذ">Acquired</span></div>
+      </div>
+    </div>
+    <div class="fxl-trust"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span data-cap-en="English &amp; Arabic" data-cap-ar="العربية والإنجليزية">English &amp; Arabic</span></span><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span data-cap-en="Role-based access" data-cap-ar="صلاحيات حسب الدور">Role-based access</span></span><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg><span data-cap-en="Full audit trail" data-cap-ar="سجل تدقيق كامل">Full audit trail</span></span></div>
+  </div>
+  <div class="fxl-copyright" data-cap-en="&copy; 2026 Capitra &middot; Mortgage Finance" data-cap-ar="&copy; 2026 فينوفا &middot; التمويل العقاري">&copy; 2026 Capitra &middot; Mortgage Finance</div>
+</div>
+<div class="fxl-lang" role="group" aria-label="Language"><button type="button" data-l="EN" lang="en">English</button><button type="button" data-l="AR" lang="ar">العربية</button></div>
+<div id="fxlHead"><span class="fxl-mob" aria-hidden="true"></span><span class="fxl-mark" aria-hidden="true"></span><span class="fxl-hello" data-cap-en="Welcome back" data-cap-ar="مرحباً بعودتك">Welcome back</span><span class="fxl-sub" data-cap-en="Sign in to continue to Portfolio Acquisition." data-cap-ar="سجّل الدخول للمتابعة إلى منصة استحواذ المحافظ.">Sign in to continue to Portfolio Acquisition.</span></div>
+</div></div></div></div></div>
+<script>
+(function(){
+  function safe(name,f){try{f();}catch(e){if(window.console)console.warn('Capitra login ('+name+'):',e);}}
+  var ar=false; try{ar=(localStorage.getItem('CAPITRA_PA_LANG')||'').toUpperCase()==='AR';}catch(e){}
+  function q(s){return document.querySelector(s);}
+  function pair(el,attr,en,a){if(!el)return;
+    if(attr){el.setAttribute('data-cap-'+attr+'-en',en);el.setAttribute('data-cap-'+attr+'-ar',a);el.setAttribute(attr,ar?a:en);}
+    else{el.setAttribute('data-cap-en',en);el.setAttribute('data-cap-ar',a);el.textContent=ar?a:en;}}
+  safe('heading',function(){
+    var head=q('#fxlHead'), h1=q('.t-Login-title');
+    if(head&&h1){h1.textContent='';h1.appendChild(head);}
+  });
+  safe('labels',function(){
+    pair(q('#P9999_USERNAME_LABEL'),null,'Username','اسم المستخدم');
+    pair(q('#P9999_PASSWORD_LABEL'),null,'Password','كلمة المرور');
+    pair(q('#P9999_USERNAME'),'placeholder','Enter your username','أدخل اسم المستخدم');
+    pair(q('#P9999_PASSWORD'),'placeholder','Enter your password','أدخل كلمة المرور');
+    pair(q('label[for=P9999_PERSISTENT_AUTH]'),null,'Remember me','تذكرني');
+    pair(q('label[for=P9999_REMEMBER]'),null,'Remember username','تذكر اسم المستخدم');
+    pair(q('.login-button .t-Button-label'),null,'Sign in','تسجيل الدخول');
+  });
+  safe('note',function(){
+    var note=q('#fxlNote'), card=q('.t-Login-region');
+    if(note&&card)card.appendChild(note);
+  });
+  safe('eye',function(){
+    var pw=q('#P9999_PASSWORD'); if(!pw||q('.fxl-eye'))return;
+    var on='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+    var off='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.1-5.9"/><path d="M9.9 4.2A9.6 9.6 0 0 1 12 4c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.2 3.2"/><path d="m2 2 20 20"/></svg>';
+    var eye=document.createElement('button'); eye.type='button'; eye.className='fxl-eye'; eye.tabIndex=0;
+    function sync(){var shown=pw.type==='text';eye.innerHTML=shown?off:on;
+      eye.setAttribute('aria-label',shown?(ar?'إخفاء كلمة المرور':'Hide password'):(ar?'إظهار كلمة المرور':'Show password'));
+      eye.setAttribute('aria-pressed',shown?'true':'false');}
+    sync(); (pw.closest('.t-Form-itemWrapper')||pw.parentNode).appendChild(eye);
+    eye.addEventListener('click',function(e){e.preventDefault();pw.type=pw.type==='password'?'text':'password';sync();pw.focus();});
+  });
+  safe('caps',function(){
+    var pw=q('#P9999_PASSWORD'); if(!pw)return;
+    var caps=document.createElement('div'); caps.className='fxl-caps'; caps.hidden=true; caps.setAttribute('role','status');
+    caps.textContent=ar?'مفتاح الأحرف الكبيرة (Caps Lock) مفعّل':'Caps Lock is on';
+    var host=pw.closest('.t-Form-fieldContainer')||pw.parentNode;
+    host.parentNode.insertBefore(caps,host.nextSibling);
+    var check=function(e){if(e.getModifierState)caps.hidden=!e.getModifierState('CapsLock');};
+    pw.addEventListener('keydown',check); pw.addEventListener('keyup',check);
+    pw.addEventListener('blur',function(){caps.hidden=true;});
+  });
+  safe('language',function(){
+    var bs=document.querySelectorAll('.fxl-lang button');
+    for(var i=0;i<bs.length;i++)(function(b){
+      var l=b.getAttribute('data-l'), on=(l==='AR')===ar;
+      b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false');
+      b.addEventListener('click',function(){if(on)return;
+        try{localStorage.setItem('CAPITRA_PA_LANG',l);}catch(e){}
+        location.reload();});
+    })(bs[i]);
+  });
+  safe('translate',function(){if(window.CAPITRA_PA&&CAPITRA_PA.applyLanguage)CAPITRA_PA.applyLanguage(ar?'AR':'EN');});
+})();
+(function(){
+  // pause the ambient animations while the user signs in (typing, password manager, Windows Hello)
+  var b=document.body;function calm(){b.classList.add('fxl-calm');}
+  document.addEventListener('focusin',function(e){if(e.target&&e.target.matches&&e.target.matches('input,button,select'))calm();});
+  document.addEventListener('pointerdown',calm,{once:true});
+  window.addEventListener('blur',calm);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)calm();});
+  if(document.activeElement&&document.activeElement.tagName==='INPUT')calm();
+  setTimeout(calm,12000);
+})();
+</script>
+</body></html>

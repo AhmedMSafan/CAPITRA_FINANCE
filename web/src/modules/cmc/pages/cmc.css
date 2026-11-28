@@ -1,0 +1,25 @@
+/* Communication Center: mail server cards, the test result and the sent e-mails log */
+.fc .fc-grid--2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.fc .cmc-top-note{margin:0 0 16px}
+.fc .cmc-band-text{font-size:20px !important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc .cmc-pulse-off{background:#ffb26b;animation:none}
+.fc .cmc-servers{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
+.fc .cmc-server{display:flex;flex-direction:column;gap:12px;padding:18px 20px;border:1px solid var(--fin-line)}
+.fc .cmc-server--active{border-color:var(--fin-teal-600);box-shadow:0 0 0 3px rgb(15 118 110 / .12)}
+.fc .cmc-server-head{display:flex;align-items:center;gap:12px}
+.fc .cmc-server-head h2{margin:0;font-size:16px;color:var(--fin-ink)}
+.fc .cmc-server-head small{color:var(--fin-muted)}
+.fc .cmc-server-head .fx-chip{margin-inline-start:auto}
+.fc .cmc-server-ic{flex:0 0 42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:18px;background:var(--fin-teal-50);color:var(--fin-teal-600)}
+.fc .cmc-server--active .cmc-server-ic{background:var(--fin-teal-600);color:#fff}
+.fc .cmc-facts{display:grid;gap:6px;margin:0}
+.fc .cmc-facts div{display:grid;grid-template-columns:130px 1fr;gap:8px;font-size:var(--fs-sm)}
+.fc .cmc-facts dt{color:var(--fin-muted)}
+.fc .cmc-facts dd{margin:0;color:var(--fin-ink);min-width:0;overflow-wrap:anywhere}
+.fc .cmc-bad{color:var(--fin-bad);font-weight:600}
+.fc .cmc-error{margin:0;padding:8px 10px;border-radius:10px;background:var(--fin-bad-50);color:var(--fin-bad);font:500 12px/1.45 ui-monospace,Consolas,monospace;overflow-wrap:anywhere}
+.fc .cmc-server-actions{justify-content:flex-start;flex-wrap:wrap;margin-block-start:auto;padding-block-start:4px;border-block-start:1px solid var(--fin-line);padding-top:12px}
+.fc .cmc-presets{display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--fin-muted)}
+.fc .cmc-test-note{margin-block-start:12px}
+.fc .cmc-log-error{display:block;max-width:420px;color:var(--fin-bad);font-size:var(--fs-xs);overflow-wrap:anywhere}
+@media (max-width:700px){.fc .fc-grid--2{grid-template-columns:1fr}.fc .cmc-servers{grid-template-columns:1fr}}

@@ -1,0 +1,362 @@
+using Capitra.Domain.Common;
+
+namespace Capitra.Domain.Modules.Lnd;
+
+/// <summary>
+/// LND_LOANS: one retail loan (microfinance or consumer finance). It keeps a copy of the product version's terms it was made under
+/// (design deck: later product versions never touch a live loan). STATUS_CODE changes only through LndLoanService, which checks the
+/// transition and writes LND_LOAN_STATUS_HIST.
+/// </summary>
+public class LndLoan : AuditableEntity
+{
+    public long LoanId { get; set; }
+
+    /// <summary>LN-yyyy-nnnnnnn.</summary>
+    public string LoanNumber { get; set; } = string.Empty;
+
+    public long ClientId { get; set; }
+
+    public long ProductId { get; set; }
+
+    /// <summary>The product version the terms below were copied from.</summary>
+    public long ProductVersionId { get; set; }
+
+    /// <summary>MF or CF: the licence, and the scope of the Lending Parameters that apply.</summary>
+    public string LicenceCode { get; set; } = string.Empty;
+
+    /// <summary>One of: APPROVED, ACTIVE, CLOSED, CANCELLED (more states come with servicing).</summary>
+    public string StatusCode { get; set; } = "APPROVED";
+
+    /// <summary>Interest goes to suspense instead of income (set by end of day from the non-accrual days).</summary>
+    public bool IsNonAccrual { get; set; }
+
+    /// <summary>Days the oldest unpaid instalment is late, as of LAST_EOD_DATE (set by end of day).</summary>
+    public int DaysLate { get; set; }
+
+    /// <summary>Interest taken to suspense while the loan is in non-accrual, released to income when it cures.</summary>
+    public decimal InterestSuspenseAmount { get; set; }
+
+    /// <summary>Late fees taken to suspense while the loan is in non-accrual.</summary>
+    public decimal LateFeeSuspenseAmount { get; set; }
+
+    /// <summary>End of day found the loan at or beyond the write-off days: it waits for a write-off decision.</summary>
+    public bool IsWriteOffProposed { get; set; }
+
+    /// <summary>The last business day end of day processed this loan.</summary>
+    public DateOnly? LastEodDate { get; set; }
+
+    public string CurrencyCode { get; set; } = "EGP";
+
+    public decimal PrincipalAmount { get; set; }
+
+    public int TermMonths { get; set; }
+
+    public int InstallmentCount { get; set; }
+
+    public decimal InstallmentAmount { get; set; }
+
+    public decimal TotalInterestAmount { get; set; }
+
+    public DateOnly DisbursementDate { get; set; }
+
+    public DateOnly FirstDueDate { get; set; }
+
+    public DateOnly MaturityDate { get; set; }
+
+    // ---- terms copied from the product version
+    public string RepaymentFrequencyCode { get; set; } = string.Empty;
+
+    public string InterestMethodCode { get; set; } = string.Empty;
+
+    public decimal AnnualRatePct { get; set; }
+
+    /// <summary>
+    /// Consumer finance: the margin Credit added to (or took off) the product rate at Credit approval; AnnualRatePct is the product rate
+    /// plus this margin.
+    /// </summary>
+    public decimal RateMarginPct { get; set; }
+
+    public string DayCountCode { get; set; } = string.Empty;
+
+    public int LateFeeGraceDays { get; set; }
+
+    public string LateFeeTypeCode { get; set; } = string.Empty;
+
+    public decimal? LateFeeRatePct { get; set; }
+
+    public decimal? LateFeeFlatAmount { get; set; }
+
+    public string LateFeeBaseCode { get; set; } = string.Empty;
+
+    public string PaymentOrder { get; set; } = string.Empty;
+
+    public bool IsInsuranceRequired { get; set; }
+
+    /// <summary>Copied from the product version: the customer may pay principal before it falls due (part prepayment or full early settlement).</summary>
+    public bool IsPrepaymentAllowed { get; set; } = true;
+
+    /// <summary>After a part prepayment: REDUCE_INSTALMENT (same number of instalments, smaller) or REDUCE_TERM (same instalment, fewer).</summary>
+    public string PrepaymentRecalcCode { get; set; } = "REDUCE_INSTALMENT";
+
+    /// <summary>Fee on the principal paid early by a part prepayment, in % (0 for none).</summary>
+    public decimal PrepaymentFeePct { get; set; }
+
+    /// <summary>Fee on the principal settled by a full early settlement, in % (0 for none).</summary>
+    public decimal EarlySettlementFeePct { get; set; }
+
+    /// <summary>Consumer finance: the financed item's category (LND_LKP_GOODS_CATEGORIES).</summary>
+    public string? GoodsCategoryCode { get; set; }
+
+    /// <summary>Consumer finance: what is financed, e.g. "Samsung 55 inch TV".</summary>
+    public string? GoodsDescription { get; set; }
+
+    public string? GoodsBrandModel { get; set; }
+
+    /// <summary>The supplier's name, kept for lists; the supplier itself is <see cref="SupplierApplicationId"/>.</summary>
+    public string? MerchantName { get; set; }
+
+    /// <summary>
+    /// Consumer finance: the active supplier agreement (CRM_CF_SUPPLIER_APPLICATIONS) the goods are bought under (Ahmed, 26 Nov 2026).
+    /// Its terms below are copied when the finance is created, so a later change to the agreement does not change this finance.
+    /// </summary>
+    public long? SupplierApplicationId { get; set; }
+
+    /// <summary>Who takes the down payment from the consumer: SUPPLIER or COMPANY (us).</summary>
+    public string? DownPaymentCollectorCode { get; set; }
+
+    /// <summary>The supplier's least down payment, as a % of the price, when the finance was created.</summary>
+    public decimal? SupplierMinDownPaymentPct { get; set; }
+
+    /// <summary>The supplier's agreed commission %, when the finance was created (it overrides the commission charge's default rate).</summary>
+    public decimal? SupplierCommissionPct { get; set; }
+
+    /// <summary>We pay the supplier this many days after delivery.</summary>
+    public int? SupplierPaymentDays { get; set; }
+
+    /// <summary>The supplier delivers within this many days of our delivery order.</summary>
+    public int? SupplierDeliveryDays { get; set; }
+
+    /// <summary>The CF_FINANCE workflow run of a consumer finance from a supplier.</summary>
+    public long? WorkflowInstanceId { get; set; }
+
+    /// <summary>The person who entered the finance (employee number, or user name): none of its workflow steps may be done by them.</summary>
+    public string? EnteredByPerson { get; set; }
+
+    /// <summary>
+    /// The upfront claim of a consumer finance (step Charges and claim): the charges Credit made upfront, and the down payment when we take
+    /// it. ClaimStatusCode: OPEN once claimed (GL posted by the step's rule), PAID once its payment is recorded (GL of CF_CLAIM_PAYMENT),
+    /// NONE when there was nothing to claim.
+    /// </summary>
+    public decimal? ClaimChargesAmount { get; set; }
+
+    public decimal? ClaimDownPaymentAmount { get; set; }
+
+    public string? ClaimStatusCode { get; set; }
+
+    public string? ClaimGlTranSetId { get; set; }
+
+    public DateTime? ClaimPaidAt { get; set; }
+
+    public string? ClaimPaidBy { get; set; }
+
+    /// <summary>CASH, BANK_TRANSFER, PAYMENT_NETWORK or WALLET (no cheques in consumer finance).</summary>
+    public string? ClaimPaymentMethodCode { get; set; }
+
+    public string? ClaimPaymentReference { get; set; }
+
+    public string? ClaimPaymentGlTranSetId { get; set; }
+
+    /// <summary>What the customer has paid of the claim so far (27 Nov 2026: partial payments, LND_CF_CLAIM_PAYMENTS); null before any.</summary>
+    public decimal? ClaimPaidAmount { get; set; }
+
+    /// <summary>CF_FINANCE step 5 (27 Nov 2026): the day the goods were delivered; the finance is booked and its schedule runs from it.</summary>
+    public DateOnly? DeliveryDate { get; set; }
+
+    public string? DeliveryNoteNo { get; set; }
+
+    /// <summary>The goods' serial number or IMEI, when they have one.</summary>
+    public string? DeliverySerialNo { get; set; }
+
+    /// <summary>The GL of the booking at delivery (rule CF_DELIVERY).</summary>
+    public string? DeliveryGlTranSetId { get; set; }
+
+    /// <summary>The day the supplier is paid by: the delivery day plus the supplier's payment days.</summary>
+    public DateOnly? SupplierPaymentDueDate { get; set; }
+
+    /// <summary>CF_FINANCE step 6 (27 Nov 2026): the supplier's commission taken from its payment (its agreed % unless Treasury changed it, with a reason).</summary>
+    public decimal? SupplierCommissionAmount { get; set; }
+
+    public string? SupplierCommissionReason { get; set; }
+
+    /// <summary>Our bank account (TRS_BANK_ACCOUNTS) the supplier was paid from.</summary>
+    public long? SupplierPaymentBankAccountId { get; set; }
+
+    public string? SupplierPaymentReference { get; set; }
+
+    public DateTime? SupplierPaidAt { get; set; }
+
+    public string? SupplierPaidBy { get; set; }
+
+    /// <summary>The GL of the supplier payment (rule CF_SUPPLIER_PAYMENT).</summary>
+    public string? SupplierPaymentGlTranSetId { get; set; }
+
+    /// <summary>Consumer finance: the item's price; the loan amount is the price less the down payment.</summary>
+    public decimal? GoodsPriceAmount { get; set; }
+
+    public decimal? DownPaymentAmount { get; set; }
+
+    public string? Notes { get; set; }
+}
+
+/// <summary>LND_INSTALLMENTS: one instalment of a loan's schedule, with what is due and what is paid of each part.</summary>
+public class LndInstallment : AuditableEntity
+{
+    public long InstallmentId { get; set; }
+
+    public long LoanId { get; set; }
+
+    public int InstallmentNo { get; set; }
+
+    public DateOnly DueDate { get; set; }
+
+    public decimal OpeningPrincipalAmount { get; set; }
+
+    public decimal PrincipalDueAmount { get; set; }
+
+    public decimal InterestDueAmount { get; set; }
+
+    public decimal ChargesDueAmount { get; set; }
+
+    public decimal InsuranceDueAmount { get; set; }
+
+    public decimal LateFeeDueAmount { get; set; }
+
+    public decimal PrincipalPaidAmount { get; set; }
+
+    public decimal InterestPaidAmount { get; set; }
+
+    public decimal ChargesPaidAmount { get; set; }
+
+    public decimal InsurancePaidAmount { get; set; }
+
+    public decimal LateFeePaidAmount { get; set; }
+
+    /// <summary>Interest of this instalment accrued so far by end of day; it reaches INTEREST_DUE_AMOUNT on the due date.</summary>
+    public decimal InterestAccruedAmount { get; set; }
+
+    /// <summary>Days of late fee charged so far (a fee charged once counts the days late when it was charged).</summary>
+    public int LateFeeDays { get; set; }
+
+    public decimal ClosingPrincipalAmount { get; set; }
+
+    /// <summary>One of: DUE, PART_PAID, PAID.</summary>
+    public string StatusCode { get; set; } = "DUE";
+
+    public DateOnly? PaidDate { get; set; }
+}
+
+/// <summary>LND_LOAN_STATUS_HIST: every change of a loan's status, with who made it and why.</summary>
+public class LndLoanStatusHist : AuditableEntity
+{
+    public long LoanStatusHistId { get; set; }
+
+    public long LoanId { get; set; }
+
+    public string? FromStatusCode { get; set; }
+
+    public string ToStatusCode { get; set; } = string.Empty;
+
+    public string? Reason { get; set; }
+}
+
+/// <summary>
+/// LND_LOAN_CHARGES: a customer charge of a consumer finance, worked out on New Finance from the product's rule CF_DELIVERY and either
+/// paid upfront (PAID_UPFRONT) or added to the finance (FINANCE_WITH_PRINCIPAL) (Ahmed, 26 Nov 2026).
+/// </summary>
+public class LndLoanCharge : AuditableEntity
+{
+    public long LoanChargeId { get; set; }
+
+    public long LoanId { get; set; }
+
+    public string ChargeCode { get; set; } = string.Empty;
+
+    public string ChargeName { get; set; } = string.Empty;
+
+    public decimal ChargeAmount { get; set; }
+
+    public decimal TaxAmount { get; set; }
+
+    public string TimingCode { get; set; } = "PAID_UPFRONT";
+
+    /// <summary>Credit changed the rule's default treatment (upfront or added to the schedule) for this finance.</summary>
+    public bool IsOverridden { get; set; }
+}
+
+/// <summary>
+/// LND_LOAN_DOCUMENTS (27 Nov 2026): a finance's documents, e.g. the delivery note the customer signed, kept like the supplier documents:
+/// where it was added (the step), the file and its SHA-256; removed only by marking it inactive.
+/// </summary>
+public class LndLoanDocument : AuditableEntity
+{
+    public long DocumentId { get; set; }
+
+    public long LoanId { get; set; }
+
+    public string StepCode { get; set; } = string.Empty;
+
+    public string StepName { get; set; } = string.Empty;
+
+    public string DocumentTitle { get; set; } = string.Empty;
+
+    public string? DocumentTypeCode { get; set; }
+
+    public string FileName { get; set; } = string.Empty;
+
+    public string MimeType { get; set; } = string.Empty;
+
+    public long FileSizeBytes { get; set; }
+
+    public string Sha256Hash { get; set; } = string.Empty;
+
+    public byte[] FileBlob { get; set; } = [];
+
+    public bool IsActive { get; set; } = true;
+}
+
+/// <summary>
+/// LND_CF_CLAIM_PAYMENTS (Ahmed, 27 Nov 2026): a payment of a consumer finance's upfront claim, like a factoring claim payment, made in
+/// Collection › Customer Payments from one of the customer's payment sources. Several partial payments are allowed; each covers the
+/// charges first, then the down payment we take, and posts the product action CF_CLAIM_PAYMENT.
+/// </summary>
+public class LndCfClaimPayment : AuditableEntity
+{
+    public long ClaimPaymentId { get; set; }
+
+    public long LoanId { get; set; }
+
+    public DateOnly PaymentDate { get; set; }
+
+    public decimal PaymentAmount { get; set; }
+
+    /// <summary>The part of the payment that paid the charges (earned on payment).</summary>
+    public decimal ChargesAmount { get; set; }
+
+    /// <summary>The part of the payment that paid the down payment we take (held for the supplier).</summary>
+    public decimal DownPaymentAmount { get; set; }
+
+    /// <summary>Our bank account the money came into; only on payments recorded on the claim before payments moved to Collection.</summary>
+    public long? BankAccountId { get; set; }
+
+    /// <summary>The Collection repayment and its payment source the claim was paid from (Collection › Customer Payments).</summary>
+    public long? RepaymentTxnId { get; set; }
+
+    public long? RepaymentSourceId { get; set; }
+
+    /// <summary>The payment source's type (BANK_TRANSFER, CHEQUE, CREDIT_BALANCE); on older payments CASH, BANK_TRANSFER, PAYMENT_NETWORK or WALLET.</summary>
+    public string PaymentMethodCode { get; set; } = string.Empty;
+
+    public string? PaymentReference { get; set; }
+
+    public string? GlTranSetId { get; set; }
+}

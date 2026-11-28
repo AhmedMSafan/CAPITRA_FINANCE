@@ -1,0 +1,709 @@
+<template>
+  <!-- One retail loan: its terms (copied from the product version at creation), its schedule and its status history. -->
+  <div class="fx fc">
+    <div class="fx-head">
+      <div>
+        <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
+          <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span>
+          <RouterLink :to="{ name: 'lnd-workspace' }">{{ tr('Lending Workspace') }}</RouterLink><span aria-hidden="true">›</span>
+          <template v-if="loan"><RouterLink :to="{ name: 'lnd-customer', params: { clientId: loan.clientId } }">{{ loan.clientName }}</RouterLink><span aria-hidden="true">›</span></template>
+          <b>{{ loan?.loanNumber ?? '' }}</b>
+        </nav>
+        <h1>{{ loan?.loanNumber ?? tr('Finance') }} <span v-if="loan" class="fx-chip" :class="CHIP[loan.statusCode] ?? 'fx-chip--teal'">{{ tr(STATUS[loan.statusCode] ?? loan.statusCode) }}</span></h1>
+      </div>
+      <div class="fx-actions">
+        <button v-if="loan && canEdit && loan.statusCode === 'APPROVED' && !loan.goods?.supplierApplicationId" type="button" class="fx-btn" @click="cancelling = true"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel finance') }}</button>
+        <RouterLink :to="loan ? { name: 'lnd-customer', params: { clientId: loan.clientId } } : { name: 'lnd-workspace' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to customer') }}</RouterLink>
+      </div>
+    </div>
+
+    <div v-if="!loan" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading finance...') }}</div>
+    <template v-else>
+      <!-- consumer finance (Ahmed, 28 Nov 2026, the factoring standard): the steps strip; the step's screen only from the Inbox (to work on it)
+           or from a completed step's View (view only) -->
+      <CfStepsStrip v-if="loan.goods?.supplierApplicationId" :loan-id="loan.loanId" :version="stepVersion" :current="viewStep" />
+      <CfFinanceStep v-if="route.query.inboxId || viewStep" :loan="loan" :version="stepVersion" :view-step="viewStep" @changed="stepChanged" />
+      <!-- the finance (Ahmed, 27 Nov 2026): the same boxed layout as the steps; a box shows only once its part exists -->
+      <section class="fx-card ln-card">
+        <h3 class="ln-h"><button type="button" class="ln-tg" :aria-expanded="isOpen('finance')" @click="toggle('finance')"><span class="fa" :class="isOpen('finance') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-file-text-o" aria-hidden="true"></span>{{ tr('Finance') }}</button></h3>
+        <div v-show="isOpen('finance')">
+        <div class="cfl-grid">
+          <div class="cfl-box">
+            <h3>{{ tr('Terms') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr v-for="f in facts" :key="f[0]"><td class="cfl-l">{{ tr(f[0]) }}</td><td class="cfl-v">{{ f[1] }}</td></tr>
+            </tbody></table>
+          </div>
+          <div v-if="loan.goods" class="cfl-box">
+            <h3>{{ tr('Financed item') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Category') }}</td><td class="cfl-v">{{ tr(loan.goods.categoryName) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Item') }}</td><td class="cfl-v">{{ loan.goods.description }}<template v-if="loan.goods.brandModel"> · {{ loan.goods.brandModel }}</template></td></tr>
+              <tr><td class="cfl-l">{{ tr('Supplier') }}</td><td class="cfl-v">{{ loan.goods.merchantName || '—' }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Price') }}</td><td class="cfl-v">{{ money(loan.goods.priceAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Down payment') }}</td><td class="cfl-v">{{ money(loan.goods.downPaymentAmount) }}<template v-if="loan.goods.supplierApplicationId">
+                ({{ tr(loan.goods.downPaymentCollectorCode === 'COMPANY' ? 'us' : 'supplier') }})</template></td></tr>
+              <template v-if="loan.goods.supplierApplicationId">
+                <tr><td class="cfl-l">{{ tr('Commission') }}</td><td class="cfl-v">{{ loan.goods.supplierCommissionPct ?? 0 }}%</td></tr>
+                <tr><td class="cfl-l">{{ tr('We pay after') }}</td><td class="cfl-v">{{ loan.goods.supplierPaymentDays }} {{ tr('days') }}</td></tr>
+                <tr><td class="cfl-l">{{ tr('Delivers within') }}</td><td class="cfl-v">{{ loan.goods.supplierDeliveryDays }} {{ tr('days') }}</td></tr>
+              </template>
+            </tbody></table>
+          </div>
+          <div v-if="loan.charges?.length" class="cfl-box">
+            <h3>{{ tr('Charges') }}<small>{{ tr('decided by Credit') }}</small></h3>
+            <table class="cfl-rows"><tbody>
+              <tr v-for="c in loan.charges" :key="c.chargeCode"><td class="cfl-l">{{ tr(c.chargeName) }}</td><td class="cfl-v">{{ money(c.amount + c.taxAmount) }}</td>
+                <td class="cfl-h">{{ tr(c.timingCode === 'PAID_UPFRONT' ? 'Upfront' : 'Added to schedule') }}<template v-if="c.isOverridden"> · {{ tr('changed by Credit') }}</template></td></tr>
+            </tbody></table>
+          </div>
+          <div v-if="loan.claim" class="cfl-box">
+            <h3>{{ tr('Upfront claim') }}<button v-if="loan.claim.statusCode !== 'NONE'" type="button" class="fx-btn fx-btn--sm" @click="claimShown = true"><span class="fa fa-flag-o" aria-hidden="true"></span>{{ tr('Open claim') }}</button></h3>
+            <p v-if="loan.claim.statusCode === 'NONE'" class="cfl-note cfl-pad">{{ tr('Nothing is paid upfront.') }}</p>
+            <table v-else class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Status') }}</td><td class="cfl-v"><span class="fx-chip" :class="claimTone(loan.claim.statusCode)">{{ tr(CLAIM_LABELS[loan.claim.statusCode] ?? loan.claim.statusCode) }}</span></td></tr>
+              <tr><td class="cfl-l">{{ tr('Claim') }}</td><td class="cfl-v">{{ money(loan.claim.totalAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Charges') }} · {{ tr('Down payment') }}</td><td class="cfl-v">{{ money(loan.claim.chargesAmount) }} · {{ money(loan.claim.downPaymentAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Paid') }}</td><td class="cfl-v">{{ money(loan.claim.paidAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Outstanding') }}</td><td class="cfl-v">{{ money(loan.claim.outstandingAmount) }}</td></tr>
+              <tr v-if="loan.claim.glTranSetId"><td class="cfl-l">GL</td><td class="cfl-v">{{ loan.claim.glTranSetId }}</td></tr>
+            </tbody></table>
+          </div>
+          <div v-if="loan.delivery" class="cfl-box">
+            <h3>{{ tr('Delivery') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Delivered on') }}</td><td class="cfl-v">{{ formatDate(loan.delivery.deliveryDate) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Delivery note') }}</td><td class="cfl-v">{{ loan.delivery.deliveryNoteNo }}</td></tr>
+              <tr v-if="loan.delivery.serialNo"><td class="cfl-l">{{ tr('Serial / IMEI') }}</td><td class="cfl-v">{{ loan.delivery.serialNo }}</td></tr>
+              <tr v-if="loan.delivery.supplierPaymentDueDate"><td class="cfl-l">{{ tr('Supplier paid by') }}</td><td class="cfl-v">{{ formatDate(loan.delivery.supplierPaymentDueDate) }}</td></tr>
+              <tr v-if="loan.delivery.glTranSetId"><td class="cfl-l">GL</td><td class="cfl-v">{{ loan.delivery.glTranSetId }}</td></tr>
+            </tbody></table>
+          </div>
+          <div v-if="loan.supplierPayment" class="cfl-box">
+            <h3>{{ tr('Supplier payment') }}</h3>
+            <table class="cfl-rows"><tbody>
+              <tr><td class="cfl-l">{{ tr('Net paid') }}</td><td class="cfl-v">{{ money(loan.supplierPayment.netAmount) }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Commission') }}</td><td class="cfl-v">{{ money(loan.supplierPayment.commissionAmount) }}<template v-if="loan.supplierPayment.commissionReason"> · {{ loan.supplierPayment.commissionReason }}</template></td></tr>
+              <tr><td class="cfl-l">{{ tr('Reference') }}</td><td class="cfl-v">{{ loan.supplierPayment.reference }}</td></tr>
+              <tr><td class="cfl-l">{{ tr('Paid') }}</td><td class="cfl-v">{{ formatDateTime(loan.supplierPayment.paidAt) }} · {{ loan.supplierPayment.paidBy }}</td></tr>
+              <tr v-if="loan.supplierPayment.glTranSetId"><td class="cfl-l">GL</td><td class="cfl-v">{{ loan.supplierPayment.glTranSetId }}</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+        </div>
+      </section>
+      <!-- the finance's documents (e.g. the delivery note the customer signed) -->
+      <LndLoanDocuments v-if="loan.goods?.supplierApplicationId" :loan-id="loan.loanId" :version="stepVersion" />
+      <CfClaimDialog v-model:visible="claimShown" :loan-id="loan.loanId" :show-finance="false" />
+
+      <section v-if="payouts && !loan.goods?.supplierApplicationId" class="fx-card">
+        <header class="c3-panel-head lp-head">
+          <h3><button type="button" class="ln-tg" :aria-expanded="isOpen('payout')" @click="toggle('payout')"><span class="fa" :class="isOpen('payout') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-money" aria-hidden="true"></span>{{ tr('Payout') }}</button></h3>
+          <button v-if="payouts.canRequest && loan.statusCode === 'APPROVED' && !waiting" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openRequest">
+            <span class="fa fa-paper-plane" aria-hidden="true"></span>{{ tr('Ask for payout') }}
+          </button>
+        </header>
+        <div v-show="isOpen('payout')">
+        <p v-if="loan.statusCode === 'APPROVED' && payouts.preview.problem" class="c3-note lp-bad"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ payouts.preview.problem }}</p>
+        <p v-else-if="loan.statusCode === 'APPROVED'" class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          {{ tr('Paid out today:') }} {{ money(payouts.preview.principalAmount) }} − {{ tr('charges') }} {{ money(payouts.preview.chargesAmount) }} = <b>{{ money(payouts.preview.netPayoutAmount) }}</b>
+          <template v-for="c in payouts.preview.charges" :key="c.chargeCode"> · {{ c.chargeName }} {{ money(c.amount) }}</template>
+        </p>
+        <div v-if="payouts.disbursements.length" class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('Asked') }}</th><th>{{ tr('Paid from') }}</th><th>{{ tr('Paid to') }}</th><th class="ln-num">{{ tr('Net paid') }}</th><th>{{ tr('Status') }}</th><th>{{ tr('GL') }}</th><th></th></tr></thead>
+            <tbody>
+              <tr v-for="d in payouts.disbursements" :key="d.disbursementId">
+                <td>{{ d.requestedBy }}<br><small class="c3-muted">{{ formatDateTime(d.requestedAt) }}</small></td>
+                <td>{{ d.paidFromAccount ?? d.paidFromAccountId }}</td>
+                <td>{{ d.payeeName }}<br><small class="c3-muted">{{ tr(METHODS[d.payoutMethodCode] ?? d.payoutMethodCode) }}<template v-if="d.payeeAccount"> · {{ d.payeeAccount }}</template></small></td>
+                <td class="ln-num">{{ money(d.netPayoutAmount) }}<br><small class="c3-muted">{{ tr('charges') }} {{ money(d.chargesAmount) }}</small></td>
+                <td><span class="fx-chip" :class="PCHIP[d.statusCode]">{{ tr(PSTATUS[d.statusCode]) }}</span><template v-if="d.decidedBy"><br><small class="c3-muted">{{ d.decidedBy }} · {{ formatDateTime(d.decidedAt) }}</small></template></td>
+                <td>{{ d.glTranSetId ?? '' }}</td>
+                <td class="lp-actions">
+                  <template v-if="d.statusCode === 'REQUESTED'">
+                    <button v-if="d.canPay" type="button" class="fx-btn fx-btn--sm fx-btn--teal" :disabled="busy" @click="openDecision(d.disbursementId, 'pay')"><span class="fa fa-check" aria-hidden="true"></span>{{ tr('Pay') }}</button>
+                    <button v-if="payouts.canPay && !mine(d)" type="button" class="fx-btn fx-btn--sm" :disabled="busy" @click="openDecision(d.disbursementId, 'reject')"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Reject') }}</button>
+                    <button v-if="mine(d)" type="button" class="fx-btn fx-btn--sm" :disabled="busy" @click="withdraw(d.disbursementId)"><span class="fa fa-undo" aria-hidden="true"></span>{{ tr('Withdraw') }}</button>
+                    <small v-if="d.payBlockedReason" class="c3-muted">{{ tr(d.payBlockedReason) }}</small>
+                  </template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+      </section>
+
+      <section v-if="receipts && ['ACTIVE', 'CLOSED', 'WRITTEN_OFF'].includes(loan.statusCode)" class="fx-card">
+        <header class="c3-panel-head lp-head">
+          <h3><button type="button" class="ln-tg" :aria-expanded="isOpen('payments')" @click="toggle('payments')"><span class="fa" :class="isOpen('payments') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-download" aria-hidden="true"></span>{{ tr('Payments') }}</button></h3>
+          <button v-if="receipts.canReceive" type="button" class="fx-btn fx-btn--teal fx-btn--sm" @click="openReceive('RECEIPT')"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr(receipts.writtenOffAmount !== null ? 'Receive recovery' : 'Receive payment') }}</button>
+          <button v-if="receipts.canReceive && loan.statusCode === 'ACTIVE' && loan.isPrepaymentAllowed" type="button" class="fx-btn fx-btn--sm" @click="openReceive('PREPAY')"><span class="fa fa-forward" aria-hidden="true"></span>{{ tr('Pay early') }}</button>
+        </header>
+        <div v-show="isOpen('payments')">
+        <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          <template v-if="receipts.writtenOffAmount !== null">
+            {{ tr('Written off:') }} <b>{{ money(receipts.writtenOffAmount) }}</b> · {{ tr('Recovered:') }} <b>{{ money(receipts.recoveredAmount ?? 0) }}</b> ·
+            {{ tr('Still to recover:') }} <b>{{ money(receipts.overdueToday) }}</b>
+          </template>
+          <template v-else>{{ tr('Due today:') }} <b>{{ money(receipts.overdueToday) }}</b></template>
+          · {{ tr('Customer credit balance:') }} <b>{{ money(receipts.creditBalance) }}</b>
+        </p>
+        <div v-if="receipts.receipts.length" class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('Receipt') }}</th><th>{{ tr('Value date') }}</th><th>{{ tr('From') }}</th><th class="ln-num">{{ tr('Received') }}</th><th class="ln-num">{{ tr('Applied') }}</th><th>{{ tr('GL') }}</th><th>{{ tr('By') }}</th><th></th></tr></thead>
+            <tbody>
+              <tr v-for="r in receipts.receipts" :key="r.repaymentTxnId">
+                <td><b>{{ r.repaymentNumber }}</b></td><td>{{ formatDate(r.valueDate) }}</td><td>{{ r.sources }}</td>
+                <td class="ln-num">{{ money(r.receiptAmount) }}</td><td class="ln-num">{{ money(r.allocatedAmount) }}</td><td>{{ r.glTranSetId ?? '' }}</td><td>{{ r.createdBy }}</td>
+                <td>
+                  <span v-if="r.statusCode === 'REVERSED'" class="fx-chip fx-chip--bad">{{ tr('Reversed') }}</span>
+                  <button v-else-if="canReverse && r.statusCode === 'POSTED'" type="button" class="fx-btn fx-btn--sm" @click="openReverse(r.repaymentTxnId)"><span class="fa fa-undo" aria-hidden="true"></span>{{ tr('Reverse') }}</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+      </section>
+
+      <LndWriteOffPanel v-if="loan.statusCode === 'ACTIVE' || loan.statusCode === 'WRITTEN_OFF'" ref="writeOffPanel" :loan-id="loanId" @changed="reloadLoan" />
+
+      <!-- shown once the schedule is built (a consumer finance builds it at Schedule and contract) -->
+      <section v-if="loan.installments.length" class="fx-card">
+        <header class="c3-panel-head"><h3><button type="button" class="ln-tg" :aria-expanded="isOpen('schedule')" @click="toggle('schedule')"><span class="fa" :class="isOpen('schedule') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-calendar" aria-hidden="true"></span>{{ tr('Schedule') }}</button></h3></header>
+        <div v-show="isOpen('schedule')">
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead>
+              <tr>
+                <th>#</th><th>{{ tr('Due date') }}</th><th class="ln-num">{{ tr('Principal') }}</th><th class="ln-num">{{ tr('Interest') }}</th>
+                <th class="ln-num">{{ tr('Charges') }}</th><th class="ln-num">{{ tr('Insurance') }}</th><th class="ln-num">{{ tr('Late fee') }}</th>
+                <th class="ln-num">{{ tr('Due') }}</th><th class="ln-num">{{ tr('Paid') }}</th><th class="ln-num">{{ tr('Balance after') }}</th><th>{{ tr('Status') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="i in loan.installments" :key="i.installmentNo">
+                <td>{{ i.installmentNo }}</td><td>{{ formatDate(i.dueDate) }}</td>
+                <td class="ln-num">{{ money(i.principalDue) }}</td><td class="ln-num">{{ money(i.interestDue) }}</td><td class="ln-num">{{ money(i.chargesDue) }}</td>
+                <td class="ln-num">{{ money(i.insuranceDue) }}</td><td class="ln-num">{{ money(i.lateFeeDue) }}</td><td class="ln-num"><b>{{ money(i.totalDue) }}</b></td>
+                <td class="ln-num">{{ money(i.totalPaid) }}</td><td class="ln-num">{{ money(i.closingPrincipal) }}</td>
+                <td><span class="fx-chip" :class="i.statusCode === 'PAID' ? 'fx-chip--ok' : i.statusCode === 'PART_PAID' ? 'fx-chip--warn' : 'fx-chip--teal'">{{ tr(INST[i.statusCode] ?? i.statusCode) }}</span></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr><td colspan="2"><b>{{ tr('Total') }}</b></td><td class="ln-num"><b>{{ money(sum('principalDue')) }}</b></td><td class="ln-num"><b>{{ money(sum('interestDue')) }}</b></td>
+                <td class="ln-num">{{ money(sum('chargesDue')) }}</td><td class="ln-num">{{ money(sum('insuranceDue')) }}</td><td class="ln-num">{{ money(sum('lateFeeDue')) }}</td>
+                <td class="ln-num"><b>{{ money(sum('totalDue')) }}</b></td><td class="ln-num">{{ money(sum('totalPaid')) }}</td><td></td><td></td></tr>
+            </tfoot>
+          </table>
+        </div>
+        </div>
+      </section>
+
+      <section v-if="loan.events.length" class="fx-card">
+        <header class="c3-panel-head"><h3><button type="button" class="ln-tg" :aria-expanded="isOpen('events')" @click="toggle('events')"><span class="fa" :class="isOpen('events') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-book" aria-hidden="true"></span>{{ tr('Finance events') }}</button></h3></header>
+        <div v-show="isOpen('events')">
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('Date') }}</th><th>{{ tr('Event') }}</th><th class="ln-num">{{ tr('Amount') }}</th><th>{{ tr('GL') }}</th><th>{{ tr('Notes') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="(e, n) in loan.events" :key="n">
+                <td>{{ formatDate(e.eventDate) }}</td><td>{{ tr(EVENTS[e.eventCode] ?? e.eventCode) }}</td><td class="ln-num">{{ money(e.eventAmount) }}</td>
+                <td>{{ e.glTranSetId ?? '' }}</td><td>{{ e.notes ?? '' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+      </section>
+
+      <section class="fx-card">
+        <header class="c3-panel-head"><h3><button type="button" class="ln-tg" :aria-expanded="isOpen('history')" @click="toggle('history')"><span class="fa" :class="isOpen('history') ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></span><span class="fa fa-history" aria-hidden="true"></span>{{ tr('Status history') }}</button></h3></header>
+        <div v-show="isOpen('history')">
+        <div class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('When') }}</th><th>{{ tr('By') }}</th><th>{{ tr('From') }}</th><th>{{ tr('To') }}</th><th>{{ tr('Reason') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="(h, n) in loan.history" :key="n">
+                <td>{{ formatDateTime(h.at) }}</td><td>{{ h.by }}</td><td>{{ h.fromStatusCode ? tr(STATUS[h.fromStatusCode] ?? h.fromStatusCode) : '' }}</td>
+                <td>{{ tr(STATUS[h.toStatusCode] ?? h.toStatusCode) }}</td><td>{{ h.reason ?? '' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+      </section>
+    </template>
+
+    <Crm360Dialog v-model:visible="requesting" :title="tr('Ask for Payout')" :subtitle="loan?.loanNumber ?? ''" icon="fa-paper-plane" :busy="busy" :width="640">
+      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Another user pays it. Paying posts the GL and makes the finance active.') }}</p>
+      <div class="c3-grid c3-grid--2">
+        <label class="fc-field c3-wide" :class="pbad('paidFromAccountId')"><span>{{ tr('Paid from') }}<b> *</b></span>
+          <select v-model="payout.paidFromAccountId" class="fx-select">
+            <option v-for="a in payouts?.accounts ?? []" :key="a.accountId" :value="a.accountId" :disabled="!a.glAccountCode">{{ a.bankName }} · {{ a.accountRef }} · {{ a.accountNo }}{{ a.glAccountCode ? '' : ' (' + tr('no GL account') + ')' }}</option>
+          </select>
+        </label>
+        <label class="fc-field" :class="pbad('payoutMethodCode')"><span>{{ tr('Paid by') }}<b> *</b></span>
+          <select v-model="payout.payoutMethodCode" class="fx-select"><option v-for="(l, k) in METHODS" :key="k" :value="k">{{ tr(l) }}</option></select>
+        </label>
+        <label class="fc-field" :class="pbad('payeeName')"><span>{{ tr('Paid to') }}<b> *</b></span><input v-model="payout.payeeName" class="fx-search" maxlength="200"></label>
+        <label class="fc-field c3-wide" :class="pbad('payeeAccount')"><span>{{ tr('Account, IBAN or wallet') }}</span><input v-model="payout.payeeAccount" class="fx-search" maxlength="100"></label>
+      </div>
+      <template #footer>
+        <button type="button" class="fx-btn" :disabled="busy" @click="requesting = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy" @click="requestPayout"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-paper-plane'" aria-hidden="true"></span>{{ tr('Ask for payout') }}</button>
+      </template>
+    </Crm360Dialog>
+
+    <Crm360Dialog v-model:visible="deciding" :title="tr(decision === 'pay' ? 'Pay Finance' : 'Reject Payout')" :subtitle="loan?.loanNumber ?? ''" :icon="decision === 'pay' ? 'fa-check-circle' : 'fa-times-circle'" :busy="busy" :width="520">
+      <p v-if="decision === 'pay'" class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('Paying posts the GL today and makes the finance active. A payout on another day than planned rebuilds the schedule from today.') }}</p>
+      <label class="fc-field" :class="pbad('notes')"><span>{{ tr(decision === 'pay' ? 'Notes' : 'Reason') }}<b v-if="decision === 'reject'"> *</b></span><input v-model="notes" class="fx-search" maxlength="1000"></label>
+      <template #footer>
+        <button type="button" class="fx-btn" :disabled="busy" @click="deciding = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+        <button type="button" class="fx-btn" :class="decision === 'pay' ? 'fx-btn--teal' : 'fx-btn--primary'" :disabled="busy" @click="decide">
+          <span class="fa" :class="busy ? 'fa-spinner fa-spin' : decision === 'pay' ? 'fa-check' : 'fa-times'" aria-hidden="true"></span>{{ tr(decision === 'pay' ? 'Pay' : 'Reject') }}
+        </button>
+      </template>
+    </Crm360Dialog>
+
+    <Crm360Dialog v-model:visible="reversing" :title="tr('Reverse Receipt')" :subtitle="reversal?.repaymentNumber ?? ''" icon="fa-undo" :busy="busy" :width="760">
+      <div v-if="!reversal" class="fx-empty"><span class="fa fa-spinner fa-spin" aria-hidden="true"></span>{{ tr('Loading...') }}</div>
+      <template v-else>
+        <p v-if="reversal.blocked" class="c3-note lp-bad"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ reversal.blocked }}</p>
+        <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          {{ tr(reversal.kind === 'RECOVERY' ? 'The recovery and its GL are reversed; the money no longer counts as recovered.' : 'The receipt and its GL are reversed, its sources are released, and the later receipts are applied again in order.') }}
+          <template v-if="reversal.reopensLoan"> <b>{{ tr('The finance owes again and becomes active.') }}</b></template>
+        </p>
+        <div v-if="reversal.replayed.length" class="fx-table-wrap">
+          <table class="fx-table">
+            <thead><tr><th>{{ tr('Applied again') }}</th><th>{{ tr('Value date') }}</th><th class="ln-num">{{ tr('Received') }}</th><th class="ln-num">{{ tr('Applied before') }}</th><th class="ln-num">{{ tr('Applied after') }}</th><th class="ln-num">{{ tr('Credit kept after') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="x in reversal.replayed" :key="x.repaymentTxnId">
+                <td><b>{{ x.repaymentNumber }}</b></td><td>{{ formatDate(x.valueDate) }}</td><td class="ln-num">{{ money(x.receiptAmount) }}</td>
+                <td class="ln-num">{{ money(x.allocatedBefore) }}</td><td class="ln-num">{{ money(x.allocatedAfter) }}</td><td class="ln-num">{{ money(x.creditKeptAfter) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <label class="fc-field" :class="pbad('reason')"><span>{{ tr('Reason') }}<b> *</b></span><input v-model="reverseReason" class="fx-search" maxlength="500"></label>
+      </template>
+      <template #footer>
+        <button type="button" class="fx-btn" :disabled="busy" @click="reversing = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy || !reversal || !!reversal.blocked" @click="reverse"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-undo'" aria-hidden="true"></span>{{ tr('Reverse') }}</button>
+      </template>
+    </Crm360Dialog>
+
+    <Crm360Dialog v-model:visible="receiving" :title="tr(rmode === 'RECEIPT' ? 'Receive Payment' : 'Pay Early')" :subtitle="loan?.loanNumber ?? ''" icon="fa-download" :busy="busy" :width="900">
+      <template v-if="rmode !== 'RECEIPT'">
+        <div class="c3-grid c3-grid--2">
+          <label class="fc-field"><span>{{ tr('What the customer pays') }}</span>
+            <select v-model="rmode" class="fx-select"><option value="PREPAY">{{ tr('Part prepayment') }}</option><option value="SETTLE">{{ tr('Early settlement') }}</option></select>
+          </label>
+          <label v-if="rmode === 'PREPAY'" class="fc-field"><span>{{ tr('Principal paid early') }}<b> *</b></span><input v-model.number="principalEarly" type="number" min="0" step="any" class="fx-search"></label>
+        </div>
+        <div v-if="quote" class="lp-preview">
+          <p v-if="quote.problem" class="c3-note lp-bad"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>{{ tr(quote.problem) }}</p>
+          <p v-else class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+            {{ tr('Today') }}:
+            <template v-if="quote.duesAmount">{{ tr('due and unpaid') }} {{ money(quote.duesAmount) }} + </template>
+            {{ tr('interest to date') }} {{ money(quote.interestToDate) }} + {{ tr('principal') }} {{ money(quote.principalAmount) }}
+            + {{ tr('fee') }} {{ money(quote.feeAmount) }} ({{ quote.feePct }}%) = <b>{{ money(quote.totalAmount) }}</b>
+            <template v-if="quote.kind === 'PREPAY'"> · {{ tr(quote.recalcCode === 'REDUCE_TERM' ? 'Shorter term, same instalment' : 'Lower instalment, same term') }}</template>
+            <template v-else> · {{ tr('The finance closes.') }}</template>
+          </p>
+          <table v-if="!quote.problem && quote.newSchedule.length" class="fx-table">
+            <thead><tr><th>#</th><th>{{ tr('Due date') }}</th><th class="ln-num">{{ tr('Principal') }}</th><th class="ln-num">{{ tr('Interest') }}</th><th class="ln-num">{{ tr('Instalment') }}</th><th class="ln-num">{{ tr('Balance after') }}</th></tr></thead>
+            <tbody>
+              <tr v-for="l in quote.newSchedule" :key="l.installmentNo">
+                <td>{{ l.installmentNo }}</td><td>{{ formatDate(l.dueDate) }}</td><td class="ln-num">{{ money(l.principal) }}</td><td class="ln-num">{{ money(l.interest) }}</td>
+                <td class="ln-num">{{ money(l.total) }}</td><td class="ln-num">{{ money(l.closingPrincipal) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+      <div class="c3-grid c3-grid--2">
+        <label v-if="rmode === 'RECEIPT'" class="fc-field" :class="rbad('valueDate')"><span>{{ tr('Value date') }}<b> *</b></span><input v-model="rform.valueDate" type="date" class="fx-search" :max="receipts?.today"></label>
+        <label class="fc-field"><span>{{ tr('Notes') }}</span><input v-model="rform.notes" class="fx-search" maxlength="1000"></label>
+      </div>
+      <div class="lp-sources" :class="rbad('sources')">
+        <div v-for="(s, n) in rform.sources" :key="n" class="lp-source">
+          <select v-model="s.sourceType" class="fx-select lp-type">
+            <option value="BANK_DEPOSIT">{{ tr('Bank deposit') }}</option><option value="CHEQUE">{{ tr('Collected cheque') }}</option><option value="CREDIT_BALANCE">{{ tr('Credit balance') }}</option>
+          </select>
+          <template v-if="s.sourceType === 'BANK_DEPOSIT'">
+            <select v-model="s.depositAccountId" class="fx-select"><option v-for="a in receipts?.depositAccounts ?? []" :key="a.accountId" :value="a.accountId" :disabled="!a.hasGlAccount">{{ a.label }}</option></select>
+            <input v-model="s.reference" class="fx-search" :placeholder="tr('Bank reference')" maxlength="100">
+            <input v-model.number="s.amount" type="number" min="0" step="any" class="fx-search lp-amount" :placeholder="tr('Amount')">
+          </template>
+          <select v-else-if="s.sourceType === 'CHEQUE'" v-model="s.chequeId" class="fx-select">
+            <option v-for="c in receipts?.cheques ?? []" :key="c.chequeId" :value="c.chequeId">{{ c.chequeRef }} · {{ c.chequeNo }} · {{ formatDate(c.dueDate) }} · {{ money(c.chequeAmount) }}</option>
+          </select>
+          <input v-else v-model.number="s.amount" type="number" min="0" step="any" class="fx-search lp-amount" :placeholder="tr('Amount')">
+          <button type="button" class="fx-btn fx-btn--sm" :aria-label="tr('Remove')" :disabled="rform.sources.length === 1" @click="rform.sources.splice(n, 1)"><span class="fa fa-trash" aria-hidden="true"></span></button>
+        </div>
+        <button type="button" class="fx-btn fx-btn--sm" @click="addSource"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('Add source') }}</button>
+      </div>
+      <div v-if="rpreview && rmode === 'RECEIPT'" class="lp-preview">
+        <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          {{ tr('Received') }} <b>{{ money(rpreview.receiptAmount) }}</b> · {{ tr('applied') }} <b>{{ money(rpreview.allocatedAmount) }}</b> · {{ tr('kept as credit') }} <b>{{ money(rpreview.creditKeptAmount) }}</b>
+        </p>
+        <table class="fx-table">
+          <thead><tr><th>#</th><th>{{ tr('Part') }}</th><th class="ln-num">{{ tr('Amount') }}</th></tr></thead>
+          <tbody><tr v-for="(l, n) in rpreview.lines" :key="n"><td>{{ l.installmentNo || '' }}</td><td>{{ tr(PARTS[l.partCode] ?? l.partCode) }}</td><td class="ln-num">{{ money(l.amount) }}</td></tr></tbody>
+        </table>
+      </div>
+      <template #footer>
+        <button type="button" class="fx-btn" :disabled="busy" @click="receiving = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+        <template v-if="rmode === 'RECEIPT'">
+          <button type="button" class="fx-btn" :disabled="busy" @click="previewReceipt"><span class="fa fa-table" aria-hidden="true"></span>{{ tr('Show allocation') }}</button>
+        </template>
+        <button v-else type="button" class="fx-btn" :disabled="busy" @click="getQuote"><span class="fa fa-calculator" aria-hidden="true"></span>{{ tr('Get quote') }}</button>
+        <button type="button" class="fx-btn fx-btn--teal" :disabled="busy || (rmode === 'RECEIPT' ? !rpreview : !quote || !!quote.problem)" @click="receive"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-check'" aria-hidden="true"></span>{{ tr('Receive') }}</button>
+      </template>
+    </Crm360Dialog>
+
+    <Crm360Dialog v-model:visible="cancelling" :title="tr('Cancel Finance')" :subtitle="loan?.loanNumber ?? ''" icon="fa-ban" :busy="busy" :width="520">
+      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('A finance can be cancelled until it is paid out. Its schedule is kept for the record.') }}</p>
+      <label class="fc-field" :class="{ 'c3-bad': !!errors.reason }"><span>{{ tr('Reason') }}<b> *</b></span><input v-model="reason" class="fx-search" maxlength="1000"></label>
+      <template #footer>
+        <button type="button" class="fx-btn" :disabled="busy" @click="cancelling = false"><span class="fa fa-times" aria-hidden="true"></span>{{ tr('Close') }}</button>
+        <button type="button" class="fx-btn fx-btn--primary" :disabled="busy" @click="cancel"><span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-ban'" aria-hidden="true"></span>{{ tr('Cancel finance') }}</button>
+      </template>
+    </Crm360Dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import 'font-awesome/css/font-awesome.min.css'
+import '@/shared/styles/apex-fx-inbox.css'
+import '@/modules/fct/pages/factoring.css'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { ApiError } from '@/shared/api/http'
+import { hasPermission } from '@/shared/auth/session'
+import { showError, showSuccess } from '@/shared/feedback/feedback'
+import { formatDate, formatDateTime } from '@/shared/format/datetime'
+import { tr } from '@/shared/layout/language'
+import Crm360Dialog from '@/modules/crm/components/Crm360Dialog.vue'
+import '../components/cf-layout.css'
+import CfClaimDialog from '../components/CfClaimDialog.vue'
+import CfFinanceStep from '../components/CfFinanceStep.vue'
+import CfStepsStrip from '../components/CfStepsStrip.vue'
+import { useRoute } from 'vue-router'
+import LndLoanDocuments from '../components/LndLoanDocuments.vue'
+import LndWriteOffPanel from '../components/LndWriteOffPanel.vue'
+import { getUser } from '@/shared/auth/session'
+import { CLAIM_LABELS, claimTone, loansApi, type Disbursement, type DisbursementPage, type Installment, type Loan, type PayoutRequest, type ReceiptPreview, type ReceiptSource, type ReceiptsPage, type ReversalPreview, type PrepaymentQuote } from '../api/loans.api'
+
+const props = defineProps<{ loanId: number }>()
+const route = useRoute()
+/** A completed step opened view only (?step=…&view=1). */
+const viewStep = computed(() => (route.query.view && typeof route.query.step === 'string' ? route.query.step : null))
+/**
+ * The data sections fold (Ahmed, 28 Nov 2026): while a step's screen is shown (from the Inbox or a completed step's View) they start
+ * folded so the step fills the page; otherwise they start open. Each opens or folds on its title.
+ */
+const folded = ref<Record<string, boolean>>({})
+const stepShown = computed(() => !!route.query.inboxId || !!viewStep.value)
+const isOpen = (key: string) => folded.value[key] ?? !stepShown.value
+function toggle(key: string) {
+  folded.value = { ...folded.value, [key]: !isOpen(key) }
+}
+
+const STATUS: Record<string, string> = { IN_APPROVAL: 'In approval', REJECTED: 'Rejected', APPROVED: 'Approved', ACTIVE: 'Active', CLOSED: 'Closed', CANCELLED: 'Cancelled', WRITTEN_OFF: 'Written off' }
+const CHIP: Record<string, string> = { IN_APPROVAL: 'fx-chip--warn', REJECTED: 'fx-chip--bad', APPROVED: 'fx-chip--warn', ACTIVE: 'fx-chip--ok', CLOSED: 'fx-chip--teal', CANCELLED: 'fx-chip--bad', WRITTEN_OFF: 'fx-chip--bad' }
+const INST: Record<string, string> = { DUE: 'Due', PART_PAID: 'Part paid', PAID: 'Paid', WRITTEN_OFF: 'Written off' }
+const FREQ: Record<string, string> = { WEEKLY: 'Weekly', FORTNIGHTLY: 'Every two weeks', MONTHLY: 'Monthly' }
+const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const money = (n: number) => egp.format(n)
+
+const canEdit = hasPermission('LND.LOAN.EDIT')
+const loan = ref<Loan | null>(null)
+// the workflow step box reads again after the loan changed
+const stepVersion = ref(0)
+const claimShown = ref(false)
+async function stepChanged() {
+  await reloadLoan()
+  stepVersion.value++
+}
+const writeOffPanel = ref<{ load: () => Promise<void> } | null>(null)
+
+async function reloadLoan() {
+  try {
+    loan.value = await loansApi.get(props.loanId)
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err))
+  }
+}
+
+const facts = computed<[string, string][]>(() => {
+  const l = loan.value
+  if (!l) return []
+  const fee = l.lateFeeTypeCode === 'NONE' ? tr('None')
+    : `${l.lateFeeTypeCode === 'FLAT' ? `${tr('EGP')} ${money(l.lateFeeFlatAmount ?? 0)}` : `${l.lateFeeRatePct}%${l.lateFeeTypeCode === 'PCT_DAILY' ? ' ' + tr('a day') : ''}`} · ${l.lateFeeGraceDays} ${tr('grace days')}`
+  // a consumer finance in its workflow has no schedule yet (built at Schedule and contract): no instalment, interest or dates
+  const scheduled = l.installments.length > 0
+  const margin = l.rateMarginPct ? ` (${Math.round((l.annualRatePct - l.rateMarginPct) * 10000) / 10000}% ${l.rateMarginPct > 0 ? '+' : '−'} ${Math.abs(l.rateMarginPct)})` : ''
+  return [
+    ['Customer', l.clientName],
+    ['Product', `${l.productName} · ${tr('Version')} ${l.versionNo}`],
+    ['Licence', tr(l.licenceCode === 'MF' ? 'Microfinance' : 'Consumer Finance')],
+    ['Amount', `${tr('EGP')} ${money(l.principalAmount)}`],
+    ['Term', `${l.termMonths} ${tr('months')}${scheduled ? ` · ${l.installmentCount} × ${money(l.installmentAmount)}` : ''}`],
+    ['Repayment', tr(FREQ[l.repaymentFrequencyCode] ?? l.repaymentFrequencyCode)],
+    ['Yearly rate', `${l.annualRatePct}%${margin} · ${tr(l.interestMethodCode === 'FLAT' ? 'Flat' : 'Declining balance')}`],
+    ...(scheduled ? [
+      ['Total interest', money(l.totalInterestAmount)],
+      ['Disbursement', formatDate(l.disbursementDate)],
+      ['First instalment', formatDate(l.firstDueDate)],
+      ['Maturity', formatDate(l.maturityDate)]
+    ] as [string, string][] : []),
+    ['Late fee', fee],
+    ...(l.lastEodDate ? [
+      ['Days late', `${l.daysLate}${l.isNonAccrual ? ' · ' + tr('In non-accrual') : ''}${l.isWriteOffProposed ? ' · ' + tr('Proposed for write-off') : ''}`],
+      ['Interest suspense', `${money(l.interestSuspenseAmount)} · ${tr('Late fee suspense')} ${money(l.lateFeeSuspenseAmount)}`],
+      ['Last end of day', formatDate(l.lastEodDate)]
+    ] as [string, string][] : [])
+  ]
+})
+
+// ---- payout
+const METHODS: Record<string, string> = { BANK_TRANSFER: 'Bank transfer', CASH: 'Cash', MERCHANT: 'Paid to merchant', WALLET: 'E-wallet' }
+const PSTATUS = { REQUESTED: 'Waiting', PAID: 'Paid', REJECTED: 'Rejected', WITHDRAWN: 'Withdrawn' } as const
+const PCHIP = { REQUESTED: 'fx-chip--warn', PAID: 'fx-chip--ok', REJECTED: 'fx-chip--bad', WITHDRAWN: 'fx-chip--teal' } as const
+const EVENTS: Record<string, string> = {
+  DISBURSED: 'Paid out', RECEIPT: 'Payment received', ACCRUED: 'Interest accrued', LATE_FEE: 'Late fee', NON_ACCRUAL: 'Non-accrual',
+  CURED: 'Cured', SUSPENSE_RELEASED: 'Suspense released', WRITE_OFF_PROPOSED: 'Proposed for write-off', WRITTEN_OFF: 'Written off', RECOVERY: 'Recovery',
+  RECEIPT_REVERSED: 'Receipt reversed', RECOVERY_REVERSED: 'Recovery reversed', RECEIPT_REPLAYED: 'Receipt applied again',
+  PREPAYMENT: 'Part prepayment', SETTLEMENT: 'Early settlement'
+}
+const me = (getUser()?.userName ?? '').toLowerCase()
+const payouts = ref<DisbursementPage | null>(null)
+const waiting = computed(() => payouts.value?.disbursements.some((d) => d.statusCode === 'REQUESTED') ?? false)
+const mine = (d: Disbursement) => !!me && d.requestedBy.toLowerCase() === me
+const requesting = ref(false)
+const deciding = ref(false)
+const decision = ref<'pay' | 'reject'>('pay')
+const decidingId = ref(0)
+const notes = ref('')
+const payout = reactive<PayoutRequest>({ paidFromAccountId: null, payoutMethodCode: 'BANK_TRANSFER', payeeName: '', payeeAccount: null })
+const perrors = ref<Record<string, string[]>>({})
+const pbad = (f: string) => ({ 'c3-bad': !!perrors.value[f] })
+
+function openRequest() {
+  Object.assign(payout, { paidFromAccountId: payouts.value?.accounts.find((a) => a.glAccountCode)?.accountId ?? null, payoutMethodCode: 'BANK_TRANSFER',
+    payeeName: loan.value?.clientName ?? '', payeeAccount: null })
+  perrors.value = {}
+  requesting.value = true
+}
+function openDecision(id: number, d: 'pay' | 'reject') {
+  decidingId.value = id
+  decision.value = d
+  notes.value = ''
+  perrors.value = {}
+  deciding.value = true
+}
+async function payoutCall(action: () => Promise<DisbursementPage>, done: string, close: () => void) {
+  busy.value = true
+  perrors.value = {}
+  try {
+    payouts.value = await action()
+    close()
+    showSuccess(tr(done))
+    loan.value = await loansApi.get(props.loanId)
+  } catch (err) {
+    if (err instanceof ApiError && err.problem?.errors) {
+      perrors.value = err.problem.errors
+      showError(Object.values(err.problem.errors).flat().map((m) => tr(m)).join('\n'))
+    } else showError(err instanceof Error ? err.message : String(err))
+  } finally {
+    busy.value = false
+  }
+}
+const requestPayout = () => payoutCall(() => loansApi.requestPayout(props.loanId, { ...payout, payeeAccount: payout.payeeAccount || null }),
+  'Payout sent. Another user must pay it.', () => (requesting.value = false))
+const decide = () => decision.value === 'pay'
+  ? payoutCall(() => loansApi.pay(props.loanId, decidingId.value, notes.value || null), 'Finance paid out. It is now active.', () => (deciding.value = false))
+  : payoutCall(() => loansApi.rejectPayout(props.loanId, decidingId.value, notes.value), 'Payout rejected.', () => (deciding.value = false))
+const withdraw = (id: number) => payoutCall(() => loansApi.withdrawPayout(props.loanId, id), 'Payout withdrawn.', () => {})
+
+// ---- receipts
+const PARTS: Record<string, string> = { LATE_FEE: 'Late fee', CHARGES: 'Charges', INSURANCE: 'Insurance', INTEREST: 'Interest', PRINCIPAL: 'Principal', RECOVERY: 'Recovery' }
+const receipts = ref<ReceiptsPage | null>(null)
+const receiving = ref(false)
+const canReverse = hasPermission('LND.RECEIPT.REVERSE')
+const reversing = ref(false)
+const reversal = ref<ReversalPreview | null>(null)
+const reverseReason = ref('')
+
+async function openReverse(txnId: number) {
+  reversal.value = null
+  reverseReason.value = ''
+  perrors.value = {}
+  reversing.value = true
+  try {
+    reversal.value = await loansApi.reversalPreview(props.loanId, txnId)
+  } catch (err) {
+    reversing.value = false
+    showError(err instanceof Error ? err.message : String(err))
+  }
+}
+async function reverse() {
+  if (!reversal.value) return
+  busy.value = true
+  perrors.value = {}
+  try {
+    receipts.value = await loansApi.reverse(props.loanId, reversal.value.repaymentTxnId, reverseReason.value)
+    reversing.value = false
+    showSuccess(tr('Receipt reversed.'))
+    loan.value = await loansApi.get(props.loanId)
+    void writeOffPanel.value?.load()
+  } catch (err) {
+    if (err instanceof ApiError && err.problem?.errors) {
+      perrors.value = err.problem.errors
+      showError(Object.values(err.problem.errors).flat().map((m) => tr(m)).join('\n'))
+    } else showError(err instanceof Error ? err.message : String(err))
+  } finally {
+    busy.value = false
+  }
+}
+const rpreview = ref<ReceiptPreview | null>(null)
+const rerrors = ref<Record<string, string[]>>({})
+const rbad = (f: string) => ({ 'c3-bad': !!rerrors.value[f] })
+const blankSource = (): ReceiptSource => ({ sourceType: 'BANK_DEPOSIT', depositAccountId: receipts.value?.depositAccounts.find((a) => a.hasGlAccount)?.accountId ?? null, chequeId: null, amount: null, reference: null })
+const rform = reactive<{ valueDate: string; notes: string; sources: ReceiptSource[] }>({ valueDate: '', notes: '', sources: [] })
+watch(() => JSON.stringify([rform.valueDate, rform.sources]), () => (rpreview.value = null))
+
+const rmode = ref<'RECEIPT' | 'PREPAY' | 'SETTLE'>('RECEIPT')
+const principalEarly = ref<number | null>(null)
+const quote = ref<PrepaymentQuote | null>(null)
+watch(() => [rmode.value, principalEarly.value], () => (quote.value = null))
+
+async function getQuote() {
+  if (rmode.value === 'RECEIPT') return
+  busy.value = true
+  try {
+    quote.value = await loansApi.prepaymentQuote(props.loanId, rmode.value, rmode.value === 'PREPAY' ? principalEarly.value : null)
+    const first = rform.sources[0]
+    if (!quote.value.problem && rform.sources.length === 1 && first && !first.amount && first.sourceType !== 'CHEQUE') first.amount = quote.value.totalAmount
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err))
+  } finally {
+    busy.value = false
+  }
+}
+
+function openReceive(mode: 'RECEIPT' | 'PREPAY' | 'SETTLE') {
+  rmode.value = mode
+  principalEarly.value = null
+  quote.value = null
+  rform.valueDate = receipts.value?.today ?? ''
+  rform.notes = ''
+  rform.sources = [blankSource()]
+  rpreview.value = null
+  rerrors.value = {}
+  receiving.value = true
+}
+const addSource = () => rform.sources.push(blankSource())
+/** The money of the sources: a cheque counts its amount, the others what is entered. */
+const sourcesTotal = () => rform.sources.reduce((a, s) => a + (s.sourceType === 'CHEQUE'
+  ? receipts.value?.cheques.find((c) => c.chequeId === s.chequeId)?.chequeAmount ?? 0
+  : Number(s.amount ?? 0)), 0)
+
+async function previewReceipt() {
+  try {
+    rpreview.value = await loansApi.receiptPreview(props.loanId, rform.valueDate, sourcesTotal())
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err))
+  }
+}
+async function receive() {
+  busy.value = true
+  rerrors.value = {}
+  try {
+    receipts.value = rmode.value === 'RECEIPT'
+      ? await loansApi.receive(props.loanId, { valueDate: rform.valueDate || null, sources: rform.sources, notes: rform.notes || null })
+      : await loansApi.prepay(props.loanId, { kind: rmode.value, principalAmount: rmode.value === 'PREPAY' ? principalEarly.value : null, sources: rform.sources, notes: rform.notes || null })
+    void writeOffPanel.value?.load()
+    receiving.value = false
+    showSuccess(tr(rmode.value === 'RECEIPT' ? 'Payment received.' : rmode.value === 'SETTLE' ? 'Finance settled.' : 'Prepayment received. The schedule is rebuilt.'))
+    loan.value = await loansApi.get(props.loanId)
+  } catch (err) {
+    if (err instanceof ApiError && err.problem?.errors) {
+      rerrors.value = err.problem.errors
+      showError(Object.values(err.problem.errors).flat().map((m) => tr(m)).join('\n'))
+    } else showError(err instanceof Error ? err.message : String(err))
+  } finally {
+    busy.value = false
+  }
+}
+
+const sum = (k: keyof Installment) => (loan.value?.installments ?? []).reduce((a, i) => a + Number(i[k]), 0)
+
+const cancelling = ref(false)
+const busy = ref(false)
+const reason = ref('')
+const errors = ref<Record<string, string[]>>({})
+
+async function cancel() {
+  if (!loan.value) return
+  busy.value = true
+  errors.value = {}
+  try {
+    loan.value = await loansApi.cancel(loan.value.loanId, reason.value, loan.value.rowVersion)
+    cancelling.value = false
+    showSuccess(tr('Finance cancelled.'))
+  } catch (err) {
+    if (err instanceof ApiError && err.problem?.errors) {
+      errors.value = err.problem.errors
+      showError(Object.values(err.problem.errors).flat().map((m) => tr(m)).join('\n'))
+    } else showError(err instanceof Error ? err.message : String(err))
+  } finally {
+    busy.value = false
+  }
+}
+
+onMounted(async () => {
+  try {
+    loan.value = await loansApi.get(props.loanId)
+    payouts.value = await loansApi.payouts(props.loanId)
+    receipts.value = await loansApi.receipts(props.loanId)
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err))
+  }
+})
+</script>
+
+<style scoped>
+@import '@/modules/crm/components/crm360.css';
+.ln-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px; }
+.ln-facts > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: var(--fin-radius-sm); background: var(--fin-teal-50); }
+.ln-facts small { color: var(--fin-muted); }
+.ln-num { text-align: end; white-space: nowrap; }
+h1 .fx-chip { vertical-align: middle; font-size: 12px; }
+.lp-head { display: flex; justify-content: space-between; align-items: center; }
+.lp-bad { background: var(--fin-bad-50); color: var(--fin-ink); }
+.lp-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.lp-sources { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.lp-source { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.lp-source > .fx-select, .lp-source > .fx-search { flex: 1; min-width: 160px; }
+.lp-source > .lp-type { flex: 0 0 180px; }
+.lp-source > .lp-amount { flex: 0 0 140px; }
+.lp-preview { margin-top: 12px; }
+.c3-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) { .ln-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ln-card { padding: 14px 18px; }
+.ln-h { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 14px; color: var(--fin-teal-700); }
+.ln-sub { margin: 12px 0 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--fin-muted); }
+.ln-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ln-chips > span { padding: 4px 10px; border-radius: 999px; background: #f2f4f6; color: #34495a; font-size: 12.5px; }
+.ln-chips b { color: var(--fin-ink); }
+.ln-none { margin: 0; padding: 10px 16px 14px; color: var(--fin-muted); font-size: 13px; }
+.ln-charges { margin-top: 12px; }
+.ln-charges h4 { margin: 0 0 6px; font-size: 13px; color: var(--fin-muted); }
+.ln-charge { display: flex; align-items: center; gap: 12px; padding: 4px 0; font-size: 13.5px; }
+.ln-tg { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
+.ln-tg .fa-chevron-down, .ln-tg .fa-chevron-right { width: 12px; font-size: 12px; color: #34495a; }
+</style>

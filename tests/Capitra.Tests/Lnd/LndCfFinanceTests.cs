@@ -1,0 +1,207 @@
+using Capitra.Application.Common.Exceptions;
+using Capitra.Application.Modules.Adm.Products;
+using Capitra.Application.Modules.Lnd;
+using Capitra.Domain.Modules.Lnd;
+using Xunit;
+
+namespace Capitra.Tests.Lnd;
+
+/// <summary>CF_FINANCE: a consumer finance from a supplier (Ahmed, 26 Nov 2026).</summary>
+public sealed class LndCfFinanceTests
+{
+    [Fact]
+    public void Credit_approval_needs_clear_compliance_and_an_active_supplier()
+    {
+        Assert.Empty(LndCfFinanceRules.CheckCredit("CLEAR", "Clear", supplierActive: true));
+        Assert.Empty(LndCfFinanceRules.CheckCredit("DUE", "Review due", supplierActive: true)); // due for review soon still counts as clear
+        Assert.Equal(2, LndCfFinanceRules.CheckCredit("PENDING", "Pending", supplierActive: false).Count);
+        Assert.Single(LndCfFinanceRules.CheckCredit("EDD", "Enhanced due diligence", supplierActive: true));
+    }
+
+    [Fact]
+    public void The_person_who_entered_the_finance_does_none_of_its_steps()
+    {
+        Assert.Throws<BusinessRuleException>(() => LndCfFinanceRules.CheckPerson("E123", "E123"));
+        LndCfFinanceRules.CheckPerson("E123", "E456");
+        LndCfFinanceRules.CheckPerson(null, "E456"); // a finance entered before the workflow has no person
+    }
+
+    [Fact]
+    public void Steps_have_names()
+    {
+        Assert.Equal("Credit approval", LndCfFinanceRules.StepName("cf_credit"));
+        Assert.Equal("Charges and claim", LndCfFinanceRules.StepName(LndCfFinanceRules.Charges));
+        Assert.Equal("Schedule and contract", LndCfFinanceRules.StepName(LndCfFinanceRules.Schedule));
+        Assert.Equal("Supplier payment", LndCfFinanceRules.StepName(LndCfFinanceRules.SupplierPayment));
+    }
+
+    // an administration fee of 1% of the financed amount (upfront by default) and a fixed 50 stamp fee with 10% tax
+    private static readonly ProductEventCharge AdminFee = new(1, 10, "CF_ADMIN_FEE", "Administration fee", null, "PERCENTAGE", null, 1m, null,
+        "FINANCED_AMOUNT", "IMMEDIATE", null, null, 2, "PAID_UPFRONT", 0m);
+    private static readonly ProductEventCharge Stamp = new(2, 20, "STAMP", "Stamp fee", null, "FIXED", 50m, null, null, null, "IMMEDIATE", null, null, 2,
+        "PAID_UPFRONT", 10m);
+
+    [Fact]
+    public void Charges_are_paid_upfront_by_default_and_the_loan_is_the_price_less_the_down_payment()
+    {
+        // price 20,000, down 4,000: financed 16,000; fee 1% = 160; stamp 50 + 5 tax = 55; all upfront = 215
+        var r = LndCfCharges.Work([AdminFee, Stamp], 20000m, 4000m, null);
+        Assert.Null(r.Problem);
+        Assert.Equal(16000m, r.LoanAmount);
+        Assert.Equal(215m, r.PaidUpfront);
+        Assert.Equal(0m, r.AddedToFinance);
+        Assert.All(r.Charges, c => Assert.False(c.IsOverridden));
+    }
+
+    [Fact]
+    public void A_charge_added_to_the_finance_raises_the_loan_amount()
+    {
+        // the fee 160 added to the finance: loan 16,160; the stamp 55 is still upfront
+        var r = LndCfCharges.Work([AdminFee, Stamp], 20000m, 4000m, new Dictionary<string, string> { ["CF_ADMIN_FEE"] = LndCfCharges.Financed });
+        Assert.Equal(16160m, r.LoanAmount);
+        Assert.Equal(160m, r.AddedToFinance);
+        Assert.Equal(55m, r.PaidUpfront);
+        Assert.True(r.Charges.Single(x => x.ChargeCode == "CF_ADMIN_FEE").IsOverridden); // Credit changed the rule's default
+        Assert.False(r.Charges.Single(x => x.ChargeCode == "STAMP").IsOverridden);
+    }
+
+    [Fact]
+    public void A_charge_on_the_goods_price_uses_the_price()
+    {
+        var onPrice = AdminFee with { AmountBaseCode = "GOODS_PRICE" };
+        Assert.Equal(200m, LndCfCharges.Work([onPrice], 20000m, 4000m, null).Charges[0].Amount); // 1% of 20,000
+    }
+
+    [Fact]
+    public void The_claim_is_the_upfront_charges_and_the_down_payment_we_take()
+    {
+        LndLoanCharge[] charges =
+        [
+            new() { ChargeCode = "CF_ADMIN_FEE", ChargeAmount = 160m, TaxAmount = 0m, TimingCode = LndCfCharges.Upfront },
+            new() { ChargeCode = "STAMP", ChargeAmount = 50m, TaxAmount = 5m, TimingCode = LndCfCharges.Financed }, // part of the principal
+        ];
+        Assert.Equal((160m, 4000m), LndCfFinanceRules.ClaimAmounts(charges, "COMPANY", 4000m));
+        Assert.Equal((160m, 0m), LndCfFinanceRules.ClaimAmounts(charges, "SUPPLIER", 4000m)); // the supplier takes the down payment
+    }
+
+    [Fact]
+    public void Charges_and_claim_is_accepted_once_the_claim_is_paid_or_nothing_is_upfront()
+    {
+        Assert.Null(LndCfFinanceRules.CheckClaim(LndCfFinanceRules.Claim.Paid, 4160m));
+        Assert.Null(LndCfFinanceRules.CheckClaim(LndCfFinanceRules.Claim.None, 0m));
+        Assert.Null(LndCfFinanceRules.CheckClaim(null, 0m)); // nothing upfront: no claim needed
+        Assert.NotNull(LndCfFinanceRules.CheckClaim(null, 160m));
+        Assert.NotNull(LndCfFinanceRules.CheckClaim(LndCfFinanceRules.Claim.Open, 160m));
+        // partly paid (27 Nov 2026): the schedule waits and says what is outstanding
+        Assert.Contains("100.00", LndCfFinanceRules.CheckClaim(LndCfFinanceRules.Claim.PartiallyPaid, 160m, 60m));
+    }
+
+    [Fact]
+    public void What_was_paid_of_a_claim_counts_claims_paid_before_partial_payments_in_full()
+    {
+        Assert.Equal(4160m, LndCfClaimService.Paid(new LndLoan { ClaimStatusCode = LndCfFinanceRules.Claim.Paid, ClaimChargesAmount = 160m, ClaimDownPaymentAmount = 4000m }));
+        Assert.Equal(60m, LndCfClaimService.Paid(new LndLoan { ClaimStatusCode = LndCfFinanceRules.Claim.PartiallyPaid, ClaimChargesAmount = 160m, ClaimPaidAmount = 60m }));
+        Assert.Equal(0m, LndCfClaimService.Paid(new LndLoan { ClaimStatusCode = LndCfFinanceRules.Claim.Open, ClaimChargesAmount = 160m }));
+    }
+
+    [Fact]
+    public void Credit_can_change_a_fee_amount_or_waive_it()
+    {
+        // the fee 160 cut to 100 and added to the schedule: loan 16,100; the stamp waived (0, so no tax either)
+        var r = LndCfCharges.Work([AdminFee, Stamp], 20000m, 4000m, new Dictionary<string, string> { ["CF_ADMIN_FEE"] = LndCfCharges.Financed },
+            new Dictionary<string, decimal> { ["CF_ADMIN_FEE"] = 100m, ["STAMP"] = 0m });
+        Assert.Equal(16100m, r.LoanAmount);
+        Assert.Equal(0m, r.PaidUpfront);
+        var fee = r.Charges.Single(x => x.ChargeCode == "CF_ADMIN_FEE");
+        Assert.Equal((100m, 160m, true), (fee.Amount, fee.RuleAmount, fee.IsOverridden));
+        var stamp = r.Charges.Single(x => x.ChargeCode == "STAMP");
+        Assert.Equal((0m, 0m, true), (stamp.Amount, stamp.TaxAmount, stamp.IsOverridden));
+        Assert.NotNull(LndCfCharges.Work([AdminFee], 20000m, 4000m, null, new Dictionary<string, decimal> { ["CF_ADMIN_FEE"] = -1m }).Problem);
+    }
+
+    [Fact]
+    public void The_finance_rate_is_the_product_rate_plus_the_margin()
+    {
+        Assert.Equal(23.5m, LndCfFinanceRules.FinanceRate(22m, 1.5m));
+        Assert.Equal(20m, LndCfFinanceRules.FinanceRate(22m, -2m));
+        Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.FinanceRate(22m, -23m));
+    }
+
+    private static LndLoan Finance() => new()
+    {
+        LoanNumber = "LN-1", GoodsPriceAmount = 40_000m, DownPaymentAmount = 10_000m, SupplierMinDownPaymentPct = 20m, TermMonths = 12,
+        RepaymentFrequencyCode = "MONTHLY", InterestMethodCode = "DECLINING", AnnualRatePct = 22m, DayCountCode = "ACT_365", LateFeeTypeCode = "NONE",
+        LateFeeBaseCode = "OVERDUE_INSTALMENT", PaymentOrder = "LATE_FEE,CHARGES,INSURANCE,INTEREST,PRINCIPAL", PrepaymentRecalcCode = "REDUCE_INSTALMENT",
+    };
+
+    [Fact]
+    public void Credit_changes_the_finance_own_values_and_each_change_is_listed()
+    {
+        var l = Finance();
+        var changes = LndCfFinanceRules.ApplyTerms(l, new LndCfTermsRequest(DownPaymentAmount: 12_000m, TermMonths: 18, AnnualRatePct: 23.5m,
+            LateFeeTypeCode: "PCT_ONCE", LateFeeRatePct: 2m, LateFeeGraceDays: 5), 22m);
+        Assert.Equal((12_000m, 18, 23.5m, 1.5m, "PCT_ONCE", 2m, 5), (l.DownPaymentAmount!.Value, l.TermMonths, l.AnnualRatePct, l.RateMarginPct, l.LateFeeTypeCode, l.LateFeeRatePct!.Value, l.LateFeeGraceDays));
+        Assert.Contains("down payment 10,000.00 → 12,000.00", changes);
+        Assert.Contains("term 12 → 18 months", changes);
+        Assert.Contains("yearly rate 22% → 23.5%", changes);
+        Assert.Contains(changes, c => c.StartsWith("grace days", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Credit_values_are_checked()
+    {
+        Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.ApplyTerms(Finance(), new LndCfTermsRequest(DownPaymentAmount: 5_000m), 22m)); // below 20%
+        Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.ApplyTerms(Finance(), new LndCfTermsRequest(TermMonths: 0), 22m));
+        Assert.Throws<BusinessValidationException>(() => LndCfFinanceRules.ApplyTerms(Finance(), new LndCfTermsRequest(LateFeeTypeCode: "FLAT"), 22m)); // no amount
+        var l = Finance();
+        Assert.Empty(LndCfFinanceRules.ApplyTerms(l, new LndCfTermsRequest(), 22m)); // nothing sent: nothing changes
+    }
+
+    [Fact]
+    public void The_booking_at_delivery_owes_the_supplier_the_price_and_puts_added_charges_in_the_finance()
+    {
+        var l = Finance(); // price 40,000, down 10,000 (the supplier takes it)
+        l.PrincipalAmount = 30_300m; // 300 of charges added to the schedule
+        var a = LndCfFinanceRules.BookingAmounts(l);
+        Assert.Equal((30_300m, 30_000m, 300m, 0m), (a["LOAN_AMOUNT"]!.Value, a["FINANCED_AMOUNT"]!.Value, a["CAPITALISED_CHARGES_AMOUNT"]!.Value, a["DOWN_PAYMENT_HELD_AMOUNT"]!.Value));
+        l.ClaimStatusCode = LndCfFinanceRules.Claim.Paid; // we took the down payment with the claim
+        l.ClaimDownPaymentAmount = 10_000m;
+        Assert.Equal(10_000m, LndCfFinanceRules.BookingAmounts(l)["DOWN_PAYMENT_HELD_AMOUNT"]);
+    }
+
+    [Fact]
+    public void A_delivery_needs_a_date_from_the_schedule_day_to_today_a_note_and_the_customer_confirmation()
+    {
+        var scheduled = new DateOnly(2026, 11, 26);
+        var today = new DateOnly(2026, 11, 28);
+        Assert.Empty(LndCfFinanceRules.CheckDelivery(new LndCfDeliveryRequest(today, "DN-1", null, true), scheduled, today));
+        Assert.Equal(["customerConfirmed", "deliveryDate", "deliveryNoteNo"],
+            LndCfFinanceRules.CheckDelivery(new LndCfDeliveryRequest(today.AddDays(1), " ", null, false), scheduled, today).Keys.Order(StringComparer.Ordinal));
+        Assert.Contains("deliveryDate", LndCfFinanceRules.CheckDelivery(new LndCfDeliveryRequest(scheduled.AddDays(-1), "DN-1", null, true), scheduled, today).Keys);
+        Assert.Equal([LndCfFinanceRules.Credit, LndCfFinanceRules.Charges, LndCfFinanceRules.Schedule, LndCfFinanceRules.Delivery, LndCfFinanceRules.SupplierPayment],
+            LndCfFinanceRules.Ready);
+    }
+
+    [Fact]
+    public void The_supplier_is_owed_the_price_less_the_down_payment_it_took_less_its_commission()
+    {
+        var l = Finance(); // price 40,000, down 10,000 taken by the supplier
+        l.SupplierCommissionPct = 3m;
+        var due = LndCfFinanceRules.SupplierDue(l);
+        Assert.Equal((30_000m, 900m, 29_100m), (due.PayableAmount, due.CommissionAmount, due.NetAmount));
+        l.ClaimStatusCode = LndCfFinanceRules.Claim.Paid; // we took the down payment: the whole price is owed
+        l.ClaimDownPaymentAmount = 10_000m;
+        Assert.Equal(40_000m, LndCfFinanceRules.SupplierDue(l).PayableAmount);
+    }
+
+    [Fact]
+    public void A_commission_other_than_the_agreed_one_needs_a_reason()
+    {
+        var due = new LndCfSupplierDueDto(30_000m, 3m, 900m, 29_100m, null);
+        Assert.Empty(LndCfFinanceRules.CheckSupplierPayment(new LndCfSupplierPaymentRequest(1, "TRX-1", null, null), due));
+        Assert.Contains("commissionReason", LndCfFinanceRules.CheckSupplierPayment(new LndCfSupplierPaymentRequest(1, "TRX-1", 600m, null), due).Keys);
+        Assert.Empty(LndCfFinanceRules.CheckSupplierPayment(new LndCfSupplierPaymentRequest(1, "TRX-1", 600m, "promotion agreed"), due));
+        Assert.Equal(["bankAccountId", "commissionAmount", "reference"],
+            LndCfFinanceRules.CheckSupplierPayment(new LndCfSupplierPaymentRequest(null, " ", 31_000m, "x"), due).Keys.Order(StringComparer.Ordinal));
+    }
+}

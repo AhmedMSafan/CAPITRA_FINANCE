@@ -1,0 +1,112 @@
+using Capitra.Domain.Modules.Fct;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Capitra.Infrastructure.Persistence.Configurations.Fct;
+
+public sealed class FctInvoiceConfiguration : IEntityTypeConfiguration<FctInvoice>
+{
+    public void Configure(EntityTypeBuilder<FctInvoice> builder)
+    {
+        builder.ToTable("FCT_INVOICES");
+        builder.HasKey(x => x.InvoiceId);
+        builder.HasIndex(x => new { x.ClientId, x.CurrencyId, x.ClientInvoiceAt });
+
+        builder.Property(x => x.InvoiceId).UseIdentityByDefaultColumn();
+        builder.Property(x => x.InvoiceNumber).HasMaxLength(30);
+        builder.Property(x => x.InvoiceRef).HasMaxLength(50);
+        builder.Property(x => x.ClientInvoiceNumber).HasMaxLength(50);
+        builder.Property(x => x.ClientPoNumber).HasMaxLength(50);
+        builder.Property(x => x.ClientDoNumber).HasMaxLength(50);
+        builder.Property(x => x.ClientContractRef).HasMaxLength(50);
+        builder.Property(x => x.InvoiceType).HasMaxLength(30);
+        builder.Property(x => x.InvoiceTypeAr).HasMaxLength(30);
+        builder.Property(x => x.InvoiceCategory).HasMaxLength(30);
+        builder.Property(x => x.InvoiceCategoryAr).HasMaxLength(30);
+        builder.Property(x => x.FactoringType).HasMaxLength(30);
+        builder.Property(x => x.FactoringTypeAr).HasMaxLength(30);
+        builder.Property(x => x.RecourseType).HasMaxLength(30);
+        builder.Property(x => x.RecourseTypeAr).HasMaxLength(30);
+        builder.Property(x => x.GrossAmount).HasPrecision(18, 2);
+        builder.Property(x => x.TaxAmount).HasPrecision(18, 2);
+        builder.Property(x => x.TaxRatePct).HasPrecision(9, 6);
+        builder.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+        builder.Property(x => x.NetAmount).HasPrecision(18, 2);
+        builder.Property(x => x.EligibleAmount).HasPrecision(18, 2);
+        builder.Property(x => x.IneligibleAmount).HasPrecision(18, 2);
+        builder.Property(x => x.IneligibleReason).HasMaxLength(500);
+        builder.Property(x => x.IneligibleReasonAr).HasMaxLength(500);
+        builder.Property(x => x.ApprovedAmount).HasPrecision(18, 2);
+        builder.Property(x => x.AdvanceRatePct).HasPrecision(9, 6);
+        builder.Property(x => x.AdvanceAmount).HasPrecision(18, 3);
+        builder.Property(x => x.FundedAmount).HasPrecision(18, 3);
+        builder.Property(x => x.UnfundedAmount).HasPrecision(18, 2);
+        builder.Property(x => x.ReserveAmount).HasPrecision(18, 3);
+        builder.Property(x => x.ReserveHeldPct).HasPrecision(9, 6);
+        builder.Property(x => x.CollectedAmount).HasPrecision(18, 2);
+        builder.Property(x => x.OutstandingAmount).HasPrecision(18, 2);
+        builder.Property(x => x.SettledAmount).HasPrecision(18, 2);
+        builder.Property(x => x.WriteOffAmount).HasPrecision(18, 2);
+        builder.Property(x => x.CreditNoteAmount).HasPrecision(18, 2);
+        builder.Property(x => x.DebitNoteAmount).HasPrecision(18, 2);
+        builder.Property(x => x.AdjustmentAmount).HasPrecision(18, 2);
+        builder.Property(x => x.DilutionAmount).HasPrecision(18, 2);
+        builder.Property(x => x.DilutionPct).HasPrecision(9, 6);
+        builder.Property(x => x.DisputedAmount).HasPrecision(18, 2);
+        builder.Property(x => x.DisputeReason).HasMaxLength(1000);
+        builder.Property(x => x.DisputeReasonAr).HasMaxLength(1000);
+        builder.Property(x => x.AgingBucket).HasMaxLength(20);
+        builder.Property(x => x.AgingBucketAr).HasMaxLength(20);
+        builder.Property(x => x.InterestAmount).HasPrecision(18, 2);
+        builder.Property(x => x.PenaltyAmount).HasPrecision(18, 2);
+        builder.Property(x => x.FeeAmount).HasPrecision(18, 2);
+        builder.Property(x => x.TotalCharges).HasPrecision(18, 3);
+        builder.Property(x => x.ExchangeRate).HasPrecision(9, 6);
+        builder.Property(x => x.BaseGrossAmount).HasPrecision(18, 2);
+        builder.Property(x => x.BaseNetAmount).HasPrecision(18, 2);
+        builder.Property(x => x.BaseFundedAmount).HasPrecision(18, 2);
+        builder.Property(x => x.BaseOutstanding).HasPrecision(18, 3);
+        builder.Property(x => x.DebtorConfirmMethod).HasMaxLength(30);
+        builder.Property(x => x.DebtorConfirmRef).HasMaxLength(100);
+        builder.Property(x => x.DebtorRejectionReason).HasMaxLength(1000);
+        builder.Property(x => x.DebtorRejectionReasonAr).HasMaxLength(1000);
+        builder.Property(x => x.AssignmentRef).HasMaxLength(100);
+        builder.Property(x => x.NoticeMethod).HasMaxLength(30);
+        builder.Property(x => x.InsuredAmount).HasPrecision(18, 2);
+        builder.Property(x => x.InsurancePolicyRef).HasMaxLength(100);
+        builder.Property(x => x.InsuranceCoveragePct).HasPrecision(9, 6);
+        builder.Property(x => x.RiskGrade).HasMaxLength(20);
+        builder.Property(x => x.RiskScore).HasPrecision(10, 4);
+        builder.Property(x => x.ProvisionPct).HasPrecision(9, 6);
+        builder.Property(x => x.ProvisionAmount).HasPrecision(18, 2);
+        builder.Property(x => x.ExpectedLoss).HasPrecision(18, 3);
+        builder.Property(x => x.RecourseAmount).HasPrecision(18, 2);
+        builder.Property(x => x.RecourseStatus).HasMaxLength(30);
+        builder.Property(x => x.RecourseStatusAr).HasMaxLength(30);
+        builder.Property(x => x.VerifiedBy).HasMaxLength(200);
+        builder.Property(x => x.VerificationMethod).HasMaxLength(30);
+        builder.Property(x => x.VerificationNotes).HasMaxLength(2000);
+        builder.Property(x => x.VerificationNotesAr).HasMaxLength(2000);
+        builder.Property(x => x.ApprovedBy).HasMaxLength(200);
+        builder.Property(x => x.ApprovalNotes).HasMaxLength(2000);
+        builder.Property(x => x.ApprovalNotesAr).HasMaxLength(2000);
+        builder.Property(x => x.RejectionReason).HasMaxLength(2000);
+        builder.Property(x => x.RejectionReasonAr).HasMaxLength(2000);
+        builder.Property(x => x.Description).HasMaxLength(2000);
+        builder.Property(x => x.DescriptionAr).HasMaxLength(2000);
+        builder.Property(x => x.RiskRatingCode).HasMaxLength(20);
+        builder.Property(x => x.Attribute2).HasMaxLength(500);
+        builder.Property(x => x.Attribute3).HasMaxLength(500);
+        builder.Property(x => x.Attribute4).HasMaxLength(500);
+        builder.Property(x => x.Attribute5).HasMaxLength(500);
+        builder.Property(x => x.Attribute6).HasMaxLength(500);
+        builder.Property(x => x.Attribute7).HasMaxLength(500);
+        builder.Property(x => x.Attribute8).HasMaxLength(500);
+        builder.Property(x => x.Attribute9).HasMaxLength(500);
+        builder.Property(x => x.Attribute10).HasMaxLength(500);
+        builder.Property(x => x.StatusCode).HasMaxLength(20);
+        builder.Property(x => x.ChequeNo).HasMaxLength(20);
+
+        builder.ConfigureAudit();
+    }
+}
