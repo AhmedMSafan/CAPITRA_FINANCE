@@ -9,7 +9,7 @@ namespace Capitra.Api.Controllers.Lnd;
 [ApiController]
 [Route("api/lnd/loans")]
 public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService workflow, LndLoanDocumentService documents, LndCfRulesService cfRules,
-    LndCfClaimService claims) : ControllerBase
+    LndCfClaimService claims, LndCfStepsService cfSteps) : ControllerBase
 {
     [HttpGet]
     [HasPermission(Permissions.Lnd.LoanView)]
@@ -69,11 +69,17 @@ public sealed class LndLoanController(LndLoanService loans, LndCfFinanceService 
     public async Task<LndLoanDto> Create(LndLoanRequestDto dto, CancellationToken cancellationToken) =>
         await loans.GetAsync(await loans.CreateAsync(dto, cancellationToken), cancellationToken);
 
-    /// <summary>The CF_FINANCE step waiting now; with inboxId, whether it is the signed-in user's task.</summary>
+    /// <summary>The CF_FINANCE step waiting now; with inboxId, whether it is the signed-in user's task; with view, a completed step view only.</summary>
     [HttpGet("{loanId:long}/cf-step")]
     [HasPermission(Permissions.Lnd.LoanView)]
-    public Task<LndCfStepDto?> CfStep(long loanId, [FromQuery] long? inboxId, [FromQuery] decimal? downPayment, CancellationToken cancellationToken) =>
-        workflow.StepAsync(loanId, inboxId, cancellationToken, downPayment);
+    public Task<LndCfStepDto?> CfStep(long loanId, [FromQuery] long? inboxId, [FromQuery] decimal? downPayment, [FromQuery] string? view,
+        CancellationToken cancellationToken) =>
+        workflow.StepAsync(loanId, inboxId, cancellationToken, downPayment, view);
+
+    /// <summary>The finance's steps in order: completed (who, when, GL tran sets), the one waiting now, those not reached.</summary>
+    [HttpGet("{loanId:long}/cf-steps")]
+    [HasPermission(Permissions.Lnd.LoanView)]
+    public Task<IReadOnlyList<LndCfStepViewDto>> CfSteps(long loanId, CancellationToken cancellationToken) => cfSteps.StepsAsync(loanId, cancellationToken);
 
     /// <summary>
     /// Completes the signed-in user's CF_FINANCE task on the finance: ACCEPT, or REJECT with the reason. At Credit approval it carries

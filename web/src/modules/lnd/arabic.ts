@@ -773,5 +773,10 @@ export const LND_AR: Record<string, string> = {
   'It posts nothing.': 'لا يوجد قيد.',
   'Back to customer': 'العودة إلى العميل',
   'Amount from': 'المبلغ من',
-  'Amount to': 'المبلغ إلى'
+  'Amount to': 'المبلغ إلى',
+  'Waiting: open it from the Inbox': 'بانتظار التنفيذ: افتحها من صندوق المهام',
+  'Not reached yet': 'لم تصل بعد',
+  'completed': 'مكتملة',
+  'View only: this step is completed. Nothing can be changed here.': 'للعرض فقط: هذه الخطوة مكتملة ولا يمكن تغيير شيء هنا.',
+  'No GL entries posted by this step': 'لم تُقيد هذه الخطوة أي قيود'
 }

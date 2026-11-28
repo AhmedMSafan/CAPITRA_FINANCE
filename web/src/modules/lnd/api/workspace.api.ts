@@ -12,6 +12,8 @@ export type LwLoan = {
   disbursementDate: string; maturityDate: string
   /** The workflow step a consumer finance is waiting at, if any. */
   stepName: string | null
+  /** Completed workflow steps, each opens view only with its GL tran sets (28 Nov 2026). */
+  completedSteps: { stepCode: string; stepName: string; doneBy: string | null; doneAt: string | null; glTranSetIds: string[] }[] | null
 }
 
 /** A consumer finance's upfront claim, once created: OPEN (unpaid), PARTIALLY_PAID, PAID, CANCELLED. */

@@ -7,13 +7,19 @@
       <span class="cfs-ic" aria-hidden="true"><span class="fa fa-random"></span></span>
       <h3>{{ tr(step.stepName) }}</h3>
       <p v-if="step.isMine">— {{ tr(HINT[step.stepCode] ?? 'Check the finance, then accept or reject the step.') }}</p>
+      <p v-else-if="view">— {{ tr('completed') }}</p>
       <p v-else>— {{ tr('Waiting for') }} {{ tr(ROLE[step.stepCode] ?? 'the step holder') }}. {{ tr('Open it from the inbox to work on it.') }}</p>
       <span class="cfs-grow"></span>
       <CfRulesButton v-if="!rulesInBox" :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" />
     </header>
+    <!-- a completed step opened view only (28 Nov 2026), the factoring strip with the GL tran sets it posted -->
+    <p v-if="view" class="fc-viewonly" role="status"><span class="fa fa-eye" aria-hidden="true"></span>
+      <span>{{ tr('View only: this step is completed. Nothing can be changed here.') }}</span>
+      <span v-if="step.glTranSetIds?.length" class="fc-viewonly-gl">{{ tr('GL Tran Set ID') }}: <b v-for="g in step.glTranSetIds" :key="g" class="fc-ref">{{ g }}</b></span>
+      <span v-else class="fc-viewonly-gl fc-viewonly-none">{{ tr('No GL entries posted by this step') }}</span></p>
 
     <!-- the deal at a glance, for the step holder -->
-    <div v-if="step.isMine && loan.goods" class="cfs-deal">
+    <div v-if="(step.isMine || view) && loan.goods" class="cfs-deal">
       <span>{{ tr('Customer') }} <b>{{ loan.clientName }}</b></span>
       <span>{{ tr('Supplier') }} <b>{{ loan.goods.merchantName }}</b></span>
       <span>{{ tr('Item') }} <b>{{ loan.goods.description }}<template v-if="loan.goods.brandModel"> · {{ loan.goods.brandModel }}</template></b></span>
@@ -32,7 +38,7 @@
     <!-- Credit approval: every financial value is this finance's own copy and Credit can change any of them; what was entered shows on
          the right of each row, a changed one is highlighted -->
     <div v-if="deciding && t && o" class="cfl-cols">
-      <div class="cfl-stack">
+      <fieldset class="cfl-stack cfs-fs" :disabled="view">
         <div class="cfl-box">
           <h3>{{ tr('Amount and term') }}<small>{{ tr('entered value on the right') }}</small></h3>
           <table class="cfl-rows"><tbody>
@@ -114,12 +120,12 @@
                 </span></span></td></tr>
           </tbody></table>
         </div>
-      </div>
+      </fieldset>
       <div class="cfl-stack">
         <div v-if="charges" class="cfl-key">
           <h3>{{ tr('Charges — your decision') }}<CfRulesButton :loan-id="loan.loanId" :step="step.stepCode" :title="`${loan.loanNumber} · ${tr(step.stepName)}`" :choices="rulesChoices" /></h3>
           <p v-if="charges.problem" class="cfl-note bad cfl-pad">{{ charges.problem }}</p>
-          <table v-else-if="charges.charges.length" class="cfl-rows"><tbody>
+          <fieldset v-else-if="charges.charges.length" class="cfs-fs" :disabled="view"><table class="cfl-rows"><tbody>
             <tr v-for="c in charges.charges" :key="c.chargeCode">
               <td>
                 <div><b>{{ tr(c.chargeName) }}</b> <small class="cfs-basis">· {{ tr(c.basisText) || '—' }} · {{ tr('rule') }} {{ money(c.ruleAmount) }}</small></div>
@@ -134,7 +140,7 @@
                 </div>
               </td>
             </tr>
-          </tbody></table>
+          </tbody></table></fieldset>
           <p v-else class="cfl-note cfl-pad">{{ tr('The rule has no charges.') }}</p>
           <div v-if="!charges.problem" class="cfl-tiles">
             <div class="cfl-tile"><small>{{ tr('Financed') }}</small><b>{{ money(totals.financed) }}</b></div>
@@ -142,7 +148,7 @@
             <div class="cfl-tile hl"><small>{{ tr('Finance amount') }}</small><b>{{ money(totals.financed + totals.added) }}</b></div>
             <div class="cfl-tile hl"><small>{{ tr('Upfront claim') }}</small><b>{{ money(totals.upfront + claimDown) }}</b></div>
           </div>
-          <p v-if="step.claimAtCredit && !charges.problem" class="cfl-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
+          <p v-if="step.claimAtCredit && !charges.problem && !view" class="cfl-note"><span class="fa fa-info-circle" aria-hidden="true"></span>
             <template v-if="totals.upfront + claimDown > 0">{{ tr('Approve books the claim') }} {{ money(totals.upfront + claimDown) }}<template v-if="totals.upfront"> ({{ tr('rule CF_CHARGES posts the upfront charges') }} {{ money(totals.upfront) }})</template>.
               {{ tr('It is paid in Collection; the schedule step waits until it is paid.') }}</template>
             <template v-else>{{ tr('Nothing upfront: no claim, nothing posts on Approve.') }}</template>
@@ -154,7 +160,7 @@
     </div>
 
     <!-- Charges and claim (finances started before 27 Nov 2026): Credit's decision on the left, the claim on the right -->
-    <div v-if="step.stepCode === 'CF_CHARGES' && step.isMine" class="cfl-cols">
+    <div v-if="step.stepCode === 'CF_CHARGES' && (step.isMine || view)" class="cfl-cols">
       <div class="cfl-box">
         <h3>{{ tr('Charges') }}<small>{{ tr('decided by Credit') }}</small></h3>
         <p v-if="charges?.problem" class="cfl-note bad cfl-pad">{{ charges.problem }}</p>
@@ -172,7 +178,7 @@
             <div class="cfl-tile"><small>{{ tr('Down payment we take') }}</small><b>{{ money(claimDown) }}</b></div>
             <div class="cfl-tile hl"><small>{{ tr('Claim') }}</small><b>{{ money(claimCharges + claimDown) }}</b></div>
           </div>
-          <p class="cfl-note"><button type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="createClaim">
+          <p v-if="!view" class="cfl-note"><button type="button" class="fx-btn fx-btn--teal fx-btn--sm" :disabled="busy" @click="createClaim">
             <span class="fa" :class="busy ? 'fa-spinner fa-spin' : 'fa-file-text-o'" aria-hidden="true"></span>{{ tr(claimCharges + claimDown ? 'Create claim' : 'Confirm nothing upfront') }}</button></p>
         </template>
         <p v-else-if="loan.claim.statusCode === 'NONE'" class="cfl-note cfl-pad">{{ tr('Nothing is paid upfront. Accept to go on to the schedule.') }}</p>
@@ -217,10 +223,16 @@
     <CfClaimDialog v-model:visible="claimShown" :loan-id="loan.loanId" :show-finance="false" />
 
     <!-- Delivery and customer receipt: the delivery on the left, what Accept books on the right -->
-    <div v-if="step.stepCode === 'CF_DELIVERY' && step.isMine" class="cfl-cols">
+    <div v-if="step.stepCode === 'CF_DELIVERY' && (step.isMine || view)" class="cfl-cols">
       <div class="cfl-box">
         <h3>{{ tr('Delivery') }}</h3>
-        <table class="cfl-rows"><tbody>
+        <table v-if="view" class="cfl-rows"><tbody>
+          <tr><td class="cfl-l">{{ tr('Delivered on') }}</td><td class="cfl-v">{{ loan.delivery?.deliveryDate ?? '—' }}</td></tr>
+          <tr><td class="cfl-l">{{ tr('Delivery note no.') }}</td><td class="cfl-v">{{ loan.delivery?.deliveryNoteNo ?? '—' }}</td></tr>
+          <tr><td class="cfl-l">{{ tr('Serial / IMEI') }}</td><td class="cfl-v">{{ loan.delivery?.serialNo || '—' }}</td></tr>
+          <tr><td class="cfl-l">{{ tr('Supplier paid by') }}</td><td class="cfl-v">{{ loan.delivery?.supplierPaymentDueDate ?? '—' }}</td></tr>
+        </tbody></table>
+        <table v-else class="cfl-rows"><tbody>
           <tr><td class="cfl-l">{{ tr('Delivered on') }} *</td><td class="cfl-v"><input v-model="delivery.deliveryDate" type="date" class="fx-search" :max="todayIso"></td>
             <td class="cfl-h">{{ tr('not before the schedule step, not in the future') }}</td></tr>
           <tr><td class="cfl-l">{{ tr('Delivery note no.') }} *</td><td class="cfl-v"><input v-model="delivery.deliveryNoteNo" class="fx-search" maxlength="50"></td><td class="cfl-h"></td></tr>
@@ -243,10 +255,16 @@
     </div>
 
     <!-- Supplier payment: the payment on the left, what the supplier gets on the right -->
-    <div v-if="step.stepCode === 'CF_SUPPLIER_PAYMENT' && step.isMine && step.supplierDue" class="cfl-cols">
+    <div v-if="step.stepCode === 'CF_SUPPLIER_PAYMENT' && (step.isMine || view) && step.supplierDue" class="cfl-cols">
       <div class="cfl-box">
         <h3>{{ tr('Supplier payment') }}</h3>
-        <table class="cfl-rows"><tbody>
+        <table v-if="view" class="cfl-rows"><tbody>
+          <tr><td class="cfl-l">{{ tr('Transfer reference') }}</td><td class="cfl-v">{{ loan.supplierPayment?.reference ?? '—' }}</td></tr>
+          <tr><td class="cfl-l">{{ tr('Commission') }}</td><td class="cfl-v">{{ money(loan.supplierPayment?.commissionAmount ?? 0) }}<template v-if="loan.supplierPayment?.commissionReason"> · {{ loan.supplierPayment.commissionReason }}</template></td></tr>
+          <tr><td class="cfl-l">{{ tr('Net paid') }}</td><td class="cfl-v">{{ money(loan.supplierPayment?.netAmount ?? 0) }}</td></tr>
+          <tr><td class="cfl-l">{{ tr('Paid') }}</td><td class="cfl-v">{{ loan.supplierPayment?.paidBy ?? '' }}</td></tr>
+        </tbody></table>
+        <table v-else class="cfl-rows"><tbody>
           <tr><td class="cfl-l">{{ tr('Paid from') }} *</td><td class="cfl-v">
             <select v-model="sp.bankAccountId" class="fx-select">
               <option :value="null" disabled>{{ tr('Choose the bank account') }}</option>
@@ -292,7 +310,7 @@ import CfClaimDialog from './CfClaimDialog.vue'
 import CfRulesButton from './CfRulesButton.vue'
 import { CLAIM_LABELS, loansApi, type CfCharge, type CfCreditDecision, type CfStep, type CfTerms, type Loan } from '../api/loans.api'
 
-const props = defineProps<{ loan: Loan; version: number }>()
+const props = defineProps<{ loan: Loan; version: number; viewStep?: string | null }>()
 const emit = defineEmits<{ changed: [] }>()
 const route = useRoute()
 const router = useRouter()
@@ -314,7 +332,7 @@ const ROLE: Record<string, string> = {
 
 const step = ref<CfStep | null>(null)
 /** Rules and GL sits in the box it explains (Ahmed, 27 Nov 2026); someone viewing a step that is not theirs sees it in the title line. */
-const rulesInBox = computed(() => !!step.value && (step.value.isMine || step.value.stepCode === 'CF_SCHEDULE')
+const rulesInBox = computed(() => !!step.value && (step.value.isMine || step.value.viewOnly || step.value.stepCode === 'CF_SCHEDULE')
   && ['CF_CREDIT', 'CF_CHARGES', 'CF_SCHEDULE', 'CF_DELIVERY', 'CF_SUPPLIER_PAYMENT'].includes(step.value.stepCode))
 /** What Credit has on the screen, for Rules and GL (not saved until Approve). */
 const rulesChoices = computed(() => (deciding.value && charges.value ? {
@@ -365,7 +383,9 @@ const money = (n: number) => new Intl.NumberFormat('en-US', { minimumFractionDig
 
 const charges = computed(() => step.value?.charges ?? null)
 /** Credit decides on its own task; later steps only show the decision. */
-const deciding = computed(() => step.value?.stepCode === 'CF_CREDIT' && step.value.isMine)
+const deciding = computed(() => step.value?.stepCode === 'CF_CREDIT' && (step.value.isMine || step.value.viewOnly))
+/** A completed step opened view only. */
+const view = computed(() => !!step.value?.viewOnly)
 const timing = (c: CfCharge) => timings.value[c.chargeCode] ?? c.timingCode
 /** The amount Credit typed (an empty box counts as the rule's amount); the tax follows it. */
 const amountOf = (c: CfCharge) => {
@@ -422,11 +442,12 @@ const message = (err: unknown) => (err instanceof Error ? err.message : String(e
 
 async function load() {
   try {
-    step.value = await loansApi.cfStep(props.loan.loanId, inboxId())
+    step.value = await loansApi.cfStep(props.loan.loanId, props.viewStep ? null : inboxId(), undefined, props.viewStep ?? null)
     timings.value = {}
     touched.clear()
     amounts.value = Object.fromEntries((step.value?.charges?.charges ?? []).map((c) => [c.chargeCode, c.amount]))
     t.value = step.value?.terms ? { ...step.value.terms, paymentOrder: [...step.value.terms.paymentOrder] } : null
+    moreOpen.value = !!step.value?.viewOnly
   } catch (err) {
     showError(message(err))
   }
@@ -482,7 +503,7 @@ async function complete(action: 'ACCEPT' | 'REJECT') {
   }
 }
 
-watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { immediate: true })
+watch(() => [props.loan.loanId, props.version, route.query.inboxId, props.viewStep], load, { immediate: true })
 </script>
 
 <style scoped>
@@ -536,6 +557,13 @@ watch(() => [props.loan.loanId, props.version, route.query.inboxId], load, { imm
 .cfs-pay .fc-field { min-width: 180px; }
 .cfs-note { margin: 12px 0 0; font-size: 13px; color: #34495a; }
 .cfs-note .fa { color: var(--fin-teal-700); margin-inline-end: 6px; }
+.fc-viewonly { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px 0; padding: 10px 14px; border-radius: 8px; background: var(--fin-teal-50);
+  color: var(--fin-ink); font-weight: 600; }
+.fc-viewonly .fa { color: var(--fin-teal-600); }
+.fc-viewonly-gl { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-inline-start: auto; }
+.fc-viewonly-none { color: #34495a; font-weight: 400; }
+.fc-ref { color: var(--fin-teal-700, #0b5c64); }
+.cfs-fs { margin: 0; padding: 0; border: 0; min-width: 0; }
 .cfs-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
 .cfs-comment { flex: 1; min-width: 0; height: 36px; }
 </style>

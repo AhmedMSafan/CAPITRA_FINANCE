@@ -68,6 +68,14 @@
               <td>
                 <span class="fx-chip" :class="CHIP[l.statusCode] ?? 'fx-chip--plain'">{{ tr(STATUS[l.statusCode] ?? l.statusCode) }}</span>
                 <small v-if="l.stepName" class="fc-muted"> · {{ tr(l.stepName) }}</small>
+                <!-- each completed step opens view only, with its GL (28 Nov 2026, as in the factoring workspace) -->
+                <div v-if="l.completedSteps?.length" class="fc-done-steps">
+                  <RouterLink v-for="s in l.completedSteps" :key="s.stepCode" class="fc-done-step"
+                              :to="{ name: 'lnd-loan', params: { loanId: l.loanId }, query: { step: s.stepCode, view: '1' } }"
+                              :title="`${tr('Open the completed step, view only')}${s.doneBy ? ' · ' + s.doneBy : ''}`">
+                    <span class="fa fa-check" aria-hidden="true"></span>{{ tr(s.stepName) }}
+                    <small v-if="s.glTranSetIds.length" class="fc-done-gl">GL {{ s.glTranSetIds.join(', ') }}</small></RouterLink>
+                </div>
                 <span v-if="l.isNonAccrual" class="fx-chip fx-chip--bad">{{ tr('Non-accrual') }}</span>
               </td>
               <td class="fx-r">{{ money(l.principalAmount) }}</td>

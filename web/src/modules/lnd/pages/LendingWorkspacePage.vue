@@ -10,18 +10,16 @@
           <p>{{ tr('Microfinance and consumer finance customers, their finances and payments.') }}</p>
         </div>
       </div>
+      <div class="lw-top">
+        <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('All finances') }}</RouterLink>
       <RouterLink to="/workflow/inbox" class="fc-inbox">
         <span class="fc-inbox-ic" aria-hidden="true"><span class="fa fa-envelope-o"></span></span>
         <span class="fc-inbox-copy"><b>{{ tr('Workflow Inbox') }}</b><small>{{ tr('View and process your assigned workflow tasks') }}</small></span>
         <em>{{ inboxCount }}</em>
         <span class="fa fa-arrow-right" aria-hidden="true"></span>
       </RouterLink>
+      </div>
     </div>
-
-    <nav class="lw-links" :aria-label="tr('Retail Lending')">
-      <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('All finances') }}</RouterLink>
-      <label class="lw-only"><input v-model="withLoans" type="checkbox" @change="page = 1"> {{ tr('Only customers with active finances') }}</label>
-    </nav>
 
     <div class="fx-card fx-card-pad fc-filters">
       <label class="fc-field">
@@ -38,6 +36,7 @@
           <option v-for="t in clientTypes" :key="t" :value="t">{{ t === ALL ? tr(ALL) : t }}</option>
         </select>
       </label>
+      <label class="lw-only"><input v-model="withLoans" type="checkbox" @change="page = 1"> {{ tr('Only customers with active finances') }}</label>
       <div class="fc-filter-actions">
         <button type="button" class="fx-btn fx-btn--teal" @click="search"><span class="fa fa-search" aria-hidden="true"></span>{{ tr('Search') }}</button>
         <button type="button" class="fx-btn" @click="clearFilters"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
@@ -175,6 +174,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.lw-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
-.lw-only { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fin-muted); }
+.lw-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lw-only { display: inline-flex; align-items: center; gap: 6px; align-self: end; height: 40px; font-size: 13px; color: #34495a; white-space: nowrap; }
 </style>

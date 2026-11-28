@@ -98,7 +98,7 @@ onMounted(load)
 @import '@/modules/crm/components/crm360.css';
 .ln-filter { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) auto; gap: 10px; padding: 12px 4px; align-items: end; }
 .ln-f { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: #34495a; }
-.ln-f .fx-search, .ln-f .fx-select { width: 100%; }
+.ln-f .fx-search, .ln-f .fx-select { flex: none; width: 100%; height: 38px; min-height: 0; }
 @media (max-width: 1100px) { .ln-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .ln-row { cursor: pointer; }
 .ln-num { text-align: end; white-space: nowrap; }

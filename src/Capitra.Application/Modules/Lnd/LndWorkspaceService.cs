@@ -19,7 +19,7 @@ public sealed record LndWsCustomerDto(
 public sealed record LndWsLoanDto(
     long LoanId, string LoanNumber, string ProductCode, string ProductName, string LicenceCode, string StatusCode, decimal PrincipalAmount,
     decimal PrincipalOutstanding, decimal OverdueAmount, int DaysLate, bool IsNonAccrual, DateOnly? NextDueDate, decimal NextDueAmount,
-    DateOnly DisbursementDate, DateOnly MaturityDate, string? StepName = null);
+    DateOnly DisbursementDate, DateOnly MaturityDate, string? StepName = null, IReadOnlyList<LndCfStepViewDto>? CompletedSteps = null);
 
 /// <summary>
 /// A consumer finance's upfront claim, like a factoring claim (created when Credit approves): OPEN (unpaid), PARTIALLY_PAID, PAID or
@@ -45,7 +45,7 @@ public sealed record LndWorkspaceDto(
 /// customer everything of microfinance and consumer finance in one place: the summary, the loans and the payments. Loans are opened,
 /// paid out and paid on their own page; a new loan starts here with the customer filled in.
 /// </summary>
-public sealed class LndWorkspaceService(ICapitraDbContext db, IClock clock, LndReceiptService receipts)
+public sealed class LndWorkspaceService(ICapitraDbContext db, IClock clock, LndReceiptService receipts, LndCfStepsService cfSteps)
 {
     public async Task<IReadOnlyList<LndWsCustomerDto>> ListCustomersAsync(CancellationToken cancellationToken)
     {
@@ -99,6 +99,14 @@ public sealed class LndWorkspaceService(ICapitraDbContext db, IClock clock, LndR
                 next is null ? 0 : LndReceiptService.Owed(next).Values.Sum(), x.l.DisbursementDate, x.l.MaturityDate,
                 x.l.WorkflowInstanceId is { } run ? openSteps.GetValueOrDefault(run) : null);
         }).ToList();
+        // the completed steps of each consumer finance, each opens view only with its GL tran sets (28 Nov 2026, the factoring standard)
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var loan = loans[i].l;
+            if (loan.WorkflowInstanceId is null || loan.SupplierApplicationId is null) continue;
+            var done = (await cfSteps.StepsAsync(loan, cancellationToken)).Where(x => x.Status == LndCfStepsService.Done && x.StepCode != "CF_NEW").ToList();
+            if (done.Count > 0) rows[i] = rows[i] with { CompletedSteps = done };
+        }
 
         // the upfront claims of the consumer finances, once created (Ahmed, 27 Nov 2026: a claim not created yet is not listed)
         var claimDates = (await db.Set<LndLoanEvent>().AsNoTracking().Where(x => ids.Contains(x.LoanId) && x.EventCode == "CF_CLAIM")
