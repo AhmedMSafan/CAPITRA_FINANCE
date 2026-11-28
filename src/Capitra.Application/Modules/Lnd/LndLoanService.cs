@@ -43,7 +43,8 @@ public sealed record LndLoanPreviewDto(
 
 public sealed record LndLoanListDto(
     long LoanId, string LoanNumber, long ClientId, string ClientName, string ProductCode, string ProductName, string LicenceCode, string StatusCode,
-    decimal PrincipalAmount, int TermMonths, decimal InstallmentAmount, DateOnly DisbursementDate, DateOnly MaturityDate, DateTime CreatedAt);
+    decimal PrincipalAmount, int TermMonths, decimal InstallmentAmount, DateOnly DisbursementDate, DateOnly MaturityDate, DateTime CreatedAt,
+    string ClientNumber = "");
 
 public sealed record LndInstallmentDto(
     int InstallmentNo, DateOnly DueDate, decimal OpeningPrincipal, decimal PrincipalDue, decimal InterestDue, decimal ChargesDue, decimal InsuranceDue,
@@ -131,7 +132,7 @@ public sealed class LndLoanService(
                join p in db.Set<AdmProduct>().AsNoTracking() on l.ProductId equals p.ProductId
                orderby l.LoanId descending
                select new LndLoanListDto(l.LoanId, l.LoanNumber, l.ClientId, c.ClientName, p.ProductCode, p.ProductNameEn, l.LicenceCode, l.StatusCode,
-                   l.PrincipalAmount, l.TermMonths, l.InstallmentAmount, l.DisbursementDate, l.MaturityDate, l.CreatedAt))
+                   l.PrincipalAmount, l.TermMonths, l.InstallmentAmount, l.DisbursementDate, l.MaturityDate, l.CreatedAt, c.ClientNumber))
             .Take(500).ToListAsync(cancellationToken);
 
     /// <summary>The lending products with a version in force today, for the New Loan form.</summary>

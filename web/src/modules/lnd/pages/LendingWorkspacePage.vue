@@ -20,8 +20,6 @@
 
     <nav class="lw-links" :aria-label="tr('Retail Lending')">
       <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('All finances') }}</RouterLink>
-      <RouterLink :to="{ name: 'lnd-eod' }" class="fx-btn"><span class="fa fa-clock-o" aria-hidden="true"></span>{{ tr('End of Day') }}</RouterLink>
-      <RouterLink :to="{ name: 'lnd-parameters' }" class="fx-btn"><span class="fa fa-sliders" aria-hidden="true"></span>{{ tr('Lending Parameters') }}</RouterLink>
       <label class="lw-only"><input v-model="withLoans" type="checkbox" @change="page = 1"> {{ tr('Only customers with active finances') }}</label>
     </nav>
 

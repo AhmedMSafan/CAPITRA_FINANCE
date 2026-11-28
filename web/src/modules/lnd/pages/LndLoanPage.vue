@@ -5,14 +5,15 @@
       <div>
         <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
           <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span>
-          <RouterLink :to="{ name: 'lnd-loans' }">{{ tr('Finances') }}</RouterLink><span aria-hidden="true">›</span>
+          <RouterLink :to="{ name: 'lnd-workspace' }">{{ tr('Lending Workspace') }}</RouterLink><span aria-hidden="true">›</span>
+          <template v-if="loan"><RouterLink :to="{ name: 'lnd-customer', params: { clientId: loan.clientId } }">{{ loan.clientName }}</RouterLink><span aria-hidden="true">›</span></template>
           <b>{{ loan?.loanNumber ?? '' }}</b>
         </nav>
         <h1>{{ loan?.loanNumber ?? tr('Finance') }} <span v-if="loan" class="fx-chip" :class="CHIP[loan.statusCode] ?? 'fx-chip--teal'">{{ tr(STATUS[loan.statusCode] ?? loan.statusCode) }}</span></h1>
       </div>
       <div class="fx-actions">
         <button v-if="loan && canEdit && loan.statusCode === 'APPROVED' && !loan.goods?.supplierApplicationId" type="button" class="fx-btn" @click="cancelling = true"><span class="fa fa-ban" aria-hidden="true"></span>{{ tr('Cancel finance') }}</button>
-        <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Finances') }}</RouterLink>
+        <RouterLink :to="loan ? { name: 'lnd-customer', params: { clientId: loan.clientId } } : { name: 'lnd-workspace' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to customer') }}</RouterLink>
       </div>
     </div>
 

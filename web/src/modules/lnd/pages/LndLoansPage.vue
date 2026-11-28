@@ -1,24 +1,30 @@
 <template>
-  <!-- Retail Lending > Finance: every finance; New Finance opens its own page. -->
+  <!-- All finances (Ahmed, 28 Nov 2026): opened from the Lending Workspace only; searched by finance no., customer, amount and status.
+       A new finance starts from a customer's workspace. -->
   <div class="fx fc">
     <div class="fx-head">
       <div>
         <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
           <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span>
-          <b>{{ tr('Retail Lending') }}</b>
+          <RouterLink :to="{ name: 'lnd-workspace' }">{{ tr('Lending Workspace') }}</RouterLink><span aria-hidden="true">›</span>
+          <b>{{ tr('All finances') }}</b>
         </nav>
-        <h1>{{ tr('Finances') }}</h1>
+        <h1>{{ tr('All finances') }}</h1>
       </div>
       <div class="fx-actions">
-        <RouterLink :to="{ name: 'lnd-parameters' }" class="fx-btn"><span class="fa fa-sliders" aria-hidden="true"></span>{{ tr('Lending Parameters') }}</RouterLink>
-        <RouterLink v-if="canEdit" :to="{ name: 'lnd-finance-new' }" class="fx-btn fx-btn--teal"><span class="fa fa-plus" aria-hidden="true"></span>{{ tr('New Finance') }}</RouterLink>
+        <RouterLink :to="{ name: 'lnd-workspace' }" class="fx-btn"><span class="fa fa-arrow-left" aria-hidden="true"></span>{{ tr('Back to Lending Workspace') }}</RouterLink>
       </div>
     </div>
 
     <section class="fx-card">
       <div class="ln-filter">
-        <input v-model="search" class="fx-search" :placeholder="tr('Search by finance number, customer or product')">
-        <select v-model="status" class="fx-select"><option value="">{{ tr('All statuses') }}</option><option v-for="s in Object.keys(STATUS)" :key="s" :value="s">{{ tr(STATUS[s]!) }}</option></select>
+        <label class="ln-f"><span>{{ tr('Finance No') }}</span><input v-model="f.number" class="fx-search"></label>
+        <label class="ln-f"><span>{{ tr('Customer Name') }}</span><input v-model="f.name" class="fx-search"></label>
+        <label class="ln-f"><span>{{ tr('Customer Number') }}</span><input v-model="f.clientNumber" class="fx-search"></label>
+        <label class="ln-f"><span>{{ tr('Amount from') }}</span><input v-model.number="f.from" type="number" min="0" step="any" class="fx-search"></label>
+        <label class="ln-f"><span>{{ tr('Amount to') }}</span><input v-model.number="f.to" type="number" min="0" step="any" class="fx-search"></label>
+        <label class="ln-f"><span>{{ tr('Status') }}</span><select v-model="f.status" class="fx-select"><option value="">{{ tr('All statuses') }}</option><option v-for="s in Object.keys(STATUS)" :key="s" :value="s">{{ tr(STATUS[s]!) }}</option></select></label>
+        <button type="button" class="fx-btn ln-clear" @click="clear"><span class="fa fa-refresh" aria-hidden="true"></span>{{ tr('Clear') }}</button>
       </div>
       <div class="fx-table-wrap">
         <table class="fx-table">
@@ -28,7 +34,7 @@
           <tbody>
             <tr v-for="l in rows" :key="l.loanId" class="ln-row" @click="router.push({ name: 'lnd-loan', params: { loanId: l.loanId } })">
               <td><b>{{ l.loanNumber }}</b></td>
-              <td>{{ l.clientName }}</td>
+              <td>{{ l.clientName }} <small class="c3-muted">{{ l.clientNumber }}</small></td>
               <td>{{ l.productName }} <small class="c3-muted">{{ l.licenceCode }}</small></td>
               <td><span class="fx-chip" :class="CHIP[l.statusCode] ?? 'fx-chip--teal'">{{ tr(STATUS[l.statusCode] ?? l.statusCode) }}</span></td>
               <td class="ln-num">{{ money(l.principalAmount) }}</td>
@@ -51,9 +57,8 @@
 import 'font-awesome/css/font-awesome.min.css'
 import '@/shared/styles/apex-fx-inbox.css'
 import '@/modules/fct/pages/factoring.css'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { hasPermission } from '@/shared/auth/session'
 import { showError } from '@/shared/feedback/feedback'
 import { formatDate } from '@/shared/format/datetime'
 import { tr } from '@/shared/layout/language'
@@ -65,16 +70,16 @@ const egp = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFr
 const money = (n: number) => egp.format(n)
 
 const router = useRouter()
-const canEdit = hasPermission('LND.LOAN.EDIT')
 const loans = ref<LoanListItem[]>([])
 const loading = ref(false)
-const search = ref('')
-const status = ref('')
-const rows = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  return loans.value.filter((l) => (!status.value || l.statusCode === status.value)
-    && (!q || `${l.loanNumber} ${l.clientName} ${l.productName} ${l.productCode}`.toLowerCase().includes(q)))
-})
+const f = reactive({ number: '', name: '', clientNumber: '', from: '' as number | '', to: '' as number | '', status: '' })
+const has = (text: string, q: string) => !q.trim() || text.toLowerCase().includes(q.trim().toLowerCase())
+const rows = computed(() => loans.value.filter((l) => has(l.loanNumber, f.number) && has(l.clientName, f.name) && has(l.clientNumber ?? '', f.clientNumber)
+  && (f.from === '' || l.principalAmount >= Number(f.from)) && (f.to === '' || l.principalAmount <= Number(f.to))
+  && (!f.status || l.statusCode === f.status)))
+function clear() {
+  Object.assign(f, { number: '', name: '', clientNumber: '', from: '', to: '', status: '' })
+}
 
 async function load() {
   loading.value = true
@@ -91,8 +96,10 @@ onMounted(load)
 
 <style scoped>
 @import '@/modules/crm/components/crm360.css';
-.ln-filter { display: flex; gap: 10px; padding: 12px 4px; flex-wrap: wrap; }
-.ln-filter .fx-search { flex: 1; min-width: 220px; }
+.ln-filter { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) auto; gap: 10px; padding: 12px 4px; align-items: end; }
+.ln-f { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: #34495a; }
+.ln-f .fx-search, .ln-f .fx-select { width: 100%; }
+@media (max-width: 1100px) { .ln-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .ln-row { cursor: pointer; }
 .ln-num { text-align: end; white-space: nowrap; }
 .c3-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
