@@ -63,9 +63,6 @@ export const appMenu: MenuGroup[] = [
     icon: 'pi pi-shopping-cart',
     links: [
       { label: 'Lending Workspace', to: { name: 'lnd-workspace' } },
-      { label: 'Finances', to: { name: 'lnd-loans' } },
-      { label: 'Lending end of day', to: { name: 'lnd-eod' } },
-      { label: 'Lending Parameters', to: { name: 'lnd-parameters' } },
       { label: 'Finance Calculator', to: { name: 'tls-loan-calculator' } }
     ]
   },
@@ -90,7 +87,8 @@ export const appMenu: MenuGroup[] = [
     icon: 'pi pi-moon',
     links: [
       { label: 'Run end of day', to: { name: 'eod-home' } },
-      { label: 'End of Day jobs', to: { name: 'eod-jobs' } }
+      { label: 'End of Day jobs', to: { name: 'eod-jobs' } },
+      { label: 'Lending end of day', to: { name: 'lnd-eod' } }
     ]
   },
   {
@@ -135,7 +133,8 @@ export const appMenu: MenuGroup[] = [
       { label: 'Administration', to: '/admin', icon: 'pi pi-cog' },
       { label: 'Users', to: '/admin/users', icon: 'pi pi-users' },
       { label: 'Roles', to: '/admin/roles', icon: 'pi pi-shield' },
-      { label: 'Reference Data', to: '/admin/reference-data', icon: 'pi pi-list' }
+      { label: 'Reference Data', to: '/admin/reference-data', icon: 'pi pi-list' },
+      { label: 'Lending Parameters', to: { name: 'lnd-parameters' }, icon: 'pi pi-sliders-h' }
     ]
   }
 ]

@@ -125,7 +125,7 @@ const router = useRouter()
 // from a customer (?clientId=): the customer is filled in and cannot be changed
 const fixedClientId = Number(route.query.clientId) || null
 const clientLabel = ref('')
-const back = computed(() => (fixedClientId ? { name: 'lnd-customer', params: { clientId: fixedClientId } } : { name: 'lnd-loans' }))
+const back = computed(() => (fixedClientId ? { name: 'lnd-customer', params: { clientId: fixedClientId } } : { name: 'lnd-workspace' }))
 
 const busy = ref(false)
 const clients = ref<LoanOption[]>([])
@@ -215,7 +215,8 @@ async function create() {
   const loan = await call(() => loansApi.create(body()))
   if (!loan) return
   showSuccess(loan.statusCode === 'IN_APPROVAL' ? `${tr('Finance submitted for credit approval:')} ${loan.loanNumber}` : `${tr('Finance created:')} ${loan.loanNumber}`)
-  router.push({ name: 'lnd-loan', params: { loanId: loan.loanId } })
+  // back to the customer's workspace (Ahmed, 28 Nov 2026), where the new finance shows on the Finances tab
+  router.push({ name: 'lnd-customer', params: { clientId: loan.clientId } })
 }
 
 onMounted(async () => {

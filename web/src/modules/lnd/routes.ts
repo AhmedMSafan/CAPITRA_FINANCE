@@ -16,7 +16,7 @@ export const lndRoutes: RouteRecordRaw[] = [
   { path: 'lnd/eod', name: 'lnd-eod', component: () => import('./pages/LndEodPage.vue'), meta: meta('End of Day') },
   // New Finance: a full page; from a customer, the customer comes filled in (?clientId=)
   { path: 'lending/finance/new', name: 'lnd-finance-new', component: () => import('./pages/LndFinanceNewPage.vue'), meta: meta('New Finance') },
-  { path: 'lnd/loans', name: 'lnd-loans', component: () => import('./pages/LndLoansPage.vue'), meta: meta('Loans') },
+  { path: 'lnd/loans', name: 'lnd-loans', component: () => import('./pages/LndLoansPage.vue'), meta: meta('All finances') },
   {
     path: 'lnd/loans/:loanId(\\d+)', name: 'lnd-loan', component: () => import('./pages/LndLoanPage.vue'),
     props: (r) => ({ loanId: Number(r.params.loanId) }), meta: meta('Loan')

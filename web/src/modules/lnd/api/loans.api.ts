@@ -94,6 +94,7 @@ export type LoanPreview = {
 export type LoanListItem = {
   loanId: number; loanNumber: string; clientId: number; clientName: string; productCode: string; productName: string; licenceCode: string
   statusCode: string; principalAmount: number; termMonths: number; installmentAmount: number; disbursementDate: string; maturityDate: string; createdAt: string
+  clientNumber: string
 }
 
 export type Installment = {

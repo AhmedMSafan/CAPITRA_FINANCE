@@ -7,13 +7,12 @@
       <div>
         <nav class="fc-crumbs" :aria-label="tr('Breadcrumb')">
           <RouterLink to="/">{{ tr('Home') }}</RouterLink><span aria-hidden="true">›</span>
-          <RouterLink :to="{ name: 'lnd-loans' }">{{ tr('Retail Lending') }}</RouterLink><span aria-hidden="true">›</span>
-          <b>{{ tr('End of Day') }}</b>
+          <RouterLink :to="{ name: 'eod-home' }">{{ tr('End of Day') }}</RouterLink><span aria-hidden="true">›</span>
+          <b>{{ tr('Lending end of day') }}</b>
         </nav>
         <h1>{{ tr('End of Day') }}</h1>
       </div>
       <div class="fx-actions">
-        <RouterLink :to="{ name: 'lnd-loans' }" class="fx-btn"><span class="fa fa-list" aria-hidden="true"></span>{{ tr('Finances') }}</RouterLink>
         <RouterLink :to="{ name: 'eod-home' }" class="fx-btn fx-btn--teal"><span class="fa fa-moon-o" aria-hidden="true"></span>{{ tr('Run in End of Day') }}</RouterLink>
       </div>
     </div>

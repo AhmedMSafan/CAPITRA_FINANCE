@@ -770,5 +770,8 @@ export const LND_AR: Record<string, string> = {
   'The charges are waived (0): nothing posts.': 'الرسوم معفاة (0): لا يوجد قيد.',
   'Nothing to post on this finance yet.': 'لا يوجد ما يُقيد على هذا التمويل بعد.',
   'No rule on this step': 'لا توجد قاعدة لهذه الخطوة',
-  'It posts nothing.': 'لا يوجد قيد.'
+  'It posts nothing.': 'لا يوجد قيد.',
+  'Back to customer': 'العودة إلى العميل',
+  'Amount from': 'المبلغ من',
+  'Amount to': 'المبلغ إلى'
 }
