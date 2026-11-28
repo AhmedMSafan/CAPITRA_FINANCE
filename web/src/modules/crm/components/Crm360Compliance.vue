@@ -8,7 +8,7 @@
         <span class="fx-chip" :class="tone(badge.code)">{{ tr(badge.label) }}</span>
         <div class="c3-actions">
           <button v-if="canEdit" type="button" class="fx-btn" @click="openEdit"><span class="fa fa-pencil" aria-hidden="true"></span>{{ tr('Edit') }}</button>
-          <button v-if="canVerify" type="button" class="fx-btn fx-btn--teal" :disabled="!state.canVerify" :title="state.verifyBlockedReason ? tr(state.verifyBlockedReason) : ''"
+          <button v-if="canVerify && !individual" type="button" class="fx-btn fx-btn--teal" :disabled="!state.canVerify" :title="state.verifyBlockedReason ? tr(state.verifyBlockedReason) : ''"
                   @click="verifying = true">
             <span class="fa fa-check-circle" aria-hidden="true"></span>{{ tr('Verify') }}
           </button>
@@ -16,21 +16,21 @@
       </header>
       <ul v-if="badge.reasons.length" class="c3-reasons"><li v-for="r in badge.reasons" :key="r">{{ tr(r) }}</li></ul>
       <dl class="c3-facts">
-        <div><dt>{{ tr('Risk Grade') }}</dt><dd>{{ p.riskGrade || '—' }}</dd></div>
+        <div v-if="!individual"><dt>{{ tr('Risk Grade') }}</dt><dd>{{ p.riskGrade || '—' }}</dd></div>
         <div><dt>{{ tr('KYC Status') }}</dt><dd><span class="fx-chip" :class="chip(p.kycStatus)">{{ p.kycStatus || '—' }}</span></dd></div>
         <div><dt>{{ tr('KYC Expiry') }}</dt><dd>{{ formatDate(p.kycExpiryDate) || '—' }}</dd></div>
         <div><dt>{{ tr('AML') }}</dt><dd><span class="fx-chip" :class="chip(p.amlStatus)">{{ p.amlStatus || '—' }}</span></dd></div>
         <div><dt>{{ tr('AML Check Date') }}</dt><dd>{{ formatDate(p.amlCheckDate) || '—' }}</dd></div>
         <div><dt>{{ tr('Sanctions') }}</dt><dd><span class="fx-chip" :class="chip(p.sanctionsStatus)">{{ p.sanctionsStatus || '—' }}</span></dd></div>
-        <div><dt>{{ tr('PEP-related') }}</dt><dd>{{ tr(pepRelated ? 'Yes' : 'No') }} <small class="c3-muted">· {{ tr('from its owners and signatories') }}</small></dd></div>
+        <div v-if="!individual"><dt>{{ tr('PEP-related') }}</dt><dd>{{ tr(pepRelated ? 'Yes' : 'No') }} <small class="c3-muted">· {{ tr('from its owners and signatories') }}</small></dd></div>
         <div><dt>{{ tr('Blacklisted') }}</dt><dd>{{ tr(p.isBlacklisted ? 'Yes' : 'No') }}<template v-if="p.blacklistReason"> · {{ p.blacklistReason }}</template></dd></div>
-        <div><dt>{{ tr('Next Review') }}</dt><dd>{{ formatDate(p.nextReviewDate) || '—' }}</dd></div>
+        <div v-if="!individual"><dt>{{ tr('Next Review') }}</dt><dd>{{ formatDate(p.nextReviewDate) || '—' }}</dd></div>
         <div><dt>{{ tr('Last Changed') }}</dt><dd>{{ state.changedBy ? `${state.changedBy} · ${formatDateTime(state.changedAt)}` : '—' }}</dd></div>
-        <div><dt>{{ tr('Verified') }}</dt><dd>{{ state.verifiedBy ? `${state.verifiedBy} · ${formatDateTime(state.verifiedAt)}` : tr('Not verified') }}</dd></div>
+        <div v-if="!individual"><dt>{{ tr('Verified') }}</dt><dd>{{ state.verifiedBy ? `${state.verifiedBy} · ${formatDateTime(state.verifiedAt)}` : tr('Not verified') }}</dd></div>
       </dl>
     </section>
 
-    <Crm360Parties :client-id="clientId" :parties="parties" :can-edit="canEdit" @changed="emit('changed')" />
+    <Crm360Parties v-if="!individual" :client-id="clientId" :parties="parties" :can-edit="canEdit" @changed="emit('changed')" />
 
     <section class="c3-panel">
       <header class="c3-panel-head"><h3><span class="fa fa-history" aria-hidden="true"></span>{{ tr('History') }}</h3></header>
@@ -51,9 +51,10 @@
     </section>
 
     <Crm360Dialog v-model:visible="editing" :title="tr('Edit Compliance Profile')" icon="fa-shield" :busy="busy">
-      <p class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr(makerChecker ? 'Saving a change removes the verification. Another user must verify it again.' : 'Saving a change removes the verification. Verify it again to make it count.') }}</p>
+      <p v-if="individual" class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr('An individual is Clear when KYC is approved and AML and sanctions screening are clear. It is needed at Credit approval.') }}</p>
+      <p v-else class="c3-note"><span class="fa fa-info-circle" aria-hidden="true"></span>{{ tr(makerChecker ? 'Saving a change removes the verification. Another user must verify it again.' : 'Saving a change removes the verification. Verify it again to make it count.') }}</p>
       <div class="c3-grid">
-        <label class="fc-field" :class="bad('riskGrade')"><span>{{ tr('Risk Grade') }}</span>
+        <label v-if="!individual" class="fc-field" :class="bad('riskGrade')"><span>{{ tr('Risk Grade') }}</span>
           <select v-model="form.riskGrade" class="fx-select"><option :value="null"></option><option v-for="v in RISK" :key="v" :value="v">{{ v }}</option></select></label>
         <label class="fc-field" :class="bad('kycStatus')"><span>{{ tr('KYC Status') }}<b> *</b></span>
           <select v-model="form.kycStatus" class="fx-select"><option v-for="v in KYC" :key="v" :value="v">{{ v }}</option></select></label>
@@ -65,7 +66,7 @@
           <select v-model="form.sanctionsStatus" class="fx-select"><option v-for="v in SANCTIONS" :key="v" :value="v">{{ v }}</option></select></label>
         <label class="fc-field"><span>{{ tr('Blacklisted') }}</span>
           <select v-model="form.isBlacklisted" class="fx-select"><option :value="false">{{ tr('No') }}</option><option :value="true">{{ tr('Yes') }}</option></select></label>
-        <label class="fc-field"><span>{{ tr('Next Review Date') }}</span><input v-model="form.nextReviewDate" type="date" class="fx-search"></label>
+        <label v-if="!individual" class="fc-field"><span>{{ tr('Next Review Date') }}</span><input v-model="form.nextReviewDate" type="date" class="fx-search"></label>
         <label v-if="form.isBlacklisted" class="fc-field c3-wide" :class="bad('blacklistReason')"><span>{{ tr('Blacklist Reason') }}<b> *</b></span>
           <input v-model="form.blacklistReason" class="fx-search" maxlength="1000"></label>
         <label class="fc-field c3-wide"><span>{{ tr('Notes for the history') }}</span><input v-model="form.notes" class="fx-search" maxlength="1000"></label>
@@ -98,7 +99,7 @@ import Crm360Dialog from './Crm360Dialog.vue'
 import Crm360Parties from './Crm360Parties.vue'
 import { chip } from './crm360'
 
-const props = defineProps<{ clientId: number; state: CrmComplianceState; badge: CrmBadge; history: CrmComplianceHistory[]; parties: CrmParty[]; makerChecker: boolean; canEdit: boolean; canVerify: boolean }>()
+const props = defineProps<{ clientId: number; state: CrmComplianceState; badge: CrmBadge; history: CrmComplianceHistory[]; parties: CrmParty[]; makerChecker: boolean; canEdit: boolean; canVerify: boolean; individual?: boolean }>()
 const emit = defineEmits<{ changed: [] }>()
 
 const KYC = ['PENDING', 'APPROVED', 'REJECTED']
@@ -145,7 +146,7 @@ async function run(action: () => Promise<void>, done: string, close: () => void)
 const blank = (v: string | null) => (v ? v : null)
 const save = () => run(() => crm360Api.saveCompliance(props.clientId, {
   ...form, kycExpiryDate: blank(form.kycExpiryDate), amlCheckDate: blank(form.amlCheckDate), nextReviewDate: blank(form.nextReviewDate)
-}), props.makerChecker ? 'Compliance profile saved. Another user must verify it.' : 'Compliance profile saved. Verify it to make it count.', () => (editing.value = false))
+}), props.individual ? 'Compliance profile saved.' : props.makerChecker ? 'Compliance profile saved. Another user must verify it.' : 'Compliance profile saved. Verify it to make it count.', () => (editing.value = false))
 const verify = () => run(() => crm360Api.verifyCompliance(props.clientId, verifyNotes.value || null), 'Compliance profile verified.', () => {
   verifying.value = false
   verifyNotes.value = ''

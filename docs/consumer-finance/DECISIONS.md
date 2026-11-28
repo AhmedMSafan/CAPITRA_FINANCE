@@ -82,3 +82,12 @@ line by line, before it is shown. A change of decision is made here first.
 
 
 - Refund of a claim already paid when the finance is rejected: not built yet (the history says what to refund).
+
+## Individual customers: a lighter Customer 360 (28 Nov 2026)
+- An INDIVIDUAL customer (consumer finance, microfinance) shows only Overview, Profile and Compliance; the Compliance badge only.
+- No bank accounts and no roles: only the Client role made with the customer; adding a role is refused on the server.
+- Compliance stays required at Credit approval but is simplified: Clear when KYC is APPROVED and AML and sanctions are CLEAR
+  (blacklist, KYC rejected, AML blocked or a sanctions match still block). No risk grade, review dates, owners and signatories,
+  KYC expiry not required (when given it still expires the KYC), and no second-person verification.
+- Companies keep the full compliance and 360 unchanged.
+
